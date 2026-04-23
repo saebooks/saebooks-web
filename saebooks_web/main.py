@@ -36,6 +36,7 @@ from saebooks_web.routes.bills import router as bills_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.invoices import router as invoices_router
+from saebooks_web.routes.journal_entries import router as journal_entries_router
 from saebooks_web.routes.payments import router as payments_router
 
 logging.basicConfig(level=settings.log_level)
@@ -68,6 +69,7 @@ app.include_router(invoices_router)
 app.include_router(bills_router)
 app.include_router(payments_router)
 app.include_router(credit_notes_router)
+app.include_router(journal_entries_router)
 
 
 # ---------------------------------------------------------------------------
