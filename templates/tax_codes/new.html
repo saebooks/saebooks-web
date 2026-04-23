@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}New Tax Code — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900">New Tax Code</h1>
+  <a href="/tax-codes" class="text-sm text-indigo-600 hover:underline">← Back to tax codes</a>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
+  <form method="POST" action="/tax-codes/new" novalidate>
+
+    {# Idempotency key — prevents double-submit on page reload #}
+    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+    {% include "tax_codes/_form_fields.html" %}
+
+    <div class="mt-8 flex items-center gap-3">
+      <button
+        type="submit"
+        class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white
+               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Save tax code
+      </button>
+      <a
+        href="/tax-codes"
+        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
+               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Cancel
+      </a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}
