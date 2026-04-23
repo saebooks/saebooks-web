@@ -1,14 +1,17 @@
-"""Bills list, detail, and create views — Lane D cycles 3 + 11.
+"""Bills list, detail, create, and edit views — Lane D cycles 3 + 11 + 13.
 
 GET  /bills              — list page (paginated, HTMX-aware)
 GET  /bills/new          — empty create form; generates idempotency key
 POST /bills/new          — submit to upstream API; redirect on success,
                            re-render with errors on 422
 GET  /bills/_add_line    — HTMX partial: returns a single blank line row
+GET  /bills/{id}/edit    — pre-populated edit form (DRAFT only)
+POST /bills/{id}/edit    — PATCH to API with If-Match + lines replace
 GET  /bills/{id}         — bill detail
 
 Route ordering: /bills/new and /bills/_add_line MUST be declared before
-/bills/{bill_id} so FastAPI resolves the literal paths first.
+/bills/{bill_id}/edit, which must be declared before /bills/{bill_id}, so
+FastAPI resolves the literal paths first.
 
 Auth guard: redirect to /login (303) if no session token.
 """
@@ -305,6 +308,279 @@ async def bill_add_line(request: Request, index: int = 0) -> HTMLResponse | Redi
     )
 
 
+# ---------------------------------------------------------------------------
+# Edit — GET (pre-populated form) + POST (PATCH with If-Match + lines replace)
+# NOTE: these routes MUST appear before /bills/{bill_id} for the same
+# literal-vs-parameter ordering reason as /bills/new.
+# ---------------------------------------------------------------------------
+
+_EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "supplier_reference")
+
+# Statuses that block editing — only DRAFT bills are mutable.
+_LOCKED_STATUSES = {"POSTED", "VOIDED"}
+
+
+async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict]]:
+    """Fetch supplier contacts, expense accounts and tax_codes; return the lists."""
+    contacts: list[dict] = []
+    accounts: list[dict] = []
+    tax_codes: list[dict] = []
+
+    c_resp = await client.get("/api/v1/contacts", params={"contact_type": "SUPPLIER", "limit": 500, "offset": 0})
+    if c_resp.is_success:
+        contacts = c_resp.json().get("items", [])
+
+    a_resp = await client.get("/api/v1/accounts", params={"account_type": "EXPENSE", "limit": 500, "offset": 0})
+    if a_resp.is_success:
+        accounts = a_resp.json().get("items", [])
+
+    t_resp = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+    if t_resp.is_success:
+        tax_codes = t_resp.json().get("items", [])
+
+    return contacts, accounts, tax_codes
+
+
+@router.get("/bills/{bill_id}/edit", response_class=HTMLResponse, response_model=None)
+async def bill_edit_form(
+    request: Request,
+    bill_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Render the pre-populated edit form for an existing bill.
+
+    Only DRAFT bills are editable.  POSTED or VOIDED bills get a read-only
+    blocked page instead of the form.
+
+    The current ``version`` is stored in a hidden input so the subsequent
+    POST can include it in the ``If-Match`` header for optimistic locking.
+    A fresh idempotency key is generated per GET to guard against
+    double-submit on page reload.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/bills/{bill_id}")
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "bills/edit.html",
+            {"bill": None, "form": {}, "errors": {"__all__": "Bill not found"},
+             "conflict": False, "contacts": [], "accounts": [], "tax_codes": [], "lines": [], "line_count": 0},
+            status_code=404,
+        )
+    if not resp.is_success:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "bills/edit.html",
+            {"bill": None, "form": {}, "errors": {"__all__": f"API error: HTTP {resp.status_code}"},
+             "conflict": False, "contacts": [], "accounts": [], "tax_codes": [], "lines": [], "line_count": 0},
+            status_code=resp.status_code,
+        )
+
+    bill = resp.json()
+
+    # Block editing of non-DRAFT bills.
+    if bill.get("status") in _LOCKED_STATUSES:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "bills/edit_blocked.html",
+            {"bill": bill},
+            status_code=422,
+        )
+
+    # Pre-populate the form dict from the API response.
+    form: dict[str, object] = {field: bill.get(field) or "" for field in _EDIT_FIELDS}
+    form["version"] = str(bill.get("version", ""))
+
+    # Build lines list for the form, keyed by zero-based index.
+    api_lines = bill.get("lines", [])
+    lines = []
+    for i, ln in enumerate(api_lines):
+        lines.append({
+            "index": i,
+            "account_id": str(ln.get("account_id") or ""),
+            "description": ln.get("description", ""),
+            "quantity": str(ln.get("quantity", "1")),
+            "unit_price": str(ln.get("unit_price", "")),
+            "tax_code_id": str(ln.get("tax_code_id") or ""),
+        })
+    if not lines:
+        lines = [{"index": 0}]
+
+    async with api_client(request) as client:
+        contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "bills/edit.html",
+        {
+            "bill": bill,
+            "form": form,
+            "errors": {},
+            "conflict": False,
+            "idempotency_key": str(uuid.uuid4()),
+            "contacts": contacts,
+            "accounts": accounts,
+            "tax_codes": tax_codes,
+            "lines": lines,
+            "line_count": len(lines),
+        },
+    )
+
+
+@router.post("/bills/{bill_id}/edit", response_class=HTMLResponse, response_model=None)
+async def bill_update(
+    request: Request,
+    bill_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Submit the edit form — PATCH to the API with If-Match + full lines replace.
+
+    Outcomes:
+    - 200 OK       -> 303 redirect to /bills/{id}  (Post-Redirect-Get)
+    - 409 Conflict -> re-fetch latest record, re-render form with a conflict
+                      banner and the server's current version in the hidden
+                      input.  The user's submitted values are preserved.
+    - 422          -> re-render with per-field validation errors
+    - 403          -> flash message on detail page, redirect
+    - 401          -> clear session, redirect to /login
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    version = form.get("version", "")
+    idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
+
+    # Build the PATCH payload — only include non-empty header fields.
+    payload: dict[str, object] = {}
+    for field in _EDIT_FIELDS:
+        val = form.get(field, "").strip()
+        if val:
+            payload[field] = val
+
+    # Lines are always sent (full replace semantics).
+    payload["lines"] = _parse_lines(form)
+
+    async with api_client(request) as client:
+        resp = await client.patch(
+            f"/api/v1/bills/{bill_id}",
+            json=payload,
+            headers={
+                "If-Match": version,
+                "X-Idempotency-Key": idempotency_key,
+            },
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
+
+    if resp.status_code == 403:
+        request.session["flash"] = "You do not have permission to edit this bill."
+        return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
+
+    # 409 Conflict — re-fetch the server's latest version, preserve user input,
+    # and show a conflict banner so the user can reconcile.
+    if resp.status_code == 409:
+        async with api_client(request) as client:
+            latest_resp = await client.get(f"/api/v1/bills/{bill_id}")
+            server_bill: dict = latest_resp.json() if latest_resp.is_success else {}
+            server_version = str(server_bill.get("version", ""))
+
+            contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+
+        # Preserve user's submitted form values but update the hidden version.
+        conflict_form = dict(form)
+        conflict_form["version"] = server_version
+
+        # Reconstruct lines for re-render from submitted values.
+        raw_lines = _parse_lines(form)
+        lines = [{"index": i, **ln} for i, ln in enumerate(raw_lines)] or [{"index": 0}]
+
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "bills/edit.html",
+            {
+                "bill": server_bill,
+                "form": conflict_form,
+                "errors": {},
+                "conflict": True,
+                "server_bill": server_bill,
+                "idempotency_key": idempotency_key,
+                "contacts": contacts,
+                "accounts": accounts,
+                "tax_codes": tax_codes,
+                "lines": lines,
+                "line_count": len(lines),
+            },
+            status_code=409,
+        )
+
+    # 422 — parse per-field validation errors.
+    errors: dict[str, str] = {}
+    if resp.status_code == 422:
+        try:
+            detail = resp.json().get("detail", [])
+            if isinstance(detail, list):
+                for err in detail:
+                    loc = err.get("loc", [])
+                    field_parts = [p for p in loc if p != "body"]
+                    field_key = str(field_parts[0]) if field_parts else "__all__"
+                    errors[field_key] = err.get("msg", "Invalid value")
+            elif isinstance(detail, str):
+                errors["__all__"] = detail
+        except Exception:
+            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
+    elif resp.status_code == 428:
+        import logging as _logging
+        _logging.getLogger(__name__).error(
+            "PATCH /api/v1/bills/%s returned 428 — If-Match header was missing",
+            bill_id,
+        )
+        errors["__all__"] = "Precondition required: version information was missing. Please reload and try again."
+    else:
+        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+
+    # Re-fetch dropdowns for re-render.
+    contacts2: list[dict] = []
+    accounts2: list[dict] = []
+    tax_codes2: list[dict] = []
+
+    async with api_client(request) as client:
+        contacts2, accounts2, tax_codes2 = await _fetch_dropdowns(client)
+
+    raw_lines2 = _parse_lines(form)
+    lines2 = [{"index": i, **ln} for i, ln in enumerate(raw_lines2)] or [{"index": 0}]
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "bills/edit.html",
+        {
+            "bill": None,
+            "form": form,
+            "errors": errors,
+            "conflict": False,
+            "idempotency_key": idempotency_key,
+            "contacts": contacts2,
+            "accounts": accounts2,
+            "tax_codes": tax_codes2,
+            "lines": lines2,
+            "line_count": len(lines2),
+        },
+        status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
 @router.get("/bills/{bill_id}", response_class=HTMLResponse, response_model=None)
 async def bill_detail(
     request: Request,
@@ -323,20 +599,22 @@ async def bill_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "bills/detail.html",
-                {"bill": None, "error": "Bill not found"},
+                {"bill": None, "error": "Bill not found", "flash": None},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "bills/detail.html",
-                {"bill": None, "error": f"API error: HTTP {resp.status_code}"},
+                {"bill": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
                 status_code=resp.status_code,
             )
 
     bill = resp.json()
+    # Consume and clear any flash message from session.
+    flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "bills/detail.html",
-        {"bill": bill, "error": None},
+        {"bill": bill, "error": None, "flash": flash},
     )
