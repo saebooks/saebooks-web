@@ -1,0 +1,97 @@
+{#
+  _line_row.html — single bill line-item row.
+
+  Used both when rendering the full new-bill form and as an HTMX fragment
+  returned by GET /bills/_add_line?index=N.
+
+  Expected context variables:
+    index      : int   — zero-based row index used in field names
+    line       : dict  — pre-filled values (empty dict for a blank row)
+    accounts   : list  — expense account dicts [{id, name, code, account_type}, ...]
+    tax_codes  : list  — tax code dicts [{id, name, rate}, ...]
+    errors     : dict  — field errors (keyed by flat name, rarely used per-line)
+#}
+<tr class="line-row border-b border-gray-100">
+  {# Account #}
+  <td class="px-3 py-2">
+    <select
+      name="lines[{{ index }}][account_id]"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+      <option value="">— account —</option>
+      {% for acct in accounts %}
+      <option value="{{ acct.id }}"
+        {% if line.get("account_id") == acct.id %}selected{% endif %}>
+        {{ acct.code }} — {{ acct.name }}
+      </option>
+      {% endfor %}
+    </select>
+  </td>
+
+  {# Description #}
+  <td class="px-3 py-2">
+    <input
+      type="text"
+      name="lines[{{ index }}][description]"
+      value="{{ line.get('description', '') }}"
+      placeholder="Description"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+  </td>
+
+  {# Quantity #}
+  <td class="px-3 py-2 w-24">
+    <input
+      type="number"
+      name="lines[{{ index }}][quantity]"
+      value="{{ line.get('quantity', '1') }}"
+      step="0.001"
+      min="0"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+  </td>
+
+  {# Unit price #}
+  <td class="px-3 py-2 w-28">
+    <input
+      type="number"
+      name="lines[{{ index }}][unit_price]"
+      value="{{ line.get('unit_price', '') }}"
+      step="0.01"
+      min="0"
+      placeholder="0.00"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+  </td>
+
+  {# Tax code #}
+  <td class="px-3 py-2 w-32">
+    <select
+      name="lines[{{ index }}][tax_code_id]"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+      <option value="">— none —</option>
+      {% for tc in tax_codes %}
+      <option value="{{ tc.id }}"
+        {% if line.get("tax_code_id") == tc.id %}selected{% endif %}>
+        {{ tc.name }}
+      </option>
+      {% endfor %}
+    </select>
+  </td>
+
+  {# Remove button #}
+  <td class="px-3 py-2 w-10 text-center">
+    <button
+      type="button"
+      onclick="this.closest('tr').remove()"
+      class="text-red-400 hover:text-red-600 text-lg leading-none font-bold"
+      title="Remove line"
+    >&times;</button>
+  </td>
+</tr>

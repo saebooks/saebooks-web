@@ -11,15 +11,13 @@
     {% endif %}
   </div>
 
-  {# TODO: wire up "New bill" form in a future cycle #}
-  <button
+  <a
+    href="/bills/new"
     class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
-           hover:bg-indigo-700 opacity-50 cursor-not-allowed"
-    disabled
-    title="Coming soon"
+           hover:bg-indigo-700"
   >
     + New bill
-  </button>
+  </a>
 </div>
 
 {# Filter form — HTMX-powered, swaps only the table on submit #}
