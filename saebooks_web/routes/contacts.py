@@ -1,16 +1,21 @@
-"""Contacts list view — first real HTMX page.
+"""Contacts list, detail and create views — Lane D cycles 1 + 7.
 
-GET /contacts
-    Renders templates/contacts/list.html, backed by GET /api/v1/contacts
-    on the saebooks-api.  Requires an authenticated session.
+GET  /contacts          — list page (paginated, first 100)
+GET  /contacts/new      — empty create form; generates idempotency key
+POST /contacts/new      — submit to upstream API; redirect on success,
+                          re-render with errors on 422
+GET  /contacts/{id}     — contact detail
+
+Route ordering: /contacts/new MUST be declared before /contacts/{contact_id}
+so FastAPI matches the literal path first.
 
 HTMX extension points (TODO — future cycles):
 - Pagination via hx-get with ?offset= query param, swapping the table body
 - Inline search with hx-trigger="keyup changed delay:300ms"
-- New contact slide-out form via hx-get /contacts/new into a modal
 """
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -21,7 +26,6 @@ from saebooks_web.api_client import api_client
 
 router = APIRouter()
 
-# Resolve templates relative to the repo root (parent of this package dir).
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
@@ -29,6 +33,11 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
+
+
+# ---------------------------------------------------------------------------
+# List
+# ---------------------------------------------------------------------------
 
 
 @router.get("/contacts", response_class=HTMLResponse, response_model=None)
@@ -48,7 +57,6 @@ async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
     async with api_client(request) as client:
         resp = await client.get("/api/v1/contacts", params={"limit": 100, "offset": 0})
         if resp.status_code == 401:
-            # Token in session is no longer valid (e.g. server restarted).
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
         if resp.is_success:
@@ -66,4 +74,161 @@ async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
             "total": total,
             "error": error,
         },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Create — GET (empty form) + POST (submit)
+# NOTE: these routes MUST appear before the /{contact_id} route so FastAPI
+# resolves /contacts/new as a literal path rather than a path parameter.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/contacts/new", response_class=HTMLResponse, response_model=None)
+async def contact_new_form(request: Request) -> HTMLResponse | RedirectResponse:
+    """Render the empty create-contact form.
+
+    Generates a fresh idempotency key stored in a hidden input to prevent
+    double-submit on page reload.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "contacts/new.html",
+        {
+            "form": {},
+            "errors": {},
+            "idempotency_key": str(uuid.uuid4()),
+        },
+    )
+
+
+@router.post("/contacts/new", response_class=HTMLResponse, response_model=None)
+async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
+    """Submit the create-contact form.
+
+    Calls POST /api/v1/contacts on the upstream API.
+    - 201 -> 303 redirect to /contacts/{id}  (Post-Redirect-Get)
+    - 422 -> re-render form with per-field errors + submitted values preserved
+    - 401 -> clear session, redirect to /login
+    - other errors -> re-render form with a generic error message
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    # Collect the raw submitted values for re-display on validation failure.
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
+
+    # Build the payload — only send non-empty optional fields.
+    payload: dict[str, object] = {}
+    for field in (
+        "name",
+        "contact_type",
+        "email",
+        "phone",
+        "abn",
+        "address_line1",
+        "address_line2",
+        "city",
+        "state",
+        "postcode",
+        "country",
+        "notes",
+        "default_tax_code",
+    ):
+        val = form.get(field, "").strip()
+        if val:
+            payload[field] = val
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            "/api/v1/contacts",
+            json=payload,
+            headers={"X-Idempotency-Key": idempotency_key},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 201:
+        created = resp.json()
+        return RedirectResponse(url=f"/contacts/{created['id']}", status_code=303)
+
+    # 422 — parse per-field validation errors from FastAPI/Pydantic detail array.
+    errors: dict[str, str] = {}
+    if resp.status_code == 422:
+        try:
+            detail = resp.json().get("detail", [])
+            if isinstance(detail, list):
+                for err in detail:
+                    # Pydantic v2 location: ["body", "field_name"] or ["body", "field_name", ...]
+                    loc = err.get("loc", [])
+                    # Strip the leading "body" segment if present.
+                    field_parts = [p for p in loc if p != "body"]
+                    field = str(field_parts[0]) if field_parts else "__all__"
+                    errors[field] = err.get("msg", "Invalid value")
+            elif isinstance(detail, str):
+                errors["__all__"] = detail
+        except Exception:
+            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
+    else:
+        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "contacts/new.html",
+        {
+            "form": form,
+            "errors": errors,
+            "idempotency_key": idempotency_key,
+        },
+        status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Detail
+# ---------------------------------------------------------------------------
+
+
+@router.get("/contacts/{contact_id}", response_class=HTMLResponse, response_model=None)
+async def contact_detail(
+    request: Request,
+    contact_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Render a single contact detail page."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/contacts/{contact_id}")
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.status_code == 404:
+            return _TEMPLATES.TemplateResponse(
+                request,
+                "contacts/detail.html",
+                {"contact": None, "error": "Contact not found"},
+                status_code=404,
+            )
+        if not resp.is_success:
+            return _TEMPLATES.TemplateResponse(
+                request,
+                "contacts/detail.html",
+                {"contact": None, "error": f"API error: HTTP {resp.status_code}"},
+                status_code=resp.status_code,
+            )
+
+    contact = resp.json()
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "contacts/detail.html",
+        {"contact": contact, "error": None},
     )
