@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if invoice %}Edit Invoice {{ invoice.number or invoice.id }} — SAE Books{% else %}Edit Invoice — SAE Books{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900">
+    {% if invoice %}Edit Invoice {{ invoice.number or "—" }}{% else %}Edit Invoice{% endif %}
+  </h1>
+  {% if invoice %}
+  <a href="/invoices/{{ invoice.id }}" class="text-sm text-indigo-600 hover:underline">← Back to invoice</a>
+  {% else %}
+  <a href="/invoices" class="text-sm text-indigo-600 hover:underline">← Back to invoices</a>
+  {% endif %}
+</div>
+
+{# ── Conflict banner ── #}
+{% if conflict %}
+<div
+  id="conflict-banner"
+  class="rounded-md bg-amber-50 border border-amber-300 px-4 py-4 text-sm text-amber-800 mb-6"
+  role="alert"
+>
+  <p class="font-semibold mb-1">
+    Someone else updated this invoice.
+  </p>
+  <p class="mb-2">
+    The form below now shows <strong>your submitted values</strong> with the server's current version
+    number applied — so your next save will use the correct base.
+    If you want to start fresh from the server's current state instead,
+    {% if invoice %}
+    <a href="/invoices/{{ invoice.id }}/edit" class="underline hover:text-amber-900">reload the server version</a>.
+    {% else %}
+    reload the page.
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
+  {% if invoice %}
+  <form method="POST" action="/invoices/{{ invoice.id }}/edit" novalidate>
+  {% else %}
+  <form method="POST" novalidate>
+  {% endif %}
+
+    {# Version — carries the optimistic-lock token; sent as If-Match header on PATCH #}
+    <input type="hidden" name="version" value="{{ form.get('version', '') }}">
+
+    {% include "invoices/_form_fields.html" %}
+
+    <div class="mt-8 flex items-center gap-3">
+      <button
+        type="submit"
+        class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white
+               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Save changes
+      </button>
+      {% if invoice %}
+      <a
+        href="/invoices/{{ invoice.id }}"
+        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
+               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Cancel
+      </a>
+      {% else %}
+      <a
+        href="/invoices"
+        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
+               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Cancel
+      </a>
+      {% endif %}
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}
