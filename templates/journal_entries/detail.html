@@ -6,6 +6,12 @@
 
 {% block content %}
 
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
 {% if error %}
 <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
   {{ error }}
@@ -42,10 +48,19 @@
     <p class="text-sm text-gray-500 mt-1">{{ entry.description }}</p>
     {% endif %}
   </div>
-  <a
-    href="/journal-entries"
-    class="text-sm text-indigo-600 hover:underline"
-  >← Back to journal entries</a>
+  <div class="flex items-center gap-3">
+    {% if entry.status == 'DRAFT' %}
+    <a
+      href="/journal-entries/{{ entry.id }}/edit"
+      class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white
+             hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >Edit</a>
+    {% endif %}
+    <a
+      href="/journal-entries"
+      class="text-sm text-indigo-600 hover:underline"
+    >← Back to journal entries</a>
+  </div>
 </div>
 
 {# ── Summary cards ── #}
