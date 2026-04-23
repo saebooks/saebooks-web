@@ -16,19 +16,28 @@
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
   {% if request.session.get("api_token") %}
-  <nav class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-6">
-      <span class="font-semibold text-indigo-600">SAE Books</span>
-      <a href="/contacts" class="text-sm text-gray-600 hover:text-gray-900">Contacts</a>
-      <a href="/invoices" class="text-sm text-gray-600 hover:text-gray-900">Invoices</a>
-      <a href="/bills" class="text-sm text-gray-600 hover:text-gray-900">Bills</a>
-      <a href="/payments" class="text-sm text-gray-600 hover:text-gray-900">Payments</a>
-      <a href="/credit-notes" class="text-sm text-gray-600 hover:text-gray-900">Credit Notes</a>
-      <a href="/journal-entries" class="text-sm text-gray-600 hover:text-gray-900">Journal Entries</a>
-      {# TODO: add Accounts, Purchases, Banking, Reports nav items in future cycles #}
+  <nav class="bg-white border-b border-gray-200 px-6">
+    {# Primary nav — transactional entities #}
+    <div class="flex items-center justify-between py-3">
+      <div class="flex items-center gap-6">
+        <span class="font-semibold text-indigo-600">SAE Books</span>
+        <a href="/contacts" class="text-sm text-gray-600 hover:text-gray-900">Contacts</a>
+        <a href="/invoices" class="text-sm text-gray-600 hover:text-gray-900">Invoices</a>
+        <a href="/bills" class="text-sm text-gray-600 hover:text-gray-900">Bills</a>
+        <a href="/payments" class="text-sm text-gray-600 hover:text-gray-900">Payments</a>
+        <a href="/credit-notes" class="text-sm text-gray-600 hover:text-gray-900">Credit Notes</a>
+        <a href="/journal-entries" class="text-sm text-gray-600 hover:text-gray-900">Journal Entries</a>
+      </div>
+      <div>
+        <a href="/logout" class="text-sm text-gray-500 hover:text-gray-700">Sign out</a>
+      </div>
     </div>
-    <div>
-      <a href="/logout" class="text-sm text-gray-500 hover:text-gray-700">Sign out</a>
+    {# Setup sub-row — configuration entities #}
+    <div class="flex items-center gap-2 pb-2 border-t border-gray-100 pt-2">
+      <span class="text-xs font-medium text-gray-400 uppercase tracking-wide mr-1">Setup</span>
+      <a href="/accounts" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Accounts</a>
+      <a href="/items" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Items</a>
+      <a href="/tax-codes" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Tax Codes</a>
     </div>
   </nav>
   {% endif %}

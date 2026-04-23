@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Items — SAE Books{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Items</h1>
+    {% if not error %}
+    <p class="text-sm text-gray-500 mt-1">{{ total }} item{{ "s" if total != 1 else "" }}</p>
+    {% endif %}
+  </div>
+</div>
+
+{# Filter form #}
+<form
+  hx-get="/items"
+  hx-target="#items-table"
+  hx-swap="outerHTML"
+  hx-push-url="true"
+  class="mb-4 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="item_type" class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+    <select
+      id="item_type"
+      name="item_type"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+      <option value="" {% if not filter_item_type %}selected{% endif %}>All types</option>
+      <option value="inventory" {% if filter_item_type == 'inventory' %}selected{% endif %}>Inventory</option>
+      <option value="service" {% if filter_item_type == 'service' %}selected{% endif %}>Service</option>
+    </select>
+  </div>
+
+  <input type="hidden" name="limit" value="{{ limit }}">
+  <input type="hidden" name="offset" value="0">
+
+  <button
+    type="submit"
+    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+  >
+    Filter
+  </button>
+</form>
+
+{% include "items/_table.html" %}
+
+{% endblock %}

@@ -32,12 +32,15 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.config import settings
+from saebooks_web.routes.accounts import router as accounts_router
 from saebooks_web.routes.bills import router as bills_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.invoices import router as invoices_router
+from saebooks_web.routes.items import router as items_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
 from saebooks_web.routes.payments import router as payments_router
+from saebooks_web.routes.tax_codes import router as tax_codes_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -70,6 +73,9 @@ app.include_router(bills_router)
 app.include_router(payments_router)
 app.include_router(credit_notes_router)
 app.include_router(journal_entries_router)
+app.include_router(accounts_router)
+app.include_router(items_router)
+app.include_router(tax_codes_router)
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Tax Codes — SAE Books{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Tax Codes</h1>
+    {% if not error %}
+    <p class="text-sm text-gray-500 mt-1">{{ total }} tax code{{ "s" if total != 1 else "" }}</p>
+    {% endif %}
+  </div>
+</div>
+
+{% include "tax_codes/_table.html" %}
+
+{% endblock %}
