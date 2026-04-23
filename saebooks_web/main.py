@@ -36,11 +36,13 @@ from saebooks_web.routes.bills import router as bills_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.dashboard import router as dashboard_router
+from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.invoices import router as invoices_router
 from saebooks_web.routes.items import router as items_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
 from saebooks_web.routes.payments import router as payments_router
 from saebooks_web.routes.projects import router as projects_router
+from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 
 logging.basicConfig(level=settings.log_level)
@@ -79,6 +81,8 @@ app.include_router(accounts_router)
 app.include_router(items_router)
 app.include_router(tax_codes_router)
 app.include_router(projects_router)
+app.include_router(fixed_assets_router)
+app.include_router(recurring_invoices_router)
 
 
 # ---------------------------------------------------------------------------
