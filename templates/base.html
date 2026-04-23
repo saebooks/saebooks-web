@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SAE Books{% endblock %}</title>
+
+  <!-- Tailwind CSS via CDN (no build step) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- HTMX 2.x via CDN -->
+  <script src="https://unpkg.com/htmx.org@2" defer></script>
+
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+
+  {% if request.session.get("api_token") %}
+  <nav class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <span class="font-semibold text-indigo-600">SAE Books</span>
+      <a href="/contacts" class="text-sm text-gray-600 hover:text-gray-900">Contacts</a>
+      {# TODO: add Accounts, Sales, Purchases, Banking, Reports nav items in future cycles #}
+    </div>
+    <div>
+      <a href="/logout" class="text-sm text-gray-500 hover:text-gray-700">Sign out</a>
+    </div>
+  </nav>
+  {% endif %}
+
+  <main class="mx-auto max-w-7xl px-6 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>
