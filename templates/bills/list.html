@@ -3,6 +3,13 @@
 {% block title %}Bills — SAE Books{% endblock %}
 
 {% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-semibold text-gray-900">Bills</h1>

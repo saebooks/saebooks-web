@@ -66,6 +66,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.archive_helpers import archive_entity as _archive_entity
 
 router = APIRouter()
 
@@ -237,10 +238,14 @@ async def payments_list(
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
 
+    # Consume and clear any flash message (e.g. from a successful archive).
+    flash = request.session.pop("flash", None)
+
     ctx = {
         "payments": payments,
         "total": total,
         "error": error,
+        "flash": flash,
         # Filter values echoed back to the form.
         "filter_direction": direction or "",
         "filter_contact_id": contact_id or "",
@@ -733,8 +738,45 @@ async def payment_update(
 
 
 # ---------------------------------------------------------------------------
+# Archive — POST /{payment_id}/archive
+# NOTE: MUST appear before the catch-all /{payment_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/payments/{payment_id}/archive", response_class=HTMLResponse, response_model=None
+)
+async def payment_archive(
+    request: Request,
+    payment_id: str,
+) -> RedirectResponse:
+    """Soft-archive a payment via DELETE /api/v1/payments/{id} with If-Match.
+
+    Only DRAFT payments may be archived; the API returns 422 for POSTED/VOIDED.
+    On success redirects to /payments with a flash.
+    On 409 (version conflict) or 422 (gate failure) redirects back to detail.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = form_data.get("version", "")
+
+    return await _archive_entity(
+        request=request,
+        entity_api_path="/api/v1/payments",
+        entity_id=payment_id,
+        version=str(version),
+        entity_label=f"Payment {payment_id}",
+        list_url="/payments",
+        detail_url=f"/payments/{payment_id}",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Detail
-# NOTE: /{payment_id} MUST appear AFTER /new, /_add_allocation, and /{id}/edit.
+# NOTE: /{payment_id} MUST appear AFTER /new, /_add_allocation, /{id}/edit,
+# and /{id}/archive.
 # ---------------------------------------------------------------------------
 
 

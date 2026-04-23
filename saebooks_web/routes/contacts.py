@@ -26,6 +26,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.archive_helpers import archive_entity as _archive_entity
 
 router = APIRouter()
 
@@ -69,6 +70,9 @@ async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+    # Consume and clear any flash message (e.g. from a successful archive).
+    flash = request.session.pop("flash", None)
+
     return _TEMPLATES.TemplateResponse(
         request,
         "contacts/list.html",
@@ -76,6 +80,7 @@ async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
             "contacts": contacts,
             "total": total,
             "error": error,
+            "flash": flash,
         },
     )
 
@@ -388,6 +393,43 @@ async def contact_update(
 
 
 # ---------------------------------------------------------------------------
+# Archive — POST /{contact_id}/archive
+# NOTE: MUST appear before the catch-all /{contact_id} GET.
+# Contacts have no status field.  Archive is available whenever archived_at is None.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/contacts/{contact_id}/archive", response_class=HTMLResponse, response_model=None
+)
+async def contact_archive(
+    request: Request,
+    contact_id: str,
+) -> RedirectResponse:
+    """Soft-archive a contact via DELETE /api/v1/contacts/{id} with If-Match.
+
+    Contacts have no status field — archive is always available unless archived_at
+    is already set.  On success redirects to /contacts with a flash.
+    On 409 (version conflict) or 422 (gate failure) redirects back to detail.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = form_data.get("version", "")
+
+    return await _archive_entity(
+        request=request,
+        entity_api_path="/api/v1/contacts",
+        entity_id=contact_id,
+        version=str(version),
+        entity_label=f"Contact {contact_id}",
+        list_url="/contacts",
+        detail_url=f"/contacts/{contact_id}",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Detail
 # ---------------------------------------------------------------------------
 
@@ -410,20 +452,22 @@ async def contact_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "contacts/detail.html",
-                {"contact": None, "error": "Contact not found"},
+                {"contact": None, "error": "Contact not found", "flash": None},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "contacts/detail.html",
-                {"contact": None, "error": f"API error: HTTP {resp.status_code}"},
+                {"contact": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
                 status_code=resp.status_code,
             )
 
     contact = resp.json()
+    # Consume and clear any flash message from session.
+    flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "contacts/detail.html",
-        {"contact": contact, "error": None},
+        {"contact": contact, "error": None, "flash": flash},
     )

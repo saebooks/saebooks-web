@@ -46,6 +46,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.archive_helpers import archive_entity as _archive_entity
 
 router = APIRouter()
 
@@ -146,10 +147,14 @@ async def journal_entries_list(
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
 
+    # Consume and clear any flash message (e.g. from a successful archive).
+    flash = request.session.pop("flash", None)
+
     ctx = {
         "journal_entries": journal_entries,
         "total": total,
         "error": error,
+        "flash": flash,
         # Filter values echoed back to the form.
         "filter_status": status or "",
         "filter_date_from": date_from or "",
@@ -618,6 +623,44 @@ async def journal_entry_update(
             "line_count": len(lines2),
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Archive — POST /{entry_id}/archive
+# NOTE: MUST appear before the catch-all /{entry_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/journal-entries/{entry_id}/archive",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def journal_entry_archive(
+    request: Request,
+    entry_id: str,
+) -> RedirectResponse:
+    """Soft-archive a journal entry via DELETE /api/v1/journal_entries/{id} with If-Match.
+
+    Only DRAFT entries may be archived; the API returns 422 for POSTED/REVERSED.
+    On success redirects to /journal-entries with a flash.
+    On 409 (version conflict) or 422 (gate failure) redirects back to detail.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = form_data.get("version", "")
+
+    return await _archive_entity(
+        request=request,
+        entity_api_path="/api/v1/journal_entries",
+        entity_id=entry_id,
+        version=str(version),
+        entity_label=f"Journal entry {entry_id}",
+        list_url="/journal-entries",
+        detail_url=f"/journal-entries/{entry_id}",
     )
 
 

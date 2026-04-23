@@ -1,0 +1,152 @@
+"""Tests for the bill archive action — Lane D cycle 20.
+
+Four tests:
+1. test_bill_archive_happy_path          — API 204 -> 303 to /bills with flash
+2. test_bill_archive_conflict            — API 409 -> 303 back to detail
+3. test_bill_archive_gate_failure        — API 422 -> 303 back to detail
+4. test_bill_archive_button_hidden       — POSTED bill detail has no archive form
+"""
+from __future__ import annotations
+
+import json as _json
+from base64 import b64encode as _b64encode
+
+import pytest
+import respx
+from httpx import ASGITransport, AsyncClient, Response
+from itsdangerous import TimestampSigner as _TimestampSigner
+
+from saebooks_web.config import settings
+from saebooks_web.main import app
+
+_BILL_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+_CONTACT_ID = "11111111-1111-1111-1111-111111111111"
+
+_MOCK_BILL_DRAFT = {
+    "id": _BILL_ID,
+    "company_id": "44444444-4444-4444-4444-444444444444",
+    "tenant_id": "00000000-0000-0000-0000-000000000001",
+    "contact_id": _CONTACT_ID,
+    "number": "BILL-0001",
+    "supplier_reference": None,
+    "issue_date": "2026-04-23",
+    "due_date": "2026-05-23",
+    "status": "DRAFT",
+    "subtotal": "100.00",
+    "tax_total": "10.00",
+    "total": "110.00",
+    "amount_paid": "0.00",
+    "currency": "AUD",
+    "notes": None,
+    "version": 2,
+    "created_at": "2026-04-23T00:00:00Z",
+    "updated_at": "2026-04-23T00:00:00Z",
+    "archived_at": None,
+    "lines": [],
+}
+
+_MOCK_BILL_POSTED = {**_MOCK_BILL_DRAFT, "status": "POSTED", "version": 3}
+
+_API_BASE = settings.api_url.rstrip("/")
+
+
+def _make_session_cookie(data: dict) -> str:
+    signer = _TimestampSigner(settings.secret_key)
+    payload = _b64encode(_json.dumps(data).encode("utf-8"))
+    return signer.sign(payload).decode("utf-8")
+
+
+_SESSION_COOKIE = _make_session_cookie({"api_token": "test-token-abc"})
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_archive_happy_path(respx_mock: respx.MockRouter) -> None:
+    """POST /bills/{id}/archive; API 204 -> 303 redirect to /bills with flash."""
+    respx_mock.delete(f"{_API_BASE}/api/v1/bills/{_BILL_ID}").mock(
+        return_value=Response(204)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/bills").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            f"/bills/{_BILL_ID}/archive",
+            data={"version": "2"},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/bills"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_archive_conflict(respx_mock: respx.MockRouter) -> None:
+    """API 409 -> 303 back to bill detail with conflict flash."""
+    respx_mock.delete(f"{_API_BASE}/api/v1/bills/{_BILL_ID}").mock(
+        return_value=Response(409, json={"detail": "Version conflict"})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            f"/bills/{_BILL_ID}/archive",
+            data={"version": "1"},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/bills/{_BILL_ID}"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_archive_gate_failure(respx_mock: respx.MockRouter) -> None:
+    """API 422 (gate) -> 303 back to bill detail with API message in flash."""
+    respx_mock.delete(f"{_API_BASE}/api/v1/bills/{_BILL_ID}").mock(
+        return_value=Response(422, json={"detail": "Cannot archive a POSTED bill."})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            f"/bills/{_BILL_ID}/archive",
+            data={"version": "3"},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/bills/{_BILL_ID}"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_archive_button_hidden_when_posted(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Detail page for a POSTED bill must not render the archive form."""
+    respx_mock.get(f"{_API_BASE}/api/v1/bills/{_BILL_ID}").mock(
+        return_value=Response(200, json=_MOCK_BILL_POSTED)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/bills/{_BILL_ID}")
+
+    assert resp.status_code == 200
+    assert f"/bills/{_BILL_ID}/archive" not in resp.text

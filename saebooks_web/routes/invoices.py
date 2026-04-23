@@ -23,6 +23,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines_shared
 
 router = APIRouter()
@@ -89,10 +90,14 @@ async def invoices_list(
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
 
+    # Consume and clear any flash message (e.g. from a successful archive).
+    flash = request.session.pop("flash", None)
+
     ctx = {
         "invoices": invoices,
         "total": total,
         "error": error,
+        "flash": flash,
         # Filter values echoed back to the form.
         "filter_status": status or "",
         "filter_contact_id": contact_id or "",
@@ -579,6 +584,42 @@ async def invoice_update(
             "line_count": len(lines2),
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Archive — POST /{invoice_id}/archive
+# NOTE: MUST appear before the catch-all /{invoice_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/invoices/{invoice_id}/archive", response_class=HTMLResponse, response_model=None
+)
+async def invoice_archive(
+    request: Request,
+    invoice_id: str,
+) -> RedirectResponse:
+    """Soft-archive an invoice via DELETE /api/v1/invoices/{id} with If-Match.
+
+    Only DRAFT invoices may be archived; the API returns 422 for POSTED/VOIDED.
+    On success redirects to /invoices with a flash.
+    On 409 (version conflict) or 422 (gate failure) redirects back to detail.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = form_data.get("version", "")
+
+    return await _archive_entity(
+        request=request,
+        entity_api_path="/api/v1/invoices",
+        entity_id=invoice_id,
+        version=str(version),
+        entity_label=f"Invoice {invoice_id}",
+        list_url="/invoices",
+        detail_url=f"/invoices/{invoice_id}",
     )
 
 
