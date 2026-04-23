@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Budgets — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Budgets</h1>
+    {% if not error %}
+    <p class="text-sm text-gray-500 mt-1">{{ total }} budget row{{ "s" if total != 1 else "" }}</p>
+    {% endif %}
+  </div>
+  <div>
+    {# Placeholder — budget creation is out of scope for this cycle #}
+    <button
+      type="button"
+      disabled
+      class="rounded-md bg-indigo-300 px-3 py-1.5 text-sm font-medium text-white cursor-not-allowed"
+      title="Budget creation not yet available"
+    >
+      New budget
+    </button>
+  </div>
+</div>
+
+{# Filter form — HTMX-powered, swaps only the table on submit #}
+<form
+  hx-get="/budgets"
+  hx-target="#budgets-table"
+  hx-swap="outerHTML"
+  hx-push-url="true"
+  class="mb-4 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="year" class="block text-xs font-medium text-gray-500 mb-1">Year</label>
+    <input
+      id="year"
+      type="number"
+      name="year"
+      value="{{ filter_year or '' }}"
+      placeholder="e.g. 2026"
+      min="1900"
+      max="9999"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-28"
+    >
+  </div>
+
+  <div>
+    <label for="month" class="block text-xs font-medium text-gray-500 mb-1">Month</label>
+    <select
+      id="month"
+      name="month"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+      <option value="" {% if not filter_month %}selected{% endif %}>All months</option>
+      {% for m, label in [
+        (1,"January"),(2,"February"),(3,"March"),(4,"April"),
+        (5,"May"),(6,"June"),(7,"July"),(8,"August"),
+        (9,"September"),(10,"October"),(11,"November"),(12,"December")
+      ] %}
+      <option value="{{ m }}" {% if filter_month == m %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <input type="hidden" name="page" value="1">
+  <input type="hidden" name="page_size" value="{{ page_size }}">
+
+  <button
+    type="submit"
+    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+  >
+    Filter
+  </button>
+</form>
+
+{# Table fragment — HTMX replaces this div on filter/pagination #}
+{% include "budgets/_table.html" %}
+
+{% endblock %}

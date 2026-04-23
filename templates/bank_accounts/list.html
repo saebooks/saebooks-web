@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Bank Accounts — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Bank Accounts</h1>
+    {% if not error %}
+    <p class="text-sm text-gray-500 mt-1">{{ total }} account{{ "s" if total != 1 else "" }}</p>
+    {% endif %}
+  </div>
+  <div>
+    {# Placeholder — bank account creation is out of scope for this cycle #}
+    <button
+      type="button"
+      disabled
+      class="rounded-md bg-indigo-300 px-3 py-1.5 text-sm font-medium text-white cursor-not-allowed"
+      title="Bank account creation not yet available"
+    >
+      New bank account
+    </button>
+  </div>
+</div>
+
+{# Filter form — HTMX-powered, swaps only the table on submit #}
+<form
+  hx-get="/bank-accounts"
+  hx-target="#bank-accounts-table"
+  hx-swap="outerHTML"
+  hx-push-url="true"
+  class="mb-4 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="archived" class="block text-xs font-medium text-gray-500 mb-1">Show archived</label>
+    <select
+      id="archived"
+      name="archived"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+      <option value="false" {% if not filter_archived %}selected{% endif %}>Active only</option>
+      <option value="true" {% if filter_archived %}selected{% endif %}>Include archived</option>
+    </select>
+  </div>
+
+  <input type="hidden" name="limit" value="{{ limit }}">
+  <input type="hidden" name="offset" value="0">
+
+  <button
+    type="submit"
+    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+  >
+    Filter
+  </button>
+</form>
+
+{# Table fragment — HTMX replaces this div on filter/pagination #}
+{% include "bank_accounts/_table.html" %}
+
+{% endblock %}
