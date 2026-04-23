@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Cannot Edit Archived Account — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900">
+    {% if account %}Edit {{ account.code }}{% else %}Edit Account{% endif %}
+  </h1>
+  {% if account %}
+  <a href="/accounts/{{ account.id }}" class="text-sm text-indigo-600 hover:underline">← Back to account</a>
+  {% else %}
+  <a href="/accounts" class="text-sm text-indigo-600 hover:underline">← Back to accounts</a>
+  {% endif %}
+</div>
+
+<div class="rounded-md bg-amber-50 border border-amber-300 px-6 py-5 max-w-2xl">
+  <p class="text-sm font-semibold text-amber-800 mb-1">Archived accounts cannot be edited. Restore it first.</p>
+  {% if account %}
+  <p class="text-sm text-amber-700">
+    This account was archived on {{ account.archived_at[:10] }}.
+    Return to the
+    <a href="/accounts/{{ account.id }}" class="underline hover:text-amber-900">account detail page</a>
+    to restore it before making changes.
+  </p>
+  {% endif %}
+</div>
+
+{% endblock %}
