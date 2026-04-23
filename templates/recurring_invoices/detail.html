@@ -38,6 +38,60 @@
     <p class="text-sm text-gray-500 mt-1">ID: {{ ri.id }}</p>
   </div>
   <div class="flex items-center gap-3">
+    {# Edit button — only for ACTIVE and PAUSED #}
+    {% if ri.status in ('ACTIVE', 'PAUSED') and not ri.archived_at %}
+    <a
+      href="/recurring-invoices/{{ ri.id }}/edit"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700
+             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >
+      Edit
+    </a>
+    {% endif %}
+
+    {# Pause button — only for ACTIVE #}
+    {% if ri.status == 'ACTIVE' and not ri.archived_at %}
+    <form method="POST" action="/recurring-invoices/{{ ri.id }}/pause">
+      <input type="hidden" name="version" value="{{ ri.version }}">
+      <button
+        type="submit"
+        class="rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700
+               hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+      >
+        Pause
+      </button>
+    </form>
+    {% endif %}
+
+    {# Resume button — only for PAUSED #}
+    {% if ri.status == 'PAUSED' and not ri.archived_at %}
+    <form method="POST" action="/recurring-invoices/{{ ri.id }}/resume">
+      <input type="hidden" name="version" value="{{ ri.version }}">
+      <button
+        type="submit"
+        class="rounded-md border border-green-300 bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700
+               hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+      >
+        Resume
+      </button>
+    </form>
+    {% endif %}
+
+    {# Archive button — only for non-archived #}
+    {% if not ri.archived_at %}
+    <form method="POST" action="/recurring-invoices/{{ ri.id }}/archive">
+      <input type="hidden" name="version" value="{{ ri.version }}">
+      <button
+        type="submit"
+        class="rounded-md border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600
+               hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        onclick="return confirm('Archive this recurring invoice?')"
+      >
+        Archive
+      </button>
+    </form>
+    {% endif %}
+
     <a href="/recurring-invoices" class="text-sm text-indigo-600 hover:underline">← Back to recurring invoices</a>
   </div>
 </div>
