@@ -1,14 +1,14 @@
-"""Credit notes list + detail views — Lane D cycle 5.
+"""Credit notes list, detail, and create views — Lane D cycles 5 + 14.
 
-GET /credit-notes
-    Renders templates/credit_notes/list.html (full page) or
-    templates/credit_notes/_table.html (HTMX fragment when HX-Request header present).
-    Query params: status, contact_id, date_from, date_to, limit (default 50), offset.
-    Calls GET /api/v1/credit_notes with matching params.
+GET  /credit-notes           — list page (paginated, HTMX-aware)
+GET  /credit-notes/new       — empty create form; generates idempotency key
+POST /credit-notes/new       — submit to upstream API; redirect on success,
+                               re-render with errors on 422
+GET  /credit-notes/_add_line — HTMX partial: returns a single blank line row
+GET  /credit-notes/{id}      — credit note detail
 
-GET /credit-notes/{id}
-    Renders templates/credit_notes/detail.html.
-    Calls GET /api/v1/credit_notes/{id}.
+Route ordering: /credit-notes/new and /credit-notes/_add_line MUST be declared
+before /credit-notes/{credit_note_id} so FastAPI resolves the literal paths first.
 
 Divergences from invoices pattern:
 - URL slug is hyphenated (/credit-notes) but API path uses underscores (/api/v1/credit_notes).
@@ -16,11 +16,15 @@ Divergences from invoices pattern:
 - Has original_invoice_id (nullable) — "Applied to" section links to /invoices/{id} if set.
 - Has amount_allocated (Decimal) — partial application tracking.
 - Has reason (nullable str) — shown in detail header.
+- CreditNoteCreate has NO due_date and NO number — only contact_id, issue_date, reason,
+  notes, original_invoice_id, and lines.
 
 Auth guard: redirect to /login (303) if no session token.
 """
 from __future__ import annotations
 
+import uuid
+from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -28,6 +32,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.form_helpers import parse_lines as _parse_lines
 
 router = APIRouter()
 
@@ -113,6 +118,210 @@ async def credit_notes_list(
     template = "credit_notes/_table.html" if is_htmx else "credit_notes/list.html"
 
     return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# Create — GET (empty form) + POST (submit)
+# NOTE: these routes MUST appear before /{credit_note_id} so FastAPI matches
+# the literal paths first.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/credit-notes/new", response_class=HTMLResponse, response_model=None)
+async def credit_note_new_form(request: Request) -> HTMLResponse | RedirectResponse:
+    """Render the empty create-credit-note form.
+
+    Generates a fresh idempotency key stored in a hidden input to prevent
+    double-submit on page reload.  Populates customer, account and tax-code
+    dropdowns from the upstream API.
+
+    CreditNoteCreate has no due_date or number — only contact_id, issue_date,
+    reason, notes, original_invoice_id, and lines.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    today = date.today().isoformat()
+
+    contacts: list[dict] = []
+    accounts: list[dict] = []
+    tax_codes: list[dict] = []
+
+    async with api_client(request) as client:
+        c_resp = await client.get(
+            "/api/v1/contacts",
+            params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+        )
+        if c_resp.is_success:
+            contacts = c_resp.json().get("items", [])
+
+        a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
+        if a_resp.is_success:
+            accounts = a_resp.json().get("items", [])
+
+        t_resp = await client.get("/api/v1/tax_codes", params={"limit": 100, "offset": 0})
+        if t_resp.is_success:
+            tax_codes = t_resp.json().get("items", [])
+
+    # One blank row to start with.
+    initial_lines = [{"index": 0}]
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "credit_notes/new.html",
+        {
+            "form": {"issue_date": today},
+            "errors": {},
+            "idempotency_key": str(uuid.uuid4()),
+            "contacts": contacts,
+            "accounts": accounts,
+            "tax_codes": tax_codes,
+            "lines": initial_lines,
+            "line_count": 1,
+        },
+    )
+
+
+@router.post("/credit-notes/new", response_class=HTMLResponse, response_model=None)
+async def credit_note_create(request: Request) -> HTMLResponse | RedirectResponse:
+    """Submit the create-credit-note form.
+
+    Calls POST /api/v1/credit_notes on the upstream API.
+    - 201 -> 303 redirect to /credit-notes/{id}  (Post-Redirect-Get)
+    - 422 -> re-render form with per-field errors + submitted values preserved
+    - 401 -> clear session, redirect to /login
+    - other errors -> re-render form with a generic error message
+
+    Line-item fields follow the ``lines[N][field]`` naming convention parsed
+    by ``_parse_lines()``.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
+
+    # Build the top-level payload — only non-empty optional fields included.
+    payload: dict[str, object] = {}
+    for field in ("contact_id", "issue_date", "reason", "notes", "original_invoice_id"):
+        val = form.get(field, "").strip()
+        if val:
+            payload[field] = val
+
+    payload["lines"] = _parse_lines(form)
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            "/api/v1/credit_notes",
+            json=payload,
+            headers={"X-Idempotency-Key": idempotency_key},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 201:
+        created = resp.json()
+        return RedirectResponse(url=f"/credit-notes/{created['id']}", status_code=303)
+
+    # Parse errors for re-render.
+    errors: dict[str, str] = {}
+    if resp.status_code == 422:
+        try:
+            detail = resp.json().get("detail", [])
+            if isinstance(detail, list):
+                for err in detail:
+                    loc = err.get("loc", [])
+                    field_parts = [p for p in loc if p != "body"]
+                    field_key = str(field_parts[0]) if field_parts else "__all__"
+                    errors[field_key] = err.get("msg", "Invalid value")
+            elif isinstance(detail, str):
+                errors["__all__"] = detail
+        except Exception:
+            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
+    else:
+        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+
+    # Re-fetch dropdown data for re-render.
+    contacts: list[dict] = []
+    accounts: list[dict] = []
+    tax_codes: list[dict] = []
+
+    async with api_client(request) as client:
+        c_resp = await client.get(
+            "/api/v1/contacts",
+            params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+        )
+        if c_resp.is_success:
+            contacts = c_resp.json().get("items", [])
+
+        a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
+        if a_resp.is_success:
+            accounts = a_resp.json().get("items", [])
+
+        t_resp = await client.get("/api/v1/tax_codes", params={"limit": 100, "offset": 0})
+        if t_resp.is_success:
+            tax_codes = t_resp.json().get("items", [])
+
+    # Reconstruct lines for re-render from submitted form keys.
+    raw_lines = _parse_lines(form)
+    lines = [{"index": i, **ln} for i, ln in enumerate(raw_lines)] or [{"index": 0}]
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "credit_notes/new.html",
+        {
+            "form": form,
+            "errors": errors,
+            "idempotency_key": idempotency_key,
+            "contacts": contacts,
+            "accounts": accounts,
+            "tax_codes": tax_codes,
+            "lines": lines,
+            "line_count": len(lines),
+        },
+        status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+@router.get("/credit-notes/_add_line", response_class=HTMLResponse, response_model=None)
+async def credit_note_add_line(
+    request: Request, index: int = 0
+) -> HTMLResponse | RedirectResponse:
+    """HTMX partial: return a single blank line row for the given index.
+
+    Called via hx-get="/credit-notes/_add_line?index=N" to append a new row to
+    the line-items table without a full page reload.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    accounts: list[dict] = []
+    tax_codes: list[dict] = []
+
+    async with api_client(request) as client:
+        a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
+        if a_resp.is_success:
+            accounts = a_resp.json().get("items", [])
+
+        t_resp = await client.get("/api/v1/tax_codes", params={"limit": 100, "offset": 0})
+        if t_resp.is_success:
+            tax_codes = t_resp.json().get("items", [])
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "credit_notes/_line_row.html",
+        {
+            "index": index,
+            "line": {},
+            "accounts": accounts,
+            "tax_codes": tax_codes,
+            "errors": {},
+        },
+    )
 
 
 @router.get("/credit-notes/{credit_note_id}", response_class=HTMLResponse, response_model=None)
