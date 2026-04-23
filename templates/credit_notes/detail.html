@@ -12,6 +12,13 @@
 </div>
 {% endif %}
 
+{# ── Flash message ── #}
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
 {% if credit_note %}
 
 {# ── Header ── #}
@@ -34,10 +41,19 @@
     <p class="text-sm text-gray-500 mt-0.5">Reason: {{ credit_note.reason }}</p>
     {% endif %}
   </div>
-  <a
-    href="/credit-notes"
-    class="text-sm text-indigo-600 hover:underline"
-  >← Back to credit notes</a>
+  <div class="flex items-center gap-3">
+    {% if credit_note.status == 'DRAFT' %}
+    <a
+      href="/credit-notes/{{ credit_note.id }}/edit"
+      class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white
+             hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >Edit</a>
+    {% endif %}
+    <a
+      href="/credit-notes"
+      class="text-sm text-indigo-600 hover:underline"
+    >← Back to credit notes</a>
+  </div>
 </div>
 
 {# ── Summary cards ── #}

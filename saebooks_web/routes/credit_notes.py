@@ -1,14 +1,17 @@
-"""Credit notes list, detail, and create views — Lane D cycles 5 + 14.
+"""Credit notes list, detail, create, and edit views — Lane D cycles 5 + 14 + 15.
 
 GET  /credit-notes           — list page (paginated, HTMX-aware)
 GET  /credit-notes/new       — empty create form; generates idempotency key
 POST /credit-notes/new       — submit to upstream API; redirect on success,
                                re-render with errors on 422
 GET  /credit-notes/_add_line — HTMX partial: returns a single blank line row
+GET  /credit-notes/{id}/edit — pre-populated edit form (DRAFT only)
+POST /credit-notes/{id}/edit — PATCH to API with If-Match + lines replace
 GET  /credit-notes/{id}      — credit note detail
 
 Route ordering: /credit-notes/new and /credit-notes/_add_line MUST be declared
-before /credit-notes/{credit_note_id} so FastAPI resolves the literal paths first.
+before /credit-notes/{credit_note_id}/edit, which must be declared before
+/credit-notes/{credit_note_id}, so FastAPI resolves the literal paths first.
 
 Divergences from invoices pattern:
 - URL slug is hyphenated (/credit-notes) but API path uses underscores (/api/v1/credit_notes).
@@ -16,8 +19,8 @@ Divergences from invoices pattern:
 - Has original_invoice_id (nullable) — "Applied to" section links to /invoices/{id} if set.
 - Has amount_allocated (Decimal) — partial application tracking.
 - Has reason (nullable str) — shown in detail header.
-- CreditNoteCreate has NO due_date and NO number — only contact_id, issue_date, reason,
-  notes, original_invoice_id, and lines.
+- CreditNoteCreate/Update has NO due_date, NO number, NO payment_terms — only contact_id,
+  issue_date, reason, notes, original_invoice_id, and lines.
 
 Auth guard: redirect to /login (303) if no session token.
 """
@@ -324,6 +327,291 @@ async def credit_note_add_line(
     )
 
 
+# ---------------------------------------------------------------------------
+# Edit — GET (pre-populated form) + POST (PATCH with If-Match + lines replace)
+# NOTE: these routes MUST appear before /credit-notes/{credit_note_id} for the
+# same literal-vs-parameter ordering reason as /credit-notes/new.
+# ---------------------------------------------------------------------------
+
+# CreditNoteUpdate mutable fields — no due_date, no payment_terms, no number.
+_EDIT_FIELDS = ("contact_id", "issue_date", "reason", "notes", "original_invoice_id")
+
+# Statuses that block editing — only DRAFT credit notes are mutable.
+_LOCKED_STATUSES = {"POSTED", "VOIDED"}
+
+
+async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict]]:
+    """Fetch customer contacts, accounts and tax_codes; return the lists."""
+    contacts: list[dict] = []
+    accounts: list[dict] = []
+    tax_codes: list[dict] = []
+
+    c_resp = await client.get(
+        "/api/v1/contacts",
+        params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+    )
+    if c_resp.is_success:
+        contacts = c_resp.json().get("items", [])
+
+    a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
+    if a_resp.is_success:
+        accounts = a_resp.json().get("items", [])
+
+    t_resp = await client.get("/api/v1/tax_codes", params={"limit": 100, "offset": 0})
+    if t_resp.is_success:
+        tax_codes = t_resp.json().get("items", [])
+
+    return contacts, accounts, tax_codes
+
+
+@router.get("/credit-notes/{credit_note_id}/edit", response_class=HTMLResponse, response_model=None)
+async def credit_note_edit_form(
+    request: Request,
+    credit_note_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Render the pre-populated edit form for an existing credit note.
+
+    Only DRAFT credit notes are editable.  POSTED or VOIDED credit notes get a
+    read-only blocked page instead of the form.
+
+    The current ``version`` is stored in a hidden input so the subsequent POST
+    can include it in the ``If-Match`` header for optimistic locking.  A fresh
+    idempotency key is generated per GET to guard against double-submit on
+    page reload.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/credit_notes/{credit_note_id}")
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "credit_notes/edit.html",
+            {
+                "credit_note": None, "form": {},
+                "errors": {"__all__": "Credit note not found"},
+                "conflict": False, "contacts": [], "accounts": [],
+                "tax_codes": [], "lines": [], "line_count": 0,
+            },
+            status_code=404,
+        )
+    if not resp.is_success:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "credit_notes/edit.html",
+            {
+                "credit_note": None, "form": {},
+                "errors": {"__all__": f"API error: HTTP {resp.status_code}"},
+                "conflict": False, "contacts": [], "accounts": [],
+                "tax_codes": [], "lines": [], "line_count": 0,
+            },
+            status_code=resp.status_code,
+        )
+
+    credit_note = resp.json()
+
+    # Block editing of non-DRAFT credit notes.
+    if credit_note.get("status") in _LOCKED_STATUSES:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "credit_notes/edit_blocked.html",
+            {"credit_note": credit_note},
+            status_code=422,
+        )
+
+    # Pre-populate the form dict from the API response.
+    form: dict[str, object] = {field: credit_note.get(field) or "" for field in _EDIT_FIELDS}
+    form["version"] = str(credit_note.get("version", ""))
+
+    # Build lines list for the form, keyed by zero-based index.
+    api_lines = credit_note.get("lines", [])
+    lines = []
+    for i, ln in enumerate(api_lines):
+        lines.append({
+            "index": i,
+            "account_id": str(ln.get("account_id") or ""),
+            "description": ln.get("description", ""),
+            "quantity": str(ln.get("quantity", "1")),
+            "unit_price": str(ln.get("unit_price", "")),
+            "tax_code_id": str(ln.get("tax_code_id") or ""),
+        })
+    if not lines:
+        lines = [{"index": 0}]
+
+    async with api_client(request) as client:
+        contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "credit_notes/edit.html",
+        {
+            "credit_note": credit_note,
+            "form": form,
+            "errors": {},
+            "conflict": False,
+            "idempotency_key": str(uuid.uuid4()),
+            "contacts": contacts,
+            "accounts": accounts,
+            "tax_codes": tax_codes,
+            "lines": lines,
+            "line_count": len(lines),
+        },
+    )
+
+
+@router.post("/credit-notes/{credit_note_id}/edit", response_class=HTMLResponse, response_model=None)
+async def credit_note_update(
+    request: Request,
+    credit_note_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Submit the edit form — PATCH to the API with If-Match + full lines replace.
+
+    Outcomes:
+    - 200 OK       -> 303 redirect to /credit-notes/{id}  (Post-Redirect-Get)
+    - 409 Conflict -> re-fetch latest record, re-render form with a conflict
+                      banner and the server's current version in the hidden
+                      input.  The user's submitted values are preserved.
+    - 422          -> re-render with per-field validation errors
+    - 403          -> flash message on detail page, redirect
+    - 401          -> clear session, redirect to /login
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    version = form.get("version", "")
+    idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
+
+    # Build the PATCH payload — only include non-empty header fields.
+    payload: dict[str, object] = {}
+    for field in _EDIT_FIELDS:
+        val = form.get(field, "").strip()
+        if val:
+            payload[field] = val
+
+    # Lines are always sent (full replace semantics).
+    payload["lines"] = _parse_lines(form)
+
+    async with api_client(request) as client:
+        resp = await client.patch(
+            f"/api/v1/credit_notes/{credit_note_id}",
+            json=payload,
+            headers={
+                "If-Match": version,
+                "X-Idempotency-Key": idempotency_key,
+            },
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        return RedirectResponse(url=f"/credit-notes/{credit_note_id}", status_code=303)
+
+    if resp.status_code == 403:
+        request.session["flash"] = "You do not have permission to edit this credit note."
+        return RedirectResponse(url=f"/credit-notes/{credit_note_id}", status_code=303)
+
+    # 409 Conflict — re-fetch the server's latest version, preserve user input,
+    # and show a conflict banner so the user can reconcile.
+    if resp.status_code == 409:
+        async with api_client(request) as client:
+            latest_resp = await client.get(f"/api/v1/credit_notes/{credit_note_id}")
+            server_credit_note: dict = latest_resp.json() if latest_resp.is_success else {}
+            server_version = str(server_credit_note.get("version", ""))
+
+            contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+
+        # Preserve user's submitted form values but update the hidden version.
+        conflict_form = dict(form)
+        conflict_form["version"] = server_version
+
+        # Reconstruct lines for re-render from submitted values.
+        raw_lines = _parse_lines(form)
+        lines = [{"index": i, **ln} for i, ln in enumerate(raw_lines)] or [{"index": 0}]
+
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "credit_notes/edit.html",
+            {
+                "credit_note": server_credit_note,
+                "form": conflict_form,
+                "errors": {},
+                "conflict": True,
+                "server_credit_note": server_credit_note,
+                "idempotency_key": idempotency_key,
+                "contacts": contacts,
+                "accounts": accounts,
+                "tax_codes": tax_codes,
+                "lines": lines,
+                "line_count": len(lines),
+            },
+            status_code=409,
+        )
+
+    # 422 — parse per-field validation errors.
+    errors: dict[str, str] = {}
+    if resp.status_code == 422:
+        try:
+            detail = resp.json().get("detail", [])
+            if isinstance(detail, list):
+                for err in detail:
+                    loc = err.get("loc", [])
+                    field_parts = [p for p in loc if p != "body"]
+                    field_key = str(field_parts[0]) if field_parts else "__all__"
+                    errors[field_key] = err.get("msg", "Invalid value")
+            elif isinstance(detail, str):
+                errors["__all__"] = detail
+        except Exception:
+            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
+    elif resp.status_code == 428:
+        import logging as _logging
+        _logging.getLogger(__name__).error(
+            "PATCH /api/v1/credit_notes/%s returned 428 — If-Match header was missing",
+            credit_note_id,
+        )
+        errors["__all__"] = "Precondition required: version information was missing. Please reload and try again."
+    else:
+        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+
+    # Re-fetch dropdowns for re-render.
+    contacts2: list[dict] = []
+    accounts2: list[dict] = []
+    tax_codes2: list[dict] = []
+
+    async with api_client(request) as client:
+        contacts2, accounts2, tax_codes2 = await _fetch_dropdowns(client)
+
+    raw_lines2 = _parse_lines(form)
+    lines2 = [{"index": i, **ln} for i, ln in enumerate(raw_lines2)] or [{"index": 0}]
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "credit_notes/edit.html",
+        {
+            "credit_note": None,
+            "form": form,
+            "errors": errors,
+            "conflict": False,
+            "idempotency_key": idempotency_key,
+            "contacts": contacts2,
+            "accounts": accounts2,
+            "tax_codes": tax_codes2,
+            "lines": lines2,
+            "line_count": len(lines2),
+        },
+        status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
 @router.get("/credit-notes/{credit_note_id}", response_class=HTMLResponse, response_model=None)
 async def credit_note_detail(
     request: Request,
@@ -342,20 +630,22 @@ async def credit_note_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "credit_notes/detail.html",
-                {"credit_note": None, "error": "Credit note not found"},
+                {"credit_note": None, "error": "Credit note not found", "flash": None},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "credit_notes/detail.html",
-                {"credit_note": None, "error": f"API error: HTTP {resp.status_code}"},
+                {"credit_note": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
                 status_code=resp.status_code,
             )
 
     credit_note = resp.json()
+    # Consume and clear any flash message from session.
+    flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "credit_notes/detail.html",
-        {"credit_note": credit_note, "error": None},
+        {"credit_note": credit_note, "error": None, "flash": flash},
     )
