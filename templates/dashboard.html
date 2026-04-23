@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+  <p class="text-sm text-gray-500 mt-1">Today at a glance</p>
+</div>
+
+{# ── 2×2 tile grid ─────────────────────────────────────────────────────── #}
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
+
+  {# ── Tile 1: AR at a glance ───────────────────────────────────────────── #}
+  <div class="rounded-lg bg-white shadow p-5 border border-gray-100">
+    <h2 class="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-4">
+      AR — Receivables
+    </h2>
+    <dl class="space-y-3">
+      <div class="flex items-center justify-between">
+        <dt class="text-sm text-gray-500">Draft invoices</dt>
+        <dd class="text-sm font-medium text-gray-900 tabular-nums">
+          {{ ar.draft_count }}
+          <span class="ml-1 text-gray-500">/ AUD {{ "%.2f"|format(ar.draft_total|float) }}</span>
+        </dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-sm text-gray-500">Overdue</dt>
+        <dd class="text-sm font-medium tabular-nums
+          {% if ar.overdue_count > 0 %}text-red-600{% else %}text-gray-900{% endif %}">
+          {{ ar.overdue_count }}
+          <span class="ml-1 {% if ar.overdue_count > 0 %}text-red-400{% else %}text-gray-500{% endif %}">
+            / AUD {{ "%.2f"|format(ar.overdue_total|float) }}
+          </span>
+        </dd>
+      </div>
+      <div class="flex items-center justify-between border-t border-gray-100 pt-3">
+        <dt class="text-sm text-gray-500">Paid this month</dt>
+        <dd class="text-sm font-medium text-green-700 tabular-nums">
+          {{ ar.paid_count }}
+          <span class="ml-1 text-green-500">/ AUD {{ "%.2f"|format(ar.paid_total|float) }}</span>
+        </dd>
+      </div>
+    </dl>
+    <div class="mt-4">
+      <a href="/invoices" class="text-xs text-indigo-600 hover:underline">View all invoices →</a>
+    </div>
+  </div>
+
+  {# ── Tile 2: AP at a glance ───────────────────────────────────────────── #}
+  <div class="rounded-lg bg-white shadow p-5 border border-gray-100">
+    <h2 class="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-4">
+      AP — Payables
+    </h2>
+    <dl class="space-y-3">
+      <div class="flex items-center justify-between">
+        <dt class="text-sm text-gray-500">Draft bills</dt>
+        <dd class="text-sm font-medium text-gray-900 tabular-nums">
+          {{ ap.draft_count }}
+          <span class="ml-1 text-gray-500">/ AUD {{ "%.2f"|format(ap.draft_total|float) }}</span>
+        </dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-sm text-gray-500">Due within 7 days</dt>
+        <dd class="text-sm font-medium tabular-nums
+          {% if ap.due_soon_count > 0 %}text-amber-700{% else %}text-gray-900{% endif %}">
+          {{ ap.due_soon_count }}
+          <span class="ml-1 {% if ap.due_soon_count > 0 %}text-amber-400{% else %}text-gray-500{% endif %}">
+            / AUD {{ "%.2f"|format(ap.due_soon_total|float) }}
+          </span>
+        </dd>
+      </div>
+      <div class="flex items-center justify-between border-t border-gray-100 pt-3">
+        <dt class="text-sm text-gray-500">Paid this month</dt>
+        <dd class="text-sm font-medium text-green-700 tabular-nums">
+          {{ ap.paid_count }}
+          <span class="ml-1 text-green-500">/ AUD {{ "%.2f"|format(ap.paid_total|float) }}</span>
+        </dd>
+      </div>
+    </dl>
+    <div class="mt-4">
+      <a href="/bills" class="text-xs text-indigo-600 hover:underline">View all bills →</a>
+    </div>
+  </div>
+
+  {# ── Tile 3: Cash movement ────────────────────────────────────────────── #}
+  <div class="rounded-lg bg-white shadow p-5 border border-gray-100">
+    <h2 class="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-4">
+      Cash — This Month
+    </h2>
+    <dl class="space-y-3">
+      <div class="flex items-center justify-between">
+        <dt class="text-sm text-gray-500">Payments in</dt>
+        <dd class="text-sm font-medium text-green-700 tabular-nums">
+          AUD {{ "%.2f"|format(cash.in_total|float) }}
+        </dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-sm text-gray-500">Payments out</dt>
+        <dd class="text-sm font-medium text-red-600 tabular-nums">
+          AUD {{ "%.2f"|format(cash.out_total|float) }}
+        </dd>
+      </div>
+      <div class="flex items-center justify-between border-t border-gray-100 pt-3">
+        <dt class="text-sm font-semibold text-gray-700">Net</dt>
+        <dd class="text-sm font-bold tabular-nums
+          {% if cash.net >= 0 %}text-green-700{% else %}text-red-600{% endif %}">
+          AUD {{ "%.2f"|format(cash.net|float) }}
+        </dd>
+      </div>
+    </dl>
+    <div class="mt-4">
+      <a href="/payments" class="text-xs text-indigo-600 hover:underline">View all payments →</a>
+    </div>
+  </div>
+
+  {# ── Tile 4: Quick links ──────────────────────────────────────────────── #}
+  <div class="rounded-lg bg-white shadow p-5 border border-gray-100">
+    <h2 class="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-4">
+      Quick Links
+    </h2>
+    <ul class="space-y-2">
+      <li>
+        <a href="/invoices/new"
+           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
+          + New invoice
+        </a>
+      </li>
+      <li>
+        <a href="/bills/new"
+           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
+          + New bill
+        </a>
+      </li>
+      <li>
+        <a href="/payments/new"
+           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
+          + New payment
+        </a>
+      </li>
+      <li>
+        <a href="/journal-entries/new"
+           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
+          + New journal entry
+        </a>
+      </li>
+      <li>
+        <a href="/contacts/new"
+           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
+          + New contact
+        </a>
+      </li>
+    </ul>
+  </div>
+
+</div>{# end tile grid #}
+
+{# ── Recent activity ─────────────────────────────────────────────────────── #}
+<div class="rounded-lg bg-white shadow p-5 border border-gray-100">
+  <h2 class="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-4">
+    Recent Activity
+  </h2>
+  {% if recent %}
+  <ul class="divide-y divide-gray-100">
+    {% for entry in recent %}
+    <li class="py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        {# Entity-type badge #}
+        <span class="inline-block shrink-0 rounded-full px-2 py-0.5 text-xs font-medium
+          {% if entry.entity_type == 'Invoice' %}bg-indigo-100 text-indigo-700
+          {% elif entry.entity_type == 'Bill' %}bg-amber-100 text-amber-700
+          {% elif entry.entity_type == 'Payment' %}bg-green-100 text-green-700
+          {% elif entry.entity_type == 'Journal Entry' %}bg-purple-100 text-purple-700
+          {% elif entry.entity_type == 'Contact' %}bg-gray-100 text-gray-600
+          {% else %}bg-gray-100 text-gray-500{% endif %}">
+          {{ entry.entity_type }}
+        </span>
+        <a href="{{ entry.url }}"
+           class="truncate text-sm text-gray-800 hover:text-indigo-600 hover:underline">
+          {{ entry.label }}
+        </a>
+      </div>
+      <time class="shrink-0 text-xs text-gray-400 tabular-nums">
+        {{ entry.created_at[:10] if entry.created_at else "" }}
+      </time>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-sm text-gray-400 py-4 text-center">No recent activity.</p>
+  {% endif %}
+</div>
+
+{% endblock %}
