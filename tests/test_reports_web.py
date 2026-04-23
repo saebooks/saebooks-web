@@ -344,3 +344,223 @@ async def test_bas_summary_shows_remit_or_refund(respx_mock: respx.MockRouter) -
 
     assert "REFUND" in resp_refund.text
     assert "REMIT" not in resp_refund.text
+
+
+# ---------------------------------------------------------------------------
+# Mock fixtures — cashflow and depreciation
+# ---------------------------------------------------------------------------
+
+_CASHFLOW_REPORT = {
+    "from_date": "2026-04-01",
+    "to_date": "2026-04-24",
+    "operating": {
+        "net_profit": 9750.0,
+        "adjustments": [],
+        "total_operating": 9750.0,
+    },
+    "investing": {
+        "asset_purchases": -5000.0,
+        "asset_disposals": 0.0,
+        "total_investing": -5000.0,
+    },
+    "financing": {
+        "loan_proceeds": 0.0,
+        "loan_repayments": -1000.0,
+        "total_financing": -1000.0,
+    },
+    "net_change": 3750.0,
+    "opening_cash": 10000.0,
+    "closing_cash": 13750.0,
+}
+
+_CASHFLOW_NEGATIVE = {
+    "from_date": "2026-04-01",
+    "to_date": "2026-04-24",
+    "operating": {
+        "net_profit": -2000.0,
+        "adjustments": [],
+        "total_operating": -2000.0,
+    },
+    "investing": {
+        "asset_purchases": 0.0,
+        "asset_disposals": 0.0,
+        "total_investing": 0.0,
+    },
+    "financing": {
+        "loan_proceeds": 0.0,
+        "loan_repayments": 0.0,
+        "total_financing": 0.0,
+    },
+    "net_change": -2000.0,
+    "opening_cash": 5000.0,
+    "closing_cash": 3000.0,
+}
+
+_DEPR_REPORT = {
+    "as_of_date": "2026-04-24",
+    "assets": [
+        {
+            "asset_id": "aaaa0001-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "asset_number": "FA-001",
+            "description": "Office Laptop",
+            "acquisition_date": "2024-01-15",
+            "cost": 2000.0,
+            "residual_value": 200.0,
+            "useful_life_months": 36,
+            "depreciation_method": "linear",
+            "accumulated_depreciation": 600.0,
+            "current_book_value": 1400.0,
+            "next_month_depreciation": 50.0,
+            "fully_depreciated": False,
+        }
+    ],
+    "total_cost": 2000.0,
+    "total_accumulated": 600.0,
+    "total_book_value": 1400.0,
+}
+
+_DEPR_REPORT_DV = {
+    "as_of_date": "2026-04-24",
+    "assets": [
+        {
+            "asset_id": "bbbb0002-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+            "asset_number": "FA-002",
+            "description": "Delivery Van",
+            "acquisition_date": "2023-06-01",
+            "cost": 45000.0,
+            "residual_value": 5000.0,
+            "useful_life_months": 60,
+            "depreciation_method": "diminishing_value",
+            "accumulated_depreciation": 12000.0,
+            "current_book_value": 33000.0,
+            "next_month_depreciation": 550.0,
+            "fully_depreciated": False,
+        }
+    ],
+    "total_cost": 45000.0,
+    "total_accumulated": 12000.0,
+    "total_book_value": 33000.0,
+}
+
+
+# ---------------------------------------------------------------------------
+# New tests — cycle 29
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_cashflow_get_200(respx_mock: respx.MockRouter) -> None:
+    """GET /reports/cashflow returns 200 full page with all three sections."""
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/cashflow.*$").mock(
+        return_value=Response(200, json=_CASHFLOW_REPORT)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/reports/cashflow")
+
+    assert resp.status_code == 200
+    assert "<html" in resp.text
+    assert "Cashflow Statement" in resp.text
+    assert "Operating Activities" in resp.text
+    assert "Investing Activities" in resp.text
+    assert "Financing Activities" in resp.text
+    assert "9750.00" in resp.text
+    assert "13750.00" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_cashflow_net_change_displayed(respx_mock: respx.MockRouter) -> None:
+    """Cashflow net_change rendered green when positive, red when negative."""
+    # Positive net change
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/cashflow.*$").mock(
+        return_value=Response(200, json=_CASHFLOW_REPORT)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp_pos = await client.get("/reports/cashflow")
+
+    assert "3750.00" in resp_pos.text
+    assert "Net Change in Cash" in resp_pos.text
+    # Positive: should have green styling
+    assert "green" in resp_pos.text
+
+    # Negative net change
+    respx_mock.reset()
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/cashflow.*$").mock(
+        return_value=Response(200, json=_CASHFLOW_NEGATIVE)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp_neg = await client.get("/reports/cashflow")
+
+    assert "-2000.00" in resp_neg.text
+    # Negative: should have red styling on the net-change block
+    assert "red" in resp_neg.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_depreciation_schedule_get_200(respx_mock: respx.MockRouter) -> None:
+    """GET /reports/depreciation-schedule returns 200 with asset table columns."""
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/depreciation_schedule.*$").mock(
+        return_value=Response(200, json=_DEPR_REPORT)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/reports/depreciation-schedule")
+
+    assert resp.status_code == 200
+    assert "<html" in resp.text
+    assert "Depreciation Schedule" in resp.text
+    assert "FA-001" in resp.text
+    assert "Office Laptop" in resp.text
+    assert "linear" in resp.text
+    assert "2000.00" in resp.text
+    assert "1400.00" in resp.text
+    assert "50.00" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_depreciation_schedule_method_filter(respx_mock: respx.MockRouter) -> None:
+    """GET /reports/depreciation-schedule?method=diminishing_value passes method to API."""
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/depreciation_schedule.*$").mock(
+        return_value=Response(200, json=_DEPR_REPORT_DV)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(
+            "/reports/depreciation-schedule",
+            params={"method": "diminishing_value"},
+        )
+
+    assert resp.status_code == 200
+    assert "FA-002" in resp.text
+    assert "Delivery Van" in resp.text
+    assert "diminishing_value" in resp.text
+    assert "45000.00" in resp.text
+    # Verify the API was called with the method param
+    called_url = str(respx_mock.calls[0].request.url)
+    assert "method=diminishing_value" in called_url

@@ -1,10 +1,12 @@
-"""Reports HTML views — Lane D cycle 28.
+"""Reports HTML views — Lane D cycle 29.
 
-GET /reports/aged-receivables  — AR ageing table (as_of_date param)
-GET /reports/aged-payables     — AP ageing table (as_of_date param)
-GET /reports/profit-loss       — P&L by account type (from/to date range)
-GET /reports/balance-sheet     — Balance sheet (as_of_date param)
-GET /reports/bas-summary       — BAS summary (from/to date range)
+GET /reports/aged-receivables       — AR ageing table (as_of_date param)
+GET /reports/aged-payables          — AP ageing table (as_of_date param)
+GET /reports/profit-loss            — P&L by account type (from/to date range)
+GET /reports/balance-sheet          — Balance sheet (as_of_date param)
+GET /reports/bas-summary            — BAS summary (from/to date range)
+GET /reports/cashflow               — Cashflow statement (from/to date range)
+GET /reports/depreciation-schedule  — Depreciation schedule (as_of_date, method)
 
 All routes are HTMX-aware: when the request carries HX-Request: true the
 route renders only the ``_table`` partial (no base.html wrapper).
@@ -293,5 +295,105 @@ async def bas_summary(
         "reports/_bas_summary_table.html"
         if _is_htmx(request)
         else "reports/bas_summary.html"
+    )
+    return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# GET /reports/cashflow
+# ---------------------------------------------------------------------------
+
+
+@router.get("/reports/cashflow", response_class=HTMLResponse, response_model=None)
+async def cashflow(
+    request: Request,
+    from_date: str | None = None,
+    to_date: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """Cashflow statement — operating / investing / financing waterfall."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    from_ = from_date or _month_start()
+    to_ = to_date or _today()
+    report: dict = {}
+    error: str | None = None
+
+    async with api_client(request) as client:
+        resp = await client.get(
+            "/api/v1/reports/cashflow",
+            params={"from_date": from_, "to_date": to_},
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.is_success:
+            report = resp.json()
+        else:
+            error = f"API error: HTTP {resp.status_code}"
+
+    ctx = {
+        "report": report,
+        "from_date": from_,
+        "to_date": to_,
+        "error": error,
+    }
+
+    template = (
+        "reports/_cashflow_table.html"
+        if _is_htmx(request)
+        else "reports/cashflow.html"
+    )
+    return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# GET /reports/depreciation-schedule
+# ---------------------------------------------------------------------------
+
+
+@router.get("/reports/depreciation-schedule", response_class=HTMLResponse, response_model=None)
+async def depreciation_schedule(
+    request: Request,
+    as_of_date: str | None = None,
+    method: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """Depreciation schedule — per-asset table with method, cost, book value."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    as_of = as_of_date or _today()
+    report: dict = {}
+    error: str | None = None
+
+    params: dict = {"as_of_date": as_of}
+    # Omit method param when "all" or not supplied
+    if method and method != "all":
+        params["method"] = method
+
+    async with api_client(request) as client:
+        resp = await client.get(
+            "/api/v1/reports/depreciation_schedule",
+            params=params,
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.is_success:
+            report = resp.json()
+        else:
+            error = f"API error: HTTP {resp.status_code}"
+
+    ctx = {
+        "report": report,
+        "as_of_date": as_of,
+        "method": method or "all",
+        "error": error,
+    }
+
+    template = (
+        "reports/_depreciation_schedule_table.html"
+        if _is_htmx(request)
+        else "reports/depreciation_schedule.html"
     )
     return _TEMPLATES.TemplateResponse(request, template, ctx)
