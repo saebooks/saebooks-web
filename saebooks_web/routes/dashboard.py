@@ -1,15 +1,19 @@
-"""Dashboard home page — Lane D cycle 21.
+"""Dashboard home page — Lane D cycle 25.
 
 GET /  → render the dashboard, computing AR/AP/cash tiles and recent activity
          from parallel API calls via asyncio.gather.
 
 Tiles:
-  AR at a glance  — draft invoices, overdue (SENT/PARTIALLY_PAID past due date),
+  AR at a glance  — draft invoices, open (POSTED, overdue computed in Python),
                     paid-this-month
   AP at a glance  — draft bills, due-within-7-days bills, paid-this-month bills
   Cash movement   — this month's payment IN total, OUT total, net
   Recent activity — last 5 items across invoices/bills/payments/journal_entries/
                     contacts ordered by created_at DESC
+
+Status note: InvoiceStatus and BillStatus enums are DRAFT/POSTED/VOIDED only.
+There is no SENT, PARTIALLY_PAID, or OVERDUE status.  Overdue is computed in
+Python: invoice["due_date"] < today AND invoice["status"] == "POSTED".
 
 Auth guard: redirect to /login (303) if no session token.
 """
@@ -72,6 +76,15 @@ async def _fetch_items(client, path: str, params: dict | None = None) -> list[di
     """GET path and return items list; return [] on failure."""
     payload = await _fetch_json(client, path, params)
     return payload.get("items", [])
+
+
+async def _empty_list() -> list[dict]:
+    """Async no-op that returns an empty list.
+
+    Used as a gather slot when there is no valid API call to make (e.g. the
+    PAID status does not exist in the InvoiceStatus / BillStatus enums).
+    """
+    return []
 
 
 # ---------------------------------------------------------------------------
@@ -243,22 +256,20 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             recent_je_raw,
             recent_contacts_raw,
         ) = await asyncio.gather(
-            # AR tile
+            # AR tile — open invoices are POSTED (overdue computed in Python)
             _fetch_items(client, "/api/v1/invoices",
                          {"status": "DRAFT", "page": 1, "page_size": 100}),
             _fetch_items(client, "/api/v1/invoices",
-                         {"status": "SENT,PARTIALLY_PAID", "page": 1, "page_size": 100}),
-            _fetch_items(client, "/api/v1/invoices",
-                         {"status": "PAID", "date_from": month_start,
-                          "date_to": month_end, "page": 1, "page_size": 100}),
-            # AP tile
+                         {"status": "POSTED", "page": 1, "page_size": 100}),
+            # No PAID status in the enum — paid tile always returns empty list.
+            _empty_list(),
+            # AP tile — open bills are POSTED (due-soon computed in Python)
             _fetch_items(client, "/api/v1/bills",
                          {"status": "DRAFT", "page": 1, "page_size": 100}),
             _fetch_items(client, "/api/v1/bills",
-                         {"status": "SENT,PARTIALLY_PAID", "page": 1, "page_size": 100}),
-            _fetch_items(client, "/api/v1/bills",
-                         {"status": "PAID", "date_from": month_start,
-                          "date_to": month_end, "page": 1, "page_size": 100}),
+                         {"status": "POSTED", "page": 1, "page_size": 100}),
+            # No PAID status in the enum — paid tile always returns empty list.
+            _empty_list(),
             # Cash tile — all payments, filter by month in Python
             _fetch_items(client, "/api/v1/payments",
                          {"page": 1, "page_size": 100}),

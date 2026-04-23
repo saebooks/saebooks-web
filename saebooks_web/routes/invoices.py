@@ -623,6 +623,120 @@ async def invoice_archive(
     )
 
 
+# ---------------------------------------------------------------------------
+# Post transition — POST /invoices/{invoice_id}/post
+# NOTE: MUST appear before the catch-all /{invoice_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/invoices/{invoice_id}/post", response_class=HTMLResponse, response_model=None
+)
+async def invoice_post(
+    request: Request,
+    invoice_id: str,
+) -> RedirectResponse:
+    """Transition a DRAFT invoice to POSTED.
+
+    POSTs to POST /api/v1/invoices/{id}/post with If-Match + X-Idempotency-Key.
+    - 200 -> 303 to detail with flash "Invoice posted."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422 -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    idempotency_key = str(uuid.uuid4())
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/invoices/{invoice_id}/post",
+            headers={
+                "If-Match": version,
+                "X-Idempotency-Key": idempotency_key,
+            },
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Invoice posted."
+        return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Void transition — POST /invoices/{invoice_id}/void
+# NOTE: MUST appear before the catch-all /{invoice_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/invoices/{invoice_id}/void", response_class=HTMLResponse, response_model=None
+)
+async def invoice_void(
+    request: Request,
+    invoice_id: str,
+) -> RedirectResponse:
+    """Transition a POSTED invoice to VOIDED.
+
+    POSTs to POST /api/v1/invoices/{id}/void with If-Match.
+    - 200 -> 303 to detail with flash "Invoice voided."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422 -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/invoices/{invoice_id}/void",
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Invoice voided."
+        return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+
+
 @router.get("/invoices/{invoice_id}", response_class=HTMLResponse, response_model=None)
 async def invoice_detail(
     request: Request,

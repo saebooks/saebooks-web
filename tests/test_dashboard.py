@@ -140,10 +140,8 @@ def _register_mocks(
     *,
     draft_invoices: list | None = None,
     open_invoices: list | None = None,
-    paid_invoices: list | None = None,
     draft_bills: list | None = None,
     open_bills: list | None = None,
-    paid_bills: list | None = None,
     payments: list | None = None,
     recent_invoices: list | None = None,
     recent_bills: list | None = None,
@@ -151,29 +149,32 @@ def _register_mocks(
     recent_je: list | None = None,
     recent_contacts: list | None = None,
 ) -> None:
-    """Register all 12 API mocks that the dashboard fires in parallel.
+    """Register all API mocks that the dashboard fires in parallel.
 
-    respx matches on URL + query params; we use pattern=... with regex=True
-    to match any request to the path regardless of query-string order.
+    The dashboard now fetches:
+      - invoices?status=DRAFT    (AR draft tile)
+      - invoices?status=POSTED   (AR open/overdue tile — overdue computed in Python)
+      - bills?status=DRAFT       (AP draft tile)
+      - bills?status=POSTED      (AP open/due-soon tile — due-soon computed in Python)
+      - payments                 (cash tile + recent)
+      - invoices (no status)     (recent activity)
+      - bills (no status)        (recent activity)
+      - payments (no status)     (recent activity — shared with cash tile mock)
+      - journal_entries          (recent activity)
+      - contacts                 (recent activity)
+
+    No PAID status exists in InvoiceStatus/BillStatus — paid tiles always zero.
+
+    respx matches by first-registered route; most-specific (status=) patterns
+    are registered before the catch-all no-status patterns.
     """
-    def _mock(path: str, items: list) -> None:
-        respx_mock.get(url__regex=rf"^{_API_BASE}{path}(\?.*)?$").mock(
-            return_value=Response(200, json=_page(items))
-        )
-
-    # The dashboard fires these 12 requests; respx routes by first match so
-    # we register the most-specific (with status filter) before the open ones.
-
     # AR
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/invoices\?.*status=DRAFT.*$").mock(
         return_value=Response(200, json=_page(draft_invoices or []))
     )
     respx_mock.get(
-        url__regex=rf"^{_API_BASE}/api/v1/invoices\?.*status=SENT%2CPARTIALLY_PAID.*$"
+        url__regex=rf"^{_API_BASE}/api/v1/invoices\?.*status=POSTED.*$"
     ).mock(return_value=Response(200, json=_page(open_invoices or [])))
-    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/invoices\?.*status=PAID.*$").mock(
-        return_value=Response(200, json=_page(paid_invoices or []))
-    )
     # Recent invoices (no status param)
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/invoices(\?.*)?$").mock(
         return_value=Response(200, json=_page(recent_invoices or []))
@@ -184,11 +185,8 @@ def _register_mocks(
         return_value=Response(200, json=_page(draft_bills or []))
     )
     respx_mock.get(
-        url__regex=rf"^{_API_BASE}/api/v1/bills\?.*status=SENT%2CPARTIALLY_PAID.*$"
+        url__regex=rf"^{_API_BASE}/api/v1/bills\?.*status=POSTED.*$"
     ).mock(return_value=Response(200, json=_page(open_bills or [])))
-    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/bills\?.*status=PAID.*$").mock(
-        return_value=Response(200, json=_page(paid_bills or []))
-    )
     # Recent bills (no status param)
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/bills(\?.*)?$").mock(
         return_value=Response(200, json=_page(recent_bills or []))
@@ -236,21 +234,24 @@ async def test_dashboard_returns_200_and_title(respx_mock: respx.MockRouter) -> 
 @pytest.mark.anyio
 @respx.mock
 async def test_dashboard_ar_tile(respx_mock: respx.MockRouter) -> None:
-    """AR tile shows draft total, overdue count, and paid-this-month total."""
+    """AR tile shows draft total and overdue count (POSTED past due date).
+
+    The PAID status does not exist; paid tile will always show 0.
+    Overdue is computed in Python: status==POSTED AND due_date < today.
+    """
     draft = [_inv(id_="d001", number="INV-D001", status="DRAFT", total="500.00")]
+    # Both invoices are POSTED and past due — both should be counted as overdue.
     overdue = [
-        _inv(id_="o001", number="INV-O001", status="SENT",
+        _inv(id_="o001", number="INV-O001", status="POSTED",
              due_date=_YESTERDAY, total="300.00"),
-        _inv(id_="o002", number="INV-O002", status="PARTIALLY_PAID",
+        _inv(id_="o002", number="INV-O002", status="POSTED",
              due_date=_YESTERDAY, total="200.00"),
     ]
-    paid = [_inv(id_="p001", number="INV-P001", status="PAID", total="1000.00")]
 
     _register_mocks(
         respx_mock,
         draft_invoices=draft,
         open_invoices=overdue,
-        paid_invoices=paid,
     )
 
     async with AsyncClient(
@@ -267,26 +268,26 @@ async def test_dashboard_ar_tile(respx_mock: respx.MockRouter) -> None:
     assert "2" in resp.text
     # Overdue total 500.00 (300 + 200)
     assert "500.00" in resp.text
-    # Paid total
-    assert "1000.00" in resp.text
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_dashboard_ap_tile(respx_mock: respx.MockRouter) -> None:
-    """AP tile shows draft total, due-soon count, and paid-this-month total."""
+    """AP tile shows draft total and due-soon count (POSTED bills due within 7 days).
+
+    The PAID status does not exist; paid tile will always show 0.
+    Due-soon is computed in Python: status==POSTED AND today <= due_date <= today+7.
+    """
     draft = [_bill(id_="bd001", number="BILL-D001", status="DRAFT", total="400.00")]
     open_ = [
-        _bill(id_="bo001", number="BILL-O001", status="SENT",
+        _bill(id_="bo001", number="BILL-O001", status="POSTED",
               due_date=_IN_3_DAYS, total="250.00"),
     ]
-    paid = [_bill(id_="bp001", number="BILL-P001", status="PAID", total="750.00")]
 
     _register_mocks(
         respx_mock,
         draft_bills=draft,
         open_bills=open_,
-        paid_bills=paid,
     )
 
     async with AsyncClient(
@@ -301,8 +302,6 @@ async def test_dashboard_ap_tile(respx_mock: respx.MockRouter) -> None:
     assert "400.00" in resp.text
     # Due-soon total
     assert "250.00" in resp.text
-    # Paid total
-    assert "750.00" in resp.text
 
 
 @pytest.mark.anyio

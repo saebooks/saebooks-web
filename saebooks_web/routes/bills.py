@@ -622,6 +622,120 @@ async def bill_archive(
     )
 
 
+# ---------------------------------------------------------------------------
+# Post transition — POST /bills/{bill_id}/post
+# NOTE: MUST appear before the catch-all /{bill_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/bills/{bill_id}/post", response_class=HTMLResponse, response_model=None
+)
+async def bill_post(
+    request: Request,
+    bill_id: str,
+) -> RedirectResponse:
+    """Transition a DRAFT bill to POSTED.
+
+    POSTs to POST /api/v1/bills/{id}/post with If-Match + X-Idempotency-Key.
+    - 200 -> 303 to detail with flash "Bill posted."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422 -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    idempotency_key = str(uuid.uuid4())
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/bills/{bill_id}/post",
+            headers={
+                "If-Match": version,
+                "X-Idempotency-Key": idempotency_key,
+            },
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Bill posted."
+        return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Void transition — POST /bills/{bill_id}/void
+# NOTE: MUST appear before the catch-all /{bill_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/bills/{bill_id}/void", response_class=HTMLResponse, response_model=None
+)
+async def bill_void(
+    request: Request,
+    bill_id: str,
+) -> RedirectResponse:
+    """Transition a POSTED bill to VOIDED.
+
+    POSTs to POST /api/v1/bills/{id}/void with If-Match.
+    - 200 -> 303 to detail with flash "Bill voided."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422 -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/bills/{bill_id}/void",
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Bill voided."
+        return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
+
+
 @router.get("/bills/{bill_id}", response_class=HTMLResponse, response_model=None)
 async def bill_detail(
     request: Request,
