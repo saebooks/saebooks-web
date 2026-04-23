@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if bill %}Bill {{ bill.number or bill.id }} — SAE Books{% else %}Bill Not Found — SAE Books{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if bill %}
+
+{# ── Header ── #}
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-semibold text-gray-900">
+        Bill {{ bill.number or "—" }}
+      </h1>
+      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
+        {% if bill.status == 'POSTED' %}bg-green-100 text-green-700
+        {% elif bill.status == 'DRAFT' %}bg-gray-100 text-gray-600
+        {% elif bill.status == 'VOIDED' %}bg-red-100 text-red-600
+        {% else %}bg-gray-100 text-gray-500{% endif %}">
+        {{ bill.status | capitalize }}
+      </span>
+    </div>
+    <p class="text-sm text-gray-500 mt-1">Supplier: {{ bill.contact_id }}</p>
+  </div>
+  <a
+    href="/bills"
+    class="text-sm text-indigo-600 hover:underline"
+  >← Back to bills</a>
+</div>
+
+{# ── Summary cards ── #}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Issue date</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ bill.issue_date }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Due date</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ bill.due_date }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Total</p>
+    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
+      {{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}
+    </p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Amount paid</p>
+    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
+      {{ bill.currency }} {{ "%.2f"|format(bill.amount_paid|float) }}
+    </p>
+  </div>
+</div>
+
+{# ── Lines ── #}
+<h2 class="text-base font-semibold text-gray-900 mb-3">Lines</h2>
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-8">#</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Qty</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Unit price</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Tax</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% if bill.lines %}
+        {% for line in bill.lines %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-gray-400">{{ line.line_no }}</td>
+          <td class="px-4 py-3 text-gray-900">{{ line.description }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ line.quantity }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.2f"|format(line.unit_price|float) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.2f"|format(line.line_tax|float) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums font-medium text-gray-900">{{ "%.2f"|format(line.line_total|float) }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="6" class="px-4 py-6 text-center text-gray-400">No lines.</td>
+        </tr>
+      {% endif %}
+    </tbody>
+    <tfoot class="bg-gray-50 border-t border-gray-200">
+      <tr>
+        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-500">Subtotal</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
+          {{ "%.2f"|format(bill.subtotal|float) }}
+        </td>
+      </tr>
+      <tr>
+        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-500">Tax</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
+          {{ "%.2f"|format(bill.tax_total|float) }}
+        </td>
+      </tr>
+      <tr class="font-semibold">
+        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-900">Total</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
+          {{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+{# ── Notes ── #}
+{% if bill.notes %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-2">Notes</h2>
+  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">{{ bill.notes }}</div>
+</div>
+{% endif %}
+
+{# ── Change log stub ── #}
+<div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-400">
+  Change log view — TODO
+</div>
+
+{% endif %}{# end if bill #}
+
+{% endblock %}

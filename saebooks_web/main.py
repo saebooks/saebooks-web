@@ -32,6 +32,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.config import settings
+from saebooks_web.routes.bills import router as bills_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.invoices import router as invoices_router
 
@@ -62,6 +63,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(contacts_router)
 app.include_router(invoices_router)
+app.include_router(bills_router)
 
 
 # ---------------------------------------------------------------------------
