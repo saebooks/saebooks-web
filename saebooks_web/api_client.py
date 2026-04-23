@@ -11,9 +11,21 @@ Usage (inside a request handler)::
             resp.raise_for_status()
             data = resp.json()
 
+        # PATCH with optimistic locking:
+        async with api_client(request) as client:
+            resp = await client.patch(
+                "/api/v1/contacts/123",
+                json=payload,
+                headers={"If-Match": str(version)},
+            )
+
 The wrapper reads the bearer token stored in the signed session cookie and
-adds ``Authorization: Bearer <token>`` to every outbound request.  Raises
-``httpx.HTTPStatusError`` on non-2xx responses (caller decides how to handle).
+adds ``Authorization: Bearer <token>`` to every outbound request.
+
+Note: httpx.AsyncClient already exposes .get(), .post(), .patch(), .put(),
+.delete() etc. — this context manager simply pre-configures the base URL and
+auth header.  The .patch() method is available on the yielded client with the
+same signature as .post(): ``client.patch(url, *, json=..., headers=..., ...)``.
 """
 from __future__ import annotations
 
@@ -33,6 +45,10 @@ async def api_client(request: Request) -> AsyncGenerator[httpx.AsyncClient, None
     The ``Authorization`` header is injected when a bearer token is present
     in the session.  Callers can make requests against ``/api/v1/...`` paths
     and the base URL is automatically prepended.
+
+    The yielded client supports all standard httpx methods including
+    ``.patch(url, *, json=..., headers=...)`` for PATCH requests with
+    ``If-Match`` optimistic-locking headers.
     """
     token: str | None = request.session.get("api_token")
     headers: dict[str, str] = {}
