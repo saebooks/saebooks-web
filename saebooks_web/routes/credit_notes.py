@@ -1,17 +1,21 @@
-"""Credit notes list, detail, create, and edit views — Lane D cycles 5 + 14 + 15.
+"""Credit notes list, detail, create, and edit views — Lane D cycles 5 + 14 + 15 + 39.
 
-GET  /credit-notes           — list page (paginated, HTMX-aware)
-GET  /credit-notes/new       — empty create form; generates idempotency key
-POST /credit-notes/new       — submit to upstream API; redirect on success,
-                               re-render with errors on 422
-GET  /credit-notes/_add_line — HTMX partial: returns a single blank line row
-GET  /credit-notes/{id}/edit — pre-populated edit form (DRAFT only)
-POST /credit-notes/{id}/edit — PATCH to API with If-Match + lines replace
-GET  /credit-notes/{id}      — credit note detail
+GET  /credit-notes               — list page (paginated, HTMX-aware)
+GET  /credit-notes/new           — empty create form; generates idempotency key
+POST /credit-notes/new           — submit to upstream API; redirect on success,
+                                   re-render with errors on 422
+GET  /credit-notes/_add_line     — HTMX partial: returns a single blank line row
+GET  /credit-notes/{id}/edit     — pre-populated edit form (DRAFT only)
+POST /credit-notes/{id}/edit     — PATCH to API with If-Match + lines replace
+POST /credit-notes/{id}/post     — transition DRAFT -> POSTED
+POST /credit-notes/{id}/void     — transition POSTED -> VOIDED
+GET  /credit-notes/{id}          — credit note detail
 
 Route ordering: /credit-notes/new and /credit-notes/_add_line MUST be declared
 before /credit-notes/{credit_note_id}/edit, which must be declared before
-/credit-notes/{credit_note_id}, so FastAPI resolves the literal paths first.
+/credit-notes/{credit_note_id}/post and /credit-notes/{credit_note_id}/void,
+which must be declared before /credit-notes/{credit_note_id},
+so FastAPI resolves the literal paths first.
 
 Divergences from invoices pattern:
 - URL slug is hyphenated (/credit-notes) but API path uses underscores (/api/v1/credit_notes).
@@ -21,6 +25,7 @@ Divergences from invoices pattern:
 - Has reason (nullable str) — shown in detail header.
 - CreditNoteCreate/Update has NO due_date, NO number, NO payment_terms — only contact_id,
   issue_date, reason, notes, original_invoice_id, and lines.
+- The void endpoint returns 204 No Content (not 200) — handler treats 204 as success.
 
 Auth guard: redirect to /login (303) if no session token.
 """
@@ -615,6 +620,124 @@ async def credit_note_update(
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
+
+
+# ---------------------------------------------------------------------------
+# Post transition — POST /{credit_note_id}/post
+# NOTE: MUST appear before the catch-all /{credit_note_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/credit-notes/{credit_note_id}/post",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def credit_note_post(
+    request: Request,
+    credit_note_id: str,
+) -> RedirectResponse:
+    """Transition a DRAFT credit note to POSTED.
+
+    POSTs to POST /api/v1/credit_notes/{id}/post with If-Match + X-Idempotency-Key.
+    - 200 -> 303 to detail with flash "Credit note posted."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422/other -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    idempotency_key = str(uuid.uuid4())
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/credit_notes/{credit_note_id}/post",
+            headers={
+                "If-Match": version,
+                "X-Idempotency-Key": idempotency_key,
+            },
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Credit note posted."
+        return RedirectResponse(url=f"/credit-notes/{credit_note_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/credit-notes/{credit_note_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/credit-notes/{credit_note_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Void transition — POST /{credit_note_id}/void
+# NOTE: MUST appear before the catch-all /{credit_note_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/credit-notes/{credit_note_id}/void",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def credit_note_void(
+    request: Request,
+    credit_note_id: str,
+) -> RedirectResponse:
+    """Transition a POSTED credit note to VOIDED.
+
+    POSTs to POST /api/v1/credit_notes/{id}/void with If-Match.
+    - 204 -> 303 to detail with flash "Credit note voided."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422/other -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/credit_notes/{credit_note_id}/void",
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 204:
+        request.session["flash"] = "Credit note voided."
+        return RedirectResponse(url=f"/credit-notes/{credit_note_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/credit-notes/{credit_note_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/credit-notes/{credit_note_id}", status_code=303)
 
 
 # ---------------------------------------------------------------------------
