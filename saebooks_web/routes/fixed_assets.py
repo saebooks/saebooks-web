@@ -1,17 +1,20 @@
-"""Fixed assets list, detail, create, edit, dispose and archive views — Lane D cycles 26 + 31 + 33.
+"""Fixed assets list, detail, create, edit, dispose, archive and post-depreciation views.
 
-GET  /fixed-assets/new         — empty create form
-POST /fixed-assets/new         — submit to API; 303 on success, 422 re-render on error
-GET  /fixed-assets/{id}/edit   — pre-populated edit form
-                                 If status == DISPOSED → edit_blocked.html (HTTP 422)
-POST /fixed-assets/{id}/edit   — PATCH with If-Match; 303 with flash on success
-POST /fixed-assets/{id}/dispose — POST to /api/v1/fixed_assets/{id}/dispose with If-Match
-POST /fixed-assets/{id}/archive — soft-archive via archive_entity helper
-GET  /fixed-assets             — list page (paginated, HTMX-aware)
-GET  /fixed-assets/{id}        — fixed asset detail
+Lane D cycles 26 + 31 + 33 + 40.
 
-Route ordering: /new + /{id}/edit + /{id}/dispose + /{id}/archive MUST appear
-before /{id} catch-all so FastAPI matches literal paths first.
+GET  /fixed-assets/new                    — empty create form
+POST /fixed-assets/new                    — submit to API; 303 on success, 422 re-render on error
+GET  /fixed-assets/{id}/edit              — pre-populated edit form
+                                            If status == DISPOSED → edit_blocked.html (HTTP 422)
+POST /fixed-assets/{id}/edit              — PATCH with If-Match; 303 with flash on success
+POST /fixed-assets/{id}/dispose           — POST to /api/v1/fixed_assets/{id}/dispose with If-Match
+POST /fixed-assets/{id}/archive           — soft-archive via archive_entity helper
+POST /fixed-assets/{id}/post-depreciation — POST to /api/v1/fixed_assets/{id}/post_depreciation
+GET  /fixed-assets                        — list page (paginated, HTMX-aware)
+GET  /fixed-assets/{id}                   — fixed asset detail
+
+Route ordering: /new + /{id}/edit + /{id}/dispose + /{id}/archive + /{id}/post-depreciation
+MUST appear before /{id} catch-all so FastAPI matches literal paths first.
 
 Auth guard: redirect to /login (303) if no session token.
 
@@ -20,7 +23,9 @@ GET /api/v1/depreciation_models (6 seeded rows).
 """
 from __future__ import annotations
 
+import calendar
 import uuid
+from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -512,6 +517,80 @@ async def fixed_asset_archive(
 
 
 # ---------------------------------------------------------------------------
+# Post Depreciation — POST /{asset_id}/post-depreciation
+# NOTE: MUST appear before the catch-all /{asset_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/fixed-assets/{asset_id}/post-depreciation",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def fixed_asset_post_depreciation(
+    request: Request,
+    asset_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Post depreciation for a fixed asset through a given date.
+
+    Reads ``through_date`` and ``version`` from the form body and calls
+    POST /api/v1/fixed_assets/{id}/post_depreciation with an If-Match header.
+
+    - 200 OK  -> 303 redirect to /fixed-assets/{id} with flash (amount posted)
+    - 409     -> 303 redirect back with conflict flash
+    - 422     -> 303 redirect back with API error detail flash
+    - 401     -> clear session, redirect to /login
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    through_date = form.get("through_date", "").strip()
+    version = form.get("version", "").strip()
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/fixed_assets/{asset_id}/post_depreciation",
+            json={"through": through_date},
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        body = resp.json()
+        amount_posted = body.get("amount_posted", 0)
+        if amount_posted and float(amount_posted) > 0:
+            request.session["flash"] = (
+                f"Depreciation posted: ${float(amount_posted):.2f} through {through_date}"
+            )
+        else:
+            request.session["flash"] = "No depreciation to post (already up to date)"
+        return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — reload and try again"
+        return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+    # 422 or other error — extract detail string if available.
+    flash_msg = f"Post depreciation failed (HTTP {resp.status_code})."
+    try:
+        detail = resp.json().get("detail", "")
+        if isinstance(detail, str) and detail:
+            flash_msg = detail
+        elif isinstance(detail, list) and detail:
+            flash_msg = detail[0].get("msg", flash_msg)
+    except Exception:
+        pass
+    request.session["flash"] = flash_msg
+    return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
 
@@ -627,8 +706,20 @@ async def fixed_asset_detail(
 
     asset = resp.json()
     flash = request.session.pop("flash", None)
+
+    # Compute default "through" date for the post-depreciation form:
+    # last day of the current calendar month.
+    _today = date.today()
+    _last_day = calendar.monthrange(_today.year, _today.month)[1]
+    through_default = date(_today.year, _today.month, _last_day).isoformat()
+
     return _TEMPLATES.TemplateResponse(
         request,
         "fixed_assets/detail.html",
-        {"asset": asset, "error": None, "flash": flash},
+        {
+            "asset": asset,
+            "error": None,
+            "flash": flash,
+            "through_default": through_default,
+        },
     )
