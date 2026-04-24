@@ -36,7 +36,7 @@ _MOCK_ASSET = {
     "name": "Forklift",
     "description": "Warehouse forklift",
     "status": "ACTIVE",
-    "depreciation_model_id": "SL-10Y",
+    "depreciation_model_id": "asset_10_year_linear",
     "depreciation_model": None,
     "tax_model_id": None,
     "cost_account_id": _COST_ACCT,
@@ -86,6 +86,36 @@ _MOCK_ACCOUNTS = {
     "total": 3,
 }
 
+_MOCK_DEP_MODELS = {
+    "items": [
+        {
+            "id": "asset_no_depreciation",
+            "method": "no_depreciation",
+            "method_number": 0,
+            "method_period": 12,
+            "rate_pct": None,
+            "created_at": "2026-01-01T00:00:00Z",
+        },
+        {
+            "id": "asset_10_year_linear",
+            "method": "linear",
+            "method_number": 120,
+            "method_period": 12,
+            "rate_pct": None,
+            "created_at": "2026-01-01T00:00:00Z",
+        },
+        {
+            "id": "asset_20_year_linear",
+            "method": "linear",
+            "method_number": 240,
+            "method_period": 12,
+            "rate_pct": None,
+            "created_at": "2026-01-01T00:00:00Z",
+        },
+    ],
+    "total": 3,
+}
+
 
 def _make_session_cookie(data: dict) -> str:
     signer = _TimestampSigner(settings.secret_key)
@@ -112,6 +142,9 @@ async def test_fixed_asset_edit_form_renders(respx_mock: respx.MockRouter) -> No
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/depreciation_models").mock(
+        return_value=Response(200, json=_MOCK_DEP_MODELS)
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -126,11 +159,13 @@ async def test_fixed_asset_edit_form_renders(respx_mock: respx.MockRouter) -> No
     assert 'value="2"' in resp.text
     # Pre-filled name.
     assert "Forklift" in resp.text
-    # Pre-filled depreciation_model_id.
-    assert "SL-10Y" in resp.text
+    # Depreciation model select present, with asset_10_year_linear pre-selected.
+    assert '<select' in resp.text
+    assert 'name="depreciation_model_id"' in resp.text
+    assert 'value="asset_10_year_linear"' in resp.text
+    assert '10-year linear' in resp.text
     # Edit fields present.
     assert 'name="name"' in resp.text
-    assert 'name="depreciation_model_id"' in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -183,7 +218,7 @@ async def test_fixed_asset_edit_success_redirects(respx_mock: respx.MockRouter) 
             f"/fixed-assets/{_ASSET_ID}/edit",
             data={
                 "name": "Forklift Updated",
-                "depreciation_model_id": "SL-10Y",
+                "depreciation_model_id": "asset_10_year_linear",
                 "version": "2",
             },
         )
@@ -210,6 +245,9 @@ async def test_fixed_asset_edit_conflict_shows_banner(respx_mock: respx.MockRout
     )
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/depreciation_models").mock(
+        return_value=Response(200, json=_MOCK_DEP_MODELS)
     )
 
     async with AsyncClient(

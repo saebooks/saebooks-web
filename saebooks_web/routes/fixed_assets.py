@@ -1,4 +1,4 @@
-"""Fixed assets list, detail, create, edit, dispose and archive views — Lane D cycles 26 + 31.
+"""Fixed assets list, detail, create, edit, dispose and archive views — Lane D cycles 26 + 31 + 33.
 
 GET  /fixed-assets/new         — empty create form
 POST /fixed-assets/new         — submit to API; 303 on success, 422 re-render on error
@@ -15,8 +15,8 @@ before /{id} catch-all so FastAPI matches literal paths first.
 
 Auth guard: redirect to /login (303) if no session token.
 
-Note: GET /api/v1/depreciation_models does not exist; the form uses a text input
-for the depreciation_model_id field.
+Cycle 33: depreciation_model_id uses a <select> populated from
+GET /api/v1/depreciation_models (6 seeded rows).
 """
 from __future__ import annotations
 
@@ -46,6 +46,19 @@ async def _fetch_accounts(request: Request) -> list[dict]:
     async with api_client(request) as client:
         resp = await client.get("/api/v1/accounts", params={"limit": 500, "offset": 0})
     if resp.is_success:
+        return resp.json().get("items", [])
+    return []
+
+
+async def _fetch_dep_models(request: Request) -> list[dict]:
+    """Fetch depreciation models for the select dropdown (max 100).
+
+    Returns an empty list on any API error — the template shows a graceful
+    fallback in that case.
+    """
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/depreciation_models", params={"limit": 100})
+    if resp.status_code == 200:
         return resp.json().get("items", [])
     return []
 
@@ -81,6 +94,7 @@ async def fixed_asset_new_form(request: Request) -> HTMLResponse | RedirectRespo
         return RedirectResponse(url="/login", status_code=303)
 
     accounts = await _fetch_accounts(request)
+    dep_models = await _fetch_dep_models(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -90,6 +104,7 @@ async def fixed_asset_new_form(request: Request) -> HTMLResponse | RedirectRespo
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "accounts": accounts,
+            "dep_models": dep_models,
         },
     )
 
@@ -170,6 +185,7 @@ async def fixed_asset_create(request: Request) -> HTMLResponse | RedirectRespons
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
     accounts = await _fetch_accounts(request)
+    dep_models = await _fetch_dep_models(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -179,6 +195,7 @@ async def fixed_asset_create(request: Request) -> HTMLResponse | RedirectRespons
             "errors": errors,
             "idempotency_key": idempotency_key,
             "accounts": accounts,
+            "dep_models": dep_models,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
@@ -234,6 +251,7 @@ async def fixed_asset_edit_form(
                 "errors": {"__all__": "Fixed asset not found"},
                 "conflict": False,
                 "accounts": [],
+                "dep_models": [],
             },
             status_code=404,
         )
@@ -247,6 +265,7 @@ async def fixed_asset_edit_form(
                 "errors": {"__all__": f"API error: HTTP {resp.status_code}"},
                 "conflict": False,
                 "accounts": [],
+                "dep_models": [],
             },
             status_code=resp.status_code,
         )
@@ -263,6 +282,7 @@ async def fixed_asset_edit_form(
         )
 
     accounts = await _fetch_accounts(request)
+    dep_models = await _fetch_dep_models(request)
 
     form: dict[str, str] = {field: str(asset.get(field) or "") for field in _EDIT_FIELDS}
     form["version"] = str(asset.get("version", ""))
@@ -276,6 +296,7 @@ async def fixed_asset_edit_form(
             "errors": {},
             "conflict": False,
             "accounts": accounts,
+            "dep_models": dep_models,
         },
     )
 
@@ -334,6 +355,7 @@ async def fixed_asset_update(
         conflict_form["version"] = server_version
 
         accounts = await _fetch_accounts(request)
+        dep_models = await _fetch_dep_models(request)
 
         return _TEMPLATES.TemplateResponse(
             request,
@@ -345,6 +367,7 @@ async def fixed_asset_update(
                 "conflict": True,
                 "server_asset": server_asset,
                 "accounts": accounts,
+                "dep_models": dep_models,
             },
             status_code=409,
         )
@@ -370,6 +393,7 @@ async def fixed_asset_update(
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
     accounts = await _fetch_accounts(request)
+    dep_models = await _fetch_dep_models(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -380,6 +404,7 @@ async def fixed_asset_update(
             "errors": errors,
             "conflict": False,
             "accounts": accounts,
+            "dep_models": dep_models,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )

@@ -72,6 +72,36 @@ _MOCK_ACCOUNTS = {
     "total": 3,
 }
 
+_MOCK_DEP_MODELS = {
+    "items": [
+        {
+            "id": "asset_no_depreciation",
+            "method": "no_depreciation",
+            "method_number": 0,
+            "method_period": 12,
+            "rate_pct": None,
+            "created_at": "2026-01-01T00:00:00Z",
+        },
+        {
+            "id": "asset_5_year_linear",
+            "method": "linear",
+            "method_number": 60,
+            "method_period": 12,
+            "rate_pct": None,
+            "created_at": "2026-01-01T00:00:00Z",
+        },
+        {
+            "id": "asset_10_year_linear",
+            "method": "linear",
+            "method_number": 120,
+            "method_period": 12,
+            "rate_pct": None,
+            "created_at": "2026-01-01T00:00:00Z",
+        },
+    ],
+    "total": 3,
+}
+
 
 def _make_session_cookie(data: dict) -> str:
     signer = _TimestampSigner(settings.secret_key)
@@ -91,9 +121,12 @@ _API_BASE = settings.api_url.rstrip("/")
 @pytest.mark.anyio
 @respx.mock
 async def test_fixed_asset_new_form_renders(respx_mock: respx.MockRouter) -> None:
-    """GET /fixed-assets/new returns the form with all expected fields."""
+    """GET /fixed-assets/new returns the form with all expected fields including dep model select."""
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/depreciation_models").mock(
+        return_value=Response(200, json=_MOCK_DEP_MODELS)
     )
 
     async with AsyncClient(
@@ -106,6 +139,10 @@ async def test_fixed_asset_new_form_renders(respx_mock: respx.MockRouter) -> Non
     assert resp.status_code == 200
     assert 'name="name"' in resp.text
     assert 'name="depreciation_model_id"' in resp.text
+    # Should be a select, not a text input.
+    assert '<select' in resp.text
+    assert 'No depreciation' in resp.text
+    assert '5-year linear' in resp.text
     assert 'name="cost"' in resp.text
     assert 'name="purchase_date"' in resp.text
     assert 'name="cost_account_id"' in resp.text
@@ -175,6 +212,9 @@ async def test_fixed_asset_create_validation_error(respx_mock: respx.MockRouter)
     )
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/depreciation_models").mock(
+        return_value=Response(200, json=_MOCK_DEP_MODELS)
     )
 
     async with AsyncClient(
