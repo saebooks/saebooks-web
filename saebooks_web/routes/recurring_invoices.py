@@ -1,4 +1,4 @@
-"""Recurring invoices list, detail, create, edit, and archive views — Lane D cycles 26 + 30.
+"""Recurring invoices list, detail, create, edit, archive, and generate views — Lane D cycles 26 + 30 + 38.
 
 GET  /recurring-invoices            — list page (paginated, HTMX-aware)
 GET  /recurring-invoices/new        — empty create form; generates idempotency key
@@ -9,10 +9,12 @@ POST /recurring-invoices/{id}/edit  — PATCH with If-Match; redirect on success
 POST /recurring-invoices/{id}/archive — soft-archive via DELETE
 POST /recurring-invoices/{id}/pause  — transition ACTIVE -> PAUSED via PATCH status
 POST /recurring-invoices/{id}/resume — transition PAUSED -> ACTIVE via PATCH status
+POST /recurring-invoices/{id}/generate — generate invoice now; redirect to /invoices/{id} on 201
 GET  /recurring-invoices/{id}       — recurring invoice detail
 
 Route ordering: /new + /_add_line + /{id}/edit + /{id}/archive + /{id}/pause + /{id}/resume
-MUST be declared before catch-all /{id} so FastAPI resolves literal paths first.
++ /{id}/generate MUST be declared before catch-all /{id} so FastAPI resolves literal paths
+first.
 
 Auth guard: redirect to /login (303) if no session token.
 
@@ -22,6 +24,7 @@ RecurrenceFrequency values: WEEKLY / FORTNIGHTLY / MONTHLY / QUARTERLY / YEARLY.
 The API prefix is /api/v1/recurring_invoices and uses page/page_size pagination.
 Status is mutable via PATCH status field (ACTIVE/PAUSED/ENDED transitions).
 Archive is terminal and uses DELETE.
+Generate calls POST /api/v1/recurring_invoices/{id}/generate.
 """
 from __future__ import annotations
 
@@ -770,6 +773,71 @@ async def recurring_invoice_resume(
 
 
 # ---------------------------------------------------------------------------
+# Generate — POST /{ri_id}/generate
+# NOTE: MUST appear before catch-all /{ri_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/recurring-invoices/{ri_id}/generate",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def recurring_invoice_generate(
+    request: Request,
+    ri_id: str,
+) -> RedirectResponse:
+    """Generate an invoice immediately from an ACTIVE recurring invoice.
+
+    Reads version and idempotency_key from the form for optimistic locking and
+    deduplication.
+
+    Outcomes:
+    - 201 Created -> 303 redirect to /invoices/{invoice_id}
+    - 409 Conflict -> flash "version conflict" + 303 back to RI detail
+    - 422 Unprocessable -> flash API error detail + 303 back to RI detail
+    - other errors -> flash generic error + 303 back to RI detail
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    idempotency_key = str(form_data.get("idempotency_key", str(uuid.uuid4())))
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/recurring_invoices/{ri_id}/generate",
+            json={"version": int(version)} if version.isdigit() else {},
+            headers={"X-Idempotency-Key": idempotency_key},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 201:
+        data = resp.json()
+        invoice_id = data.get("invoice_id") or data.get("id")
+        return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — refresh and try again."
+        return RedirectResponse(url=f"/recurring-invoices/{ri_id}", status_code=303)
+
+    # 422 or other errors — extract detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/recurring-invoices/{ri_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
 # Detail — catch-all /{ri_id}
 # NOTE: MUST be last so the literal paths above take precedence.
 # ---------------------------------------------------------------------------
@@ -809,5 +877,10 @@ async def recurring_invoice_detail(
     return _TEMPLATES.TemplateResponse(
         request,
         "recurring_invoices/detail.html",
-        {"ri": ri, "error": None, "flash": flash},
+        {
+            "ri": ri,
+            "error": None,
+            "flash": flash,
+            "generate_idempotency_key": str(uuid.uuid4()),
+        },
     )

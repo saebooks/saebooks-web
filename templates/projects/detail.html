@@ -40,6 +40,24 @@
   </div>
   <div class="flex items-center gap-3">
     {% if not project.archived_at %}
+
+    {# Quick status change form — PATCH status via edit route #}
+    <form method="POST" action="/projects/{{ project.id }}/edit" class="flex items-center gap-2">
+      <input type="hidden" name="version" value="{{ project.version }}">
+      <input type="hidden" name="code" value="{{ project.code }}">
+      <input type="hidden" name="name" value="{{ project.name }}">
+      <select
+        name="status"
+        onchange="this.form.submit()"
+        class="rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-700
+               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        <option value="ACTIVE"{% if project.status == 'ACTIVE' %} selected{% endif %}>Active</option>
+        <option value="ON_HOLD"{% if project.status == 'ON_HOLD' %} selected{% endif %}>On Hold</option>
+        <option value="COMPLETED"{% if project.status == 'COMPLETED' %} selected{% endif %}>Completed</option>
+      </select>
+    </form>
+
     <a
       href="/projects/{{ project.id }}/edit"
       class="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700
