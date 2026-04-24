@@ -1,6 +1,6 @@
 """Fixed assets list, detail, create, edit, dispose, archive and post-depreciation views.
 
-Lane D cycles 26 + 31 + 33 + 40.
+Lane D cycles 26 + 31 + 33 + 40 + 42.
 
 GET  /fixed-assets/new                    — empty create form
 POST /fixed-assets/new                    — submit to API; 303 on success, 422 re-render on error
@@ -10,11 +10,13 @@ POST /fixed-assets/{id}/edit              — PATCH with If-Match; 303 with flas
 POST /fixed-assets/{id}/dispose           — POST to /api/v1/fixed_assets/{id}/dispose with If-Match
 POST /fixed-assets/{id}/archive           — soft-archive via archive_entity helper
 POST /fixed-assets/{id}/post-depreciation — POST to /api/v1/fixed_assets/{id}/post_depreciation
+GET  /fixed-assets/depreciation-run       — batch depreciation run form
+POST /fixed-assets/depreciation-run       — submit batch run; renders results inline (no redirect)
 GET  /fixed-assets                        — list page (paginated, HTMX-aware)
 GET  /fixed-assets/{id}                   — fixed asset detail
 
 Route ordering: /new + /{id}/edit + /{id}/dispose + /{id}/archive + /{id}/post-depreciation
-MUST appear before /{id} catch-all so FastAPI matches literal paths first.
++ /depreciation-run MUST appear before /{id} catch-all so FastAPI matches literal paths first.
 
 Auth guard: redirect to /login (303) if no session token.
 
@@ -588,6 +590,111 @@ async def fixed_asset_post_depreciation(
         pass
     request.session["flash"] = flash_msg
     return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Batch Depreciation Run — GET (form) + POST (submit, renders results inline)
+# NOTE: MUST appear before the catch-all /{asset_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/fixed-assets/depreciation-run", response_class=HTMLResponse, response_model=None)
+async def depreciation_run_form(request: Request) -> HTMLResponse | RedirectResponse:
+    """Render the batch depreciation run form.
+
+    Defaults the through_date to the last day of the current calendar month.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    _today = date.today()
+    _last_day = calendar.monthrange(_today.year, _today.month)[1]
+    through_default = date(_today.year, _today.month, _last_day).isoformat()
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "fixed_assets/depreciation_run.html",
+        {
+            "through_default": through_default,
+            "results": None,
+            "run_summary": None,
+            "errors": None,
+            "error": None,
+        },
+    )
+
+
+@router.post("/fixed-assets/depreciation-run", response_class=HTMLResponse, response_model=None)
+async def depreciation_run_submit(request: Request) -> HTMLResponse | RedirectResponse:
+    """Submit the batch depreciation run.
+
+    Calls POST /api/v1/fixed_assets/depreciation_run_all with {"through": through}.
+    On 200: renders results inline (no redirect).
+    On 422 / other error: re-renders the form with an error banner.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    through = str(form_data.get("through", "")).strip()
+
+    _today = date.today()
+    _last_day = calendar.monthrange(_today.year, _today.month)[1]
+    through_default = through or date(_today.year, _today.month, _last_day).isoformat()
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            "/api/v1/fixed_assets/depreciation_run_all",
+            json={"through": through},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        body = resp.json()
+        run_summary = {
+            "through": body.get("through", through),
+            "total_assets": body.get("total_assets", 0),
+            "total_amount": body.get("total_amount", "0.00"),
+        }
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "fixed_assets/depreciation_run.html",
+            {
+                "through_default": through_default,
+                "results": body.get("results", []),
+                "run_summary": run_summary,
+                "errors": body.get("errors", []),
+                "error": None,
+            },
+        )
+
+    # 422 or other error — extract a human-readable message.
+    error_msg = f"API error: HTTP {resp.status_code}"
+    try:
+        detail = resp.json().get("detail", "")
+        if isinstance(detail, str) and detail:
+            error_msg = detail
+        elif isinstance(detail, list) and detail:
+            first = detail[0]
+            error_msg = first.get("msg", error_msg) if isinstance(first, dict) else str(first)
+    except Exception:
+        pass
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "fixed_assets/depreciation_run.html",
+        {
+            "through_default": through_default,
+            "results": None,
+            "run_summary": None,
+            "errors": None,
+            "error": error_msg,
+        },
+        status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Depreciation Run — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Batch Depreciation Run</h1>
+    <p class="text-sm text-gray-500 mt-1">Post depreciation for all active assets through a selected date.</p>
+  </div>
+  <div>
+    <a href="/fixed-assets" class="text-sm text-indigo-600 hover:underline">← Back to fixed assets</a>
+  </div>
+</div>
+
+{# ── Error banner ── #}
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+{# ── Run form ── #}
+<div class="bg-white rounded-xl border border-gray-200 px-6 py-5 max-w-2xl mb-8">
+  <form method="POST" action="/fixed-assets/depreciation-run" novalidate>
+    <div class="space-y-4">
+      <div>
+        <label for="through" class="block text-sm font-medium text-gray-700 mb-1">
+          Post through <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          id="through"
+          name="through"
+          value="{{ through_default }}"
+          required
+          class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900
+                 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-xs"
+        >
+      </div>
+    </div>
+
+    <div class="mt-5">
+      <button
+        type="submit"
+        class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white
+               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Run depreciation
+      </button>
+    </div>
+  </form>
+</div>
+
+{# ── Results section (shown after a successful POST) ── #}
+{% if run_summary is not none %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-3">Results</h2>
+
+  {# Summary line #}
+  <p class="text-sm text-gray-700 mb-4">
+    <span class="font-medium">{{ run_summary.total_assets }}</span>
+    asset{{ "s" if run_summary.total_assets != 1 else "" }} processed,
+    total <span class="font-medium">AUD {{ run_summary.total_amount }}</span> posted
+    through <span class="font-medium">{{ run_summary.through }}</span>.
+  </p>
+
+  {# Errors warning box #}
+  {% if errors %}
+  <div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-4">
+    <p class="font-medium mb-1">{{ errors | length }} error{{ "s" if errors | length != 1 else "" }} encountered:</p>
+    <ul class="list-disc list-inside space-y-0.5">
+      {% for err in errors %}
+      <li>{{ err }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {# Per-asset results table #}
+  {% if results %}
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Asset Code</th>
+          <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Amount Posted</th>
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Note</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for row in results %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-mono text-gray-900 text-xs">{{ row.asset_code }}</td>
+          <td class="px-4 py-3 text-right text-gray-900">{{ row.amount_posted }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ row.note or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-sm text-gray-500">No assets were processed.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
