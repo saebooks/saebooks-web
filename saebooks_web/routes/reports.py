@@ -1,4 +1,4 @@
-"""Reports HTML views — Lane D cycle 29/32.
+"""Reports HTML views — Lane D cycle 29/32/41.
 
 GET /reports/fx-revaluation        — FX revaluation table (as_of_date param)
 
@@ -10,6 +10,9 @@ GET /reports/bas-summary            — BAS summary (from/to date range)
 GET /reports/cashflow               — Cashflow statement (from/to date range)
 GET /reports/depreciation-schedule  — Depreciation schedule (as_of_date, method)
 GET /reports/fx-revaluation         — FX revaluation report (as_of_date)
+GET /reports/trial-balance          — Trial balance (as_of_date, include_zero_balance)
+GET /reports/budget-vs-actual       — Budget vs actual (year, month)
+GET /reports/pl-by-segment          — P&L by segment (from_date, to_date, segment_type)
 
 All routes are HTMX-aware: when the request carries HX-Request: true the
 route renders only the ``_table`` partial (no base.html wrapper).
@@ -26,6 +29,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+import calendar
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -59,6 +63,16 @@ def _quarter_start() -> str:
     # Q1: Jan-Mar → 1, Q2: Apr-Jun → 4, Q3: Jul-Sep → 7, Q4: Oct-Dec → 10
     quarter_month = ((today.month - 1) // 3) * 3 + 1
     return today.replace(month=quarter_month, day=1).isoformat()
+
+
+def _month_end() -> str:
+    today = date.today()
+    last_day = calendar.monthrange(today.year, today.month)[1]
+    return today.replace(day=last_day).isoformat()
+
+
+def _current_year() -> int:
+    return date.today().year
 
 
 def _is_htmx(request: Request) -> bool:
@@ -443,5 +457,157 @@ async def fx_revaluation(
         "reports/_fx_revaluation_table.html"
         if _is_htmx(request)
         else "reports/fx_revaluation.html"
+    )
+    return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# GET /reports/trial-balance
+# ---------------------------------------------------------------------------
+
+
+@router.get("/reports/trial-balance", response_class=HTMLResponse, response_model=None)
+async def trial_balance(
+    request: Request,
+    as_of_date: str | None = None,
+    include_zero_balance: bool = False,
+) -> HTMLResponse | RedirectResponse:
+    """Trial balance report — debits/credits/balance per account with balanced indicator."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    as_of = as_of_date or _today()
+    report: dict = {}
+    error: str | None = None
+
+    async with api_client(request) as client:
+        resp = await client.get(
+            "/api/v1/reports/trial_balance",
+            params={
+                "as_of_date": as_of,
+                "include_zero_balance": str(include_zero_balance).lower(),
+            },
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.is_success:
+            report = resp.json()
+        else:
+            error = f"API error: HTTP {resp.status_code}"
+
+    ctx = {
+        "report": report,
+        "as_of_date": as_of,
+        "include_zero_balance": include_zero_balance,
+        "error": error,
+    }
+
+    template = (
+        "reports/_trial_balance_table.html"
+        if _is_htmx(request)
+        else "reports/trial_balance.html"
+    )
+    return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# GET /reports/budget-vs-actual
+# ---------------------------------------------------------------------------
+
+
+@router.get("/reports/budget-vs-actual", response_class=HTMLResponse, response_model=None)
+async def budget_vs_actual(
+    request: Request,
+    year: int | None = None,
+    month: int | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """Budget vs actual report — budget/actual/variance per account for a period."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    yr = year if year is not None else _current_year()
+    report: dict = {}
+    error: str | None = None
+
+    params: dict = {"year": yr}
+    if month is not None:
+        params["month"] = month
+
+    async with api_client(request) as client:
+        resp = await client.get(
+            "/api/v1/reports/budget_vs_actual",
+            params=params,
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.is_success:
+            report = resp.json()
+        else:
+            error = f"API error: HTTP {resp.status_code}"
+
+    ctx = {
+        "report": report,
+        "year": yr,
+        "month": month,
+        "current_year": _current_year(),
+        "error": error,
+    }
+
+    template = (
+        "reports/_budget_vs_actual_table.html"
+        if _is_htmx(request)
+        else "reports/budget_vs_actual.html"
+    )
+    return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# GET /reports/pl-by-segment
+# ---------------------------------------------------------------------------
+
+
+@router.get("/reports/pl-by-segment", response_class=HTMLResponse, response_model=None)
+async def pl_by_segment(
+    request: Request,
+    from_date: str | None = None,
+    to_date: str | None = None,
+    segment_type: str = "project",
+) -> HTMLResponse | RedirectResponse:
+    """P&L by segment report — net profit per project/department/cost-centre."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    from_ = from_date or _month_start()
+    to_ = to_date or _month_end()
+    report: dict = {}
+    error: str | None = None
+
+    async with api_client(request) as client:
+        resp = await client.get(
+            "/api/v1/reports/pl_by_segment",
+            params={"from_date": from_, "to_date": to_, "segment_type": segment_type},
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.is_success:
+            report = resp.json()
+        else:
+            error = f"API error: HTTP {resp.status_code}"
+
+    ctx = {
+        "report": report,
+        "from_date": from_,
+        "to_date": to_,
+        "segment_type": segment_type,
+        "error": error,
+    }
+
+    template = (
+        "reports/_pl_by_segment_table.html"
+        if _is_htmx(request)
+        else "reports/pl_by_segment.html"
     )
     return _TEMPLATES.TemplateResponse(request, template, ctx)
