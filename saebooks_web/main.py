@@ -36,6 +36,7 @@ from saebooks_web.routes.accounts import router as accounts_router
 from saebooks_web.routes.bank_accounts import router as bank_accounts_router
 from saebooks_web.routes.bank_rules import router as bank_rules_router
 from saebooks_web.routes.bank_statement_lines import router as bank_statement_lines_router
+from saebooks_web.routes.reconciliation import router as reconciliation_router
 from saebooks_web.routes.bills import router as bills_router
 from saebooks_web.routes.budgets import router as budgets_router
 from saebooks_web.routes.contacts import router as contacts_router
@@ -97,6 +98,7 @@ app.include_router(recurring_invoices_router)
 app.include_router(bank_accounts_router)
 app.include_router(bank_rules_router)
 app.include_router(bank_statement_lines_router)
+app.include_router(reconciliation_router)
 app.include_router(budgets_router)
 app.include_router(reports_router)
 app.include_router(search_router)
