@@ -39,6 +39,26 @@
     <p class="text-sm text-gray-500 mt-1">ID: {{ project.id }}</p>
   </div>
   <div class="flex items-center gap-3">
+    {% if not project.archived_at %}
+    <a
+      href="/projects/{{ project.id }}/edit"
+      class="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700
+             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >
+      Edit
+    </a>
+    <form method="POST" action="/projects/{{ project.id }}/archive" class="inline">
+      <input type="hidden" name="version" value="{{ project.version }}">
+      <button
+        type="submit"
+        onclick="return confirm('Archive this project?')"
+        class="rounded-md border border-red-300 px-4 py-1.5 text-sm font-medium text-red-700
+               hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+      >
+        Archive
+      </button>
+    </form>
+    {% endif %}
     <a
       href="/projects"
       class="text-sm text-indigo-600 hover:underline"
