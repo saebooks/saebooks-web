@@ -17,17 +17,13 @@
     <p class="text-sm text-gray-500 mt-1">{{ total }} account{{ "s" if total != 1 else "" }}</p>
     {% endif %}
   </div>
-  <div>
-    {# Placeholder — bank account creation is out of scope for this cycle #}
-    <button
-      type="button"
-      disabled
-      class="rounded-md bg-indigo-300 px-3 py-1.5 text-sm font-medium text-white cursor-not-allowed"
-      title="Bank account creation not yet available"
-    >
-      New bank account
-    </button>
-  </div>
+  <a
+    href="/bank-accounts/new"
+    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
+           hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+  >
+    New bank account
+  </a>
 </div>
 
 {# Filter form — HTMX-powered, swaps only the table on submit #}

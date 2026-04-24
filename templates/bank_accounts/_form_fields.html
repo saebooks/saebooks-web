@@ -1,0 +1,63 @@
+{#
+  _form_fields.html — shared form fields partial for bank account create/edit.
+
+  Expected context variables:
+    form   : dict of submitted field values (empty dict for a blank form)
+    errors : dict mapping field name -> error message string
+             Use "__all__" for non-field errors.
+#}
+
+{# Macro: render one labelled text input #}
+{% macro text_input(name, label, required=false, placeholder="", type="text") %}
+<div>
+  <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">
+    {{ label }}{% if required %} <span class="text-red-500">*</span>{% endif %}
+  </label>
+  <input
+    type="{{ type }}"
+    id="{{ name }}"
+    name="{{ name }}"
+    value="{{ form.get(name, '') }}"
+    {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+    {% if required %}required{% endif %}
+    class="block w-full rounded-md border {% if errors.get(name) %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+           px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+           focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+  >
+  {% if errors.get(name) %}
+  <p class="mt-1 text-xs text-red-600">{{ errors[name] }}</p>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# ── Non-field error banner ── #}
+{% if errors.get("__all__") %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ errors["__all__"] }}
+</div>
+{% endif %}
+
+{# ── Identity ── #}
+<fieldset class="space-y-4">
+  <legend class="text-sm font-semibold text-gray-900 mb-2">Identity</legend>
+
+  {{ text_input("code", "Account code", required=true, placeholder="BNKCBA001") }}
+  {{ text_input("name", "Display name", required=true, placeholder="CBA Business Cheque") }}
+</fieldset>
+
+{# ── Banking details ── #}
+<fieldset class="space-y-4 mt-6">
+  <legend class="text-sm font-semibold text-gray-900 mb-2">Banking details</legend>
+
+  {{ text_input("bsb", "BSB", required=true, placeholder="062-000") }}
+  {{ text_input("bank_account_number", "Account number", placeholder="123456789") }}
+  {{ text_input("bank_account_title", "Account title", placeholder="SAE Engineering Pty Ltd") }}
+  {{ text_input("bank_abbreviation", "Bank abbreviation", placeholder="CBA") }}
+</fieldset>
+
+{# ── Direct debit ── #}
+<fieldset class="space-y-4 mt-6">
+  <legend class="text-sm font-semibold text-gray-900 mb-2">Direct debit</legend>
+
+  {{ text_input("apca_user_id", "APCA user ID", placeholder="Optional") }}
+</fieldset>
