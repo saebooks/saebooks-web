@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Cannot Edit Archived Budget — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900">
+    {% if budget %}Edit Budget {{ budget.year }}/{{ budget.month }}{% else %}Edit Budget{% endif %}
+  </h1>
+  {% if budget %}
+  <a href="/budgets/{{ budget.id }}" class="text-sm text-indigo-600 hover:underline">← Back to budget</a>
+  {% else %}
+  <a href="/budgets" class="text-sm text-indigo-600 hover:underline">← Back to budgets</a>
+  {% endif %}
+</div>
+
+<div class="rounded-md bg-amber-50 border border-amber-300 px-6 py-5 max-w-2xl">
+  <p class="text-sm font-semibold text-amber-800 mb-1">Archived budgets cannot be edited.</p>
+  {% if budget %}
+  <p class="text-sm text-amber-700">
+    This budget was archived on {{ budget.archived_at[:10] }}.
+    Return to the
+    <a href="/budgets/{{ budget.id }}" class="underline hover:text-amber-900">budget detail page</a>
+    to view it.
+  </p>
+  {% endif %}
+</div>
+
+{% endblock %}

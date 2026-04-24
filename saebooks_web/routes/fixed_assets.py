@@ -1,16 +1,26 @@
-"""Fixed assets list and detail views — Lane D cycle 26.
+"""Fixed assets list, detail, create, edit, dispose and archive views — Lane D cycles 26 + 31.
 
-GET  /fixed-assets       — list page (paginated, HTMX-aware)
-GET  /fixed-assets/{id}  — fixed asset detail
+GET  /fixed-assets/new         — empty create form
+POST /fixed-assets/new         — submit to API; 303 on success, 422 re-render on error
+GET  /fixed-assets/{id}/edit   — pre-populated edit form
+                                 If status == DISPOSED → edit_blocked.html (HTTP 422)
+POST /fixed-assets/{id}/edit   — PATCH with If-Match; 303 with flash on success
+POST /fixed-assets/{id}/dispose — POST to /api/v1/fixed_assets/{id}/dispose with If-Match
+POST /fixed-assets/{id}/archive — soft-archive via archive_entity helper
+GET  /fixed-assets             — list page (paginated, HTMX-aware)
+GET  /fixed-assets/{id}        — fixed asset detail
+
+Route ordering: /new + /{id}/edit + /{id}/dispose + /{id}/archive MUST appear
+before /{id} catch-all so FastAPI matches literal paths first.
 
 Auth guard: redirect to /login (303) if no session token.
 
-Fixed assets are tier-4 read-only views.  No create/edit form in this cycle.
-
-The API uses page/page_size pagination and the prefix is /api/v1/fixed_assets.
+Note: GET /api/v1/depreciation_models does not exist; the form uses a text input
+for the depreciation_model_id field.
 """
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -18,6 +28,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.archive_helpers import archive_entity as _archive_entity
 
 router = APIRouter()
 
@@ -28,6 +39,456 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
+
+
+async def _fetch_accounts(request: Request) -> list[dict]:
+    """Fetch all accounts for dropdown population (max 500)."""
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/accounts", params={"limit": 500, "offset": 0})
+    if resp.is_success:
+        return resp.json().get("items", [])
+    return []
+
+
+def _parse_422(body: dict) -> dict[str, str]:
+    """Extract field -> message errors from a 422 response body."""
+    errors: dict[str, str] = {}
+    try:
+        detail = body.get("detail", [])
+        if isinstance(detail, list):
+            for err in detail:
+                loc = err.get("loc", [])
+                field_parts = [p for p in loc if p != "body"]
+                field = str(field_parts[0]) if field_parts else "__all__"
+                errors[field] = err.get("msg", "Invalid value")
+        elif isinstance(detail, str):
+            errors["__all__"] = detail
+    except Exception:
+        errors["__all__"] = "Validation error"
+    return errors
+
+
+# ---------------------------------------------------------------------------
+# Create — GET (empty form) + POST (submit)
+# NOTE: MUST appear before /{asset_id} to win the literal-path match.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/fixed-assets/new", response_class=HTMLResponse, response_model=None)
+async def fixed_asset_new_form(request: Request) -> HTMLResponse | RedirectResponse:
+    """Render the empty create-asset form with account dropdowns."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    accounts = await _fetch_accounts(request)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "fixed_assets/new.html",
+        {
+            "form": {},
+            "errors": {},
+            "idempotency_key": str(uuid.uuid4()),
+            "accounts": accounts,
+        },
+    )
+
+
+@router.post("/fixed-assets/new", response_class=HTMLResponse, response_model=None)
+async def fixed_asset_create(request: Request) -> HTMLResponse | RedirectResponse:
+    """Submit the create-asset form.
+
+    - 201 -> 303 redirect to /fixed-assets/{id}
+    - 422 -> re-render form with per-field errors
+    - 401 -> clear session, redirect to /login
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
+
+    # Required fields.
+    payload: dict[str, object] = {}
+    for required_field in (
+        "name",
+        "depreciation_model_id",
+        "cost_account_id",
+        "accum_dep_account_id",
+        "dep_expense_account_id",
+        "purchase_date",
+        "cost",
+    ):
+        val = form.get(required_field, "").strip()
+        payload[required_field] = val
+
+    # Optional fields — only include when non-empty.
+    for optional_field in (
+        "description",
+        "code",
+        "tax_model_id",
+        "serial_number",
+        "manufacturer",
+        "model_number",
+        "location",
+        "custody_person",
+        "warranty_end",
+        "in_service_date",
+    ):
+        val = form.get(optional_field, "").strip()
+        if val:
+            payload[optional_field] = val
+
+    residual_value = form.get("residual_value", "").strip()
+    if residual_value:
+        payload["residual_value"] = residual_value
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            "/api/v1/fixed_assets",
+            json=payload,
+            headers={"X-Idempotency-Key": idempotency_key},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 201:
+        created = resp.json()
+        return RedirectResponse(url=f"/fixed-assets/{created['id']}", status_code=303)
+
+    # 422 — parse per-field or plain-string errors.
+    errors: dict[str, str] = {}
+    if resp.status_code == 422:
+        errors = _parse_422(resp.json())
+        if not errors:
+            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
+    else:
+        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+
+    accounts = await _fetch_accounts(request)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "fixed_assets/new.html",
+        {
+            "form": form,
+            "errors": errors,
+            "idempotency_key": idempotency_key,
+            "accounts": accounts,
+        },
+        status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Edit — GET (pre-populated form) + POST (PATCH with If-Match)
+# NOTE: MUST appear before /{asset_id} catch-all.
+# ---------------------------------------------------------------------------
+
+_EDIT_FIELDS = (
+    "name",
+    "description",
+    "depreciation_model_id",
+    "tax_model_id",
+    "purchase_date",
+    "in_service_date",
+    "residual_value",
+    "serial_number",
+    "manufacturer",
+    "model_number",
+    "location",
+    "custody_person",
+    "warranty_end",
+)
+
+
+@router.get("/fixed-assets/{asset_id}/edit", response_class=HTMLResponse, response_model=None)
+async def fixed_asset_edit_form(
+    request: Request,
+    asset_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Render the pre-populated edit form for an existing fixed asset.
+
+    If the asset has status DISPOSED, renders edit_blocked.html with HTTP 422.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/fixed_assets/{asset_id}")
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "fixed_assets/edit.html",
+            {
+                "asset": None,
+                "form": {},
+                "errors": {"__all__": "Fixed asset not found"},
+                "conflict": False,
+                "accounts": [],
+            },
+            status_code=404,
+        )
+    if not resp.is_success:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "fixed_assets/edit.html",
+            {
+                "asset": None,
+                "form": {},
+                "errors": {"__all__": f"API error: HTTP {resp.status_code}"},
+                "conflict": False,
+                "accounts": [],
+            },
+            status_code=resp.status_code,
+        )
+
+    asset = resp.json()
+
+    # Block editing disposed assets.
+    if asset.get("status") == "DISPOSED":
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "fixed_assets/edit_blocked.html",
+            {"asset": asset},
+            status_code=422,
+        )
+
+    accounts = await _fetch_accounts(request)
+
+    form: dict[str, str] = {field: str(asset.get(field) or "") for field in _EDIT_FIELDS}
+    form["version"] = str(asset.get("version", ""))
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "fixed_assets/edit.html",
+        {
+            "asset": asset,
+            "form": form,
+            "errors": {},
+            "conflict": False,
+            "accounts": accounts,
+        },
+    )
+
+
+@router.post("/fixed-assets/{asset_id}/edit", response_class=HTMLResponse, response_model=None)
+async def fixed_asset_update(
+    request: Request,
+    asset_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Submit the edit form — PATCH to the API with an If-Match header.
+
+    - 200 OK      -> 303 redirect to /fixed-assets/{id}
+    - 409 Conflict -> re-fetch latest, re-render with conflict banner + server version
+    - 422          -> re-render with per-field validation errors
+    - 401          -> clear session, redirect to /login
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    version = form.get("version", "")
+
+    # Build PATCH payload — only include non-empty fields.
+    payload: dict[str, object] = {}
+    for field in _EDIT_FIELDS:
+        val = form.get(field, "").strip()
+        if val:
+            payload[field] = val
+
+    async with api_client(request) as client:
+        resp = await client.patch(
+            f"/api/v1/fixed_assets/{asset_id}",
+            json=payload,
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Fixed asset saved."
+        return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+    # 409 Conflict — re-fetch server's latest, preserve user input.
+    if resp.status_code == 409:
+        async with api_client(request) as client:
+            latest_resp = await client.get(f"/api/v1/fixed_assets/{asset_id}")
+
+        server_asset: dict = latest_resp.json() if latest_resp.is_success else {}
+        server_version = str(server_asset.get("version", ""))
+
+        conflict_form = dict(form)
+        conflict_form["version"] = server_version
+
+        accounts = await _fetch_accounts(request)
+
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "fixed_assets/edit.html",
+            {
+                "asset": server_asset,
+                "form": conflict_form,
+                "errors": {},
+                "conflict": True,
+                "server_asset": server_asset,
+                "accounts": accounts,
+            },
+            status_code=409,
+        )
+
+    # 422 — per-field validation errors.
+    errors: dict[str, str] = {}
+    if resp.status_code == 422:
+        errors = _parse_422(resp.json())
+        if not errors:
+            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
+    elif resp.status_code == 428:
+        import logging as _logging
+
+        _logging.getLogger(__name__).error(
+            "PATCH /api/v1/fixed_assets/%s returned 428 — If-Match header was missing",
+            asset_id,
+        )
+        errors["__all__"] = (
+            "Precondition required: version information was missing. "
+            "Please reload and try again."
+        )
+    else:
+        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+
+    accounts = await _fetch_accounts(request)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "fixed_assets/edit.html",
+        {
+            "asset": None,
+            "form": form,
+            "errors": errors,
+            "conflict": False,
+            "accounts": accounts,
+        },
+        status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Dispose — POST /{asset_id}/dispose
+# NOTE: MUST appear before the catch-all /{asset_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/fixed-assets/{asset_id}/dispose", response_class=HTMLResponse, response_model=None)
+async def fixed_asset_dispose(
+    request: Request,
+    asset_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Submit the dispose form — POST to /api/v1/fixed_assets/{id}/dispose.
+
+    - 200 OK  -> 303 redirect to /fixed-assets/{id} with flash
+    - 422     -> 303 redirect back to detail with flash error
+    - 409     -> 303 redirect back to detail with conflict flash
+    - 401     -> clear session, redirect to /login
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    version = form.get("version", "")
+
+    payload: dict[str, object] = {}
+    for field in ("disposal_date", "proceeds"):
+        val = form.get(field, "").strip()
+        payload[field] = val
+
+    notes = form.get("notes", "").strip()
+    if notes:
+        payload["notes"] = notes
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/fixed_assets/{asset_id}/dispose",
+            json=payload,
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Fixed asset disposed."
+        return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Dispose failed — asset was modified. Refresh and try again."
+        return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+    # 422 or other error.
+    flash_msg = f"Dispose failed (HTTP {resp.status_code})."
+    try:
+        detail = resp.json().get("detail", "")
+        if isinstance(detail, str) and detail:
+            flash_msg = detail
+        elif isinstance(detail, list) and detail:
+            flash_msg = detail[0].get("msg", flash_msg)
+    except Exception:
+        pass
+    request.session["flash"] = flash_msg
+    return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Archive — POST /{asset_id}/archive
+# NOTE: MUST appear before the catch-all /{asset_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/fixed-assets/{asset_id}/archive", response_class=HTMLResponse, response_model=None)
+async def fixed_asset_archive(
+    request: Request,
+    asset_id: str,
+) -> RedirectResponse:
+    """Soft-archive a fixed asset via DELETE /api/v1/fixed_assets/{id} with If-Match.
+
+    On success redirects to /fixed-assets with a flash.
+    On 409 or 422 redirects back to detail.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = form_data.get("version", "")
+
+    return await _archive_entity(
+        request=request,
+        entity_api_path="/api/v1/fixed_assets",
+        entity_id=asset_id,
+        version=str(version),
+        entity_label=f"Fixed asset {asset_id}",
+        list_url="/fixed-assets",
+        detail_url=f"/fixed-assets/{asset_id}",
+    )
+
+
+# ---------------------------------------------------------------------------
+# List
+# ---------------------------------------------------------------------------
 
 
 @router.get("/fixed-assets", response_class=HTMLResponse, response_model=None)
@@ -103,6 +564,11 @@ async def fixed_assets_list(
     template = "fixed_assets/_table.html" if is_htmx else "fixed_assets/list.html"
 
     return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# Detail
+# ---------------------------------------------------------------------------
 
 
 @router.get("/fixed-assets/{asset_id}", response_class=HTMLResponse, response_model=None)
