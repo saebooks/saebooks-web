@@ -1,7 +1,7 @@
-"""Tests for the contact edit form — Lane D cycle 8.
+"""Tests for the contact edit form — Lane D cycles 8, 43.
 
 Six tests:
-1. test_edit_form_renders_with_version   — GET /contacts/{id}/edit has version hidden input
+1. test_edit_form_renders_with_version   — GET /contacts/{id}/edit has version hidden input + bank fields
 2. test_edit_success_redirects           — POST with correct version, API 200 → 303
 3. test_edit_sends_if_match_header       — PATCH call includes If-Match: <version>
 4. test_edit_conflict_shows_banner       — API 409 → re-render with conflict banner + latest version
@@ -26,6 +26,10 @@ from saebooks_web.main import app
 # ---------------------------------------------------------------------------
 
 _CONTACT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+_ACCOUNT_ID = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+
+_MOCK_ACCOUNT = {"id": _ACCOUNT_ID, "name": "Revenue", "code": "4000", "account_type": "INCOME"}
+_MOCK_ACCOUNTS = {"items": [_MOCK_ACCOUNT], "total": 1, "limit": 1000, "offset": 0}
 
 _MOCK_CONTACT = {
     "id": _CONTACT_ID,
@@ -77,9 +81,12 @@ _API_BASE = settings.api_url.rstrip("/")
 @pytest.mark.anyio
 @respx.mock
 async def test_edit_form_renders_with_version(respx_mock: respx.MockRouter) -> None:
-    """GET /contacts/{id}/edit renders the form with a hidden version input."""
+    """GET /contacts/{id}/edit renders the form with a hidden version input + bank fields."""
     respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(200, json=_MOCK_CONTACT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS)
     )
 
     async with AsyncClient(
@@ -98,6 +105,12 @@ async def test_edit_form_renders_with_version(respx_mock: respx.MockRouter) -> N
     assert "Brisbane" in resp.text
     assert 'name="name"' in resp.text
     assert 'name="contact_type"' in resp.text
+    # Bank fields present.
+    assert 'name="bank_bsb"' in resp.text
+    assert 'name="bank_account_number"' in resp.text
+    assert 'name="bank_account_title"' in resp.text
+    # Default account dropdown present.
+    assert 'name="default_account_id"' in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -184,6 +197,10 @@ async def test_edit_conflict_shows_banner(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(200, json=_MOCK_CONTACT_V6)
     )
+    # The re-render fetches accounts for the dropdown.
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -230,6 +247,10 @@ async def test_edit_validation_error(respx_mock: respx.MockRouter) -> None:
     }
     respx_mock.patch(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(422, json=_422_body)
+    )
+    # The re-render fetches accounts for the dropdown.
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS)
     )
 
     async with AsyncClient(

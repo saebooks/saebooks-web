@@ -1,12 +1,15 @@
-"""Tests for the contacts detail view + create form — Lane D cycle 7.
+"""Tests for the contacts detail view + create form — Lane D cycles 7, 43.
 
-Six tests:
-1. test_contact_detail_renders         — GET /contacts/{id} shows contact name
-2. test_contact_detail_404             — upstream 404 propagates as HTTP 404
-3. test_contact_new_form_renders       — GET /contacts/new returns form with fields
-4. test_contact_create_success_redirects — POST with valid body -> 303 to /contacts/{id}
-5. test_contact_create_validation_error  — POST with bad body; 422 + error text visible
+Nine tests:
+1. test_contact_detail_renders              — GET /contacts/{id} shows contact name
+2. test_contact_detail_404                  — upstream 404 propagates as HTTP 404
+3. test_contact_new_form_renders            — GET /contacts/new returns form with fields + accounts dropdown
+4. test_contact_create_success_redirects    — POST with valid body -> 303 to /contacts/{id}
+5. test_contact_create_validation_error     — POST with bad body; 422 + error text visible
 6. test_contact_create_sends_idempotency_key — POST includes X-Idempotency-Key header
+7. test_contact_create_with_bank_fields     — POST with bank fields -> included in API payload
+8. test_contact_create_with_default_account — POST with default_account_id -> included in payload
+9. test_contact_new_form_accounts_dropdown  — GET /contacts/new with accounts -> select rendered
 """
 from __future__ import annotations
 
@@ -26,6 +29,10 @@ from saebooks_web.main import app
 # ---------------------------------------------------------------------------
 
 _CONTACT_ID = "11111111-1111-1111-1111-111111111111"
+_ACCOUNT_ID = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
+
+_MOCK_ACCOUNT = {"id": _ACCOUNT_ID, "name": "Revenue", "code": "4000", "account_type": "INCOME"}
+_MOCK_ACCOUNTS = {"items": [_MOCK_ACCOUNT], "total": 1, "limit": 1000, "offset": 0}
 
 _MOCK_CONTACT = {
     "id": _CONTACT_ID,
@@ -120,8 +127,13 @@ async def test_contact_detail_404(respx_mock: respx.MockRouter) -> None:
 
 
 @pytest.mark.anyio
-async def test_contact_new_form_renders() -> None:
-    """GET /contacts/new returns the form with all expected fields."""
+@respx.mock
+async def test_contact_new_form_renders(respx_mock: respx.MockRouter) -> None:
+    """GET /contacts/new returns the form with all expected fields and bank fields."""
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -144,6 +156,12 @@ async def test_contact_new_form_renders() -> None:
     assert 'name="country"' in resp.text
     assert 'name="notes"' in resp.text
     assert 'name="default_tax_code"' in resp.text
+    # Bank fields
+    assert 'name="bank_bsb"' in resp.text
+    assert 'name="bank_account_number"' in resp.text
+    assert 'name="bank_account_title"' in resp.text
+    # Default account dropdown
+    assert 'name="default_account_id"' in resp.text
     # Idempotency key hidden input
     assert 'name="idempotency_key"' in resp.text
 
@@ -201,6 +219,10 @@ async def test_contact_create_validation_error(respx_mock: respx.MockRouter) -> 
     }
     respx_mock.post(f"{_API_BASE}/api/v1/contacts").mock(
         return_value=Response(422, json=_422_body)
+    )
+    # The re-render path fetches accounts for the dropdown.
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS)
     )
 
     async with AsyncClient(
@@ -260,3 +282,114 @@ async def test_contact_create_sends_idempotency_key(respx_mock: respx.MockRouter
 
     assert len(captured) == 1, "Expected exactly one upstream POST call"
     assert captured[0] == _idem_key, f"Expected idempotency key {_idem_key!r}, got {captured[0]!r}"
+
+
+# ---------------------------------------------------------------------------
+# 7. Create with bank fields → included in API payload
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_contact_create_with_bank_fields(respx_mock: respx.MockRouter) -> None:
+    """POST /contacts/new with bank_bsb/bank_account_number/bank_account_title sends them to API."""
+    captured_bodies: list[dict] = []
+
+    def _capture(request: respx.Request) -> Response:
+        import json as _j
+        captured_bodies.append(_j.loads(request.content))
+        return Response(201, json=_MOCK_CONTACT)
+
+    respx_mock.post(f"{_API_BASE}/api/v1/contacts").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        await client.post(
+            "/contacts/new",
+            data={
+                "name": "Bank Test Co",
+                "contact_type": "SUPPLIER",
+                "idempotency_key": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+                "bank_bsb": "062-000",
+                "bank_account_number": "12345678",
+                "bank_account_title": "Bank Test Co Pty Ltd",
+            },
+        )
+
+    assert len(captured_bodies) == 1
+    body = captured_bodies[0]
+    assert body.get("bank_bsb") == "062-000"
+    assert body.get("bank_account_number") == "12345678"
+    assert body.get("bank_account_title") == "Bank Test Co Pty Ltd"
+
+
+# ---------------------------------------------------------------------------
+# 8. Create with default_account_id → included in API payload
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_contact_create_with_default_account(respx_mock: respx.MockRouter) -> None:
+    """POST /contacts/new with default_account_id sends it to the API."""
+    captured_bodies: list[dict] = []
+
+    def _capture(request: respx.Request) -> Response:
+        import json as _j
+        captured_bodies.append(_j.loads(request.content))
+        return Response(201, json=_MOCK_CONTACT)
+
+    respx_mock.post(f"{_API_BASE}/api/v1/contacts").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        await client.post(
+            "/contacts/new",
+            data={
+                "name": "Account Test Co",
+                "contact_type": "CUSTOMER",
+                "idempotency_key": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                "default_account_id": _ACCOUNT_ID,
+            },
+        )
+
+    assert len(captured_bodies) == 1
+    assert captured_bodies[0].get("default_account_id") == _ACCOUNT_ID
+
+
+# ---------------------------------------------------------------------------
+# 9. GET /contacts/new with accounts → select element rendered in form
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_contact_new_form_accounts_dropdown(respx_mock: respx.MockRouter) -> None:
+    """GET /contacts/new with accounts available renders a select for default_account_id."""
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/contacts/new")
+
+    assert resp.status_code == 200
+    # The select element should be present (not the plain text fallback input).
+    assert 'name="default_account_id"' in resp.text
+    # The account option should appear — "4000 — Revenue".
+    assert "4000" in resp.text
+    assert "Revenue" in resp.text
+    # Blank "None" option present.
+    assert "— None —" in resp.text

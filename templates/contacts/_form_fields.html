@@ -2,9 +2,11 @@
   _form_fields.html — shared form fields partial for contact create/edit.
 
   Expected context variables:
-    form    : dict of submitted field values (empty dict for a blank form)
-    errors  : dict mapping field name -> error message string
-              Use "__all__" for non-field errors.
+    form     : dict of submitted field values (empty dict for a blank form)
+    errors   : dict mapping field name -> error message string
+               Use "__all__" for non-field errors.
+    accounts : list of account dicts [{id, code, name}, ...] — for default_account_id dropdown.
+               Falls back to a plain text input when empty.
 #}
 
 {# Macro: render one labelled text input #}
@@ -90,10 +92,58 @@
   </div>
 </fieldset>
 
+{# ── Banking ── #}
+<fieldset class="space-y-4 mt-6">
+  <legend class="text-sm font-semibold text-gray-900 mb-2">Banking</legend>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    {{ text_input("bank_bsb", "BSB", placeholder="062-000") }}
+    {{ text_input("bank_account_number", "Account number", placeholder="12345678") }}
+  </div>
+  {{ text_input("bank_account_title", "Account holder name", placeholder="Acme Pty Ltd") }}
+</fieldset>
+
 {# ── Accounting ── #}
 <fieldset class="space-y-4 mt-6">
   <legend class="text-sm font-semibold text-gray-900 mb-2">Accounting</legend>
   {{ text_input("default_tax_code", "Default tax code", placeholder="GST") }}
+
+  {# default_account_id — dropdown when accounts list is available, plain input as fallback #}
+  <div>
+    <label for="default_account_id" class="block text-sm font-medium text-gray-700 mb-1">
+      Default account
+    </label>
+    {% if accounts %}
+    <select
+      id="default_account_id"
+      name="default_account_id"
+      class="block w-full rounded-md border {% if errors.get('default_account_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+             px-3 py-2 text-sm text-gray-900
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+      <option value="">— None —</option>
+      {% for acct in accounts %}
+      <option value="{{ acct.id }}"
+        {% if form.get("default_account_id") == acct.id %}selected{% endif %}>
+        {{ acct.code }} — {{ acct.name }}
+      </option>
+      {% endfor %}
+    </select>
+    {% else %}
+    <input
+      type="text"
+      id="default_account_id"
+      name="default_account_id"
+      value="{{ form.get('default_account_id', '') }}"
+      placeholder="Account UUID"
+      class="block w-full rounded-md border {% if errors.get('default_account_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+    {% endif %}
+    {% if errors.get("default_account_id") %}
+    <p class="mt-1 text-xs text-red-600">{{ errors["default_account_id"] }}</p>
+    {% endif %}
+  </div>
 </fieldset>
 
 {# ── Notes ── #}
