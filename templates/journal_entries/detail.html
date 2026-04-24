@@ -57,6 +57,19 @@
     >Edit</a>
     <form
       method="post"
+      action="/journal-entries/{{ entry.id }}/post"
+      onsubmit="return confirm('Post this journal entry? This cannot be undone easily.');"
+      class="inline"
+    >
+      <input type="hidden" name="version" value="{{ entry.version }}">
+      <button
+        type="submit"
+        class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white
+               hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+      >Post</button>
+    </form>
+    <form
+      method="post"
       action="/journal-entries/{{ entry.id }}/archive"
       onsubmit="return confirm('Archive this journal entry? This cannot be undone.');"
       class="inline"
@@ -68,6 +81,26 @@
                hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
       >Archive</button>
     </form>
+    {% endif %}
+    {% if entry.status == 'POSTED' %}
+    <form
+      method="post"
+      action="/journal-entries/{{ entry.id }}/reverse"
+      onsubmit="return confirm('Reverse this journal entry? A new reversal entry will be created.');"
+      class="inline"
+    >
+      <input type="hidden" name="version" value="{{ entry.version }}">
+      <button
+        type="submit"
+        class="rounded-md bg-amber-600 px-4 py-1.5 text-sm font-medium text-white
+               hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+      >Reverse</button>
+    </form>
+    {% endif %}
+    {% if entry.status == 'REVERSED' %}
+    <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700">
+      Reversed
+    </span>
     {% endif %}
     <a
       href="/journal-entries"

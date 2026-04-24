@@ -1,4 +1,4 @@
-"""Journal entries list, detail, create, and edit views — Lane D cycles 6 + 16 + 17.
+"""Journal entries list, detail, create, and edit views — Lane D cycles 6 + 16 + 17 + 37.
 
 GET  /journal-entries              — list page (paginated, HTMX-aware)
 GET  /journal-entries/new          — empty create form; two starter lines; no contact
@@ -7,11 +7,15 @@ POST /journal-entries/new          — submit to upstream API; redirect on succe
 GET  /journal-entries/_add_line    — HTMX partial: returns a single blank debit/credit row
 GET  /journal-entries/{id}/edit    — pre-populated edit form (DRAFT only)
 POST /journal-entries/{id}/edit    — PATCH to API with If-Match + lines replace
+POST /journal-entries/{id}/post    — transition DRAFT -> POSTED via dedicated endpoint
+POST /journal-entries/{id}/reverse — transition POSTED -> REVERSED; redirect to reversal entry
 GET  /journal-entries/{id}         — journal entry detail
 
 Route ordering: /journal-entries/new and /journal-entries/_add_line MUST be declared
 before /journal-entries/{entry_id}/edit, which must be declared before
-/journal-entries/{entry_id}, so FastAPI resolves the literal paths first.
+/journal-entries/{entry_id}/post and /journal-entries/{entry_id}/reverse (all literal
+sub-paths), which must be declared before /journal-entries/{entry_id}, so FastAPI
+resolves the literal paths first.
 
 API shape (from JournalEntryCreate / JournalEntryUpdate / JournalLineCreate):
 - entry_date : date        (required on create; optional on update)
@@ -662,6 +666,127 @@ async def journal_entry_archive(
         list_url="/journal-entries",
         detail_url=f"/journal-entries/{entry_id}",
     )
+
+
+# ---------------------------------------------------------------------------
+# Post transition — POST /{entry_id}/post
+# NOTE: MUST appear before the catch-all /{entry_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/journal-entries/{entry_id}/post",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def journal_entry_post(
+    request: Request,
+    entry_id: str,
+) -> RedirectResponse:
+    """Transition a DRAFT journal entry to POSTED.
+
+    POSTs to POST /api/v1/journal_entries/{id}/post with If-Match +
+    X-Idempotency-Key.
+    - 200 -> 303 to detail with flash "Journal entry posted."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422 -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    idempotency_key = str(uuid.uuid4())
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/journal_entries/{entry_id}/post",
+            headers={
+                "If-Match": version,
+                "X-Idempotency-Key": idempotency_key,
+            },
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Journal entry posted."
+        return RedirectResponse(url=f"/journal-entries/{entry_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/journal-entries/{entry_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/journal-entries/{entry_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Reverse transition — POST /{entry_id}/reverse
+# NOTE: MUST appear before the catch-all /{entry_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/journal-entries/{entry_id}/reverse",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def journal_entry_reverse(
+    request: Request,
+    entry_id: str,
+) -> RedirectResponse:
+    """Create a reversal of a POSTED journal entry.
+
+    POSTs to POST /api/v1/journal_entries/{id}/reverse with If-Match.
+    - 201 -> 303 redirect to the NEW reversal entry's detail page.
+    - 409 -> 303 back to original entry with flash "Version conflict — try again."
+    - 422 -> 303 back to original entry with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/journal_entries/{entry_id}/reverse",
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 201:
+        reversal = resp.json()
+        reversal_id = reversal.get("id", entry_id)
+        request.session["flash"] = "Reversal entry created."
+        return RedirectResponse(url=f"/journal-entries/{reversal_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/journal-entries/{entry_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/journal-entries/{entry_id}", status_code=303)
 
 
 @router.get("/journal-entries/{entry_id}", response_class=HTMLResponse, response_model=None)
