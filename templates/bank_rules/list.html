@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Bank Rules — SAE Books{% endblock %}
+
+{% block content %}
+
+{# ── Flash banner ── #}
+{% if flash %}
+<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Bank Rules</h1>
+    {% if not error %}
+    <p class="text-sm text-gray-500 mt-1">{{ rules|length }} rule{{ "s" if rules|length != 1 else "" }}</p>
+    {% endif %}
+  </div>
+  <div class="flex items-center gap-3">
+    <form method="POST" action="/bank-rules/apply-all">
+      <button
+        type="submit"
+        class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white
+               hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+      >
+        Apply All Rules
+      </button>
+    </form>
+    <a
+      href="/bank-rules/new"
+      class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
+             hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >
+      New rule
+    </a>
+  </div>
+</div>
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Priority</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Match</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Action</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% if rules %}
+        {% for rule in rules %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ rule.priority | default("—") }}</td>
+          <td class="px-4 py-3 font-medium text-gray-900">{{ rule.name | default("—") }}</td>
+          <td class="px-4 py-3 text-gray-600 text-xs">
+            {{ rule.match_field | default("") }}
+            {% if rule.match_operator %}<span class="text-gray-400">{{ rule.match_operator }}</span>{% endif %}
+            {% if rule.match_value %}<span class="font-mono">{{ rule.match_value }}</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-gray-600 text-xs">
+            {% if rule.action_account_id %}
+              Account: <span class="font-mono">{{ rule.action_account_id }}</span>
+            {% endif %}
+            {% if rule.action_tax_code_id %}
+              <span class="text-gray-400 ml-1">Tax: {{ rule.action_tax_code_id }}</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex items-center justify-end gap-3">
+              <a
+                href="/bank-rules/{{ rule.id }}/edit"
+                class="text-xs font-medium text-indigo-600 hover:underline"
+              >Edit</a>
+
+              <form
+                method="POST"
+                action="/bank-rules/{{ rule.id }}/delete"
+                onsubmit="return confirm('Delete rule \'{{ rule.name }}\'?')"
+              >
+                <input type="hidden" name="version" value="{{ rule.version | default('') }}">
+                <button
+                  type="submit"
+                  class="text-xs font-medium text-red-600 hover:underline"
+                >Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+            No bank rules defined.
+            <a href="/bank-rules/new" class="text-indigo-600 hover:underline ml-1">Create one.</a>
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
