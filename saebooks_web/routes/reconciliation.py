@@ -1,20 +1,23 @@
-"""Bank reconciliation views — Lane D cycle 48.
+"""Bank reconciliation views — Lane D cycle 49.
 
-GET  /reconciliation                    — main page: unmatched BSLs
-GET  /reconciliation/{bsl_id}/suggest   — suggested matches for a BSL
-POST /reconciliation/match              — match a BSL to a transaction
-POST /reconciliation/{bsl_id}/unmatch   — remove a match from a BSL
-POST /reconciliation/auto-match         — trigger auto-match for all BSLs
+Route map
+---------
+GET  /reconciliation                          — accounts picker page
+GET  /reconciliation/{account_id}/lines       — unmatched BSLs for one account
+GET  /reconciliation/{bsl_id}/suggest         — suggested journal entries for a BSL
+POST /reconciliation/match                    — match BSL to a journal entry
+POST /reconciliation/{bsl_id}/unmatch         — clear a match
+POST /reconciliation/{account_id}/auto-match  — auto-match all unmatched for account
 
-Route ordering: /match + /auto-match MUST appear before /{bsl_id} paths so
-FastAPI matches literal paths first.
+Route ordering: /match MUST appear before /{bsl_id} paths.
 
-API calls:
-- GET  /api/v1/reconciliation/unmatched
+API endpoints consumed (B/42):
+- GET  /api/v1/reconciliation/accounts
+- GET  /api/v1/reconciliation/unmatched?account_id=X
 - GET  /api/v1/reconciliation/suggest/{bsl_id}
-- POST /api/v1/reconciliation/match
+- POST /api/v1/reconciliation/match           body: {bsl_id, entry_id}
 - POST /api/v1/reconciliation/unmatch/{bsl_id}
-- POST /api/v1/reconciliation/auto_match
+- POST /api/v1/reconciliation/auto_match?account_id=X → {"matched": N}
 
 Auth guard: redirect to /login (303) if no session token.
 """
@@ -40,21 +43,21 @@ def _require_auth(request: Request) -> str | None:
 
 
 # ---------------------------------------------------------------------------
-# Main reconciliation page — unmatched BSLs
+# Accounts picker — GET /reconciliation
 # ---------------------------------------------------------------------------
 
 
 @router.get("/reconciliation", response_class=HTMLResponse, response_model=None)
 async def reconciliation_index(request: Request) -> HTMLResponse | RedirectResponse:
-    """Render the main reconciliation page with unmatched bank statement lines."""
+    """Render the accounts picker — lists reconcilable bank/cash accounts."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     error: str | None = None
-    lines: list[dict] = []
+    accounts: list[dict] = []
 
     async with api_client(request) as client:
-        resp = await client.get("/api/v1/reconciliation/unmatched")
+        resp = await client.get("/api/v1/reconciliation/accounts")
 
         if resp.status_code == 401:
             request.session.clear()
@@ -62,10 +65,7 @@ async def reconciliation_index(request: Request) -> HTMLResponse | RedirectRespo
 
         if resp.is_success:
             payload = resp.json()
-            if isinstance(payload, list):
-                lines = payload
-            else:
-                lines = payload.get("items", [])
+            accounts = payload if isinstance(payload, list) else payload.get("items", [])
         else:
             error = f"API error: HTTP {resp.status_code}"
 
@@ -75,6 +75,70 @@ async def reconciliation_index(request: Request) -> HTMLResponse | RedirectRespo
         request,
         "reconciliation/index.html",
         {
+            "accounts": accounts,
+            "error": error,
+            "flash": flash,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Unmatched BSL list — GET /reconciliation/{account_id}/lines
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/reconciliation/{account_id}/lines",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def reconciliation_lines(
+    request: Request,
+    account_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Render unmatched BSLs for a single reconcilable account."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    error: str | None = None
+    lines: list[dict] = []
+    account: dict | None = None
+
+    async with api_client(request) as client:
+        # Fetch the account list to get the account name for display
+        acct_resp = await client.get("/api/v1/reconciliation/accounts")
+        if acct_resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if acct_resp.is_success:
+            all_accounts = acct_resp.json()
+            if isinstance(all_accounts, list):
+                account = next((a for a in all_accounts if a.get("id") == account_id), None)
+
+        # Fetch unmatched lines for this account
+        resp = await client.get(
+            "/api/v1/reconciliation/unmatched",
+            params={"account_id": account_id},
+        )
+
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+
+        if resp.is_success:
+            payload = resp.json()
+            lines = payload if isinstance(payload, list) else payload.get("items", [])
+        else:
+            error = f"API error: HTTP {resp.status_code}"
+
+    flash = request.session.pop("flash", None)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "reconciliation/lines.html",
+        {
+            "account_id": account_id,
+            "account": account,
             "lines": lines,
             "error": error,
             "flash": flash,
@@ -90,24 +154,21 @@ async def reconciliation_index(request: Request) -> HTMLResponse | RedirectRespo
 
 @router.post("/reconciliation/match", response_class=HTMLResponse, response_model=None)
 async def reconciliation_match(request: Request) -> RedirectResponse:
-    """Match a BSL to a transaction.
+    """Match a BSL to a journal entry.
 
-    Reads ``bsl_id``, ``transaction_type``, ``transaction_id`` from form body
-    and POSTs to ``POST /api/v1/reconciliation/match``.
-
-    - 200 -> 303 redirect to /reconciliation
-    - 401 -> clear session, redirect to /login
-    - other -> redirect with error flash
+    Reads ``bsl_id``, ``entry_id``, ``account_id`` from form body.
+    POSTs ``{bsl_id, entry_id}`` to ``POST /api/v1/reconciliation/match``.
+    Redirects back to the account lines page on success/failure.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     form_data = await request.form()
-    payload = {
-        "bsl_id": str(form_data.get("bsl_id", "")).strip(),
-        "transaction_type": str(form_data.get("transaction_type", "")).strip(),
-        "transaction_id": str(form_data.get("transaction_id", "")).strip(),
-    }
+    bsl_id = str(form_data.get("bsl_id", "")).strip()
+    entry_id = str(form_data.get("entry_id", "")).strip()
+    account_id = str(form_data.get("account_id", "")).strip()
+
+    payload = {"bsl_id": bsl_id, "entry_id": entry_id}
 
     async with api_client(request) as client:
         resp = await client.post("/api/v1/reconciliation/match", json=payload)
@@ -125,51 +186,13 @@ async def reconciliation_match(request: Request) -> RedirectResponse:
             detail = f"Match failed: HTTP {resp.status_code}"
         request.session["flash"] = str(detail)
 
-    return RedirectResponse(url="/reconciliation", status_code=303)
-
-
-# ---------------------------------------------------------------------------
-# Auto-match — POST /reconciliation/auto-match
-# NOTE: MUST appear before /{bsl_id} paths.
-# ---------------------------------------------------------------------------
-
-
-@router.post("/reconciliation/auto-match", response_class=HTMLResponse, response_model=None)
-async def reconciliation_auto_match(request: Request) -> RedirectResponse:
-    """Trigger auto-match for all unmatched BSLs.
-
-    POSTs to ``POST /api/v1/reconciliation/auto_match`` and redirects to
-    /reconciliation with a flash message showing how many lines were matched.
-    """
-    if not _require_auth(request):
-        return RedirectResponse(url="/login", status_code=303)
-
-    async with api_client(request) as client:
-        resp = await client.post("/api/v1/reconciliation/auto_match")
-
-    if resp.status_code == 401:
-        request.session.clear()
-        return RedirectResponse(url="/login", status_code=303)
-
-    if resp.is_success:
-        try:
-            data = resp.json()
-            matched = data.get("matched", data.get("count", ""))
-            if matched != "":
-                request.session["flash"] = f"Auto-match complete — {matched} line(s) matched."
-            else:
-                request.session["flash"] = "Auto-match complete."
-        except Exception:
-            request.session["flash"] = "Auto-match complete."
-    else:
-        request.session["flash"] = f"Auto-match failed: HTTP {resp.status_code}"
-
-    return RedirectResponse(url="/reconciliation", status_code=303)
+    redirect_url = f"/reconciliation/{account_id}/lines" if account_id else "/reconciliation"
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 # ---------------------------------------------------------------------------
 # Unmatch — POST /reconciliation/{bsl_id}/unmatch
-# NOTE: MUST appear before the catch-all /{bsl_id}/suggest GET.
+# NOTE: MUST appear before the suggest GET.
 # ---------------------------------------------------------------------------
 
 
@@ -185,13 +208,13 @@ async def reconciliation_unmatch(
     """Remove the match from a BSL.
 
     POSTs to ``POST /api/v1/reconciliation/unmatch/{bsl_id}`` (no body).
-
-    - 200 -> 303 redirect to /reconciliation
-    - 401 -> clear session, redirect to /login
-    - other -> redirect with error flash
+    Reads ``account_id`` from form body for the redirect target.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    account_id = str(form_data.get("account_id", "")).strip()
 
     async with api_client(request) as client:
         resp = await client.post(f"/api/v1/reconciliation/unmatch/{bsl_id}")
@@ -209,12 +232,13 @@ async def reconciliation_unmatch(
             detail = f"Unmatch failed: HTTP {resp.status_code}"
         request.session["flash"] = str(detail)
 
-    return RedirectResponse(url="/reconciliation", status_code=303)
+    redirect_url = f"/reconciliation/{account_id}/lines" if account_id else "/reconciliation"
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 # ---------------------------------------------------------------------------
 # Suggest — GET /reconciliation/{bsl_id}/suggest
-# NOTE: MUST appear after /match and /auto-match.
+# NOTE: MUST appear after /match.
 # ---------------------------------------------------------------------------
 
 
@@ -226,14 +250,14 @@ async def reconciliation_unmatch(
 async def reconciliation_suggest(
     request: Request,
     bsl_id: str,
+    account_id: str | None = None,
 ) -> HTMLResponse | RedirectResponse:
-    """Render suggested matching transactions for a single BSL."""
+    """Render suggested matching journal entries for a single BSL."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     error: str | None = None
     suggestions: list[dict] = []
-    bsl: dict | None = None
 
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/reconciliation/suggest/{bsl_id}")
@@ -244,11 +268,7 @@ async def reconciliation_suggest(
 
         if resp.is_success:
             payload = resp.json()
-            if isinstance(payload, list):
-                suggestions = payload
-            else:
-                suggestions = payload.get("suggestions", [])
-                bsl = payload.get("bsl")
+            suggestions = payload if isinstance(payload, list) else payload.get("items", [])
         else:
             error = f"API error: HTTP {resp.status_code}"
 
@@ -259,9 +279,57 @@ async def reconciliation_suggest(
         "reconciliation/suggest.html",
         {
             "bsl_id": bsl_id,
-            "bsl": bsl,
+            "account_id": account_id or "",
             "suggestions": suggestions,
             "error": error,
             "flash": flash,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Auto-match — POST /reconciliation/{account_id}/auto-match
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/reconciliation/{account_id}/auto-match",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def reconciliation_auto_match(
+    request: Request,
+    account_id: str,
+) -> RedirectResponse:
+    """Trigger auto-match for all unmatched BSLs in a given account.
+
+    POSTs to ``POST /api/v1/reconciliation/auto_match?account_id=X``.
+    Returns ``{"matched": N}``.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            "/api/v1/reconciliation/auto_match",
+            params={"account_id": account_id},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.is_success:
+        try:
+            data = resp.json()
+            matched = data.get("matched", "")
+            if matched != "":
+                request.session["flash"] = f"Auto-match complete — {matched} line(s) matched."
+            else:
+                request.session["flash"] = "Auto-match complete."
+        except Exception:
+            request.session["flash"] = "Auto-match complete."
+    else:
+        request.session["flash"] = f"Auto-match failed: HTTP {resp.status_code}"
+
+    return RedirectResponse(url=f"/reconciliation/{account_id}/lines", status_code=303)

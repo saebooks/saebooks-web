@@ -1,18 +1,26 @@
-"""Tests for the reconciliation web views — Lane D cycle 48.
+"""Tests for the reconciliation web views — Lane D cycle 49.
 
-Tests:
-1.  test_reconciliation_requires_auth           — 303 -> /login without session
-2.  test_reconciliation_renders                 — main page shows unmatched lines
-3.  test_reconciliation_renders_empty           — empty unmatched list shows empty state
-4.  test_reconciliation_suggest_renders         — suggest page shows candidates
-5.  test_reconciliation_suggest_empty           — suggest page shows no-candidates message
-6.  test_reconciliation_match_redirect          — POST /match -> 303 to /reconciliation
-7.  test_reconciliation_unmatch_redirect        — POST /{bsl_id}/unmatch -> 303 to /reconciliation
-8.  test_reconciliation_auto_match_redirect     — POST /auto-match -> 303 with flash
-9.  test_reconciliation_match_requires_auth     — POST /match without session -> 303
-10. test_reconciliation_auto_match_requires_auth — POST /auto-match without session -> 303
-11. test_reconciliation_unmatch_requires_auth    — POST /{bsl_id}/unmatch without session -> 303
-12. test_reconciliation_suggest_requires_auth    — GET /{bsl_id}/suggest without session -> 303
+Covers the full D/49 route map wired to B/42 API endpoints:
+
+1.  test_reconciliation_accounts_requires_auth       — 303 -> /login without session
+2.  test_reconciliation_accounts_renders             — accounts picker shows accounts table
+3.  test_reconciliation_accounts_empty               — no accounts shows empty state
+4.  test_reconciliation_accounts_api_error           — API error shows error banner
+5.  test_reconciliation_lines_requires_auth          — 303 -> /login without session
+6.  test_reconciliation_lines_renders                — lines page shows unmatched BSLs
+7.  test_reconciliation_lines_empty                  — no lines shows empty state
+8.  test_reconciliation_suggest_requires_auth        — 303 -> /login without session
+9.  test_reconciliation_suggest_renders              — suggest page shows entry candidates
+10. test_reconciliation_suggest_empty                — no suggestions shows empty state
+11. test_reconciliation_suggest_api_error            — API error shows error banner
+12. test_reconciliation_match_requires_auth          — POST /match without session -> 303
+13. test_reconciliation_match_success                — POST /match 200 -> 303 to lines page
+14. test_reconciliation_match_error                  — POST /match 422 -> 303 with flash error
+15. test_reconciliation_unmatch_requires_auth        — POST /unmatch without session -> 303
+16. test_reconciliation_unmatch_success              — POST /unmatch 200 -> 303 to lines page
+17. test_reconciliation_auto_match_requires_auth     — POST /auto-match without session -> 303
+18. test_reconciliation_auto_match_success           — POST /auto-match -> 303 with matched count
+19. test_reconciliation_auto_match_api_error         — POST /auto-match 500 -> 303 with error flash
 """
 from __future__ import annotations
 
@@ -28,33 +36,34 @@ from saebooks_web.config import settings
 from saebooks_web.main import app
 
 # ---------------------------------------------------------------------------
-# Fixtures / helpers
+# Constants
 # ---------------------------------------------------------------------------
 
-_BSL_ID = "bsl-11111111-2222-3333-4444-555566667777"
-_COMPANY_ID = "company-aaaabbbb-cccc-dddd-eeee-ffffgggghhhh"
-_BA_ID = "ba-11112222-3333-4444-5555-666677778888"
-_INV_ID = "inv-aaaabbbb-cccc-dddd-eeee-ffff00001111"
+_ACCOUNT_ID = "aaaaaaaa-1111-2222-3333-444444444444"
+_BSL_ID = "bbbbbbbb-1111-2222-3333-444444444444"
+_ENTRY_ID = "cccccccc-1111-2222-3333-444444444444"
+
+_MOCK_ACCOUNT = {"id": _ACCOUNT_ID, "code": "1010", "name": "Business Cheque"}
 
 _MOCK_BSL = {
     "id": _BSL_ID,
-    "company_id": _COMPANY_ID,
-    "bank_account_id": _BA_ID,
-    "date": "2026-04-01",
+    "account_id": _ACCOUNT_ID,
+    "txn_date": "2026-04-01",
     "description": "OFFICE SUPPLIES PTY LTD",
     "amount": "-250.00",
+    "reference": "DD-2026-04",
     "status": "UNMATCHED",
-    "matched_transaction_id": None,
-    "matched_transaction_type": None,
+    "matched_entry_id": None,
+    "matched_at": None,
+    "matched_by": None,
 }
 
-_MOCK_SUGGESTION = {
-    "transaction_id": _INV_ID,
-    "transaction_type": "invoice",
-    "date": "2026-03-30",
-    "amount": "250.00",
-    "description": "INV-001",
-    "confidence": 0.95,
+_MOCK_ENTRY = {
+    "id": _ENTRY_ID,
+    "ref": "JE-042",
+    "entry_date": "2026-03-30",
+    "description": "Office supplies payment",
+    "status": "POSTED",
 }
 
 
@@ -69,12 +78,12 @@ _API_BASE = settings.api_url.rstrip("/")
 
 
 # ---------------------------------------------------------------------------
-# 1. Auth gate — list
+# 1. Accounts picker: auth gate
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
-async def test_reconciliation_requires_auth() -> None:
+async def test_reconciliation_accounts_requires_auth() -> None:
     """GET /reconciliation without a session redirects to /login (303)."""
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -88,16 +97,16 @@ async def test_reconciliation_requires_auth() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 2. Main page renders with unmatched lines
+# 2. Accounts picker: renders account list
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_reconciliation_renders(respx_mock: respx.MockRouter) -> None:
-    """GET /reconciliation renders unmatched lines and Auto Match All button."""
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
-        return_value=Response(200, json=[_MOCK_BSL])
+async def test_reconciliation_accounts_renders(respx_mock: respx.MockRouter) -> None:
+    """GET /reconciliation renders a table row for each reconcilable account."""
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
+        return_value=Response(200, json=[_MOCK_ACCOUNT])
     )
 
     async with AsyncClient(
@@ -108,22 +117,22 @@ async def test_reconciliation_renders(respx_mock: respx.MockRouter) -> None:
         resp = await client.get("/reconciliation")
 
     assert resp.status_code == 200
-    assert "<html" in resp.text
-    assert "OFFICE SUPPLIES PTY LTD" in resp.text
-    assert "Auto Match All" in resp.text
-    assert "Suggest" in resp.text
+    assert "Business Cheque" in resp.text
+    assert "1010" in resp.text
+    assert "Reconcile" in resp.text
+    assert _ACCOUNT_ID in resp.text
 
 
 # ---------------------------------------------------------------------------
-# 3. Empty unmatched list
+# 3. Accounts picker: empty state
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_reconciliation_renders_empty(respx_mock: respx.MockRouter) -> None:
-    """GET /reconciliation with no unmatched lines shows the empty state message."""
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
+async def test_reconciliation_accounts_empty(respx_mock: respx.MockRouter) -> None:
+    """GET /reconciliation with no accounts shows the empty state message."""
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
         return_value=Response(200, json=[])
     )
 
@@ -135,20 +144,20 @@ async def test_reconciliation_renders_empty(respx_mock: respx.MockRouter) -> Non
         resp = await client.get("/reconciliation")
 
     assert resp.status_code == 200
-    assert "No unmatched lines" in resp.text
+    assert "No reconcilable accounts" in resp.text
 
 
 # ---------------------------------------------------------------------------
-# 4. Suggest page renders with candidates
+# 4. Accounts picker: API error shows banner
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_reconciliation_suggest_renders(respx_mock: respx.MockRouter) -> None:
-    """GET /reconciliation/{bsl_id}/suggest renders suggestions with Match buttons."""
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/suggest/{_BSL_ID}").mock(
-        return_value=Response(200, json=[_MOCK_SUGGESTION])
+async def test_reconciliation_accounts_api_error(respx_mock: respx.MockRouter) -> None:
+    """GET /reconciliation with API 500 renders an error banner."""
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
+        return_value=Response(500, json={"detail": "Internal server error"})
     )
 
     async with AsyncClient(
@@ -156,25 +165,148 @@ async def test_reconciliation_suggest_renders(respx_mock: respx.MockRouter) -> N
         base_url="http://test",
         cookies={settings.session_cookie_name: _SESSION_COOKIE},
     ) as client:
-        resp = await client.get(f"/reconciliation/{_BSL_ID}/suggest")
+        resp = await client.get("/reconciliation")
 
     assert resp.status_code == 200
-    assert "<html" in resp.text
-    assert "INV-001" in resp.text
-    assert "invoice" in resp.text
-    assert "95%" in resp.text
-    assert "Match" in resp.text
+    assert "API error" in resp.text
 
 
 # ---------------------------------------------------------------------------
-# 5. Suggest page renders with no candidates
+# 5. Lines page: auth gate
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_reconciliation_lines_requires_auth() -> None:
+    """GET /reconciliation/{account_id}/lines without session redirects to /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.get(f"/reconciliation/{_ACCOUNT_ID}/lines")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 6. Lines page: renders unmatched BSLs
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_reconciliation_lines_renders(respx_mock: respx.MockRouter) -> None:
+    """GET /reconciliation/{account_id}/lines renders unmatched BSLs and Auto Match."""
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
+        return_value=Response(200, json=[_MOCK_ACCOUNT])
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
+        return_value=Response(200, json=[_MOCK_BSL])
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/reconciliation/{_ACCOUNT_ID}/lines")
+
+    assert resp.status_code == 200
+    assert "OFFICE SUPPLIES PTY LTD" in resp.text
+    assert "Auto Match All" in resp.text
+    assert "Suggest" in resp.text
+    assert "Business Cheque" in resp.text  # account name from accounts list
+
+
+# ---------------------------------------------------------------------------
+# 7. Lines page: empty state
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_reconciliation_lines_empty(respx_mock: respx.MockRouter) -> None:
+    """GET /reconciliation/{account_id}/lines with no unmatched BSLs shows empty state."""
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
+        return_value=Response(200, json=[_MOCK_ACCOUNT])
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
+        return_value=Response(200, json=[])
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/reconciliation/{_ACCOUNT_ID}/lines")
+
+    assert resp.status_code == 200
+    assert "No unmatched lines" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 8. Suggest page: auth gate
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_reconciliation_suggest_requires_auth() -> None:
+    """GET /reconciliation/{bsl_id}/suggest without session redirects to /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.get(f"/reconciliation/{_BSL_ID}/suggest")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 9. Suggest page: renders entry candidates
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_reconciliation_suggest_renders(respx_mock: respx.MockRouter) -> None:
+    """GET /reconciliation/{bsl_id}/suggest renders journal entry candidates."""
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/suggest/{_BSL_ID}").mock(
+        return_value=Response(200, json=[_MOCK_ENTRY])
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(
+            f"/reconciliation/{_BSL_ID}/suggest",
+            params={"account_id": _ACCOUNT_ID},
+        )
+
+    assert resp.status_code == 200
+    assert "JE-042" in resp.text
+    assert "Office supplies payment" in resp.text
+    assert "POSTED" in resp.text
+    assert "Match" in resp.text
+    # entry_id hidden input must be present for the match form
+    assert _ENTRY_ID in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 10. Suggest page: empty state
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_reconciliation_suggest_empty(respx_mock: respx.MockRouter) -> None:
-    """GET /reconciliation/{bsl_id}/suggest with no suggestions shows empty message."""
+    """GET /reconciliation/{bsl_id}/suggest with no candidates shows empty message."""
     respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/suggest/{_BSL_ID}").mock(
         return_value=Response(200, json=[])
     )
@@ -191,14 +323,60 @@ async def test_reconciliation_suggest_empty(respx_mock: respx.MockRouter) -> Non
 
 
 # ---------------------------------------------------------------------------
-# 6. Match POST -> redirect
+# 11. Suggest page: API error
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_reconciliation_match_redirect(respx_mock: respx.MockRouter) -> None:
-    """POST /reconciliation/match -> 303 redirect to /reconciliation."""
+async def test_reconciliation_suggest_api_error(respx_mock: respx.MockRouter) -> None:
+    """GET /reconciliation/{bsl_id}/suggest with API 404 renders error banner."""
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/suggest/{_BSL_ID}").mock(
+        return_value=Response(404, json={"detail": "Not found"})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/reconciliation/{_BSL_ID}/suggest")
+
+    assert resp.status_code == 200
+    assert "API error" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 12. Match: auth gate
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_reconciliation_match_requires_auth() -> None:
+    """POST /reconciliation/match without session redirects to /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/reconciliation/match",
+            data={"bsl_id": _BSL_ID, "entry_id": _ENTRY_ID, "account_id": _ACCOUNT_ID},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 13. Match: success -> 303 to lines page
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_reconciliation_match_success(respx_mock: respx.MockRouter) -> None:
+    """POST /reconciliation/match with API 200 -> 303 to account lines page."""
     respx_mock.post(f"{_API_BASE}/api/v1/reconciliation/match").mock(
         return_value=Response(200, json={"status": "matched"})
     )
@@ -213,24 +391,76 @@ async def test_reconciliation_match_redirect(respx_mock: respx.MockRouter) -> No
             "/reconciliation/match",
             data={
                 "bsl_id": _BSL_ID,
-                "transaction_type": "invoice",
-                "transaction_id": _INV_ID,
+                "entry_id": _ENTRY_ID,
+                "account_id": _ACCOUNT_ID,
             },
         )
 
     assert resp.status_code == 303
-    assert resp.headers["location"] == "/reconciliation"
+    assert resp.headers["location"] == f"/reconciliation/{_ACCOUNT_ID}/lines"
 
 
 # ---------------------------------------------------------------------------
-# 7. Unmatch POST -> redirect
+# 14. Match: error -> 303 with flash error
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_reconciliation_unmatch_redirect(respx_mock: respx.MockRouter) -> None:
-    """POST /reconciliation/{bsl_id}/unmatch -> 303 redirect to /reconciliation."""
+async def test_reconciliation_match_error(respx_mock: respx.MockRouter) -> None:
+    """POST /reconciliation/match with API 422 -> 303 with error in flash."""
+    respx_mock.post(f"{_API_BASE}/api/v1/reconciliation/match").mock(
+        return_value=Response(422, json={"detail": "BSL already matched"})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/reconciliation/match",
+            data={
+                "bsl_id": _BSL_ID,
+                "entry_id": _ENTRY_ID,
+                "account_id": _ACCOUNT_ID,
+            },
+        )
+
+    assert resp.status_code == 303
+    # Session cookie carries the flash; redirect issued
+    assert "location" in resp.headers
+
+
+# ---------------------------------------------------------------------------
+# 15. Unmatch: auth gate
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_reconciliation_unmatch_requires_auth() -> None:
+    """POST /reconciliation/{bsl_id}/unmatch without session -> 303 to /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/reconciliation/{_BSL_ID}/unmatch")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 16. Unmatch: success -> 303 to lines page
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_reconciliation_unmatch_success(respx_mock: respx.MockRouter) -> None:
+    """POST /reconciliation/{bsl_id}/unmatch with API 200 -> 303 to lines page."""
     respx_mock.post(f"{_API_BASE}/api/v1/reconciliation/unmatch/{_BSL_ID}").mock(
         return_value=Response(200, json={"status": "unmatched"})
     )
@@ -241,118 +471,94 @@ async def test_reconciliation_unmatch_redirect(respx_mock: respx.MockRouter) -> 
         cookies={settings.session_cookie_name: _SESSION_COOKIE},
         follow_redirects=False,
     ) as client:
-        resp = await client.post(f"/reconciliation/{_BSL_ID}/unmatch")
+        resp = await client.post(
+            f"/reconciliation/{_BSL_ID}/unmatch",
+            data={"account_id": _ACCOUNT_ID},
+        )
 
     assert resp.status_code == 303
-    assert resp.headers["location"] == "/reconciliation"
+    assert resp.headers["location"] == f"/reconciliation/{_ACCOUNT_ID}/lines"
 
 
 # ---------------------------------------------------------------------------
-# 8. Auto-match POST -> redirect with flash
+# 17. Auto-match: auth gate
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_reconciliation_auto_match_requires_auth() -> None:
+    """POST /reconciliation/{account_id}/auto-match without session -> 303 to /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/reconciliation/{_ACCOUNT_ID}/auto-match")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 18. Auto-match: success -> 303 with matched count in flash
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_reconciliation_auto_match_redirect(respx_mock: respx.MockRouter) -> None:
-    """POST /reconciliation/auto-match -> 303 to /reconciliation with flash count."""
+async def test_reconciliation_auto_match_success(respx_mock: respx.MockRouter) -> None:
+    """POST /reconciliation/{account_id}/auto-match with API 200 -> 303 with count flash."""
     respx_mock.post(f"{_API_BASE}/api/v1/reconciliation/auto_match").mock(
-        return_value=Response(200, json={"matched": 5})
+        return_value=Response(200, json={"matched": 7})
+    )
+    # Also mock accounts + unmatched for the lines page after redirect
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
+        return_value=Response(200, json=[_MOCK_ACCOUNT])
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
+        return_value=Response(200, json=[])
     )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
         cookies={settings.session_cookie_name: _SESSION_COOKIE},
-        follow_redirects=False,
+        follow_redirects=True,
     ) as client:
-        resp = await client.post("/reconciliation/auto-match")
+        resp = await client.post(f"/reconciliation/{_ACCOUNT_ID}/auto-match")
 
-    assert resp.status_code == 303
-    assert resp.headers["location"] == "/reconciliation"
-    # Flash is stored in session cookie — verify the redirect carries it
-    # by following the redirect and checking the rendered page
-    assert "session" in resp.cookies or resp.status_code == 303
+    assert resp.status_code == 200
+    # Flash message with count must appear after the redirect
+    assert "7" in resp.text
+    assert "matched" in resp.text.lower()
 
 
 # ---------------------------------------------------------------------------
-# 9. Match requires auth
+# 19. Auto-match: API error -> 303 with error flash
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
-async def test_reconciliation_match_requires_auth() -> None:
-    """POST /reconciliation/match without a session -> 303 to /login."""
+@respx.mock
+async def test_reconciliation_auto_match_api_error(respx_mock: respx.MockRouter) -> None:
+    """POST /reconciliation/{account_id}/auto-match with API 500 -> 303 with error flash."""
+    respx_mock.post(f"{_API_BASE}/api/v1/reconciliation/auto_match").mock(
+        return_value=Response(500, json={"detail": "server error"})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
+        return_value=Response(200, json=[_MOCK_ACCOUNT])
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
+        return_value=Response(200, json=[])
+    )
+
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
-        follow_redirects=False,
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=True,
     ) as client:
-        resp = await client.post(
-            "/reconciliation/match",
-            data={
-                "bsl_id": _BSL_ID,
-                "transaction_type": "invoice",
-                "transaction_id": _INV_ID,
-            },
-        )
+        resp = await client.post(f"/reconciliation/{_ACCOUNT_ID}/auto-match")
 
-    assert resp.status_code == 303
-    assert resp.headers["location"] == "/login"
-
-
-# ---------------------------------------------------------------------------
-# 10. Auto-match requires auth
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.anyio
-async def test_reconciliation_auto_match_requires_auth() -> None:
-    """POST /reconciliation/auto-match without a session -> 303 to /login."""
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test",
-        follow_redirects=False,
-    ) as client:
-        resp = await client.post("/reconciliation/auto-match")
-
-    assert resp.status_code == 303
-    assert resp.headers["location"] == "/login"
-
-
-# ---------------------------------------------------------------------------
-# 11. Unmatch requires auth
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.anyio
-async def test_reconciliation_unmatch_requires_auth() -> None:
-    """POST /reconciliation/{bsl_id}/unmatch without a session -> 303 to /login."""
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test",
-        follow_redirects=False,
-    ) as client:
-        resp = await client.post(f"/reconciliation/{_BSL_ID}/unmatch")
-
-    assert resp.status_code == 303
-    assert resp.headers["location"] == "/login"
-
-
-# ---------------------------------------------------------------------------
-# 12. Suggest requires auth
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.anyio
-async def test_reconciliation_suggest_requires_auth() -> None:
-    """GET /reconciliation/{bsl_id}/suggest without a session -> 303 to /login."""
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test",
-        follow_redirects=False,
-    ) as client:
-        resp = await client.get(f"/reconciliation/{_BSL_ID}/suggest")
-
-    assert resp.status_code == 303
-    assert resp.headers["location"] == "/login"
+    assert resp.status_code == 200
+    assert "failed" in resp.text.lower() or "500" in resp.text
