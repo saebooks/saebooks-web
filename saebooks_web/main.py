@@ -31,6 +31,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.config import settings
+from saebooks_web.routes.account_ranges import router as account_ranges_router
 from saebooks_web.routes.accounts import router as accounts_router
 from saebooks_web.routes.bank_accounts import router as bank_accounts_router
 from saebooks_web.routes.bank_statement_lines import router as bank_statement_lines_router
@@ -43,6 +44,7 @@ from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.invoices import router as invoices_router
 from saebooks_web.routes.items import router as items_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
+from saebooks_web.routes.journal_templates import router as journal_templates_router
 from saebooks_web.routes.payments import router as payments_router
 from saebooks_web.routes.projects import router as projects_router
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
@@ -83,7 +85,9 @@ app.include_router(bills_router)
 app.include_router(payments_router)
 app.include_router(credit_notes_router)
 app.include_router(journal_entries_router)
+app.include_router(journal_templates_router)
 app.include_router(accounts_router)
+app.include_router(account_ranges_router)
 app.include_router(items_router)
 app.include_router(tax_codes_router)
 app.include_router(projects_router)
