@@ -2,18 +2,14 @@
 
 Auth model
 ----------
-The saebooks-api (as of Phase 0 / B-cycle 10) uses a static bearer token
-loaded from ``SAEBOOKS_DEV_API_TOKEN``.  There is no ``POST /api/v1/auth/login``
-endpoint — the token is issued out-of-band and configured by the server operator.
+POST /api/v1/auth/login accepts ``{"email": str, "password": str}`` and returns
+``{"access_token": str, "token_type": "bearer", "expires_in": int}``.  The
+returned JWT is stored in the signed session cookie under ``api_token`` — the
+same key used everywhere else in the app, so nothing else needs to change.
 
-TODO(phase-1): when the portal JWT flow lands (Lane A), replace the token-paste
-login below with a proper OIDC / portal credential exchange:
-1. POST /api/v1/auth/login with email+password → API returns a short-lived JWT
-2. Store the JWT in the session under ``api_token`` (same key, nothing else changes)
-
-For now, the login form accepts the raw API token and verifies it by making a
-test call to ``GET /api/v1/contacts?limit=1``.  If the API accepts it, the token
-is stored in the signed session cookie.
+Error handling:
+- 401 from API → re-render login form with "Invalid email or password"
+- Any other error / network failure → re-render with generic "Login failed" message
 """
 from __future__ import annotations
 
@@ -24,7 +20,6 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from saebooks_web.api_client import api_client
 from saebooks_web.config import settings
 
 router = APIRouter()
@@ -43,27 +38,24 @@ async def login_page(request: Request) -> HTMLResponse:
 @router.post("/login", response_model=None)
 async def login_submit(
     request: Request,
-    api_token: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
 ) -> RedirectResponse | HTMLResponse:
-    """Accept an API token, verify it against the API, store in session.
-
-    Verification is a lightweight ``GET /api/v1/contacts?limit=1`` — if the
-    API returns 200 the token is valid; 401 means wrong token.
-    """
-    # Temporarily inject the token to probe the API.
-    test_headers = {"Authorization": f"Bearer {api_token.strip()}"}
+    """Exchange email + password for a JWT; store it in the session."""
     try:
         async with httpx.AsyncClient(
             base_url=settings.api_url,
-            headers=test_headers,
             timeout=5.0,
         ) as client:
-            resp = await client.get("/api/v1/contacts", params={"limit": 1})
-    except httpx.RequestError as exc:
+            resp = await client.post(
+                "/api/v1/auth/login",
+                json={"email": email.strip(), "password": password},
+            )
+    except httpx.RequestError:
         return _TEMPLATES.TemplateResponse(
             request,
             "auth/login.html",
-            {"error": f"Cannot reach API server: {exc}"},
+            {"error": "Login failed — please try again"},
             status_code=502,
         )
 
@@ -71,20 +63,20 @@ async def login_submit(
         return _TEMPLATES.TemplateResponse(
             request,
             "auth/login.html",
-            {"error": "Invalid API token."},
+            {"error": "Invalid email or password"},
             status_code=401,
         )
     if not resp.is_success:
         return _TEMPLATES.TemplateResponse(
             request,
             "auth/login.html",
-            {"error": f"Unexpected API response: HTTP {resp.status_code}"},
+            {"error": "Login failed — please try again"},
             status_code=502,
         )
 
-    # Token is valid — store it in the session.
-    request.session["api_token"] = api_token.strip()
-    return RedirectResponse(url="/contacts", status_code=303)
+    token = resp.json()["access_token"]
+    request.session["api_token"] = token
+    return RedirectResponse(url="/", status_code=303)
 
 
 @router.post("/logout")
