@@ -1,0 +1,39 @@
+{# HTMX partial — search results list only, no outer chrome.
+   Context variables: q, hits, groups, total, error
+#}
+
+{% if error %}
+  <p class="text-sm text-red-600">{{ error }}</p>
+
+{% elif not q.strip() %}
+  <p class="text-sm text-gray-500">Enter a search term above to find contacts, invoices, bills, and accounts.</p>
+
+{% elif total == 0 %}
+  <p class="text-sm text-gray-500">No results for <strong>{{ q }}</strong>.</p>
+
+{% else %}
+  <p class="text-sm text-gray-500 mb-4">{{ total }} result{{ "s" if total != 1 else "" }} for <strong>{{ q }}</strong></p>
+
+  {% for group in groups %}
+    <section class="mb-6">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{{ group.kind_label }}s</h2>
+      <ul class="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">
+        {% for hit in group.hits %}
+          <li class="px-4 py-3 flex items-start gap-3 hover:bg-gray-50">
+            <span class="mt-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ hit.badge_class }} shrink-0">
+              {{ hit.kind_label }}
+            </span>
+            <div class="min-w-0 flex-1">
+              <a href="{{ hit.web_url }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline truncate block">
+                {{ hit.title }}
+              </a>
+              {% if hit.subtitle %}
+                <p class="text-xs text-gray-500 mt-0.5">{{ hit.subtitle }}</p>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+{% endif %}
