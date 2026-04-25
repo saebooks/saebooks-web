@@ -18,6 +18,32 @@
   <script>tailwind = { config: { darkMode: 'class' } }</script>
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- Global dark-mode fills — covers templates not yet individually darkened -->
+  <style>
+    html.dark .bg-white        { background-color: #1f2937 !important; }
+    html.dark .bg-gray-50      { background-color: #111827 !important; }
+    html.dark .bg-gray-100     { background-color: #1f2937 !important; }
+    html.dark .text-gray-900   { color: #f3f4f6   !important; }
+    html.dark .text-gray-800   { color: #e5e7eb   !important; }
+    html.dark .text-gray-700   { color: #d1d5db   !important; }
+    html.dark .text-gray-600   { color: #9ca3af   !important; }
+    html.dark .text-gray-500   { color: #6b7280   !important; }
+    html.dark .border-gray-100 { border-color: #374151 !important; }
+    html.dark .border-gray-200 { border-color: #374151 !important; }
+    html.dark .border-gray-300 { border-color: #4b5563 !important; }
+    html.dark input:not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
+    html.dark select,
+    html.dark textarea {
+      background-color: #1f2937 !important;
+      color: #f3f4f6 !important;
+      border-color: #4b5563 !important;
+    }
+    html.dark table thead th { background-color: #111827 !important; color: #9ca3af !important; border-color: #374151 !important; }
+    html.dark table tbody td { border-color: #374151 !important; color: #d1d5db !important; }
+    html.dark table tbody tr:hover td { background-color: #1f2937 !important; }
+    html.dark table tbody tr:nth-child(even) td { background-color: #1a2332 !important; }
+  </style>
+
   <!-- HTMX 2.x -->
   <script src="https://unpkg.com/htmx.org@2" defer></script>
 
@@ -188,8 +214,8 @@
         <a href="/logout" class="text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400">Sign out</a>
         <button id="theme-toggle"
                 title="Toggle dark mode"
-                class="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 ml-auto">
-          <span id="theme-icon">◐</span>
+                class="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 ml-auto leading-none">
+          <span id="theme-icon">☾</span>
         </button>
       </div>
     </div>
@@ -242,30 +268,30 @@
     var icon = document.getElementById('theme-icon');
     if (!btn) return;
 
-    function currentMode() {
-      return localStorage.getItem('saebooks-theme') || 'auto';
-    }
-    function applyMode(mode) {
-      var dark = mode === 'dark' ||
-        (mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      document.documentElement.classList.toggle('dark', dark);
-      if (icon) icon.textContent = mode === 'dark' ? '☾' : mode === 'light' ? '☀' : '◐';
-      if (btn) btn.title = 'Theme: ' + mode + ' — click to cycle';
+    function isDark() {
+      var stored = localStorage.getItem('saebooks-theme');
+      if (stored === 'dark')  return true;
+      if (stored === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
 
-    applyMode(currentMode());
+    function applyTheme() {
+      var dark = isDark();
+      document.documentElement.classList.toggle('dark', dark);
+      if (icon) icon.textContent = dark ? '☾' : '☀';
+      if (btn)  btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    }
+
+    applyTheme();
 
     btn.addEventListener('click', function () {
-      var cur = currentMode();
-      var next = cur === 'auto' ? 'dark' : cur === 'dark' ? 'light' : 'auto';
-      localStorage.setItem('saebooks-theme', next);
-      applyMode(next);
+      localStorage.setItem('saebooks-theme', isDark() ? 'light' : 'dark');
+      applyTheme();
     });
 
-    // Follow system preference changes when in auto mode
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
-        if (currentMode() === 'auto') applyMode('auto');
+        if (!localStorage.getItem('saebooks-theme')) applyTheme();
       });
     }
   })();
