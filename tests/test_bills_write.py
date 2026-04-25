@@ -1,12 +1,18 @@
-"""Tests for the bill create form — Lane D cycle 11.
+"""Tests for the bill create form — Lane D cycles 11 + 51.
 
-Six tests:
-1. test_bill_new_requires_auth             — GET /bills/new without session -> 303 /login
-2. test_bill_new_form_renders              — GET /bills/new returns 200 with form + starter line
-3. test_bill_add_line_fragment             — GET /bills/_add_line returns <tr> without <html>
-4. test_bill_create_success_redirects      — POST with 2 lines; mock API 201; expect 303 to /bills/{id}
-5. test_bill_create_validation_error       — API 422; form re-renders with user input preserved
-6. test_bill_create_sends_idempotency_key  — API call received X-Idempotency-Key
+Twelve tests:
+1.  test_bill_new_requires_auth              — GET /bills/new without session -> 303 /login
+2.  test_bill_new_form_renders               — GET /bills/new returns 200 with form + starter line
+3.  test_bill_add_line_fragment              — GET /bills/_add_line returns <tr> without <html>
+4.  test_bill_create_success_redirects       — POST with 2 lines; mock API 201; expect 303 to /bills/{id}
+5.  test_bill_create_validation_error        — API 422; form re-renders with user input preserved
+6.  test_bill_create_sends_idempotency_key   — API call received X-Idempotency-Key
+7.  test_bill_create_requires_auth           — POST /bills/new without session -> 303 /login
+8.  test_bill_add_line_requires_auth         — GET /bills/_add_line without session -> 303 /login
+9.  test_bill_create_api_401                 — API returns 401 -> session cleared, redirect /login
+10. test_bill_create_api_500                 — API 500 -> form re-rendered with generic error
+11. test_bill_create_multi_line              — POST with 3 lines -> 303 to /bills/{id}
+12. test_bill_create_api_error_string_detail — API 422 with string detail -> error shown
 """
 from __future__ import annotations
 
@@ -321,3 +327,206 @@ async def test_bill_create_sends_idempotency_key(respx_mock: respx.MockRouter) -
 
     assert len(captured) == 1, "Expected exactly one upstream POST call"
     assert captured[0] == _idem_key, f"Expected {_idem_key!r}, got {captured[0]!r}"
+
+
+# ---------------------------------------------------------------------------
+# 7. POST /bills/new — requires auth
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_bill_create_requires_auth() -> None:
+    """POST /bills/new without a session redirects to /login (303)."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/bills/new",
+            data={"contact_id": _CONTACT_ID, "issue_date": "2026-04-23"},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 8. GET /bills/_add_line — requires auth
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_bill_add_line_requires_auth() -> None:
+    """GET /bills/_add_line without a session redirects to /login (303)."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.get("/bills/_add_line?index=0")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 9. POST /bills/new — API returns 401 -> session cleared, redirect /login
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_create_api_401(respx_mock: respx.MockRouter) -> None:
+    """POST /bills/new when the API returns 401 clears session and redirects /login."""
+    respx_mock.post(f"{_API_BASE}/api/v1/bills").mock(
+        return_value=Response(401, json={"detail": "Unauthorised"})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/bills/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "idempotency_key": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+                "lines[0][description]": "Office supplies",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "100.00",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 10. POST /bills/new — API 500 -> generic error re-rendered on form
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_create_api_500(respx_mock: respx.MockRouter) -> None:
+    """POST /bills/new when the API returns 500 re-renders the form with a generic error."""
+    respx_mock.post(f"{_API_BASE}/api/v1/bills").mock(
+        return_value=Response(500, json={"detail": "Internal Server Error"})
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.post(
+            "/bills/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "idempotency_key": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+                "lines[0][description]": "Office supplies",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "100.00",
+            },
+        )
+
+    assert resp.status_code == 500
+    assert 'name="contact_id"' in resp.text
+    assert "API error: HTTP 500" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 11. POST /bills/new — multiple lines are passed through correctly
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_create_multi_line(respx_mock: respx.MockRouter) -> None:
+    """POST /bills/new with 3 line items -> 201 from API -> 303 redirect."""
+    captured_bodies: list[dict] = []
+
+    def _capture(request: respx.Request) -> Response:
+        captured_bodies.append(request.read())
+        return Response(201, json=_MOCK_BILL)
+
+    respx_mock.post(f"{_API_BASE}/api/v1/bills").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/bills/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "idempotency_key": "ffffffff-ffff-ffff-ffff-000000000000",
+                "lines[0][account_id]": _ACCOUNT_ID,
+                "lines[0][description]": "Office supplies",
+                "lines[0][quantity]": "2",
+                "lines[0][unit_price]": "100.00",
+                "lines[1][account_id]": _ACCOUNT_ID,
+                "lines[1][description]": "Stationery",
+                "lines[1][quantity]": "1",
+                "lines[1][unit_price]": "50.00",
+                "lines[2][account_id]": _ACCOUNT_ID,
+                "lines[2][description]": "Postage",
+                "lines[2][quantity]": "4",
+                "lines[2][unit_price]": "5.00",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/bills/{_BILL_ID}"
+    # Exactly one API call was made.
+    assert len(captured_bodies) == 1
+
+
+# ---------------------------------------------------------------------------
+# 12. POST /bills/new — API 422 with string detail shows that message
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_create_api_error_string_detail(respx_mock: respx.MockRouter) -> None:
+    """POST /bills/new: API 422 with string detail -> error message shown in form."""
+    respx_mock.post(f"{_API_BASE}/api/v1/bills").mock(
+        return_value=Response(422, json={"detail": "Duplicate bill number"})
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.post(
+            "/bills/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "number": "BILL-0001",
+                "idempotency_key": "99999999-9999-9999-9999-999999999999",
+                "lines[0][description]": "Office supplies",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "100.00",
+            },
+        )
+
+    assert resp.status_code == 422
+    assert 'name="contact_id"' in resp.text
+    assert "Duplicate bill number" in resp.text

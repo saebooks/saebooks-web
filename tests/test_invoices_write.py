@@ -1,12 +1,18 @@
-"""Tests for the invoice create form — Lane D cycle 10.
+"""Tests for the invoice create form — Lane D cycles 10 + 51.
 
-Six tests:
-1. test_invoice_new_form_renders           — GET /invoices/new returns 200 with form
-2. test_invoice_create_success_redirects   — POST with valid payload -> 303 to /invoices/{id}
-3. test_invoice_create_missing_contact     — POST without contact_id -> 422 re-render with error
-4. test_invoice_create_sends_idempotency_key — POST includes X-Idempotency-Key header
-5. test_invoice_add_line_htmx              — GET /invoices/_add_line returns line-row fragment
-6. test_invoice_new_requires_auth          — GET /invoices/new without session -> 303 /login
+Twelve tests:
+1.  test_invoice_new_form_renders              — GET /invoices/new returns 200 with form
+2.  test_invoice_create_success_redirects      — POST with valid payload -> 303 to /invoices/{id}
+3.  test_invoice_create_missing_contact        — POST without contact_id -> 422 re-render with error
+4.  test_invoice_create_sends_idempotency_key  — POST includes X-Idempotency-Key header
+5.  test_invoice_add_line_htmx                 — GET /invoices/_add_line returns line-row fragment
+6.  test_invoice_new_requires_auth             — GET /invoices/new without session -> 303 /login
+7.  test_invoice_create_requires_auth          — POST /invoices/new without session -> 303 /login
+8.  test_invoice_add_line_requires_auth        — GET /invoices/_add_line without session -> 303 /login
+9.  test_invoice_create_api_401                — API returns 401 -> session cleared, redirect /login
+10. test_invoice_create_api_500                — API 500 -> form re-rendered with generic error
+11. test_invoice_create_multi_line             — POST with 3 lines -> 303 to /invoices/{id}
+12. test_invoice_create_api_error_string_detail — API 422 with string detail -> error shown
 """
 from __future__ import annotations
 
@@ -317,3 +323,206 @@ async def test_invoice_new_requires_auth() -> None:
 
     assert resp.status_code == 303
     assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 7. POST /invoices/new — requires auth
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_invoice_create_requires_auth() -> None:
+    """POST /invoices/new without a session redirects to /login (303)."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/invoices/new",
+            data={"contact_id": _CONTACT_ID, "issue_date": "2026-04-23"},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 8. GET /invoices/_add_line — requires auth
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_invoice_add_line_requires_auth() -> None:
+    """GET /invoices/_add_line without a session redirects to /login (303)."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.get("/invoices/_add_line?index=0")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 9. POST /invoices/new — API returns 401 -> session cleared, redirect /login
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_create_api_401(respx_mock: respx.MockRouter) -> None:
+    """POST /invoices/new when the API returns 401 clears session and redirects /login."""
+    respx_mock.post(f"{_API_BASE}/api/v1/invoices").mock(
+        return_value=Response(401, json={"detail": "Unauthorised"})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/invoices/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "idempotency_key": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+                "lines[0][description]": "Consulting",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "100.00",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 10. POST /invoices/new — API 500 -> generic error re-rendered on form
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_create_api_500(respx_mock: respx.MockRouter) -> None:
+    """POST /invoices/new when the API returns 500 re-renders the form with a generic error."""
+    respx_mock.post(f"{_API_BASE}/api/v1/invoices").mock(
+        return_value=Response(500, json={"detail": "Internal Server Error"})
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.post(
+            "/invoices/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "idempotency_key": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+                "lines[0][description]": "Consulting",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "100.00",
+            },
+        )
+
+    assert resp.status_code == 500
+    assert 'name="contact_id"' in resp.text
+    assert "API error: HTTP 500" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 11. POST /invoices/new — multiple lines are passed through correctly
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_create_multi_line(respx_mock: respx.MockRouter) -> None:
+    """POST /invoices/new with 3 line items -> 201 from API -> 303 redirect."""
+    captured_bodies: list[dict] = []
+
+    def _capture(request: respx.Request) -> Response:
+        captured_bodies.append(request.read())
+        return Response(201, json=_MOCK_INVOICE)
+
+    respx_mock.post(f"{_API_BASE}/api/v1/invoices").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/invoices/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "idempotency_key": "ffffffff-ffff-ffff-ffff-000000000000",
+                "lines[0][account_id]": _ACCOUNT_ID,
+                "lines[0][description]": "Line A",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "50.00",
+                "lines[1][account_id]": _ACCOUNT_ID,
+                "lines[1][description]": "Line B",
+                "lines[1][quantity]": "2",
+                "lines[1][unit_price]": "25.00",
+                "lines[2][account_id]": _ACCOUNT_ID,
+                "lines[2][description]": "Line C",
+                "lines[2][quantity]": "3",
+                "lines[2][unit_price]": "10.00",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/invoices/{_INVOICE_ID}"
+    # Exactly one API call was made.
+    assert len(captured_bodies) == 1
+
+
+# ---------------------------------------------------------------------------
+# 12. POST /invoices/new — API 422 with string detail shows that message
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_create_api_error_string_detail(respx_mock: respx.MockRouter) -> None:
+    """POST /invoices/new: API 422 with string detail -> error message shown in form."""
+    respx_mock.post(f"{_API_BASE}/api/v1/invoices").mock(
+        return_value=Response(422, json={"detail": "Duplicate invoice number"})
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.post(
+            "/invoices/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "number": "INV-0001",
+                "idempotency_key": "99999999-9999-9999-9999-999999999999",
+                "lines[0][description]": "Consulting",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "100.00",
+            },
+        )
+
+    assert resp.status_code == 422
+    assert 'name="contact_id"' in resp.text
+    assert "Duplicate invoice number" in resp.text
