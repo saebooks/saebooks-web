@@ -80,6 +80,19 @@ def _is_htmx(request: Request) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# GET /reports  — index card grid
+# ---------------------------------------------------------------------------
+
+
+@router.get("/reports", response_class=HTMLResponse, response_model=None)
+async def reports_index(request: Request) -> HTMLResponse | RedirectResponse:
+    """Reports index — card grid linking to all implemented report pages."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return _TEMPLATES.TemplateResponse(request, "reports/index.html", {})
+
+
+# ---------------------------------------------------------------------------
 # GET /reports/aged-receivables
 # ---------------------------------------------------------------------------
 
