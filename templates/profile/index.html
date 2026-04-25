@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}My Profile — SAE Books{% endblock %}
+
+{% block content %}
+<div class="max-w-lg space-y-6">
+
+  <h1 class="text-xl font-semibold text-gray-900">My Profile</h1>
+
+  {% if flash %}
+  <div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+    {{ flash }}
+  </div>
+  {% endif %}
+
+  {% if error %}
+  <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  {# ── Account info ── #}
+  <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+    <div class="px-5 py-4">
+      <h2 class="text-sm font-semibold text-gray-700">Account</h2>
+    </div>
+    <div class="px-5 py-4 space-y-3 text-sm">
+      <div class="flex justify-between">
+        <span class="text-gray-500">Username</span>
+        <span class="text-gray-900 font-medium">{{ profile.get('name') or '—' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500">Email</span>
+        <span class="text-gray-900">{{ profile.get('email') or '—' }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-500">Role</span>
+        <span class="text-gray-900 capitalize">{{ profile.get('role') or '—' }}</span>
+      </div>
+    </div>
+  </div>
+
+  {# ── Change password ── #}
+  <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+    <div class="px-5 py-4">
+      <h2 class="text-sm font-semibold text-gray-700">Change Password</h2>
+    </div>
+    <div class="px-5 py-5">
+      {% if pw_error %}
+      <div class="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        {{ pw_error }}
+      </div>
+      {% endif %}
+      <form method="post" action="/profile/password" class="space-y-4">
+        <div>
+          <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">
+            Current password
+          </label>
+          <input id="current_password" name="current_password" type="password" required
+                 autocomplete="current-password"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+        <div>
+          <label for="new_password" class="block text-sm font-medium text-gray-700 mb-1">
+            New password
+          </label>
+          <input id="new_password" name="new_password" type="password" required
+                 autocomplete="new-password" minlength="8"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+        <div>
+          <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1">
+            Confirm new password
+          </label>
+          <input id="confirm_password" name="confirm_password" type="password" required
+                 autocomplete="new-password" minlength="8"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+        <button type="submit"
+                class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
+                       hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+          Update password
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

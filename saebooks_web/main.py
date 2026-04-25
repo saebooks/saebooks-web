@@ -57,6 +57,7 @@ from saebooks_web.routes.ai_extraction import router as ai_extraction_router
 from saebooks_web.routes.ato_sbr import router as ato_sbr_router
 from saebooks_web.routes.imports import router as imports_router
 from saebooks_web.routes.pay_run import router as pay_run_router
+from saebooks_web.routes.profile import router as profile_router
 from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 
@@ -108,6 +109,7 @@ app.include_router(reconciliation_router)
 app.include_router(budgets_router)
 app.include_router(reports_router)
 app.include_router(search_router)
+app.include_router(profile_router)
 app.include_router(settings_router)
 app.include_router(pay_run_router)
 app.include_router(admin_router)
