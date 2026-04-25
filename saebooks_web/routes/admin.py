@@ -51,6 +51,16 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+def _is_sae_staff(request: Request) -> bool:
+    """True if the session was flagged as SAE staff at login.
+
+    Set by the login handler when the authenticated user matches the
+    ``SAE_STAFF_USERNAMES`` allowlist.  Used by the SQL tool routes,
+    which bypass tenant RLS and must not be reachable by tenant admins.
+    """
+    return bool(request.session.get("is_sae_staff"))
+
+
 # ---------------------------------------------------------------------------
 # SQL Tool — GET /admin/sql-tool
 # ---------------------------------------------------------------------------
@@ -68,6 +78,8 @@ async def sql_tool_index(
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _is_sae_staff(request):
+        return HTMLResponse("Forbidden — SAE staff only", status_code=403)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -95,6 +107,8 @@ async def sql_tool_execute(request: Request) -> HTMLResponse | RedirectResponse:
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _is_sae_staff(request):
+        return HTMLResponse("Forbidden — SAE staff only", status_code=403)
 
     form_data = await request.form()
     sql = str(form_data.get("sql", "")).strip()

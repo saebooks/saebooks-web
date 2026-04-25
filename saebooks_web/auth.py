@@ -13,6 +13,7 @@ Error handling:
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import httpx
@@ -21,6 +22,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.config import settings
+
+
+def _staff_allowlist() -> frozenset[str]:
+    raw = os.environ.get("SAE_STAFF_USERNAMES", "")
+    return frozenset(p.strip().lower() for p in raw.split(",") if p.strip())
 
 router = APIRouter()
 
@@ -86,6 +92,12 @@ async def login_submit(
             profile = me_resp.json()
             request.session["username"] = profile.get("name") or profile.get("email") or ""
             request.session["user_role"] = profile.get("role", "")
+            allow = _staff_allowlist()
+            uname = (profile.get("username") or "").lower()
+            uemail = (profile.get("email") or "").lower()
+            request.session["is_sae_staff"] = bool(
+                allow and (uname in allow or uemail in allow)
+            )
     except Exception:
         pass
     return RedirectResponse(url="/", status_code=303)

@@ -44,7 +44,12 @@ def _make_session_cookie(data: dict) -> str:
     return signer.sign(payload).decode("utf-8")
 
 
-_SESSION_COOKIE = _make_session_cookie({"api_token": "test-token-sqltool"})
+_SESSION_COOKIE = _make_session_cookie(
+    {"api_token": "test-token-sqltool", "is_sae_staff": True, "user_role": "admin"}
+)
+_NON_STAFF_SESSION_COOKIE = _make_session_cookie(
+    {"api_token": "test-token-sqltool", "is_sae_staff": False, "user_role": "admin"}
+)
 
 
 # ---------------------------------------------------------------------------
@@ -217,3 +222,46 @@ async def test_sql_tool_nav_link(respx_mock: respx.MockRouter) -> None:
     assert resp.status_code == 200
     assert "/admin/sql-tool" in resp.text
     assert "SQL" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 8. Non-staff is forbidden (P0 tenant-isolation regression test)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_sql_tool_forbidden_for_non_staff() -> None:
+    """A logged-in user without is_sae_staff must get 403."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _NON_STAFF_SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        get_resp = await client.get("/admin/sql-tool")
+        post_resp = await client.post(
+            "/admin/sql-tool/execute",
+            data={"sql": "SELECT 1"},
+        )
+
+    assert get_resp.status_code == 403
+    assert post_resp.status_code == 403
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_sql_tool_nav_link_hidden_for_non_staff(respx_mock: respx.MockRouter) -> None:
+    """Non-staff session must NOT see the SQL Tool nav link."""
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _NON_STAFF_SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/accounts")
+
+    assert resp.status_code == 200
+    assert "/admin/sql-tool" not in resp.text
