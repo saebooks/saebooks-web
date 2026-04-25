@@ -32,12 +32,22 @@ POST /payments/{id}/edit
     409 → conflict banner + refreshed server version; user input preserved.
     422 → re-render with per-field or __all__ errors.
 
+POST /payments/{id}/post
+    Transition DRAFT -> POSTED. POSTs to /api/v1/payments/{id}/post with
+    If-Match + X-Idempotency-Key. 200 -> 303 with flash; 409/422 -> 303
+    back to detail with flash.
+
+POST /payments/{id}/void
+    Transition POSTED -> VOIDED. POSTs to /api/v1/payments/{id}/void with
+    If-Match. 200 -> 303 with flash; 409/422 -> 303 back to detail with flash.
+
 GET /payments/{id}
     Renders templates/payments/detail.html.
     Calls GET /api/v1/payments/{id}.
 
 Route ordering: /new and /_add_allocation MUST be declared BEFORE /{id}/edit,
-and /{id}/edit MUST be declared BEFORE /{payment_id} (catch-all), so FastAPI
+/{id}/edit BEFORE /{id}/post, /{id}/post BEFORE /{id}/void, /{id}/void BEFORE
+/{id}/archive, and /{id}/archive BEFORE /{payment_id} (catch-all), so FastAPI
 resolves the literal paths first.
 
 Allocation schema (PaymentAllocationCreate):
@@ -735,6 +745,120 @@ async def payment_update(
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
+
+
+# ---------------------------------------------------------------------------
+# Post transition — POST /{payment_id}/post
+# NOTE: MUST appear before the catch-all /{payment_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/payments/{payment_id}/post", response_class=HTMLResponse, response_model=None
+)
+async def payment_post(
+    request: Request,
+    payment_id: str,
+) -> RedirectResponse:
+    """Transition a DRAFT payment to POSTED.
+
+    POSTs to POST /api/v1/payments/{id}/post with If-Match + X-Idempotency-Key.
+    - 200 -> 303 to detail with flash "Payment posted."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422 -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    idempotency_key = str(uuid.uuid4())
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/payments/{payment_id}/post",
+            headers={
+                "If-Match": version,
+                "X-Idempotency-Key": idempotency_key,
+            },
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Payment posted."
+        return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Void transition — POST /{payment_id}/void
+# NOTE: MUST appear before the catch-all /{payment_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/payments/{payment_id}/void", response_class=HTMLResponse, response_model=None
+)
+async def payment_void(
+    request: Request,
+    payment_id: str,
+) -> RedirectResponse:
+    """Transition a POSTED payment to VOIDED.
+
+    POSTs to POST /api/v1/payments/{id}/void with If-Match.
+    - 200 -> 303 to detail with flash "Payment voided."
+    - 409 -> 303 back to detail with flash "Version conflict — try again."
+    - 422 -> 303 back to detail with the API's error message as flash.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/payments/{payment_id}/void",
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 200:
+        request.session["flash"] = "Payment voided."
+        return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Version conflict — try again."
+        return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
+
+    # 422 or other — surface the API's detail message.
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
 
 # ---------------------------------------------------------------------------

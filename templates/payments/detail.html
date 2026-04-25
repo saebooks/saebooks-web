@@ -52,6 +52,19 @@
     >Edit</a>
     <form
       method="post"
+      action="/payments/{{ payment.id }}/post"
+      onsubmit="return confirm('Post this payment? This cannot be undone easily.');"
+      class="inline"
+    >
+      <input type="hidden" name="version" value="{{ payment.version }}">
+      <button
+        type="submit"
+        class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white
+               hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+      >Post</button>
+    </form>
+    <form
+      method="post"
       action="/payments/{{ payment.id }}/archive"
       onsubmit="return confirm('Archive this payment? This cannot be undone.');"
       class="inline"
@@ -62,6 +75,21 @@
         class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white
                hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
       >Archive</button>
+    </form>
+    {% endif %}
+    {% if payment.status == 'POSTED' %}
+    <form
+      method="post"
+      action="/payments/{{ payment.id }}/void"
+      onsubmit="return confirm('Void this payment?');"
+      class="inline"
+    >
+      <input type="hidden" name="version" value="{{ payment.version }}">
+      <button
+        type="submit"
+        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white
+               hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+      >Void</button>
     </form>
     {% endif %}
     <a
