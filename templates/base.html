@@ -97,6 +97,8 @@
     {# Navigation #}
     <nav class="flex-1 px-2 py-3 space-y-4 text-sm">
       {% set path = request.url.path %}
+      {% set username = request.session.get("username", "") %}
+      {% set user_role = request.session.get("user_role", "") %}
 
       {# ── Transactions ── #}
       <div>
@@ -243,8 +245,6 @@
 
     {# ── User section ── #}
     <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-3">
-      {% set username = request.session.get("username", "") %}
-      {% set user_role = request.session.get("user_role", "") %}
       {% if username %}
       <p class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate" title="{{ username }}">{{ username }}</p>
       {% if user_role %}

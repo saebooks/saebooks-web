@@ -87,7 +87,7 @@ def _make_session_cookie(data: dict) -> str:
     return signer.sign(payload).decode("utf-8")
 
 
-_SESSION_COOKIE = _make_session_cookie({"api_token": "test-token-imports"})
+_SESSION_COOKIE = _make_session_cookie({"api_token": "test-token-imports", "user_role": "admin"})
 
 
 # ---------------------------------------------------------------------------
