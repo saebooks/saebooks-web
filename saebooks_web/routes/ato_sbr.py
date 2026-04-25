@@ -108,6 +108,22 @@ async def ato_sbr_index(
 # ---------------------------------------------------------------------------
 
 
+@router.get("/admin/ato-sbr/keystore", response_model=None)
+@router.get("/admin/ato-sbr/confirm", response_model=None)
+@router.get("/admin/ato-sbr/ssid", response_model=None)
+@router.get("/admin/ato-sbr/test", response_model=None)
+@router.get("/admin/ato-sbr/clear", response_model=None)
+async def ato_sbr_action_redirect(request: Request) -> RedirectResponse:
+    """Redirect stray GETs back to the wizard.
+
+    Authentik forward-auth redirects back to the original URL after SSO but
+    using GET (the POST body is lost in the redirect). Without this handler
+    the user sees a bare 405 JSON error. Bounce them to the wizard landing
+    page instead so they can re-submit the form.
+    """
+    return RedirectResponse(url="/admin/ato-sbr", status_code=303)
+
+
 @router.post("/admin/ato-sbr/keystore", response_model=None)
 async def ato_sbr_upload_keystore(request: Request) -> RedirectResponse:
     """Upload keystore.xml + password to the API."""

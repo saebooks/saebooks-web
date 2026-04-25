@@ -5,24 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}SAE Books{% endblock %}</title>
 
-  <!-- Tailwind CSS via CDN (no build step) -->
+  <!-- Dark-mode bootstrap — runs before first paint to prevent flash -->
+  <script>
+    (function () {
+      var stored = localStorage.getItem('saebooks-theme');
+      var dark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.classList.add('dark');
+    })();
+  </script>
+
+  <!-- Tailwind with dark-mode class strategy -->
+  <script>tailwind = { config: { darkMode: 'class' } }</script>
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- HTMX 2.x via CDN -->
+  <!-- HTMX 2.x -->
   <script src="https://unpkg.com/htmx.org@2" defer></script>
 
   {% block head %}{% endblock %}
 </head>
-<body class="{% if request.session.get('api_token') %}flex h-screen overflow-hidden bg-gray-50{% else %}bg-gray-50 text-gray-900 min-h-screen{% endif %}">
+<body class="{% if request.session.get('api_token') %}flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950{% else %}bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen{% endif %}">
 
 {% if request.session.get("api_token") %}
 
   {# ── Left sidebar ────────────────────────────────────────────────────── #}
-  <aside class="w-56 flex-shrink-0 flex flex-col bg-white border-r border-gray-200 overflow-y-auto">
+  <aside class="w-56 flex-shrink-0 flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
 
     {# Brand #}
-    <div class="px-4 py-4 border-b border-gray-100">
-      <span class="text-base font-bold text-indigo-600 tracking-tight">SAE Books</span>
+    <div class="px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+      <span class="text-base font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">SAE Books</span>
     </div>
 
     {# Navigation #}
@@ -31,133 +41,133 @@
 
       {# ── Transactions ── #}
       <div>
-        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Transactions</p>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Transactions</p>
         <a href="/"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path == '/' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path == '/' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Dashboard
         </a>
         <a href="/contacts"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/contacts') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/contacts') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Contacts
         </a>
         <a href="/invoices"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/invoices') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/invoices') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Invoices
         </a>
         <a href="/bills"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bills') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bills') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Bills
         </a>
         <a href="/payments"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/payments') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/payments') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Payments
         </a>
         <a href="/pay-run"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/pay-run') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/pay-run') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Pay Run
         </a>
         <a href="/credit-notes"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/credit-notes') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/credit-notes') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Credit Notes
         </a>
         <a href="/journal-entries"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/journal-entries') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/journal-entries') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Journal Entries
         </a>
       </div>
 
       {# ── Banking ── #}
       <div>
-        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Banking</p>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Banking</p>
         <a href="/bank-accounts"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-accounts') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-accounts') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Bank Accounts
         </a>
         <a href="/bank-statement-lines"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-statement-lines') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-statement-lines') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Statement Lines
         </a>
         <a href="/reconciliation"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/reconciliation') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/reconciliation') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Reconciliation
         </a>
         <a href="/bank-rules"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-rules') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-rules') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Bank Rules
         </a>
       </div>
 
       {# ── Reports ── #}
       <div>
-        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Reports</p>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Reports</p>
         <a href="/reports/profit-loss"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/reports/') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/reports/') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Reports
         </a>
       </div>
 
       {# ── Assets & Setup ── #}
       <div>
-        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Assets &amp; Setup</p>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Assets &amp; Setup</p>
         <a href="/fixed-assets"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/fixed-assets') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/fixed-assets') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Fixed Assets
         </a>
         <a href="/budgets"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/budgets') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/budgets') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Budgets
         </a>
         <a href="/projects"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/projects') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/projects') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Projects
         </a>
         <a href="/items"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/items') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/items') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Items
         </a>
         <a href="/accounts"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/accounts') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/accounts') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Accounts
         </a>
         <a href="/recurring-invoices"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/recurring-invoices') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/recurring-invoices') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Recurring
         </a>
         <a href="/journal-templates"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/journal-templates') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/journal-templates') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Templates
         </a>
         <a href="/tax-codes"
-           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/tax-codes') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/tax-codes') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Tax Codes
         </a>
       </div>
 
       {# ── Admin ── #}
       <div>
-        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Admin</p>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Admin</p>
         <a href="/settings/company"
-           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/settings/') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/settings/') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Settings
         </a>
         <a href="/admin/ranges"
-           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/ranges' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/ranges' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Ranges
         </a>
         <a href="/admin/imports"
-           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/imports' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/imports' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Imports
         </a>
         <a href="/admin/ato-sbr"
-           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/admin/ato-sbr') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/admin/ato-sbr') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           ATO SBR
         </a>
         <a href="/admin/sql-tool"
-           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/sql-tool' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/sql-tool' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           SQL Tool
         </a>
         <a href="/admin/audit"
-           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/audit' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/audit' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Audit
         </a>
       </div>
@@ -165,16 +175,23 @@
     </nav>
 
     {# ── User section ── #}
-    <div class="border-t border-gray-200 px-4 py-3">
+    <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-3">
       {% set username = request.session.get("username", "") %}
       {% set user_role = request.session.get("user_role", "") %}
       {% if username %}
-      <p class="text-xs font-medium text-gray-800 truncate" title="{{ username }}">{{ username }}</p>
+      <p class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate" title="{{ username }}">{{ username }}</p>
       {% if user_role %}
-      <p class="text-xs text-gray-400 capitalize">{{ user_role }}</p>
+      <p class="text-xs text-gray-400 dark:text-gray-500 capitalize">{{ user_role }}</p>
       {% endif %}
       {% endif %}
-      <a href="/logout" class="mt-2 inline-block text-xs text-gray-500 hover:text-red-600">Sign out</a>
+      <div class="mt-2 flex items-center gap-3">
+        <a href="/logout" class="text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400">Sign out</a>
+        <button id="theme-toggle"
+                title="Toggle dark mode"
+                class="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 ml-auto">
+          <span id="theme-icon">◐</span>
+        </button>
+      </div>
     </div>
 
   </aside>
@@ -183,8 +200,8 @@
   <div class="flex-1 flex flex-col overflow-hidden">
 
     {# Top bar #}
-    <header class="flex-shrink-0 flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3">
-      <span class="text-sm font-semibold text-gray-700">
+    <header class="flex-shrink-0 flex items-center justify-between bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3">
+      <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
         {% block company_name %}{{ company_name | default("SAE Books") }}{% endblock %}
       </span>
       <div class="flex items-center gap-3">
@@ -193,11 +210,11 @@
             type="search"
             name="q"
             placeholder="Search…"
-            class="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-52"
+            class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-52"
           >
         </form>
         <a href="/invoices/new"
-           class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 whitespace-nowrap">
+           class="inline-flex items-center gap-1 rounded-md bg-indigo-600 dark:bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 whitespace-nowrap">
           + Invoice
         </a>
       </div>
@@ -213,13 +230,46 @@
 {% else %}
 
   {# ── Unauthenticated shell (login page, etc.) ────────────────────────── #}
-  {# No sidebar — content block renders directly inside body                #}
   <main class="mx-auto max-w-7xl px-6 py-8">
-    {#- render the child template's content block via a call-through div -#}
     {{ self.content() }}
   </main>
 
 {% endif %}
+
+<script>
+  (function () {
+    var btn = document.getElementById('theme-toggle');
+    var icon = document.getElementById('theme-icon');
+    if (!btn) return;
+
+    function currentMode() {
+      return localStorage.getItem('saebooks-theme') || 'auto';
+    }
+    function applyMode(mode) {
+      var dark = mode === 'dark' ||
+        (mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('dark', dark);
+      if (icon) icon.textContent = mode === 'dark' ? '☾' : mode === 'light' ? '☀' : '◐';
+      if (btn) btn.title = 'Theme: ' + mode + ' — click to cycle';
+    }
+
+    applyMode(currentMode());
+
+    btn.addEventListener('click', function () {
+      var cur = currentMode();
+      var next = cur === 'auto' ? 'dark' : cur === 'dark' ? 'light' : 'auto';
+      localStorage.setItem('saebooks-theme', next);
+      applyMode(next);
+    });
+
+    // Follow system preference changes when in auto mode
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+        if (currentMode() === 'auto') applyMode('auto');
+      });
+    }
+  })();
+</script>
 
 </body>
 </html>
