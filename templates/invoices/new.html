@@ -9,6 +9,19 @@
   <a href="/invoices" class="text-sm text-indigo-600 hover:underline">← Back to invoices</a>
 </div>
 
+{#
+  AI extraction upload panel — loaded lazily via an HTMX probe so the button
+  only appears when the FLAG_AI_EXTRACTION feature is enabled on the API.
+  On 404 (flag off) or 503 (key missing) HTMX swaps in nothing; the div
+  stays empty and invisible.
+#}
+<div
+  id="ai-extract-probe-target"
+  hx-get="/invoices/extract-document/probe"
+  hx-trigger="load"
+  hx-swap="innerHTML"
+></div>
+
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
   <form method="POST" action="/invoices/new" novalidate>
 

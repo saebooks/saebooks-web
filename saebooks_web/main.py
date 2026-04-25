@@ -53,6 +53,7 @@ from saebooks_web.routes.recurring_invoices import router as recurring_invoices_
 from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.search import router as search_router
 from saebooks_web.routes.admin import router as admin_router
+from saebooks_web.routes.ai_extraction import router as ai_extraction_router
 from saebooks_web.routes.ato_sbr import router as ato_sbr_router
 from saebooks_web.routes.imports import router as imports_router
 from saebooks_web.routes.pay_run import router as pay_run_router
@@ -86,6 +87,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(dashboard_router)
 app.include_router(contacts_router)
+app.include_router(ai_extraction_router)
 app.include_router(invoices_router)
 app.include_router(bills_router)
 app.include_router(payments_router)

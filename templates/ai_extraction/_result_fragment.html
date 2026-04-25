@@ -1,0 +1,88 @@
+{#
+  _result_fragment.html — returned by POST /bills/extract-document or
+  POST /invoices/extract-document.
+
+  On success this fragment:
+  1. Shows the confidence badge (and a low-confidence warning if < 70 %).
+  2. Uses hx-swap-oob to populate the visible form fields with the extracted
+     values so the user can review and adjust before saving.
+
+  Expected context:
+    error           : str | None
+    extraction      : dict | None  — full extraction JSON from the API
+    form_context    : "bill" | "invoice"
+    low_confidence  : bool
+    confidence_pct  : int | None
+#}
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+  {{ error }}
+</div>
+
+{% elif extraction %}
+
+{# ── Confidence badge ── #}
+<div class="flex items-center gap-2 mb-2">
+  <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+    {% if low_confidence %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+    AI confidence: {{ confidence_pct }}%
+  </span>
+  {% if low_confidence %}
+  <span class="text-xs text-yellow-700 font-medium">Low confidence — please review fields carefully</span>
+  {% endif %}
+</div>
+
+{#
+  Out-of-band swaps: these hidden inputs carry the extracted values into the
+  main form's fields.  We swap the value attribute on the real inputs via
+  hx-swap-oob — but since most inputs are plain inputs (not targets), we use
+  a small JS snippet to populate them.  HTMX oob works best with id targets;
+  we inject a <script> here instead to avoid requiring every input to have an
+  id matching the API field name.
+#}
+<div class="text-xs text-gray-500 mb-1">Fields pre-filled below. Review and adjust before saving.</div>
+
+<script>
+(function () {
+  var ex = {{ extraction | tojson }};
+
+  function setVal(name, val) {
+    if (!val && val !== 0) return;
+    // Try id first, then name
+    var el = document.getElementById(name) || document.querySelector('[name="' + name + '"]');
+    if (el) el.value = val;
+  }
+
+  // issue_date / due_date
+  setVal('issue_date', ex.date || '');
+  setVal('due_date',   ex.due_date || '');
+
+  {% if form_context == "bill" %}
+  // supplier_reference — map invoice_number from extracted doc to supplier ref on bills
+  setVal('supplier_reference', ex.invoice_number || '');
+  {% else %}
+  // number — map invoice_number to our invoice number field
+  setVal('number', ex.invoice_number || '');
+  {% endif %}
+
+  // notes
+  if (ex.notes) setVal('notes', ex.notes);
+
+  // Contact search — pre-fill the visible select if an option with matching text exists,
+  // otherwise leave it alone so the user can pick manually.
+  if (ex.vendor_name) {
+    var sel = document.getElementById('contact_id');
+    if (sel) {
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].text.toLowerCase().indexOf(ex.vendor_name.toLowerCase()) !== -1) {
+          sel.value = sel.options[i].value;
+          break;
+        }
+      }
+    }
+  }
+})();
+</script>
+
+{% endif %}

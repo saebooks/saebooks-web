@@ -1,0 +1,62 @@
+{#
+  _upload_button.html — returned by the probe endpoint when AI extraction is enabled.
+
+  Renders an inline "Extract from document" toggle button plus the hidden upload
+  panel.  The button toggles #ai-extract-panel without a page reload.
+
+  Expected context:
+    form_context : "bill" | "invoice"
+#}
+
+<div id="ai-extract-wrapper" class="mt-4">
+  <button
+    type="button"
+    class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
+    onclick="document.getElementById('ai-extract-panel').classList.toggle('hidden')"
+    aria-expanded="false"
+    aria-controls="ai-extract-panel"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+    </svg>
+    Extract from document
+  </button>
+
+  <div id="ai-extract-panel" class="hidden mt-3 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-4">
+    <p class="text-xs text-indigo-700 mb-3">Upload a PDF, JPEG, or PNG invoice/bill and we will pre-fill the form fields.</p>
+
+    <form
+      id="ai-extract-form"
+      hx-post="/{{ form_context }}s/extract-document"
+      hx-target="#ai-extract-result"
+      hx-swap="innerHTML"
+      hx-encoding="multipart/form-data"
+      hx-indicator="#ai-extract-spinner"
+    >
+      <div class="flex items-center gap-3">
+        <input
+          type="file"
+          name="document"
+          accept=".pdf,.jpg,.jpeg,.png"
+          required
+          class="block text-sm text-gray-700 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0
+                 file:text-sm file:font-medium file:bg-white file:text-indigo-700 file:border file:border-indigo-300
+                 hover:file:bg-indigo-50"
+        >
+        <button
+          type="submit"
+          class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white
+                 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        >
+          Extract
+        </button>
+        <span
+          id="ai-extract-spinner"
+          class="htmx-indicator text-xs text-indigo-600"
+        >Analysing document…</span>
+      </div>
+    </form>
+
+    <div id="ai-extract-result" class="mt-3"></div>
+  </div>
+</div>
