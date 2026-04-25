@@ -32,6 +32,9 @@
       {% for t in entity_types %}
       <option value="{{ t }}" {% if filters.entity_type == t %}selected{% endif %}>{{ t }}</option>
       {% endfor %}
+      {% if filters.entity_type and filters.entity_type not in entity_types %}
+      <option value="{{ filters.entity_type }}" selected>{{ filters.entity_type }}</option>
+      {% endif %}
     </select>
   </div>
   <div>
@@ -62,13 +65,6 @@
 </div>
 {% endif %}
 
-{% if proxy_html %}
-{# Proxy the HTML from the API if it returned HTML (non-JSON) #}
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 audit-proxy">
-  {{ proxy_html | safe }}
-</div>
-{% else %}
-{# Render our own table from parsed JSON snapshots #}
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
@@ -134,8 +130,6 @@
     {% endif %}
   </div>
 </div>
-{% endif %}
-
 {% endif %}
 
 {% endblock %}

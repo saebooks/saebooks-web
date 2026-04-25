@@ -235,8 +235,6 @@ async def audit_log(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-    proxy_html = resp.text if resp.is_success and "json" not in resp.headers.get("content-type", "") else None
-
     flash = request.session.pop("flash", None)
 
     return _TEMPLATES.TemplateResponse(
@@ -253,7 +251,6 @@ async def audit_log(
                 "date_from": date_from or "",
                 "date_to": date_to or "",
             },
-            "proxy_html": proxy_html,
             "error": error,
             "flash": flash,
         },
