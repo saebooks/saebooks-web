@@ -13,79 +13,213 @@
 
   {% block head %}{% endblock %}
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen">
+<body class="{% if request.session.get('api_token') %}flex h-screen overflow-hidden bg-gray-50{% else %}bg-gray-50 text-gray-900 min-h-screen{% endif %}">
 
-  {% if request.session.get("api_token") %}
-  <nav class="bg-white border-b border-gray-200 px-6">
-    {# Primary nav — transactional entities #}
-    <div class="flex items-center justify-between py-3">
-      <div class="flex items-center gap-6">
-        <span class="font-semibold text-indigo-600">SAE Books</span>
-        <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Dashboard</a>
-        <a href="/contacts" class="text-sm text-gray-600 hover:text-gray-900">Contacts</a>
-        <a href="/invoices" class="text-sm text-gray-600 hover:text-gray-900">Invoices</a>
-        <a href="/recurring-invoices" class="text-sm text-gray-600 hover:text-gray-900">Recurring</a>
-        <a href="/bills" class="text-sm text-gray-600 hover:text-gray-900">Bills</a>
-        <a href="/payments" class="text-sm text-gray-600 hover:text-gray-900">Payments</a>
-        <a href="/pay-run" class="text-sm text-gray-600 hover:text-gray-900">Pay Run</a>
-        <a href="/credit-notes" class="text-sm text-gray-600 hover:text-gray-900">Credit Notes</a>
-        <a href="/journal-entries" class="text-sm text-gray-600 hover:text-gray-900">Journal Entries</a>
-        <a href="/journal-templates" class="text-sm text-gray-600 hover:text-gray-900">Templates</a>
-        <span class="text-gray-300">|</span>
-        <a href="/bank-accounts" class="text-sm text-gray-600 hover:text-gray-900">Bank Accounts</a>
-        <a href="/bank-statement-lines" class="text-sm text-gray-600 hover:text-gray-900">Statement Lines</a>
-        <a href="/bank-rules" class="text-sm text-gray-600 hover:text-gray-900">Bank Rules</a>
-        <a href="/reconciliation" class="text-sm text-gray-600 hover:text-gray-900">Reconciliation</a>
-        <span class="text-gray-300">|</span>
-        <a href="/reports/aged-receivables" class="text-sm text-gray-600 hover:text-gray-900">Aged AR</a>
-        <a href="/reports/aged-payables" class="text-sm text-gray-600 hover:text-gray-900">Aged AP</a>
-        <a href="/reports/profit-loss" class="text-sm text-gray-600 hover:text-gray-900">P&amp;L</a>
-        <a href="/reports/balance-sheet" class="text-sm text-gray-600 hover:text-gray-900">Balance Sheet</a>
-        <a href="/reports/bas-summary" class="text-sm text-gray-600 hover:text-gray-900">BAS</a>
-        <a href="/reports/cashflow" class="text-sm text-gray-600 hover:text-gray-900">Cashflow</a>
-        <a href="/reports/depreciation-schedule" class="text-sm text-gray-600 hover:text-gray-900">Depreciation</a>
-        <a href="/reports/fx-revaluation" class="text-sm text-gray-600 hover:text-gray-900">FX Revaluation</a>
-        <a href="/reports/trial-balance" class="text-sm text-gray-600 hover:text-gray-900">Trial Balance</a>
-        <a href="/reports/budget-vs-actual" class="text-sm text-gray-600 hover:text-gray-900">Budget vs Actual</a>
-        <a href="/reports/pl-by-segment" class="text-sm text-gray-600 hover:text-gray-900">P&amp;L by Segment</a>
+{% if request.session.get("api_token") %}
+
+  {# ── Left sidebar ────────────────────────────────────────────────────── #}
+  <aside class="w-56 flex-shrink-0 flex flex-col bg-white border-r border-gray-200 overflow-y-auto">
+
+    {# Brand #}
+    <div class="px-4 py-4 border-b border-gray-100">
+      <span class="text-base font-bold text-indigo-600 tracking-tight">SAE Books</span>
+    </div>
+
+    {# Navigation #}
+    <nav class="flex-1 px-2 py-3 space-y-4 text-sm">
+      {% set path = request.url.path %}
+
+      {# ── Transactions ── #}
+      <div>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Transactions</p>
+        <a href="/"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path == '/' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Dashboard
+        </a>
+        <a href="/contacts"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/contacts') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Contacts
+        </a>
+        <a href="/invoices"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/invoices') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Invoices
+        </a>
+        <a href="/bills"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bills') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Bills
+        </a>
+        <a href="/payments"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/payments') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Payments
+        </a>
+        <a href="/pay-run"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/pay-run') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Pay Run
+        </a>
+        <a href="/credit-notes"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/credit-notes') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Credit Notes
+        </a>
+        <a href="/journal-entries"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/journal-entries') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Journal Entries
+        </a>
       </div>
+
+      {# ── Banking ── #}
+      <div>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Banking</p>
+        <a href="/bank-accounts"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-accounts') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Bank Accounts
+        </a>
+        <a href="/bank-statement-lines"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-statement-lines') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Statement Lines
+        </a>
+        <a href="/reconciliation"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/reconciliation') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Reconciliation
+        </a>
+        <a href="/bank-rules"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-rules') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Bank Rules
+        </a>
+      </div>
+
+      {# ── Reports ── #}
+      <div>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Reports</p>
+        <a href="/reports/profit-loss"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/reports/') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Reports
+        </a>
+      </div>
+
+      {# ── Assets & Setup ── #}
+      <div>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Assets &amp; Setup</p>
+        <a href="/fixed-assets"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/fixed-assets') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Fixed Assets
+        </a>
+        <a href="/budgets"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/budgets') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Budgets
+        </a>
+        <a href="/projects"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/projects') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Projects
+        </a>
+        <a href="/items"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/items') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Items
+        </a>
+        <a href="/accounts"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/accounts') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Accounts
+        </a>
+        <a href="/recurring-invoices"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/recurring-invoices') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Recurring
+        </a>
+        <a href="/journal-templates"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/journal-templates') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Templates
+        </a>
+        <a href="/tax-codes"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/tax-codes') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+          Tax Codes
+        </a>
+      </div>
+
+      {# ── Admin ── #}
+      <div>
+        <p class="px-2 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">Admin</p>
+        <a href="/settings/company"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/settings/') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+          Settings
+        </a>
+        <a href="/admin/ranges"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/ranges' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+          Ranges
+        </a>
+        <a href="/admin/imports"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/imports' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+          Imports
+        </a>
+        <a href="/admin/ato-sbr"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/admin/ato-sbr') %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+          ATO SBR
+        </a>
+        <a href="/admin/sql-tool"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/sql-tool' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+          SQL Tool
+        </a>
+        <a href="/admin/audit"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/audit' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-500 hover:bg-gray-100{% endif %}">
+          Audit
+        </a>
+      </div>
+
+    </nav>
+
+    {# ── User section ── #}
+    <div class="border-t border-gray-200 px-4 py-3">
+      {% set username = request.session.get("username", "") %}
+      {% set user_role = request.session.get("user_role", "") %}
+      {% if username %}
+      <p class="text-xs font-medium text-gray-800 truncate" title="{{ username }}">{{ username }}</p>
+      {% if user_role %}
+      <p class="text-xs text-gray-400 capitalize">{{ user_role }}</p>
+      {% endif %}
+      {% endif %}
+      <a href="/logout" class="mt-2 inline-block text-xs text-gray-500 hover:text-red-600">Sign out</a>
+    </div>
+
+  </aside>
+
+  {# ── Right column: top bar + content ────────────────────────────────── #}
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    {# Top bar #}
+    <header class="flex-shrink-0 flex items-center justify-between bg-white border-b border-gray-200 px-6 py-3">
+      <span class="text-sm font-semibold text-gray-700">
+        {% block company_name %}{{ company_name | default("SAE Books") }}{% endblock %}
+      </span>
       <div class="flex items-center gap-3">
         <form action="/search" method="GET" class="flex items-center gap-1">
           <input
             type="search"
             name="q"
             placeholder="Search…"
-            class="rounded-md border border-gray-300 px-3 py-1 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-44"
+            class="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-52"
           >
-          <button type="submit" class="rounded-md bg-indigo-600 px-3 py-1 text-sm font-medium text-white hover:bg-indigo-700">Go</button>
         </form>
-        <a href="/logout" class="text-sm text-gray-500 hover:text-gray-700">Sign out</a>
+        <a href="/invoices/new"
+           class="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 whitespace-nowrap">
+          + Invoice
+        </a>
       </div>
-    </div>
-    {# Setup sub-row — configuration entities #}
-    <div class="flex items-center gap-2 pb-2 border-t border-gray-100 pt-2">
-      <span class="text-xs font-medium text-gray-400 uppercase tracking-wide mr-1">Setup</span>
-      <a href="/accounts" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Accounts</a>
-      <a href="/items" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Items</a>
-      <a href="/tax-codes" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Tax Codes</a>
-      <a href="/projects" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Projects</a>
-      <a href="/fixed-assets" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Fixed Assets</a>
-      <a href="/budgets" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Budgets</a>
-      <span class="text-gray-300">|</span>
-      <a href="/admin/ranges" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Ranges</a>
-      <a href="/settings/company" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Settings</a>
-      <span class="text-gray-300">|</span>
-      <a href="/admin/sql-tool" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">SQL</a>
-      <a href="/admin/audit" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Audit</a>
-      <a href="/admin/imports" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">Imports</a>
-      <a href="/admin/ato-sbr" class="rounded-full px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700">ATO SBR</a>
-    </div>
-  </nav>
-  {% endif %}
+    </header>
 
+    {# Page content #}
+    <main class="flex-1 overflow-y-auto p-6">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+
+{% else %}
+
+  {# ── Unauthenticated shell (login page, etc.) ────────────────────────── #}
+  {# No sidebar — content block renders directly inside body                #}
   <main class="mx-auto max-w-7xl px-6 py-8">
-    {% block content %}{% endblock %}
+    {#- render the child template's content block via a call-through div -#}
+    {{ self.content() }}
   </main>
+
+{% endif %}
 
 </body>
 </html>

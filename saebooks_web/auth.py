@@ -76,6 +76,18 @@ async def login_submit(
 
     token = resp.json()["access_token"]
     request.session["api_token"] = token
+    # Fetch user profile to store in session
+    try:
+        me_resp = await client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        if me_resp.is_success:
+            profile = me_resp.json()
+            request.session["username"] = profile.get("name") or profile.get("email") or ""
+            request.session["user_role"] = profile.get("role", "")
+    except Exception:
+        pass
     return RedirectResponse(url="/", status_code=303)
 
 
