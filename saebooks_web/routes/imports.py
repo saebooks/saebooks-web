@@ -42,6 +42,17 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+def _require_admin(request: Request) -> bool:
+    """Return True if the session user has admin (or SAE staff) access.
+
+    Tenant admins and SAE staff may both access imports — SAE staff always
+    gets through; tenant users with role != 'admin' are refused.
+    """
+    role = request.session.get("user_role", "")
+    is_staff = bool(request.session.get("is_sae_staff"))
+    return is_staff or role == "admin"
+
+
 # ---------------------------------------------------------------------------
 # Landing — GET /admin/imports/
 # ---------------------------------------------------------------------------
@@ -53,6 +64,8 @@ async def imports_landing(request: Request) -> HTMLResponse | RedirectResponse:
     """Render the imports landing page with links to bank, CoA, and QBO flows."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
@@ -72,6 +85,8 @@ async def imports_bank_form(request: Request) -> HTMLResponse | RedirectResponse
     """Render the bank statement upload form with bank-account picker."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     bank_accounts: list[dict] = []
     error: str | None = None
@@ -114,6 +129,8 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
 
@@ -178,6 +195,8 @@ async def imports_bank_apply(request: Request) -> HTMLResponse | RedirectRespons
     """Confirm bank import — proxy to API apply endpoint."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     form: dict[str, str] = {k: str(v) for k, v in form_data.items()}  # type: ignore[misc]
@@ -215,6 +234,8 @@ async def imports_coa_form(request: Request) -> HTMLResponse | RedirectResponse:
     """Render the CoA import upload form."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     flash = request.session.pop("flash", None)
 
@@ -240,6 +261,8 @@ async def imports_coa_preview(request: Request) -> HTMLResponse | RedirectRespon
     """Upload CoA CSV, proxy to API parser, render diff preview."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     file_field = form_data.get("file")
@@ -293,6 +316,8 @@ async def imports_coa_apply(request: Request) -> RedirectResponse:
     """Confirm CoA diff — proxy to API apply endpoint and redirect."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     form: dict[str, str] = {k: str(v) for k, v in form_data.items()}  # type: ignore[misc]

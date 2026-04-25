@@ -57,6 +57,13 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+def _require_admin(request: Request) -> bool:
+    """True if session is SAE staff or tenant admin."""
+    role = request.session.get("user_role", "")
+    is_staff = bool(request.session.get("is_sae_staff"))
+    return is_staff or role == "admin"
+
+
 def _parse_errors(resp_json: dict) -> dict[str, str]:
     """Parse a 422 response body into a field->message error dict."""
     errors: dict[str, str] = {}
@@ -87,6 +94,8 @@ async def account_ranges_list(
     """Render the account ranges list page."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     error: str | None = None
     ranges: list[dict] = []
@@ -139,6 +148,8 @@ async def account_range_new_form(request: Request) -> HTMLResponse | RedirectRes
     """Render the blank account range create form."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -160,6 +171,8 @@ async def account_range_create(request: Request) -> HTMLResponse | RedirectRespo
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
@@ -214,6 +227,8 @@ async def account_ranges_update_prefix_mode(
     """Update the account prefix mode setting."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     prefix_mode = str(form_data.get("prefix_mode", "none")).strip()
@@ -254,6 +269,8 @@ async def account_range_edit_form(
     """Render the pre-populated edit form for an existing account range."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/account_ranges/{range_id}")
@@ -320,6 +337,8 @@ async def account_range_update(
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
@@ -404,6 +423,8 @@ async def account_range_delete(
     """Delete an account range via DELETE /api/v1/account_ranges/{id} with If-Match."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     version = str(form_data.get("version", ""))

@@ -188,9 +188,13 @@ async def audit_log(
 
     Proxies ``GET /admin/audit`` on the upstream API with filter params.
     Renders results in our own template for nav consistency.
+
+    SAE staff only — cross-tenant data.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _is_sae_staff(request):
+        return HTMLResponse("Forbidden — SAE staff only", status_code=403)
 
     page_size = 50
     params: dict[str, object] = {"page": page}

@@ -46,6 +46,13 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+def _require_admin(request: Request) -> bool:
+    """True if session is SAE staff or tenant admin."""
+    role = request.session.get("user_role", "")
+    is_staff = bool(request.session.get("is_sae_staff"))
+    return is_staff or role == "admin"
+
+
 # ---------------------------------------------------------------------------
 # GET /admin/ato-sbr — wizard landing page
 # ---------------------------------------------------------------------------
@@ -66,6 +73,8 @@ async def ato_sbr_index(
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     config: dict | None = None
     feature_disabled = False
@@ -129,6 +138,8 @@ async def ato_sbr_upload_keystore(request: Request) -> RedirectResponse:
     """Upload keystore.xml + password to the API."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     password = str(form_data.get("password", ""))
@@ -179,6 +190,8 @@ async def ato_sbr_save_ssid(request: Request) -> RedirectResponse:
     """Save the ATO Software Service ID."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     form: dict[str, str] = {"ssid": str(form_data.get("ssid", ""))}
@@ -212,6 +225,8 @@ async def ato_sbr_confirm_step(request: Request) -> RedirectResponse:
     """Confirm an off-system onboarding step (myGovID, RAM link, etc.)."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     form: dict[str, str] = {"step": str(form_data.get("step", ""))}
@@ -245,6 +260,8 @@ async def ato_sbr_test(request: Request) -> RedirectResponse:
     """Run a smoke test against the selected environment (EVTE or PROD)."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
     form: dict[str, str] = {"environment": str(form_data.get("environment", ""))}
@@ -278,6 +295,8 @@ async def ato_sbr_clear(request: Request) -> RedirectResponse:
     """Clear the ATO SBR config (wipes keystore, SSID, and confirmations)."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     async with api_client(request) as client:
         resp = await client.post(
