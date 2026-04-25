@@ -52,6 +52,10 @@ from saebooks_web.routes.projects import router as projects_router
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.search import router as search_router
+from saebooks_web.routes.admin import router as admin_router
+from saebooks_web.routes.ato_sbr import router as ato_sbr_router
+from saebooks_web.routes.imports import router as imports_router
+from saebooks_web.routes.pay_run import router as pay_run_router
 from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 
@@ -103,6 +107,10 @@ app.include_router(budgets_router)
 app.include_router(reports_router)
 app.include_router(search_router)
 app.include_router(settings_router)
+app.include_router(pay_run_router)
+app.include_router(admin_router)
+app.include_router(imports_router)
+app.include_router(ato_sbr_router)
 
 
 # ---------------------------------------------------------------------------

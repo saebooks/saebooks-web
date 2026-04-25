@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}ATO SBR — Admin — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center gap-2 mb-1">
+  <span class="text-sm text-gray-500">Admin</span>
+  <span class="text-gray-400 text-xs">/</span>
+  <span class="text-sm text-gray-900 font-medium">ATO SBR</span>
+</div>
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">ATO SBR — Machine Credential Setup</h1>
+  <p class="text-sm text-gray-500 mt-1">Configure ATO Standard Business Reporting for STP and BAS e-lodgement</p>
+</div>
+
+{% if feature_disabled %}
+<div class="rounded-md bg-amber-50 border border-amber-200 px-4 py-4 text-sm text-amber-800">
+  <p class="font-medium">ATO SBR feature is not enabled in this edition.</p>
+  <p class="mt-1 text-xs text-amber-700">
+    This feature is available in SAE Books Enterprise. Contact your administrator or see the
+    <a href="/admin/license" class="underline">licence page</a> for details.
+  </p>
+</div>
+{% else %}
+
+{# ── Message / error banners ── #}
+{% if message %}
+<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-4">
+  {{ message }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if api_error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+  {{ api_error }}
+</div>
+{% endif %}
+
+{% if test_badge %}
+<div class="rounded-md {% if test_badge == 'ok' %}bg-green-50 border-green-200 text-green-700{% else %}bg-red-50 border-red-200 text-red-700{% endif %} border px-4 py-3 text-sm mb-4">
+  Environment test ({{ test_env | default("?") }}): <strong>{{ test_badge | upper }}</strong>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-2 gap-6">
+
+  {# Left: Setup steps #}
+  <div class="space-y-4">
+
+    {# Step 1: myGovID #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 1 — myGovID (Strong)</h2>
+      <p class="text-xs text-gray-500 mb-3">
+        You need a myGovID with Strong identity strength linked to this company's ABN in RAM.
+      </p>
+      <form method="post" action="/admin/ato-sbr/confirm">
+        <input type="hidden" name="step" value="mygovid">
+        <button type="submit"
+          class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+          Confirm myGovID configured
+        </button>
+      </form>
+    </div>
+
+    {# Step 2: RAM link #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 2 — RAM Principal Authority</h2>
+      <p class="text-xs text-gray-500 mb-3">
+        Link your myGovID as Principal Authority for the company ABN in the
+        <a href="https://info.authorisationmanager.gov.au/" target="_blank" rel="noopener" class="text-indigo-600 underline">ATO RAM portal</a>.
+      </p>
+      <form method="post" action="/admin/ato-sbr/confirm">
+        <input type="hidden" name="step" value="ram">
+        <button type="submit"
+          class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+          Confirm RAM link done
+        </button>
+      </form>
+    </div>
+
+    {# Step 3: Keystore upload #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 3 — Upload Keystore</h2>
+      <p class="text-xs text-gray-500 mb-3">
+        Use the ATO Machine Credential Downloader Chrome extension to download
+        <code class="font-mono">keystore.xml</code>, then upload it here.
+      </p>
+      <form method="post" action="/admin/ato-sbr/keystore" enctype="multipart/form-data" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1" for="keystore_file">
+            keystore.xml
+          </label>
+          <input type="file" id="keystore_file" name="file" accept=".xml" required
+            class="block w-full text-xs text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-700 mb-1" for="keystore_password">
+            Keystore Password
+          </label>
+          <input type="password" id="keystore_password" name="password" required
+            class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+        </div>
+        <button type="submit"
+          class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+          Upload Keystore
+        </button>
+      </form>
+    </div>
+
+    {# Step 4: SSID #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 4 — Software Service ID (SSID)</h2>
+      <p class="text-xs text-gray-500 mb-3">
+        Paste the SSID from your ATO Software Developer registration.
+      </p>
+      <form method="post" action="/admin/ato-sbr/ssid" class="flex gap-2">
+        <input type="text" name="ssid" placeholder="SB12345678" required
+          class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-mono shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+        <button type="submit"
+          class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+          Save SSID
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  {# Right: Test + status #}
+  <div class="space-y-4">
+
+    {# Smoke test #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 5 — Test Connection</h2>
+      <p class="text-xs text-gray-500 mb-3">
+        Run a smoke test against ATO EVTE (test environment) or Production to confirm
+        credentials and connectivity.
+      </p>
+      <div class="flex gap-3">
+        <form method="post" action="/admin/ato-sbr/test">
+          <input type="hidden" name="environment" value="EVTE">
+          <button type="submit"
+            class="rounded-md border border-indigo-300 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
+            Test EVTE
+          </button>
+        </form>
+        <form method="post" action="/admin/ato-sbr/test">
+          <input type="hidden" name="environment" value="PROD">
+          <button type="submit"
+            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            Test Production
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {# Status block #}
+    {% if config %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Current Status</h2>
+      <div class="text-xs text-gray-600 space-y-1">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-green-400"></span>
+          API connection: reachable
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Clear / reset #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Reset Configuration</h2>
+      <p class="text-xs text-gray-500 mb-3">
+        Clears the stored keystore, SSID, and all confirmations. Use this to start over.
+      </p>
+      <form method="post" action="/admin/ato-sbr/clear"
+        onsubmit="return confirm('Clear all ATO SBR configuration? This cannot be undone.')">
+        <button type="submit"
+          class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100">
+          Clear Config
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
