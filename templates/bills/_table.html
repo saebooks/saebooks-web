@@ -10,7 +10,7 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
@@ -53,8 +53,13 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-8 text-center text-gray-400">
-            No bills found.
+          <td colspan="6" class="px-4 py-12 text-center">
+            <p class="text-gray-400 text-sm mb-2">No bills found.</p>
+            {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
+            <a href="/bills/new" class="text-sm text-indigo-600 hover:underline">Create your first bill →</a>
+            {% else %}
+            <p class="text-xs text-gray-400">Try clearing your filters.</p>
+            {% endif %}
           </td>
         </tr>
       {% endif %}

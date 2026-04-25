@@ -33,7 +33,7 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
   <table class="min-w-full divide-y divide-gray-200 text-sm" id="contacts-table">
     <thead class="bg-gray-50">
       <tr>
@@ -67,8 +67,9 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
-            No contacts found.
+          <td colspan="5" class="px-4 py-12 text-center">
+            <p class="text-gray-400 text-sm mb-2">No contacts yet.</p>
+            <a href="/contacts/new" class="text-sm text-indigo-600 hover:underline">Add your first contact →</a>
           </td>
         </tr>
       {% endif %}
