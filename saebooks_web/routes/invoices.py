@@ -737,6 +737,90 @@ async def invoice_void(
     return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
 
 
+@router.post(
+    "/invoices/{invoice_id}/stripe-payment-link",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def invoice_stripe_payment_link(
+    request: Request,
+    invoice_id: str,
+) -> HTMLResponse:
+    """Generate a Stripe payment link for a POSTED invoice.
+
+    Proxies to POST /api/v1/invoices/{id}/stripe-payment-link.
+
+    Outcomes:
+    - 200 -> renders _stripe_payment_link.html with the URL (HTMX swap)
+    - 503 -> renders error partial "Stripe not configured"
+    - 422 -> renders error partial "Invoice must be posted with outstanding balance"
+    """
+    if not _require_auth(request):
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "invoices/_stripe_payment_link.html",
+            {
+                "invoice_id": invoice_id,
+                "stripe_payment_link": None,
+                "stripe_error": "Not authenticated.",
+            },
+            status_code=403,
+        )
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/invoices/{invoice_id}/stripe-payment-link"
+        )
+
+    if resp.status_code == 200:
+        url = resp.json().get("url", "")
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "invoices/_stripe_payment_link.html",
+            {
+                "invoice_id": invoice_id,
+                "stripe_payment_link": url,
+                "stripe_error": None,
+            },
+        )
+
+    if resp.status_code == 503:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "invoices/_stripe_payment_link.html",
+            {
+                "invoice_id": invoice_id,
+                "stripe_payment_link": None,
+                "stripe_error": "Stripe not configured — add STRIPE_SECRET_KEY to server config.",
+            },
+            status_code=200,
+        )
+
+    if resp.status_code == 422:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "invoices/_stripe_payment_link.html",
+            {
+                "invoice_id": invoice_id,
+                "stripe_payment_link": None,
+                "stripe_error": "Invoice must be posted with outstanding balance.",
+            },
+            status_code=200,
+        )
+
+    # Generic fallback
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "invoices/_stripe_payment_link.html",
+        {
+            "invoice_id": invoice_id,
+            "stripe_payment_link": None,
+            "stripe_error": f"API error: HTTP {resp.status_code}",
+        },
+        status_code=200,
+    )
+
+
 @router.get("/invoices/{invoice_id}", response_class=HTMLResponse, response_model=None)
 async def invoice_detail(
     request: Request,

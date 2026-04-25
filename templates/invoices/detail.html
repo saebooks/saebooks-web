@@ -86,6 +86,7 @@
       >Void</button>
     </form>
     {% endif %}
+
     <a
       href="/invoices"
       class="text-sm text-indigo-600 hover:underline"
@@ -177,6 +178,17 @@
 <div class="mb-8">
   <h2 class="text-base font-semibold text-gray-900 mb-2">Notes</h2>
   <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">{{ invoice.notes }}</div>
+</div>
+{% endif %}
+
+{# ── Stripe payment link ── #}
+{% if invoice.status == 'POSTED' %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-2">Payment Link</h2>
+  {% set invoice_id = invoice.id %}
+  {% set stripe_payment_link = invoice.stripe_payment_link %}
+  {% set stripe_error = None %}
+  {% include "invoices/_stripe_payment_link.html" with context %}
 </div>
 {% endif %}
 
