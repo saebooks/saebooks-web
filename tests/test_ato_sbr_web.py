@@ -12,6 +12,8 @@
 10. test_ato_sbr_test_success             — POST test env -> API 303 -> redirected
 11. test_ato_sbr_clear_success            — POST clear -> API 303 -> redirected
 12. test_ato_sbr_nav_link                 — GET /accounts shows ATO SBR nav link
+13. test_ato_sbr_keystore_get_anon        — GET /admin/ato-sbr/keystore anon -> 303 /login (no two-hop)
+14. test_ato_sbr_keystore_get_forbidden   — GET /admin/ato-sbr/keystore bookkeeper -> 403 direct
 """
 from __future__ import annotations
 
@@ -357,3 +359,58 @@ async def test_ato_sbr_nav_link(respx_mock: respx.MockRouter) -> None:
     assert resp.status_code == 200
     assert "/admin/ato-sbr" in resp.text
     assert "ATO SBR" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 13. GET /admin/ato-sbr/keystore — anonymous -> 303 /login (audit-trail #10 A.4)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_ato_sbr_keystore_get_anon() -> None:
+    """GET /admin/ato-sbr/keystore without session -> 303 /login directly.
+
+    Regression guard: this path MUST NOT return 303 -> /admin/ato-sbr -> 403;
+    anonymous users should land on the login page, not an intermediate admin
+    page.
+    """
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.get("/admin/ato-sbr/keystore")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+# ---------------------------------------------------------------------------
+# 14. GET /admin/ato-sbr/keystore — bookkeeper -> 403 direct (audit-trail #10 A.4)
+# ---------------------------------------------------------------------------
+
+_BOOKKEEPER_COOKIE_ATB = _make_session_cookie(
+    {"api_token": "test-token-bk-atb", "is_sae_staff": False, "user_role": "bookkeeper"}
+)
+
+
+@pytest.mark.anyio
+async def test_ato_sbr_keystore_get_forbidden() -> None:
+    """GET /admin/ato-sbr/keystore with bookkeeper session -> 403 directly.
+
+    Regression guard for audit-trail #10 Probe A.4: previously returned
+    303 -> /admin/ato-sbr -> 403 (two hops, inconsistent with every other
+    /admin/* route that returns 403 directly).
+    """
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _BOOKKEEPER_COOKIE_ATB},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.get("/admin/ato-sbr/keystore")
+
+    assert resp.status_code == 403, (
+        f"Expected direct 403 for bookkeeper on GET /admin/ato-sbr/keystore, "
+        f"got {resp.status_code}"
+    )

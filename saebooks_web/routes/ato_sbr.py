@@ -122,14 +122,25 @@ async def ato_sbr_index(
 @router.get("/admin/ato-sbr/ssid", response_model=None)
 @router.get("/admin/ato-sbr/test", response_model=None)
 @router.get("/admin/ato-sbr/clear", response_model=None)
-async def ato_sbr_action_redirect(request: Request) -> RedirectResponse:
+async def ato_sbr_action_redirect(
+    request: Request,
+) -> RedirectResponse | HTMLResponse:
     """Redirect stray GETs back to the wizard.
 
     Authentik forward-auth redirects back to the original URL after SSO but
     using GET (the POST body is lost in the redirect). Without this handler
     the user sees a bare 405 JSON error. Bounce them to the wizard landing
     page instead so they can re-submit the form.
+
+    Auth is checked here first so the response signal is consistent with
+    every other /admin/* route: anonymous -> 303 /login, authenticated but
+    unauthorised -> 403 directly. Without the check, an unauthorised user
+    would get 303 -> /admin/ato-sbr -> 403 (two hops, inconsistent).
     """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
     return RedirectResponse(url="/admin/ato-sbr", status_code=303)
 
 
