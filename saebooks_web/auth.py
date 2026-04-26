@@ -57,6 +57,33 @@ async def login_submit(
                 "/api/v1/auth/login",
                 json={"email": email.strip(), "password": password},
             )
+
+            if resp.status_code == 401:
+                return _TEMPLATES.TemplateResponse(
+                    request,
+                    "auth/login.html",
+                    {"error": "Invalid email or password"},
+                    status_code=401,
+                )
+            if not resp.is_success:
+                return _TEMPLATES.TemplateResponse(
+                    request,
+                    "auth/login.html",
+                    {"error": "Login failed — please try again"},
+                    status_code=502,
+                )
+
+            token = resp.json()["access_token"]
+            request.session["api_token"] = token
+
+            # Fetch user profile to store in session — MUST happen inside the
+            # async-with block so the client isn't closed before the response
+            # body is read.  If this fetch fails, fall back to a non-staff
+            # session (the user can still use non-admin parts of the app).
+            me_resp = await client.get(
+                "/api/v1/auth/me",
+                headers={"Authorization": f"Bearer {token}"},
+            )
     except httpx.RequestError:
         return _TEMPLATES.TemplateResponse(
             request,
@@ -65,41 +92,26 @@ async def login_submit(
             status_code=502,
         )
 
-    if resp.status_code == 401:
-        return _TEMPLATES.TemplateResponse(
-            request,
-            "auth/login.html",
-            {"error": "Invalid email or password"},
-            status_code=401,
+    if me_resp.is_success:
+        profile = me_resp.json()
+        request.session["username"] = (
+            profile.get("name")
+            or profile.get("username")
+            or profile.get("email")
+            or ""
         )
-    if not resp.is_success:
-        return _TEMPLATES.TemplateResponse(
-            request,
-            "auth/login.html",
-            {"error": "Login failed — please try again"},
-            status_code=502,
+        request.session["user_role"] = profile.get("role", "")
+        allow = _staff_allowlist()
+        uname = (profile.get("username") or "").lower()
+        uemail = (profile.get("email") or "").lower()
+        request.session["is_sae_staff"] = bool(
+            allow and (uname in allow or uemail in allow)
         )
+    else:
+        # /auth/me failed — log in but no staff/role context.
+        request.session["is_sae_staff"] = False
+        request.session["user_role"] = ""
 
-    token = resp.json()["access_token"]
-    request.session["api_token"] = token
-    # Fetch user profile to store in session
-    try:
-        me_resp = await client.get(
-            "/api/v1/auth/me",
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        if me_resp.is_success:
-            profile = me_resp.json()
-            request.session["username"] = profile.get("name") or profile.get("email") or ""
-            request.session["user_role"] = profile.get("role", "")
-            allow = _staff_allowlist()
-            uname = (profile.get("username") or "").lower()
-            uemail = (profile.get("email") or "").lower()
-            request.session["is_sae_staff"] = bool(
-                allow and (uname in allow or uemail in allow)
-            )
-    except Exception:
-        pass
     return RedirectResponse(url="/", status_code=303)
 
 
