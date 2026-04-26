@@ -25,10 +25,15 @@ Environment variables: see config.py / README.md.
 from __future__ import annotations
 
 import logging
+import uuid
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from fastapi import FastAPI
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.config import settings
@@ -61,6 +66,7 @@ from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.search import router as search_router
 from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
+from saebooks_web.security import OriginRefererMiddleware
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -96,6 +102,47 @@ app.add_middleware(
     https_only=False,  # TODO: set True behind TLS reverse proxy in prod
     same_site="strict",
 )
+
+# CSRF defence Layer 2 (P0-3): Origin / Referer enforcement on every
+# state-changing request.  Mounted AFTER SessionMiddleware so it runs
+# OUTERMOST (Starlette's add_middleware does insert(0) — last-added is
+# the outermost wrapper, executed first per-request).  Rejects with
+# 403 + ``code: cross_origin_forbidden`` on any POST/PUT/PATCH/DELETE
+# whose Origin or Referer doesn't match SAEBOOKS_WEB_SITE_ORIGIN
+# (default https://books-dev.sauer.com.au).  See
+# saebooks_web/security/csrf.py for full rules.
+app.add_middleware(OriginRefererMiddleware)
+
+# X-Request-Id correlation — generate / propagate a UUID for every
+# request. Registered last so it wraps all other middleware and is
+# therefore the outermost layer: it sees the final status code from
+# inside-out and stamps the header on the response seen by the browser.
+# Must be added after OriginRefererMiddleware (which add_middleware
+# inserts at index 0, moving this one back to outermost on the way in).
+_LOG_ACCESS = logging.getLogger("saebooks_web.access")
+
+
+class _RequestIdMiddleware(BaseHTTPMiddleware):
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-Id"] = request_id
+        _LOG_ACCESS.debug(
+            "%s %s %s req=%s",
+            request.method,
+            request.url.path,
+            response.status_code,
+            request_id,
+        )
+        return response
+
+
+app.add_middleware(_RequestIdMiddleware)
 
 # ---------------------------------------------------------------------------
 # Routers
