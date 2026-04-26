@@ -50,6 +50,8 @@
       onsubmit="return confirm('Post this invoice? This cannot be undone easily.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ invoice.version }}">
       <button
         type="submit"
@@ -63,6 +65,8 @@
       onsubmit="return confirm('Archive this invoice? This cannot be undone.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ invoice.version }}">
       <button
         type="submit"
@@ -78,6 +82,8 @@
       onsubmit="return confirm('Void this invoice?');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ invoice.version }}">
       <button
         type="submit"

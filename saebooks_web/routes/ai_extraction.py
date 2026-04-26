@@ -151,6 +151,11 @@ async def invoices_extract_document(request: Request) -> HTMLResponse | Redirect
 async def _do_extract(request: Request, form_context: str) -> HTMLResponse:
     """Forward the uploaded file to the API and render the fill fragment."""
     form_data = await request.form()
+    # Multipart routes are exempt from the body-parsing CSRFMiddleware; we
+    # have to verify the token explicitly after parsing the form.  The
+    # template includes {{ csrf_input(request) }} so the field is present.
+    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    await verify_csrf_form(request)
     file_field = form_data.get("document")
 
     if not hasattr(file_field, "read"):

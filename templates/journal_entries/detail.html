@@ -61,6 +61,8 @@
       onsubmit="return confirm('Post this journal entry? This cannot be undone easily.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ entry.version }}">
       <button
         type="submit"
@@ -74,6 +76,8 @@
       onsubmit="return confirm('Archive this journal entry? This cannot be undone.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ entry.version }}">
       <button
         type="submit"
@@ -89,6 +93,8 @@
       onsubmit="return confirm('Reverse this journal entry? A new reversal entry will be created.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ entry.version }}">
       <button
         type="submit"

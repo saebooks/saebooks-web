@@ -11,6 +11,8 @@
 
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
   <form method="POST" action="/payments/new" novalidate>
+    {{ csrf_input(request)|safe }}
+
 
     {% include "payments/_form_fields.html" %}
 

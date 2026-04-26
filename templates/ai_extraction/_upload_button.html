@@ -33,6 +33,8 @@
       hx-encoding="multipart/form-data"
       hx-indicator="#ai-extract-spinner"
     >
+    {{ csrf_input(request)|safe }}
+
       <div class="flex items-center gap-3">
         <input
           type="file"

@@ -316,6 +316,7 @@ async def test_bills_extract_api_503_key_missing(respx_mock: respx.MockRouter) -
 @pytest.mark.anyio
 async def test_bills_extract_no_file() -> None:
     """POST /bills/extract-document without a file -> 400 error fragment."""
+    from conftest import TEST_CSRF_TOKEN  # noqa: PLC0415
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -323,7 +324,7 @@ async def test_bills_extract_no_file() -> None:
     ) as client:
         resp = await client.post(
             "/bills/extract-document",
-            data={},
+            data={"csrf_token": TEST_CSRF_TOKEN},
         )
 
     assert resp.status_code == 400

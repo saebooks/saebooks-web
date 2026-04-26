@@ -42,6 +42,8 @@
   </div>
 
   <form method="post" action="/admin/imports/coa/preview" enctype="multipart/form-data">
+    {{ csrf_input(request)|safe }}
+
     <div class="mb-5">
       <label class="block text-xs font-medium text-gray-700 mb-1" for="file">
         CoA CSV File

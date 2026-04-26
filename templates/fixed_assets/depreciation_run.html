@@ -24,6 +24,8 @@
 {# ── Run form ── #}
 <div class="bg-white rounded-xl border border-gray-200 px-6 py-5 max-w-2xl mb-8">
   <form method="POST" action="/fixed-assets/depreciation-run" novalidate>
+    {{ csrf_input(request)|safe }}
+
     <div class="space-y-4">
       <div>
         <label for="through" class="block text-sm font-medium text-gray-700 mb-1">

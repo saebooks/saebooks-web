@@ -56,6 +56,8 @@
           </td>
           <td class="px-4 py-3 text-right">
             <form method="POST" action="/reconciliation/match">
+    {{ csrf_input(request)|safe }}
+
               <input type="hidden" name="bsl_id" value="{{ bsl_id }}">
               <input type="hidden" name="entry_id" value="{{ entry.id }}">
               <input type="hidden" name="account_id" value="{{ account_id }}">

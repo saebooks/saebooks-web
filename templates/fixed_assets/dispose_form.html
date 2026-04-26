@@ -13,6 +13,8 @@
       This action cannot be undone.
     </p>
     <form method="POST" action="/fixed-assets/{{ asset.id }}/dispose" novalidate>
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ asset.version }}">
 
       <div class="space-y-4">

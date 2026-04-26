@@ -74,6 +74,11 @@ async def login_submit(
                 )
 
             token = resp.json()["access_token"]
+            # CSRF rotation: drop any pre-existing csrf_token before granting
+            # the new identity.  Defends against session fixation where an
+            # attacker pre-seeds a known token (via login form CSRF) and then
+            # impersonates the now-logged-in user with their own csrf_token.
+            request.session.pop("csrf_token", None)
             request.session["api_token"] = token
 
             # Fetch user profile to store in session — MUST happen inside the

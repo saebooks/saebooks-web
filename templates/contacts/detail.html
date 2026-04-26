@@ -49,6 +49,8 @@
       onsubmit="return confirm('Archive this contact? This cannot be undone.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ contact.version }}">
       <button
         type="submit"

@@ -19,6 +19,8 @@
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
   {% if range %}
   <form method="POST" action="/admin/ranges/{{ range.id }}/edit" novalidate>
+    {{ csrf_input(request)|safe }}
+
 
     <input type="hidden" name="version" value="{{ form.get('version', '') }}">
 

@@ -30,6 +30,8 @@
     >All Accounts</a>
 
     <form method="POST" action="/reconciliation/{{ account_id }}/auto-match">
+    {{ csrf_input(request)|safe }}
+
       <button
         type="submit"
         class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white

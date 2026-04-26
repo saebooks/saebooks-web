@@ -50,6 +50,8 @@
       onsubmit="return confirm('Post this bill? This cannot be undone easily.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ bill.version }}">
       <button
         type="submit"
@@ -63,6 +65,8 @@
       onsubmit="return confirm('Archive this bill? This cannot be undone.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ bill.version }}">
       <button
         type="submit"
@@ -78,6 +82,8 @@
       onsubmit="return confirm('Void this bill?');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ bill.version }}">
       <button
         type="submit"

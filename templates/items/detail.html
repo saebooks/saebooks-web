@@ -51,6 +51,8 @@
       Edit
     </a>
     <form method="POST" action="/items/{{ item.id }}/archive" class="inline">
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ item.version }}">
       <button
         type="submit"

@@ -47,6 +47,8 @@
     </a>
     {% if not asset.archived_at %}
     <form method="POST" action="/fixed-assets/{{ asset.id }}/archive" class="inline">
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ asset.version }}">
       <button
         type="submit"
@@ -219,6 +221,8 @@
     <p class="text-xs text-gray-400 mb-4">No depreciation posted yet.</p>
     {% endif %}
     <form method="POST" action="/fixed-assets/{{ asset.id }}/post-depreciation" novalidate>
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ asset.version }}">
 
       <div class="space-y-4">

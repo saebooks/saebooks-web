@@ -11,6 +11,8 @@
 
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
   <form method="POST" action="/bank-rules/new" novalidate>
+    {{ csrf_input(request)|safe }}
+
 
     {# ── Non-field error banner ── #}
     {% if errors.get("__all__") %}

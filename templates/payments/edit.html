@@ -43,8 +43,12 @@
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
   {% if payment %}
   <form method="POST" action="/payments/{{ payment.id }}/edit" novalidate>
+    {{ csrf_input(request)|safe }}
+
   {% else %}
   <form method="POST" novalidate>
+    {{ csrf_input(request)|safe }}
+
   {% endif %}
 
     {# Version — carries the optimistic-lock token; sent as If-Match header on PATCH #}

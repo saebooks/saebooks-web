@@ -39,6 +39,8 @@
       Edit
     </a>
     <form method="POST" action="/budgets/{{ budget.id }}/archive" class="inline">
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ budget.version }}">
       <button
         type="submit"

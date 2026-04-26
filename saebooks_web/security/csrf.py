@@ -51,7 +51,7 @@ import json
 import logging
 import os
 import secrets
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 from urllib.parse import parse_qs, urlsplit
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -263,7 +263,7 @@ def ensure_csrf_token(session: dict) -> str:
     return token
 
 
-def csrf_input(request) -> str:  # noqa: ANN001 — accepts Starlette Request
+def csrf_input(request) -> str:
     """Jinja-callable that returns a hidden CSRF input element as raw HTML.
 
     Usage in a template::
@@ -354,10 +354,16 @@ class CSRFMiddleware:
         # SessionMiddleware sits BELOW us in the stack (it wraps this
         # middleware), which means by the time __call__ runs, the session
         # has already been decoded into scope["session"].  If session is
-        # missing we let the request through — there's no token to check
-        # against, and the route handler will reject unauthenticated POSTs
-        # via its own auth check.
+        # missing OR the user is not authenticated (no api_token), we let
+        # the request through — there's nothing for an attacker to forge
+        # against an unauthenticated session, and the route handler will
+        # redirect/401 unauthenticated POSTs via its own auth check.
+        # CSRF is a defence for the *logged-in* user; if there's no login
+        # there's no logged-in identity to abuse.
         session: dict = scope.get("session") or {}
+        if "api_token" not in session:
+            await self.app(scope, receive, send)
+            return
         expected_token = session.get("csrf_token")
 
         if is_multipart:
@@ -466,7 +472,7 @@ def _wrap_replay(initial_message: Message, _ignored: list[bytes]) -> Receive:
 # ---------------------------------------------------------------------------
 
 
-async def verify_csrf_form(request) -> None:  # noqa: ANN001 — Starlette Request
+async def verify_csrf_form(request) -> None:
     """Verify the CSRF token in a multipart form submission.
 
     Multipart bodies aren't intercepted by ``CSRFMiddleware`` (parsing them
@@ -479,9 +485,14 @@ async def verify_csrf_form(request) -> None:  # noqa: ANN001 — Starlette Reque
 
     Raises ``starlette.exceptions.HTTPException`` with status 403 when the
     token is missing or doesn't match.
-    """
-    from starlette.exceptions import HTTPException  # noqa: PLC0415
 
+    Symmetric with CSRFMiddleware: anonymous sessions (no ``api_token``)
+    are skipped — the route's auth check will reject them.
+    """
+    from starlette.exceptions import HTTPException
+
+    if "api_token" not in request.session:
+        return
     form = await request.form()
     submitted = form.get("csrf_token")
     expected = request.session.get("csrf_token")

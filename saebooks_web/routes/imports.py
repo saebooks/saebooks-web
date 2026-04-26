@@ -133,6 +133,9 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
+    # Multipart route — explicit CSRF token check after parsing the form.
+    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    await verify_csrf_form(request)
 
     # Rebuild multipart for upstream — include file upload and account_id.
     account_id = str(form_data.get("account_id", ""))
@@ -265,6 +268,9 @@ async def imports_coa_preview(request: Request) -> HTMLResponse | RedirectRespon
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
+    # Multipart route — explicit CSRF token check after parsing the form.
+    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    await verify_csrf_form(request)
     file_field = form_data.get("file")
 
     files: dict | None = None

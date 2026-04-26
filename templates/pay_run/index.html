@@ -25,6 +25,8 @@
 {% endif %}
 
 <form method="post" action="/pay-run/export">
+    {{ csrf_input(request)|safe }}
+
 
   {# ── Run options ── #}
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6 grid grid-cols-3 gap-4">

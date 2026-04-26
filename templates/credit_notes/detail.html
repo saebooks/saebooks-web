@@ -54,6 +54,8 @@
       onsubmit="return confirm('Post this credit note? This cannot be undone easily.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ credit_note.version }}">
       <button
         type="submit"
@@ -67,6 +69,8 @@
       onsubmit="return confirm('Archive this credit note? This cannot be undone.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ credit_note.version }}">
       <button
         type="submit"
@@ -82,6 +86,8 @@
       onsubmit="return confirm('Void this credit note?');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ credit_note.version }}">
       <button
         type="submit"

@@ -66,6 +66,8 @@
                 action="/journal-templates/{{ tmpl.id }}/delete"
                 onsubmit="return confirm('Delete template \'{{ tmpl.name }}\'?')"
               >
+    {{ csrf_input(request)|safe }}
+
                 <input type="hidden" name="version" value="{{ tmpl.version | default('') }}">
                 <button
                   type="submit"

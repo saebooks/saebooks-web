@@ -51,6 +51,8 @@
       </div>
       {% endif %}
       <form method="post" action="/profile/password" class="space-y-4">
+    {{ csrf_input(request)|safe }}
+
         <div>
           <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">
             Current password

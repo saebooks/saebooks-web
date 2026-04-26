@@ -62,6 +62,8 @@
         You need a myGovID with Strong identity strength linked to this company's ABN in RAM.
       </p>
       <form method="post" action="/admin/ato-sbr/confirm">
+    {{ csrf_input(request)|safe }}
+
         <input type="hidden" name="step" value="mygovid">
         <button type="submit"
           class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
@@ -78,6 +80,8 @@
         <a href="https://info.authorisationmanager.gov.au/" target="_blank" rel="noopener" class="text-indigo-600 underline">ATO RAM portal</a>.
       </p>
       <form method="post" action="/admin/ato-sbr/confirm">
+    {{ csrf_input(request)|safe }}
+
         <input type="hidden" name="step" value="ram">
         <button type="submit"
           class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
@@ -94,6 +98,8 @@
         <code class="font-mono">keystore.xml</code>, then upload it here.
       </p>
       <form method="post" action="/admin/ato-sbr/keystore" enctype="multipart/form-data" class="space-y-3">
+    {{ csrf_input(request)|safe }}
+
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1" for="keystore_file">
             keystore.xml
@@ -122,6 +128,8 @@
         Paste the SSID from your ATO Software Developer registration.
       </p>
       <form method="post" action="/admin/ato-sbr/ssid" class="flex gap-2">
+    {{ csrf_input(request)|safe }}
+
         <input type="text" name="ssid" placeholder="SB12345678" required
           class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-mono shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
         <button type="submit"
@@ -145,6 +153,8 @@
       </p>
       <div class="flex gap-3">
         <form method="post" action="/admin/ato-sbr/test">
+    {{ csrf_input(request)|safe }}
+
           <input type="hidden" name="environment" value="EVTE">
           <button type="submit"
             class="rounded-md border border-indigo-300 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
@@ -152,6 +162,8 @@
           </button>
         </form>
         <form method="post" action="/admin/ato-sbr/test">
+    {{ csrf_input(request)|safe }}
+
           <input type="hidden" name="environment" value="PROD">
           <button type="submit"
             class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
@@ -182,6 +194,8 @@
       </p>
       <form method="post" action="/admin/ato-sbr/clear"
         onsubmit="return confirm('Clear all ATO SBR configuration? This cannot be undone.')">
+    {{ csrf_input(request)|safe }}
+
         <button type="submit"
           class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100">
           Clear Config

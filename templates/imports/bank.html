@@ -30,6 +30,8 @@
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-lg">
   <form method="post" action="/admin/imports/bank/preview" enctype="multipart/form-data">
+    {{ csrf_input(request)|safe }}
+
 
     <div class="mb-5">
       <label class="block text-xs font-medium text-gray-700 mb-1" for="account_id">

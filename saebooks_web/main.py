@@ -35,8 +35,22 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from saebooks_web.auth import router as auth_router
 from saebooks_web.config import settings
+
+# IMPORTANT: ``saebooks_web.security`` must be imported BEFORE any module
+# that constructs a ``fastapi.templating.Jinja2Templates`` instance.  The
+# security package patches ``Jinja2Templates.__init__`` on import to
+# register ``csrf_input`` as a Jinja global on every new templates env;
+# routers imported afterwards therefore get the global automatically.
+# The ``ensure_csrf_global`` helper is also exported for the few cases
+# where an env was created earlier and needs retrofitting.
+from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bearing
+    OriginRefererMiddleware,
+    CSRFMiddleware,
+    ensure_csrf_global,
+)
+
+from saebooks_web.auth import router as auth_router
 from saebooks_web.routes.account_ranges import router as account_ranges_router
 from saebooks_web.routes.accounts import router as accounts_router
 from saebooks_web.routes.admin import router as admin_router
@@ -66,7 +80,6 @@ from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.search import router as search_router
 from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
-from saebooks_web.security import OriginRefererMiddleware
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -94,6 +107,24 @@ app = FastAPI(
 # user is shown the /login page and has to authenticate again.  That is
 # acceptable for an admin/accounting tool where every session boundary is
 # intentional, and is preferable to leaving CSRF unmitigated.
+# CSRF defence Layer 3 (P0-3): per-form CSRF token enforcement.
+#
+# Middleware-stack ordering note: Starlette's add_middleware does
+# ``insert(0, ...)``, so the LAST add_middleware call ends up OUTERMOST
+# at request time (executed first per-request, from outside-in).  The
+# CSRFMiddleware needs ``scope["session"]`` populated by the
+# SessionMiddleware, so it must run INSIDE SessionMiddleware — which
+# means it must be added BEFORE SessionMiddleware in code.  Sequence:
+#
+#   add_middleware(CSRFMiddleware)        — innermost (added first)
+#   add_middleware(SessionMiddleware)     — wraps CSRF
+#   add_middleware(OriginRefererMiddleware) — wraps Session
+#   add_middleware(_RequestIdMiddleware)  — outermost (added last)
+#
+# Final request flow (outside in): RequestId -> OriginReferer ->
+# Session -> CSRF -> route.
+app.add_middleware(CSRFMiddleware)
+
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.secret_key,
@@ -105,8 +136,7 @@ app.add_middleware(
 
 # CSRF defence Layer 2 (P0-3): Origin / Referer enforcement on every
 # state-changing request.  Mounted AFTER SessionMiddleware so it runs
-# OUTERMOST (Starlette's add_middleware does insert(0) — last-added is
-# the outermost wrapper, executed first per-request).  Rejects with
+# OUTSIDE Session (and thus before any route handler).  Rejects with
 # 403 + ``code: cross_origin_forbidden`` on any POST/PUT/PATCH/DELETE
 # whose Origin or Referer doesn't match SAEBOOKS_WEB_SITE_ORIGIN
 # (default https://books-dev.sauer.com.au).  See

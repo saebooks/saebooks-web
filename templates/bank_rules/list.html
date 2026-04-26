@@ -20,6 +20,8 @@
   </div>
   <div class="flex items-center gap-3">
     <form method="POST" action="/bank-rules/apply-all">
+    {{ csrf_input(request)|safe }}
+
       <button
         type="submit"
         class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white
@@ -86,6 +88,8 @@
                 action="/bank-rules/{{ rule.id }}/delete"
                 onsubmit="return confirm('Delete rule \'{{ rule.name }}\'?')"
               >
+    {{ csrf_input(request)|safe }}
+
                 <input type="hidden" name="version" value="{{ rule.version | default('') }}">
                 <button
                   type="submit"

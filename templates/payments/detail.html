@@ -56,6 +56,8 @@
       onsubmit="return confirm('Post this payment? This cannot be undone easily.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ payment.version }}">
       <button
         type="submit"
@@ -69,6 +71,8 @@
       onsubmit="return confirm('Archive this payment? This cannot be undone.');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ payment.version }}">
       <button
         type="submit"
@@ -84,6 +88,8 @@
       onsubmit="return confirm('Void this payment?');"
       class="inline"
     >
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ payment.version }}">
       <button
         type="submit"

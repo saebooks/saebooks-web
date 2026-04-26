@@ -45,6 +45,8 @@
       Edit
     </a>
     <form method="POST" action="/tax-codes/{{ tax_code.id }}/archive" class="inline">
+    {{ csrf_input(request)|safe }}
+
       <input type="hidden" name="version" value="{{ tax_code.version }}">
       <button
         type="submit"

@@ -153,6 +153,9 @@ async def ato_sbr_upload_keystore(request: Request) -> RedirectResponse:
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
+    # Multipart route — explicit CSRF token check after parsing the form.
+    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    await verify_csrf_form(request)
     password = str(form_data.get("password", ""))
     file_field = form_data.get("file")
 

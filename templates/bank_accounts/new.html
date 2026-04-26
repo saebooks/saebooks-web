@@ -11,6 +11,8 @@
 
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
   <form method="POST" action="/bank-accounts/new" novalidate>
+    {{ csrf_input(request)|safe }}
+
 
     {# Idempotency key — prevents double-submit on page reload #}
     <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">

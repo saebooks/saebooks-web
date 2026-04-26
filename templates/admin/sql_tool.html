@@ -18,6 +18,8 @@
     hx-swap="innerHTML"
     method="post"
     id="sql-form">
+    {{ csrf_input(request)|safe }}
+
 
     <div class="mb-4">
       <label for="sql" class="block text-xs font-medium text-gray-700 mb-1">SQL Query</label>
