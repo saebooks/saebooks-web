@@ -25,6 +25,7 @@ Environment variables: see config.py / README.md.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
@@ -33,31 +34,31 @@ from saebooks_web.auth import router as auth_router
 from saebooks_web.config import settings
 from saebooks_web.routes.account_ranges import router as account_ranges_router
 from saebooks_web.routes.accounts import router as accounts_router
+from saebooks_web.routes.admin import router as admin_router
+from saebooks_web.routes.ai_extraction import router as ai_extraction_router
+from saebooks_web.routes.ato_sbr import router as ato_sbr_router
 from saebooks_web.routes.bank_accounts import router as bank_accounts_router
 from saebooks_web.routes.bank_rules import router as bank_rules_router
 from saebooks_web.routes.bank_statement_lines import router as bank_statement_lines_router
-from saebooks_web.routes.reconciliation import router as reconciliation_router
 from saebooks_web.routes.bills import router as bills_router
 from saebooks_web.routes.budgets import router as budgets_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.dashboard import router as dashboard_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
+from saebooks_web.routes.imports import router as imports_router
 from saebooks_web.routes.invoices import router as invoices_router
 from saebooks_web.routes.items import router as items_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
 from saebooks_web.routes.journal_templates import router as journal_templates_router
+from saebooks_web.routes.pay_run import router as pay_run_router
 from saebooks_web.routes.payments import router as payments_router
+from saebooks_web.routes.profile import router as profile_router
 from saebooks_web.routes.projects import router as projects_router
+from saebooks_web.routes.reconciliation import router as reconciliation_router
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.search import router as search_router
-from saebooks_web.routes.admin import router as admin_router
-from saebooks_web.routes.ai_extraction import router as ai_extraction_router
-from saebooks_web.routes.ato_sbr import router as ato_sbr_router
-from saebooks_web.routes.imports import router as imports_router
-from saebooks_web.routes.pay_run import router as pay_run_router
-from saebooks_web.routes.profile import router as profile_router
 from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 
@@ -115,6 +116,28 @@ app.include_router(pay_run_router)
 app.include_router(admin_router)
 app.include_router(imports_router)
 app.include_router(ato_sbr_router)
+
+
+# ---------------------------------------------------------------------------
+# OpenAPI filter — strip /admin/* from the published spec.
+# The routes still exist and are enforced by session auth checks — they
+# just don't advertise themselves as attack targets in the public schema.
+# ---------------------------------------------------------------------------
+
+_original_openapi = app.openapi
+
+
+def _filtered_openapi() -> dict[str, Any]:
+    schema = _original_openapi()
+    schema["paths"] = {
+        path: item
+        for path, item in schema.get("paths", {}).items()
+        if not path.startswith("/admin/")
+    }
+    return schema
+
+
+app.openapi = _filtered_openapi  # type: ignore[method-assign]
 
 
 # ---------------------------------------------------------------------------
