@@ -74,13 +74,27 @@ app = FastAPI(
 )
 
 # Signed session cookies — secret_key must be set to a strong value in prod.
+#
+# CSRF defence Layer 1 (P0-3): same_site="strict" prevents the cookie from
+# being attached to ANY cross-site request — including embedded form POSTs
+# from attacker-controlled pages. With "lax" the cookie is sent on top-level
+# cross-site GETs (which is fine) but ALSO on cross-site form POSTs (which
+# is the CSRF gap Morgan Chen reproduced).  "strict" closes that hole at the
+# browser layer for every modern browser; it is the cheapest and most
+# foundational defence.
+#
+# Tradeoff: a link from email/Slack/external chat to https://books-dev.sauer
+# arrives as a cross-site navigation and will NOT carry the cookie, so the
+# user is shown the /login page and has to authenticate again.  That is
+# acceptable for an admin/accounting tool where every session boundary is
+# intentional, and is preferable to leaving CSRF unmitigated.
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.secret_key,
     session_cookie=settings.session_cookie_name,
     max_age=settings.session_max_age,
     https_only=False,  # TODO: set True behind TLS reverse proxy in prod
-    same_site="lax",
+    same_site="strict",
 )
 
 # ---------------------------------------------------------------------------
