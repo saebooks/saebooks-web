@@ -5,7 +5,8 @@ Layer 2 — OriginRefererMiddleware
 On every state-changing request (POST/PUT/PATCH/DELETE):
 
 1. If the ``Origin`` header is present, its scheme+host MUST match the
-   configured site origin (default ``https://books-dev.sauer.com.au``,
+   configured site origin allow-list (default
+   ``https://books-dev.sauer.com.au,https://books.sauer.com.au``,
    override via ``SAEBOOKS_WEB_SITE_ORIGIN``).  Mismatch -> 403.
 2. Else if the ``Referer`` header is present, its scheme+host MUST match
    the configured site origin.  Mismatch -> 403.
@@ -63,17 +64,24 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
-_DEFAULT_SITE_ORIGIN = "https://books-dev.sauer.com.au"
+_DEFAULT_SITE_ORIGINS = "https://books-dev.sauer.com.au,https://books.sauer.com.au"
+
+
+def _get_site_origins() -> tuple[str, ...]:
+    """Return the configured allow-list of site origins (scheme+host, no path).
+
+    Configurable via SAEBOOKS_WEB_SITE_ORIGIN env var as a comma-separated
+    list. Trailing slashes are stripped so equality checks against header
+    values work cleanly. The first entry is the canonical site origin.
+    """
+    raw = os.environ.get("SAEBOOKS_WEB_SITE_ORIGIN", _DEFAULT_SITE_ORIGINS).strip()
+    return tuple(o.rstrip("/") for o in raw.split(",") if o.strip())
 
 
 def _get_site_origin() -> str:
-    """Return the configured site origin, normalised to scheme+host (no path).
-
-    Configurable via SAEBOOKS_WEB_SITE_ORIGIN env var.  A trailing slash, if
-    any, is stripped so equality checks against header values work cleanly.
-    """
-    raw = os.environ.get("SAEBOOKS_WEB_SITE_ORIGIN", _DEFAULT_SITE_ORIGIN).strip()
-    return raw.rstrip("/")
+    """Return the canonical (first) site origin — kept for back-compat."""
+    origins = _get_site_origins()
+    return origins[0] if origins else ""
 
 
 def _origin_of(url: str) -> str | None:
@@ -192,7 +200,7 @@ class OriginRefererMiddleware:
             await self.app(scope, receive, send)
             return
 
-        site_origin = _get_site_origin()
+        site_origins = _get_site_origins()
         origin_hdr = _header(scope, b"origin")
         referer_hdr = _header(scope, b"referer")
 
@@ -203,10 +211,10 @@ class OriginRefererMiddleware:
 
         if origin_hdr is not None:
             origin_origin = _origin_of(origin_hdr)
-            if origin_origin != site_origin:
+            if origin_origin not in site_origins:
                 logger.warning(
-                    "CSRF Layer 2 reject: %s %s — Origin=%r site_origin=%r",
-                    method, path, origin_hdr, site_origin,
+                    "CSRF Layer 2 reject: %s %s — Origin=%r site_origins=%r",
+                    method, path, origin_hdr, site_origins,
                 )
                 await _send_403(
                     send,
@@ -216,10 +224,10 @@ class OriginRefererMiddleware:
                 return
         elif referer_hdr is not None:
             referer_origin = _origin_of(referer_hdr)
-            if referer_origin != site_origin:
+            if referer_origin not in site_origins:
                 logger.warning(
-                    "CSRF Layer 2 reject: %s %s — Referer=%r site_origin=%r",
-                    method, path, referer_hdr, site_origin,
+                    "CSRF Layer 2 reject: %s %s — Referer=%r site_origins=%r",
+                    method, path, referer_hdr, site_origins,
                 )
                 await _send_403(
                     send,
