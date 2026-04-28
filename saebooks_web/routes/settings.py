@@ -2,6 +2,7 @@
 
 GET  /settings/company  — load first company from API, render form
 POST /settings/company  — PATCH first company with If-Match; PRG on success
+GET  /settings/company/backdate-gst-confirm  — confirmation step for backdated GST date
 
 The company entity has an ``address`` JSONB field sent as a nested dict.
 Address sub-fields are submitted as ``address_line1``, ``address_city``, etc.
@@ -9,6 +10,7 @@ and assembled into ``{"line1": ..., "city": ..., ...}`` (empty strings stripped)
 """
 from __future__ import annotations
 
+from datetime import date, timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -16,6 +18,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+
+# Dates this far in the past trigger the retroactive-recompute confirmation step.
+_BACKDATE_CONFIRM_DAYS = 21
 
 router = APIRouter()
 
@@ -151,8 +156,38 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
     # gst_registered is a checkbox — present in form data only when checked.
     payload["gst_registered"] = "gst_registered" in form_data
     gst_date = form.get("gst_effective_date", "").strip()
+    backdate_confirmed = form.get("backdate_confirmed", "") == "true"
     if gst_date:
         payload["gst_effective_date"] = gst_date
+
+    # If the date is significantly in the past and the operator hasn't yet
+    # confirmed the retroactive-recompute workflow, show the confirmation page.
+    if gst_date and not backdate_confirmed:
+        try:
+            eff_date = date.fromisoformat(gst_date)
+            cutoff = date.today() - timedelta(days=_BACKDATE_CONFIRM_DAYS)
+            if eff_date <= cutoff:
+                invoice_count = 0
+                async with api_client(request) as client:
+                    preview = await client.get(
+                        f"/api/v1/companies/{company_id}/gst-backdate-preview",
+                        params={"effective_date": gst_date},
+                    )
+                if preview.is_success:
+                    invoice_count = preview.json().get("invoice_count", 0)
+                return _TEMPLATES.TemplateResponse(
+                    request,
+                    "settings/gst_backdate_confirm.html",
+                    {
+                        "company_id": company_id,
+                        "version": version,
+                        "gst_date": gst_date,
+                        "invoice_count": invoice_count,
+                        "form": form,
+                    },
+                )
+        except ValueError:
+            pass  # unparseable date — let the API return 422
 
     async with api_client(request) as client:
         resp = await client.patch(
@@ -166,7 +201,13 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.status_code == 200:
-        request.session["flash"] = "Company settings saved."
+        if gst_date and backdate_confirmed:
+            request.session["flash"] = (
+                "GST registration backdated. Review invoices issued from "
+                f"{gst_date} onward and issue credit notes where GST was not charged."
+            )
+        else:
+            request.session["flash"] = "Company settings saved."
         return RedirectResponse(url="/settings/company", status_code=303)
 
     # --- 409 Conflict --- re-fetch server's current state

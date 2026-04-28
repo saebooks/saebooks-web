@@ -197,3 +197,113 @@ async def test_company_settings_nav_link(respx_mock: respx.MockRouter) -> None:
     # Nav link to the settings page is rendered (case-insensitive check).
     assert "/settings/company" in resp.text
     assert "settings" in resp.text.lower()
+
+
+# ---------------------------------------------------------------------------
+# 5. HOBB-5 — GST backdating confirmation workflow
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_gst_backdate_shows_confirm(respx_mock: respx.MockRouter) -> None:
+    """POST with a backdated gst_effective_date triggers the confirmation page."""
+    from datetime import date, timedelta
+
+    old_date = (date.today() - timedelta(days=60)).isoformat()
+
+    respx_mock.get(
+        f"{_API_BASE}/api/v1/companies/{_COMPANY_ID}/gst-backdate-preview"
+    ).mock(
+        return_value=Response(200, json={"invoice_count": 3, "effective_date": old_date})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.post(
+            "/settings/company",
+            data={
+                "company_id": _COMPANY_ID,
+                "name": "Acme Pty Ltd",
+                "version": "3",
+                "gst_registered": "true",
+                "gst_effective_date": old_date,
+            },
+        )
+
+    assert resp.status_code == 200
+    assert "Confirm" in resp.text
+    assert "3 invoice" in resp.text
+    assert old_date in resp.text
+    assert 'name="backdate_confirmed" value="true"' in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_gst_backdate_confirmed_saves(respx_mock: respx.MockRouter) -> None:
+    """POST with backdate_confirmed=true proceeds to save and 303 redirects."""
+    from datetime import date, timedelta
+
+    old_date = (date.today() - timedelta(days=60)).isoformat()
+    updated_company = {**_MOCK_COMPANY, "gst_registered": True, "gst_effective_date": old_date}
+
+    respx_mock.patch(f"{_API_BASE}/api/v1/companies/{_COMPANY_ID}").mock(
+        return_value=Response(200, json=updated_company)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/settings/company",
+            data={
+                "company_id": _COMPANY_ID,
+                "name": "Acme Pty Ltd",
+                "version": "3",
+                "gst_registered": "true",
+                "gst_effective_date": old_date,
+                "backdate_confirmed": "true",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/settings/company"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_gst_recent_date_no_confirm(respx_mock: respx.MockRouter) -> None:
+    """POST with a gst_effective_date within 21 days skips confirmation and saves directly."""
+    from datetime import date, timedelta
+
+    recent_date = (date.today() - timedelta(days=5)).isoformat()
+    updated_company = {**_MOCK_COMPANY, "gst_registered": True, "gst_effective_date": recent_date}
+
+    respx_mock.patch(f"{_API_BASE}/api/v1/companies/{_COMPANY_ID}").mock(
+        return_value=Response(200, json=updated_company)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/settings/company",
+            data={
+                "company_id": _COMPANY_ID,
+                "name": "Acme Pty Ltd",
+                "version": "3",
+                "gst_registered": "true",
+                "gst_effective_date": recent_date,
+            },
+        )
+
+    assert resp.status_code == 303
