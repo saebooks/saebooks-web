@@ -39,7 +39,7 @@ _MOCK_ASSET = {
     "code": "AST-000001",
     "name": "Office Server Rack",
     "description": "Main server rack in comms room",
-    "status": "ACTIVE",
+    "status": "active",
     "depreciation_model_id": "SL-10Y",
     "depreciation_model": _MOCK_DEPRECIATION_MODEL,
     "tax_model_id": None,
@@ -142,6 +142,9 @@ async def test_fixed_assets_detail_renders(respx_mock: respx.MockRouter) -> None
     """GET /fixed-assets/{id} renders asset code, name, and depreciation details."""
     respx_mock.get(f"{_API_BASE}/api/v1/fixed_assets/{_ASSET_ID}").mock(
         return_value=Response(200, json=_MOCK_ASSET)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(

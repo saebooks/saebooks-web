@@ -44,8 +44,8 @@
           <td class="px-4 py-3 text-gray-600">{{ asset.purchase_date or "—" }}</td>
           <td class="px-4 py-3">
             <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if asset.status == 'ACTIVE' %}bg-green-100 text-green-700
-              {% elif asset.status == 'DISPOSED' %}bg-gray-100 text-gray-500
+              {% if asset.status == 'active' %}bg-green-100 text-green-700
+              {% elif asset.status == 'disposed' %}bg-gray-100 text-gray-500
               {% else %}bg-gray-100 text-gray-500{% endif %}">
               {{ asset.status | replace("_", " ") | title }}
             </span>

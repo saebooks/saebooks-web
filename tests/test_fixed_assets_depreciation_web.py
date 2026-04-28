@@ -34,7 +34,7 @@ _MOCK_ASSET_ACTIVE_SL = {
     "code": "AST-000010",
     "name": "Lathe Machine",
     "description": None,
-    "status": "ACTIVE",
+    "status": "active",
     "depreciation_model_id": "SL-5Y",
     "depreciation_model": {
         "id": "SL-5Y",
@@ -166,6 +166,9 @@ async def test_post_depreciation_409_flash(respx_mock: respx.MockRouter) -> None
     respx_mock.get(f"{_API_BASE}/api/v1/fixed_assets/{_ASSET_ID}").mock(
         return_value=Response(200, json=_MOCK_ASSET_ACTIVE_SL)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -200,6 +203,9 @@ async def test_post_depreciation_no_dep_model_button_hidden(
     """Detail page for a no_depreciation asset must NOT show the post-depreciation section."""
     respx_mock.get(f"{_API_BASE}/api/v1/fixed_assets/{_ASSET_ID}").mock(
         return_value=Response(200, json=_MOCK_ASSET_NO_DEP)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(

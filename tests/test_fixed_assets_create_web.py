@@ -35,7 +35,7 @@ _MOCK_ASSET = {
     "code": "AST-000002",
     "name": "Welding Machine",
     "description": None,
-    "status": "ACTIVE",
+    "status": "active",
     "depreciation_model_id": "SL-5Y",
     "depreciation_model": None,
     "tax_model_id": None,

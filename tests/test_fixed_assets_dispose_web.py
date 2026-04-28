@@ -34,7 +34,7 @@ _MOCK_ASSET_ACTIVE = {
     "code": "AST-000004",
     "name": "Laser Cutter",
     "description": None,
-    "status": "ACTIVE",
+    "status": "active",
     "depreciation_model_id": "SL-5Y",
     "depreciation_model": None,
     "tax_model_id": None,
@@ -64,7 +64,7 @@ _MOCK_ASSET_ACTIVE = {
 
 _MOCK_ASSET_DISPOSED = {
     **_MOCK_ASSET_ACTIVE,
-    "status": "DISPOSED",
+    "status": "disposed",
     "disposal_date": "2026-04-01",
     "disposal_proceeds": "1000.00",
     "version": 2,

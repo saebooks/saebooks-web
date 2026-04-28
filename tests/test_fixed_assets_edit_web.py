@@ -35,7 +35,7 @@ _MOCK_ASSET = {
     "code": "AST-000003",
     "name": "Forklift",
     "description": "Warehouse forklift",
-    "status": "ACTIVE",
+    "status": "active",
     "depreciation_model_id": "asset_10_year_linear",
     "depreciation_model": None,
     "tax_model_id": None,
@@ -65,7 +65,7 @@ _MOCK_ASSET = {
 
 _MOCK_ASSET_DISPOSED = {
     **_MOCK_ASSET,
-    "status": "DISPOSED",
+    "status": "disposed",
     "disposal_date": "2026-03-01",
     "version": 3,
 }

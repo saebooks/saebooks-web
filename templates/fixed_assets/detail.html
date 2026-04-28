@@ -28,8 +28,8 @@
         {{ asset.code }} — {{ asset.name }}
       </h1>
       <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
-        {% if asset.status == 'ACTIVE' %}bg-green-100 text-green-700
-        {% elif asset.status == 'DISPOSED' %}bg-gray-100 text-gray-500
+        {% if asset.status == 'active' %}bg-green-100 text-green-700
+        {% elif asset.status == 'disposed' %}bg-gray-100 text-gray-500
         {% else %}bg-gray-100 text-gray-500{% endif %}">
         {{ asset.status | replace("_", " ") | title }}
       </span>
@@ -37,7 +37,7 @@
     <p class="text-sm text-gray-500 mt-1">ID: {{ asset.id }}</p>
   </div>
   <div class="flex items-center gap-3">
-    {% if asset.status == 'ACTIVE' %}
+    {% if asset.status == 'active' %}
     <a
       href="/fixed-assets/{{ asset.id }}/edit"
       class="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700
@@ -206,7 +206,7 @@
 {% endif %}
 
 {# ── Post Depreciation form (only shown when ACTIVE and depreciation method is not no_depreciation) ── #}
-{% if asset.status == 'ACTIVE' and asset.depreciation_model and asset.depreciation_model.method != 'no_depreciation' %}
+{% if asset.status == 'active' and asset.depreciation_model and asset.depreciation_model.method != 'no_depreciation' %}
 <div class="mb-8">
   <h2 class="text-base font-semibold text-gray-900 mb-3">Post Depreciation</h2>
   <div class="bg-white rounded-xl border border-indigo-200 px-6 py-5 max-w-2xl">
@@ -257,12 +257,12 @@
 {% endif %}
 
 {# ── Convert to Inventory form (demonstrator → used stock, only when ACTIVE) ── #}
-{% if asset.status == 'ACTIVE' %}
+{% if asset.status == 'active' %}
 {% include "fixed_assets/convert_to_inventory_form.html" %}
 {% endif %}
 
 {# ── Dispose form (only shown when ACTIVE) ── #}
-{% if asset.status == 'ACTIVE' %}
+{% if asset.status == 'active' %}
 {% include "fixed_assets/dispose_form.html" %}
 {% endif %}
 

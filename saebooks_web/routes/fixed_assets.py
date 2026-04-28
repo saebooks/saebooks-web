@@ -280,7 +280,7 @@ async def fixed_asset_edit_form(
     asset = resp.json()
 
     # Block editing disposed assets.
-    if asset.get("status") == "DISPOSED":
+    if asset.get("status") == "disposed":
         return _TEMPLATES.TemplateResponse(
             request,
             "fixed_assets/edit_blocked.html",
@@ -905,7 +905,7 @@ async def fixed_asset_detail(
     # Fetch accounts for the convert-to-inventory dropdowns (only needed
     # on ACTIVE assets, but cheap enough to always fetch).
     accounts: list[dict] = []
-    if asset.get("status") == "ACTIVE":
+    if asset.get("status") == "active":
         accounts = await _fetch_accounts(request)
 
     return _TEMPLATES.TemplateResponse(
