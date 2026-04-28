@@ -173,6 +173,7 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
         "bank_account_number",
         "bank_account_title",
         "default_account_id",
+        "currency_code",
     ):
         val = form.get(field, "").strip()
         if val:
@@ -253,6 +254,7 @@ _EDIT_FIELDS = (
     "bank_account_number",
     "bank_account_title",
     "default_account_id",
+    "currency_code",
 )
 
 

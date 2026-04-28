@@ -110,10 +110,16 @@
 </div>
 
 {# ── Accounting defaults ── #}
-{% if contact.default_tax_code or contact.default_account_id %}
+{% if contact.default_tax_code or contact.default_account_id or contact.currency_code %}
 <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
   <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Accounting Defaults</h2>
   <dl class="space-y-2 text-sm">
+    {% if contact.currency_code %}
+    <div class="flex gap-2">
+      <dt class="w-28 shrink-0 text-gray-500">Currency</dt>
+      <dd class="text-gray-900 font-mono">{{ contact.currency_code }}</dd>
+    </div>
+    {% endif %}
     {% if contact.default_tax_code %}
     <div class="flex gap-2">
       <dt class="w-28 shrink-0 text-gray-500">Tax code</dt>
