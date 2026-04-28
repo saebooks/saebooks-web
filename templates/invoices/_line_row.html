@@ -85,6 +85,20 @@
     </select>
   </td>
 
+  {# Acq. Cost — only relevant for Margin Scheme (MGN) lines #}
+  <td class="px-3 py-2 w-28" title="Acquisition cost (Margin Scheme / MGN lines only)">
+    <input
+      type="number"
+      name="lines[{{ index }}][margin_acq_cost]"
+      value="{{ line.get('margin_acq_cost', '') }}"
+      step="0.01"
+      min="0"
+      placeholder="Acq. cost"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+  </td>
+
   {# Remove button #}
   <td class="px-3 py-2 w-10 text-center">
     <button
