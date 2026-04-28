@@ -1,10 +1,12 @@
 {% extends "base.html" %}
+{% import "_icons.html" as icons %}
 
 {% block title %}
   {% if invoice %}Invoice {{ invoice.number or invoice.id }} — SAE Books{% else %}Invoice Not Found — SAE Books{% endif %}
 {% endblock %}
 
 {% block content %}
+{% set is_admin = (request.session.get("user_role") == "admin") %}
 
 {% if flash %}
 <div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
@@ -93,6 +95,13 @@
     </form>
     {% endif %}
 
+    {% if is_admin %}
+    {{ icons.hard_delete(
+         "/api/v1/invoices/" ~ invoice.id,
+         "invoice " ~ (invoice.number|default(invoice.id|string)),
+         "/invoices"
+    ) }}
+    {% endif %}
     <a
       href="/invoices"
       class="text-sm text-indigo-600 hover:underline"
