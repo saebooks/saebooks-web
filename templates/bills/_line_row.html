@@ -85,6 +85,23 @@
     </select>
   </td>
 
+  {# Project #}
+  <td class="px-3 py-2 w-36">
+    <select
+      name="lines[{{ index }}][project_id]"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+      <option value="">— none —</option>
+      {% for proj in projects %}
+      <option value="{{ proj.id }}"
+        {% if line.get("project_id") and line.get("project_id")|string == proj.id|string %}selected{% endif %}>
+        {{ proj.code }} — {{ proj.name }}
+      </option>
+      {% endfor %}
+    </select>
+  </td>
+
   {# Remove button #}
   <td class="px-3 py-2 w-10 text-center">
     <button

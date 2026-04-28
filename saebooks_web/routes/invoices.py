@@ -144,6 +144,7 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
     contacts: list[dict] = []
     accounts: list[dict] = []
     tax_codes: list[dict] = []
+    projects: list[dict] = []
 
     async with api_client(request) as client:
         c_resp = await client.get("/api/v1/contacts", params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0})
@@ -158,6 +159,10 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
         if t_resp.is_success:
             tax_codes = t_resp.json().get("items", [])
 
+        p_resp = await client.get("/api/v1/projects", params={"status": "ACTIVE", "limit": 200, "offset": 0})
+        if p_resp.is_success:
+            projects = p_resp.json().get("items", [])
+
     # One blank row to start with.
     initial_lines = [{"index": 0}]
 
@@ -171,6 +176,7 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
             "contacts": contacts,
             "accounts": accounts,
             "tax_codes": tax_codes,
+            "projects": projects,
             "lines": initial_lines,
             "line_count": 1,
         },
@@ -244,6 +250,7 @@ async def invoice_create(request: Request) -> HTMLResponse | RedirectResponse:
     contacts: list[dict] = []
     accounts: list[dict] = []
     tax_codes: list[dict] = []
+    projects: list[dict] = []
 
     async with api_client(request) as client:
         c_resp = await client.get("/api/v1/contacts", params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0})
@@ -257,6 +264,10 @@ async def invoice_create(request: Request) -> HTMLResponse | RedirectResponse:
         t_resp = await client.get("/api/v1/tax_codes", params={"limit": 100, "offset": 0})
         if t_resp.is_success:
             tax_codes = t_resp.json().get("items", [])
+
+        p_resp = await client.get("/api/v1/projects", params={"status": "ACTIVE", "limit": 200, "offset": 0})
+        if p_resp.is_success:
+            projects = p_resp.json().get("items", [])
 
     # Reconstruct lines for re-render from submitted form keys.
     raw_lines = _parse_lines(form)
@@ -272,6 +283,7 @@ async def invoice_create(request: Request) -> HTMLResponse | RedirectResponse:
             "contacts": contacts,
             "accounts": accounts,
             "tax_codes": tax_codes,
+            "projects": projects,
             "lines": lines,
             "line_count": len(lines),
         },
@@ -291,6 +303,7 @@ async def invoice_add_line(request: Request, index: int = 0) -> HTMLResponse | R
 
     accounts: list[dict] = []
     tax_codes: list[dict] = []
+    projects: list[dict] = []
 
     async with api_client(request) as client:
         a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
@@ -301,6 +314,10 @@ async def invoice_add_line(request: Request, index: int = 0) -> HTMLResponse | R
         if t_resp.is_success:
             tax_codes = t_resp.json().get("items", [])
 
+        p_resp = await client.get("/api/v1/projects", params={"status": "ACTIVE", "limit": 200, "offset": 0})
+        if p_resp.is_success:
+            projects = p_resp.json().get("items", [])
+
     return _TEMPLATES.TemplateResponse(
         request,
         "invoices/_line_row.html",
@@ -309,6 +326,7 @@ async def invoice_add_line(request: Request, index: int = 0) -> HTMLResponse | R
             "line": {},
             "accounts": accounts,
             "tax_codes": tax_codes,
+            "projects": projects,
             "errors": {},
         },
     )
@@ -326,11 +344,12 @@ _EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "payment_terms"
 _LOCKED_STATUSES = {"POSTED", "VOIDED"}
 
 
-async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict]]:
-    """Fetch contacts, accounts and tax_codes in sequence and return the lists."""
+async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict], list[dict]]:
+    """Fetch contacts, accounts, tax_codes and projects; return the lists."""
     contacts: list[dict] = []
     accounts: list[dict] = []
     tax_codes: list[dict] = []
+    projects: list[dict] = []
 
     c_resp = await client.get("/api/v1/contacts", params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0})
     if c_resp.is_success:
@@ -344,7 +363,11 @@ async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict]]:
     if t_resp.is_success:
         tax_codes = t_resp.json().get("items", [])
 
-    return contacts, accounts, tax_codes
+    p_resp = await client.get("/api/v1/projects", params={"status": "ACTIVE", "limit": 200, "offset": 0})
+    if p_resp.is_success:
+        projects = p_resp.json().get("items", [])
+
+    return contacts, accounts, tax_codes, projects
 
 
 @router.get("/invoices/{invoice_id}/edit", response_class=HTMLResponse, response_model=None)
@@ -414,12 +437,13 @@ async def invoice_edit_form(
             "quantity": str(ln.get("quantity", "1")),
             "unit_price": str(ln.get("unit_price", "")),
             "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "project_id": str(ln.get("project_id") or ""),
         })
     if not lines:
         lines = [{"index": 0}]
 
     async with api_client(request) as client:
-        contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+        contacts, accounts, tax_codes, projects = await _fetch_dropdowns(client)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -433,6 +457,7 @@ async def invoice_edit_form(
             "contacts": contacts,
             "accounts": accounts,
             "tax_codes": tax_codes,
+            "projects": projects,
             "lines": lines,
             "line_count": len(lines),
         },
@@ -503,7 +528,7 @@ async def invoice_update(
             server_invoice: dict = latest_resp.json() if latest_resp.is_success else {}
             server_version = str(server_invoice.get("version", ""))
 
-            contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+            contacts, accounts, tax_codes, projects = await _fetch_dropdowns(client)
 
         # Preserve user's submitted form values but update the hidden version.
         conflict_form = dict(form)
@@ -526,6 +551,7 @@ async def invoice_update(
                 "contacts": contacts,
                 "accounts": accounts,
                 "tax_codes": tax_codes,
+                "projects": projects,
                 "lines": lines,
                 "line_count": len(lines),
             },
@@ -561,9 +587,10 @@ async def invoice_update(
     contacts2: list[dict] = []
     accounts2: list[dict] = []
     tax_codes2: list[dict] = []
+    projects2: list[dict] = []
 
     async with api_client(request) as client:
-        contacts2, accounts2, tax_codes2 = await _fetch_dropdowns(client)
+        contacts2, accounts2, tax_codes2, projects2 = await _fetch_dropdowns(client)
 
     raw_lines2 = _parse_lines(form)
     lines2 = [{"index": i, **ln} for i, ln in enumerate(raw_lines2)] or [{"index": 0}]
@@ -580,6 +607,7 @@ async def invoice_update(
             "contacts": contacts2,
             "accounts": accounts2,
             "tax_codes": tax_codes2,
+            "projects": projects2,
             "lines": lines2,
             "line_count": len(lines2),
         },

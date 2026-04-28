@@ -101,8 +101,11 @@ def _make_session_cookie(data: dict) -> str:
 _SESSION_COOKIE = _make_session_cookie({"api_token": "test-token-abc"})
 
 
+_MOCK_PROJECTS = {"items": [], "total": 0, "limit": 200, "offset": 0}
+
+
 def _mock_dropdowns(respx_mock: respx.MockRouter) -> None:
-    """Register mock responses for the three dropdown-populating API calls."""
+    """Register mock responses for the dropdown-populating API calls."""
     respx_mock.get(f"{_API_BASE}/api/v1/contacts").mock(
         return_value=Response(200, json=_MOCK_CONTACTS)
     )
@@ -111,6 +114,9 @@ def _mock_dropdowns(respx_mock: respx.MockRouter) -> None:
     )
     respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
         return_value=Response(200, json=_MOCK_TAX_CODES)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/projects").mock(
+        return_value=Response(200, json=_MOCK_PROJECTS)
     )
 
 
@@ -180,6 +186,9 @@ async def test_bill_add_line_fragment(respx_mock: respx.MockRouter) -> None:
     )
     respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
         return_value=Response(200, json=_MOCK_TAX_CODES)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/projects").mock(
+        return_value=Response(200, json=_MOCK_PROJECTS)
     )
 
     async with AsyncClient(
