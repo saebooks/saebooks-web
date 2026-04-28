@@ -65,6 +65,30 @@
     type="submit"
     class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
   >Refresh</button>
+  {# ── GST threshold inline callout ──────────────────────────────────── #}
+  {% if gst and (gst.threshold_crossed or gst.threshold_approaching) %}
+  <div class="ml-auto flex items-center gap-2 rounded-md border px-3 py-1.5
+    {% if gst.threshold_crossed %}border-red-300 bg-red-50{% else %}border-amber-300 bg-amber-50{% endif %}">
+    <span class="text-xs font-medium
+      {% if gst.threshold_crossed %}text-red-800{% else %}text-amber-800{% endif %}">
+      {% if gst.threshold_crossed %}
+        GST threshold crossed — register within 21 days
+      {% else %}
+        Approaching $75k GST threshold ({{ "%.0f"|format(gst.pct) }}%)
+      {% endif %}
+    </span>
+    <span class="text-xs tabular-nums
+      {% if gst.threshold_crossed %}text-red-700{% else %}text-amber-700{% endif %}">
+      AUD {{ "%.2f"|format(gst.ytd_turnover|float) }} YTD
+    </span>
+    <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
+       target="_blank" rel="noopener"
+       class="text-xs underline font-medium
+         {% if gst.threshold_crossed %}text-red-700{% else %}text-amber-700{% endif %}">
+      ATO →
+    </a>
+  </div>
+  {% endif %}
 </form>
 
 {% include "reports/_profit_loss_table.html" %}

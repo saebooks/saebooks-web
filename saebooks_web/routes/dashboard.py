@@ -246,12 +246,20 @@ def _gst_tile(ytd_data: dict) -> dict:
     """Extract GST turnover data from the ytd_turnover API response.
 
     Returns a safe dict regardless of whether the API call succeeded.
-    threshold_crossed=False and ytd_turnover=0.0 are the safe defaults.
+    threshold_crossed=False, threshold_approaching=False, and
+    ytd_turnover=0.0 are the safe defaults.
     """
+    ytd = _to_decimal(ytd_data.get("ytd_turnover", 0))
+    threshold = _to_decimal(ytd_data.get("threshold", 75000))
+    threshold_crossed = bool(ytd_data.get("threshold_crossed", False))
+    threshold_approaching = bool(ytd_data.get("threshold_approaching", False))
+    pct = float(ytd / threshold * 100) if threshold else 0.0
     return {
-        "ytd_turnover": _to_decimal(ytd_data.get("ytd_turnover", 0)),
-        "threshold": _to_decimal(ytd_data.get("threshold", 75000)),
-        "threshold_crossed": bool(ytd_data.get("threshold_crossed", False)),
+        "ytd_turnover": ytd,
+        "threshold": threshold,
+        "threshold_crossed": threshold_crossed,
+        "threshold_approaching": threshold_approaching,
+        "pct": min(pct, 100.0),
         "fy_start": ytd_data.get("fy_start", ""),
         "fy_end": ytd_data.get("fy_end", ""),
     }

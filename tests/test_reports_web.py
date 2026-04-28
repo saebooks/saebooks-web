@@ -239,6 +239,16 @@ async def test_profit_loss_get_200(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/profit_loss.*$").mock(
         return_value=Response(200, json=_PNL_REPORT)
     )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/ytd_turnover.*$").mock(
+        return_value=Response(200, json={
+            "ytd_turnover": 30000.0,
+            "threshold": 75000.0,
+            "threshold_crossed": False,
+            "threshold_approaching": False,
+            "fy_start": "2025-07-01",
+            "fy_end": "2026-06-30",
+        })
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

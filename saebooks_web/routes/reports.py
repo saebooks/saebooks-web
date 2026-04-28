@@ -27,6 +27,7 @@ Auth guard: redirect to /login (303) if no session token.
 """
 from __future__ import annotations
 
+import asyncio
 from datetime import date
 from pathlib import Path
 import calendar
@@ -206,19 +207,36 @@ async def profit_loss(
     to_ = to_date or _today()
     report: dict = {}
     error: str | None = None
+    gst: dict = {}
 
     async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/profit_loss",
-            params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
+        pl_resp, ytd_resp = await asyncio.gather(
+            client.get(
+                "/api/v1/reports/profit_loss",
+                params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
+            ),
+            client.get("/api/v1/reports/ytd_turnover"),
         )
-        if resp.status_code == 401:
+        if pl_resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
+        if pl_resp.is_success:
+            report = pl_resp.json()
         else:
-            error = f"API error: HTTP {resp.status_code}"
+            error = f"API error: HTTP {pl_resp.status_code}"
+        if ytd_resp.is_success:
+            ytd_data = ytd_resp.json()
+            ytd = float(ytd_data.get("ytd_turnover", 0))
+            threshold = float(ytd_data.get("threshold", 75000))
+            gst = {
+                "ytd_turnover": ytd,
+                "threshold": threshold,
+                "threshold_crossed": bool(ytd_data.get("threshold_crossed", False)),
+                "threshold_approaching": bool(ytd_data.get("threshold_approaching", False)),
+                "pct": min(ytd / threshold * 100 if threshold else 0.0, 100.0),
+                "fy_start": ytd_data.get("fy_start", ""),
+                "fy_end": ytd_data.get("fy_end", ""),
+            }
 
     ctx = {
         "report": report,
@@ -226,6 +244,7 @@ async def profit_loss(
         "to_date": to_,
         "include_draft": include_draft,
         "error": error,
+        "gst": gst,
     }
 
     template = (

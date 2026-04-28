@@ -9,8 +9,31 @@
   <p class="text-sm text-gray-500 mt-1">Today at a glance</p>
 </div>
 
-{# ── GST registration threshold banner ─────────────────────────────────── #}
+{# ── GST registration threshold banners ────────────────────────────────── #}
 {% if gst and gst.threshold_crossed %}
+<div class="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 flex items-start gap-3">
+  <svg class="h-5 w-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
+       stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
+             2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898
+             0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+  </svg>
+  <div>
+    <p class="text-sm font-semibold text-red-800">
+      GST registration threshold crossed — you must register with the ATO within 21 days
+    </p>
+    <p class="mt-1 text-xs text-red-700">
+      Your YTD turnover is AUD {{ "%.2f"|format(gst.ytd_turnover|float) }},
+      which exceeds the $75,000 GST registration threshold.
+      <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
+         target="_blank" rel="noopener" class="underline font-medium">Register with ATO →</a>
+      &nbsp;or&nbsp;
+      <a href="/settings/company" class="underline font-medium">Update GST status →</a>
+    </p>
+  </div>
+</div>
+{% elif gst and gst.threshold_approaching %}
 <div class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start gap-3">
   <svg class="h-5 w-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
        stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -21,12 +44,14 @@
   </svg>
   <div>
     <p class="text-sm font-semibold text-amber-800">
-      GST registration threshold crossed — you must register with the ATO within 21 days
+      Approaching GST registration threshold
     </p>
     <p class="mt-1 text-xs text-amber-700">
-      Your YTD turnover is AUD {{ "%.2f"|format(gst.ytd_turnover|float) }},
-      which exceeds the $75,000 GST registration threshold.
-      <a href="/settings/company" class="underline font-medium">Update GST registration →</a>
+      Your YTD turnover is AUD {{ "%.2f"|format(gst.ytd_turnover|float) }}
+      ({{ "%.0f"|format(gst.pct) }}% of the $75,000 threshold).
+      If you exceed $75,000 you must register with the ATO within 21 days.
+      <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
+         target="_blank" rel="noopener" class="underline font-medium">ATO registration info →</a>
     </p>
   </div>
 </div>
@@ -140,16 +165,22 @@
 
   {# ── Tile 4: GST turnover tracker ────────────────────────────────────── #}
   <div class="rounded-lg bg-white shadow p-5 border
-    {% if gst and gst.threshold_crossed %}border-amber-300{% else %}border-gray-100{% endif %}">
+    {% if gst and gst.threshold_crossed %}border-red-300
+    {% elif gst and gst.threshold_approaching %}border-amber-300
+    {% else %}border-gray-100{% endif %}">
     <h2 class="text-sm font-semibold uppercase tracking-wide mb-4
-      {% if gst and gst.threshold_crossed %}text-amber-700{% else %}text-indigo-700{% endif %}">
+      {% if gst and gst.threshold_crossed %}text-red-700
+      {% elif gst and gst.threshold_approaching %}text-amber-700
+      {% else %}text-indigo-700{% endif %}">
       GST Turnover — This FY
     </h2>
     <dl class="space-y-3">
       <div class="flex items-center justify-between">
         <dt class="text-sm text-gray-500">YTD turnover</dt>
         <dd class="text-sm font-semibold tabular-nums
-          {% if gst and gst.threshold_crossed %}text-amber-700{% else %}text-gray-900{% endif %}">
+          {% if gst and gst.threshold_crossed %}text-red-700
+          {% elif gst and gst.threshold_approaching %}text-amber-700
+          {% else %}text-gray-900{% endif %}">
           AUD {{ "%.2f"|format((gst.ytd_turnover if gst else 0)|float) }}
         </dd>
       </div>
@@ -159,13 +190,34 @@
           AUD 75,000.00
         </dd>
       </div>
+      {# progress bar #}
+      {% if gst %}
+      <div>
+        <div class="flex justify-between text-xs text-gray-400 mb-1">
+          <span>{{ "%.0f"|format(gst.pct) }}% of threshold</span>
+          <span>AUD 75,000</span>
+        </div>
+        <div class="w-full bg-gray-100 rounded-full h-2">
+          <div class="h-2 rounded-full
+            {% if gst.threshold_crossed %}bg-red-500
+            {% elif gst.threshold_approaching %}bg-amber-400
+            {% else %}bg-indigo-400{% endif %}"
+            style="width: {{ gst.pct }}%"></div>
+        </div>
+      </div>
+      {% endif %}
       <div class="flex items-center justify-between border-t border-gray-100 pt-3">
         <dt class="text-sm text-gray-500">Status</dt>
         <dd>
           {% if gst and gst.threshold_crossed %}
+          <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5
+                        text-xs font-medium text-red-800">
+            Threshold crossed
+          </span>
+          {% elif gst and gst.threshold_approaching %}
           <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5
                         text-xs font-medium text-amber-800">
-            Threshold crossed
+            Approaching threshold
           </span>
           {% else %}
           <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5
@@ -184,8 +236,16 @@
     {% endif %}
     {% if gst and gst.threshold_crossed %}
     <div class="mt-4">
-      <a href="/settings/company" class="text-xs text-amber-700 font-medium hover:underline">
-        Register for GST →
+      <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
+         target="_blank" rel="noopener" class="text-xs text-red-700 font-medium hover:underline">
+        Register with ATO (21-day window) →
+      </a>
+    </div>
+    {% elif gst and gst.threshold_approaching %}
+    <div class="mt-4">
+      <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
+         target="_blank" rel="noopener" class="text-xs text-amber-700 font-medium hover:underline">
+        ATO GST registration info →
       </a>
     </div>
     {% endif %}

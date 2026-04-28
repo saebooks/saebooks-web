@@ -139,6 +139,7 @@ def _ytd_response(
     ytd_turnover: float = 0.0,
     threshold: float = 75000.0,
     threshold_crossed: bool = False,
+    threshold_approaching: bool = False,
     fy_start: str = "2025-07-01",
     fy_end: str = "2026-06-30",
 ) -> dict:
@@ -146,6 +147,7 @@ def _ytd_response(
         "ytd_turnover": ytd_turnover,
         "threshold": threshold,
         "threshold_crossed": threshold_crossed,
+        "threshold_approaching": threshold_approaching,
         "fy_start": fy_start,
         "fy_end": fy_end,
     }
@@ -467,7 +469,36 @@ async def test_dashboard_gst_banner_above_threshold(respx_mock: respx.MockRouter
     assert "78000.00" in resp.text
     assert "Threshold crossed" in resp.text
     assert "you must register with the ATO within 21 days" in resp.text
-    assert "Register for GST" in resp.text
+    assert "Register with ATO" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_gst_banner_approaching_threshold(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Amber approaching-threshold banner appears at 80-99% of $75k."""
+    _register_mocks(
+        respx_mock,
+        ytd_data=_ytd_response(
+            ytd_turnover=62000.0,
+            threshold_crossed=False,
+            threshold_approaching=True,
+        ),
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    assert "62000.00" in resp.text
+    assert "Approaching threshold" in resp.text
+    assert "Approaching GST registration threshold" in resp.text
+    assert "ATO registration info" in resp.text
 
 
 @pytest.mark.anyio
