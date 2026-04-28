@@ -256,6 +256,11 @@
 </div>
 {% endif %}
 
+{# ── Convert to Inventory form (demonstrator → used stock, only when ACTIVE) ── #}
+{% if asset.status == 'ACTIVE' %}
+{% include "fixed_assets/convert_to_inventory_form.html" %}
+{% endif %}
+
 {# ── Dispose form (only shown when ACTIVE) ── #}
 {% if asset.status == 'ACTIVE' %}
 {% include "fixed_assets/dispose_form.html" %}

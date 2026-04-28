@@ -593,6 +593,88 @@ async def fixed_asset_post_depreciation(
 
 
 # ---------------------------------------------------------------------------
+# Convert to Inventory — POST /{asset_id}/convert-to-inventory
+# Gap MOTR-3: demonstrator FA → used-vehicle inventory stock.
+# NOTE: MUST appear before the catch-all /{asset_id} GET.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/fixed-assets/{asset_id}/convert-to-inventory",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def fixed_asset_convert_to_inventory(
+    request: Request,
+    asset_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Submit the convert-to-inventory form.
+
+    POSTs to /api/v1/fixed_assets/{id}/convert_to_inventory with If-Match.
+
+    - 201 OK  -> 303 redirect to /fixed-assets/{id} with flash (NBV, item SKU)
+    - 409     -> 303 redirect back with conflict flash
+    - 422     -> 303 redirect back with API error detail flash
+    - 401     -> clear session, redirect to /login
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    version = form.get("version", "").strip()
+
+    payload: dict[str, object] = {}
+    for field in ("conversion_date", "inventory_account_id", "cogs_account_id", "income_account_id"):
+        val = form.get(field, "").strip()
+        payload[field] = val
+
+    for optional_field in ("sku", "vin"):
+        val = form.get(optional_field, "").strip()
+        if val:
+            payload[optional_field] = val
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/fixed_assets/{asset_id}/convert_to_inventory",
+            json=payload,
+            headers={"If-Match": version},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 201:
+        body = resp.json()
+        nbv = float(body.get("nbv", 0))
+        item_sku = body.get("item_sku", "")
+        request.session["flash"] = (
+            f"Demonstrator converted to inventory — item {item_sku} created at NBV ${nbv:.2f}. "
+            f"FA marked disposed."
+        )
+        return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+    if resp.status_code == 409:
+        request.session["flash"] = "Conversion failed — asset was modified. Refresh and try again."
+        return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+    # 422 or other error — extract detail string if available.
+    flash_msg = f"Conversion failed (HTTP {resp.status_code})."
+    try:
+        detail = resp.json().get("detail", "")
+        if isinstance(detail, str) and detail:
+            flash_msg = detail
+        elif isinstance(detail, list) and detail:
+            flash_msg = detail[0].get("msg", flash_msg)
+    except Exception:
+        pass
+    request.session["flash"] = flash_msg
+    return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
 # Batch Depreciation Run — GET (form) + POST (submit, renders results inline)
 # NOTE: MUST appear before the catch-all /{asset_id} GET.
 # ---------------------------------------------------------------------------
@@ -820,6 +902,12 @@ async def fixed_asset_detail(
     _last_day = calendar.monthrange(_today.year, _today.month)[1]
     through_default = date(_today.year, _today.month, _last_day).isoformat()
 
+    # Fetch accounts for the convert-to-inventory dropdowns (only needed
+    # on ACTIVE assets, but cheap enough to always fetch).
+    accounts: list[dict] = []
+    if asset.get("status") == "ACTIVE":
+        accounts = await _fetch_accounts(request)
+
     return _TEMPLATES.TemplateResponse(
         request,
         "fixed_assets/detail.html",
@@ -828,5 +916,7 @@ async def fixed_asset_detail(
             "error": None,
             "flash": flash,
             "through_default": through_default,
+            "accounts": accounts,
+            "today": _today.isoformat(),
         },
     )
