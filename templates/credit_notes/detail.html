@@ -1,10 +1,12 @@
 {% extends "base.html" %}
+{% import "_icons.html" as icons %}
 
 {% block title %}
   {% if credit_note %}Credit Note {{ credit_note.number or credit_note.id }} — SAE Books{% else %}Credit Note Not Found — SAE Books{% endif %}
 {% endblock %}
 
 {% block content %}
+{% set is_admin = (request.session.get("user_role") == "admin") %}
 
 {% if error %}
 <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
@@ -103,6 +105,13 @@
                hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
       >Void</button>
     </form>
+    {% endif %}
+    {% if is_admin %}
+    {{ icons.hard_delete(
+         "/api/v1/credit_notes/" ~ credit_note.id,
+         "credit note " ~ (credit_note.number|default(credit_note.id|string)),
+         "/credit-notes"
+    ) }}
     {% endif %}
     <a
       href="/credit-notes"
