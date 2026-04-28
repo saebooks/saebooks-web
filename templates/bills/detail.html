@@ -140,6 +140,7 @@
       <tr>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-8">#</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Vehicle / VIN</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Qty</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Unit price</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Tax</th>
@@ -152,6 +153,7 @@
         <tr class="hover:bg-gray-50">
           <td class="px-4 py-3 text-gray-400">{{ line.line_no }}</td>
           <td class="px-4 py-3 text-gray-900">{{ line.description }}</td>
+          <td class="px-4 py-3 text-gray-500 text-sm font-mono">{{ line.tracking_vehicle_id or "—" }}</td>
           <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ line.quantity }}</td>
           <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.2f"|format(line.unit_price|float) }}</td>
           <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.2f"|format(line.line_tax|float) }}</td>
@@ -160,25 +162,25 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-6 text-center text-gray-400">No lines.</td>
+          <td colspan="7" class="px-4 py-6 text-center text-gray-400">No lines.</td>
         </tr>
       {% endif %}
     </tbody>
     <tfoot class="bg-gray-50 border-t border-gray-200">
       <tr>
-        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-500">Subtotal</td>
+        <td colspan="6" class="px-4 py-3 text-right text-sm text-gray-500">Subtotal</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
           {{ "%.2f"|format(bill.subtotal|float) }}
         </td>
       </tr>
       <tr>
-        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-500">Tax</td>
+        <td colspan="6" class="px-4 py-3 text-right text-sm text-gray-500">Tax</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
           {{ "%.2f"|format(bill.tax_total|float) }}
         </td>
       </tr>
       <tr class="font-semibold">
-        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-900">Total</td>
+        <td colspan="6" class="px-4 py-3 text-right text-sm text-gray-900">Total</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
           {{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}
         </td>

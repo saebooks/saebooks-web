@@ -102,6 +102,19 @@
     </select>
   </td>
 
+  {# Vehicle / VIN (floorplan cost tracking) #}
+  <td class="px-3 py-2 w-32">
+    <input
+      type="text"
+      name="lines[{{ index }}][tracking_vehicle_id]"
+      value="{{ line.get('tracking_vehicle_id', '') }}"
+      placeholder="VIN / stock #"
+      maxlength="64"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+  </td>
+
   {# Remove button #}
   <td class="px-3 py-2 w-10 text-center">
     <button

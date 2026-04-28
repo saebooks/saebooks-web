@@ -1,7 +1,7 @@
 """Shared form-parsing helpers used by invoice and bill create routes."""
 from __future__ import annotations
 
-_LINE_FIELDS = ("account_id", "description", "quantity", "unit_price", "tax_code_id", "item_id", "margin_acq_cost", "project_id")
+_LINE_FIELDS = ("account_id", "description", "quantity", "unit_price", "tax_code_id", "item_id", "margin_acq_cost", "project_id", "tracking_vehicle_id")
 
 
 def parse_lines(form: dict[str, str]) -> list[dict[str, object]]:
