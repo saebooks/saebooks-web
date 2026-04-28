@@ -23,6 +23,7 @@
 {% set buckets = report.get("buckets", []) %}
 {% set contacts = report.get("contacts", []) %}
 {% set totals = report.get("totals", {}) %}
+{% set retentions_receivable = report.get("retentions_receivable") %}
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
   <table class="min-w-full divide-y divide-gray-200 text-sm" id="aged-receivables-table">
@@ -50,9 +51,9 @@
           </td>
         </tr>
         {% endfor %}
-        {# Totals row #}
+        {# Trade Debtors totals row #}
         <tr class="bg-gray-50 font-semibold border-t-2 border-gray-300">
-          <td class="px-4 py-3 text-gray-900">Total</td>
+          <td class="px-4 py-3 text-gray-900">Trade Debtors</td>
           {% for bucket in buckets %}
           <td class="px-4 py-3 text-right tabular-nums text-gray-900">
             {{ "%.2f"|format(totals.get(bucket, 0) | float) }}
@@ -62,6 +63,21 @@
             {{ "%.2f"|format(totals.get("total", 0) | float) }}
           </td>
         </tr>
+        {# Retentions Receivable row — only shown when retentions exist #}
+        {% if retentions_receivable %}
+        <tr class="bg-amber-50 font-semibold border-t border-amber-200">
+          <td class="px-4 py-3 text-amber-800">Retentions Receivable</td>
+          {% for bucket in buckets %}
+          <td class="px-4 py-3 text-right tabular-nums text-amber-800">
+            {% set val = retentions_receivable.get(bucket, 0) | float %}
+            {% if val %}{{ "%.2f"|format(val) }}{% else %}—{% endif %}
+          </td>
+          {% endfor %}
+          <td class="px-4 py-3 text-right tabular-nums text-amber-800">
+            {{ "%.2f"|format(retentions_receivable.get("total", 0) | float) }}
+          </td>
+        </tr>
+        {% endif %}
       {% else %}
         <tr>
           <td colspan="{{ (buckets | length) + 2 }}" class="px-4 py-8 text-center text-gray-400">
