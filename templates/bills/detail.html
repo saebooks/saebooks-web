@@ -99,6 +99,15 @@
   </div>
 </div>
 
+{# ── FX banner (non-AUD bills) ── #}
+{% if bill.currency and bill.currency | upper != 'AUD' %}
+<div class="rounded-md bg-blue-50 border border-blue-200 px-4 py-2 text-sm text-blue-700 mb-4">
+  Foreign currency bill — {{ bill.currency }} at
+  {{ "%.6g"|format(bill.fx_rate|float) }} AUD per 1 {{ bill.currency }}.
+  AUD total: <strong>{{ "%.2f"|format(bill.base_total|float if bill.base_total is defined else bill.total|float) }}</strong>
+</div>
+{% endif %}
+
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="bg-white rounded-xl border border-gray-200 p-4">

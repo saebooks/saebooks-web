@@ -204,6 +204,12 @@ async def bill_create(request: Request) -> HTMLResponse | RedirectResponse:
         if val:
             payload[field] = val
 
+    currency = form.get("currency", "").strip().upper() or "AUD"
+    payload["currency"] = currency
+    fx_rate_raw = form.get("fx_rate", "").strip()
+    if fx_rate_raw and currency != "AUD":
+        payload["fx_rate"] = fx_rate_raw
+
     payload["lines"] = _parse_lines(form)
 
     async with api_client(request) as client:
@@ -319,7 +325,7 @@ async def bill_add_line(request: Request, index: int = 0) -> HTMLResponse | Redi
 # literal-vs-parameter ordering reason as /bills/new.
 # ---------------------------------------------------------------------------
 
-_EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "supplier_reference")
+_EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "supplier_reference", "currency")
 
 # Statuses that block editing — only DRAFT bills are mutable.
 _LOCKED_STATUSES = {"POSTED", "VOIDED"}
@@ -401,6 +407,10 @@ async def bill_edit_form(
     # Pre-populate the form dict from the API response.
     form: dict[str, object] = {field: bill.get(field) or "" for field in _EDIT_FIELDS}
     form["version"] = str(bill.get("version", ""))
+    # fx_rate is numeric — only pre-populate when the bill is foreign-currency.
+    stored_rate = bill.get("fx_rate")
+    if stored_rate and str(bill.get("currency", "AUD")).upper() != "AUD":
+        form["fx_rate"] = str(stored_rate)
 
     # Build lines list for the form, keyed by zero-based index.
     api_lines = bill.get("lines", [])
@@ -469,6 +479,12 @@ async def bill_update(
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
+
+    # fx_rate is only meaningful for foreign-currency bills.
+    currency = str(payload.get("currency", "AUD")).upper()
+    fx_rate_raw = form.get("fx_rate", "").strip()
+    if fx_rate_raw and currency != "AUD":
+        payload["fx_rate"] = fx_rate_raw
 
     # Lines are always sent (full replace semantics).
     payload["lines"] = _parse_lines(form)

@@ -530,3 +530,81 @@ async def test_bill_create_api_error_string_detail(respx_mock: respx.MockRouter)
     assert resp.status_code == 422
     assert 'name="contact_id"' in resp.text
     assert "Duplicate bill number" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 13. GET /bills/new — currency selector and fx_rate field are present
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_new_form_has_currency_fields(respx_mock: respx.MockRouter) -> None:
+    """GET /bills/new renders a currency selector and fx_rate input (ETSY-3 fix)."""
+    _mock_dropdowns(respx_mock)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/bills/new")
+
+    assert resp.status_code == 200
+    assert 'name="currency"' in resp.text
+    assert 'name="fx_rate"' in resp.text
+    # JPY option must be present in the currency selector.
+    assert "JPY" in resp.text
+    # AUD should be the default selected value.
+    assert 'value="AUD"' in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 14. POST /bills/new — JPY bill sends currency + fx_rate to upstream API
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_create_jpy_sends_currency_and_fx_rate(respx_mock: respx.MockRouter) -> None:
+    """POST /bills/new with JPY currency and fx_rate passes both to the API (ETSY-3 fix).
+
+    A ¥85,000 wholesaler bill at 0.0089 AUD/JPY should be forwarded with
+    currency="JPY" and fx_rate="0.0089", not silently as AUD 85,000.
+    """
+    captured_payload: list[dict] = []
+
+    def _capture(request: respx.Request) -> Response:
+        import json as _json
+        captured_payload.append(_json.loads(request.content))
+        return Response(201, json=_MOCK_BILL)
+
+    respx_mock.post(f"{_API_BASE}/api/v1/bills").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/bills/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-10",
+                "due_date": "2026-05-10",
+                "currency": "JPY",
+                "fx_rate": "0.0089",
+                "idempotency_key": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+                "lines[0][account_id]": _ACCOUNT_ID,
+                "lines[0][description]": "Kyoto wholesaler stock",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "85000",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert len(captured_payload) == 1
+    payload = captured_payload[0]
+    assert payload["currency"] == "JPY", f"Expected JPY, got {payload.get('currency')!r}"
+    assert payload["fx_rate"] == "0.0089", f"Expected 0.0089, got {payload.get('fx_rate')!r}"

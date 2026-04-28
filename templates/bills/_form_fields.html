@@ -130,6 +130,52 @@
              focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
     >
   </div>
+
+  {# Currency + FX rate #}
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div>
+      <label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
+        Currency
+      </label>
+      <select
+        id="currency"
+        name="currency"
+        class="block w-full rounded-md border {% if errors.get('currency') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+               px-3 py-2 text-sm text-gray-900
+               focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        onchange="document.getElementById('fx-rate-row').style.display = this.value !== 'AUD' ? '' : 'none'"
+      >
+        {% set _cur = form.get('currency', 'AUD') | upper %}
+        {% for code in ['AUD', 'JPY', 'USD', 'EUR', 'GBP', 'NZD', 'SGD', 'CNY', 'HKD', 'CAD'] %}
+        <option value="{{ code }}" {% if _cur == code %}selected{% endif %}>{{ code }}</option>
+        {% endfor %}
+      </select>
+      {% if errors.get("currency") %}
+      <p class="mt-1 text-xs text-red-600">{{ errors["currency"] }}</p>
+      {% endif %}
+    </div>
+
+    <div id="fx-rate-row" {% if form.get('currency', 'AUD') | upper == 'AUD' %}style="display:none"{% endif %}>
+      <label for="fx_rate" class="block text-sm font-medium text-gray-700 mb-1">
+        Exchange rate <span class="text-gray-400 font-normal">(1 foreign = ? AUD)</span>
+      </label>
+      <input
+        type="number"
+        id="fx_rate"
+        name="fx_rate"
+        value="{{ form.get('fx_rate', '') }}"
+        placeholder="e.g. 0.0089 for JPY→AUD"
+        step="any"
+        min="0.000001"
+        class="block w-full rounded-md border {% if errors.get('fx_rate') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+               px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+               focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      >
+      {% if errors.get("fx_rate") %}
+      <p class="mt-1 text-xs text-red-600">{{ errors["fx_rate"] }}</p>
+      {% endif %}
+    </div>
+  </div>
 </fieldset>
 
 {# ── Line items ── #}
