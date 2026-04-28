@@ -180,6 +180,21 @@ def _cash_tile(payments: list[dict]) -> dict:
     }
 
 
+def _gst_tile(ytd_data: dict) -> dict:
+    """Extract GST turnover data from the ytd_turnover API response.
+
+    Returns a safe dict regardless of whether the API call succeeded.
+    threshold_crossed=False and ytd_turnover=0.0 are the safe defaults.
+    """
+    return {
+        "ytd_turnover": _to_decimal(ytd_data.get("ytd_turnover", 0)),
+        "threshold": _to_decimal(ytd_data.get("threshold", 75000)),
+        "threshold_crossed": bool(ytd_data.get("threshold_crossed", False)),
+        "fy_start": ytd_data.get("fy_start", ""),
+        "fy_end": ytd_data.get("fy_end", ""),
+    }
+
+
 def _recent_activity(
     invoices: list[dict],
     bills: list[dict],
@@ -255,6 +270,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             recent_payments_raw,
             recent_je_raw,
             recent_contacts_raw,
+            ytd_turnover_raw,
         ) = await asyncio.gather(
             # AR tile — open invoices are POSTED (overdue computed in Python)
             _fetch_items(client, "/api/v1/invoices",
@@ -284,6 +300,8 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
                          {"page": 1, "page_size": 10}),
             _fetch_items(client, "/api/v1/contacts",
                          {"page": 1, "page_size": 10}),
+            # GST turnover tile
+            _fetch_json(client, "/api/v1/reports/ytd_turnover"),
         )
 
     # Handle 401 edge case — if all lists are empty and the token is gone,
@@ -300,6 +318,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
         recent_je_raw,
         recent_contacts_raw,
     )
+    gst = _gst_tile(ytd_turnover_raw)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -309,5 +328,6 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "ap": ap,
             "cash": cash,
             "recent": recent,
+            "gst": gst,
         },
     )

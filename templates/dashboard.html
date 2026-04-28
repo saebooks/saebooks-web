@@ -9,6 +9,29 @@
   <p class="text-sm text-gray-500 mt-1">Today at a glance</p>
 </div>
 
+{# ── GST registration threshold banner ─────────────────────────────────── #}
+{% if gst and gst.threshold_crossed %}
+<div class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start gap-3">
+  <svg class="h-5 w-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
+       stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
+             2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898
+             0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+  </svg>
+  <div>
+    <p class="text-sm font-semibold text-amber-800">
+      GST registration threshold crossed — you must register with the ATO within 21 days
+    </p>
+    <p class="mt-1 text-xs text-amber-700">
+      Your YTD turnover is AUD {{ "%.2f"|format(gst.ytd_turnover|float) }},
+      which exceeds the $75,000 GST registration threshold.
+      <a href="/settings/company" class="underline font-medium">Update GST registration →</a>
+    </p>
+  </div>
+</div>
+{% endif %}
+
 {# ── 2×2 tile grid ─────────────────────────────────────────────────────── #}
 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
 
@@ -115,43 +138,57 @@
     </div>
   </div>
 
-  {# ── Tile 4: Quick links ──────────────────────────────────────────────── #}
-  <div class="rounded-lg bg-white shadow p-5 border border-gray-100">
-    <h2 class="text-sm font-semibold text-indigo-700 uppercase tracking-wide mb-4">
-      Quick Links
+  {# ── Tile 4: GST turnover tracker ────────────────────────────────────── #}
+  <div class="rounded-lg bg-white shadow p-5 border
+    {% if gst and gst.threshold_crossed %}border-amber-300{% else %}border-gray-100{% endif %}">
+    <h2 class="text-sm font-semibold uppercase tracking-wide mb-4
+      {% if gst and gst.threshold_crossed %}text-amber-700{% else %}text-indigo-700{% endif %}">
+      GST Turnover — This FY
     </h2>
-    <ul class="space-y-2">
-      <li>
-        <a href="/invoices/new"
-           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
-          + New invoice
-        </a>
-      </li>
-      <li>
-        <a href="/bills/new"
-           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
-          + New bill
-        </a>
-      </li>
-      <li>
-        <a href="/payments/new"
-           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
-          + New payment
-        </a>
-      </li>
-      <li>
-        <a href="/journal-entries/new"
-           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
-          + New journal entry
-        </a>
-      </li>
-      <li>
-        <a href="/contacts/new"
-           class="inline-flex items-center text-sm text-indigo-600 hover:underline">
-          + New contact
-        </a>
-      </li>
-    </ul>
+    <dl class="space-y-3">
+      <div class="flex items-center justify-between">
+        <dt class="text-sm text-gray-500">YTD turnover</dt>
+        <dd class="text-sm font-semibold tabular-nums
+          {% if gst and gst.threshold_crossed %}text-amber-700{% else %}text-gray-900{% endif %}">
+          AUD {{ "%.2f"|format((gst.ytd_turnover if gst else 0)|float) }}
+        </dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-sm text-gray-500">GST threshold</dt>
+        <dd class="text-sm font-medium text-gray-500 tabular-nums">
+          AUD 75,000.00
+        </dd>
+      </div>
+      <div class="flex items-center justify-between border-t border-gray-100 pt-3">
+        <dt class="text-sm text-gray-500">Status</dt>
+        <dd>
+          {% if gst and gst.threshold_crossed %}
+          <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5
+                        text-xs font-medium text-amber-800">
+            Threshold crossed
+          </span>
+          {% else %}
+          <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5
+                        text-xs font-medium text-green-700">
+            Under threshold
+          </span>
+          {% endif %}
+        </dd>
+      </div>
+    </dl>
+    {% if gst and gst.fy_start %}
+    <p class="mt-3 text-xs text-gray-400">
+      FY {{ gst.fy_start[:4] }}-{{ gst.fy_end[2:4] }}
+      ({{ gst.fy_start }} to {{ gst.fy_end }})
+    </p>
+    {% endif %}
+    {% if gst and gst.threshold_crossed %}
+    <div class="mt-4">
+      <a href="/settings/company" class="text-xs text-amber-700 font-medium hover:underline">
+        Register for GST →
+      </a>
+    </div>
+    {% endif %}
   </div>
 
 </div>{# end tile grid #}

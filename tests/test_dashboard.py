@@ -135,6 +135,22 @@ def _page(items: list) -> dict:
     return {"items": items, "total": len(items), "page": 1, "pages": 1}
 
 
+def _ytd_response(
+    ytd_turnover: float = 0.0,
+    threshold: float = 75000.0,
+    threshold_crossed: bool = False,
+    fy_start: str = "2025-07-01",
+    fy_end: str = "2026-06-30",
+) -> dict:
+    return {
+        "ytd_turnover": ytd_turnover,
+        "threshold": threshold,
+        "threshold_crossed": threshold_crossed,
+        "fy_start": fy_start,
+        "fy_end": fy_end,
+    }
+
+
 def _register_mocks(
     respx_mock: respx.MockRouter,
     *,
@@ -148,6 +164,7 @@ def _register_mocks(
     recent_payments: list | None = None,
     recent_je: list | None = None,
     recent_contacts: list | None = None,
+    ytd_data: dict | None = None,
 ) -> None:
     """Register all API mocks that the dashboard fires in parallel.
 
@@ -162,6 +179,7 @@ def _register_mocks(
       - payments (no status)     (recent activity — shared with cash tile mock)
       - journal_entries          (recent activity)
       - contacts                 (recent activity)
+      - reports/ytd_turnover     (GST turnover tile + banner)
 
     No PAID status exists in InvoiceStatus/BillStatus — paid tiles always zero.
 
@@ -205,6 +223,11 @@ def _register_mocks(
     # Contacts
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/contacts(\?.*)?$").mock(
         return_value=Response(200, json=_page(recent_contacts or []))
+    )
+
+    # YTD turnover (GST threshold)
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/ytd_turnover(\?.*)?$").mock(
+        return_value=Response(200, json=ytd_data or _ytd_response())
     )
 
 
@@ -399,3 +422,49 @@ async def test_dashboard_empty_data_no_errors(respx_mock: respx.MockRouter) -> N
     assert "0.00" in resp.text
     # "No recent activity" message should be shown
     assert "No recent activity" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_gst_tile_below_threshold(respx_mock: respx.MockRouter) -> None:
+    """GST tile renders YTD turnover and shows 'Under threshold' when below $75k."""
+    _register_mocks(
+        respx_mock,
+        ytd_data=_ytd_response(ytd_turnover=45000.0, threshold_crossed=False),
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    assert "45000.00" in resp.text
+    assert "Under threshold" in resp.text
+    # Banner must NOT appear when below threshold
+    assert "you must register with the ATO" not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_gst_banner_above_threshold(respx_mock: respx.MockRouter) -> None:
+    """GST banner appears and shows registration warning when turnover >= $75k."""
+    _register_mocks(
+        respx_mock,
+        ytd_data=_ytd_response(ytd_turnover=78000.0, threshold_crossed=True),
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    assert "78000.00" in resp.text
+    assert "Threshold crossed" in resp.text
+    assert "you must register with the ATO within 21 days" in resp.text
+    assert "Register for GST" in resp.text
