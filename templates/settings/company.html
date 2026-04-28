@@ -122,6 +122,57 @@
       {% endif %}
     </div>
 
+    {# ── GST registration fieldset ── #}
+    <fieldset class="mb-5 border border-gray-200 rounded-lg px-4 py-4">
+      <legend class="px-1 text-sm font-medium text-gray-700">GST Registration</legend>
+
+      <div class="mb-3 flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="gst_registered"
+          name="gst_registered"
+          value="true"
+          {% if form.get('gst_registered') %}checked{% endif %}
+          class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          onchange="document.getElementById('gst_date_row').style.display = this.checked ? '' : 'none'"
+        >
+        <label for="gst_registered" class="text-sm text-gray-700">Registered for GST</label>
+      </div>
+
+      <div
+        id="gst_date_row"
+        {% if not form.get('gst_registered') %}style="display:none"{% endif %}
+      >
+        <label for="gst_effective_date" class="block text-sm font-medium text-gray-700 mb-1">
+          Effective date <span class="text-gray-400 font-normal">(date registration began)</span>
+        </label>
+        <input
+          type="date"
+          id="gst_effective_date"
+          name="gst_effective_date"
+          value="{{ form.get('gst_effective_date', '') }}"
+          class="block w-48 rounded-md border {{ 'border-red-400' if errors.get('gst_effective_date') else 'border-gray-300' }}
+                 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          onchange="
+            var d = new Date(this.value);
+            var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 21);
+            var warn = document.getElementById('gst_backdate_warn');
+            if (this.value && d < cutoff) { warn.style.display = ''; } else { warn.style.display = 'none'; }
+          "
+        >
+        <p
+          id="gst_backdate_warn"
+          class="mt-1 text-xs text-amber-600"
+          style="display:none"
+        >
+          This date is more than 21 days ago — you may need to notify the ATO of a backdated registration.
+        </p>
+        {% if errors.get('gst_effective_date') %}
+        <p class="mt-1 text-xs text-red-600">{{ errors.get('gst_effective_date') }}</p>
+        {% endif %}
+      </div>
+    </fieldset>
+
     {# ── Address fieldset ── #}
     <fieldset class="mb-5 border border-gray-200 rounded-lg px-4 py-4">
       <legend class="px-1 text-sm font-medium text-gray-700">Address</legend>

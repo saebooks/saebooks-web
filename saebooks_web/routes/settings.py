@@ -34,6 +34,7 @@ def _require_auth(request: Request) -> str | None:
 
 _TOP_FIELDS = ("name", "legal_name", "trading_name", "abn")
 _ADDR_KEYS = ("line1", "line2", "city", "state", "postcode", "country")
+_GST_FIELDS = ("gst_registered", "gst_effective_date")
 
 
 def _build_address(form: dict[str, str]) -> dict[str, str | None] | None:
@@ -93,6 +94,8 @@ async def company_settings(request: Request) -> HTMLResponse | RedirectResponse:
         addr = company.get("address") or {}
         for key in _ADDR_KEYS:
             form[f"address_{key}"] = str(addr.get(key) or "")
+        form["gst_registered"] = "true" if company.get("gst_registered") else ""
+        form["gst_effective_date"] = str(company.get("gst_effective_date") or "")
 
     flash = request.session.pop("flash", None)
 
@@ -144,6 +147,12 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
     addr = _build_address(form)
     if addr is not None:
         payload["address"] = addr
+
+    # gst_registered is a checkbox — present in form data only when checked.
+    payload["gst_registered"] = "gst_registered" in form_data
+    gst_date = form.get("gst_effective_date", "").strip()
+    if gst_date:
+        payload["gst_effective_date"] = gst_date
 
     async with api_client(request) as client:
         resp = await client.patch(
