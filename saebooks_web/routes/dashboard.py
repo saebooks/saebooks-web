@@ -62,6 +62,20 @@ def _this_month_range() -> tuple[str, str]:
     return first.isoformat(), today.isoformat()
 
 
+def _au_fy_range() -> tuple[str, str]:
+    """Return (from, to) ISO date strings for the current Australian FY.
+
+    Australian FY runs 1 July – 30 June.  If today is before 1 July of the
+    current calendar year the FY started on 1 July of the prior year.
+    """
+    today = date.today()
+    if today.month >= 7:
+        fy_start = date(today.year, 7, 1)
+    else:
+        fy_start = date(today.year - 1, 7, 1)
+    return fy_start.isoformat(), today.isoformat()
+
+
 def _week_range(offset_weeks: int = 0) -> tuple[str, str]:
     """Return (Mon, end) ISO date strings for a calendar week.
 
@@ -324,6 +338,8 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    fy_from, fy_to = _au_fy_range()
+
     async with api_client(request) as client:
         (
             draft_invoices_raw,
@@ -340,6 +356,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             recent_contacts_raw,
             ytd_turnover_raw,
             companies_raw,
+            revenue_concentration_raw,
         ) = await asyncio.gather(
             # AR tile — open invoices are POSTED (overdue computed in Python)
             _fetch_items(client, "/api/v1/invoices",
@@ -373,6 +390,9 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             _fetch_json(client, "/api/v1/reports/ytd_turnover"),
             # PSI status from first active company
             _fetch_json(client, "/api/v1/companies", {"limit": 1, "offset": 0}),
+            # Revenue concentration — PSI 80/20 warning (current AU FY)
+            _fetch_json(client, "/api/v1/reports/revenue_by_customer",
+                        {"from_date": fy_from, "to_date": fy_to}),
         )
 
     # Handle 401 edge case — if all lists are empty and the token is gone,
@@ -395,6 +415,13 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
     first_company = (companies_raw.get("items") or [{}])[0]
     psi_status = first_company.get("psi_status", "unsure") or "unsure"
 
+    # Revenue concentration — used by PSI 80/20 dashboard banner
+    concentration_warning = revenue_concentration_raw.get("concentration_warning", False)
+    top_customer_pct = revenue_concentration_raw.get("top_customer_pct")
+    top_customer_name = ""
+    if revenue_concentration_raw.get("rows"):
+        top_customer_name = revenue_concentration_raw["rows"][0].get("contact_name", "")
+
     return _TEMPLATES.TemplateResponse(
         request,
         "dashboard.html",
@@ -406,5 +433,10 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "recent": recent,
             "gst": gst,
             "psi_status": psi_status,
+            "concentration_warning": concentration_warning,
+            "top_customer_pct": top_customer_pct,
+            "top_customer_name": top_customer_name,
+            "fy_from": fy_from,
+            "fy_to": fy_to,
         },
     )

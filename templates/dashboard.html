@@ -58,6 +58,36 @@
 {% endif %}
 
 
+{# ── Revenue concentration / PSI 80/20 warning ─────────────────────────── #}
+{% if concentration_warning %}
+<div class="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 flex items-start gap-3">
+  <svg class="h-5 w-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
+       stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
+             2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898
+             0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+  </svg>
+  <div>
+    <p class="text-sm font-semibold text-red-800">
+      Revenue concentration risk — {{ "%.0f"|format(top_customer_pct|float) }}% from one customer (PSI 80/20 rule)
+    </p>
+    <p class="mt-1 text-xs text-red-700">
+      {% if top_customer_name %}<strong>{{ top_customer_name }}</strong> accounts{% else %}A single customer accounts{% endif %}
+      for {{ "%.1f"|format(top_customer_pct|float) }}% of your invoiced revenue
+      ({{ fy_from }} – {{ fy_to }}).
+      Under the ATO's 80/20 rule, earning ≥80% of income from one source may mean your income is
+      classified as Personal Services Income (PSI), which restricts certain deductions.
+      <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}"
+         class="underline font-medium">View full breakdown →</a>
+      &nbsp;or&nbsp;
+      <a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/personal-services-income"
+         target="_blank" rel="noopener" class="underline font-medium">ATO PSI guide →</a>
+    </p>
+  </div>
+</div>
+{% endif %}
+
 {# ── PSI classification reminder banner ────────────────────────────────── #}
 {% if psi_status == "unsure" %}
 <div class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start gap-3">

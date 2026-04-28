@@ -1,4 +1,4 @@
-"""Reports HTML views — Lane D cycle 29/32/41.
+"""Reports HTML views — Lane D cycle 29/32/41/PSI-2.
 
 GET /reports/fx-revaluation        — FX revaluation table (as_of_date param)
 
@@ -13,6 +13,7 @@ GET /reports/fx-revaluation         — FX revaluation report (as_of_date)
 GET /reports/trial-balance          — Trial balance (as_of_date, include_zero_balance)
 GET /reports/budget-vs-actual       — Budget vs actual (year, month)
 GET /reports/pl-by-segment          — P&L by segment (from_date, to_date, segment_type)
+GET /reports/revenue-by-customer    — Revenue by customer (from_date, to_date)
 
 All routes are HTMX-aware: when the request carries HX-Request: true the
 route renders only the ``_table`` partial (no base.html wrapper).
@@ -651,5 +652,53 @@ async def pl_by_segment(
         "reports/_pl_by_segment_table.html"
         if _is_htmx(request)
         else "reports/pl_by_segment.html"
+    )
+    return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# GET /reports/revenue-by-customer — gap PSI-2
+# ---------------------------------------------------------------------------
+
+
+@router.get("/reports/revenue-by-customer", response_class=HTMLResponse, response_model=None)
+async def revenue_by_customer(
+    request: Request,
+    from_date: str | None = None,
+    to_date: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """Revenue by customer report — invoiced revenue (ex-GST) per contact."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    from_ = from_date or _month_start()
+    to_ = to_date or _month_end()
+    report: dict = {}
+    error: str | None = None
+
+    async with api_client(request) as client:
+        resp = await client.get(
+            "/api/v1/reports/revenue_by_customer",
+            params={"from_date": from_, "to_date": to_},
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.is_success:
+            report = resp.json()
+        else:
+            error = f"API error: HTTP {resp.status_code}"
+
+    ctx = {
+        "report": report,
+        "from_date": from_,
+        "to_date": to_,
+        "error": error,
+    }
+
+    template = (
+        "reports/_revenue_by_customer_table.html"
+        if _is_htmx(request)
+        else "reports/revenue_by_customer.html"
     )
     return _TEMPLATES.TemplateResponse(request, template, ctx)
