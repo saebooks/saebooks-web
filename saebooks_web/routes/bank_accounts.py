@@ -176,6 +176,9 @@ async def bank_account_create(request: Request) -> HTMLResponse | RedirectRespon
         if val:
             payload[optional_field] = val
 
+    # Boolean checkbox — HTML sends "on" when checked, nothing when unchecked.
+    payload["is_trust_account"] = form.get("is_trust_account") == "on"
+
     async with api_client(request) as client:
         resp = await client.post(
             "/api/v1/bank_accounts",
@@ -285,6 +288,7 @@ async def bank_account_edit_form(
 
     form: dict[str, str] = {field: str(account.get(field) or "") for field in _EDIT_FIELDS}
     form["version"] = str(account.get("version", ""))
+    form["is_trust_account"] = "on" if account.get("is_trust_account") else ""
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -326,6 +330,9 @@ async def bank_account_update(
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
+
+    # Boolean checkbox — always included so unchecking clears trust designation.
+    payload["is_trust_account"] = form.get("is_trust_account") == "on"
 
     async with api_client(request) as client:
         resp = await client.patch(

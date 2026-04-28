@@ -39,9 +39,21 @@ _MOCK_ACCOUNT = {
     "bank_account_title": "SAE Engineering Pty Ltd",
     "apca_user_id": None,
     "bank_abbreviation": "ANZ",
+    "is_trust_account": False,
     "version": 1,
     "created_at": "2024-06-01T09:00:00Z",
     "archived_at": None,
+}
+
+_TRUST_ACCOUNT_ID = "bbbbbbbb-bbbb-bbbb-bbbb-000000000002"
+
+_MOCK_TRUST_ACCOUNT = {
+    **_MOCK_ACCOUNT,
+    "id": _TRUST_ACCOUNT_ID,
+    "code": "BNKTRST001",
+    "name": "CBA Trust Account",
+    "bank_abbreviation": "CBA",
+    "is_trust_account": True,
 }
 
 
@@ -271,3 +283,54 @@ async def test_bank_account_archive_success(respx_mock: respx.MockRouter) -> Non
 
     assert resp.status_code == 303
     assert resp.headers["location"] == "/bank-accounts"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bank_account_create_trust(respx_mock: respx.MockRouter) -> None:
+    """POST /bank-accounts/new with is_trust_account=on → API receives is_trust_account=True."""
+    captured: list[dict] = []
+
+    def _capture(request: respx.models.Request) -> Response:
+        import json as _json_inner
+        captured.append(_json_inner.loads(request.content))
+        return Response(201, json=_MOCK_TRUST_ACCOUNT)
+
+    respx_mock.post(f"{_API_BASE}/api/v1/bank_accounts").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/bank-accounts/new",
+            data={
+                "code": "BNKTRST001",
+                "name": "CBA Trust Account",
+                "bsb": "062-000",
+                "bank_abbreviation": "CBA",
+                "is_trust_account": "on",
+                "idempotency_key": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/bank-accounts/{_TRUST_ACCOUNT_ID}"
+    assert captured[0]["is_trust_account"] is True
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bank_account_new_form_has_trust_checkbox() -> None:
+    """GET /bank-accounts/new — form must include the is_trust_account checkbox."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/bank-accounts/new")
+
+    assert resp.status_code == 200
+    assert 'name="is_trust_account"' in resp.text

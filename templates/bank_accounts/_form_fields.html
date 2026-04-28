@@ -61,3 +61,33 @@
 
   {{ text_input("apca_user_id", "APCA user ID", placeholder="Optional") }}
 </fieldset>
+
+{# ── Trust account designation ── #}
+<fieldset class="space-y-4 mt-6">
+  <legend class="text-sm font-semibold text-gray-900 mb-2">Designation</legend>
+
+  <div class="flex items-start gap-3">
+    <div class="flex items-center h-5">
+      <input
+        type="checkbox"
+        id="is_trust_account"
+        name="is_trust_account"
+        value="on"
+        {% if form.get("is_trust_account") == "on" %}checked{% endif %}
+        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+      >
+    </div>
+    <div>
+      <label for="is_trust_account" class="block text-sm font-medium text-gray-700">
+        Trust account
+      </label>
+      <p class="text-xs text-gray-500 mt-0.5">
+        Designates this as a statutory trust account (e.g. sales trust, rental trust).
+        Trust funds are kept separate from operating funds.
+      </p>
+    </div>
+  </div>
+  {% if errors.get("is_trust_account") %}
+  <p class="mt-1 text-xs text-red-600">{{ errors["is_trust_account"] }}</p>
+  {% endif %}
+</fieldset>

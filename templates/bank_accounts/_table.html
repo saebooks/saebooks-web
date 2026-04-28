@@ -34,7 +34,12 @@
               {{ account.code }}
             </a>
           </td>
-          <td class="px-4 py-3 text-gray-900">{{ account.name }}</td>
+          <td class="px-4 py-3 text-gray-900">
+            {{ account.name }}
+            {% if account.is_trust_account %}
+            <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Trust</span>
+            {% endif %}
+          </td>
           <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bsb or "—" }}</td>
           <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>
           <td class="px-4 py-3 text-gray-600">{{ account.bank_account_title or "—" }}</td>
