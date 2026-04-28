@@ -61,6 +61,11 @@ def _is_sae_staff(request: Request) -> bool:
     return bool(request.session.get("is_sae_staff"))
 
 
+def _is_admin(request: Request) -> bool:
+    role = request.session.get("user_role", "")
+    return _is_sae_staff(request) or role == "admin"
+
+
 # ---------------------------------------------------------------------------
 # SQL Tool — GET /admin/sql-tool
 # ---------------------------------------------------------------------------
@@ -257,5 +262,53 @@ async def audit_log(
             },
             "error": error,
             "flash": flash,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# License — GET /admin/license
+# ---------------------------------------------------------------------------
+
+
+@router.get("/admin/license", response_class=HTMLResponse, response_model=None)
+async def license_page(request: Request) -> HTMLResponse | RedirectResponse:
+    """Show the active edition and per-feature flag matrix."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _is_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
+
+    edition: str = "community"
+    flags: dict[str, bool] = {}
+    all_flags: list[str] = []
+    tier_order: list[str] = []
+    error: str | None = None
+
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/license")
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.is_success:
+        data = resp.json()
+        edition = data.get("edition", "community")
+        flags = data.get("flags", {})
+        all_flags = data.get("all_flags", list(flags.keys()))
+        tier_order = data.get("tier_order", [])
+    else:
+        error = f"API error: HTTP {resp.status_code}"
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "admin/license.html",
+        {
+            "edition": edition,
+            "flags": flags,
+            "all_flags": all_flags,
+            "tier_order": tier_order,
+            "error": error,
         },
     )

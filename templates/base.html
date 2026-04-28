@@ -212,8 +212,12 @@
           Profile
         </a>
         <a href="/settings/company"
-           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/settings/') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Settings
+        </a>
+        <a href="/companies"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/companies') or path.startswith('/settings/companies') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Companies
         </a>
         {% if user_role == 'admin' %}
         <a href="/admin/ranges"
@@ -237,6 +241,10 @@
         <a href="/admin/audit"
            class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/audit' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Audit
+        </a>
+        <a href="/admin/license"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/license' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Licence
         </a>
         {% endif %}
       </div>
