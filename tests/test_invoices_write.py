@@ -526,3 +526,75 @@ async def test_invoice_create_api_error_string_detail(respx_mock: respx.MockRout
     assert resp.status_code == 422
     assert 'name="contact_id"' in resp.text
     assert "Duplicate invoice number" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 13. GET /invoices/new — unit_price has no min=0 and has negative-amount tooltip
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_unit_price_allows_negative(respx_mock: respx.MockRouter) -> None:
+    """unit_price input must not carry min=0 and must have the deduction tooltip (gap ETSY-5)."""
+    _mock_dropdowns(respx_mock)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/invoices/new")
+
+    assert resp.status_code == 200
+    # The constraint that blocked negative entry must be gone.
+    assert 'name="lines[0][unit_price]"' in resp.text
+    # Confirm min="0" is absent from the unit_price input (check the surrounding context).
+    unit_price_block = resp.text[
+        resp.text.index('name="lines[0][unit_price]"') - 200:
+        resp.text.index('name="lines[0][unit_price]"') + 200
+    ]
+    assert 'min="0"' not in unit_price_block
+    # Tooltip explaining deduction pattern must be present.
+    assert "marketplace tax deductions" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 14. POST /invoices/new — negative unit_price accepted (Etsy pass-through tax)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_create_negative_unit_price(respx_mock: respx.MockRouter) -> None:
+    """POST with a negative unit_price line (Etsy marketplace tax deduction) -> 303 (gap ETSY-5)."""
+    respx_mock.post(f"{_API_BASE}/api/v1/invoices").mock(
+        return_value=Response(201, json=_MOCK_INVOICE)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/invoices/new",
+            data={
+                "contact_id": _CONTACT_ID,
+                "issue_date": "2026-04-23",
+                "due_date": "2026-05-23",
+                "idempotency_key": "aaaabbbb-cccc-dddd-eeee-ffffaaaabbbb",
+                "lines[0][account_id]": _ACCOUNT_ID,
+                "lines[0][description]": "Etsy sale",
+                "lines[0][quantity]": "1",
+                "lines[0][unit_price]": "1200.00",
+                "lines[1][account_id]": _ACCOUNT_ID,
+                "lines[1][description]": "Etsy marketplace-collected US sales tax",
+                "lines[1][quantity]": "1",
+                "lines[1][unit_price]": "-80.00",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/invoices/{_INVOICE_ID}"
