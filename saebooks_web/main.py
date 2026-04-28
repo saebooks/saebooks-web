@@ -52,6 +52,7 @@ from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bea
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.routes.account_ranges import router as account_ranges_router
+from saebooks_web.routes.allocations import router as allocations_router
 from saebooks_web.routes.accounts import router as accounts_router
 from saebooks_web.routes.admin import router as admin_router
 from saebooks_web.routes.ai_extraction import router as ai_extraction_router
@@ -200,6 +201,7 @@ app.include_router(bank_rules_router)
 app.include_router(bank_statement_lines_router)
 app.include_router(reconciliation_router)
 app.include_router(budgets_router)
+app.include_router(allocations_router)
 app.include_router(reports_router)
 app.include_router(search_router)
 app.include_router(profile_router)
