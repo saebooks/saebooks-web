@@ -65,6 +65,7 @@
         name="reference"
         value="{{ form.get('reference', '') }}"
         placeholder="e.g. bank transaction ref"
+        maxlength="32"
         class="block w-full rounded-md border {% if errors.get('reference') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
                px-3 py-2 text-sm text-gray-900 placeholder-gray-400
                focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
