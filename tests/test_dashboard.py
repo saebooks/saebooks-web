@@ -468,3 +468,60 @@ async def test_dashboard_gst_banner_above_threshold(respx_mock: respx.MockRouter
     assert "Threshold crossed" in resp.text
     assert "you must register with the ATO within 21 days" in resp.text
     assert "Register for GST" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_weekly_takings_tile(respx_mock: respx.MockRouter) -> None:
+    """Weekly Takings tile shows this-week and prior-week INCOMING totals + delta.
+
+    Uses INCOMING payments dated within this calendar week and the prior Mon-Sun.
+    OUTGOING payments must be excluded from takings.
+    """
+    from datetime import date, timedelta
+
+    today = date.today()
+    mon_this = today - timedelta(days=today.weekday())  # Monday this week
+    mon_last = mon_this - timedelta(weeks=1)            # Monday last week
+    wed_last = mon_last + timedelta(days=2)             # Wednesday last week
+
+    # This week: two INCOMING payments totalling 820.00
+    pmt_tw1 = _payment(
+        id_="tw001", number="PAY-TW1", direction="INCOMING",
+        amount="500.00", payment_date=mon_this.isoformat(),
+    )
+    pmt_tw2 = _payment(
+        id_="tw002", number="PAY-TW2", direction="INCOMING",
+        amount="320.00", payment_date=today.isoformat(),
+    )
+    # This week: OUTGOING — must NOT count toward takings
+    pmt_tw_out = _payment(
+        id_="tw003", number="PAY-TW3", direction="OUTGOING",
+        amount="9999.00", payment_date=today.isoformat(),
+    )
+    # Last week: one INCOMING payment of 600.00
+    pmt_lw1 = _payment(
+        id_="lw001", number="PAY-LW1", direction="INCOMING",
+        amount="600.00", payment_date=wed_last.isoformat(),
+    )
+
+    _register_mocks(respx_mock, payments=[pmt_tw1, pmt_tw2, pmt_tw_out, pmt_lw1])
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    # The "Weekly Takings" heading must appear
+    assert "Weekly Takings" in resp.text
+    # This-week total: 500 + 320 = 820
+    assert "820.00" in resp.text
+    # Prior-week total: 600
+    assert "600.00" in resp.text
+    # Change: +220 and percentage (+36.7%)
+    assert "220.00" in resp.text
+    assert "36.7%" in resp.text
+    # 820.00 this-week total can only be correct if OUTGOING was excluded from takings

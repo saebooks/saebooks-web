@@ -4,12 +4,18 @@ GET /  → render the dashboard, computing AR/AP/cash tiles and recent activity
          from parallel API calls via asyncio.gather.
 
 Tiles:
-  AR at a glance  — draft invoices, open (POSTED, overdue computed in Python),
-                    paid-this-month
-  AP at a glance  — draft bills, due-within-7-days bills, paid-this-month bills
-  Cash movement   — this month's payment IN total, OUT total, net
-  Recent activity — last 5 items across invoices/bills/payments/journal_entries/
-                    contacts ordered by created_at DESC
+  AR at a glance      — draft invoices, open (POSTED, overdue computed in Python),
+                        paid-this-month
+  AP at a glance      — draft bills, due-within-7-days bills, paid-this-month bills
+  Cash movement       — this month's payment IN total, OUT total, net
+  Weekly takings      — INCOMING payment totals: this week vs prior week + delta.
+                        Computed from the same payments page already fetched for the
+                        cash tile (no extra API call).  Relevant for hospitality
+                        personas (micro-cafe).
+                        Deferred: casual-hours pending and till-variance trends
+                        require payroll v2 (STP Phase 2 / Batch JJ) — not in v1.
+  Recent activity     — last 5 items across invoices/bills/payments/journal_entries/
+                        contacts ordered by created_at DESC
 
 Status note: InvoiceStatus and BillStatus enums are DRAFT/POSTED/VOIDED only.
 There is no SENT, PARTIALLY_PAID, or OVERDUE status.  Overdue is computed in
@@ -54,6 +60,21 @@ def _this_month_range() -> tuple[str, str]:
     today = date.today()
     first = today.replace(day=1)
     return first.isoformat(), today.isoformat()
+
+
+def _week_range(offset_weeks: int = 0) -> tuple[str, str]:
+    """Return (Mon, end) ISO date strings for a calendar week.
+
+    offset_weeks=0  → this week: Monday of current week through today.
+    offset_weeks=-1 → last week: Monday through Sunday of prior week.
+    """
+    today = date.today()
+    mon = today - timedelta(days=today.weekday())
+    if offset_weeks == 0:
+        return mon.isoformat(), today.isoformat()
+    week_mon = mon + timedelta(weeks=offset_weeks)
+    week_end = week_mon + timedelta(days=6)
+    return week_mon.isoformat(), week_end.isoformat()
 
 
 # ---------------------------------------------------------------------------
@@ -180,6 +201,47 @@ def _cash_tile(payments: list[dict]) -> dict:
     }
 
 
+def _weekly_takings_tile(payments: list[dict]) -> dict:
+    """Compute weekly takings (INCOMING payments) for this week vs last week.
+
+    Reuses the payments list already fetched for the cash tile — no extra API call.
+    Change percentage is None when last week total is zero (avoid div-by-zero).
+    """
+    this_start, this_end = _week_range(0)
+    last_start, last_end = _week_range(-1)
+
+    this_week = Decimal("0")
+    last_week = Decimal("0")
+
+    for pmt in payments:
+        if pmt.get("direction") != "INCOMING":
+            continue
+        pmt_date = str(pmt.get("payment_date", ""))
+        if not pmt_date:
+            continue
+        amount = _to_decimal(pmt.get("amount", 0))
+        if this_start <= pmt_date <= this_end:
+            this_week += amount
+        elif last_start <= pmt_date <= last_end:
+            last_week += amount
+
+    change = this_week - last_week
+    change_pct: float | None = None
+    if last_week != Decimal("0"):
+        change_pct = float(change / last_week * 100)
+
+    return {
+        "this_week": this_week,
+        "last_week": last_week,
+        "change": change,
+        "change_pct": change_pct,
+        "this_start": this_start,
+        "this_end": this_end,
+        "last_start": last_start,
+        "last_end": last_end,
+    }
+
+
 def _gst_tile(ytd_data: dict) -> dict:
     """Extract GST turnover data from the ytd_turnover API response.
 
@@ -254,8 +316,6 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    month_start, month_end = _this_month_range()
-
     async with api_client(request) as client:
         (
             draft_invoices_raw,
@@ -311,6 +371,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
     ar = _ar_tile(draft_invoices_raw, open_invoices_raw, paid_inv_raw)
     ap = _ap_tile(draft_bills_raw, open_bills_raw, paid_bills_raw)
     cash = _cash_tile(payments_raw)
+    takings = _weekly_takings_tile(payments_raw)
     recent = _recent_activity(
         recent_invoices_raw,
         recent_bills_raw,
@@ -327,6 +388,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "ar": ar,
             "ap": ap,
             "cash": cash,
+            "takings": takings,
             "recent": recent,
             "gst": gst,
         },
