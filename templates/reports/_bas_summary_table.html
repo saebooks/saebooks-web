@@ -40,13 +40,37 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
+        {% set reg_date = report.get("registration_effective_date") %}
         <tr class="hover:bg-gray-50">
           <td class="px-4 py-3 font-semibold text-gray-900">G1</td>
-          <td class="px-4 py-3 text-gray-700">Total Sales (taxable, GST-exclusive base)</td>
+          <td class="px-4 py-3 text-gray-700">
+            Total Sales (taxable, GST-exclusive base)
+            {% if reg_date %}
+            <span class="ml-1 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+              Split at {{ reg_date }}
+            </span>
+            {% endif %}
+          </td>
           <td class="px-4 py-3 text-right tabular-nums text-gray-900">
             {{ "%.2f"|format(report.get("g1_total_sales", 0) | float) }}
           </td>
         </tr>
+        {% if reg_date %}
+        <tr class="hover:bg-amber-50">
+          <td class="px-4 py-3 pl-8 text-xs text-amber-700">G1 pre-reg</td>
+          <td class="px-4 py-3 text-xs text-amber-700">Sales before GST registration (not included in 1A)</td>
+          <td class="px-4 py-3 text-right tabular-nums text-xs text-amber-700">
+            {{ "%.2f"|format(report.get("g1_pre_registration", 0) | float) }}
+          </td>
+        </tr>
+        <tr class="hover:bg-amber-50">
+          <td class="px-4 py-3 pl-8 text-xs text-amber-700">G1 post-reg</td>
+          <td class="px-4 py-3 text-xs text-amber-700">Sales from {{ reg_date }} onwards (feeds 1A)</td>
+          <td class="px-4 py-3 text-right tabular-nums text-xs text-amber-700">
+            {{ "%.2f"|format(report.get("g1_post_registration", 0) | float) }}
+          </td>
+        </tr>
+        {% endif %}
         <tr class="hover:bg-gray-50">
           <td class="px-4 py-3 font-semibold text-gray-900">G2</td>
           <td class="px-4 py-3 text-gray-700">Export Sales (always 0 — not tracked in v1)</td>
@@ -83,7 +107,13 @@
 
         <tr class="hover:bg-gray-50">
           <td class="px-4 py-3 font-semibold text-indigo-700">1A</td>
-          <td class="px-4 py-3 text-gray-700">GST on Sales (G1 × 10%)</td>
+          <td class="px-4 py-3 text-gray-700">
+            {% if reg_date %}
+            GST on Sales (post-registration G1 × 10%)
+            {% else %}
+            GST on Sales (G1 × 10%)
+            {% endif %}
+          </td>
           <td class="px-4 py-3 text-right tabular-nums font-medium text-indigo-700">
             {{ "%.2f"|format(report.get("label_1a_gst_on_sales", 0) | float) }}
           </td>

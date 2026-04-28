@@ -302,10 +302,20 @@ async def bas_summary(
     error: str | None = None
 
     async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/bas_summary",
-            params={"from_date": from_, "to_date": to_},
-        )
+        # Fetch company GST registration date so we can split G1 for mid-quarter
+        # registrations (ATO compliance — HOBB-3).
+        gst_effective_date: str | None = None
+        clist_resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+        if clist_resp.is_success:
+            companies = clist_resp.json().get("items", [])
+            if companies:
+                gst_effective_date = companies[0].get("gst_effective_date") or None
+
+        params: dict = {"from_date": from_, "to_date": to_}
+        if gst_effective_date:
+            params["registration_effective_date"] = gst_effective_date
+
+        resp = await client.get("/api/v1/reports/bas_summary", params=params)
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
