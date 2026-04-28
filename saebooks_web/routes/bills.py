@@ -127,12 +127,19 @@ async def bills_list(
 
 
 @router.get("/bills/new", response_class=HTMLResponse, response_model=None)
-async def bill_new_form(request: Request) -> HTMLResponse | RedirectResponse:
+async def bill_new_form(
+    request: Request,
+    contact_id: str | None = None,
+) -> HTMLResponse | RedirectResponse:
     """Render the empty create-bill form.
 
     Generates a fresh idempotency key stored in a hidden input to prevent
     double-submit on page reload.  Populates supplier, expense account and
     tax-code dropdowns from the upstream API.
+
+    When ``contact_id`` is supplied (e.g. from a contact detail page link),
+    the supplier is pre-selected and the first line is pre-populated with
+    the contact's default_tax_code if one is set.
     """
     if not request.session.get("api_token"):
         return RedirectResponse(url="/login", status_code=303)
@@ -157,14 +164,31 @@ async def bill_new_form(request: Request) -> HTMLResponse | RedirectResponse:
         if t_resp.is_success:
             tax_codes = t_resp.json().get("items", [])
 
-    # One blank row to start with.
-    initial_lines = [{"index": 0}]
+    # Resolve default tax_code_id from the contact's default_tax_code code string.
+    default_tax_code_id: str | None = None
+    if contact_id:
+        async with api_client(request) as client:
+            contact_resp = await client.get(f"/api/v1/contacts/{contact_id}")
+        if contact_resp.is_success:
+            contact_data = contact_resp.json()
+            default_code = contact_data.get("default_tax_code")
+            if default_code and tax_codes:
+                for tc in tax_codes:
+                    if tc.get("code") == default_code:
+                        default_tax_code_id = str(tc["id"])
+                        break
+
+    initial_lines = [{"index": 0, "tax_code_id": default_tax_code_id} if default_tax_code_id else {"index": 0}]
+
+    form: dict[str, object] = {"issue_date": today, "due_date": due}
+    if contact_id:
+        form["contact_id"] = contact_id
 
     return _TEMPLATES.TemplateResponse(
         request,
         "bills/new.html",
         {
-            "form": {"issue_date": today, "due_date": due},
+            "form": form,
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "contacts": contacts,

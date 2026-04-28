@@ -34,6 +34,10 @@ _ACCOUNT_ID = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
 _MOCK_ACCOUNT = {"id": _ACCOUNT_ID, "name": "Revenue", "code": "4000", "account_type": "INCOME"}
 _MOCK_ACCOUNTS = {"items": [_MOCK_ACCOUNT], "total": 1, "limit": 1000, "offset": 0}
 
+_TAX_CODE_ID = "dddddddd-dddd-dddd-dddd-dddddddddddd"
+_MOCK_TAX_CODE = {"id": _TAX_CODE_ID, "code": "GST", "name": "GST on Income", "rate": "10.000"}
+_MOCK_TAX_CODES = {"items": [_MOCK_TAX_CODE], "total": 1, "page": 1, "page_size": 500}
+
 _MOCK_CONTACT = {
     "id": _CONTACT_ID,
     "name": "Acme Pty Ltd",
@@ -133,6 +137,9 @@ async def test_contact_new_form_renders(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
+        return_value=Response(200, json=_MOCK_TAX_CODES)
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -220,9 +227,12 @@ async def test_contact_create_validation_error(respx_mock: respx.MockRouter) -> 
     respx_mock.post(f"{_API_BASE}/api/v1/contacts").mock(
         return_value=Response(422, json=_422_body)
     )
-    # The re-render path fetches accounts for the dropdown.
+    # The re-render path fetches accounts and tax_codes for the dropdowns.
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
+        return_value=Response(200, json=_MOCK_TAX_CODES)
     )
 
     async with AsyncClient(
@@ -376,6 +386,9 @@ async def test_contact_new_form_accounts_dropdown(respx_mock: respx.MockRouter) 
     """GET /contacts/new with accounts available renders a select for default_account_id."""
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
+        return_value=Response(200, json=_MOCK_TAX_CODES)
     )
 
     async with AsyncClient(

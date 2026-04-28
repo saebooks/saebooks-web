@@ -31,6 +31,10 @@ _ACCOUNT_ID = "cccccccc-cccc-cccc-cccc-cccccccccccc"
 _MOCK_ACCOUNT = {"id": _ACCOUNT_ID, "name": "Revenue", "code": "4000", "account_type": "INCOME"}
 _MOCK_ACCOUNTS = {"items": [_MOCK_ACCOUNT], "total": 1, "limit": 1000, "offset": 0}
 
+_TAX_CODE_ID = "dddddddd-dddd-dddd-dddd-dddddddddddd"
+_MOCK_TAX_CODE = {"id": _TAX_CODE_ID, "code": "GST", "name": "GST on Income", "rate": "10.000"}
+_MOCK_TAX_CODES = {"items": [_MOCK_TAX_CODE], "total": 1, "page": 1, "page_size": 500}
+
 _MOCK_CONTACT = {
     "id": _CONTACT_ID,
     "name": "Acme Pty Ltd",
@@ -87,6 +91,9 @@ async def test_edit_form_renders_with_version(respx_mock: respx.MockRouter) -> N
     )
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
+        return_value=Response(200, json=_MOCK_TAX_CODES)
     )
 
     async with AsyncClient(
@@ -197,9 +204,12 @@ async def test_edit_conflict_shows_banner(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(200, json=_MOCK_CONTACT_V6)
     )
-    # The re-render fetches accounts for the dropdown.
+    # The re-render fetches accounts and tax_codes for the dropdowns.
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
+        return_value=Response(200, json=_MOCK_TAX_CODES)
     )
 
     async with AsyncClient(
@@ -248,9 +258,12 @@ async def test_edit_validation_error(respx_mock: respx.MockRouter) -> None:
     respx_mock.patch(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(422, json=_422_body)
     )
-    # The re-render fetches accounts for the dropdown.
+    # The re-render fetches accounts and tax_codes for the dropdowns.
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
+        return_value=Response(200, json=_MOCK_TAX_CODES)
     )
 
     async with AsyncClient(

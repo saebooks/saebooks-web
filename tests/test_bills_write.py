@@ -1,6 +1,6 @@
-"""Tests for the bill create form — Lane D cycles 11 + 51.
+"""Tests for the bill create form — Lane D cycles 11 + 51 + CAFE-4.
 
-Twelve tests:
+Thirteen tests:
 1.  test_bill_new_requires_auth              — GET /bills/new without session -> 303 /login
 2.  test_bill_new_form_renders               — GET /bills/new returns 200 with form + starter line
 3.  test_bill_add_line_fragment              — GET /bills/_add_line returns <tr> without <html>
@@ -13,6 +13,7 @@ Twelve tests:
 10. test_bill_create_api_500                 — API 500 -> form re-rendered with generic error
 11. test_bill_create_multi_line              — POST with 3 lines -> 303 to /bills/{id}
 12. test_bill_create_api_error_string_detail — API 422 with string detail -> error shown
+13. test_bill_new_contact_id_prepopulates    — GET /bills/new?contact_id=X pre-selects supplier + tax code
 """
 from __future__ import annotations
 
@@ -42,7 +43,7 @@ _MOCK_CONTACTS = {"items": [_MOCK_SUPPLIER], "total": 1, "limit": 500, "offset":
 _MOCK_ACCOUNT = {"id": _ACCOUNT_ID, "name": "Office Expenses", "code": "6100", "account_type": "EXPENSE"}
 _MOCK_ACCOUNTS = {"items": [_MOCK_ACCOUNT], "total": 1, "limit": 500, "offset": 0}
 
-_MOCK_TAX_CODE = {"id": _TAX_CODE_ID, "name": "GST", "rate": "0.10"}
+_MOCK_TAX_CODE = {"id": _TAX_CODE_ID, "code": "GST", "name": "GST on Expenses", "rate": "0.10"}
 _MOCK_TAX_CODES = {"items": [_MOCK_TAX_CODE], "total": 1}
 
 _MOCK_BILL = {
@@ -608,3 +609,46 @@ async def test_bill_create_jpy_sends_currency_and_fx_rate(respx_mock: respx.Mock
     payload = captured_payload[0]
     assert payload["currency"] == "JPY", f"Expected JPY, got {payload.get('currency')!r}"
     assert payload["fx_rate"] == "0.0089", f"Expected 0.0089, got {payload.get('fx_rate')!r}"
+
+
+# ---------------------------------------------------------------------------
+# 13. GET /bills/new?contact_id= — pre-selects supplier and default tax code
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_new_contact_id_prepopulates(respx_mock: respx.MockRouter) -> None:
+    """GET /bills/new?contact_id=X pre-selects the supplier and first line's tax code.
+
+    When a contact with default_tax_code="GST" is passed, the supplier dropdown
+    should have that contact selected and the first line row should have the
+    matching tax_code option selected.
+    """
+    _mock_dropdowns(respx_mock)
+
+    _mock_contact_with_default = {
+        **_MOCK_SUPPLIER,
+        "default_tax_code": "GST",
+        "default_account_id": None,
+    }
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
+        return_value=Response(200, json=_mock_contact_with_default)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/bills/new?contact_id={_CONTACT_ID}")
+
+    assert resp.status_code == 200
+    # Supplier dropdown has the contact pre-selected.
+    assert f'value="{_CONTACT_ID}" selected' in resp.text or (
+        f'value="{_CONTACT_ID}"' in resp.text and "selected" in resp.text
+    )
+    # First line row has the matching tax code pre-selected.
+    assert f'value="{_TAX_CODE_ID}" selected' in resp.text or (
+        f'value="{_TAX_CODE_ID}"' in resp.text and "selected" in resp.text
+    )

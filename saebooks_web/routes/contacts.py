@@ -92,18 +92,21 @@ async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
 # ---------------------------------------------------------------------------
 
 
-async def _fetch_contact_dropdowns(request: Request) -> list[dict]:
-    """Fetch the accounts list for the contact form dropdowns.
+async def _fetch_contact_dropdowns(request: Request) -> tuple[list[dict], list[dict]]:
+    """Fetch accounts and tax codes for the contact form dropdowns.
 
-    Returns an empty list on any API error so the form degrades gracefully to
-    a plain text input for default_account_id.
+    Returns empty lists on any API error so the form degrades gracefully.
     """
     accounts: list[dict] = []
+    tax_codes: list[dict] = []
     async with api_client(request) as client:
         a_resp = await client.get("/api/v1/accounts", params={"limit": 1000, "offset": 0})
         if a_resp.is_success:
             accounts = a_resp.json().get("items", [])
-    return accounts
+        t_resp = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+        if t_resp.is_success:
+            tax_codes = t_resp.json().get("items", [])
+    return accounts, tax_codes
 
 
 @router.get("/contacts/new", response_class=HTMLResponse, response_model=None)
@@ -116,7 +119,7 @@ async def contact_new_form(request: Request) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    accounts = await _fetch_contact_dropdowns(request)
+    accounts, tax_codes = await _fetch_contact_dropdowns(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -126,6 +129,7 @@ async def contact_new_form(request: Request) -> HTMLResponse | RedirectResponse:
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "accounts": accounts,
+            "tax_codes": tax_codes,
         },
     )
 
@@ -209,7 +213,7 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
     else:
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
-    accounts = await _fetch_contact_dropdowns(request)
+    accounts, tax_codes = await _fetch_contact_dropdowns(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -219,6 +223,7 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
             "errors": errors,
             "idempotency_key": idempotency_key,
             "accounts": accounts,
+            "tax_codes": tax_codes,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
@@ -303,7 +308,7 @@ async def contact_edit_form(
     form: dict[str, str] = {field: str(contact.get(field) or "") for field in _EDIT_FIELDS}
     form["version"] = str(contact.get("version", ""))
 
-    accounts = await _fetch_contact_dropdowns(request)
+    accounts, tax_codes = await _fetch_contact_dropdowns(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -314,6 +319,7 @@ async def contact_edit_form(
             "errors": {},
             "conflict": False,
             "accounts": accounts,
+            "tax_codes": tax_codes,
         },
     )
 
@@ -378,7 +384,7 @@ async def contact_update(
         conflict_form = dict(form)
         conflict_form["version"] = server_version
 
-        accounts = await _fetch_contact_dropdowns(request)
+        accounts, tax_codes = await _fetch_contact_dropdowns(request)
 
         return _TEMPLATES.TemplateResponse(
             request,
@@ -390,6 +396,7 @@ async def contact_update(
                 "conflict": True,
                 "server_contact": server_contact,
                 "accounts": accounts,
+                "tax_codes": tax_codes,
             },
             status_code=409,
         )
@@ -420,7 +427,7 @@ async def contact_update(
     else:
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
-    accounts = await _fetch_contact_dropdowns(request)
+    accounts, tax_codes = await _fetch_contact_dropdowns(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -431,6 +438,7 @@ async def contact_update(
             "errors": errors,
             "conflict": False,
             "accounts": accounts,
+            "tax_codes": tax_codes,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )

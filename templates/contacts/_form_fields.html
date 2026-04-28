@@ -105,7 +105,44 @@
 {# ── Accounting ── #}
 <fieldset class="space-y-4 mt-6">
   <legend class="text-sm font-semibold text-gray-900 mb-2">Accounting</legend>
-  {{ text_input("default_tax_code", "Default tax code", placeholder="GST") }}
+
+  {# default_tax_code — dropdown when tax_codes list available, plain input as fallback #}
+  <div>
+    <label for="default_tax_code" class="block text-sm font-medium text-gray-700 mb-1">
+      Default tax code
+    </label>
+    {% if tax_codes %}
+    <select
+      id="default_tax_code"
+      name="default_tax_code"
+      class="block w-full rounded-md border {% if errors.get('default_tax_code') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+             px-3 py-2 text-sm text-gray-900
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+      <option value="">— None —</option>
+      {% for tc in tax_codes %}
+      <option value="{{ tc.code }}"
+        {% if form.get("default_tax_code") == tc.code %}selected{% endif %}>
+        {{ tc.code }} — {{ tc.name }}
+      </option>
+      {% endfor %}
+    </select>
+    {% else %}
+    <input
+      type="text"
+      id="default_tax_code"
+      name="default_tax_code"
+      value="{{ form.get('default_tax_code', '') }}"
+      placeholder="e.g. GST"
+      class="block w-full rounded-md border {% if errors.get('default_tax_code') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+    {% endif %}
+    {% if errors.get("default_tax_code") %}
+    <p class="mt-1 text-xs text-red-600">{{ errors["default_tax_code"] }}</p>
+    {% endif %}
+  </div>
 
   {# default_account_id — dropdown when accounts list is available, plain input as fallback #}
   <div>
