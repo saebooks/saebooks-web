@@ -321,3 +321,39 @@ async def test_credit_note_create_sends_idempotency_key(
 
     assert len(captured) == 1, "Expected exactly one upstream POST call"
     assert captured[0] == _idem_key, f"Expected {_idem_key!r}, got {captured[0]!r}"
+
+
+# ---------------------------------------------------------------------------
+# 7. GET /credit-notes/new — reason code dropdown with standard codes
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_credit_note_new_reason_code_dropdown(respx_mock: respx.MockRouter) -> None:
+    """GET /credit-notes/new includes a reason code <select> with all standard codes."""
+    _mock_dropdowns(respx_mock)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/credit-notes/new")
+
+    assert resp.status_code == 200
+    # Dropdown must be a <select> element, not a free-text input.
+    assert '<select' in resp.text
+    assert 'name="reason"' in resp.text
+    # All five standard reason codes must appear as options.
+    for code in (
+        "Return of goods",
+        "Change of terms",
+        "GST registration change",
+        "Error correction",
+        "Other",
+    ):
+        assert code in resp.text, f"Missing reason code option: {code!r}"
+    # Guidance callout must be present.
+    assert "GST registration change" in resp.text
+    assert "re-issue" in resp.text.lower() or "re-invoice" in resp.text.lower() or "re-issued" in resp.text.lower()

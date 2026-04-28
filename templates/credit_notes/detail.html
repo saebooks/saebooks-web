@@ -38,7 +38,15 @@
     </div>
     <p class="text-sm text-gray-500 mt-1">Contact: {{ credit_note.contact_id }}</p>
     {% if credit_note.reason %}
-    <p class="text-sm text-gray-500 mt-0.5">Reason: {{ credit_note.reason }}</p>
+    <p class="text-sm text-gray-500 mt-0.5">
+      Reason code:
+      <span class="inline-block rounded-full bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+        {{ credit_note.reason }}
+      </span>
+      {% if credit_note.reason == "GST registration change" %}
+      <span class="ml-1 text-xs text-amber-700 font-medium">— re-issue with GST applied</span>
+      {% endif %}
+    </p>
     {% endif %}
   </div>
   <div class="flex items-center gap-3">
