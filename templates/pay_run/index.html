@@ -18,6 +18,36 @@
   </div>
 </div>
 
+{# ── Scope notice: wage/payroll calculation not automated ── #}
+<div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4 mb-6 text-sm text-amber-800" role="note" aria-label="Payroll scope notice">
+  <div class="flex gap-3">
+    <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <p class="font-semibold mb-1">This page exports creditor bill payments only (ABA format).</p>
+      <p class="mb-2">
+        Wage calculation — including Hospitality Industry Award penalty rates
+        (Saturday 125%, Sunday 150%, Public Holiday 225%) — is <strong>not automated</strong> in SAE Books v1.
+        Wages must be calculated externally and posted as journal entries.
+      </p>
+      <p class="font-medium">Recommended workflow for casual/award staff:</p>
+      <ol class="list-decimal list-inside mt-1 space-y-0.5 text-amber-700">
+        <li>Calculate gross wages and penalty loadings in an external payroll tool
+            (e.g. Tanda, Guidepoint, or the Fair Work Pay Calculator).</li>
+        <li>Deduct PAYG withholding and superannuation per your payroll run.</li>
+        <li>Post the net wages, PAYG, and super as a
+            <a href="/journal-entries/new" class="underline hover:text-amber-900">journal entry</a>
+            in SAE Books (Dr Wages Expense / Cr Bank / Cr PAYG Payable / Cr Super Payable).</li>
+      </ol>
+      <p class="mt-2 text-amber-600 text-xs">
+        Full payroll automation (STP Phase 2, Award rate engine) is on the roadmap for a future release.
+      </p>
+    </div>
+  </div>
+</div>
+
 {% if error %}
 <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
   {{ error }}

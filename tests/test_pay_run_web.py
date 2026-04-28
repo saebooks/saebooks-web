@@ -9,6 +9,7 @@
 7.  test_pay_run_export_success             — POST /pay-run/export API 200 -> ABA file download
 8.  test_pay_run_export_api_error           — POST /pay-run/export API 400 -> 303 /pay-run with flash
 9.  test_pay_run_nav_link                   — GET /payments shows Pay Run nav link
+10. test_pay_run_scope_notice               — GET /pay-run shows payroll/penalty-rate scope callout (CAFE-3)
 """
 from __future__ import annotations
 
@@ -316,3 +317,43 @@ async def test_pay_run_nav_link(respx_mock: respx.MockRouter) -> None:
     assert resp.status_code == 200
     assert "/pay-run" in resp.text
     assert "Pay Run" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 10. Payroll scope notice — CAFE-3
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_pay_run_scope_notice(respx_mock: respx.MockRouter) -> None:
+    """GET /pay-run includes a scope callout noting wage/penalty-rate calculation
+    is not automated, and directs users to an external payroll tool + journal
+    entry workflow (gap CAFE-3).
+    """
+    respx_mock.get(f"{_API_BASE}/api/v1/bills").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/bank-accounts").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/pay-run")
+
+    assert resp.status_code == 200
+    body = resp.text
+    # Scope callout must explain this is a creditor-payment (ABA) exporter only.
+    assert "creditor bill payments only" in body or "ABA" in body
+    # Must mention penalty rates are not automated.
+    assert "not automated" in body
+    # Must reference Hospitality Award penalty rates.
+    assert "125%" in body and "150%" in body and "225%" in body
+    # Must suggest journal entry as the posting workaround.
+    assert "journal" in body.lower()
+    # Must mention external payroll tool guidance.
+    assert "payroll" in body.lower()
