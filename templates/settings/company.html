@@ -173,6 +173,39 @@
       </div>
     </fieldset>
 
+
+    {# ── PSI (Personal Services Income) classification ── #}
+    <fieldset class="mb-5 border border-gray-200 rounded-lg px-4 py-4">
+      <legend class="px-1 text-sm font-medium text-gray-700">Business Classification (PSI)</legend>
+
+      <p class="text-xs text-gray-500 mb-3">
+        If most of your income comes from your personal skills or efforts, the ATO may classify it
+        as Personal Services Income (PSI). This affects which deductions you can claim.
+        <a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/personal-services-income"
+           target="_blank" rel="noopener" class="text-indigo-600 underline ml-1">
+          80/20 rule &amp; PSI info →
+        </a>
+      </p>
+
+      <div class="flex flex-col gap-2">
+        {% for val, label in [('yes', 'Yes — I have a PSI determination (or clearly pass the 80/20 test)'),
+                               ('no',  'No — I am not a Personal Services Business'),
+                               ('unsure', 'Unsure — I need to check my PSI status')] %}
+        <label class="flex items-start gap-2 cursor-pointer">
+          <input
+            type="radio"
+            name="psi_status"
+            value="{{ val }}"
+            {% if form.get('psi_status', 'unsure') == val %}checked{% endif %}
+            class="mt-0.5 h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          >
+          <span class="text-sm text-gray-700">{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+    </fieldset>
+
     {# ── Address fieldset ── #}
     <fieldset class="mb-5 border border-gray-200 rounded-lg px-4 py-4">
       <legend class="px-1 text-sm font-medium text-gray-700">Address</legend>

@@ -57,6 +57,34 @@
 </div>
 {% endif %}
 
+
+{# ── PSI classification reminder banner ────────────────────────────────── #}
+{% if psi_status == "unsure" %}
+<div class="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start gap-3">
+  <svg class="h-5 w-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
+       stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
+             2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898
+             0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+  </svg>
+  <div>
+    <p class="text-sm font-semibold text-amber-800">
+      PSI status unset — check your Personal Services Income classification
+    </p>
+    <p class="mt-1 text-xs text-amber-700">
+      If most of your income is from your personal skills (e.g. IT contracting), the ATO's
+      80/20 rule may apply. Claiming disallowed PSI deductions (spouse wages, second vehicle,
+      home-office) without a PSI determination is a common audit trigger.
+      <a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/personal-services-income"
+         target="_blank" rel="noopener" class="underline font-medium">ATO PSI guide →</a>
+      &nbsp;or&nbsp;
+      <a href="/settings/company" class="underline font-medium">Set PSI status in settings →</a>
+    </p>
+  </div>
+</div>
+{% endif %}
+
 {# ── 2×2 tile grid ─────────────────────────────────────────────────────── #}
 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
 

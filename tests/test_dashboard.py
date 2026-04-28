@@ -556,3 +556,53 @@ async def test_dashboard_weekly_takings_tile(respx_mock: respx.MockRouter) -> No
     assert "220.00" in resp.text
     assert "36.7%" in resp.text
     # 820.00 this-week total can only be correct if OUTGOING was excluded from takings
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_psi_banner_shown_when_unsure(respx_mock: respx.MockRouter) -> None:
+    """Dashboard shows PSI reminder banner when company psi_status is 'unsure'."""
+    _register_mocks(respx_mock)
+    # Override the companies endpoint to return a company with psi_status=unsure
+    respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/companies(\?.*)?$"
+    ).mock(return_value=Response(200, json={
+        "items": [{"id": "aaaa0001-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "psi_status": "unsure"}],
+        "total": 1,
+    }))
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    assert "PSI status unset" in resp.text
+    assert "Personal Services Income" in resp.text
+    assert "80/20 rule" in resp.text
+    assert "Set PSI status in settings" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_psi_banner_hidden_when_set(respx_mock: respx.MockRouter) -> None:
+    """Dashboard does NOT show PSI banner when psi_status is 'yes' or 'no'."""
+    _register_mocks(respx_mock)
+    respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/companies(\?.*)?$"
+    ).mock(return_value=Response(200, json={
+        "items": [{"id": "aaaa0001-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "psi_status": "no"}],
+        "total": 1,
+    }))
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    assert "PSI status unset" not in resp.text

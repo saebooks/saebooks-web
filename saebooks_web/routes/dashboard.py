@@ -339,6 +339,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             recent_je_raw,
             recent_contacts_raw,
             ytd_turnover_raw,
+            companies_raw,
         ) = await asyncio.gather(
             # AR tile — open invoices are POSTED (overdue computed in Python)
             _fetch_items(client, "/api/v1/invoices",
@@ -370,6 +371,8 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
                          {"page": 1, "page_size": 10}),
             # GST turnover tile
             _fetch_json(client, "/api/v1/reports/ytd_turnover"),
+            # PSI status from first active company
+            _fetch_json(client, "/api/v1/companies", {"limit": 1, "offset": 0}),
         )
 
     # Handle 401 edge case — if all lists are empty and the token is gone,
@@ -389,6 +392,9 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
     )
     gst = _gst_tile(ytd_turnover_raw)
 
+    first_company = (companies_raw.get("items") or [{}])[0]
+    psi_status = first_company.get("psi_status", "unsure") or "unsure"
+
     return _TEMPLATES.TemplateResponse(
         request,
         "dashboard.html",
@@ -399,5 +405,6 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "takings": takings,
             "recent": recent,
             "gst": gst,
+            "psi_status": psi_status,
         },
     )

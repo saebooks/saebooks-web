@@ -307,3 +307,70 @@ async def test_company_settings_gst_recent_date_no_confirm(respx_mock: respx.Moc
         )
 
     assert resp.status_code == 303
+
+
+# ---------------------------------------------------------------------------
+# PSI-1 — PSI status field in company settings form
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_psi_field_renders(respx_mock: respx.MockRouter) -> None:
+    """GET /settings/company renders the PSI status radio group."""
+    mock_company_with_psi = {**_MOCK_COMPANY, "psi_status": "unsure"}
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(200, json={"items": [mock_company_with_psi], "total": 1})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/settings/company")
+
+    assert resp.status_code == 200
+    assert 'name="psi_status"' in resp.text
+    assert "Personal Services Income" in resp.text
+    assert "80/20" in resp.text
+    # All three radio values present
+    assert 'value="yes"' in resp.text
+    assert 'value="no"' in resp.text
+    assert 'value="unsure"' in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_psi_update_sends_to_api(respx_mock: respx.MockRouter) -> None:
+    """POST /settings/company with psi_status=yes sends it in the PATCH body."""
+    captured: list[dict] = []
+
+    def _capture(request: respx.Request, *_: object) -> Response:
+        import json as _json
+        captured.append(_json.loads(request.content))
+        return Response(200, json={**_MOCK_COMPANY, "psi_status": "yes", "version": 4})
+
+    respx_mock.patch(f"{_API_BASE}/api/v1/companies/{_COMPANY_ID}").mock(
+        side_effect=_capture
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/settings/company",
+            data={
+                "company_id": _COMPANY_ID,
+                "name": "Acme Pty Ltd",
+                "version": "3",
+                "psi_status": "yes",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert captured, "PATCH was not called"
+    assert captured[0].get("psi_status") == "yes"

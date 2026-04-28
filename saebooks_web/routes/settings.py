@@ -101,6 +101,7 @@ async def company_settings(request: Request) -> HTMLResponse | RedirectResponse:
             form[f"address_{key}"] = str(addr.get(key) or "")
         form["gst_registered"] = "true" if company.get("gst_registered") else ""
         form["gst_effective_date"] = str(company.get("gst_effective_date") or "")
+        form["psi_status"] = str(company.get("psi_status") or "unsure")
 
     flash = request.session.pop("flash", None)
 
@@ -155,6 +156,9 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
 
     # gst_registered is a checkbox — present in form data only when checked.
     payload["gst_registered"] = "gst_registered" in form_data
+    psi_status = form.get("psi_status", "").strip()
+    if psi_status in ("yes", "no", "unsure"):
+        payload["psi_status"] = psi_status
     gst_date = form.get("gst_effective_date", "").strip()
     backdate_confirmed = form.get("backdate_confirmed", "") == "true"
     if gst_date:
