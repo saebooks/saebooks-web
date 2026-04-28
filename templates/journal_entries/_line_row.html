@@ -5,12 +5,11 @@
   fragment returned by GET /journal-entries/_add_line?index=N.
 
   Expected context variables:
-    index    : int   — zero-based row index used in field names
-    line     : dict  — pre-filled values (empty dict for a blank row)
-    accounts : list  — account dicts [{id, name, code, account_type}, ...]
-    errors   : dict  — field errors (keyed by flat name, rarely used per-line)
-
-  Note: no tax_code column — JE lines use raw debit/credit amounts.
+    index      : int   — zero-based row index used in field names
+    line       : dict  — pre-filled values (empty dict for a blank row)
+    accounts   : list  — account dicts [{id, name, code, account_type}, ...]
+    tax_codes  : list  — tax code dicts [{id, name, rate}, ...]
+    errors     : dict  — field errors (keyed by flat name, rarely used per-line)
 #}
 <tr class="line-row border-b border-gray-100">
   {# Account #}
@@ -40,6 +39,23 @@
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
              focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
     >
+  </td>
+
+  {# Tax code #}
+  <td class="px-3 py-2 w-32">
+    <select
+      name="lines[{{ index }}][tax_code_id]"
+      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+      <option value="">— none —</option>
+      {% for tc in tax_codes %}
+      <option value="{{ tc.id }}"
+        {% if line.get("tax_code_id") == tc.id or line.get("tax_code_id") == tc.id|string %}selected{% endif %}>
+        {{ tc.name }}
+      </option>
+      {% endfor %}
+    </select>
   </td>
 
   {# Debit #}

@@ -58,7 +58,7 @@ _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 # JE-specific line fields — debit/credit instead of quantity/unit_price.
-_JE_LINE_FIELDS = ("account_id", "description", "debit", "credit")
+_JE_LINE_FIELDS = ("account_id", "description", "debit", "credit", "tax_code_id")
 
 
 def _require_auth(request: Request) -> str | None:
@@ -200,11 +200,15 @@ async def journal_entry_new_form(request: Request) -> HTMLResponse | RedirectRes
     today = date.today().isoformat()
 
     accounts: list[dict] = []
+    tax_codes: list[dict] = []
 
     async with api_client(request) as client:
         a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
         if a_resp.is_success:
             accounts = a_resp.json().get("items", [])
+        t_resp = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+        if t_resp.is_success:
+            tax_codes = t_resp.json().get("items", [])
 
     # Two blank starter lines — index 0 (debit) and index 1 (credit).
     initial_lines = [{"index": 0}, {"index": 1}]
@@ -217,6 +221,7 @@ async def journal_entry_new_form(request: Request) -> HTMLResponse | RedirectRes
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "accounts": accounts,
+            "tax_codes": tax_codes,
             "lines": initial_lines,
             "line_count": 2,
         },
@@ -289,13 +294,17 @@ async def journal_entry_create(request: Request) -> HTMLResponse | RedirectRespo
     else:
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
-    # Re-fetch accounts dropdown for re-render.
+    # Re-fetch accounts and tax_codes dropdowns for re-render.
     accounts: list[dict] = []
+    tax_codes: list[dict] = []
 
     async with api_client(request) as client:
         a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
         if a_resp.is_success:
             accounts = a_resp.json().get("items", [])
+        t_resp = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+        if t_resp.is_success:
+            tax_codes = t_resp.json().get("items", [])
 
     # Reconstruct lines for re-render from submitted form keys.
     raw_lines = _parse_je_lines(form)
@@ -312,6 +321,7 @@ async def journal_entry_create(request: Request) -> HTMLResponse | RedirectRespo
             "errors": errors,
             "idempotency_key": idempotency_key,
             "accounts": accounts,
+            "tax_codes": tax_codes,
             "lines": lines,
             "line_count": len(lines),
         },
@@ -332,11 +342,15 @@ async def journal_entry_add_line(
         return RedirectResponse(url="/login", status_code=303)
 
     accounts: list[dict] = []
+    tax_codes: list[dict] = []
 
     async with api_client(request) as client:
         a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
         if a_resp.is_success:
             accounts = a_resp.json().get("items", [])
+        t_resp = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+        if t_resp.is_success:
+            tax_codes = t_resp.json().get("items", [])
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -345,6 +359,7 @@ async def journal_entry_add_line(
             "index": index,
             "line": {},
             "accounts": accounts,
+            "tax_codes": tax_codes,
             "errors": {},
         },
     )
@@ -363,18 +378,17 @@ _EDIT_FIELDS = ("entry_date", "narration", "reference")
 _LOCKED_STATUSES = {"POSTED", "REVERSED"}
 
 
-async def _fetch_dropdowns(client) -> list[dict]:
-    """Fetch accounts list for the JE edit form dropdowns.
-
-    JEs have no contact (no customer/supplier) and the line-level tax_code is
-    an optional field on JournalLineCreate but not displayed by default in this
-    UI; only accounts are required for the form.  Returns the accounts list.
-    """
+async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict]]:
+    """Fetch accounts and tax_codes for the JE form dropdowns."""
     accounts: list[dict] = []
+    tax_codes: list[dict] = []
     a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
     if a_resp.is_success:
         accounts = a_resp.json().get("items", [])
-    return accounts
+    t_resp = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+    if t_resp.is_success:
+        tax_codes = t_resp.json().get("items", [])
+    return accounts, tax_codes
 
 
 @router.get("/journal-entries/{entry_id}/edit", response_class=HTMLResponse, response_model=None)
@@ -410,7 +424,7 @@ async def journal_entry_edit_form(
             {
                 "entry": None, "form": {},
                 "errors": {"__all__": "Journal entry not found"},
-                "conflict": False, "accounts": [], "lines": [], "line_count": 0,
+                "conflict": False, "accounts": [], "tax_codes": [], "lines": [], "line_count": 0,
             },
             status_code=404,
         )
@@ -421,7 +435,7 @@ async def journal_entry_edit_form(
             {
                 "entry": None, "form": {},
                 "errors": {"__all__": f"API error: HTTP {resp.status_code}"},
-                "conflict": False, "accounts": [], "lines": [], "line_count": 0,
+                "conflict": False, "accounts": [], "tax_codes": [], "lines": [], "line_count": 0,
             },
             status_code=resp.status_code,
         )
@@ -458,12 +472,13 @@ async def journal_entry_edit_form(
             "description": ln.get("description", ""),
             "debit": str(ln.get("debit", "0")),
             "credit": str(ln.get("credit", "0")),
+            "tax_code_id": str(ln.get("tax_code_id") or ""),
         })
     if not lines:
         lines = [{"index": 0}, {"index": 1}]
 
     async with api_client(request) as client:
-        accounts = await _fetch_dropdowns(client)
+        accounts, tax_codes = await _fetch_dropdowns(client)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -475,6 +490,7 @@ async def journal_entry_edit_form(
             "conflict": False,
             "idempotency_key": str(uuid.uuid4()),
             "accounts": accounts,
+            "tax_codes": tax_codes,
             "lines": lines,
             "line_count": len(lines),
         },
@@ -547,7 +563,7 @@ async def journal_entry_update(
             server_entry: dict = latest_resp.json() if latest_resp.is_success else {}
             server_version = str(server_entry.get("version", ""))
 
-            accounts = await _fetch_dropdowns(client)
+            accounts, tax_codes = await _fetch_dropdowns(client)
 
         # Preserve user's submitted form values but update the hidden version.
         conflict_form = dict(form)
@@ -571,6 +587,7 @@ async def journal_entry_update(
                 "server_entry": server_entry,
                 "idempotency_key": idempotency_key,
                 "accounts": accounts,
+                "tax_codes": tax_codes,
                 "lines": lines,
                 "line_count": len(lines),
             },
@@ -603,9 +620,9 @@ async def journal_entry_update(
     else:
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
-    # Re-fetch accounts dropdown for re-render.
+    # Re-fetch accounts and tax_codes dropdowns for re-render.
     async with api_client(request) as client:
-        accounts2 = await _fetch_dropdowns(client)
+        accounts2, tax_codes2 = await _fetch_dropdowns(client)
 
     raw_lines2 = _parse_je_lines(form)
     lines2 = [{"index": i, **ln} for i, ln in enumerate(raw_lines2)] or [
@@ -623,6 +640,7 @@ async def journal_entry_update(
             "conflict": False,
             "idempotency_key": idempotency_key,
             "accounts": accounts2,
+            "tax_codes": tax_codes2,
             "lines": lines2,
             "line_count": len(lines2),
         },

@@ -56,6 +56,14 @@ _MOCK_ACCOUNTS = {
     "offset": 0,
 }
 
+_TC_ID_1 = "cccccccc-0000-0000-0000-000000000001"
+_MOCK_TAX_CODES = {
+    "items": [{"id": _TC_ID_1, "name": "GST on Income", "rate": "0.1000"}],
+    "total": 1,
+    "page": 1,
+    "page_size": 500,
+}
+
 _MOCK_JE = {
     "id": _JE_ID,
     "company_id": "55555555-5555-5555-5555-555555555555",
@@ -119,6 +127,13 @@ def _mock_accounts(respx_mock: respx.MockRouter) -> None:
     )
 
 
+def _mock_tax_codes(respx_mock: respx.MockRouter) -> None:
+    """Register mock response for the tax_codes dropdown API call."""
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
+        return_value=Response(200, json=_MOCK_TAX_CODES)
+    )
+
+
 # ---------------------------------------------------------------------------
 # 1. GET /journal-entries/new — requires auth
 # ---------------------------------------------------------------------------
@@ -148,6 +163,7 @@ async def test_journal_entry_new_requires_auth() -> None:
 async def test_journal_entry_new_form_renders(respx_mock: respx.MockRouter) -> None:
     """GET /journal-entries/new returns 200 with the create form and two starter line rows."""
     _mock_accounts(respx_mock)
+    _mock_tax_codes(respx_mock)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -186,6 +202,7 @@ async def test_journal_entry_new_form_renders(respx_mock: respx.MockRouter) -> N
 async def test_journal_entry_add_line_fragment(respx_mock: respx.MockRouter) -> None:
     """GET /journal-entries/_add_line?index=2 returns the line-row fragment, not a full page."""
     _mock_accounts(respx_mock)
+    _mock_tax_codes(respx_mock)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -262,6 +279,7 @@ async def test_journal_entry_create_unbalanced_422(respx_mock: respx.MockRouter)
     )
     # Dropdown re-population after validation failure also needs mocking.
     _mock_accounts(respx_mock)
+    _mock_tax_codes(respx_mock)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -313,6 +331,7 @@ async def test_journal_entry_create_validation_error(respx_mock: respx.MockRoute
     )
     # Dropdown re-population after validation failure also needs mocking.
     _mock_accounts(respx_mock)
+    _mock_tax_codes(respx_mock)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

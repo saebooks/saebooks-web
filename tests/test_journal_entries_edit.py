@@ -11,7 +11,8 @@ Eight tests:
 8. test_je_edit_parses_lines_replacement — 3 lines submitted; assert PATCH body has lines:[...]*3
 
 Key differences from invoice/credit-note edit tests:
-- No contacts or tax_codes dropdown — JE has no customer, lines use raw debit/credit
+- No contacts dropdown — JE has no customer; lines use raw debit/credit
+- tax_codes dropdown is included (JE lines support optional tax_code_id)
 - Locked statuses: POSTED + REVERSED (invoices use VOIDED; JEs use REVERSED)
 - API balance check returns a plain string in detail (not a list of field errors)
 - `narration` is the create/update field name; `description` is the Out field name
@@ -45,6 +46,14 @@ _MOCK_ACCOUNTS = {
     "total": 2,
     "limit": 200,
     "offset": 0,
+}
+
+_TC_ID_1 = "cccccccc-0000-0000-0000-000000000001"
+_MOCK_TAX_CODES = {
+    "items": [{"id": _TC_ID_1, "name": "GST on Income", "rate": "0.1000"}],
+    "total": 1,
+    "page": 1,
+    "page_size": 500,
 }
 
 _MOCK_JE_DRAFT = {
@@ -115,6 +124,13 @@ def _mock_accounts(respx_mock: respx.MockRouter) -> None:
     )
 
 
+def _mock_tax_codes(respx_mock: respx.MockRouter) -> None:
+    """Register mock response for the tax_codes dropdown API call."""
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
+        return_value=Response(200, json=_MOCK_TAX_CODES)
+    )
+
+
 # ---------------------------------------------------------------------------
 # 1. Edit requires auth
 # ---------------------------------------------------------------------------
@@ -154,6 +170,7 @@ async def test_je_edit_form_renders_draft(respx_mock: respx.MockRouter) -> None:
         return_value=Response(200, json=_MOCK_JE_DRAFT)
     )
     _mock_accounts(respx_mock)
+    _mock_tax_codes(respx_mock)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -270,6 +287,7 @@ async def test_je_edit_conflict_shows_banner(respx_mock: respx.MockRouter) -> No
         return_value=Response(200, json=_MOCK_JE_V4)
     )
     _mock_accounts(respx_mock)
+    _mock_tax_codes(respx_mock)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -318,6 +336,7 @@ async def test_je_edit_unbalanced_422(respx_mock: respx.MockRouter) -> None:
         return_value=Response(422, json=_unbalanced_body)
     )
     _mock_accounts(respx_mock)
+    _mock_tax_codes(respx_mock)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -369,6 +388,7 @@ async def test_je_edit_validation_error(respx_mock: respx.MockRouter) -> None:
         return_value=Response(422, json=_422_body)
     )
     _mock_accounts(respx_mock)
+    _mock_tax_codes(respx_mock)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

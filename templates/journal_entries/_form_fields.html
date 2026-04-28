@@ -15,6 +15,7 @@
     errors        : dict  — field name -> error message; "__all__" for non-field errors
     idempotency_key : str
     accounts      : list  — account dicts [{id, name, code, account_type}, ...]
+    tax_codes     : list  — tax code dicts [{id, name, rate}, ...]
     lines         : list  — list of dicts with "index" + optional field pre-fills
     line_count    : int   — current number of lines (used for the add-row counter)
 #}
@@ -111,6 +112,7 @@
         <tr>
           <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account</th>
           <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
+          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-32">Tax Code</th>
           <th class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs w-28">Debit</th>
           <th class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs w-28">Credit</th>
           <th class="px-3 py-2 w-10"></th>
