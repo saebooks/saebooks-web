@@ -140,8 +140,31 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
     form_data = await request.form()
     form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
 
-    company_id: str | None = form.get("company_id")
+    company_id: str | None = form.get("company_id") or None
     version = form.get("version", "")
+
+    # Guard: company_id is missing when no company existed at page-load time.
+    # Re-resolve from the API before proceeding so we don't build a broken URL.
+    if not company_id:
+        async with api_client(request) as client:
+            _clist = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+        if _clist.is_success:
+            _items = _clist.json().get("items", [])
+            if _items:
+                company_id = str(_items[0]["id"])
+    if not company_id:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "settings/company.html",
+            {
+                "company": None,
+                "form": form,
+                "errors": {"__all__": "No company record found — contact your administrator."},
+                "conflict": False,
+                "flash": None,
+                "error": None,
+            },
+        )
 
     # Build the PATCH payload.
     payload: dict[str, object] = {}
