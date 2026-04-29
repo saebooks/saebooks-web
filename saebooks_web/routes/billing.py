@@ -35,6 +35,35 @@ def _api_token(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+@router.get("/checkout", response_class=HTMLResponse)
+async def checkout_page(request: Request, plan: str | None = None) -> Any:
+    """Render the checkout landing page.
+
+    After email verification the web layer redirects here with
+    ?plan=business / ?plan=pro / ?plan=enterprise.
+    If the user is not logged in they go to /login first (the ?next
+    redirect brings them back). Otherwise we immediately auto-POST
+    the Stripe Checkout session via a self-submitting form to avoid
+    a visible "click to continue" step.
+    """
+    token = _api_token(request)
+    if not token:
+        return RedirectResponse(
+            url=f"/login?next=/billing/checkout" + (f"?plan={plan}" if plan else ""),
+            status_code=303,
+        )
+    _VALID_PLANS = {"business", "pro", "enterprise"}
+    safe_plan = plan if plan in _VALID_PLANS else None
+    if not safe_plan:
+        # No plan — send straight to upgrade page
+        return RedirectResponse(url="/billing/upgrade", status_code=303)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "billing/checkout_redirect.html",
+        {"plan": safe_plan},
+    )
+
+
 @router.post("/checkout", response_model=None)
 async def checkout(
     request: Request,

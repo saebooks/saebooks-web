@@ -117,11 +117,13 @@ async def _login_with_jwt(request: Request, token: str) -> None:
 
 
 @router.get("/signup", response_class=HTMLResponse)
-async def signup_page(request: Request) -> HTMLResponse:
+async def signup_page(request: Request, plan: str | None = None) -> HTMLResponse:
+    _VALID_PLANS = {"business", "pro", "enterprise"}
+    safe_plan = plan if plan in _VALID_PLANS else None
     return _TEMPLATES.TemplateResponse(
         request,
         "auth/signup.html",
-        {"error": None, "values": {}},
+        {"error": None, "values": {"plan": safe_plan}},
     )
 
 
@@ -132,7 +134,10 @@ async def signup_submit(
     password: str = Form(...),
     company_name: str = Form(...),
     name: str | None = Form(default=None),
+    plan: str | None = Form(default=None),
 ) -> HTMLResponse:
+    _VALID_PLANS = {"business", "pro", "enterprise"}
+    safe_plan: str | None = plan if plan in _VALID_PLANS else None
     payload: dict[str, Any] = {
         "email": email.strip(),
         "password": password,
@@ -140,6 +145,8 @@ async def signup_submit(
     }
     if name and name.strip():
         payload["name"] = name.strip()
+    if safe_plan:
+        payload["plan"] = safe_plan
     try:
         async with _api_client() as client:
             resp = await client.post("/api/v1/auth/signup", json=payload)
@@ -149,7 +156,7 @@ async def signup_submit(
             "auth/signup.html",
             {
                 "error": "Couldn't reach the server. Please try again in a moment.",
-                "values": {"email": email, "company_name": company_name, "name": name or ""},
+                "values": {"email": email, "company_name": company_name, "name": name or "", "plan": safe_plan},
             },
             status_code=502,
         )
@@ -164,7 +171,7 @@ async def signup_submit(
         "auth/signup.html",
         {
             "error": _format_api_error(resp, "Sign-up failed — please try again."),
-            "values": {"email": email, "company_name": company_name, "name": name or ""},
+            "values": {"email": email, "company_name": company_name, "name": name or "", "plan": safe_plan},
         },
         status_code=resp.status_code if resp.status_code < 500 else 502,
     )
@@ -201,6 +208,11 @@ async def verify_email(request: Request, token: str | None = None) -> Any:
         access = body.get("access_token")
         if access:
             await _login_with_jwt(request, access)
+            pending_plan = body.get("signup_plan")
+            if pending_plan:
+                return RedirectResponse(
+                    url=f"/billing/checkout?plan={pending_plan}", status_code=303
+                )
             return RedirectResponse(url="/", status_code=303)
         # Successful verify without a token shouldn't happen, but degrade
         # gracefully — send them to login.

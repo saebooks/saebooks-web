@@ -21,6 +21,9 @@
 
       <form method="post" action="/signup">
         {{ csrf_input(request) | safe }}
+        {% if values.plan %}
+        <input type="hidden" name="plan" value="{{ values.plan }}">
+        {% endif %}
 
         <div class="mb-4">
           <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
