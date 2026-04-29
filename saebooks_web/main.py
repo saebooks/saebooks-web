@@ -51,6 +51,8 @@ from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bea
 )
 
 from saebooks_web.auth import router as auth_router
+from saebooks_web.routes.public_auth import router as public_auth_router
+from saebooks_web.routes.billing import router as billing_router
 from saebooks_web.routes.account_ranges import router as account_ranges_router
 from saebooks_web.routes.allocations import router as allocations_router
 from saebooks_web.routes.accounts import router as accounts_router
@@ -180,6 +182,8 @@ app.add_middleware(_RequestIdMiddleware)
 # Routers
 # ---------------------------------------------------------------------------
 app.include_router(auth_router)
+app.include_router(public_auth_router)
+app.include_router(billing_router)
 app.include_router(dashboard_router)
 app.include_router(contacts_router)
 app.include_router(ai_extraction_router)
