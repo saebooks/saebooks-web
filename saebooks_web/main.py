@@ -84,6 +84,7 @@ from saebooks_web.routes.search import router as search_router
 from saebooks_web.routes.companies import router as companies_router
 from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
+from saebooks_web.routes.contact import router as contact_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -183,6 +184,7 @@ app.add_middleware(_RequestIdMiddleware)
 # ---------------------------------------------------------------------------
 app.include_router(auth_router)
 app.include_router(public_auth_router)
+app.include_router(contact_router)
 app.include_router(billing_router)
 app.include_router(dashboard_router)
 app.include_router(contacts_router)
