@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from pathlib import Path
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -64,11 +64,14 @@ def _build_address(form: dict[str, str]) -> dict[str, str | None] | None:
 
 
 @router.get("/settings/company", response_class=HTMLResponse, response_model=None)
-async def company_settings(request: Request) -> HTMLResponse | RedirectResponse:
+async def company_settings(
+    request: Request,
+    company_id: str | None = Query(default=None),
+) -> HTMLResponse | RedirectResponse:
     """Render the company settings form.
 
-    Fetches the first company from GET /api/v1/companies and pre-fills the
-    form.  Shows an empty state when no company exists.
+    If ``company_id`` query param is provided, fetches that specific company.
+    Otherwise falls back to the first company in the list.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -77,16 +80,22 @@ async def company_settings(request: Request) -> HTMLResponse | RedirectResponse:
     error: str | None = None
 
     async with api_client(request) as client:
-        resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+        if company_id:
+            resp = await client.get(f"/api/v1/companies/{company_id}")
+        else:
+            resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.is_success:
-        items = resp.json().get("items", [])
-        if items:
-            company = items[0]
+        if company_id:
+            company = resp.json()
+        else:
+            items = resp.json().get("items", [])
+            if items:
+                company = items[0]
     else:
         error = f"API error: HTTP {resp.status_code}"
 
@@ -235,7 +244,7 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
             )
         else:
             request.session["flash"] = "Company settings saved."
-        return RedirectResponse(url="/settings/company", status_code=303)
+        return RedirectResponse(url=f"/settings/company?company_id={company_id}", status_code=303)
 
     # --- 409 Conflict --- re-fetch server's current state
     if resp.status_code == 409:
