@@ -130,6 +130,54 @@ async def checkout(
     return RedirectResponse(url=url, status_code=303)
 
 
+@router.post("/manage", response_model=None)
+async def manage_billing(request: Request) -> Any:
+    """Redirect the authenticated user to the Stripe Customer Portal."""
+    token = _api_token(request)
+    if not token:
+        return RedirectResponse(url="/login?next=/admin/license", status_code=303)
+    try:
+        async with httpx.AsyncClient(base_url=settings.api_url, timeout=15.0) as client:
+            resp = await client.post(
+                "/api/v1/billing/portal-session",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+    except httpx.RequestError as exc:
+        logger.error("billing/manage: API unreachable: %s", exc)
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "billing/checkout_error.html",
+            {"message": "Couldn't reach the billing service. Try again in a moment."},
+            status_code=502,
+        )
+    if resp.status_code == 404:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "billing/checkout_error.html",
+            {"message": "No active subscription found. Subscribe first to manage billing."},
+            status_code=404,
+        )
+    if resp.status_code == 401:
+        return RedirectResponse(url="/login", status_code=303)
+    if not resp.is_success:
+        detail = resp.json().get("detail") or resp.text
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "billing/checkout_error.html",
+            {"message": str(detail) or "Couldn't open billing portal. Please try again."},
+            status_code=502,
+        )
+    url = resp.json().get("portal_url")
+    if not url:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "billing/checkout_error.html",
+            {"message": "Billing returned an empty portal URL — contact support."},
+            status_code=502,
+        )
+    return RedirectResponse(url=url, status_code=303)
+
+
 @router.get("/checkout-success", response_class=HTMLResponse)
 async def checkout_success(
     request: Request,

@@ -16,11 +16,22 @@
 </div>
 {% endif %}
 
-{# ── Edition badge ── #}
-<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5 mb-6 max-w-xs">
-  <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">Active Edition</p>
-  <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 capitalize">{{ edition }}</p>
-  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Set via <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">SAEBOOKS_EDITION</code></p>
+{# ── Edition badge + billing action ── #}
+<div class="flex items-start gap-4 mb-6">
+  <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5 max-w-xs">
+    <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">Active Edition</p>
+    <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 capitalize">{{ edition }}</p>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Set via <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">SAEBOOKS_EDITION</code></p>
+  </div>
+  <form method="post" action="/billing/manage" class="self-center">
+    <button type="submit"
+            class="inline-flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+      </svg>
+      Manage billing
+    </button>
+  </form>
 </div>
 
 {# ── Feature flag matrix ── #}
