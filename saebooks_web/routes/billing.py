@@ -2,9 +2,14 @@
 
 Companion to ``saebooks_web.routes.public_auth``.
 
-* ``POST /billing/checkout`` — auth-required form submit; calls
-  ``/api/v1/billing/checkout-session`` and 303-redirects the browser
-  to the returned Stripe Checkout URL.
+* ``GET  /billing/checkout?plan=X`` — auth-required; renders the plan
+  confirmation interstitial (confirm_plan.html) so the user explicitly
+  reviews what they're about to pay for before hitting Stripe.
+  Unauthenticated visitors are redirected to /login?next=... first, so
+  account creation is always required before reaching Stripe.
+* ``POST /billing/checkout`` — form submit from the confirm-plan page;
+  calls ``/api/v1/billing/checkout-session`` and 303-redirects the
+  browser to the returned Stripe Checkout URL.
 * ``GET  /billing/checkout-success`` — Stripe redirects here with
   ``?session_id=cs_…``.  We render a confirmation page; the actual
   edition+subscription state is set by the webhook (which races us
@@ -35,32 +40,94 @@ def _api_token(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+_PLAN_META: dict[str, dict[str, Any]] = {
+    "business": {
+        "label": "Business",
+        "tagline": "For sole traders and small teams who lodge BAS themselves.",
+        "price_monthly": "49",
+        "price_yearly": "490",
+        "features": [
+            "Everything in Community",
+            "Bank feeds (SISS/ACSISS)",
+            "ABR lookup, in-app",
+            "BAS e-lodgement",
+            "Fixed asset register",
+            "Period locks",
+            "Email support, business hours",
+        ],
+        "footer": "Up to 3 users. Single company. Cancel anytime.",
+    },
+    "pro": {
+        "label": "Pro",
+        "tagline": "For bookkeepers, growing teams, and anyone running payroll.",
+        "price_monthly": "99",
+        "price_yearly": "990",
+        "features": [
+            "Everything in Business",
+            "Multi-company / intercompany",
+            "STP Phase 2 payroll",
+            "FX revaluation",
+            "Open Journal / Hybrid audit modes",
+            "Signed LTS releases",
+            "Priority email support",
+        ],
+        "footer": "Unlimited users. Up to 10 companies. Cancel anytime.",
+    },
+    "enterprise": {
+        "label": "Enterprise",
+        "tagline": "Scoped per engagement. Contact us for pricing.",
+        "price_monthly": "—",
+        "price_yearly": "—",
+        "features": [
+            "Everything in Pro",
+            "Custom SLA",
+            "Dedicated support",
+            "On-premise deployment options",
+        ],
+        "footer": "Quoted. Not subscribed.",
+    },
+}
+
+
 @router.get("/checkout", response_class=HTMLResponse)
 async def checkout_page(request: Request, plan: str | None = None) -> Any:
-    """Render the checkout landing page.
+    """Render the plan confirmation interstitial.
 
     After email verification the web layer redirects here with
     ?plan=business / ?plan=pro / ?plan=enterprise.
-    If the user is not logged in they go to /login first (the ?next
-    redirect brings them back). Otherwise we immediately auto-POST
-    the Stripe Checkout session via a self-submitting form to avoid
-    a visible "click to continue" step.
+    If the user is not logged in they are redirected to /login first —
+    the ?next param brings them back, so account creation is always
+    required before a visitor can reach Stripe.
+
+    Once authenticated the user sees a branded plan-summary card with an
+    explicit "Continue to payment" button.  The old auto-submitting
+    checkout_redirect.html is no longer used for this flow.
     """
     token = _api_token(request)
     if not token:
+        next_url = "/billing/checkout" + (f"?plan={plan}" if plan else "")
         return RedirectResponse(
-            url=f"/login?next=/billing/checkout" + (f"?plan={plan}" if plan else ""),
+            url=f"/login?next={next_url}",
             status_code=303,
         )
     _VALID_PLANS = {"business", "pro", "enterprise"}
     safe_plan = plan if plan in _VALID_PLANS else None
     if not safe_plan:
-        # No plan — send straight to upgrade page
+        # No plan — send to upgrade/pricing page
         return RedirectResponse(url="/billing/upgrade", status_code=303)
+    meta = _PLAN_META[safe_plan]
     return _TEMPLATES.TemplateResponse(
         request,
-        "billing/checkout_redirect.html",
-        {"plan": safe_plan},
+        "billing/confirm_plan.html",
+        {
+            "plan": safe_plan,
+            "plan_label": meta["label"],
+            "plan_tagline": meta["tagline"],
+            "plan_price_monthly": meta["price_monthly"],
+            "plan_price_yearly": meta["price_yearly"],
+            "plan_features": meta["features"],
+            "plan_footer": meta["footer"],
+        },
     )
 
 
