@@ -127,7 +127,7 @@ async def ato_sbr_action_redirect(
 ) -> RedirectResponse | HTMLResponse:
     """Redirect stray GETs back to the wizard.
 
-    Authentik forward-auth redirects back to the original URL after SSO but
+    The OAuth callback redirects back to the original URL after SSO but
     using GET (the POST body is lost in the redirect). Without this handler
     the user sees a bare 405 JSON error. Bounce them to the wizard landing
     page instead so they can re-submit the form.
