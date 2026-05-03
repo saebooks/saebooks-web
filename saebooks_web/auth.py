@@ -22,6 +22,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.config import settings
+from saebooks_web.discourse_sso import discourse_enabled
 
 
 def _staff_allowlist() -> frozenset[str]:
@@ -38,7 +39,7 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request) -> HTMLResponse:
     """Render the login form."""
-    return _TEMPLATES.TemplateResponse(request, "auth/login.html", {"error": None})
+    return _TEMPLATES.TemplateResponse(request, "auth/login.html", {"error": None, "discourse_enabled": discourse_enabled()})
 
 
 @router.post("/login", response_model=None)
@@ -62,14 +63,14 @@ async def login_submit(
                 return _TEMPLATES.TemplateResponse(
                     request,
                     "auth/login.html",
-                    {"error": "Invalid email or password"},
+                    {"error": "Invalid email or password", "discourse_enabled": discourse_enabled()},
                     status_code=401,
                 )
             if not resp.is_success:
                 return _TEMPLATES.TemplateResponse(
                     request,
                     "auth/login.html",
-                    {"error": "Login failed — please try again"},
+                    {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled()},
                     status_code=502,
                 )
 
@@ -93,7 +94,7 @@ async def login_submit(
         return _TEMPLATES.TemplateResponse(
             request,
             "auth/login.html",
-            {"error": "Login failed — please try again"},
+            {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled()},
             status_code=502,
         )
 
