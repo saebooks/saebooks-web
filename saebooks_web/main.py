@@ -86,6 +86,7 @@ from saebooks_web.routes.companies import router as companies_router
 from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 from saebooks_web.routes.contact import router as contact_router
+from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -219,6 +220,8 @@ app.include_router(pay_run_router)
 app.include_router(admin_router)
 app.include_router(imports_router)
 app.include_router(ato_sbr_router)
+# Cat-C W6: integrations dashboard + Stripe Connect + LEI/CH HTMX fragments.
+app.include_router(integrations_router)
 
 
 # ---------------------------------------------------------------------------
