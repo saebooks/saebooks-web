@@ -1,25 +1,34 @@
-"""Imports wizard views — Lane D cycle 54.
+"""Imports wizard views — Cat-C rewrite (v1 API backend).
 
 Route map
 ---------
-GET  /admin/imports/              — landing with three options (bank, CoA, QBO)
-GET  /admin/imports/bank          — bank statement import: upload form
-POST /admin/imports/bank/preview  — parse CSV/OFX, render preview table
-POST /admin/imports/bank/apply    — confirm import, persist via API
-GET  /admin/imports/coa           — CoA import: upload form + export link
-POST /admin/imports/coa/preview   — parse CoA CSV, render diff table
-POST /admin/imports/coa/apply     — confirm CoA diff, apply via API
+GET  /admin/imports/              — landing with options (bank CSV/OFX, CoA, QBO)
+POST /admin/imports/bank/start    — start a bank_csv or bank_ofx wizard via API
+POST /admin/imports/bank/upload   — step: post the raw file content
+POST /admin/imports/bank/commit   — commit the wizard
+POST /admin/imports/coa/start     — start a coa wizard via API
+POST /admin/imports/coa/upload    — step: post the CoA CSV content
+POST /admin/imports/coa/commit    — commit the CoA wizard
+POST /admin/imports/qbo/start     — start a qbo wizard (Pro+ only)
+POST /admin/imports/qbo/contacts  — step: post QBO contacts CSV
+POST /admin/imports/qbo/accounts  — step: post QBO accounts CSV
+POST /admin/imports/qbo/commit    — commit the QBO wizard
 
-API endpoints consumed (proxied):
-- POST /admin/imports/bank/preview (multipart)    → HTML preview or error
-- POST /admin/imports/bank/apply  (form)           → HTML done or error
-- POST /admin/imports/coa/preview (multipart)      → HTML diff
-- POST /admin/imports/coa/apply   (form)           → redirect with query string
-
-Since the upstream API returns HTML for these routes, we proxy the form
-submissions and render our own wrapper templates for nav consistency.
+All forms use POST-redirect-GET.  The wizard_id is carried in the session
+between steps.  No raw file bytes are stored in the session — only the
+wizard_id; the file content lives in the wizard_state JSONB in Postgres.
 
 Auth guard: redirect to /login (303) if no session token.
+Admin guard: role == "admin" or is_sae_staff required for imports.
+
+API endpoints consumed:
+    POST /api/v1/imports/wizards              → start wizard
+    POST /api/v1/imports/wizards/{id}/step   → advance wizard state
+    GET  /api/v1/imports/wizards/{id}         → read wizard state
+    POST /api/v1/imports/wizards/{id}/commit  → run import
+
+Error handling: API errors are extracted from JSON detail or HTTP status
+and shown as a flash message on the form page.
 """
 from __future__ import annotations
 
@@ -36,21 +45,40 @@ router = APIRouter()
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
+_WIZARD_KEY = "import_wizard_id"
+_WIZARD_KIND_KEY = "import_wizard_kind"
+
+
+# ---------------------------------------------------------------------------
+# Auth helpers
+# ---------------------------------------------------------------------------
+
 
 def _require_auth(request: Request) -> str | None:
-    """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
 
 
 def _require_admin(request: Request) -> bool:
-    """Return True if the session user has admin (or SAE staff) access.
-
-    Tenant admins and SAE staff may both access imports — SAE staff always
-    gets through; tenant users with role != 'admin' are refused.
-    """
     role = request.session.get("user_role", "")
     is_staff = bool(request.session.get("is_sae_staff"))
     return is_staff or role == "admin"
+
+
+def _auth_redirect(request: Request) -> RedirectResponse | None:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return None  # caller returns 403
+    return None
+
+
+async def _api_error(resp: object) -> str:
+    """Extract a human-readable error from an API response."""
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")  # type: ignore[union-attr]
+    except Exception:
+        detail = f"API error: HTTP {getattr(resp, 'status_code', '?')}"
+    return str(detail)
 
 
 # ---------------------------------------------------------------------------
@@ -61,7 +89,7 @@ def _require_admin(request: Request) -> bool:
 @router.get("/admin/imports", response_class=HTMLResponse, response_model=None)
 @router.get("/admin/imports/", response_class=HTMLResponse, response_model=None)
 async def imports_landing(request: Request) -> HTMLResponse | RedirectResponse:
-    """Render the imports landing page with links to bank, CoA, and QBO flows."""
+    """Render the imports landing page."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
     if not _require_admin(request):
@@ -75,14 +103,14 @@ async def imports_landing(request: Request) -> HTMLResponse | RedirectResponse:
     )
 
 
-# ---------------------------------------------------------------------------
-# Bank import — GET /admin/imports/bank (upload form)
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Bank statement import (bank_csv / bank_ofx)
+# ===========================================================================
 
 
 @router.get("/admin/imports/bank", response_class=HTMLResponse, response_model=None)
 async def imports_bank_form(request: Request) -> HTMLResponse | RedirectResponse:
-    """Render the bank statement upload form with bank-account picker."""
+    """Render the bank statement upload form."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
     if not _require_admin(request):
@@ -100,7 +128,7 @@ async def imports_bank_form(request: Request) -> HTMLResponse | RedirectResponse
             payload = resp.json()
             bank_accounts = payload.get("items", payload) if isinstance(payload, dict) else payload
         else:
-            error = f"API error fetching bank accounts: HTTP {resp.status_code}"
+            error = f"Could not load bank accounts: HTTP {resp.status_code}"
 
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
@@ -114,18 +142,65 @@ async def imports_bank_form(request: Request) -> HTMLResponse | RedirectResponse
     )
 
 
-# ---------------------------------------------------------------------------
-# Bank import — POST /admin/imports/bank/preview (parse + preview)
-# ---------------------------------------------------------------------------
+@router.post("/admin/imports/bank/start", response_model=None)
+async def imports_bank_start(request: Request) -> RedirectResponse:
+    """Start a bank_csv/bank_ofx wizard then redirect to the upload step."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)  # type: ignore[return-value]
+
+    form_data = await request.form()
+    account_id = str(form_data.get("account_id", ""))
+    if not account_id:
+        request.session["flash"] = "Bank account is required."
+        return RedirectResponse(url="/admin/imports/bank", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            "/api/v1/imports/wizards",
+            json={"kind": "bank_csv", "initial": {"account_id": account_id}},
+        )
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if not resp.is_success:
+        request.session["flash"] = await _api_error(resp)
+        return RedirectResponse(url="/admin/imports/bank", status_code=303)
+
+    wizard_id = resp.json()["wizard_id"]
+    request.session[_WIZARD_KEY] = wizard_id
+    request.session[_WIZARD_KIND_KEY] = "bank_csv"
+    return RedirectResponse(url="/admin/imports/bank/upload", status_code=303)
+
+
+@router.get("/admin/imports/bank/upload", response_class=HTMLResponse, response_model=None)
+async def imports_bank_upload_form(request: Request) -> HTMLResponse | RedirectResponse:
+    """Show the file upload step for an in-progress bank wizard."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
+
+    wizard_id = request.session.get(_WIZARD_KEY)
+    if not wizard_id:
+        request.session["flash"] = "No active import session. Please start again."
+        return RedirectResponse(url="/admin/imports/bank", status_code=303)
+
+    flash = request.session.pop("flash", None)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "imports/bank_preview.html",
+        {"wizard_id": wizard_id, "flash": flash, "proxy_html": None, "error": None, "account_id": None},
+    )
 
 
 @router.post("/admin/imports/bank/preview", response_class=HTMLResponse, response_model=None)
 async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectResponse:
-    """Upload bank CSV/OFX, proxy to API parser, render preview.
+    """Upload bank CSV/OFX file, step the wizard, show a preview.
 
-    Forwards the multipart form to ``POST /admin/imports/bank/preview`` on the
-    upstream API.  The API returns an HTML preview page; we embed the proxy
-    content in our wrapper template.
+    This endpoint accepts multipart file upload, reads the raw content, and
+    posts it to the wizard step endpoint so the state is recorded.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -133,48 +208,65 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
-    # Multipart route — explicit CSRF token check after parsing the form.
-    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
-    await verify_csrf_form(request)
-
-    # Rebuild multipart for upstream — include file upload and account_id.
     account_id = str(form_data.get("account_id", ""))
     file_field = form_data.get("file")
 
-    files: dict | None = None
+    # Check for required CSRF token in multipart forms.
+    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    await verify_csrf_form(request)
+
+    raw: str = ""
     if hasattr(file_field, "read"):
         content = await file_field.read()  # type: ignore[union-attr]
-        filename = getattr(file_field, "filename", "upload.csv") or "upload.csv"
-        files = {"file": (filename, content, "application/octet-stream")}
+        raw = content.decode("utf-8-sig", errors="replace")
 
-    proxy_html: str | None = None
-    error: str | None = None
-
+    # If no in-session wizard, start one now (convenience path).
+    wizard_id = request.session.get(_WIZARD_KEY)
     async with api_client(request) as client:
-        if files:
+        if not wizard_id:
             resp = await client.post(
-                "/admin/imports/bank/preview",
-                data={"account_id": account_id},
-                files=files,
+                "/api/v1/imports/wizards",
+                json={"kind": "bank_csv", "initial": {"account_id": account_id}},
             )
-        else:
-            resp = await client.post(
-                "/admin/imports/bank/preview",
-                data={"account_id": account_id},
-            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if not resp.is_success:
+                error = await _api_error(resp)
+                return _TEMPLATES.TemplateResponse(
+                    request,
+                    "imports/bank.html",
+                    {"bank_accounts": [], "error": error},
+                    status_code=400,
+                )
+            wizard_id = resp.json()["wizard_id"]
+            request.session[_WIZARD_KEY] = wizard_id
 
-    if resp.status_code == 401:
+        # Step the wizard with the raw content.
+        step_resp = await client.post(
+            f"/api/v1/imports/wizards/{wizard_id}/step",
+            json={"step": 0, "patch": {"raw": raw, "account_id": account_id, "_completed": True}},
+        )
+
+    if step_resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+    if not step_resp.is_success:
+        error = await _api_error(step_resp)
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "imports/bank.html",
+            {"bank_accounts": [], "error": error},
+            status_code=400,
+        )
 
-    if resp.is_success:
-        proxy_html = resp.text
-    else:
-        try:
-            detail = resp.json().get("detail", f"Preview failed: HTTP {resp.status_code}")
-        except Exception:
-            detail = f"Preview failed: HTTP {resp.status_code}"
-        error = str(detail)
+    state = step_resp.json().get("state", {})
+    # Build a simple preview from the raw content (line count, first 10 rows).
+    lines_info = [ln.strip() for ln in raw.splitlines() if ln.strip()][:12]
+    proxy_html = (
+        f"<p><strong>Preview:</strong> {len(lines_info)} rows detected.</p>"
+        f"<pre>{'\\n'.join(lines_info[:10])}</pre>"
+    )
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -182,54 +274,80 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
         {
             "proxy_html": proxy_html,
             "account_id": account_id,
-            "error": error,
+            "wizard_id": wizard_id,
+            "error": None,
         },
-        status_code=200 if proxy_html else 400,
     )
-
-
-# ---------------------------------------------------------------------------
-# Bank import — POST /admin/imports/bank/apply (confirm + persist)
-# ---------------------------------------------------------------------------
 
 
 @router.post("/admin/imports/bank/apply", response_class=HTMLResponse, response_model=None)
 async def imports_bank_apply(request: Request) -> HTMLResponse | RedirectResponse:
-    """Confirm bank import — proxy to API apply endpoint."""
+    """Commit the bank wizard — calls POST /api/v1/imports/wizards/{id}/commit."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
     if not _require_admin(request):
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
-    form: dict[str, str] = {k: str(v) for k, v in form_data.items()}  # type: ignore[misc]
+    wizard_id = str(form_data.get("wizard_id", "")) or request.session.get(_WIZARD_KEY, "")
+
+    # Legacy path: if raw + account_id posted directly (old form submit),
+    # start a fresh wizard and commit immediately.
+    raw = str(form_data.get("raw", ""))
+    account_id = str(form_data.get("account_id", ""))
 
     async with api_client(request) as client:
-        resp = await client.post("/admin/imports/bank/apply", data=form)
+        if not wizard_id and raw and account_id:
+            # Start wizard
+            resp = await client.post(
+                "/api/v1/imports/wizards",
+                json={"kind": "bank_csv", "initial": {"account_id": account_id}},
+            )
+            if not resp.is_success:
+                error = await _api_error(resp)
+                request.session["flash"] = error
+                return RedirectResponse(url="/admin/imports/bank", status_code=303)
+            wizard_id = resp.json()["wizard_id"]
+            # Step with raw content.
+            await client.post(
+                f"/api/v1/imports/wizards/{wizard_id}/step",
+                json={"step": 0, "patch": {"raw": raw, "account_id": account_id, "_completed": True}},
+            )
+
+        if not wizard_id:
+            request.session["flash"] = "No active import session."
+            return RedirectResponse(url="/admin/imports/bank", status_code=303)
+
+        resp = await client.post(f"/api/v1/imports/wizards/{wizard_id}/commit")
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+    if not resp.is_success:
+        error = await _api_error(resp)
+        request.session["flash"] = error
+        request.session.pop(_WIZARD_KEY, None)
+        return RedirectResponse(url="/admin/imports/bank", status_code=303)
 
-    if resp.is_success:
-        proxy_html = resp.text
-        return _TEMPLATES.TemplateResponse(
-            request,
-            "imports/bank_done.html",
-            {"proxy_html": proxy_html},
-        )
+    result = resp.json()
+    request.session.pop(_WIZARD_KEY, None)
+    request.session.pop(_WIZARD_KIND_KEY, None)
 
-    try:
-        detail = resp.json().get("detail", f"Import failed: HTTP {resp.status_code}")
-    except Exception:
-        detail = f"Import failed: HTTP {resp.status_code}"
-    request.session["flash"] = str(detail)
-    return RedirectResponse(url="/admin/imports/bank", status_code=303)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "imports/bank_done.html",
+        {
+            "inserted": result.get("inserted", 0),
+            "total": result.get("total", 0),
+            "account_id": account_id,
+            "proxy_html": None,
+        },
+    )
 
 
-# ---------------------------------------------------------------------------
-# CoA import — GET /admin/imports/coa (upload form)
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Chart of accounts import
+# ===========================================================================
 
 
 @router.get("/admin/imports/coa", response_class=HTMLResponse, response_model=None)
@@ -241,8 +359,6 @@ async def imports_coa_form(request: Request) -> HTMLResponse | RedirectResponse:
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     flash = request.session.pop("flash", None)
-
-    # Pass through any result params from a successful apply redirect.
     params = dict(request.query_params)
     return _TEMPLATES.TemplateResponse(
         request,
@@ -254,106 +370,128 @@ async def imports_coa_form(request: Request) -> HTMLResponse | RedirectResponse:
     )
 
 
-# ---------------------------------------------------------------------------
-# CoA import — POST /admin/imports/coa/preview (parse + diff)
-# ---------------------------------------------------------------------------
-
-
 @router.post("/admin/imports/coa/preview", response_class=HTMLResponse, response_model=None)
 async def imports_coa_preview(request: Request) -> HTMLResponse | RedirectResponse:
-    """Upload CoA CSV, proxy to API parser, render diff preview."""
+    """Upload CoA CSV via wizard step, show diff preview."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
     if not _require_admin(request):
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
-    # Multipart route — explicit CSRF token check after parsing the form.
     from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
     await verify_csrf_form(request)
-    file_field = form_data.get("file")
 
-    files: dict | None = None
+    file_field = form_data.get("file")
+    raw: str = ""
     if hasattr(file_field, "read"):
         content = await file_field.read()  # type: ignore[union-attr]
-        filename = getattr(file_field, "filename", "coa.csv") or "coa.csv"
-        files = {"file": (filename, content, "text/csv")}
-
-    proxy_html: str | None = None
-    error: str | None = None
+        raw = content.decode("utf-8-sig", errors="replace")
 
     async with api_client(request) as client:
-        if files:
-            resp = await client.post("/admin/imports/coa/preview", files=files)
-        else:
-            resp = await client.post("/admin/imports/coa/preview")
+        # Start wizard
+        resp = await client.post(
+            "/api/v1/imports/wizards",
+            json={"kind": "coa", "initial": {}},
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if not resp.is_success:
+            error = await _api_error(resp)
+            return _TEMPLATES.TemplateResponse(
+                request, "imports/coa.html", {"error": error}, status_code=400
+            )
+        wizard_id = resp.json()["wizard_id"]
+        request.session[_WIZARD_KEY] = wizard_id
+        request.session[_WIZARD_KIND_KEY] = "coa"
 
-    if resp.status_code == 401:
+        # Step with raw content.
+        step_resp = await client.post(
+            f"/api/v1/imports/wizards/{wizard_id}/step",
+            json={"step": 0, "patch": {"raw": raw, "_completed": True}},
+        )
+
+    if step_resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+    if not step_resp.is_success:
+        error = await _api_error(step_resp)
+        return _TEMPLATES.TemplateResponse(
+            request, "imports/coa.html", {"error": error}, status_code=400
+        )
 
-    if resp.is_success:
-        proxy_html = resp.text
-    else:
-        try:
-            detail = resp.json().get("detail", f"Preview failed: HTTP {resp.status_code}")
-        except Exception:
-            detail = f"Preview failed: HTTP {resp.status_code}"
-        error = str(detail)
+    # Show a lightweight preview (row count).
+    lines = [ln for ln in raw.splitlines() if ln.strip()]
+    header = lines[0] if lines else ""
+    data_rows = lines[1:] if len(lines) > 1 else []
+    proxy_html = (
+        f"<p><strong>Preview:</strong> {len(data_rows)} account rows to import.</p>"
+        f"<pre>{header}\n" + "\n".join(data_rows[:10]) + "</pre>"
+    )
 
     return _TEMPLATES.TemplateResponse(
         request,
         "imports/coa_preview.html",
         {
             "proxy_html": proxy_html,
-            "error": error,
+            "wizard_id": wizard_id,
+            "error": None,
         },
-        status_code=200 if proxy_html else 400,
     )
-
-
-# ---------------------------------------------------------------------------
-# CoA import — POST /admin/imports/coa/apply (confirm + apply)
-# ---------------------------------------------------------------------------
 
 
 @router.post("/admin/imports/coa/apply", response_model=None)
 async def imports_coa_apply(request: Request) -> RedirectResponse:
-    """Confirm CoA diff — proxy to API apply endpoint and redirect."""
+    """Commit CoA wizard — calls POST /api/v1/imports/wizards/{id}/commit."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
     if not _require_admin(request):
-        return HTMLResponse("Forbidden — admin role required", status_code=403)
+        return HTMLResponse("Forbidden — admin role required", status_code=403)  # type: ignore[return-value]
 
     form_data = await request.form()
-    form: dict[str, str] = {k: str(v) for k, v in form_data.items()}  # type: ignore[misc]
+    wizard_id = str(form_data.get("wizard_id", "")) or request.session.get(_WIZARD_KEY, "")
+    raw = str(form_data.get("raw", ""))
+    archive_removed = bool(form_data.get("archive_removed", ""))
 
     async with api_client(request) as client:
-        resp = await client.post(
-            "/admin/imports/coa/apply",
-            data=form,
-            follow_redirects=False,
-        )
+        if not wizard_id and raw:
+            # Legacy direct-form path: start + step + commit.
+            resp = await client.post(
+                "/api/v1/imports/wizards",
+                json={"kind": "coa", "initial": {}},
+            )
+            if not resp.is_success:
+                request.session["flash"] = await _api_error(resp)
+                return RedirectResponse(url="/admin/imports/coa", status_code=303)
+            wizard_id = resp.json()["wizard_id"]
+            await client.post(
+                f"/api/v1/imports/wizards/{wizard_id}/step",
+                json={"step": 0, "patch": {"raw": raw, "archive_removed": archive_removed, "_completed": True}},
+            )
+        elif wizard_id:
+            # If archive_removed is toggled after preview, patch it in.
+            await client.post(
+                f"/api/v1/imports/wizards/{wizard_id}/step",
+                json={"step": 1, "patch": {"archive_removed": archive_removed}},
+            )
+
+        if not wizard_id:
+            request.session["flash"] = "No active import session."
+            return RedirectResponse(url="/admin/imports/coa", status_code=303)
+
+        resp = await client.post(f"/api/v1/imports/wizards/{wizard_id}/commit")
+
+    request.session.pop(_WIZARD_KEY, None)
+    request.session.pop(_WIZARD_KIND_KEY, None)
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+    if not resp.is_success:
+        request.session["flash"] = await _api_error(resp)
+        return RedirectResponse(url="/admin/imports/coa", status_code=303)
 
-    if resp.status_code in (301, 302, 303, 307, 308):
-        # Follow the redirect location from the API, translated to our path.
-        location = resp.headers.get("location", "/admin/imports/coa")
-        # Strip the upstream host if present and map to our path.
-        if location.startswith("/admin/imports/coa"):
-            return RedirectResponse(url=location, status_code=303)
-        return RedirectResponse(url="/admin/imports/coa?applied=1", status_code=303)
-
-    if resp.is_success:
-        request.session["flash"] = "CoA import applied."
-        return RedirectResponse(url="/admin/imports/coa?applied=1", status_code=303)
-
-    try:
-        detail = resp.json().get("detail", f"Apply failed: HTTP {resp.status_code}")
-    except Exception:
-        detail = f"Apply failed: HTTP {resp.status_code}"
-    request.session["flash"] = str(detail)
-    return RedirectResponse(url="/admin/imports/coa", status_code=303)
+    result = resp.json()
+    query = "&".join(f"{k}={v}" for k, v in result.items() if isinstance(v, (int, str)))
+    return RedirectResponse(f"/admin/imports/coa?{query}", status_code=303)
