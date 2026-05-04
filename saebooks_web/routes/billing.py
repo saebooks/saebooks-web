@@ -8,8 +8,9 @@ Companion to ``saebooks_web.routes.public_auth``.
   Unauthenticated visitors are redirected to /login?next=... first, so
   account creation is always required before reaching Stripe.
 * ``POST /billing/checkout`` — form submit from the confirm-plan page;
-  calls ``/api/v1/billing/checkout-session`` and 303-redirects the
-  browser to the returned Stripe Checkout URL.
+  takes ``edition`` and ``period`` from the form, calls
+  ``/api/v1/billing/checkout-session``, and 303-redirects the browser
+  to the returned Stripe Checkout URL.
 * ``GET  /billing/checkout-success`` — Stripe redirects here with
   ``?session_id=cs_…``.  We render a confirmation page; the actual
   edition+subscription state is set by the webhook (which races us
@@ -135,6 +136,7 @@ async def checkout_page(request: Request, plan: str | None = None) -> Any:
 async def checkout(
     request: Request,
     edition: str = Form(...),
+    period: str = Form("month"),
 ) -> Any:
     token = _api_token(request)
     if not token:
@@ -146,12 +148,21 @@ async def checkout(
             {"message": f"Unknown edition: {edition!r}"},
             status_code=400,
         )
+    if period not in {"month", "year"}:
+        # Belt-and-braces — the radio in confirm_plan.html only emits
+        # 'month' or 'year', but a hand-crafted POST could pass anything.
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "billing/checkout_error.html",
+            {"message": f"Unknown billing period: {period!r}"},
+            status_code=400,
+        )
     try:
         async with httpx.AsyncClient(base_url=settings.api_url, timeout=15.0) as client:
             resp = await client.post(
                 "/api/v1/billing/checkout-session",
                 headers={"Authorization": f"Bearer {token}"},
-                json={"edition": edition},
+                json={"edition": edition, "period": period},
             )
     except httpx.RequestError as exc:
         logger.error("billing/checkout: API unreachable: %s", exc)

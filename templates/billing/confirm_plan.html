@@ -67,10 +67,66 @@
         All prices are in AUD and include GST.
       </p>
 
-      {# Continue to payment form — explicit POST, no auto-submit #}
+      {# Continue to payment form — explicit POST, no auto-submit. #}
+      {# The period radio chooses month vs year; both bind names match #}
+      {# what saebooks_web.routes.billing.checkout expects (edition, period). #}
       <form method="post" action="/billing/checkout">
         {{ csrf_input(request) | safe }}
         <input type="hidden" name="edition" value="{{ plan }}">
+
+        {# Billing period toggle — monthly default, yearly = 10x monthly #}
+        {# (honest "save 2 months" framing). Radios are visually presented #}
+        {# as cards inside an indigo-card container consistent with the   #}
+        {# plan summary above. #}
+        <fieldset class="mb-5">
+          <legend class="sr-only">Billing period</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+            <label class="relative flex cursor-pointer rounded-lg border border-indigo-200 dark:border-indigo-800
+                          bg-white dark:bg-gray-900 px-4 py-3
+                          has-[:checked]:border-indigo-500 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500
+                          has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-950">
+              <input type="radio" name="period" value="month" class="sr-only peer" checked>
+              <div class="flex flex-col w-full">
+                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 peer-checked:text-indigo-700 dark:peer-checked:text-indigo-300">
+                  Monthly
+                </span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  ${{ plan_price_monthly }} / mo
+                </span>
+                <span class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                  Billed every month
+                </span>
+              </div>
+            </label>
+
+            <label class="relative flex cursor-pointer rounded-lg border border-indigo-200 dark:border-indigo-800
+                          bg-white dark:bg-gray-900 px-4 py-3
+                          has-[:checked]:border-indigo-500 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500
+                          has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-950">
+              <input type="radio" name="period" value="year" class="sr-only peer">
+              <div class="flex flex-col w-full">
+                <span class="flex items-center gap-2">
+                  <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 peer-checked:text-indigo-700 dark:peer-checked:text-indigo-300">
+                    Yearly
+                  </span>
+                  <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/40
+                               px-1.5 py-0.5 text-[10px] font-medium text-green-700 dark:text-green-300">
+                    Save 2 months
+                  </span>
+                </span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  ${{ plan_price_yearly }} / yr
+                </span>
+                <span class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                  Billed once a year
+                </span>
+              </div>
+            </label>
+
+          </div>
+        </fieldset>
+
         <button type="submit"
                 class="w-full rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium
                        text-white hover:bg-indigo-700 focus:outline-none focus:ring-2
