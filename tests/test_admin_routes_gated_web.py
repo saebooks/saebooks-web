@@ -164,8 +164,9 @@ async def test_admin_get_forbidden_for_bookkeeper(
 ) -> None:
     """Bookkeeper must get 403 on every admin GET route."""
     # Stub out any upstream GET the route might call before our auth check.
-    respx_mock.get(f"{_API_BASE}/admin/ato-sbr").mock(
-        return_value=Response(200, content=b"", headers={"content-type": "text/html"})
+    # Cat-C rewrite: ato_sbr now calls /api/v1/ato_sbr/keystore.
+    respx_mock.get(f"{_API_BASE}/api/v1/ato_sbr/keystore").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(
@@ -256,9 +257,10 @@ async def test_ato_sbr_allowed_for_tenant_admin(
     respx_mock: respx.MockRouter,
 ) -> None:
     """Tenant admin must NOT get 403 on GET /admin/ato-sbr."""
-    respx_mock.get(f"{_API_BASE}/admin/ato-sbr").mock(
-        return_value=Response(200, content=b"<html>ok</html>",
-                              headers={"content-type": "text/html"})
+    # Cat-C rewrite: route now calls /api/v1/ato_sbr/keystore (returns JSON
+    # list) instead of proxying upstream /admin/ato-sbr HTML.
+    respx_mock.get(f"{_API_BASE}/api/v1/ato_sbr/keystore").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(
