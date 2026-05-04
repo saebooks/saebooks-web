@@ -182,3 +182,125 @@ async def test_checkout_post_unauthed_redirects_to_login() -> None:
 
     assert resp.status_code == 303
     assert "/login" in resp.headers["location"]
+
+
+# ---------------------------------------------------------------------------
+# 7. Confirm-plan template renders the period radio toggle
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_confirm_plan_renders_period_radio_toggle() -> None:
+    """The confirmation page must show monthly + yearly radios with
+    matching prices, defaulting to monthly checked. This is the only
+    place the user picks billing cadence."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.get("/billing/checkout?plan=business")
+
+    assert resp.status_code == 200
+    body = resp.text
+    # Both radio options are present with the right name + values
+    assert 'name="period"' in body
+    assert 'value="month"' in body
+    assert 'value="year"' in body
+    # Monthly is checked by default
+    assert 'value="month"' in body and 'checked' in body
+    # Both prices visible
+    assert "$49" in body
+    assert "$490" in body
+    # Yearly carries the "save 2 months" framing
+    assert "Save 2 months" in body or "save 2 months" in body.lower()
+
+
+# ---------------------------------------------------------------------------
+# 8. POST /billing/checkout with period=year forwards the period to API
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_checkout_post_yearly_forwards_period_to_api(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """POST /billing/checkout with period=year must JSON-POST
+    {edition, period:'year'} to the API checkout-session endpoint."""
+    _STRIPE_URL = "https://checkout.stripe.com/pay/cs_test_yearly"
+    route = respx_mock.post(f"{_API_BASE}/api/v1/billing/checkout-session").mock(
+        return_value=Response(200, json={"checkout_url": _STRIPE_URL})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/billing/checkout",
+            data={"edition": "business", "period": "year"},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == _STRIPE_URL
+
+    # Verify the body sent to the API.
+    assert route.called
+    sent = json.loads(route.calls.last.request.content)
+    assert sent == {"edition": "business", "period": "year"}
+
+
+# ---------------------------------------------------------------------------
+# 9. POST /billing/checkout with no period defaults to month upstream
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_checkout_post_default_period_is_month(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """No period in the form -> route forwards period='month' to API.
+    Backwards compat with any caller that still POSTs only edition."""
+    route = respx_mock.post(f"{_API_BASE}/api/v1/billing/checkout-session").mock(
+        return_value=Response(200, json={"checkout_url": "https://checkout.stripe.com/pay/cs_test_m"})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/billing/checkout",
+            data={"edition": "business"},
+        )
+
+    assert resp.status_code == 303
+    sent = json.loads(route.calls.last.request.content)
+    assert sent == {"edition": "business", "period": "month"}
+
+
+# ---------------------------------------------------------------------------
+# 10. POST with bogus period value -> 400 checkout_error.html
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_checkout_post_rejects_unknown_period() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/billing/checkout",
+            data={"edition": "business", "period": "weekly"},
+        )
+    assert resp.status_code == 400
