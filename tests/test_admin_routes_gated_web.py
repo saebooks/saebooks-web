@@ -24,10 +24,8 @@ Admin-role routes (user_role == "admin" or is_sae_staff):
   POST /admin/ranges/{id}/delete
   GET  /admin/ato-sbr
   POST /admin/ato-sbr/keystore
-  POST /admin/ato-sbr/ssid
-  POST /admin/ato-sbr/confirm
-  POST /admin/ato-sbr/test
-  POST /admin/ato-sbr/clear
+  POST /admin/ato-sbr/onboarding/start
+  POST /admin/ato-sbr/ping
 """
 from __future__ import annotations
 
@@ -151,10 +149,10 @@ _ADMIN_GET_ROUTES = [
 
 _ADMIN_POST_ROUTES_EMPTY_BODY: list[str] = [
     "/admin/ranges/prefix_mode",
-    "/admin/ato-sbr/ssid",
-    "/admin/ato-sbr/confirm",
-    "/admin/ato-sbr/test",
-    "/admin/ato-sbr/clear",
+    # Cat-C rewrite: legacy /ssid, /confirm, /test, /clear endpoints replaced
+    # by the wizard surface (/onboarding/start, /onboarding/{id}/step) and /ping.
+    "/admin/ato-sbr/onboarding/start",
+    "/admin/ato-sbr/ping",
 ]
 
 
