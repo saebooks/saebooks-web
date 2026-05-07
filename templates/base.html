@@ -15,67 +15,75 @@
   </script>
 
   <!-- Tailwind Play CDN — class-strategy dark mode.
-       Per Tailwind docs the config MUST be assigned AFTER the CDN script
-       has loaded (the CDN bootstraps window.tailwind). Setting it before
-       had no effect, so the CDN silently fell back to media-query strategy
-       — that caused dark:* utilities to fire from OS pref while our
-       html.dark .bg-white !important overrides only fired when the
-       explicit class was present, producing a half-applied dark mode. -->
+       The config object MUST be set BEFORE the CDN script tag. The CDN
+       reads window.tailwind.config during bootstrap; assigning to
+       window.tailwind.config AFTER load is too late and the CDN falls
+       back to media-query strategy. That fallback is what produced the
+       half-applied dark mode (OS-pref-driven dark:* utilities firing
+       while our html.dark overrides did not). -->
+  <script>tailwind = { config: { darkMode: 'class' } }</script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' };</script>
 
-  <!-- Global dark-mode fills — covers templates not yet individually darkened -->
+  <!-- Global dark-mode fills — covers templates not yet individually darkened.
+       Wrapped in @layer overrides with explicit layer ordering. Tailwind v4
+       places utilities in @layer utilities, and per the CSS Cascade Layers
+       spec !important rules in LATER layers beat !important rules in
+       EARLIER layers. By declaring 'overrides' after 'utilities', our
+       html.dark .bg-white {!important} reliably beats Tailwind's layered
+       .bg-white utility. Without this, layered !important > unlayered
+       !important and the override silently loses. -->
   <style>
-    html.dark .bg-white        { background-color: #1f2937 !important; }
-    html.dark .bg-gray-50      { background-color: #111827 !important; }
-    html.dark .bg-gray-100     { background-color: #1f2937 !important; }
-    html.dark .text-gray-900   { color: #f3f4f6   !important; }
-    html.dark .text-gray-800   { color: #e5e7eb   !important; }
-    html.dark .text-gray-700   { color: #d1d5db   !important; }
-    html.dark .text-gray-600   { color: #9ca3af   !important; }
-    html.dark .text-gray-500   { color: #6b7280   !important; }
-    html.dark .border-gray-100 { border-color: #374151 !important; }
-    html.dark .border-gray-200 { border-color: #374151 !important; }
-    html.dark .border-gray-300 { border-color: #4b5563 !important; }
-    html.dark input:not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
-    html.dark select,
-    html.dark textarea {
-      background-color: #1f2937 !important;
-      color: #f3f4f6 !important;
-      border-color: #4b5563 !important;
+    @layer base, components, utilities, overrides;
+    @layer overrides {
+      html.dark .bg-white        { background-color: #1f2937 !important; }
+      html.dark .bg-gray-50      { background-color: #111827 !important; }
+      html.dark .bg-gray-100     { background-color: #1f2937 !important; }
+      html.dark .text-gray-900   { color: #f3f4f6   !important; }
+      html.dark .text-gray-800   { color: #e5e7eb   !important; }
+      html.dark .text-gray-700   { color: #d1d5db   !important; }
+      html.dark .text-gray-600   { color: #9ca3af   !important; }
+      html.dark .text-gray-500   { color: #6b7280   !important; }
+      html.dark .border-gray-100 { border-color: #374151 !important; }
+      html.dark .border-gray-200 { border-color: #374151 !important; }
+      html.dark .border-gray-300 { border-color: #4b5563 !important; }
+      html.dark input:not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
+      html.dark select,
+      html.dark textarea {
+        background-color: #1f2937 !important;
+        color: #f3f4f6 !important;
+        border-color: #4b5563 !important;
+      }
+      html.dark table thead th { background-color: #111827 !important; color: #9ca3af !important; border-color: #374151 !important; }
+      html.dark table tbody td { border-color: #374151 !important; color: #d1d5db !important; }
+      html.dark table tbody tr:hover td { background-color: #1f2937 !important; }
+      html.dark table tbody tr:nth-child(even) td { background-color: #1a2332 !important; }
+      /* Status / entity badge dark overrides */
+      html.dark .bg-green-100  { background-color: rgb(6 78 59 / 0.35)   !important; }
+      html.dark .text-green-700, html.dark .text-green-600 { color: #34d399 !important; }
+      html.dark .bg-red-100    { background-color: rgb(127 29 29 / 0.35)  !important; }
+      html.dark .text-red-600, html.dark .text-red-700 { color: #f87171 !important; }
+      html.dark .bg-amber-100  { background-color: rgb(120 53 15 / 0.35)  !important; }
+      html.dark .text-amber-700, html.dark .text-amber-800 { color: #fbbf24 !important; }
+      html.dark .bg-blue-100   { background-color: rgb(30 58 138 / 0.35)  !important; }
+      html.dark .text-blue-700, html.dark .text-blue-800 { color: #60a5fa !important; }
+      html.dark .bg-indigo-100 { background-color: rgb(49 46 129 / 0.35)  !important; }
+      html.dark .text-indigo-700 { color: #818cf8 !important; }
+      html.dark .bg-purple-100 { background-color: rgb(88 28 135 / 0.35)  !important; }
+      html.dark .text-purple-700 { color: #c084fc !important; }
+      html.dark .bg-orange-100 { background-color: rgb(124 45 18 / 0.35)  !important; }
+      html.dark .text-orange-700 { color: #fb923c !important; }
+      /* Flash / callout banners */
+      html.dark .bg-green-50   { background-color: rgb(6 78 59 / 0.2)     !important; }
+      html.dark .bg-amber-50   { background-color: rgb(120 53 15 / 0.2)   !important; }
+      html.dark .bg-red-50     { background-color: rgb(127 29 29 / 0.2)   !important; }
+      html.dark .border-green-200 { border-color: #065f46 !important; }
+      html.dark .border-amber-300 { border-color: #92400e !important; }
+      html.dark .border-red-200   { border-color: #7f1d1d !important; }
+      html.dark .text-green-700   { color: #34d399 !important; }
+      html.dark .text-amber-800   { color: #fbbf24 !important; }
     }
-    html.dark table thead th { background-color: #111827 !important; color: #9ca3af !important; border-color: #374151 !important; }
-    html.dark table tbody td { border-color: #374151 !important; color: #d1d5db !important; }
-    html.dark table tbody tr:hover td { background-color: #1f2937 !important; }
-    html.dark table tbody tr:nth-child(even) td { background-color: #1a2332 !important; }
-    /* Status / entity badge dark overrides */
-    html.dark .bg-green-100  { background-color: rgb(6 78 59 / 0.35)   !important; }
-    html.dark .text-green-700, html.dark .text-green-600 { color: #34d399 !important; }
-    html.dark .bg-red-100    { background-color: rgb(127 29 29 / 0.35)  !important; }
-    html.dark .text-red-600, html.dark .text-red-700 { color: #f87171 !important; }
-    html.dark .bg-amber-100  { background-color: rgb(120 53 15 / 0.35)  !important; }
-    html.dark .text-amber-700, html.dark .text-amber-800 { color: #fbbf24 !important; }
-    html.dark .bg-blue-100   { background-color: rgb(30 58 138 / 0.35)  !important; }
-    html.dark .text-blue-700, html.dark .text-blue-800 { color: #60a5fa !important; }
-    html.dark .bg-indigo-100 { background-color: rgb(49 46 129 / 0.35)  !important; }
-    html.dark .text-indigo-700 { color: #818cf8 !important; }
-    html.dark .bg-purple-100 { background-color: rgb(88 28 135 / 0.35)  !important; }
-    html.dark .text-purple-700 { color: #c084fc !important; }
-    html.dark .bg-orange-100 { background-color: rgb(124 45 18 / 0.35)  !important; }
-    html.dark .text-orange-700 { color: #fb923c !important; }
-    /* Flash / callout banners */
-    html.dark .bg-green-50   { background-color: rgb(6 78 59 / 0.2)     !important; }
-    html.dark .bg-amber-50   { background-color: rgb(120 53 15 / 0.2)   !important; }
-    html.dark .bg-red-50     { background-color: rgb(127 29 29 / 0.2)   !important; }
-    html.dark .border-green-200 { border-color: #065f46 !important; }
-    html.dark .border-amber-300 { border-color: #92400e !important; }
-    html.dark .border-red-200   { border-color: #7f1d1d !important; }
-    html.dark .text-green-700   { color: #34d399 !important; }
-    html.dark .text-amber-800   { color: #fbbf24 !important; }
-    /* Hide the sidebar scrollbar — content stays scrollable, the gutter
-       just isn't visible. Section collapse normally keeps the nav inside
-       the viewport, but tall viewports + several open sections still
-       need scroll, just without the visual rail. */
+    /* Sidebar scrollbar hiding — stays unlayered (no Tailwind collision).
+       Content remains scrollable; the visual gutter is just hidden. */
     #sidebar { scrollbar-width: none; -ms-overflow-style: none; }
     #sidebar::-webkit-scrollbar { width: 0; height: 0; display: none; }
   </style>
@@ -346,6 +354,10 @@
         <a href="/settings/company"
            class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Settings
+        </a>
+        <a href="/settings/licence"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/licence' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Licence
         </a>
         <a href="/companies"
            class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/companies') or path.startswith('/settings/companies') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
