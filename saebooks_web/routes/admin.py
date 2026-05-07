@@ -191,8 +191,13 @@ async def audit_log(
 ) -> HTMLResponse | RedirectResponse:
     """Render the paginated audit log list.
 
-    Proxies ``GET /admin/audit`` on the upstream API with filter params.
-    Renders results in our own template for nav consistency.
+    Calls ``GET /api/v1/admin/audit-log`` (JSON) on the upstream API and
+    renders rows in our own template.
+
+    The upstream returns ``AuditLogEntry`` rows ({id, entity, entity_id,
+    op, actor, at, version, payload}) — we translate them to the field
+    names the template was written against ({id, table_name, row_id,
+    action, performed_by, performed_at}).
 
     SAE staff only — cross-tenant data.
     """
@@ -202,13 +207,15 @@ async def audit_log(
         return HTMLResponse("Forbidden — SAE staff only", status_code=403)
 
     page_size = 50
-    params: dict[str, object] = {"page": page}
+    offset = max(0, (page - 1) * page_size)
+    params: dict[str, object] = {"limit": page_size, "offset": offset}
     if entity_type:
-        params["table_name"] = entity_type
+        params["route"] = entity_type
+    # API expects ISO datetimes; date strings are accepted as date-only ISO.
     if date_from:
-        params["from_date"] = date_from
+        params["from_ts"] = date_from
     if date_to:
-        params["to_date"] = date_to
+        params["to_ts"] = date_to
 
     snapshots: list[dict] = []
     has_next = False
@@ -216,33 +223,37 @@ async def audit_log(
     entity_types: list[str] = []
 
     async with api_client(request) as client:
-        # Use the admin/audit endpoint — it returns HTML but we need data.
-        # The API also exposes GET /admin/audit as HTML.  We call it with
-        # params and parse — but that would require HTML parsing.
-        # Instead use the audit CSV export endpoint to check existence, or
-        # simply proxy the list page as HTML.
-        # Best approach: use the underlying API route with JSON Accept header.
-        # The saebooks admin router doesn't have a JSON endpoint for audit.
-        # We proxy the page as a passthrough for now and add our own filter form.
-        resp = await client.get("/admin/audit", params=params)
+        resp = await client.get("/api/v1/admin/audit-log", params=params)
 
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
 
-        if resp.is_success:
-            # Try to parse as JSON first (in case the API returns JSON).
-            content_type = resp.headers.get("content-type", "")
-            if "json" in content_type:
-                data = resp.json()
-                snapshots = data.get("snapshots", data.get("items", []))
-                has_next = data.get("has_next", False)
-                entity_types = data.get("tables", [])
-            else:
-                # HTML proxy — store raw text for passthrough rendering.
-                pass
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    if resp.is_success:
+        data = resp.json()
+        items = data.get("items", [])
+        total = int(data.get("total", 0) or 0)
+        has_next = (offset + len(items)) < total
+        # Translate API field names → template field names.
+        for r in items:
+            payload = r.get("payload") or {}
+            snapshots.append(
+                {
+                    "id": r.get("id"),
+                    "table_name": r.get("entity") or "—",
+                    "row_id": str(r.get("entity_id") or ""),
+                    "action": (r.get("op") or "").upper() or "—",
+                    "performed_by": r.get("actor") or payload.get("user_id") or "system",
+                    "performed_at": r.get("at"),
+                }
+            )
+        # Distinct entity names visible on this page — populates the filter
+        # dropdown so the user has at least the current page's tables to pick
+        # from. Cheap and good enough; a dedicated /entities endpoint would
+        # be a future enhancement.
+        entity_types = sorted({s["table_name"] for s in snapshots if s["table_name"] != "—"})
+    else:
+        error = f"API error: HTTP {resp.status_code}"
 
     flash = request.session.pop("flash", None)
 

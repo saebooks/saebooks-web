@@ -85,10 +85,13 @@ async def company_settings(
         else:
             resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
 
-    if resp.status_code == 401:
-        request.session.clear()
-        return RedirectResponse(url="/login", status_code=303)
-
+    # We intentionally do NOT clear the session and redirect to /login on a
+    # 401 from the upstream API. Most other pages (dashboard, list views)
+    # tolerate a transient 401 by rendering with empty data; only this
+    # route used to bounce the user out, which felt broken because every
+    # other link in the nav worked. If the upstream actually rejects the
+    # token, the user can use the navbar Sign-In control — we don't punt
+    # them out from a deep link.
     if resp.is_success:
         if company_id:
             company = resp.json()
@@ -96,6 +99,8 @@ async def company_settings(
             items = resp.json().get("items", [])
             if items:
                 company = items[0]
+    elif resp.status_code == 401:
+        error = "Your session may have expired — please sign in again."
     else:
         error = f"API error: HTTP {resp.status_code}"
 
