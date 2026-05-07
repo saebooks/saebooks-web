@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% import "_icons.html" as icons %}
+
+{% block title %}
+  {% if payment %}Payment {{ payment.reference or payment.number or payment.id }} — SAE Books{% else %}Payment Not Found — SAE Books{% endif %}
+{% endblock %}
+
+{% block content %}
+{% set is_admin = (request.session.get("user_role") == "admin") %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if payment %}
+
+{# ── Header ── #}
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-semibold text-gray-900">
+        Payment {{ payment.reference or payment.number or "—" }}
+      </h1>
+      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
+        {% if payment.direction == 'INCOMING' %}bg-green-100 text-green-700
+        {% elif payment.direction == 'OUTGOING' %}bg-orange-100 text-orange-700
+        {% else %}bg-gray-100 text-gray-500{% endif %}">
+        {{ payment.direction | capitalize }}
+      </span>
+      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
+        {% if payment.status == 'POSTED' %}bg-blue-100 text-blue-700
+        {% elif payment.status == 'DRAFT' %}bg-gray-100 text-gray-600
+        {% elif payment.status == 'VOIDED' %}bg-red-100 text-red-600
+        {% else %}bg-gray-100 text-gray-500{% endif %}">
+        {{ payment.status | capitalize }}
+      </span>
+    </div>
+    <p class="text-sm text-gray-500 mt-1">Contact: {{ payment.contact_id }}</p>
+  </div>
+  <div class="flex items-center gap-3">
+    {% if payment.status == 'DRAFT' %}
+    <a
+      href="/payments/{{ payment.id }}/edit"
+      class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white
+             hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >Edit</a>
+    <form
+      method="post"
+      action="/payments/{{ payment.id }}/post"
+      onsubmit="return confirm('Post this payment? This cannot be undone easily.');"
+      class="inline"
+    >
+    {{ csrf_input(request)|safe }}
+
+      <input type="hidden" name="version" value="{{ payment.version }}">
+      <button
+        type="submit"
+        class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white
+               hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+      >Post</button>
+    </form>
+    <form
+      method="post"
+      action="/payments/{{ payment.id }}/archive"
+      onsubmit="return confirm('Archive this payment? This cannot be undone.');"
+      class="inline"
+    >
+    {{ csrf_input(request)|safe }}
+
+      <input type="hidden" name="version" value="{{ payment.version }}">
+      <button
+        type="submit"
+        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white
+               hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+      >Archive</button>
+    </form>
+    {% endif %}
+    {% if payment.status == 'POSTED' %}
+    <form
+      method="post"
+      action="/payments/{{ payment.id }}/void"
+      onsubmit="return confirm('Void this payment?');"
+      class="inline"
+    >
+    {{ csrf_input(request)|safe }}
+
+      <input type="hidden" name="version" value="{{ payment.version }}">
+      <button
+        type="submit"
+        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white
+               hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+      >Void</button>
+    </form>
+    {% endif %}
+    {% if is_admin %}
+    {{ icons.hard_delete(
+         "/api/v1/payments/" ~ payment.id,
+         "payment " ~ (payment.reference|default(payment.number|default(payment.id|string))),
+         "/payments"
+    ) }}
+    {% endif %}
+    <a
+      href="/payments"
+      class="text-sm text-indigo-600 hover:underline"
+    >← Back to payments</a>
+  </div>
+</div>
+
+{# ── Summary cards ── #}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Date</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ payment.payment_date }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Amount</p>
+    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
+      {{ payment.currency }} {{ "%.2f"|format(payment.amount|float) }}
+    </p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Method</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ payment.method | upper }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Reference</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ payment.reference or "—" }}</p>
+  </div>
+</div>
+
+{# ── Allocations ── #}
+<h2 class="text-base font-semibold text-gray-900 mb-3">Allocated against</h2>
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto mb-8">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Type</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Document ID</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Allocated amount</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% if payment.allocations %}
+        {% for alloc in payment.allocations %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-gray-600">
+            {% if alloc.invoice_id %}Invoice
+            {% elif alloc.bill_id %}Bill
+            {% elif alloc.credit_note_id %}Credit note
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 font-medium text-indigo-600">
+            {% if alloc.invoice_id %}
+              <a href="/invoices/{{ alloc.invoice_id }}" class="hover:underline">{{ alloc.invoice_id }}</a>
+            {% elif alloc.bill_id %}
+              <a href="/bills/{{ alloc.bill_id }}" class="hover:underline">{{ alloc.bill_id }}</a>
+            {% elif alloc.credit_note_id %}
+              {{ alloc.credit_note_id }}
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right tabular-nums font-medium text-gray-900">
+            {{ payment.currency }} {{ "%.2f"|format(alloc.amount|float) }}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="3" class="px-4 py-6 text-center text-gray-400">No allocations.</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Notes ── #}
+{% if payment.notes %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-2">Notes</h2>
+  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">{{ payment.notes }}</div>
+</div>
+{% endif %}
+
+{# ── Change log stub ── #}
+<div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-400">
+  Change log view — TODO
+</div>
+
+{% endif %}{# end if payment #}
+
+{% endblock %}

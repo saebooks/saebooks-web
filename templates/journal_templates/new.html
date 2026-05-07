@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}New Journal Template — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900">New Journal Template</h1>
+  <a href="/journal-templates" class="text-sm text-indigo-600 hover:underline">← Back to templates</a>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-3xl">
+  <form method="POST" action="/journal-templates/new" novalidate>
+    {{ csrf_input(request)|safe }}
+
+
+    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+    {# ── Non-field error banner ── #}
+    {% if errors.get("__all__") %}
+    <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+      {{ errors["__all__"] }}
+    </div>
+    {% endif %}
+
+    {# ── Template name ── #}
+    <div class="mb-6">
+      <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+        Template name <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        value="{{ form.get('name', '') }}"
+        placeholder="e.g. Monthly depreciation"
+        required
+        class="block w-full rounded-md border {% if errors.get('name') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+               px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+               focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      >
+      {% if errors.get("name") %}
+      <p class="mt-1 text-xs text-red-600">{{ errors["name"] }}</p>
+      {% endif %}
+    </div>
+
+    {# ── Lines table ── #}
+    <fieldset class="mt-4">
+      <legend class="text-sm font-semibold text-gray-900 mb-3">Lines</legend>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-left font-medium text-gray-500 text-xs uppercase tracking-wide w-1/3">Account ID</th>
+              <th class="px-3 py-2 text-left font-medium text-gray-500 text-xs uppercase tracking-wide">Description</th>
+              <th class="px-3 py-2 text-right font-medium text-gray-500 text-xs uppercase tracking-wide w-28">Debit</th>
+              <th class="px-3 py-2 text-right font-medium text-gray-500 text-xs uppercase tracking-wide w-28">Credit</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100" id="template-lines">
+            {% for i in range(line_count) %}
+            <tr>
+              <td class="px-3 py-2">
+                <input
+                  type="text"
+                  name="lines[{{ i }}][account_id]"
+                  value="{{ form.get('lines[' ~ i ~ '][account_id]', '') }}"
+                  placeholder="UUID"
+                  class="block w-full rounded border border-gray-300 px-2 py-1.5 text-xs font-mono
+                         focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+              </td>
+              <td class="px-3 py-2">
+                <input
+                  type="text"
+                  name="lines[{{ i }}][description]"
+                  value="{{ form.get('lines[' ~ i ~ '][description]', '') }}"
+                  placeholder="Optional"
+                  class="block w-full rounded border border-gray-300 px-2 py-1.5 text-xs
+                         focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+              </td>
+              <td class="px-3 py-2">
+                <input
+                  type="text"
+                  name="lines[{{ i }}][debit]"
+                  value="{{ form.get('lines[' ~ i ~ '][debit]', '') }}"
+                  placeholder="0.00"
+                  class="block w-full rounded border border-gray-300 px-2 py-1.5 text-xs text-right tabular-nums
+                         focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+              </td>
+              <td class="px-3 py-2">
+                <input
+                  type="text"
+                  name="lines[{{ i }}][credit]"
+                  value="{{ form.get('lines[' ~ i ~ '][credit]', '') }}"
+                  placeholder="0.00"
+                  class="block w-full rounded border border-gray-300 px-2 py-1.5 text-xs text-right tabular-nums
+                         focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-gray-400">Add account IDs (UUIDs) for each line. Lines with a blank Account ID are ignored.</p>
+    </fieldset>
+
+    <div class="mt-8 flex items-center gap-3">
+      <button
+        type="submit"
+        class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white
+               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Save template
+      </button>
+      <a
+        href="/journal-templates"
+        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
+               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Cancel
+      </a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if account %}{{ account.code }} {{ account.name }} — SAE Books{% else %}Account Not Found — SAE Books{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# ── Flash banner ── #}
+{% if flash %}
+<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if account %}
+
+{# ── Header ── #}
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <span class="font-mono text-sm text-gray-500">{{ account.code }}</span>
+      <h1 class="text-2xl font-semibold text-gray-900">{{ account.name }}</h1>
+      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
+        {% if account.account_type in ('ASSET',) %}bg-blue-100 text-blue-700
+        {% elif account.account_type in ('LIABILITY',) %}bg-amber-100 text-amber-700
+        {% elif account.account_type in ('EQUITY',) %}bg-purple-100 text-purple-700
+        {% elif account.account_type in ('INCOME', 'OTHER_INCOME') %}bg-green-100 text-green-700
+        {% elif account.account_type in ('EXPENSE', 'COST_OF_SALES', 'OTHER_EXPENSE') %}bg-red-100 text-red-700
+        {% else %}bg-gray-100 text-gray-600{% endif %}">
+        {{ account.account_type | replace("_", " ") | title }}
+      </span>
+      {% if account.is_header %}
+      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-500">Header</span>
+      {% endif %}
+    </div>
+    {% if account.archived_at %}
+    <p class="text-sm text-amber-600 mt-1">Archived {{ account.archived_at[:10] }}</p>
+    {% endif %}
+  </div>
+  <div class="flex items-center gap-3">
+    {% if not account.archived_at %}
+    <a
+      href="/accounts/{{ account.id }}/edit"
+      class="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700
+             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >
+      Edit
+    </a>
+    <form method="POST" action="/accounts/{{ account.id }}/archive" class="inline">
+    {{ csrf_input(request)|safe }}
+
+      <input type="hidden" name="version" value="{{ account.version }}">
+      <button
+        type="submit"
+        onclick="return confirm('Archive this account?')"
+        class="rounded-md border border-red-300 px-4 py-1.5 text-sm font-medium text-red-700
+               hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+      >
+        Archive
+      </button>
+    </form>
+    {% endif %}
+    <a href="/accounts" class="text-sm text-indigo-600 hover:underline">
+      ← Back to accounts
+    </a>
+  </div>
+</div>
+
+{# ── Detail cards ── #}
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-6">
+
+  <div class="bg-white rounded-xl border border-gray-200 p-5">
+    <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Account Details</h2>
+    <dl class="space-y-2 text-sm">
+      <div class="flex gap-2">
+        <dt class="w-36 shrink-0 text-gray-500">Account type</dt>
+        <dd class="text-gray-900">{{ account.account_type | replace("_", " ") | title }}</dd>
+      </div>
+      <div class="flex gap-2">
+        <dt class="w-36 shrink-0 text-gray-500">Default tax code</dt>
+        <dd class="text-gray-900">{{ account.tax_code_default or "—" }}</dd>
+      </div>
+      <div class="flex gap-2">
+        <dt class="w-36 shrink-0 text-gray-500">Reconcile</dt>
+        <dd class="text-gray-900">{{ "Yes" if account.reconcile else "No" }}</dd>
+      </div>
+      <div class="flex gap-2">
+        <dt class="w-36 shrink-0 text-gray-500">Header account</dt>
+        <dd class="text-gray-900">{{ "Yes" if account.is_header else "No" }}</dd>
+      </div>
+      {% if account.parent_id %}
+      <div class="flex gap-2">
+        <dt class="w-36 shrink-0 text-gray-500">Parent</dt>
+        <dd class="text-gray-900">
+          <a href="/accounts/{{ account.parent_id }}" class="text-indigo-600 hover:underline font-mono text-xs">{{ account.parent_id }}</a>
+        </dd>
+      </div>
+      {% endif %}
+    </dl>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 p-5">
+    <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Banking</h2>
+    <dl class="space-y-2 text-sm">
+      <div class="flex gap-2">
+        <dt class="w-36 shrink-0 text-gray-500">BSB</dt>
+        <dd class="text-gray-900 font-mono">{{ account.bsb or "—" }}</dd>
+      </div>
+      <div class="flex gap-2">
+        <dt class="w-36 shrink-0 text-gray-500">Account number</dt>
+        <dd class="text-gray-900 font-mono">{{ account.bank_account_number or "—" }}</dd>
+      </div>
+      <div class="flex gap-2">
+        <dt class="w-36 shrink-0 text-gray-500">Account title</dt>
+        <dd class="text-gray-900">{{ account.bank_account_title or "—" }}</dd>
+      </div>
+    </dl>
+  </div>
+
+</div>
+
+{# ── System / audit info ── #}
+<div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+  <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">System Info</h2>
+  <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+    <div class="flex gap-2">
+      <dt class="shrink-0 text-gray-500">ID</dt>
+      <dd class="text-gray-900 font-mono text-xs">{{ account.id }}</dd>
+    </div>
+    <div class="flex gap-2">
+      <dt class="shrink-0 text-gray-500">Version</dt>
+      <dd class="text-gray-900">{{ account.version }}</dd>
+    </div>
+    <div class="flex gap-2">
+      <dt class="shrink-0 text-gray-500">System managed</dt>
+      <dd class="text-gray-900">{{ "Yes" if account.system_managed else "No" }}</dd>
+    </div>
+    <div class="flex gap-2">
+      <dt class="shrink-0 text-gray-500">Created</dt>
+      <dd class="text-gray-900">{{ account.created_at[:10] }}</dd>
+    </div>
+  </dl>
+</div>
+
+{% endif %}{# end if account #}
+
+{% endblock %}

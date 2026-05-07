@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Projects — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Projects</h1>
+    {% if not error %}
+    <p class="text-sm text-gray-500 mt-1">{{ total }} project{{ "s" if total != 1 else "" }}</p>
+    {% endif %}
+  </div>
+  <a
+    href="/projects/new"
+    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
+           hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+  >
+    New project
+  </a>
+</div>
+
+{# Filter form — HTMX-powered, swaps only the table on submit #}
+<form
+  hx-get="/projects"
+  hx-target="#projects-table"
+  hx-swap="outerHTML"
+  hx-push-url="true"
+  class="mb-4 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+    <select
+      id="status"
+      name="status"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
+      <option value="ACTIVE" {% if filter_status == 'ACTIVE' %}selected{% endif %}>Active</option>
+      <option value="ON_HOLD" {% if filter_status == 'ON_HOLD' %}selected{% endif %}>On Hold</option>
+      <option value="COMPLETED" {% if filter_status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+      <option value="ARCHIVED" {% if filter_status == 'ARCHIVED' %}selected{% endif %}>Archived</option>
+    </select>
+  </div>
+
+  {# carry pagination limit; reset offset to 0 on new filter #}
+  <input type="hidden" name="limit" value="{{ limit }}">
+  <input type="hidden" name="offset" value="0">
+
+  <button
+    type="submit"
+    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+  >
+    Filter
+  </button>
+</form>
+
+{# Table fragment — HTMX replaces this div on filter/pagination #}
+{% include "projects/_table.html" %}
+
+{% endblock %}

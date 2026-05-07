@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Import Chart of Accounts — SAE Books{% endblock %}
+
+{% block content %}
+
+{# ── Flash banner ── #}
+{% if flash %}
+<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+{% if result %}
+<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
+  CoA import applied.
+  {% if result.added %} {{ result.added }} account(s) added.{% endif %}
+  {% if result.updated %} {{ result.updated }} updated.{% endif %}
+  {% if result.archived %} {{ result.archived }} archived.{% endif %}
+  {% if result.unchanged %} {{ result.unchanged }} unchanged.{% endif %}
+</div>
+{% endif %}
+
+<div class="flex items-center gap-2 mb-1">
+  <a href="/admin/imports" class="text-sm text-gray-500 hover:text-gray-700">Imports</a>
+  <span class="text-gray-400 text-xs">/</span>
+  <span class="text-sm text-gray-900 font-medium">Chart of Accounts</span>
+</div>
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">Import Chart of Accounts</h1>
+  <p class="text-sm text-gray-500 mt-1">Upload a CoA CSV to add or update accounts — preview the diff before applying</p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-lg">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-sm font-semibold text-gray-700">Upload CSV</h2>
+    <a href="/admin/imports/coa/export?download=1"
+       class="text-xs text-indigo-600 hover:underline">
+      Download current CoA
+    </a>
+  </div>
+
+  <form method="post" action="/admin/imports/coa/preview" enctype="multipart/form-data">
+    {{ csrf_input(request)|safe }}
+
+    <div class="mb-5">
+      <label class="block text-xs font-medium text-gray-700 mb-1" for="file">
+        CoA CSV File
+      </label>
+      <input type="file" id="file" name="file" accept=".csv,.txt" required
+        class="block w-full text-sm text-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+      <p class="mt-1 text-xs text-gray-400">
+        Columns: code, name, account_type, parent_code, tax_code_default, reconcile
+      </p>
+    </div>
+    <button type="submit"
+      class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+      Preview Changes
+    </button>
+  </form>
+</div>
+
+{% endblock %}

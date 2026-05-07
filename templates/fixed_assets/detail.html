@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if asset %}{{ asset.code }} — Fixed Asset — SAE Books{% else %}Fixed Asset Not Found — SAE Books{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if asset %}
+
+{# ── Header ── #}
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-semibold text-gray-900">
+        {{ asset.code }} — {{ asset.name }}
+      </h1>
+      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
+        {% if asset.status == 'active' %}bg-green-100 text-green-700
+        {% elif asset.status == 'disposed' %}bg-gray-100 text-gray-500
+        {% else %}bg-gray-100 text-gray-500{% endif %}">
+        {{ asset.status | replace("_", " ") | title }}
+      </span>
+    </div>
+    <p class="text-sm text-gray-500 mt-1">ID: {{ asset.id }}</p>
+  </div>
+  <div class="flex items-center gap-3">
+    {% if asset.status == 'active' %}
+    <a
+      href="/fixed-assets/{{ asset.id }}/edit"
+      class="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700
+             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+    >
+      Edit
+    </a>
+    {% if not asset.archived_at %}
+    <form method="POST" action="/fixed-assets/{{ asset.id }}/archive" class="inline">
+    {{ csrf_input(request)|safe }}
+
+      <input type="hidden" name="version" value="{{ asset.version }}">
+      <button
+        type="submit"
+        onclick="return confirm('Archive this fixed asset?')"
+        class="rounded-md border border-red-300 px-4 py-1.5 text-sm font-medium text-red-700
+               hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+      >
+        Archive
+      </button>
+    </form>
+    {% endif %}
+    {% endif %}
+    <a href="/fixed-assets" class="text-sm text-indigo-600 hover:underline">← Back to fixed assets</a>
+  </div>
+</div>
+
+{# ── Summary cards ── #}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Cost</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ "%.2f"|format(asset.cost | float) }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Residual value</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ "%.2f"|format(asset.residual_value | float) }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Purchase date</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ asset.purchase_date or "—" }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">In service date</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ asset.in_service_date or "—" }}</p>
+  </div>
+</div>
+
+{# ── Depreciation details ── #}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-3">Depreciation</h2>
+  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <tbody class="divide-y divide-gray-100">
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500 w-48">Depreciation model</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.depreciation_model_id }}</td>
+        </tr>
+        {% if asset.depreciation_model %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Method</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.depreciation_model.method | replace("_", " ") | title }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Method period</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.depreciation_model.method_period }} month{{ "s" if asset.depreciation_model.method_period != 1 else "" }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Last posted through</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.last_depreciation_posted_through or "—" }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Asset details ── #}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-3">Asset details</h2>
+  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <tbody class="divide-y divide-gray-100">
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500 w-48">Description</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.description or "—" }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Serial number</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.serial_number or "—" }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Manufacturer</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.manufacturer or "—" }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Model number</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.model_number or "—" }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Location</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.location or "—" }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Custody person</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.custody_person or "—" }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Warranty end</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.warranty_end or "—" }}</td>
+        </tr>
+        {% if asset.disposal_date %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Disposal date</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.disposal_date }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Disposal proceeds</td>
+          <td class="px-4 py-3 text-gray-900">
+            {% if asset.disposal_proceeds is not none %}
+              {{ "%.2f"|format(asset.disposal_proceeds | float) }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Account links ── #}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-3">Account links</h2>
+  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <tbody class="divide-y divide-gray-100">
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500 w-48">Cost account</td>
+          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ asset.cost_account_id }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Accum. dep. account</td>
+          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ asset.accum_dep_account_id }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Dep. expense account</td>
+          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ asset.dep_expense_account_id }}</td>
+        </tr>
+        {% if asset.tax_model_id %}
+        <tr>
+          <td class="px-4 py-3 font-medium text-gray-500">Tax model</td>
+          <td class="px-4 py-3 text-gray-900">{{ asset.tax_model_id }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if asset.extra %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-2">Extra</h2>
+  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 font-mono whitespace-pre-wrap">{{ asset.extra | tojson(indent=2) }}</div>
+</div>
+{% endif %}
+
+{# ── Post Depreciation form (only shown when ACTIVE and depreciation method is not no_depreciation) ── #}
+{% if asset.status == 'active' and asset.depreciation_model and asset.depreciation_model.method != 'no_depreciation' %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-3">Post Depreciation</h2>
+  <div class="bg-white rounded-xl border border-indigo-200 px-6 py-5 max-w-2xl">
+    <p class="text-sm text-gray-500 mb-1">
+      Post depreciation entries through the selected date.
+    </p>
+    {% if asset.last_depreciation_posted_through %}
+    <p class="text-xs text-gray-400 mb-4">
+      Last posted through: {{ asset.last_depreciation_posted_through }}
+    </p>
+    {% else %}
+    <p class="text-xs text-gray-400 mb-4">No depreciation posted yet.</p>
+    {% endif %}
+    <form method="POST" action="/fixed-assets/{{ asset.id }}/post-depreciation" novalidate>
+    {{ csrf_input(request)|safe }}
+
+      <input type="hidden" name="version" value="{{ asset.version }}">
+
+      <div class="space-y-4">
+        <div>
+          <label for="through_date" class="block text-sm font-medium text-gray-700 mb-1">
+            Post through <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            id="through_date"
+            name="through_date"
+            value="{{ through_default }}"
+            required
+            class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900
+                   focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-xs"
+          >
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <button
+          type="submit"
+          class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white
+                 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        >
+          Post Depreciation
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{# ── Convert to Inventory form (demonstrator → used stock, only when ACTIVE) ── #}
+{% if asset.status == 'active' %}
+{% include "fixed_assets/convert_to_inventory_form.html" %}
+{% endif %}
+
+{# ── Dispose form (only shown when ACTIVE) ── #}
+{% if asset.status == 'active' %}
+{% include "fixed_assets/dispose_form.html" %}
+{% endif %}
+
+{# ── Metadata footer ── #}
+<div class="bg-gray-50 rounded-xl border border-gray-200 px-4 py-4 text-xs text-gray-500 grid grid-cols-2 gap-2 sm:grid-cols-4">
+  <div>
+    <span class="font-medium">Created</span>
+    <p class="mt-0.5">{{ asset.created_at[:19] | replace("T", " ") if asset.created_at else "—" }}</p>
+  </div>
+  <div>
+    <span class="font-medium">Updated</span>
+    <p class="mt-0.5">{{ asset.updated_at[:19] | replace("T", " ") if asset.updated_at else "—" }}</p>
+  </div>
+  <div>
+    <span class="font-medium">Version</span>
+    <p class="mt-0.5">{{ asset.version }}</p>
+  </div>
+  <div>
+    <span class="font-medium">Archived</span>
+    <p class="mt-0.5">{{ asset.archived_at[:19] | replace("T", " ") if asset.archived_at else "—" }}</p>
+  </div>
+</div>
+
+{% endif %}{# end if asset #}
+
+{% endblock %}

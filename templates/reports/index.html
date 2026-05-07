@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Reports — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900">Reports</h1>
+  <p class="text-sm text-gray-500 mt-1">Financial statements and analysis</p>
+</div>
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+  <a href="/reports/profit-loss"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Profit &amp; Loss</h2>
+    <p class="text-xs text-gray-500">Income, expenses and net profit for a date range.</p>
+  </a>
+
+  <a href="/reports/balance-sheet"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Balance Sheet</h2>
+    <p class="text-xs text-gray-500">Assets, liabilities and equity as at a date.</p>
+  </a>
+
+  <a href="/reports/trial-balance"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Trial Balance</h2>
+    <p class="text-xs text-gray-500">Debits and credits per account with balanced indicator.</p>
+  </a>
+
+  <a href="/reports/cashflow"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Cash Flow</h2>
+    <p class="text-xs text-gray-500">Operating, investing and financing cash movements.</p>
+  </a>
+
+  <a href="/reports/bas-summary"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">BAS Summary</h2>
+    <p class="text-xs text-gray-500">G1, G3, G11, 1A/1B net GST and remit/refund for a quarter.</p>
+  </a>
+
+  <a href="/reports/aged-receivables"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Aged Receivables</h2>
+    <p class="text-xs text-gray-500">Outstanding customer invoices grouped by age bucket.</p>
+  </a>
+
+  <a href="/reports/aged-payables"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Aged Payables</h2>
+    <p class="text-xs text-gray-500">Outstanding supplier bills grouped by age bucket.</p>
+  </a>
+
+  <a href="/reports/budget-vs-actual"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Budget vs Actual</h2>
+    <p class="text-xs text-gray-500">Budget, actual and variance per account for a period.</p>
+  </a>
+
+  <a href="/reports/pl-by-segment"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">P&amp;L by Segment</h2>
+    <p class="text-xs text-gray-500">Net profit per project, department or cost centre.</p>
+  </a>
+
+  <a href="/reports/revenue-by-customer"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Revenue by Customer</h2>
+    <p class="text-xs text-gray-500">Invoiced revenue (ex-GST) per customer with PSI 80/20 concentration flag.</p>
+  </a>
+
+  <a href="/reports/depreciation-schedule"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">Depreciation Schedule</h2>
+    <p class="text-xs text-gray-500">Per-asset cost, accumulated depreciation and book value.</p>
+  </a>
+
+  <a href="/reports/fx-revaluation"
+     class="block rounded-xl bg-white border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-shadow">
+    <h2 class="text-sm font-semibold text-gray-900 mb-1">FX Revaluation</h2>
+    <p class="text-xs text-gray-500">Open foreign-currency invoices and bills revalued at spot rate.</p>
+  </a>
+
+</div>
+
+{% endblock %}

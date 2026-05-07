@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Companies — SAE Books{% endblock %}
+
+{% block content %}
+
+{# ── Flash banner ── #}
+{% if flash %}
+<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+{# ── Error banner ── #}
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Companies</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ total }} compan{{ 'y' if total == 1 else 'ies' }}</p>
+  </div>
+  {% if is_admin and multi_company_enabled %}
+  <a href="/companies/new"
+     class="inline-flex items-center gap-1 rounded-md bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600">
+    + New Company
+  </a>
+  {% elif is_admin and not multi_company_enabled %}
+  <span class="text-xs text-gray-400 dark:text-gray-500 italic">
+    Multi-company requires Business edition or higher.
+    <a href="/admin/license" class="underline hover:text-indigo-600">View licence</a>
+  </span>
+  {% endif %}
+</div>
+
+<div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+  {% if companies %}
+  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <thead class="bg-gray-50 dark:bg-gray-800">
+      <tr>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Legal Name</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ABN</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Currency</th>
+        <th class="px-6 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+      {% for company in companies %}
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+        <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+          {{ company.name }}
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+          {{ company.legal_name or '—' }}
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+          {{ company.abn or '—' }}
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+          {{ company.base_currency or 'AUD' }}
+        </td>
+        <td class="px-6 py-4 text-right text-sm">
+          <a href="/settings/company?company_id={{ company.id }}"
+             class="text-indigo-600 dark:text-indigo-400 hover:underline">
+            Settings
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+    No companies found.
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

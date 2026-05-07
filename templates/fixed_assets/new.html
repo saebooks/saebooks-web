@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}New Fixed Asset — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900">New Fixed Asset</h1>
+  <a href="/fixed-assets" class="text-sm text-indigo-600 hover:underline">← Back to fixed assets</a>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
+  <form method="POST" action="/fixed-assets/new" novalidate>
+    {{ csrf_input(request)|safe }}
+
+
+    {# Idempotency key — prevents double-submit on page reload #}
+    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+    {% set is_edit = false %}
+    {% include "fixed_assets/_form_fields.html" %}
+
+    <div class="mt-8 flex items-center gap-3">
+      <button
+        type="submit"
+        class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white
+               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Save fixed asset
+      </button>
+      <a
+        href="/fixed-assets"
+        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
+               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Cancel
+      </a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

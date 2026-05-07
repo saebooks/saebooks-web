@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Integrations — SAE Books{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6 dark:text-white">Integrations</h1>
+
+  <!-- Stripe Connect -->
+  <section class="mb-8 p-4 bg-white dark:bg-gray-800 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2 dark:text-white">Stripe (Customer Account)</h2>
+    <div hx-get="/settings/integrations/stripe/status"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+      <span class="text-gray-400 text-sm">Loading status…</span>
+    </div>
+    {% if not stripe_status.get("_unavailable") %}
+    {% if not stripe_status.get("connected") %}
+    <form method="post" action="/settings/integrations/stripe/connect" class="mt-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit"
+              class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
+        Connect Stripe Account
+      </button>
+    </form>
+    {% endif %}
+    {% else %}
+    <p class="text-sm text-gray-500 mt-2">
+      Stripe integration requires a Business or higher edition.
+    </p>
+    {% endif %}
+  </section>
+
+  <!-- LEI Lookup -->
+  <section class="mb-8 p-4 bg-white dark:bg-gray-800 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2 dark:text-white">LEI Lookup (GLEIF)</h2>
+    <form hx-post="/settings/integrations/lei/lookup"
+          hx-target="#lei-result"
+          hx-swap="innerHTML"
+          class="flex gap-2 items-end">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          LEI or entity name
+        </label>
+        <input name="search" type="text" required
+               placeholder="e.g. 5493001KJTIIGC8Y1R12"
+               class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+      </div>
+      <button type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+        Lookup
+      </button>
+    </form>
+    <div id="lei-result" class="mt-3"></div>
+  </section>
+
+  <!-- Companies House -->
+  <section class="mb-8 p-4 bg-white dark:bg-gray-800 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2 dark:text-white">Companies House (UK)</h2>
+    <form hx-post="/settings/integrations/companies-house/search"
+          hx-target="#ch-result"
+          hx-swap="innerHTML"
+          class="flex gap-2 items-end">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Company name or number
+        </label>
+        <input name="query" type="text" required
+               placeholder="e.g. 00445790"
+               class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+      </div>
+      <button type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+        Search
+      </button>
+    </form>
+    <div id="ch-result" class="mt-3"></div>
+  </section>
+</div>
+{% endblock %}

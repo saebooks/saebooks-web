@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}New Account Range — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900">New Account Range</h1>
+  <a href="/admin/ranges" class="text-sm text-indigo-600 hover:underline">← Back to ranges</a>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
+  <form method="POST" action="/admin/ranges/new" novalidate>
+    {{ csrf_input(request)|safe }}
+
+
+    {# ── Non-field error banner ── #}
+    {% if errors.get("__all__") %}
+    <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+      {{ errors["__all__"] }}
+    </div>
+    {% endif %}
+
+    <div class="space-y-4">
+
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+          Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value="{{ form.get('name', '') }}"
+          placeholder="e.g. Assets"
+          required
+          class="block w-full rounded-md border {% if errors.get('name') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+                 px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+                 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+        {% if errors.get("name") %}
+        <p class="mt-1 text-xs text-red-600">{{ errors["name"] }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="prefix" class="block text-sm font-medium text-gray-700 mb-1">
+          Prefix <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="prefix"
+          name="prefix"
+          value="{{ form.get('prefix', '') }}"
+          placeholder="e.g. 1"
+          required
+          class="block w-full rounded-md border {% if errors.get('prefix') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+                 px-3 py-2 text-sm font-mono text-gray-900 placeholder-gray-400
+                 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+        {% if errors.get("prefix") %}
+        <p class="mt-1 text-xs text-red-600">{{ errors["prefix"] }}</p>
+        {% endif %}
+        <p class="mt-1 text-xs text-gray-400">Account codes starting with this prefix fall into this range.</p>
+      </div>
+
+      <div>
+        <label for="account_type" class="block text-sm font-medium text-gray-700 mb-1">
+          Account type <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="account_type"
+          name="account_type"
+          value="{{ form.get('account_type', '') }}"
+          placeholder="e.g. ASSET"
+          required
+          class="block w-full rounded-md border {% if errors.get('account_type') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+                 px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+                 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+        {% if errors.get("account_type") %}
+        <p class="mt-1 text-xs text-red-600">{{ errors["account_type"] }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          rows="2"
+          placeholder="Optional description"
+          class="block w-full rounded-md border {% if errors.get('description') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+                 px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+                 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >{{ form.get("description", "") }}</textarea>
+        {% if errors.get("description") %}
+        <p class="mt-1 text-xs text-red-600">{{ errors["description"] }}</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <div class="mt-8 flex items-center gap-3">
+      <button
+        type="submit"
+        class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white
+               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Save range
+      </button>
+      <a
+        href="/admin/ranges"
+        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
+               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        Cancel
+      </a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

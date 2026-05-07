@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}P&amp;L by Segment — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">P&amp;L by Segment</h1>
+    {% if report %}
+    <p class="text-sm text-gray-500 mt-1">
+      {{ report.get("from_date", from_date) }} to {{ report.get("to_date", to_date) }}
+      — {{ report.get("segment_type", segment_type) | capitalize }}
+    </p>
+    {% endif %}
+  </div>
+  <div>
+    <button
+      type="button"
+      onclick="window.print()"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+    >Print</button>
+  </div>
+</div>
+
+{# Filter form — HTMX swaps #report-content on submit #}
+<form
+  hx-get="/reports/pl-by-segment"
+  hx-target="#report-content"
+  hx-swap="innerHTML"
+  hx-indicator="#report-spinner"
+  class="mb-6 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="from_date" class="block text-xs font-medium text-gray-500 mb-1">From date</label>
+    <input
+      id="from_date"
+      type="date"
+      name="from_date"
+      value="{{ from_date }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+  </div>
+  <div>
+    <label for="to_date" class="block text-xs font-medium text-gray-500 mb-1">To date</label>
+    <input
+      id="to_date"
+      type="date"
+      name="to_date"
+      value="{{ to_date }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+  </div>
+  <div>
+    <label for="segment_type" class="block text-xs font-medium text-gray-500 mb-1">Segment type</label>
+    <select
+      id="segment_type"
+      name="segment_type"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    >
+      <option value="project" {% if segment_type == "project" %}selected{% endif %}>Project</option>
+      <option value="department" {% if segment_type == "department" %}selected{% endif %}>Department</option>
+      <option value="cost_centre" {% if segment_type == "cost_centre" %}selected{% endif %}>Cost Centre</option>
+    </select>
+  </div>
+  <button
+    type="submit"
+    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+  >Refresh</button>
+</form>
+
+{% include "reports/_pl_by_segment_table.html" %}
+
+{% endblock %}

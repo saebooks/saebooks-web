@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}SQL Tool — Admin — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">SQL Tool</h1>
+    <p class="text-sm text-gray-500 mt-1">Read-only SQL browser — SELECT queries only</p>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-4">
+  <form
+    hx-post="/admin/sql-tool/execute"
+    hx-target="#sql-results"
+    hx-swap="innerHTML"
+    method="post"
+    id="sql-form">
+    {{ csrf_input(request)|safe }}
+
+
+    <div class="mb-4">
+      <label for="sql" class="block text-xs font-medium text-gray-700 mb-1">SQL Query</label>
+      <textarea
+        id="sql"
+        name="sql"
+        rows="6"
+        placeholder="SELECT * FROM journal_entries LIMIT 20;"
+        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      >{{ sql | default("") }}</textarea>
+    </div>
+
+    <div class="flex gap-3">
+      <button type="submit"
+        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+        Execute
+      </button>
+      <button type="reset"
+        class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        Clear
+      </button>
+    </div>
+  </form>
+</div>
+
+{# Results area — populated by HTMX #}
+<div id="sql-results">
+  {% if result %}
+    {% include "admin/sql_tool_results.html" %}
+  {% endif %}
+</div>
+
+<div class="mt-4 text-xs text-gray-400">
+  Only SELECT statements are permitted. Queries are logged in the audit trail.
+</div>
+
+{% endblock %}

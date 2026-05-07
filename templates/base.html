@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SAE Books{% endblock %}</title>
+
+  <!-- Dark-mode bootstrap — runs before first paint to prevent flash -->
+  <script>
+    (function () {
+      var stored = localStorage.getItem('saebooks-theme');
+      var dark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.classList.add('dark');
+    })();
+  </script>
+
+  <!-- Tailwind Play CDN — class-strategy dark mode.
+       The config object MUST be set BEFORE the CDN script tag. The CDN
+       reads window.tailwind.config during bootstrap; assigning to
+       window.tailwind.config AFTER load is too late and the CDN falls
+       back to media-query strategy. That fallback is what produced the
+       half-applied dark mode (OS-pref-driven dark:* utilities firing
+       while our html.dark overrides did not). -->
+  <script>tailwind = { config: { darkMode: 'class' } }</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Global dark-mode fills — covers templates not yet individually darkened.
+       Wrapped in @layer overrides with explicit layer ordering. Tailwind v4
+       places utilities in @layer utilities, and per the CSS Cascade Layers
+       spec !important rules in LATER layers beat !important rules in
+       EARLIER layers. By declaring 'overrides' after 'utilities', our
+       html.dark .bg-white {!important} reliably beats Tailwind's layered
+       .bg-white utility. Without this, layered !important > unlayered
+       !important and the override silently loses. -->
+  <style>
+    @layer base, components, utilities, overrides;
+    @layer overrides {
+      html.dark .bg-white        { background-color: #1f2937 !important; }
+      html.dark .bg-gray-50      { background-color: #111827 !important; }
+      html.dark .bg-gray-100     { background-color: #1f2937 !important; }
+      html.dark .text-gray-900   { color: #f3f4f6   !important; }
+      html.dark .text-gray-800   { color: #e5e7eb   !important; }
+      html.dark .text-gray-700   { color: #d1d5db   !important; }
+      html.dark .text-gray-600   { color: #9ca3af   !important; }
+      html.dark .text-gray-500   { color: #6b7280   !important; }
+      html.dark .border-gray-100 { border-color: #374151 !important; }
+      html.dark .border-gray-200 { border-color: #374151 !important; }
+      html.dark .border-gray-300 { border-color: #4b5563 !important; }
+      html.dark input:not([type=submit]):not([type=button]):not([type=checkbox]):not([type=radio]),
+      html.dark select,
+      html.dark textarea {
+        background-color: #1f2937 !important;
+        color: #f3f4f6 !important;
+        border-color: #4b5563 !important;
+      }
+      html.dark table thead th { background-color: #111827 !important; color: #9ca3af !important; border-color: #374151 !important; }
+      html.dark table tbody td { border-color: #374151 !important; color: #d1d5db !important; }
+      html.dark table tbody tr:hover td { background-color: #1f2937 !important; }
+      html.dark table tbody tr:nth-child(even) td { background-color: #1a2332 !important; }
+      /* Status / entity badge dark overrides */
+      html.dark .bg-green-100  { background-color: rgb(6 78 59 / 0.35)   !important; }
+      html.dark .text-green-700, html.dark .text-green-600 { color: #34d399 !important; }
+      html.dark .bg-red-100    { background-color: rgb(127 29 29 / 0.35)  !important; }
+      html.dark .text-red-600, html.dark .text-red-700 { color: #f87171 !important; }
+      html.dark .bg-amber-100  { background-color: rgb(120 53 15 / 0.35)  !important; }
+      html.dark .text-amber-700, html.dark .text-amber-800 { color: #fbbf24 !important; }
+      html.dark .bg-blue-100   { background-color: rgb(30 58 138 / 0.35)  !important; }
+      html.dark .text-blue-700, html.dark .text-blue-800 { color: #60a5fa !important; }
+      html.dark .bg-indigo-100 { background-color: rgb(49 46 129 / 0.35)  !important; }
+      html.dark .text-indigo-700 { color: #818cf8 !important; }
+      html.dark .bg-purple-100 { background-color: rgb(88 28 135 / 0.35)  !important; }
+      html.dark .text-purple-700 { color: #c084fc !important; }
+      html.dark .bg-orange-100 { background-color: rgb(124 45 18 / 0.35)  !important; }
+      html.dark .text-orange-700 { color: #fb923c !important; }
+      /* Flash / callout banners */
+      html.dark .bg-green-50   { background-color: rgb(6 78 59 / 0.2)     !important; }
+      html.dark .bg-amber-50   { background-color: rgb(120 53 15 / 0.2)   !important; }
+      html.dark .bg-red-50     { background-color: rgb(127 29 29 / 0.2)   !important; }
+      html.dark .border-green-200 { border-color: #065f46 !important; }
+      html.dark .border-amber-300 { border-color: #92400e !important; }
+      html.dark .border-red-200   { border-color: #7f1d1d !important; }
+      html.dark .text-green-700   { color: #34d399 !important; }
+      html.dark .text-amber-800   { color: #fbbf24 !important; }
+    }
+    /* Sidebar scrollbar hiding — stays unlayered (no Tailwind collision).
+       Content remains scrollable; the visual gutter is just hidden. */
+    #sidebar { scrollbar-width: none; -ms-overflow-style: none; }
+    #sidebar::-webkit-scrollbar { width: 0; height: 0; display: none; }
+  </style>
+
+  <!-- HTMX 2.x -->
+  <script src="https://unpkg.com/htmx.org@2" defer></script>
+
+  <!-- Lucide icons (CDN) — initialised once on DOMContentLoaded and after each
+       HTMX swap so dynamically-injected fragments pick up new <i data-lucide>
+       elements without a full reload. -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.lucide) lucide.createIcons();
+    });
+    document.body.addEventListener('htmx:afterSwap', function () {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+
+  <!-- Icon button styling (paired with Lucide). Default neutral hover, with
+       a red tint variant for destructive actions and an amber/red tint for
+       the flame (hard-delete) — admin only at the template layer. -->
+  <style>
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.375rem;
+      color: #6b7280;
+      transition: background-color 80ms ease, color 80ms ease;
+    }
+    .icon-btn:hover  { background-color: #f3f4f6; color: #1f2937; }
+    .icon-btn:focus  { outline: 2px solid #6366f1; outline-offset: 1px; }
+    .icon-btn-danger:hover { background-color: #fee2e2; color: #b91c1c; }
+    .icon-btn-flame { color: #b45309; }
+    .icon-btn-flame:hover  { background-color: #fef3c7; color: #b91c1c; }
+    html.dark .icon-btn          { color: #9ca3af; }
+    html.dark .icon-btn:hover    { background-color: #374151; color: #f3f4f6; }
+    html.dark .icon-btn-danger:hover { background-color: rgba(127,29,29,0.45); color: #fca5a5; }
+    html.dark .icon-btn-flame    { color: #fbbf24; }
+    html.dark .icon-btn-flame:hover { background-color: rgba(120,53,15,0.45); color: #fca5a5; }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+<body class="{% if request.session.get('api_token') %}flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950{% else %}bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen{% endif %}">
+
+{% if request.session.get("api_token") %}
+
+  {# ── Mobile overlay (tap outside to close sidebar) ──────────────────── #}
+  <div id="sidebar-overlay"
+       class="fixed inset-0 bg-black/40 z-20 hidden"
+       onclick="closeSidebar()">
+  </div>
+
+  {# ── Left sidebar ────────────────────────────────────────────────────── #}
+  <aside id="sidebar"
+         class="w-56 flex-shrink-0 flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto
+                fixed inset-y-0 left-0 z-30 -translate-x-full transition-transform duration-200
+                sm:relative sm:translate-x-0 sm:transition-none">
+
+    {# Brand #}
+    <div class="px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+      <span class="text-base font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">SAE Books</span>
+    </div>
+
+    {# Navigation #}
+    <nav class="flex-1 px-2 py-3 space-y-4 text-sm">
+      {% set path = request.url.path %}
+      {% set username = request.session.get("username", "") %}
+      {% set user_role = request.session.get("user_role", "") %}
+
+      {# ── Top-level (always visible, no heading) ── #}
+      <div>
+        <a href="/"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path == '/' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Dashboard
+        </a>
+        <a href="/contacts"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/contacts') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Contacts
+        </a>
+      </div>
+
+      {# ── Customers (AR — collapsible) ── #}
+      {% set customers_open = path.startswith('/invoices')
+                              or path.startswith('/payments')
+                              or path.startswith('/credit-notes')
+                              or path.startswith('/recurring-invoices') %}
+      <details class="group" {% if customers_open %}open{% endif %}>
+        <summary class="flex items-center justify-between px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 list-none select-none">
+          <span>Customers</span>
+          <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </summary>
+        <a href="/invoices"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/invoices') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Invoices
+        </a>
+        <a href="/payments"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/payments') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Payments
+        </a>
+        <a href="/credit-notes"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/credit-notes') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Credit Notes
+        </a>
+        <a href="/recurring-invoices"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/recurring-invoices') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Recurring
+        </a>
+      </details>
+
+      {# ── Vendors (AP — collapsible) ── #}
+      {% set vendors_open = path.startswith('/bills')
+                            or path.startswith('/pay-run') %}
+      <details class="group" {% if vendors_open %}open{% endif %}>
+        <summary class="flex items-center justify-between px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 list-none select-none">
+          <span>Vendors</span>
+          <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </summary>
+        <a href="/bills"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bills') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Bills
+        </a>
+        <a href="/pay-run"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/pay-run') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Pay Run
+        </a>
+      </details>
+
+      {# ── Accounting (collapsible) ── #}
+      {% set accounting_open = path.startswith('/journal-entries')
+                               or path.startswith('/journal-templates')
+                               or path.startswith('/accounts')
+                               or path.startswith('/tax-codes') %}
+      <details class="group" {% if accounting_open %}open{% endif %}>
+        <summary class="flex items-center justify-between px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 list-none select-none">
+          <span>Accounting</span>
+          <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </summary>
+        <a href="/journal-entries"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/journal-entries') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Journal Entries
+        </a>
+        <a href="/journal-templates"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/journal-templates') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Templates
+        </a>
+        <a href="/accounts"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/accounts') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Accounts
+        </a>
+        <a href="/tax-codes"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/tax-codes') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Tax Codes
+        </a>
+      </details>
+
+      {# ── Banking (collapsible) ── #}
+      {% set banking_open = path.startswith('/bank-accounts')
+                            or path.startswith('/bank-statement-lines')
+                            or path.startswith('/reconciliation')
+                            or path.startswith('/bank-rules') %}
+      <details class="group" {% if banking_open %}open{% endif %}>
+        <summary class="flex items-center justify-between px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 list-none select-none">
+          <span>Banking</span>
+          <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </summary>
+        <a href="/bank-accounts"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-accounts') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Bank Accounts
+        </a>
+        <a href="/bank-statement-lines"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-statement-lines') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Statement Lines
+        </a>
+        <a href="/reconciliation"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/reconciliation') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Reconciliation
+        </a>
+        <a href="/bank-rules"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bank-rules') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Bank Rules
+        </a>
+      </details>
+
+      {# ── Reports (collapsible) ── #}
+      {% set reports_open = path.startswith('/reports') %}
+      <details class="group" {% if reports_open %}open{% endif %}>
+        <summary class="flex items-center justify-between px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 list-none select-none">
+          <span>Reports</span>
+          <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </summary>
+        <a href="/reports"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/reports') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Reports
+        </a>
+      </details>
+
+      {# ── Assets & Setup (collapsible) ── #}
+      {% set setup_open = path.startswith('/fixed-assets')
+                          or path.startswith('/budgets')
+                          or path.startswith('/allocations')
+                          or path == '/settings/allocations'
+                          or path.startswith('/projects')
+                          or path.startswith('/items') %}
+      <details class="group" {% if setup_open %}open{% endif %}>
+        <summary class="flex items-center justify-between px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 list-none select-none">
+          <span>Assets &amp; Setup</span>
+          <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </summary>
+        <a href="/fixed-assets"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/fixed-assets') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Fixed Assets
+        </a>
+        <a href="/budgets"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/budgets') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Budgets
+        </a>
+        <a href="/allocations"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/allocations') or path == '/settings/allocations' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Allocations
+        </a>
+        <a href="/projects"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/projects') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Projects
+        </a>
+        <a href="/items"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/items') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Items
+        </a>
+      </details>
+
+      {# ── Admin (collapsible) ──
+        <details> auto-opens when the current path matches one of the
+        admin sub-routes, so a deep link still highlights the active
+        item without forcing the user to expand the section. #}
+      {% set admin_open = path == '/profile'
+                          or path.startswith('/settings/company')
+                          or path.startswith('/companies')
+                          or path.startswith('/admin') %}
+      <details class="group" {% if admin_open %}open{% endif %}>
+        <summary class="flex items-center justify-between px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 list-none select-none">
+          <span>Admin</span>
+          <svg class="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </summary>
+        <a href="/profile"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/profile' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Profile
+        </a>
+        <a href="/settings/company"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Settings
+        </a>
+        <a href="/settings/licence"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/licence' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Licence
+        </a>
+        <a href="/companies"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/companies') or path.startswith('/settings/companies') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Companies
+        </a>
+        {% if user_role == 'admin' %}
+        <a href="/admin/ranges"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/ranges' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Ranges
+        </a>
+        <a href="/admin/imports"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/imports' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Imports
+        </a>
+        <a href="/admin/ato-sbr"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/admin/ato-sbr') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          ATO SBR
+        </a>
+        {% if request.session.get("is_sae_staff") %}
+        <a href="/admin/sql-tool"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/sql-tool' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          SQL Tool
+        </a>
+        {% endif %}
+        <a href="/admin/audit"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/audit' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Audit
+        </a>
+        <a href="/admin/license"
+           class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/admin/license' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Licence
+        </a>
+        {% endif %}
+      </details>
+
+    </nav>
+
+    {# ── User section ── #}
+    <div class="border-t border-gray-200 dark:border-gray-700 px-4 py-3">
+      {% if username %}
+      <p class="text-xs font-medium text-gray-800 dark:text-gray-200 truncate" title="{{ username }}">{{ username }}</p>
+      {% if user_role %}
+      <p class="text-xs text-gray-400 dark:text-gray-500 capitalize">{{ user_role }}</p>
+      {% endif %}
+      {% endif %}
+      <div class="mt-2 flex items-center gap-3">
+        <a href="/logout" class="text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400">Sign out</a>
+        <button id="theme-toggle"
+                title="Toggle dark mode"
+                class="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 ml-auto leading-none">
+          <span id="theme-icon">☾</span>
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  {# ── Right column: top bar + content ────────────────────────────────── #}
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    {# Top bar #}
+    <header class="flex-shrink-0 flex items-center justify-between bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3">
+      <div class="flex items-center gap-3">
+        <button id="sidebar-toggle"
+                onclick="openSidebar()"
+                class="sm:hidden p-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                aria-label="Open menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          {% block company_name %}{{ company_name | default("SAE Books") }}{% endblock %}
+        </span>
+      </div>
+      <div class="flex items-center gap-3">
+        <form action="/search" method="GET" class="flex items-center gap-1">
+          <input
+            type="search"
+            name="q"
+            placeholder="Search…"
+            class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-52"
+          >
+        </form>
+        <a href="/invoices/new"
+           class="inline-flex items-center gap-1 rounded-md bg-indigo-600 dark:bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 whitespace-nowrap">
+          + Invoice
+        </a>
+      </div>
+    </header>
+
+    {# Page content #}
+    <main class="flex-1 overflow-y-auto p-6">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+
+{% else %}
+
+  {# ── Unauthenticated shell (login page, etc.) ────────────────────────── #}
+  <main class="mx-auto max-w-7xl px-6 py-8">
+    {{ self.content() }}
+  </main>
+
+{% endif %}
+
+<script>
+  (function () {
+    var btn = document.getElementById('theme-toggle');
+    var icon = document.getElementById('theme-icon');
+    if (!btn) return;
+
+    function isDark() {
+      var stored = localStorage.getItem('saebooks-theme');
+      if (stored === 'dark')  return true;
+      if (stored === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function applyTheme() {
+      var dark = isDark();
+      document.documentElement.classList.toggle('dark', dark);
+      if (icon) icon.textContent = dark ? '☾' : '☀';
+      if (btn)  btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    }
+
+    applyTheme();
+
+    btn.addEventListener('click', function () {
+      localStorage.setItem('saebooks-theme', isDark() ? 'light' : 'dark');
+      applyTheme();
+    });
+
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+        if (!localStorage.getItem('saebooks-theme')) applyTheme();
+      });
+    }
+  })();
+</script>
+
+<script>
+  function openSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) sidebar.classList.remove('-translate-x-full');
+    if (overlay) overlay.classList.remove('hidden');
+  }
+  function closeSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) sidebar.classList.add('-translate-x-full');
+    if (overlay) overlay.classList.add('hidden');
+  }
+</script>
+
+</body>
+</html>

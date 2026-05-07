@@ -1,0 +1,144 @@
+{#
+  _form_fields.html — shared form fields partial for journal entry create.
+
+  JournalEntryCreate fields:
+    entry_date  : date     (required)
+    narration   : str      (optional — the "description" in the response)
+    reference   : str      (optional — external reference, e.g. bank tx ref)
+    lines       : list     (required — must balance: sum(debit) == sum(credit))
+
+  No contact_id. No ref on create (auto-assigned JE-000001 etc.).
+  Each line has: account_id (required), description (optional), debit, credit.
+
+  Expected context variables:
+    form          : dict  — submitted field values (empty dict for a blank form)
+    errors        : dict  — field name -> error message; "__all__" for non-field errors
+    idempotency_key : str
+    accounts      : list  — account dicts [{id, name, code, account_type}, ...]
+    tax_codes     : list  — tax code dicts [{id, name, rate}, ...]
+    lines         : list  — list of dicts with "index" + optional field pre-fills
+    line_count    : int   — current number of lines (used for the add-row counter)
+#}
+
+{# ── Non-field error banner ── #}
+{% if errors.get("__all__") %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ errors["__all__"] }}
+</div>
+{% endif %}
+
+{# ── Hidden idempotency key ── #}
+<input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+{# ── Header details ── #}
+<fieldset class="space-y-4">
+  <legend class="text-sm font-semibold text-gray-900 mb-2">Journal entry details</legend>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    {# Entry date #}
+    <div>
+      <label for="entry_date" class="block text-sm font-medium text-gray-700 mb-1">
+        Entry date <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="date"
+        id="entry_date"
+        name="entry_date"
+        value="{{ form.get('entry_date', '') }}"
+        required
+        class="block w-full rounded-md border {% if errors.get('entry_date') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+               px-3 py-2 text-sm text-gray-900
+               focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      >
+      {% if errors.get("entry_date") %}
+      <p class="mt-1 text-xs text-red-600">{{ errors["entry_date"] }}</p>
+      {% endif %}
+    </div>
+
+    {# Reference (optional) #}
+    <div>
+      <label for="reference" class="block text-sm font-medium text-gray-700 mb-1">
+        Reference <span class="text-gray-400 font-normal">(optional)</span>
+      </label>
+      <input
+        type="text"
+        id="reference"
+        name="reference"
+        value="{{ form.get('reference', '') }}"
+        placeholder="e.g. bank transaction ref"
+        maxlength="32"
+        class="block w-full rounded-md border {% if errors.get('reference') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+               px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+               focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      >
+      {% if errors.get("reference") %}
+      <p class="mt-1 text-xs text-red-600">{{ errors["reference"] }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Narration / description (optional) #}
+  <div>
+    <label for="narration" class="block text-sm font-medium text-gray-700 mb-1">
+      Narration <span class="text-gray-400 font-normal">(optional)</span>
+    </label>
+    <input
+      type="text"
+      id="narration"
+      name="narration"
+      value="{{ form.get('narration', '') }}"
+      placeholder="e.g. Accrual for April consulting"
+      class="block w-full rounded-md border {% if errors.get('narration') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+    {% if errors.get("narration") %}
+    <p class="mt-1 text-xs text-red-600">{{ errors["narration"] }}</p>
+    {% endif %}
+  </div>
+</fieldset>
+
+{# ── Line items ── #}
+<fieldset class="mt-8">
+  <legend class="text-sm font-semibold text-gray-900 mb-3">Lines</legend>
+  <p class="text-xs text-gray-500 mb-3">Each line must have an account. Enter the amount in Debit or Credit — total debits must equal total credits.</p>
+
+  {# line_count is a hidden input so JS can read the next index to use #}
+  <input type="hidden" id="line-count" value="{{ line_count }}">
+
+  <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account</th>
+          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
+          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-32">Tax Code</th>
+          <th class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs w-28">Debit</th>
+          <th class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs w-28">Credit</th>
+          <th class="px-3 py-2 w-10"></th>
+        </tr>
+      </thead>
+      <tbody id="line-rows">
+        {% for line in lines %}
+          {% set index = line.index %}
+          {% include "journal_entries/_line_row.html" %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Add line button — HTMX appends a new row from /journal-entries/_add_line #}
+  <button
+    type="button"
+    id="add-line-btn"
+    class="mt-3 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+    hx-get="/journal-entries/_add_line"
+    hx-target="#line-rows"
+    hx-swap="beforeend"
+    hx-include="#line-count"
+    hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
+    onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1"
+  >
+    + Add line
+  </button>
+</fieldset>
