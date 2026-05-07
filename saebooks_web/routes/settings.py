@@ -196,8 +196,16 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
     if gst_date:
         payload["gst_effective_date"] = gst_date
 
-    # If the date is significantly in the past and the operator hasn't yet
-    # confirmed the retroactive-recompute workflow, show the confirmation page.
+    # If the date is significantly in the past AND there are pre-registration
+    # invoices that would need credit notes, show the backdate-confirm page.
+    #
+    # Past behaviour fired the confirm for any date >21 days ago. That mis-
+    # handles the common scenario where a long-standing GST-registered
+    # business is just recording its historical effective date in the books
+    # — no backdating event is occurring, the ATO already has the
+    # registration on file, and there are no pre-registration invoices to
+    # re-issue. We only block the save when the preview reports
+    # ``invoice_count > 0``; otherwise the save proceeds silently.
     if gst_date and not backdate_confirmed:
         try:
             eff_date = date.fromisoformat(gst_date)
@@ -211,17 +219,19 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
                     )
                 if preview.is_success:
                     invoice_count = preview.json().get("invoice_count", 0)
-                return _TEMPLATES.TemplateResponse(
-                    request,
-                    "settings/gst_backdate_confirm.html",
-                    {
-                        "company_id": company_id,
-                        "version": version,
-                        "gst_date": gst_date,
-                        "invoice_count": invoice_count,
-                        "form": form,
-                    },
-                )
+                if invoice_count > 0:
+                    return _TEMPLATES.TemplateResponse(
+                        request,
+                        "settings/gst_backdate_confirm.html",
+                        {
+                            "company_id": company_id,
+                            "version": version,
+                            "gst_date": gst_date,
+                            "invoice_count": invoice_count,
+                            "form": form,
+                        },
+                    )
+                # else: no pre-registration invoices — fall through and save
         except ValueError:
             pass  # unparseable date — let the API return 422
 

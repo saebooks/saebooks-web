@@ -131,7 +131,7 @@ async def test_company_settings_update_success(respx_mock: respx.MockRouter) -> 
         )
 
     assert resp.status_code == 303
-    assert resp.headers["location"] == "/settings/company"
+    assert resp.headers["location"] == f"/settings/company?company_id={_COMPANY_ID}"
 
 
 # ---------------------------------------------------------------------------
@@ -273,7 +273,7 @@ async def test_company_settings_gst_backdate_confirmed_saves(respx_mock: respx.M
         )
 
     assert resp.status_code == 303
-    assert resp.headers["location"] == "/settings/company"
+    assert resp.headers["location"] == f"/settings/company?company_id={_COMPANY_ID}"
 
 
 @pytest.mark.anyio
@@ -307,6 +307,54 @@ async def test_company_settings_gst_recent_date_no_confirm(respx_mock: respx.Moc
         )
 
     assert resp.status_code == 303
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_gst_old_date_no_invoices_skips_confirm(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Recording a long-standing historical GST date with no pre-reg invoices saves silently.
+
+    Common scenario: a business that has been GST-registered with the ATO
+    for years is entering its real registration date into a freshly
+    bootstrapped books instance. There are no pre-registration invoices
+    to credit-note, so the system must NOT block on the backdate-confirm
+    page — it should just save.
+    """
+    from datetime import date, timedelta
+
+    old_date = (date.today() - timedelta(days=365 * 5)).isoformat()
+    updated_company = {**_MOCK_COMPANY, "gst_registered": True, "gst_effective_date": old_date}
+
+    respx_mock.get(
+        f"{_API_BASE}/api/v1/companies/{_COMPANY_ID}/gst-backdate-preview"
+    ).mock(
+        return_value=Response(200, json={"invoice_count": 0, "effective_date": old_date})
+    )
+    respx_mock.patch(f"{_API_BASE}/api/v1/companies/{_COMPANY_ID}").mock(
+        return_value=Response(200, json=updated_company)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/settings/company",
+            data={
+                "company_id": _COMPANY_ID,
+                "name": "Acme Pty Ltd",
+                "version": "3",
+                "gst_registered": "true",
+                "gst_effective_date": old_date,
+            },
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/settings/company?company_id={_COMPANY_ID}"
 
 
 # ---------------------------------------------------------------------------
