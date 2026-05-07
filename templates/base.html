@@ -14,9 +14,15 @@
     })();
   </script>
 
-  <!-- Tailwind with dark-mode class strategy -->
-  <script>tailwind = { config: { darkMode: 'class' } }</script>
+  <!-- Tailwind Play CDN — class-strategy dark mode.
+       Per Tailwind docs the config MUST be assigned AFTER the CDN script
+       has loaded (the CDN bootstraps window.tailwind). Setting it before
+       had no effect, so the CDN silently fell back to media-query strategy
+       — that caused dark:* utilities to fire from OS pref while our
+       html.dark .bg-white !important overrides only fired when the
+       explicit class was present, producing a half-applied dark mode. -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' };</script>
 
   <!-- Global dark-mode fills — covers templates not yet individually darkened -->
   <style>
