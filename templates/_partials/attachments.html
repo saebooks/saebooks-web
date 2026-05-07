@@ -1,0 +1,126 @@
+{#
+  Partial: _partials/attachments.html
+  Target:  #attachments-<entity_kind>-<entity_id>   (outerHTML swap)
+
+  Variables:
+    entity_kind   — "invoice" | "bill" | "payment" | "contact"
+    entity_id     — str (UUID of the entity)
+    attachments   — list[dict] from the API (may be empty)
+    vault_enabled — bool; false = show disabled card only
+#}
+
+{% macro _humanise(size) %}
+  {%- if size is none or size == 0 -%}
+    0 B
+  {%- elif size < 1024 -%}
+    {{ size }} B
+  {%- elif size < 1048576 -%}
+    {{ "%.1f"|format(size / 1024) }} kB
+  {%- else -%}
+    {{ "%.1f"|format(size / 1048576) }} MB
+  {%- endif -%}
+{% endmacro %}
+
+<div id="attachments-{{ entity_kind }}-{{ entity_id }}">
+
+  {% if not vault_enabled %}
+
+  {# ── Vault disabled ── #}
+  <div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 px-4 py-4 text-sm text-gray-400">
+    Attachments are disabled for this instance.
+  </div>
+
+  {% else %}
+
+  {# ── Attachment list ── #}
+  {% if attachments %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto mb-4">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">File</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Size</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs hidden sm:table-cell">Uploaded by</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs hidden md:table-cell">Date</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for att in attachments %}
+        {% if not att.archived_at %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-gray-900 truncate max-w-xs" title="{{ att.filename }}">
+            {{ att.filename }}
+          </td>
+          <td class="px-4 py-3 text-right tabular-nums text-gray-500 whitespace-nowrap">
+            {{ _humanise(att.size) }}
+          </td>
+          <td class="px-4 py-3 text-gray-500 hidden sm:table-cell truncate max-w-xs">
+            {{ att.uploaded_by or "—" }}
+          </td>
+          <td class="px-4 py-3 text-gray-500 hidden md:table-cell whitespace-nowrap">
+            {{ att.uploaded_at[:10] if att.uploaded_at else "—" }}
+          </td>
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+            <a
+              href="/attachments/{{ att.id }}/download"
+              class="inline-flex items-center rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white
+                     hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 mr-2"
+            >Download</a>
+            <button
+              type="button"
+              hx-delete="/attachments/{{ att.id }}?entity_kind={{ entity_kind }}&entity_id={{ entity_id }}"
+              hx-target="#attachments-{{ entity_kind }}-{{ entity_id }}"
+              hx-swap="outerHTML"
+              hx-confirm="Delete '{{ att.filename }}'? This cannot be undone."
+              class="inline-flex items-center rounded-md bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600
+                     hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1
+                     border border-red-200"
+            >Delete</button>
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-sm text-gray-400 mb-4">No attachments yet.</p>
+  {% endif %}
+
+  {# ── Upload form ── #}
+  <form
+    hx-post="/attachments"
+    hx-target="#attachments-{{ entity_kind }}-{{ entity_id }}"
+    hx-swap="outerHTML"
+    hx-encoding="multipart/form-data"
+    class="flex items-center gap-3"
+  >
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="entity_kind" value="{{ entity_kind }}">
+    <input type="hidden" name="entity_id" value="{{ entity_id }}">
+    <input
+      type="file"
+      name="file"
+      required
+      class="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0
+             file:bg-indigo-50 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-indigo-700
+             hover:file:bg-indigo-100 focus:outline-none"
+    >
+    <button
+      type="submit"
+      class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white
+             hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1
+             whitespace-nowrap"
+    >Upload</button>
+  </form>
+
+  {% if upload_error %}
+  <div class="mt-2 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+    {{ upload_error }}
+  </div>
+  {% endif %}
+
+  {% endif %}
+
+</div>

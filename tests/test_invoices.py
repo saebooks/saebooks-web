@@ -161,6 +161,9 @@ async def test_invoices_detail_renders(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
         return_value=Response(200, json=_MOCK_INVOICE)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

@@ -87,6 +87,7 @@ from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 from saebooks_web.routes.contact import router as contact_router
 from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
+from saebooks_web.routes.attachments import router as attachments_router  # Phase 1.5
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -222,6 +223,8 @@ app.include_router(imports_router)
 app.include_router(ato_sbr_router)
 # Cat-C W6: integrations dashboard + Stripe Connect + LEI/CH HTMX fragments.
 app.include_router(integrations_router)
+# Phase 1.5: attachment panel (upload / delete / download relay).
+app.include_router(attachments_router)
 
 
 # ---------------------------------------------------------------------------

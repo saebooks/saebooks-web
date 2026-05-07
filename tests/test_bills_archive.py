@@ -140,6 +140,9 @@ async def test_bill_archive_button_hidden_when_posted(
     respx_mock.get(f"{_API_BASE}/api/v1/bills/{_BILL_ID}").mock(
         return_value=Response(200, json=_MOCK_BILL_POSTED)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

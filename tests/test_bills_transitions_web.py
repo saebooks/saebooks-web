@@ -121,6 +121,9 @@ async def test_bill_post_conflict(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/bills/{_BILL_ID}").mock(
         return_value=Response(200, json=_MOCK_BILL_DRAFT)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -180,6 +183,9 @@ async def test_bill_void_button_not_shown_for_draft(
     """Detail page for a DRAFT bill must not render the void form."""
     respx_mock.get(f"{_API_BASE}/api/v1/bills/{_BILL_ID}").mock(
         return_value=Response(200, json=_MOCK_BILL_DRAFT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
 
     async with AsyncClient(

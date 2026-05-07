@@ -822,22 +822,45 @@ async def bill_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "bills/detail.html",
-                {"bill": None, "error": "Bill not found", "flash": None},
+                {"bill": None, "error": "Bill not found", "flash": None,
+                 "attachments": [], "vault_enabled": False},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "bills/detail.html",
-                {"bill": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
+                {"bill": None, "error": f"API error: HTTP {resp.status_code}", "flash": None,
+                 "attachments": [], "vault_enabled": False},
                 status_code=resp.status_code,
             )
 
     bill = resp.json()
+
+    # Fetch attachments for this bill. 503 means vault is disabled — render
+    # the panel in its disabled state rather than raising an error.
+    attachments: list[dict] = []
+    vault_enabled: bool = True
+    async with api_client(request) as client:
+        att_resp = await client.get(
+            "/api/v1/attachments",
+            params={"entity_kind": "bill", "entity_id": bill_id},
+        )
+    if att_resp.status_code == 503:
+        vault_enabled = False
+    elif att_resp.is_success:
+        attachments = att_resp.json()
+
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "bills/detail.html",
-        {"bill": bill, "error": None, "flash": flash},
+        {
+            "bill": bill,
+            "error": None,
+            "flash": flash,
+            "attachments": attachments,
+            "vault_enabled": vault_enabled,
+        },
     )

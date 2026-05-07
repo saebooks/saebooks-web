@@ -89,6 +89,9 @@ async def test_stripe_button_shown_for_posted_no_link(
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
         return_value=Response(200, json=_MOCK_INVOICE_POSTED)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -115,6 +118,9 @@ async def test_stripe_copy_button_shown_when_link_exists(
     """GET /invoices/{id} — POSTED with stripe_payment_link renders Copy Link."""
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
         return_value=Response(200, json=_MOCK_INVOICE_POSTED_WITH_LINK)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
 
     async with AsyncClient(
@@ -144,6 +150,9 @@ async def test_stripe_button_not_shown_for_draft(
     """GET /invoices/{id} — DRAFT invoice: no Stripe payment link section."""
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
         return_value=Response(200, json=_MOCK_INVOICE_DRAFT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
 
     async with AsyncClient(

@@ -127,6 +127,9 @@ async def test_invoice_post_conflict(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
         return_value=Response(200, json=_MOCK_INVOICE_DRAFT)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -172,6 +175,9 @@ async def test_invoice_post_validation_error(respx_mock: respx.MockRouter) -> No
     # Follow the redirect and check the flash message appears.
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
         return_value=Response(200, json=_MOCK_INVOICE_DRAFT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -252,6 +258,9 @@ async def test_invoice_void_on_draft_422(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
         return_value=Response(200, json=_MOCK_INVOICE_DRAFT)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -278,6 +287,9 @@ async def test_invoice_void_button_not_shown_for_draft(
     """Detail page for a DRAFT invoice must not render the void form."""
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
         return_value=Response(200, json=_MOCK_INVOICE_DRAFT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
 
     async with AsyncClient(

@@ -867,22 +867,45 @@ async def invoice_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "invoices/detail.html",
-                {"invoice": None, "error": "Invoice not found", "flash": None},
+                {"invoice": None, "error": "Invoice not found", "flash": None,
+                 "attachments": [], "vault_enabled": False},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "invoices/detail.html",
-                {"invoice": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
+                {"invoice": None, "error": f"API error: HTTP {resp.status_code}", "flash": None,
+                 "attachments": [], "vault_enabled": False},
                 status_code=resp.status_code,
             )
 
     invoice = resp.json()
+
+    # Fetch attachments for this invoice. 503 means vault is disabled — render
+    # the panel in its disabled state rather than raising an error.
+    attachments: list[dict] = []
+    vault_enabled: bool = True
+    async with api_client(request) as client:
+        att_resp = await client.get(
+            "/api/v1/attachments",
+            params={"entity_kind": "invoice", "entity_id": invoice_id},
+        )
+    if att_resp.status_code == 503:
+        vault_enabled = False
+    elif att_resp.is_success:
+        attachments = att_resp.json()
+
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "invoices/detail.html",
-        {"invoice": invoice, "error": None, "flash": flash},
+        {
+            "invoice": invoice,
+            "error": None,
+            "flash": flash,
+            "attachments": attachments,
+            "vault_enabled": vault_enabled,
+        },
     )
