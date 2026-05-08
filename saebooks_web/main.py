@@ -97,7 +97,7 @@ logger = logging.getLogger("saebooks_web")
 app = FastAPI(
     title="SAE Books Web",
     description="Thin Jinja2 + HTMX frontend for saebooks-api",
-    version="0.1.0",
+    version="0.1.2",
     docs_url="/api/docs",  # keep /docs free from accidental exposure
     redoc_url=None,
 )

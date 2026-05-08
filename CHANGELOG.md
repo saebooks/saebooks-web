@@ -5,6 +5,31 @@ All notable changes to the SAE Books web frontend will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-05-08
+
+### Fixed
+
+- **Dashboard overdue/due-soon counts.** AR and AP tiles now exclude
+  invoices/bills where `amount_paid >= total`, so a fully-paid overdue
+  document no longer appears in the red banner.
+- **Dashboard "Outstanding" tile.** Replaces the never-populated "Paid
+  this month" tile (the API has no PAID enum); shows count of invoices
+  with `amount_paid < total`.
+- **Header company name.** Shows the active company's legal name (or
+  trading name) instead of the literal string "SAE Books".
+
+### Changed
+
+- **Navigation.** Moved Payments link from Customers section into
+  Banking section — payments aren't customer-only and the prior
+  placement made them invisible when working on bills.
+
+### Build
+
+- `build-images.yml` now logs into Docker Hub on `v*.*.*` tags and
+  pushes multi-arch images, parity with the saebooks repo. Branch
+  builds still verify the build without polluting the registry.
+
 ## [0.1.1] - 2026-05-08
 
 ### Added
