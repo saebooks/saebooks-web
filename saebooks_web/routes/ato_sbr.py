@@ -125,6 +125,13 @@ async def ato_sbr_index(
             "error": error or flash_err,
             "test_badge": test,
             "test_env": test_env,
+            "active_wizard_id": request.session.get("active_wizard_id"),
+            "active_wizard_step_index": request.session.get(
+                "active_wizard_step_index"
+            ),
+            "active_wizard_step_count": request.session.get(
+                "active_wizard_step_count"
+            ),
         },
     )
 
@@ -274,9 +281,12 @@ async def ato_sbr_start_wizard(request: Request) -> RedirectResponse | HTMLRespo
     if resp.status_code == 201:
         wizard = resp.json()
         wizard_id = wizard.get("wizard_id", "")
-        # Store wizard id in session to track progress.
+        # Store wizard id and current step info in session.
         request.session["active_wizard_id"] = wizard_id
         request.session["active_wizard_flow"] = flow
+        request.session["active_wizard_step"] = wizard.get("current_step")
+        request.session["active_wizard_step_index"] = wizard.get("step_index")
+        request.session["active_wizard_step_count"] = wizard.get("step_count")
         return RedirectResponse(
             url=f"/admin/ato-sbr/onboarding/{wizard_id}",
             status_code=303,
@@ -325,12 +335,26 @@ async def ato_sbr_wizard_page(
 
     flash_msg, flash_err = _pop_flash(request)
 
+    current_step = request.session.get("active_wizard_step")
+    step_index = request.session.get("active_wizard_step_index")
+    step_count = request.session.get("active_wizard_step_count")
+
+    if current_step is None:
+        # No step info in session (e.g. server restart) — restart wizard.
+        request.session.pop("active_wizard_id", None)
+        request.session.pop("active_wizard_flow", None)
+        _flash(request, error="Wizard step state lost — please start again")
+        return RedirectResponse(url="/admin/ato-sbr", status_code=303)
+
     return _TEMPLATES.TemplateResponse(
         request,
         "ato_sbr/wizard.html",
         {
             "wizard_id": wizard_id,
             "flow": request.session.get("active_wizard_flow", "machine_credential"),
+            "current_step": current_step,
+            "step_index": step_index,
+            "step_count": step_count,
             "message": flash_msg,
             "error": error or flash_err,
         },
@@ -393,9 +417,15 @@ async def ato_sbr_wizard_step(
         if body.get("status") == "complete":
             request.session.pop("active_wizard_id", None)
             request.session.pop("active_wizard_flow", None)
+            request.session.pop("active_wizard_step", None)
+            request.session.pop("active_wizard_step_index", None)
+            request.session.pop("active_wizard_step_count", None)
             _flash(request, message="ATO SBR onboarding complete!")
             return RedirectResponse(url="/admin/ato-sbr", status_code=303)
-        # Still in progress — back to wizard page.
+        # Still in progress — refresh session step info, back to wizard page.
+        request.session["active_wizard_step"] = body.get("current_step")
+        request.session["active_wizard_step_index"] = body.get("step_index")
+        request.session["active_wizard_step_count"] = body.get("step_count")
         return RedirectResponse(
             url=f"/admin/ato-sbr/onboarding/{wizard_id}",
             status_code=303,
@@ -410,6 +440,10 @@ async def ato_sbr_wizard_step(
         _flash(request, error=str(detail)[:200])
     elif resp.status_code in (404, 410):
         request.session.pop("active_wizard_id", None)
+        request.session.pop("active_wizard_flow", None)
+        request.session.pop("active_wizard_step", None)
+        request.session.pop("active_wizard_step_index", None)
+        request.session.pop("active_wizard_step_count", None)
         _flash(request, error="Wizard session expired — please start again")
         return RedirectResponse(url="/admin/ato-sbr", status_code=303)
     else:
