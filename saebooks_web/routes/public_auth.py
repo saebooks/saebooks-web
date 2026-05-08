@@ -116,14 +116,33 @@ async def _login_with_jwt(request: Request, token: str) -> None:
 # ---------------------------------------------------------------------------
 
 
+async def _fetch_promo_stats() -> dict:
+    """Fetch promo stats from the API (server-side, cached per-render).
+
+    Returns a safe dict even when the API is unreachable. The template
+    checks ``promo.enabled`` before rendering any promo UI.
+    """
+    if not settings.launch_promo_enabled:
+        return {"enabled": False, "issued": 0, "limit": 1000, "remaining": 1000}
+    try:
+        async with _api_client() as client:
+            resp = await client.get("/api/v1/license/promo-stats", timeout=3.0)
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception:
+        pass
+    return {"enabled": settings.launch_promo_enabled, "issued": 0, "limit": 1000, "remaining": 1000}
+
+
 @router.get("/signup", response_class=HTMLResponse)
 async def signup_page(request: Request, plan: str | None = None) -> HTMLResponse:
-    _VALID_PLANS = {"business", "pro", "enterprise", "cashbook"}
+    _VALID_PLANS = {"business", "pro", "enterprise"}
     safe_plan = plan if plan in _VALID_PLANS else None
+    promo = await _fetch_promo_stats()
     return _TEMPLATES.TemplateResponse(
         request,
         "auth/signup.html",
-        {"error": None, "values": {"plan": safe_plan}},
+        {"error": None, "values": {"plan": safe_plan}, "promo": promo},
     )
 
 
@@ -136,7 +155,7 @@ async def signup_submit(
     name: str | None = Form(default=None),
     plan: str | None = Form(default=None),
 ) -> HTMLResponse:
-    _VALID_PLANS = {"business", "pro", "enterprise", "cashbook"}
+    _VALID_PLANS = {"business", "pro", "enterprise"}
     safe_plan: str | None = plan if plan in _VALID_PLANS else None
     payload: dict[str, Any] = {
         "email": email.strip(),
@@ -151,12 +170,14 @@ async def signup_submit(
         async with _api_client() as client:
             resp = await client.post("/api/v1/auth/signup", json=payload)
     except httpx.RequestError:
+        promo = await _fetch_promo_stats()
         return _TEMPLATES.TemplateResponse(
             request,
             "auth/signup.html",
             {
                 "error": "Couldn't reach the server. Please try again in a moment.",
                 "values": {"email": email, "company_name": company_name, "name": name or "", "plan": safe_plan},
+                "promo": promo,
             },
             status_code=502,
         )
@@ -166,12 +187,14 @@ async def signup_submit(
             "auth/check_email.html",
             {"email": email.strip(), "kind": "verification"},
         )
+    promo = await _fetch_promo_stats()
     return _TEMPLATES.TemplateResponse(
         request,
         "auth/signup.html",
         {
             "error": _format_api_error(resp, "Sign-up failed — please try again."),
             "values": {"email": email, "company_name": company_name, "name": name or "", "plan": safe_plan},
+            "promo": promo,
         },
         status_code=resp.status_code if resp.status_code < 500 else 502,
     )
@@ -209,33 +232,7 @@ async def verify_email(request: Request, token: str | None = None) -> Any:
         if access:
             await _login_with_jwt(request, access)
             pending_plan = body.get("signup_plan")
-            if pending_plan == "cashbook":
-                # Free plan — bootstrap cashbook company (bank account + cashbook mode)
-                # then land at /cashbook.
-                try:
-                    auth_header = {"Authorization": f"Bearer {access}"}
-                    async with _api_client() as client:
-                        # Create default bank account
-                        ba_resp = await client.post(
-                            "/api/v1/bank_accounts",
-                            json={"code": "1100", "name": "Main Bank Account"},
-                            headers={**auth_header, "X-Idempotency-Key": f"cashbook-ba-{access[:12]}"},
-                        )
-                        if ba_resp.status_code == 201:
-                            ba_id = ba_resp.json().get("id")
-                            if ba_id:
-                                await client.post(
-                                    "/api/v1/cashbook/setup",
-                                    json={"bank_account_id": ba_id},
-                                    headers=auth_header,
-                                )
-                        elif ba_resp.status_code == 409:
-                            # Idempotent — bank account already exists, try setup anyway
-                            logger.info("cashbook bootstrap: bank account already exists, skipping")
-                except Exception as exc:
-                    logger.warning("cashbook bootstrap failed: %s", exc)
-                return RedirectResponse(url="/cashbook", status_code=303)
-            elif pending_plan:
+            if pending_plan:
                 return RedirectResponse(
                     url=f"/billing/checkout?plan={pending_plan}", status_code=303
                 )
@@ -400,4 +397,22 @@ async def magic_link(request: Request, token: str | None = None) -> Any:
             ),
         },
         status_code=resp.status_code if resp.status_code < 500 else 502,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /promo-stats-partial — HTMX fragment for the banner counter
+# ---------------------------------------------------------------------------
+# The signup banner polls this every 60 s via hx-get to refresh the
+# "N spots left" number without reloading the whole page.
+# Returns the full banner div (outerHTML swap).
+
+
+@router.get("/promo-stats-partial", response_class=HTMLResponse)
+async def promo_stats_partial(request: Request) -> HTMLResponse:
+    promo = await _fetch_promo_stats()
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "auth/_promo_banner.html",
+        {"promo": promo},
     )

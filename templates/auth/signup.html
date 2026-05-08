@@ -5,23 +5,38 @@
 {% block content %}
 <div class="flex min-h-[70vh] items-center justify-center">
   <div class="w-full max-w-md">
+
+    {# Launch-promo banner — hidden when promo is disabled or exhausted. #}
+    {% if promo and promo.enabled and promo.remaining > 0 %}
+    <div class="mb-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 text-white shadow-sm"
+         id="promo-banner"
+         hx-get="/promo-stats-partial"
+         hx-trigger="every 60s"
+         hx-swap="outerHTML">
+      <div class="flex items-start gap-3">
+        <span class="text-2xl leading-none select-none">&#127881;</span>
+        <div>
+          <p class="font-semibold text-sm">First 1,000 customers get Pro free for a year</p>
+          <p class="text-indigo-200 text-xs mt-0.5">
+            <strong class="text-white" id="promo-remaining">{{ promo.remaining }}</strong>
+            of {{ promo.limit }} spots left — no credit card needed.
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 px-8 py-10">
 
-      {% if values.plan == "cashbook" %}
-      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">Start your free Cashbook</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-        No credit card. No install. Cash in, cash out, done.
-      </p>
-      <p class="text-xs text-gray-400 dark:text-gray-500 mb-6">
-        Single-entry bookkeeping for sole traders. Upgrade to a full double-entry tier any time — your data comes with you.
-      </p>
-      {% else %}
       <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">Create your SAE Books account</h1>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        {% if promo and promo.enabled and promo.remaining > 0 %}
+        Sign up now and get Pro tier free for 12 months — no credit card needed.
+        {% else %}
         Free Community edition — no credit card needed. You can upgrade
         to Business or Pro any time from your account.
+        {% endif %}
       </p>
-      {% endif %}
 
       {% if error %}
       <div class="mb-4 rounded-md bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">

@@ -61,5 +61,13 @@ class Settings(BaseSettings):
     debug: bool = False
     log_level: str = "INFO"
 
+    # -----------------------------------------------------------------
+    # Launch promo — must match the API setting.
+    # When true the signup page shows the "first 1000 get Pro free"
+    # banner. The banner hides itself when SAEBOOKS_WEB_LAUNCH_PROMO_ENABLED
+    # is false so we can ship the template before activating the promo.
+    # -----------------------------------------------------------------
+    launch_promo_enabled: bool = False
+
 
 settings = Settings()
