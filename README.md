@@ -2,7 +2,9 @@
 
 Server-side-rendered web frontend for
 [saebooks](https://github.com/saebooks/saebooks). FastAPI + Jinja2 +
-HTMX — no Node.js, no SPA framework, no build step.
+HTMX — no Node.js, no SPA framework. CSS is compiled at image build time
+using the standalone [Tailwind CSS binary](https://tailwindcss.com/blog/standalone-cli)
+(no npm/Node required).
 
 > **Status:** v0.1 — public alpha. AGPL-3.0.
 
@@ -30,6 +32,24 @@ Docker Hub as `saebooks/saebooks-web`.
 
 ```bash
 uv sync --extra dev
+```
+
+Install the standalone Tailwind binary (one-off, no Node required):
+
+```bash
+curl -fsSL https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.17/tailwindcss-linux-x64 \
+  -o ~/.local/bin/tailwindcss && chmod +x ~/.local/bin/tailwindcss
+```
+
+In one terminal, watch for CSS changes:
+
+```bash
+./scripts/build_css.sh --watch
+```
+
+In another terminal, start the app:
+
+```bash
 uv run uvicorn saebooks_web.main:app --reload --port 8080
 ```
 

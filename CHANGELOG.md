@@ -5,6 +5,31 @@ All notable changes to the SAE Books web frontend will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-05-08
+
+### Fixed
+
+- **Dark-mode rendering on OS-dark users who toggled to light.** Dropped the
+  Tailwind Play CDN in favour of a built static `tailwind.css` generated at
+  image build time by the standalone Tailwind binary. The CDN has a documented
+  race that causes some `dark:*` utilities to compile under
+  `@media (prefers-color-scheme: dark)` instead of the class strategy, even
+  when `darkMode: 'class'` is configured. Both light and dark themes are now
+  deterministic and CDN-independent.
+
+### Changed
+
+- `tailwind.config.js` added at repo root; `assets/tailwind.css` is the source
+  entry point scanned by the Tailwind compiler.
+- All `<style>` blocks from `base.html` (dark-mode overrides, sidebar
+  scrollbar, `.icon-btn` variants) moved into `assets/tailwind.css`.
+- `StaticFiles` mount added to `saebooks_web/main.py` at `/static`; resolves
+  `/app/static` in Docker and `./static` for local dev.
+- `scripts/build_css.sh` added for local development CSS builds.
+- Docker build gains a `tailwind` stage (Stage 0) that produces the minified
+  CSS using the standalone binary; output is copied into `/app/static/` in the
+  runtime image.
+
 ## [0.1.2] - 2026-05-08
 
 ### Fixed

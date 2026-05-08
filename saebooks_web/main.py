@@ -29,7 +29,10 @@ import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+import pathlib
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
@@ -97,10 +100,25 @@ logger = logging.getLogger("saebooks_web")
 app = FastAPI(
     title="SAE Books Web",
     description="Thin Jinja2 + HTMX frontend for saebooks-api",
-    version="0.1.2",
+    version="0.1.3",
     docs_url="/api/docs",  # keep /docs free from accidental exposure
     redoc_url=None,
 )
+
+# ---------------------------------------------------------------------------
+# Static files — built Tailwind CSS (and any future static assets).
+# In Docker the file is baked in at /app/static/tailwind.css by the tailwind
+# build stage.  For local dev, run `./scripts/build_css.sh --watch` in a
+# separate terminal to keep static/tailwind.css up to date.
+# ---------------------------------------------------------------------------
+_STATIC_DIR = pathlib.Path("/app/static")
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+else:
+    # Dev fallback — resolve relative to this file's repo root.
+    _DEV_STATIC = pathlib.Path(__file__).resolve().parent.parent / "static"
+    if _DEV_STATIC.exists():
+        app.mount("/static", StaticFiles(directory=str(_DEV_STATIC)), name="static")
 
 # Signed session cookies — secret_key must be set to a strong value in prod.
 #
