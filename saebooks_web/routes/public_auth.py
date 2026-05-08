@@ -118,7 +118,7 @@ async def _login_with_jwt(request: Request, token: str) -> None:
 
 @router.get("/signup", response_class=HTMLResponse)
 async def signup_page(request: Request, plan: str | None = None) -> HTMLResponse:
-    _VALID_PLANS = {"business", "pro", "enterprise"}
+    _VALID_PLANS = {"business", "pro", "enterprise", "cashbook"}
     safe_plan = plan if plan in _VALID_PLANS else None
     return _TEMPLATES.TemplateResponse(
         request,
@@ -136,7 +136,7 @@ async def signup_submit(
     name: str | None = Form(default=None),
     plan: str | None = Form(default=None),
 ) -> HTMLResponse:
-    _VALID_PLANS = {"business", "pro", "enterprise"}
+    _VALID_PLANS = {"business", "pro", "enterprise", "cashbook"}
     safe_plan: str | None = plan if plan in _VALID_PLANS else None
     payload: dict[str, Any] = {
         "email": email.strip(),
@@ -209,7 +209,33 @@ async def verify_email(request: Request, token: str | None = None) -> Any:
         if access:
             await _login_with_jwt(request, access)
             pending_plan = body.get("signup_plan")
-            if pending_plan:
+            if pending_plan == "cashbook":
+                # Free plan — bootstrap cashbook company (bank account + cashbook mode)
+                # then land at /cashbook.
+                try:
+                    auth_header = {"Authorization": f"Bearer {access}"}
+                    async with _api_client() as client:
+                        # Create default bank account
+                        ba_resp = await client.post(
+                            "/api/v1/bank_accounts",
+                            json={"code": "1100", "name": "Main Bank Account"},
+                            headers={**auth_header, "X-Idempotency-Key": f"cashbook-ba-{access[:12]}"},
+                        )
+                        if ba_resp.status_code == 201:
+                            ba_id = ba_resp.json().get("id")
+                            if ba_id:
+                                await client.post(
+                                    "/api/v1/cashbook/setup",
+                                    json={"bank_account_id": ba_id},
+                                    headers=auth_header,
+                                )
+                        elif ba_resp.status_code == 409:
+                            # Idempotent — bank account already exists, try setup anyway
+                            logger.info("cashbook bootstrap: bank account already exists, skipping")
+                except Exception as exc:
+                    logger.warning("cashbook bootstrap failed: %s", exc)
+                return RedirectResponse(url="/cashbook", status_code=303)
+            elif pending_plan:
                 return RedirectResponse(
                     url=f"/billing/checkout?plan={pending_plan}", status_code=303
                 )

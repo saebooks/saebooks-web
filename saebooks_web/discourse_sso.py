@@ -48,7 +48,7 @@ def _login_error(request: Request, msg: str, code: int = 400) -> HTMLResponse:
     return _TEMPLATES.TemplateResponse(
         request,
         "auth/login.html",
-        {"error": msg, "discourse_enabled": discourse_enabled()},
+        {"error": msg, "discourse_enabled": discourse_enabled(), "is_demo": False},
         status_code=code,
     )
 

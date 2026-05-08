@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Cashbook — SAE Books{% endblock %}
+
+{% block content %}
+
+{# Flash message #}
+{% if flash %}
+<div class="mb-4 rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-800 dark:text-green-200">
+  {{ flash }}
+</div>
+{% endif %}
+
+{# Form errors #}
+{% if form_errors and form_errors.__all__ %}
+<div class="mb-4 rounded-md bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+  {{ form_errors.__all__ }}
+</div>
+{% endif %}
+
+<div class="flex items-start gap-6 flex-col lg:flex-row">
+
+  {# ── Main column ──────────────────────────────────────────────────────── #}
+  <div class="flex-1 min-w-0">
+
+    {# Header #}
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+        Cashbook
+        <span class="text-sm font-normal text-gray-400 dark:text-gray-500">(single-entry mode)</span>
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Cash in. Cash out. Done.</p>
+    </div>
+
+    {# ── Quick-entry form ─────────────────────────────────────────────── #}
+    <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-6 mb-6">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-4">Quick entry</h2>
+
+      <form method="post" action="/cashbook/entries" id="quick-entry-form">
+        {{ csrf_input(request) | safe }}
+        <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+        {# Direction toggle #}
+        <div class="flex gap-2 mb-4">
+          <button type="button" id="btn-income"
+                  onclick="setDirection('income')"
+                  class="flex-1 rounded-md border px-4 py-2 text-sm font-medium transition-colors
+                         {% if default_direction == 'income' %}bg-green-600 text-white border-green-600{% else %}bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-green-950{% endif %}">
+            Cash in
+          </button>
+          <button type="button" id="btn-expense"
+                  onclick="setDirection('expense')"
+                  class="flex-1 rounded-md border px-4 py-2 text-sm font-medium transition-colors
+                         {% if default_direction == 'expense' %}bg-red-600 text-white border-red-600{% else %}bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-950{% endif %}">
+            Cash out
+          </button>
+        </div>
+        <input type="hidden" name="direction" id="direction-input" value="{{ default_direction }}">
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {# Date #}
+          <div>
+            <label for="entry_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
+            <input type="date" id="entry_date" name="entry_date"
+                   value="{{ (form_values.entry_date if form_values else today) }}"
+                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          {# Amount #}
+          <div>
+            <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 dark:text-gray-500 text-sm pointer-events-none">$</span>
+              <input type="number" id="amount" name="amount" min="0.01" step="0.01"
+                     value="{{ form_values.amount if form_values else '' }}"
+                     placeholder="0.00"
+                     oninput="updateGstHint()"
+                     class="w-full rounded-md border {% if form_errors and form_errors.amount %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            {% if form_errors and form_errors.amount %}
+            <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ form_errors.amount }}</p>
+            {% endif %}
+          </div>
+
+          {# Category #}
+          <div>
+            <label for="category_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+            <select id="category_code" name="category_code"
+                    class="w-full rounded-md border {% if form_errors and form_errors.category_code %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">— Select category —</option>
+              {% for cat in categories %}
+              <option value="{{ cat.code }}"
+                      data-direction="{{ cat.direction }}"
+                      data-gst-default="{{ cat.gst_default }}"
+                      {% if form_values and form_values.category_code == cat.code %}selected{% endif %}>
+                {{ cat.label }}{% if cat.hint_text %} — {{ cat.hint_text }}{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+            {% if form_errors and form_errors.category_code %}
+            <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ form_errors.category_code }}</p>
+            {% endif %}
+          </div>
+
+          {# Description #}
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Description <span class="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+            </label>
+            <input type="text" id="description" name="description" maxlength="500"
+                   value="{{ form_values.description if form_values else '' }}"
+                   placeholder="e.g. Coffee with client"
+                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        {# GST checkbox #}
+        <div class="mt-4 flex items-center gap-3">
+          <input type="checkbox" id="include_gst" name="include_gst" value="on"
+                 {% if form_values and form_values.include_gst == 'on' %}checked{% endif %}
+                 onchange="updateGstHint()"
+                 class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+          <label for="include_gst" class="text-sm text-gray-700 dark:text-gray-300">
+            Includes GST
+            <span id="gst-hint" class="text-gray-400 dark:text-gray-500 text-xs ml-1 hidden"></span>
+          </label>
+        </div>
+
+        {# Submit #}
+        <div class="mt-5">
+          <button type="submit" id="submit-btn"
+                  class="w-full sm:w-auto rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+            {% if default_direction == 'income' %}Add cash in{% else %}Add cash out{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    {# ── Recent entries ───────────────────────────────────────────────── #}
+    <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Recent entries</h2>
+        <a href="/cashbook/entries" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">View all →</a>
+      </div>
+
+      {% if entries %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="pb-2 text-left text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide w-24">Date</th>
+              <th class="pb-2 text-left text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide w-8"></th>
+              <th class="pb-2 text-left text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">Category</th>
+              <th class="pb-2 text-left text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide hidden sm:table-cell">Description</th>
+              <th class="pb-2 text-right text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide">Amount</th>
+              <th class="pb-2 w-8"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
+            {% for entry in entries %}
+            <tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+              <td class="py-2.5 pr-3 text-gray-500 dark:text-gray-400 tabular-nums whitespace-nowrap">{{ entry.entry_date }}</td>
+              <td class="py-2.5 pr-2">
+                {% if entry.direction == 'income' %}
+                <span class="text-green-600 dark:text-green-400 font-bold text-base leading-none" title="Cash in">↓</span>
+                {% else %}
+                <span class="text-red-500 dark:text-red-400 font-bold text-base leading-none" title="Cash out">↑</span>
+                {% endif %}
+              </td>
+              <td class="py-2.5 pr-3 text-gray-700 dark:text-gray-200">{{ entry.category_label or entry.category_code }}</td>
+              <td class="py-2.5 pr-3 text-gray-500 dark:text-gray-400 hidden sm:table-cell truncate max-w-xs">{{ entry.description or "" }}</td>
+              <td class="py-2.5 text-right tabular-nums font-medium {% if entry.direction == 'income' %}text-green-700 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                ${{ "%.2f"|format(entry.amount|float) }}
+              </td>
+              <td class="py-2.5 pl-3 text-right">
+                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <a href="/cashbook/entries/{{ entry.id }}/edit"
+                     class="text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                     title="Edit">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                  </a>
+                  <form method="post" action="/cashbook/entries/{{ entry.id }}/delete"
+                        onsubmit="return confirm('Delete this entry?')" class="inline">
+                    {{ csrf_input(request) | safe }}
+                    <input type="hidden" name="version" value="{{ entry.version }}">
+                    <input type="hidden" name="return_to" value="/cashbook">
+                    <button type="submit"
+                            class="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+                            title="Delete">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-10">
+        <p class="text-sm text-gray-400 dark:text-gray-500 mb-2">No entries yet.</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500">Use the quick-entry form above to record your first transaction.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>{# end main column #}
+
+  {# ── Right rail: KPI strip ────────────────────────────────────────────── #}
+  <div class="lg:w-56 w-full flex-shrink-0">
+    <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-5 lg:sticky lg:top-6">
+      <h3 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-4">This month</h3>
+
+      <dl class="space-y-3">
+        <div>
+          <dt class="text-xs text-gray-500 dark:text-gray-400">Cash in</dt>
+          <dd class="text-lg font-bold text-green-700 dark:text-green-400 tabular-nums">
+            ${{ "%.2f"|format((summary.income_total or 0)|float) }}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-500 dark:text-gray-400">Cash out</dt>
+          <dd class="text-lg font-bold text-red-600 dark:text-red-400 tabular-nums">
+            ${{ "%.2f"|format((summary.expense_total or 0)|float) }}
+          </dd>
+        </div>
+        <div class="border-t border-gray-100 dark:border-gray-800 pt-3">
+          <dt class="text-xs text-gray-500 dark:text-gray-400">Net</dt>
+          <dd class="text-xl font-bold tabular-nums {% if (summary.net or 0)|float >= 0 %}text-green-700 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+            {% set net = (summary.net or 0)|float %}
+            {% if net < 0 %}-{% endif %}${{ "%.2f"|format(net|abs) }}
+          </dd>
+        </div>
+      </dl>
+
+      <div class="mt-5 border-t border-gray-100 dark:border-gray-800 pt-4">
+        <a href="/cashbook/report" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">View full report →</a>
+      </div>
+    </div>
+  </div>
+
+</div>{# end flex container #}
+
+<script>
+(function () {
+  var currentDirection = {{ '"' + default_direction + '"' | safe }};
+
+  function setDirection(dir) {
+    currentDirection = dir;
+    document.getElementById('direction-input').value = dir;
+
+    var btnIncome = document.getElementById('btn-income');
+    var btnExpense = document.getElementById('btn-expense');
+    var submitBtn = document.getElementById('submit-btn');
+
+    if (dir === 'income') {
+      btnIncome.className = btnIncome.className.replace(
+        /bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-green-950/g,
+        ''
+      );
+      btnIncome.classList.add('bg-green-600', 'text-white', 'border-green-600');
+      btnExpense.classList.remove('bg-red-600', 'text-white', 'border-red-600');
+      btnExpense.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300', 'border-gray-300', 'dark:border-gray-600', 'hover:bg-red-50', 'dark:hover:bg-red-950');
+      submitBtn.textContent = 'Add cash in';
+    } else {
+      btnExpense.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300', 'border-gray-300', 'dark:border-gray-600', 'hover:bg-red-50', 'dark:hover:bg-red-950');
+      btnExpense.classList.add('bg-red-600', 'text-white', 'border-red-600');
+      btnIncome.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+      btnIncome.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300', 'border-gray-300', 'dark:border-gray-600', 'hover:bg-green-50', 'dark:hover:bg-green-950');
+      submitBtn.textContent = 'Add cash out';
+    }
+
+    // Filter categories
+    filterCategories(dir);
+  }
+
+  function filterCategories(dir) {
+    var sel = document.getElementById('category_code');
+    if (!sel) return;
+    var currentVal = sel.value;
+    var found = false;
+    Array.from(sel.options).forEach(function (opt) {
+      if (!opt.value) return; // keep placeholder
+      var optDir = opt.dataset.direction;
+      if (optDir && optDir !== dir) {
+        opt.hidden = true;
+        if (opt.selected) opt.selected = false;
+      } else {
+        opt.hidden = false;
+        if (opt.value === currentVal) found = true;
+      }
+    });
+    if (!found) sel.value = '';
+  }
+
+  function updateGstHint() {
+    var amt = parseFloat(document.getElementById('amount').value);
+    var chk = document.getElementById('include_gst');
+    var hint = document.getElementById('gst-hint');
+    if (chk && chk.checked && !isNaN(amt) && amt > 0) {
+      var gst = Math.round((amt / 11) * 100) / 100;
+      hint.textContent = '— Includes $' + gst.toFixed(2) + ' GST';
+      hint.classList.remove('hidden');
+    } else {
+      hint.classList.add('hidden');
+    }
+  }
+
+  window.setDirection = setDirection;
+  window.updateGstHint = updateGstHint;
+
+  // Init on load
+  filterCategories(currentDirection);
+})();
+</script>
+
+{% endblock %}
