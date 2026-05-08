@@ -1,0 +1,76 @@
+{# HTMX fragment: Xero connection status badge + actions.
+
+   Polled every 30s from integrations/index.html. Renders one of:
+
+   * "Not connected" — no active connection on this tenant
+   * "Connected" — green badge, org name, last_pulled_at, last_pushed_at,
+     "Sync now" + "Disconnect" buttons
+   * "Error" — amber badge, last_error
+   * "Revoked" — red badge, "Reconnect" prompt
+#}
+{% if not xero_status.get("connected") %}
+  <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+    Not connected
+  </span>
+  <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+    Connect a Xero organisation to keep contacts, customer invoices, and supplier
+    bills in sync.
+  </p>
+{% else %}
+  {% set conn = xero_status.connection %}
+  {% if conn.status == "active" %}
+    <div class="flex items-center gap-3">
+      <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+        Connected
+      </span>
+      <span class="text-sm font-medium dark:text-white">
+        {{ conn.external_tenant_name or conn.external_tenant_id }}
+      </span>
+    </div>
+    <dl class="mt-3 text-sm text-gray-600 dark:text-gray-300 grid grid-cols-2 gap-x-6 gap-y-1">
+      <dt>Last pulled</dt>
+      <dd>{{ conn.last_pulled_at or "never" }}</dd>
+      <dt>Last pushed</dt>
+      <dd>{{ conn.last_pushed_at or "never" }}</dd>
+    </dl>
+    <div class="mt-3 flex gap-2">
+      <button hx-post="/settings/integrations/xero/{{ conn.id }}/trigger"
+              hx-target="#xero-status"
+              hx-swap="innerHTML"
+              class="px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
+        Sync now
+      </button>
+      <button hx-delete="/settings/integrations/xero/{{ conn.id }}"
+              hx-confirm="Disconnect Xero? Local data is kept but the OAuth credential is wiped."
+              hx-target="#xero-status"
+              hx-swap="innerHTML"
+              class="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
+        Disconnect
+      </button>
+    </div>
+  {% elif conn.status == "error" %}
+    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+      Error
+    </span>
+    <p class="text-sm text-amber-700 dark:text-amber-300 mt-2">
+      {{ conn.last_error or "last sync failed" }}
+    </p>
+    <button hx-post="/settings/integrations/xero/{{ conn.id }}/trigger"
+            hx-target="#xero-status"
+            hx-swap="innerHTML"
+            class="mt-2 px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
+      Retry sync
+    </button>
+  {% elif conn.status == "revoked" %}
+    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+      Revoked
+    </span>
+    <p class="text-sm text-red-700 dark:text-red-300 mt-2">
+      Xero rejected the refresh token. Reconnect to resume syncing.
+    </p>
+  {% else %}
+    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+      {{ conn.status }}
+    </span>
+  {% endif %}
+{% endif %}

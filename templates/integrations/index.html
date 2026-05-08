@@ -4,6 +4,61 @@
 <div class="max-w-3xl mx-auto px-4 py-8">
   <h1 class="text-2xl font-bold mb-6 dark:text-white">Integrations</h1>
 
+  <!-- Xero accounting-package sync (Enterprise) -->
+  {% if not xero_status.get("_unavailable") %}
+  <section class="mb-8 p-4 bg-white dark:bg-gray-800 rounded shadow">
+    <h2 class="text-lg font-semibold mb-2 dark:text-white">Xero (Accounting Sync)</h2>
+    <div hx-get="/settings/integrations/xero/status"
+         hx-trigger="load, every 30s"
+         hx-swap="innerHTML"
+         id="xero-status">
+      <span class="text-gray-400 text-sm">Loading status…</span>
+    </div>
+
+    {% if not xero_status.get("connected") %}
+    <details class="mt-3">
+      <summary class="cursor-pointer text-sm text-indigo-600 dark:text-indigo-400">
+        Connect a Xero organisation
+      </summary>
+      <form method="post" action="/settings/integrations/xero/connect"
+            class="mt-3 space-y-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Xero OAuth client_id
+          </label>
+          <input name="client_id" type="text" required
+                 class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Xero OAuth client_secret
+          </label>
+          <input name="client_secret" type="password" required
+                 class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Redirect URI (must match the one registered with Xero)
+          </label>
+          <input name="redirect_uri" type="url" required
+                 placeholder="https://app.example.com/api/v1/sync/xero/callback"
+                 class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+        </div>
+        <button type="submit"
+                class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
+          Authorise with Xero
+        </button>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          Submitting redirects you to Xero's consent screen. Your client secret is
+          stored encrypted at rest (Fernet) and never leaves SAE Books.
+        </p>
+      </form>
+    </details>
+    {% endif %}
+  </section>
+  {% endif %}
+
   <!-- Stripe Connect -->
   <section class="mb-8 p-4 bg-white dark:bg-gray-800 rounded shadow">
     <h2 class="text-lg font-semibold mb-2 dark:text-white">Stripe (Customer Account)</h2>

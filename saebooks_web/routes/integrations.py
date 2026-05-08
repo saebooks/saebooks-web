@@ -76,13 +76,169 @@ async def integrations_index(request: Request) -> HTMLResponse:
     except httpx.HTTPError as exc:
         logger.warning("integrations: stripe status fetch error: %s", exc)
 
+    xero_status = await _fetch_xero_status(request)
+
     return _render(
         request,
         "integrations/index.html",
         {
             "stripe_status": stripe_status,
+            "xero_status": xero_status,
             "page_title": "Integrations",
         },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Xero accounting-package sync (Enterprise)
+# ---------------------------------------------------------------------------
+
+
+async def _fetch_xero_status(request: Request) -> dict[str, Any]:
+    """Resolve Xero connection state for the current tenant.
+
+    Returns one of:
+
+    * ``{"connected": False, "_unavailable": True}`` — feature flag off
+    * ``{"connected": False}`` — flag on, no connection rows
+    * ``{"connected": True, "connection": <row>}`` — at least one row;
+      the most recent connection (active/error/revoked) is exposed to
+      the template.
+    """
+    try:
+        async with api_client(request) as client:
+            resp = await client.get("/api/v1/sync/xero/status")
+            if resp.status_code == 404:
+                # Feature flag not enabled
+                return {"connected": False, "_unavailable": True}
+            if resp.status_code != 200:
+                logger.warning(
+                    "integrations: xero status non-200: %s %s",
+                    resp.status_code,
+                    resp.text[:200],
+                )
+                return {"connected": False}
+            rows = resp.json()
+    except httpx.HTTPError as exc:
+        logger.warning("integrations: xero status fetch error: %s", exc)
+        return {"connected": False}
+
+    if not rows:
+        return {"connected": False}
+
+    # Pick the most recent — by created_at desc if present, else first.
+    rows_sorted = sorted(
+        rows,
+        key=lambda r: r.get("created_at") or "",
+        reverse=True,
+    )
+    return {"connected": True, "connection": rows_sorted[0]}
+
+
+@router.get("/xero/status", response_class=HTMLResponse)
+async def xero_status_fragment(request: Request) -> HTMLResponse:
+    """HTMX fragment — current Xero connection badge + actions."""
+    xero_status = await _fetch_xero_status(request)
+    return _render(
+        request,
+        "integrations/_xero_status.html",
+        {"xero_status": xero_status},
+    )
+
+
+@router.post("/xero/connect")
+async def xero_connect_initiate(
+    request: Request,
+    client_id: str = Form(...),
+    client_secret: str = Form(...),
+    redirect_uri: str = Form(...),
+) -> RedirectResponse:
+    """Start the Xero OAuth consent flow.
+
+    Calls ``POST /api/v1/sync/xero/connect`` with the operator-supplied
+    client credentials, then redirects the browser to Xero's authorise
+    URL. On consent, Xero sends the operator back to ``redirect_uri``
+    which must be wired to the API's ``/api/v1/sync/xero/callback``.
+    """
+    try:
+        async with api_client(request) as client:
+            resp = await client.post(
+                "/api/v1/sync/xero/connect",
+                json={
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "redirect_uri": redirect_uri,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.HTTPStatusError as exc:
+        logger.error(
+            "integrations: xero connect initiation failed: %s %s",
+            exc.response.status_code,
+            exc.response.text[:200],
+        )
+        return RedirectResponse(
+            url="/settings/integrations?error=xero_connect_failed",
+            status_code=303,
+        )
+    except httpx.HTTPError as exc:
+        logger.error("integrations: xero connect transport error: %s", exc)
+        return RedirectResponse(
+            url="/settings/integrations?error=xero_connect_unavailable",
+            status_code=303,
+        )
+
+    authorize_url = data.get("authorize_url", "")
+    if not authorize_url:
+        return RedirectResponse(
+            url="/settings/integrations?error=xero_connect_failed",
+            status_code=303,
+        )
+
+    return RedirectResponse(url=authorize_url, status_code=303)
+
+
+@router.post("/xero/{connection_id}/trigger", response_class=HTMLResponse)
+async def xero_trigger_sync(
+    request: Request,
+    connection_id: str,
+) -> HTMLResponse:
+    """HTMX: kick a synchronous sync run, then re-render the status fragment."""
+    try:
+        async with api_client(request) as client:
+            await client.post(
+                f"/api/v1/sync/xero/{connection_id}/trigger",
+                timeout=120.0,
+            )
+    except httpx.HTTPError as exc:
+        logger.warning("integrations: xero trigger error: %s", exc)
+
+    xero_status = await _fetch_xero_status(request)
+    return _render(
+        request,
+        "integrations/_xero_status.html",
+        {"xero_status": xero_status},
+    )
+
+
+@router.delete("/xero/{connection_id}", response_class=HTMLResponse)
+async def xero_disconnect(
+    request: Request,
+    connection_id: str,
+) -> HTMLResponse:
+    """HTMX: revoke a Xero connection and re-render the status fragment."""
+    try:
+        async with api_client(request) as client:
+            await client.delete(f"/api/v1/sync/xero/{connection_id}")
+    except httpx.HTTPError as exc:
+        logger.warning("integrations: xero disconnect error: %s", exc)
+
+    xero_status = await _fetch_xero_status(request)
+    return _render(
+        request,
+        "integrations/_xero_status.html",
+        {"xero_status": xero_status},
     )
 
 
