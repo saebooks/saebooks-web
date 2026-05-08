@@ -49,6 +49,7 @@ from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bea
     CSRFMiddleware,
     ensure_csrf_global,
 )
+from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware  # noqa: E402
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.discourse_sso import router as discourse_sso_router
@@ -134,6 +135,11 @@ app = FastAPI(
 # Final request flow (outside in): RequestId -> OriginReferer ->
 # Session -> CSRF -> route.
 app.add_middleware(CSRFMiddleware)
+
+# Authentik forward-auth: mint a session from x-authentik-* headers when
+# SAEBOOKS_WEB_TRUSTED_HEADERS=1. Added after CSRF (so it wraps CSRF) and
+# before SessionMiddleware (so it runs INSIDE Session and can write to it).
+app.add_middleware(TrustedHeaderAuthMiddleware)
 
 app.add_middleware(
     SessionMiddleware,
