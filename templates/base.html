@@ -203,6 +203,7 @@
 
       {# ── Vendors (AP — collapsible) ── #}
       {% set vendors_open = path.startswith('/bills')
+                            or path.startswith('/purchase_orders')
                             or path.startswith('/pay-run') %}
       <details class="group" {% if vendors_open %}open{% endif %}>
         <summary class="flex items-center justify-between px-2 mb-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 list-none select-none">
@@ -211,6 +212,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
           </svg>
         </summary>
+        <a href="/purchase_orders"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/purchase_orders') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Purchase Orders
+        </a>
         <a href="/bills"
            class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/bills') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Bills
@@ -329,6 +334,10 @@
         <a href="/items"
            class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/items') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
           Items
+        </a>
+        <a href="/proration"
+           class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/proration') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+          Prorate Calculator
         </a>
       </details>
 

@@ -78,6 +78,8 @@ from saebooks_web.routes.pay_run import router as pay_run_router
 from saebooks_web.routes.payments import router as payments_router
 from saebooks_web.routes.profile import router as profile_router
 from saebooks_web.routes.projects import router as projects_router
+from saebooks_web.routes.proration import router as proration_router
+from saebooks_web.routes.purchase_orders import router as purchase_orders_router
 from saebooks_web.routes.reconciliation import router as reconciliation_router
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.reports import router as reports_router
@@ -195,6 +197,8 @@ app.include_router(contacts_router)
 app.include_router(ai_extraction_router)
 app.include_router(invoices_router)
 app.include_router(bills_router)
+app.include_router(purchase_orders_router)
+app.include_router(proration_router)
 app.include_router(payments_router)
 app.include_router(credit_notes_router)
 app.include_router(journal_entries_router)
