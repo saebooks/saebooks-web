@@ -16,6 +16,31 @@
 ARG PYTHON_VERSION=3.12
 
 # ---------------------------------------------------------------------------
+# Stage 0: tailwind builder — produces /css/tailwind.css
+# Uses the standalone Tailwind binary (no Node toolchain). Always runs on
+# the build platform (CSS output is arch-independent), so we copy from
+# this stage into the final image regardless of TARGETARCH.
+# ---------------------------------------------------------------------------
+FROM --platform=$BUILDPLATFORM debian:bookworm-slim AS tailwind
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+ARG TAILWIND_VERSION=v3.4.17
+RUN ARCH=$(uname -m) \
+    && case "$ARCH" in \
+         x86_64)  TW_ARCH=linux-x64   ;; \
+         aarch64) TW_ARCH=linux-arm64 ;; \
+         *) echo "unsupported buildplatform arch: $ARCH" && exit 1 ;; \
+       esac \
+    && curl -fsSL "https://github.com/tailwindlabs/tailwindcss/releases/download/${TAILWIND_VERSION}/tailwindcss-${TW_ARCH}" -o /usr/local/bin/tailwindcss \
+    && chmod +x /usr/local/bin/tailwindcss
+WORKDIR /src
+COPY tailwind.config.js ./
+COPY assets/tailwind.css ./assets/
+COPY templates/ ./templates/
+COPY saebooks_web/ ./saebooks_web/
+RUN tailwindcss -c tailwind.config.js -i ./assets/tailwind.css -o /css/tailwind.css --minify
+
+# ---------------------------------------------------------------------------
 # Stage 1: builder — install all deps into a venv
 # ---------------------------------------------------------------------------
 FROM python:${PYTHON_VERSION}-slim AS builder
@@ -71,6 +96,7 @@ RUN groupadd --system saebooks \
 WORKDIR /app
 
 COPY --from=builder /opt/venv /opt/venv
+COPY --from=tailwind --chown=saebooks:saebooks /css/tailwind.css /app/static/tailwind.css
 
 COPY --chown=saebooks:saebooks saebooks_web/ ./saebooks_web/
 # Top-level templates/ directory — Jinja2 ChoiceLoader looks here first,
