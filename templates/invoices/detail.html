@@ -37,7 +37,9 @@
         {{ invoice.status | capitalize }}
       </span>
     </div>
-    <p class="text-sm text-gray-500 mt-1">Contact: {{ invoice.contact_id }}</p>
+    <p class="text-sm text-gray-500 mt-1">Contact:
+      <a href="/contacts/{{ invoice.contact_id }}" class="text-indigo-600 hover:underline">{{ invoice.contact_name or invoice.contact_id }}</a>
+    </p>
   </div>
   <div class="flex items-center gap-3">
     {% if invoice.status == 'DRAFT' %}

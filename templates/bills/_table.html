@@ -36,7 +36,7 @@
           </td>
           <td class="px-4 py-3 text-gray-600">{{ bill.issue_date }}</td>
           <td class="px-4 py-3 text-gray-600">{{ bill.due_date }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ bill.contact_id }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ bill.contact_name or "—" }}</td>
           <td class="px-4 py-3 text-right text-gray-900 font-medium tabular-nums">
             {{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}
           </td>

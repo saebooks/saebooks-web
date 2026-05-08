@@ -37,7 +37,9 @@
         {{ bill.status | capitalize }}
       </span>
     </div>
-    <p class="text-sm text-gray-500 mt-1">Supplier: {{ bill.contact_id }}</p>
+    <p class="text-sm text-gray-500 mt-1">Supplier:
+      <a href="/contacts/{{ bill.contact_id }}" class="text-indigo-600 hover:underline">{{ bill.contact_name or bill.contact_id }}</a>
+    </p>
   </div>
   <div class="flex items-center gap-3">
     {% if bill.status == 'DRAFT' %}
