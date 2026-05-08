@@ -1,0 +1,100 @@
+{# HTMX partial — purchase-order table body + pagination. #}
+<div id="purchase-orders-table">
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">PO number</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Issue date</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Expected</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Supplier</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% if purchase_orders %}
+        {% for po in purchase_orders %}
+        <tr
+          class="hover:bg-gray-50 cursor-pointer"
+          onclick="window.location='/purchase_orders/{{ po.id }}'"
+        >
+          <td class="px-4 py-3 font-medium text-indigo-600">
+            <a href="/purchase_orders/{{ po.id }}" class="hover:underline">
+              {{ po.number or "—" }}
+            </a>
+          </td>
+          <td class="px-4 py-3 text-gray-600">{{ po.issue_date }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ po.expected_date or "—" }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ po.contact_id }}</td>
+          <td class="px-4 py-3 text-right text-gray-900 font-medium tabular-nums">
+            {{ po.currency }} {{ "%.2f"|format(po.total|float) }}
+          </td>
+          <td class="px-4 py-3">
+            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
+              {% if po.status == 'OPEN' %}bg-blue-100 text-blue-700
+              {% elif po.status == 'PARTIAL' %}bg-amber-100 text-amber-700
+              {% elif po.status == 'RECEIVED' %}bg-green-100 text-green-700
+              {% elif po.status == 'CLOSED' %}bg-gray-200 text-gray-700
+              {% elif po.status == 'CANCELLED' %}bg-red-100 text-red-600
+              {% elif po.status == 'DRAFT' %}bg-gray-100 text-gray-600
+              {% else %}bg-gray-100 text-gray-500{% endif %}">
+              {{ po.status | capitalize }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="6" class="px-4 py-12 text-center">
+            <p class="text-gray-400 text-sm mb-2">No purchase orders found.</p>
+            {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
+            <a href="/purchase_orders/new" class="text-sm text-indigo-600 hover:underline">Create your first purchase order →</a>
+            {% else %}
+            <p class="text-xs text-gray-400">Try clearing your filters.</p>
+            {% endif %}
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% if prev_offset is not none or next_offset is not none %}
+<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+  <div>
+    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+  </div>
+  <div class="flex gap-3">
+    {% if prev_offset is not none %}
+    <a
+      href="/purchase_orders?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-get="/purchase_orders?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-target="#purchase-orders-table"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+    >Previous</a>
+    {% endif %}
+    {% if next_offset is not none %}
+    <a
+      href="/purchase_orders?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-get="/purchase_orders?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-target="#purchase-orders-table"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+    >Next</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+</div>
