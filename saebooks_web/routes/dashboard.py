@@ -138,15 +138,34 @@ def _ar_tile(
     draft_count = len(draft_invoices)
     draft_total = sum(_to_decimal(inv.get("total", 0)) for inv in draft_invoices)
 
+    # Overdue = POSTED + due_date past + still has outstanding balance.
+    # An invoice that's been paid in full is no longer overdue, even if its
+    # due_date is in the past.
     overdue = [
         inv for inv in open_invoices
-        if inv.get("due_date") and date.fromisoformat(str(inv["due_date"])) < today
+        if inv.get("due_date")
+        and date.fromisoformat(str(inv["due_date"])) < today
+        and _to_decimal(inv.get("amount_paid", 0)) < _to_decimal(inv.get("total", 0))
     ]
     overdue_count = len(overdue)
-    overdue_total = sum(_to_decimal(inv.get("total", 0)) for inv in overdue)
+    overdue_total = sum(
+        _to_decimal(inv.get("total", 0)) - _to_decimal(inv.get("amount_paid", 0))
+        for inv in overdue
+    )
 
-    paid_count = len(paid_invoices)
-    paid_total = sum(_to_decimal(inv.get("total", 0)) for inv in paid_invoices)
+    # Outstanding = POSTED invoices with amount_paid < total.  Replaces the
+    # never-populated "paid this month" tile (the InvoiceStatus enum has no
+    # PAID, so paid_invoices is always []).  Outstanding is the operator's
+    # actual question: how much money are we waiting on.
+    outstanding = [
+        inv for inv in open_invoices
+        if _to_decimal(inv.get("amount_paid", 0)) < _to_decimal(inv.get("total", 0))
+    ]
+    paid_count = len(outstanding)
+    paid_total = sum(
+        _to_decimal(inv.get("total", 0)) - _to_decimal(inv.get("amount_paid", 0))
+        for inv in outstanding
+    )
 
     return {
         "draft_count": draft_count,
@@ -170,15 +189,32 @@ def _ap_tile(
     draft_count = len(draft_bills)
     draft_total = sum(_to_decimal(b.get("total", 0)) for b in draft_bills)
 
+    # Due-soon = POSTED + due_date within next 7 days + still has outstanding
+    # balance (a bill that's been paid in full doesn't need our attention even
+    # if its due_date is upcoming).
     due_soon = [
         b for b in open_bills
-        if b.get("due_date") and today <= date.fromisoformat(str(b["due_date"])) <= in_7
+        if b.get("due_date")
+        and today <= date.fromisoformat(str(b["due_date"])) <= in_7
+        and _to_decimal(b.get("amount_paid", 0)) < _to_decimal(b.get("total", 0))
     ]
     due_soon_count = len(due_soon)
-    due_soon_total = sum(_to_decimal(b.get("total", 0)) for b in due_soon)
+    due_soon_total = sum(
+        _to_decimal(b.get("total", 0)) - _to_decimal(b.get("amount_paid", 0))
+        for b in due_soon
+    )
 
-    paid_count = len(paid_bills)
-    paid_total = sum(_to_decimal(b.get("total", 0)) for b in paid_bills)
+    # Outstanding = POSTED bills with amount_paid < total.  Replaces the
+    # never-populated "paid this month" tile (BillStatus has no PAID status).
+    outstanding = [
+        b for b in open_bills
+        if _to_decimal(b.get("amount_paid", 0)) < _to_decimal(b.get("total", 0))
+    ]
+    paid_count = len(outstanding)
+    paid_total = sum(
+        _to_decimal(b.get("total", 0)) - _to_decimal(b.get("amount_paid", 0))
+        for b in outstanding
+    )
 
     return {
         "draft_count": draft_count,
@@ -414,6 +450,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
 
     first_company = (companies_raw.get("items") or [{}])[0]
     psi_status = first_company.get("psi_status", "unsure") or "unsure"
+    company_name = first_company.get("legal_name") or first_company.get("name") or ""
 
     # Revenue concentration — used by PSI 80/20 dashboard banner
     concentration_warning = revenue_concentration_raw.get("concentration_warning", False)
@@ -438,5 +475,6 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "top_customer_name": top_customer_name,
             "fy_from": fy_from,
             "fy_to": fy_to,
+            "company_name": company_name,
         },
     )
