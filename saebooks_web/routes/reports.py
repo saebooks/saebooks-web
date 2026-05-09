@@ -1,4 +1,4 @@
-"""Reports HTML views — Lane D.
+"""Reports HTML views — Lane D cycle 29/32/41/PSI-2.
 
 GET /reports/fx-revaluation        — FX revaluation table (as_of_date param)
 
@@ -657,7 +657,7 @@ async def pl_by_segment(
 
 
 # ---------------------------------------------------------------------------
-# GET /reports/revenue-by-customer
+# GET /reports/revenue-by-customer — gap PSI-2
 # ---------------------------------------------------------------------------
 
 

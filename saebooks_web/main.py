@@ -29,7 +29,10 @@ import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+import pathlib
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
@@ -49,6 +52,7 @@ from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bea
     CSRFMiddleware,
     ensure_csrf_global,
 )
+from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware  # noqa: E402
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.discourse_sso import router as discourse_sso_router
@@ -78,6 +82,8 @@ from saebooks_web.routes.pay_run import router as pay_run_router
 from saebooks_web.routes.payments import router as payments_router
 from saebooks_web.routes.profile import router as profile_router
 from saebooks_web.routes.projects import router as projects_router
+from saebooks_web.routes.proration import router as proration_router
+from saebooks_web.routes.purchase_orders import router as purchase_orders_router
 from saebooks_web.routes.reconciliation import router as reconciliation_router
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.reports import router as reports_router
@@ -88,6 +94,7 @@ from saebooks_web.routes.tax_codes import router as tax_codes_router
 from saebooks_web.routes.contact import router as contact_router
 from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
 from saebooks_web.routes.attachments import router as attachments_router  # Phase 1.5
+from saebooks_web.routes.cashbook import router as cashbook_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -95,10 +102,25 @@ logger = logging.getLogger("saebooks_web")
 app = FastAPI(
     title="SAE Books Web",
     description="Thin Jinja2 + HTMX frontend for saebooks-api",
-    version="0.1.0",
+    version="0.1.3",
     docs_url="/api/docs",  # keep /docs free from accidental exposure
     redoc_url=None,
 )
+
+# ---------------------------------------------------------------------------
+# Static files — built Tailwind CSS (and any future static assets).
+# In Docker the file is baked in at /app/static/tailwind.css by the tailwind
+# build stage.  For local dev, run `./scripts/build_css.sh --watch` in a
+# separate terminal to keep static/tailwind.css up to date.
+# ---------------------------------------------------------------------------
+_STATIC_DIR = pathlib.Path("/app/static")
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+else:
+    # Dev fallback — resolve relative to this file's repo root.
+    _DEV_STATIC = pathlib.Path(__file__).resolve().parent.parent / "static"
+    if _DEV_STATIC.exists():
+        app.mount("/static", StaticFiles(directory=str(_DEV_STATIC)), name="static")
 
 # Signed session cookies — secret_key must be set to a strong value in prod.
 #
@@ -106,11 +128,11 @@ app = FastAPI(
 # being attached to ANY cross-site request — including embedded form POSTs
 # from attacker-controlled pages. With "lax" the cookie is sent on top-level
 # cross-site GETs (which is fine) but ALSO on cross-site form POSTs (which
-# is the CSRF gap we observed).  "strict" closes that hole at the
+# is the CSRF gap Morgan Chen reproduced).  "strict" closes that hole at the
 # browser layer for every modern browser; it is the cheapest and most
 # foundational defence.
 #
-# Tradeoff: a link from email/Slack/external chat to the books URL
+# Tradeoff: a link from email/Slack/external chat to https://books-dev.sauer
 # arrives as a cross-site navigation and will NOT carry the cookie, so the
 # user is shown the /login page and has to authenticate again.  That is
 # acceptable for an admin/accounting tool where every session boundary is
@@ -133,6 +155,11 @@ app = FastAPI(
 # Session -> CSRF -> route.
 app.add_middleware(CSRFMiddleware)
 
+# Authentik forward-auth: mint a session from x-authentik-* headers when
+# SAEBOOKS_WEB_TRUSTED_HEADERS=1. Added after CSRF (so it wraps CSRF) and
+# before SessionMiddleware (so it runs INSIDE Session and can write to it).
+app.add_middleware(TrustedHeaderAuthMiddleware)
+
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.secret_key,
@@ -147,7 +174,7 @@ app.add_middleware(
 # OUTSIDE Session (and thus before any route handler).  Rejects with
 # 403 + ``code: cross_origin_forbidden`` on any POST/PUT/PATCH/DELETE
 # whose Origin or Referer doesn't match SAEBOOKS_WEB_SITE_ORIGIN
-# (default ``http://localhost:8000``). See
+# (default https://books-dev.sauer.com.au).  See
 # saebooks_web/security/csrf.py for full rules.
 app.add_middleware(OriginRefererMiddleware)
 
@@ -195,6 +222,8 @@ app.include_router(contacts_router)
 app.include_router(ai_extraction_router)
 app.include_router(invoices_router)
 app.include_router(bills_router)
+app.include_router(purchase_orders_router)
+app.include_router(proration_router)
 app.include_router(payments_router)
 app.include_router(credit_notes_router)
 app.include_router(journal_entries_router)
@@ -225,6 +254,8 @@ app.include_router(ato_sbr_router)
 app.include_router(integrations_router)
 # Phase 1.5: attachment panel (upload / delete / download relay).
 app.include_router(attachments_router)
+# Cashbook UI — single-entry bookkeeping surfaces.
+app.include_router(cashbook_router)
 
 
 # ---------------------------------------------------------------------------

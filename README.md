@@ -1,52 +1,54 @@
 # saebooks-web
 
-Server-side-rendered web frontend for
-[saebooks](https://github.com/saebooks/saebooks). FastAPI + Jinja2 +
-HTMX — no Node.js, no SPA framework, no build step.
-
-> **Status:** v0.1 — public alpha. AGPL-3.0.
+Thin server-side-rendered web frontend for [saebooks-api](../saebooks/).
+Built on FastAPI + Jinja2 + HTMX — no Node.js, no SPA framework, no build step.
 
 ## What it is
 
-`saebooks-web` is a templated thin proxy. It:
+`saebooks-web` is a **dumb proxy with templates**. It:
 
-1. Holds the user's session (signed cookie via `itsdangerous`).
-2. Proxies all data requests to `saebooks` (the API) via `httpx`,
-   injecting the user's bearer token.
-3. Renders Jinja2 templates server-side, with HTMX fragments for
-   interactivity.
+1. Holds the user's session (signed cookie via `itsdangerous`)
+2. Proxies all data requests to `saebooks-api` via `httpx`, injecting the bearer token
+3. Renders Jinja2 templates server-side, with HTMX fragments for interactivity
 
-The web server never talks to the database directly. All business
-logic lives in the API.
+The web server never talks to the database directly. All business logic lives in
+`saebooks-api`.
 
-## Quickstart (Docker)
+## Requirements
 
-The recommended way to run it is alongside the API via the top-level
-[`saebooks`](https://github.com/saebooks/saebooks) Docker Compose
-bundle — see that repo's README. The web container is published to
-Docker Hub as `saebooks/saebooks-web`.
+- Python 3.12+
+- A running `saebooks-api` instance (default: `http://localhost:8042`)
+- The API token set via `SAEBOOKS_DEV_API_TOKEN` on the API server
 
-## Running standalone (development)
+## Running in development
 
 ```bash
+# Install dependencies
 uv sync --extra dev
-uv run uvicorn saebooks_web.main:app --reload --port 8080
+
+# Run (hot-reload)
+uv run uvicorn saebooks_web.main:app --reload --port 8043
 ```
 
-Then open <http://localhost:8080>. You will need a running API
-instance to point at (default: `http://localhost:8042`).
+Then open `http://localhost:8043`. The login page asks for the API token
+(`SAEBOOKS_DEV_API_TOKEN` from the API server's environment, or its startup log).
 
 ## Environment variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `SAEBOOKS_API_URL` | `http://localhost:8042` | Base URL of the API |
-| `SAEBOOKS_WEB_SECRET_KEY` | *(none — required)* | Session signing key. Generate with `openssl rand -base64 32`. |
-| `SAEBOOKS_WEB_PORT` | `8080` | Port to bind to |
+| `SAEBOOKS_WEB_API_URL` | `http://localhost:8042` | Base URL of saebooks-api |
+| `SAEBOOKS_WEB_SECRET_KEY` | `dev-insecure-change-me-before-prod` | Session signing key — **must** be changed in production |
+| `SAEBOOKS_WEB_PORT` | `8043` | Port to bind to |
 | `SAEBOOKS_WEB_HOST` | `0.0.0.0` | Bind address |
 | `SAEBOOKS_WEB_DEBUG` | `false` | Enable debug mode |
 | `SAEBOOKS_WEB_LOG_LEVEL` | `INFO` | Log level |
-| `SAEBOOKS_WEB_SITE_ORIGINS` | `http://localhost:8080` | Comma-separated list of trusted origins for CSRF |
+
+Generate a production secret key:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
 
 ## Running tests
 
@@ -62,13 +64,20 @@ saebooks_web/
   config.py        Pydantic-settings (env vars)
   auth.py          /login, /logout routes
   api_client.py    httpx wrapper (injects bearer token from session)
-  security/        CSRF + session helpers
-  routes/          per-domain route modules
-templates/         Jinja2 templates
-tests/             pytest + respx
+  routes/
+    contacts.py    GET /contacts — first HTMX view
+templates/
+  base.html        Layout + HTMX CDN + Tailwind CDN
+  auth/login.html  Login form
+  contacts/list.html  Contacts table
+tests/
+  test_smoke.py    /healthz + contacts render (respx-mocked API)
 ```
 
-## Licence
+## Architecture note
 
-AGPL-3.0. See <https://github.com/saebooks/saebooks> for the
-top-level project, charter, and commercial licensing options.
+Auth model (Phase 0): the login form accepts a raw API bearer token.
+This will be replaced with email+password → portal JWT exchange once
+Lane A portal auth lands (TODO in `auth.py`).
+
+See `~/.claude/plans/saebooks-api-rebuild.md` — Phase 2 / Lane D for full context.

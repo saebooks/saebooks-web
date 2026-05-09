@@ -545,7 +545,7 @@ async def test_invoice_create_api_error_string_detail(respx_mock: respx.MockRout
 @pytest.mark.anyio
 @respx.mock
 async def test_invoice_unit_price_allows_negative(respx_mock: respx.MockRouter) -> None:
-    """unit_price input must not carry min=0 and must have the deduction tooltip."""
+    """unit_price input must not carry min=0 and must have the deduction tooltip (gap ETSY-5)."""
     _mock_dropdowns(respx_mock)
 
     async with AsyncClient(
@@ -576,7 +576,7 @@ async def test_invoice_unit_price_allows_negative(respx_mock: respx.MockRouter) 
 @pytest.mark.anyio
 @respx.mock
 async def test_invoice_create_negative_unit_price(respx_mock: respx.MockRouter) -> None:
-    """POST with a negative unit_price line (Etsy marketplace tax deduction) -> 303."""
+    """POST with a negative unit_price line (Etsy marketplace tax deduction) -> 303 (gap ETSY-5)."""
     respx_mock.post(f"{_API_BASE}/api/v1/invoices").mock(
         return_value=Response(201, json=_MOCK_INVOICE)
     )

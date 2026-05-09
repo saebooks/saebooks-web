@@ -594,7 +594,7 @@ async def fixed_asset_post_depreciation(
 
 # ---------------------------------------------------------------------------
 # Convert to Inventory — POST /{asset_id}/convert-to-inventory
-# Regression: demonstrator FA → used-vehicle inventory stock.
+# Gap MOTR-3: demonstrator FA → used-vehicle inventory stock.
 # NOTE: MUST appear before the catch-all /{asset_id} GET.
 # ---------------------------------------------------------------------------
 

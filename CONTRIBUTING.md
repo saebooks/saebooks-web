@@ -1,9 +1,13 @@
 # Contributing to SAE Books — Web Frontend
 
-`saebooks-web` is in public alpha (v0.1) alongside the
-[saebooks](https://github.com/saebooks/saebooks) engine. The rules
-below mirror the engine repo so contributors face one consistent
-process across both repos.
+**The project is currently in private development and not accepting
+external contributions.** This document exists now so the policy is set
+before the repo ever goes public — CLA coverage only works if it's in
+place from the first external PR.
+
+When `saebooks-web` goes public, the rules below apply. They mirror the
+rules for the engine repo (`saebooks`) so contributors face one
+consistent process across both repos.
 
 ## Licence
 
@@ -45,7 +49,7 @@ AGPL-3.0 is fine; calling your fork "SAE Books" is not. See
   warning, then a ban.
 - If you're unsure whether something is OK, ask privately first.
 
-## How to contribute
+## How to contribute (once public)
 
 1. Open an issue describing the bug, feature, or change.
 2. Wait for a reply confirming it's in scope and not already claimed.
@@ -83,5 +87,5 @@ We will respond within 72 hours and coordinate a disclosure timeline.
 
 ## Questions
 
-For anything not covered here, open a discussion on the repo or email
-the maintainer.
+For anything not covered here, open a discussion on the repo (once
+public) or email the maintainer.

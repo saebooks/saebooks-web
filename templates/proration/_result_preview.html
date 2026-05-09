@@ -1,0 +1,18 @@
+{% if result %}
+<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+  <div class="grid grid-cols-2 gap-2">
+    <div class="text-gray-600">Days used</div>
+    <div class="font-mono tabular-nums text-right">{{ result.days_used }} of {{ result.days_in_full }}</div>
+    <div class="text-gray-600">Factor</div>
+    <div class="font-mono tabular-nums text-right">{{ result.factor }}</div>
+    <div class="text-gray-600 font-semibold">Prorated amount</div>
+    <div class="font-mono tabular-nums text-right font-semibold">
+      {{ "%.2f"|format(result.prorated_amount|float) }}
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+  HTTP {{ status }}: {{ error.detail if error and error.detail is defined else error }}
+</div>
+{% endif %}

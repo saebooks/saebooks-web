@@ -25,7 +25,6 @@
 </div>
 {% else %}
 
-{# ── Message / error banners ── #}
 {% if message %}
 <div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-4">
   {{ message }}
@@ -44,62 +43,61 @@
 </div>
 {% endif %}
 
-{% if test_badge %}
-<div class="rounded-md {% if test_badge == 'ok' %}bg-green-50 border-green-200 text-green-700{% else %}bg-red-50 border-red-200 text-red-700{% endif %} border px-4 py-3 text-sm mb-4">
-  Environment test ({{ test_env | default("?") }}): <strong>{{ test_badge | upper }}</strong>
-</div>
-{% endif %}
-
 <div class="grid grid-cols-2 gap-6">
 
-  {# Left: Setup steps #}
+  {# Left column: Wizard + keystore upload #}
   <div class="space-y-4">
 
-    {# Step 1: myGovID #}
+    {# Setup wizard #}
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 1 — myGovID (Strong)</h2>
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Setup wizard</h2>
       <p class="text-xs text-gray-500 mb-3">
-        You need a myGovID with Strong identity strength linked to this company's ABN in RAM.
+        Walk through myGovID setup, RAM Principal Authority, the Machine Credential
+        Downloader, keystore upload, and SSID entry — one step at a time.
       </p>
-      <form method="post" action="/admin/ato-sbr/confirm">
-    {{ csrf_input(request)|safe }}
 
-        <input type="hidden" name="step" value="mygovid">
+      {% if active_wizard_id %}
+      <div class="rounded-md bg-indigo-50 border border-indigo-200 px-3 py-2 text-xs text-indigo-800 mb-3">
+        Wizard in progress
+        {% if active_wizard_step_index is not none and active_wizard_step_count %}
+          — step {{ active_wizard_step_index + 1 }} of {{ active_wizard_step_count }}
+        {% endif %}
+      </div>
+      <div class="flex gap-2">
+        <a href="/admin/ato-sbr/onboarding/{{ active_wizard_id }}"
+           class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+          Resume wizard
+        </a>
+        <form method="post" action="/admin/ato-sbr/onboarding/start" style="display:inline">
+          {{ csrf_input(request)|safe }}
+          <input type="hidden" name="flow" value="machine_credential">
+          <button type="submit"
+            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            Start a new wizard
+          </button>
+        </form>
+      </div>
+      {% else %}
+      <form method="post" action="/admin/ato-sbr/onboarding/start">
+        {{ csrf_input(request)|safe }}
+        <input type="hidden" name="flow" value="machine_credential">
         <button type="submit"
-          class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-          Confirm myGovID configured
+          class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
+          Start setup wizard
         </button>
       </form>
+      {% endif %}
     </div>
 
-    {# Step 2: RAM link #}
+    {# Keystore upload — usable any time, including from inside the wizard #}
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 2 — RAM Principal Authority</h2>
-      <p class="text-xs text-gray-500 mb-3">
-        Link your myGovID as Principal Authority for the company ABN in the
-        <a href="https://info.authorisationmanager.gov.au/" target="_blank" rel="noopener" class="text-indigo-600 underline">ATO RAM portal</a>.
-      </p>
-      <form method="post" action="/admin/ato-sbr/confirm">
-    {{ csrf_input(request)|safe }}
-
-        <input type="hidden" name="step" value="ram">
-        <button type="submit"
-          class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-          Confirm RAM link done
-        </button>
-      </form>
-    </div>
-
-    {# Step 3: Keystore upload #}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 3 — Upload Keystore</h2>
+      <h2 class="text-sm font-semibold text-gray-800 mb-2">Upload Machine Credential keystore</h2>
       <p class="text-xs text-gray-500 mb-3">
         Use the ATO Machine Credential Downloader Chrome extension to download
         <code class="font-mono">keystore.xml</code>, then upload it here.
       </p>
       <form method="post" action="/admin/ato-sbr/keystore" enctype="multipart/form-data" class="space-y-3">
-    {{ csrf_input(request)|safe }}
-
+        {{ csrf_input(request)|safe }}
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1" for="keystore_file">
             keystore.xml
@@ -109,98 +107,64 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-700 mb-1" for="keystore_password">
-            Keystore Password
+            Keystore password
           </label>
           <input type="password" id="keystore_password" name="password" required
             class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
         </div>
         <button type="submit"
           class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
-          Upload Keystore
-        </button>
-      </form>
-    </div>
-
-    {# Step 4: SSID #}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 4 — Software Service ID (SSID)</h2>
-      <p class="text-xs text-gray-500 mb-3">
-        Paste the SSID from your ATO Software Developer registration.
-      </p>
-      <form method="post" action="/admin/ato-sbr/ssid" class="flex gap-2">
-    {{ csrf_input(request)|safe }}
-
-        <input type="text" name="ssid" placeholder="SB12345678" required
-          class="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-mono shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-        <button type="submit"
-          class="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700">
-          Save SSID
+          Upload keystore
         </button>
       </form>
     </div>
 
   </div>
 
-  {# Right: Test + status #}
+  {# Right column: Keystore entries + ping #}
   <div class="space-y-4">
 
-    {# Smoke test #}
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h2 class="text-sm font-semibold text-gray-800 mb-2">Step 5 — Test Connection</h2>
-      <p class="text-xs text-gray-500 mb-3">
-        Run a smoke test against ATO EVTE (test environment) or Production to confirm
-        credentials and connectivity.
-      </p>
-      <div class="flex gap-3">
-        <form method="post" action="/admin/ato-sbr/test">
-    {{ csrf_input(request)|safe }}
+      <h2 class="text-sm font-semibold text-gray-800 mb-3">Stored keystores</h2>
 
-          <input type="hidden" name="environment" value="EVTE">
-          <button type="submit"
-            class="rounded-md border border-indigo-300 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
-            Test EVTE
-          </button>
-        </form>
-        <form method="post" action="/admin/ato-sbr/test">
-    {{ csrf_input(request)|safe }}
-
-          <input type="hidden" name="environment" value="PROD">
-          <button type="submit"
-            class="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-            Test Production
-          </button>
-        </form>
-      </div>
-    </div>
-
-    {# Status block #}
-    {% if config %}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h2 class="text-sm font-semibold text-gray-800 mb-2">Current Status</h2>
-      <div class="text-xs text-gray-600 space-y-1">
-        <div class="flex items-center gap-2">
-          <span class="inline-block w-2 h-2 rounded-full bg-green-400"></span>
-          API connection: reachable
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-    {# Clear / reset #}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h2 class="text-sm font-semibold text-gray-800 mb-2">Reset Configuration</h2>
-      <p class="text-xs text-gray-500 mb-3">
-        Clears the stored keystore, SSID, and all confirmations. Use this to start over.
-      </p>
-      <form method="post" action="/admin/ato-sbr/clear"
-        onsubmit="return confirm('Clear all ATO SBR configuration? This cannot be undone.')">
-    {{ csrf_input(request)|safe }}
-
-        <button type="submit"
-          class="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100">
-          Clear Config
-        </button>
-      </form>
+      {% if keystore_entries %}
+      <ul class="divide-y divide-gray-100 text-xs">
+        {% for entry in keystore_entries %}
+        <li class="py-2">
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div class="font-medium text-gray-900 truncate">{{ entry.label or "unnamed" }}</div>
+              <div class="text-gray-500 truncate">
+                {% if entry.filename %}{{ entry.filename }}{% endif %}
+                {% if entry.expires_at %} · expires {{ entry.expires_at[:10] }}{% endif %}
+              </div>
+            </div>
+            <div class="flex gap-1 shrink-0">
+              <form method="post" action="/admin/ato-sbr/ping" style="display:inline">
+                {{ csrf_input(request)|safe }}
+                <input type="hidden" name="keystore_id" value="{{ entry.id }}">
+                <button type="submit"
+                  class="rounded-md border border-indigo-300 px-2 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100"
+                  title="Test lodge-server connection with this keystore">
+                  Ping
+                </button>
+              </form>
+              <form method="post" action="/admin/ato-sbr/keystore/{{ entry.id }}/delete" style="display:inline"
+                onsubmit="return confirm('Delete this keystore? You will need to re-upload it to lodge again.')">
+                {{ csrf_input(request)|safe }}
+                <button type="submit"
+                  class="rounded-md border border-red-300 px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100">
+                  Delete
+                </button>
+              </form>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-xs text-gray-500">No keystore uploaded yet — use the form on the left after running the wizard up to the keystore step.</p>
+      {% endif %}
     </div>
 
   </div>

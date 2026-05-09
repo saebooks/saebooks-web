@@ -1,0 +1,30 @@
+{# Simplified sidebar nav for companies in cashbook mode. #}
+{% set path = request.url.path %}
+{% set username = request.session.get("username", "") %}
+{% set user_role = request.session.get("user_role", "") %}
+
+<div>
+  <a href="/cashbook"
+     class="flex items-center px-2 py-1.5 rounded-md {% if path == '/cashbook' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Cashbook
+  </a>
+  <a href="/cashbook/entries"
+     class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/cashbook/entries') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Entries
+  </a>
+  <a href="/cashbook/report"
+     class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/cashbook/report') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Report
+  </a>
+</div>
+
+<div class="border-t border-gray-100 dark:border-gray-700 pt-3">
+  <a href="/settings/company"
+     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Settings
+  </a>
+  <a href="/cashbook/upgrade"
+     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/cashbook/upgrade') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Upgrade plan
+  </a>
+</div>

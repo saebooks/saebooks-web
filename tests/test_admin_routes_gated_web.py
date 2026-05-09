@@ -1,6 +1,6 @@
 """Regression tests — P0-2: all /admin/* web routes must gate non-staff/non-admin.
 
-Covers regression: a bookkeeper-role user was able to reach
+Covers audit-trail #05 P0-2: chen_apex (bookkeeper) was able to reach
 /admin/audit and /admin/sql-tool. The SQL Tool was gated in b7c7576.
 This file covers the remaining staff-only and admin-only routes.
 

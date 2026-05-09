@@ -186,8 +186,8 @@ async def test_login_sets_is_sae_staff_for_allowlisted_username(
     respx_mock.get(_ME_URL).mock(return_value=Response(200, json={
         "id": "22222222-2222-2222-2222-222222222222",
         "username": "richard",
-        "email": "alice@example.com",
-        "name": "Alice Example",
+        "email": "richard@sauer.com.au",
+        "name": "Richard Sauer",
         "role": "admin",
         "tenant_id": "00000000-0000-0000-0000-000000000001",
     }))
@@ -198,7 +198,7 @@ async def test_login_sets_is_sae_staff_for_allowlisted_username(
         follow_redirects=False,
     ) as client:
         resp = await client.post(
-            "/login", data={"email": "alice@example.com", "password": "secret"},
+            "/login", data={"email": "richard@sauer.com.au", "password": "secret"},
         )
 
     assert resp.status_code == 303
@@ -217,7 +217,7 @@ async def test_login_sets_is_sae_staff_for_allowlisted_username(
 async def test_login_does_not_set_is_sae_staff_for_non_allowlisted_user(
     monkeypatch: pytest.MonkeyPatch, respx_mock: respx.MockRouter,
 ) -> None:
-    """SAE_STAFF_USERNAMES=richard + /auth/me returns bookkeeper_user → is_sae_staff=False.
+    """SAE_STAFF_USERNAMES=richard + /auth/me returns chen_apex → is_sae_staff=False.
 
     Tenant users (bookkeepers, tenant admins) must NOT get the staff flag.
     """
@@ -226,8 +226,8 @@ async def test_login_does_not_set_is_sae_staff_for_non_allowlisted_user(
     respx_mock.post(_LOGIN_URL).mock(return_value=Response(200, json=_TOKEN_RESPONSE))
     respx_mock.get(_ME_URL).mock(return_value=Response(200, json={
         "id": "33333333-3333-3333-3333-333333333333",
-        "username": "bookkeeper_user",
-        "email": "bob@example.com",
+        "username": "chen_apex",
+        "email": "chen_apex@critics.sauer.com.au",
         "name": "Chen Wei",
         "role": "bookkeeper",
         "tenant_id": "44444444-4444-4444-4444-444444444444",
@@ -239,7 +239,7 @@ async def test_login_does_not_set_is_sae_staff_for_non_allowlisted_user(
         follow_redirects=False,
     ) as client:
         resp = await client.post(
-            "/login", data={"email": "bob@example.com", "password": "secret"},
+            "/login", data={"email": "chen_apex@critics.sauer.com.au", "password": "secret"},
         )
 
     assert resp.status_code == 303
@@ -267,8 +267,8 @@ async def test_admin_audit_200_for_richard_after_login(
     respx_mock.get(_ME_URL).mock(return_value=Response(200, json={
         "id": "22222222-2222-2222-2222-222222222222",
         "username": "richard",
-        "email": "alice@example.com",
-        "name": "Alice Example",
+        "email": "richard@sauer.com.au",
+        "name": "Richard Sauer",
         "role": "admin",
         "tenant_id": "00000000-0000-0000-0000-000000000001",
     }))
@@ -286,7 +286,7 @@ async def test_admin_audit_200_for_richard_after_login(
         follow_redirects=False,
     ) as client:
         login_resp = await client.post(
-            "/login", data={"email": "alice@example.com", "password": "secret"},
+            "/login", data={"email": "richard@sauer.com.au", "password": "secret"},
         )
         assert login_resp.status_code == 303
 
@@ -301,10 +301,10 @@ async def test_admin_audit_200_for_richard_after_login(
 
 @pytest.mark.anyio
 @respx.mock
-async def test_admin_audit_403_for_bookkeeper_user_after_login(
+async def test_admin_audit_403_for_chen_apex_after_login(
     monkeypatch: pytest.MonkeyPatch, respx_mock: respx.MockRouter,
 ) -> None:
-    """End-to-end: bookkeeper_user logs in, then GET /admin/audit must be 403.
+    """End-to-end: chen_apex logs in, then GET /admin/audit must be 403.
 
     The bookkeeper personas must remain blocked from staff-only routes
     (Taylor's Probe A.2 — confirms the fix doesn't open the gate too wide).
@@ -314,8 +314,8 @@ async def test_admin_audit_403_for_bookkeeper_user_after_login(
     respx_mock.post(_LOGIN_URL).mock(return_value=Response(200, json=_TOKEN_RESPONSE))
     respx_mock.get(_ME_URL).mock(return_value=Response(200, json={
         "id": "33333333-3333-3333-3333-333333333333",
-        "username": "bookkeeper_user",
-        "email": "bob@example.com",
+        "username": "chen_apex",
+        "email": "chen_apex@critics.sauer.com.au",
         "name": "Chen Wei",
         "role": "bookkeeper",
         "tenant_id": "44444444-4444-4444-4444-444444444444",
@@ -327,12 +327,12 @@ async def test_admin_audit_403_for_bookkeeper_user_after_login(
         follow_redirects=False,
     ) as client:
         login_resp = await client.post(
-            "/login", data={"email": "bob@example.com", "password": "secret"},
+            "/login", data={"email": "chen_apex@critics.sauer.com.au", "password": "secret"},
         )
         assert login_resp.status_code == 303
 
         audit_resp = await client.get("/admin/audit")
 
     assert audit_resp.status_code == 403, (
-        f"Expected 403 on /admin/audit for bookkeeper_user, got {audit_resp.status_code}"
+        f"Expected 403 on /admin/audit for chen_apex, got {audit_resp.status_code}"
     )

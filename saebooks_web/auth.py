@@ -29,6 +29,16 @@ def _staff_allowlist() -> frozenset[str]:
     raw = os.environ.get("SAE_STAFF_USERNAMES", "")
     return frozenset(p.strip().lower() for p in raw.split(",") if p.strip())
 
+
+def _is_demo_mode() -> bool:
+    """True when this instance is the public demo (app.saebooks.com.au).
+
+    Driven by ``SAEBOOKS_WEB_DEMO_MODE=1``.  Demo mode shows a credentials
+    callout on the login form so first-time visitors can poke around without
+    creating an account.  Off by default everywhere else.
+    """
+    return os.environ.get("SAEBOOKS_WEB_DEMO_MODE", "").strip().lower() in ("1", "true", "yes")
+
 router = APIRouter()
 
 # Resolve templates relative to the repo root (parent of this package dir).
@@ -39,7 +49,7 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request) -> HTMLResponse:
     """Render the login form."""
-    return _TEMPLATES.TemplateResponse(request, "auth/login.html", {"error": None, "discourse_enabled": discourse_enabled()})
+    return _TEMPLATES.TemplateResponse(request, "auth/login.html", {"error": None, "discourse_enabled": discourse_enabled(), "is_demo": _is_demo_mode()})
 
 
 @router.post("/login", response_model=None)
@@ -63,14 +73,14 @@ async def login_submit(
                 return _TEMPLATES.TemplateResponse(
                     request,
                     "auth/login.html",
-                    {"error": "Invalid email or password", "discourse_enabled": discourse_enabled()},
+                    {"error": "Invalid email or password", "discourse_enabled": discourse_enabled(), "is_demo": _is_demo_mode()},
                     status_code=401,
                 )
             if not resp.is_success:
                 return _TEMPLATES.TemplateResponse(
                     request,
                     "auth/login.html",
-                    {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled()},
+                    {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled(), "is_demo": _is_demo_mode()},
                     status_code=502,
                 )
 
@@ -94,7 +104,7 @@ async def login_submit(
         return _TEMPLATES.TemplateResponse(
             request,
             "auth/login.html",
-            {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled()},
+            {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled(), "is_demo": _is_demo_mode()},
             status_code=502,
         )
 

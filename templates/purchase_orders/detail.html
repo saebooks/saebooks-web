@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if po %}Purchase order {{ po.number or po.id }} — SAE Books{% else %}Not found — SAE Books{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if po %}
+
+{# ── Header ── #}
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-semibold text-gray-900">
+        Purchase order {{ po.number or "—" }}
+      </h1>
+      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
+        {% if po.status == 'OPEN' %}bg-blue-100 text-blue-700
+        {% elif po.status == 'PARTIAL' %}bg-amber-100 text-amber-700
+        {% elif po.status == 'RECEIVED' %}bg-green-100 text-green-700
+        {% elif po.status == 'CLOSED' %}bg-gray-200 text-gray-700
+        {% elif po.status == 'CANCELLED' %}bg-red-100 text-red-600
+        {% else %}bg-gray-100 text-gray-600{% endif %}">
+        {{ po.status | capitalize }}
+      </span>
+    </div>
+    <p class="text-sm text-gray-500 mt-1">Supplier: {{ po.contact_id }}</p>
+  </div>
+  <div class="flex items-center gap-3 flex-wrap justify-end">
+    {% if po.status == 'DRAFT' %}
+    <form method="post" action="/purchase_orders/{{ po.id }}/send" class="inline"
+      onsubmit="return confirm('Send this PO? It will be assigned a number and locked from edits.');">
+      {{ csrf_input(request)|safe }}
+      <button type="submit"
+        class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700">
+        Send
+      </button>
+    </form>
+    <form method="post" action="/purchase_orders/{{ po.id }}/cancel" class="inline"
+      onsubmit="return confirm('Cancel this draft PO?');">
+      {{ csrf_input(request)|safe }}
+      <button type="submit"
+        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700">
+        Cancel
+      </button>
+    </form>
+    <form method="post" action="/purchase_orders/{{ po.id }}/archive" class="inline"
+      onsubmit="return confirm('Archive this PO?');">
+      {{ csrf_input(request)|safe }}
+      <button type="submit"
+        class="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        Archive
+      </button>
+    </form>
+    {% endif %}
+
+    {% if po.status in ('OPEN', 'PARTIAL') %}
+    <form method="post" action="/purchase_orders/{{ po.id }}/cancel" class="inline"
+      onsubmit="return confirm('Cancel this PO? Any received quantities will block cancellation.');">
+      {{ csrf_input(request)|safe }}
+      <button type="submit"
+        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700">
+        Cancel
+      </button>
+    </form>
+    {% endif %}
+
+    {% if po.status in ('OPEN', 'PARTIAL', 'RECEIVED') %}
+    <form method="post" action="/purchase_orders/{{ po.id }}/close" class="inline"
+      onsubmit="return confirm('Close this PO? It will no longer be eligible for receipts.');">
+      {{ csrf_input(request)|safe }}
+      <button type="submit"
+        class="rounded-md bg-gray-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-800">
+        Close
+      </button>
+    </form>
+    {% endif %}
+
+    <a href="/purchase_orders" class="text-sm text-indigo-600 hover:underline">← Back</a>
+  </div>
+</div>
+
+{# ── FX banner ── #}
+{% if po.currency and po.currency | upper != 'AUD' %}
+<div class="rounded-md bg-blue-50 border border-blue-200 px-4 py-2 text-sm text-blue-700 mb-4">
+  Foreign currency PO — {{ po.currency }} at
+  {{ "%.6g"|format(po.fx_rate|float) }} AUD per 1 {{ po.currency }}.
+</div>
+{% endif %}
+
+{# ── Summary cards ── #}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Issue date</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ po.issue_date }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Expected</p>
+    <p class="mt-1 text-sm font-medium text-gray-900">{{ po.expected_date or "—" }}</p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Subtotal</p>
+    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
+      {{ po.currency }} {{ "%.2f"|format(po.subtotal|float) }}
+    </p>
+  </div>
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">Total</p>
+    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
+      {{ po.currency }} {{ "%.2f"|format(po.total|float) }}
+    </p>
+  </div>
+</div>
+
+{# ── Lines (with received_qty + outstanding) ── #}
+<h2 class="text-base font-semibold text-gray-900 mb-3">Lines</h2>
+
+{% set can_convert = po.status in ('OPEN', 'PARTIAL') %}
+
+<form method="post" action="/purchase_orders/{{ po.id }}/convert"
+  onsubmit="return confirm('Convert to a draft bill? You can edit the bill before posting.');">
+  {{ csrf_input(request)|safe }}
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto mb-4">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-8">#</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Ordered</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Received</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Outstanding</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Unit price</th>
+          <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
+          {% if can_convert %}
+          <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs w-32">Receipt qty</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% if po.lines %}
+          {% for line in po.lines %}
+          {% set ordered = line.quantity|float %}
+          {% set received = (line.received_qty or 0)|float %}
+          {% set outstanding = ordered - received %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 text-gray-400">{{ line.line_no }}</td>
+            <td class="px-4 py-3 text-gray-900">{{ line.description }}</td>
+            <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.3f"|format(ordered) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.3f"|format(received) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums {% if outstanding > 0 %}text-amber-700 font-medium{% else %}text-gray-400{% endif %}">
+              {{ "%.3f"|format(outstanding) }}
+            </td>
+            <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.2f"|format(line.unit_price|float) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums font-medium text-gray-900">{{ "%.2f"|format(line.line_total|float) }}</td>
+            {% if can_convert %}
+            <td class="px-4 py-3 text-right">
+              <input
+                type="number"
+                name="qty[{{ line.line_no }}]"
+                step="0.001"
+                min="0"
+                max="{{ outstanding }}"
+                placeholder="{{ "%.3f"|format(outstanding) }}"
+                class="w-24 rounded-md border border-gray-300 text-sm px-2 py-1 text-right
+                       focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="{% if can_convert %}8{% else %}7{% endif %}" class="px-4 py-6 text-center text-gray-400">No lines.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+      <tfoot class="bg-gray-50 border-t border-gray-200">
+        <tr>
+          <td colspan="{% if can_convert %}6{% else %}5{% endif %}" class="px-4 py-3 text-right text-sm text-gray-500">Subtotal</td>
+          <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">{{ "%.2f"|format(po.subtotal|float) }}</td>
+          {% if can_convert %}<td></td>{% endif %}
+        </tr>
+        <tr>
+          <td colspan="{% if can_convert %}6{% else %}5{% endif %}" class="px-4 py-3 text-right text-sm text-gray-500">Tax</td>
+          <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">{{ "%.2f"|format(po.tax_total|float) }}</td>
+          {% if can_convert %}<td></td>{% endif %}
+        </tr>
+        <tr class="font-semibold">
+          <td colspan="{% if can_convert %}6{% else %}5{% endif %}" class="px-4 py-3 text-right text-sm text-gray-900">Total</td>
+          <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
+            {{ po.currency }} {{ "%.2f"|format(po.total|float) }}
+          </td>
+          {% if can_convert %}<td></td>{% endif %}
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  {% if can_convert %}
+  <div class="bg-white rounded-xl border border-gray-200 px-6 py-4 mb-8">
+    <h3 class="text-sm font-semibold text-gray-900 mb-3">Convert to bill</h3>
+    <p class="text-xs text-gray-500 mb-4">
+      Leave receipt quantities blank to convert the full outstanding amount.
+      Enter quantities to record a partial receipt — only those lines will be billed.
+    </p>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-4">
+      <div>
+        <label for="bill_issue_date" class="block text-xs font-medium text-gray-500 mb-1">Bill issue date</label>
+        <input type="date" id="bill_issue_date" name="bill_issue_date"
+          class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+      </div>
+      <div>
+        <label for="bill_due_date" class="block text-xs font-medium text-gray-500 mb-1">Bill due date</label>
+        <input type="date" id="bill_due_date" name="bill_due_date"
+          class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+      </div>
+      <div>
+        <label for="supplier_reference" class="block text-xs font-medium text-gray-500 mb-1">Supplier reference</label>
+        <input type="text" id="supplier_reference" name="supplier_reference"
+          placeholder="optional"
+          class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+      </div>
+    </div>
+    <button type="submit"
+      class="rounded-md bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700">
+      Convert to draft bill
+    </button>
+  </div>
+  {% endif %}
+</form>
+
+{# ── Notes ── #}
+{% if po.notes %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-2">Notes</h2>
+  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">{{ po.notes }}</div>
+</div>
+{% endif %}
+
+{% if po.delivery_address %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold text-gray-900 mb-2">Delivery address</h2>
+  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">{{ po.delivery_address }}</div>
+</div>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

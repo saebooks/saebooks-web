@@ -358,7 +358,7 @@ async def test_company_settings_gst_old_date_no_invoices_skips_confirm(
 
 
 # ---------------------------------------------------------------------------
-# PSI — PSI status field in company settings form
+# PSI-1 — PSI status field in company settings form
 # ---------------------------------------------------------------------------
 
 

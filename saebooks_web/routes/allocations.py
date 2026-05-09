@@ -1,6 +1,6 @@
 """Allocation rules views — overhead cost-pool distribution.
 
-Regression: /allocations and /settings/allocations
+Gap FITC-6 (medium-fitness-chain): /allocations and /settings/allocations
 previously returned 404. This module adds the web UI for the allocation
 rules engine.
 

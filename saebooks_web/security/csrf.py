@@ -5,10 +5,9 @@ Layer 2 — OriginRefererMiddleware
 On every state-changing request (POST/PUT/PATCH/DELETE):
 
 1. If the ``Origin`` header is present, its scheme+host MUST match the
-   configured site origin allow-list (default ``http://localhost:8000``,
-   override via ``SAEBOOKS_WEB_SITE_ORIGIN`` — comma-separated for multiple
-   origins, e.g. ``https://books.example.com,https://books-dev.example.com``).
-   Mismatch -> 403.
+   configured site origin allow-list (default
+   ``https://books-dev.sauer.com.au,https://books.sauer.com.au``,
+   override via ``SAEBOOKS_WEB_SITE_ORIGIN``).  Mismatch -> 403.
 2. Else if the ``Referer`` header is present, its scheme+host MUST match
    the configured site origin.  Mismatch -> 403.
 3. Else (neither header present): allowed-with-warning.  In a browser
@@ -65,7 +64,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
-_DEFAULT_SITE_ORIGINS = "http://localhost:8000"
+_DEFAULT_SITE_ORIGINS = "https://books-dev.sauer.com.au,https://books.sauer.com.au"
 
 
 def _get_site_origins() -> tuple[str, ...]:

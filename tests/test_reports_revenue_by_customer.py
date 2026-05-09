@@ -1,4 +1,4 @@
-"""Tests for Revenue by Customer HTML view.
+"""Tests for Revenue by Customer HTML view — gap PSI-2.
 
 Tests:
 1. test_revenue_by_customer_200           — full-page GET 200 with rows and concentration warning

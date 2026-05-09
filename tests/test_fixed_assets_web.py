@@ -58,7 +58,7 @@ _MOCK_ASSET = {
     "manufacturer": "APC",
     "model_number": "AR3100",
     "location": "Comms Room A",
-    "custody_person": "Alice Example",
+    "custody_person": "Richard Sauer",
     "warranty_end": "2027-01-15",
     "extra": None,
     "version": 3,

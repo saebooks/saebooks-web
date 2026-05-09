@@ -3,17 +3,17 @@ name: Build saebooks-web image
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - "v*"
   pull_request:
     branches:
-      - master
+      - main
 
 env:
-  # Set REGISTRY_URL secret + uncomment the login step below to push to
-  # a registry (Docker Hub, GHCR, or self-hosted).
-  IMAGE_NAME: saebooks/saebooks-web
+  # TODO: configure REGISTRY_URL — e.g. ghcr.io/sauer/saebooks-web
+  # or a self-hosted registry at registry.sauer.com.au/saebooks/web
+  IMAGE_NAME: saebooks-web
 
 jobs:
   build:

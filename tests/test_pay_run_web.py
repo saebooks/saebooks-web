@@ -329,7 +329,7 @@ async def test_pay_run_nav_link(respx_mock: respx.MockRouter) -> None:
 async def test_pay_run_scope_notice(respx_mock: respx.MockRouter) -> None:
     """GET /pay-run includes a scope callout noting wage/penalty-rate calculation
     is not automated, and directs users to an external payroll tool + journal
-    entry workflow.
+    entry workflow (gap CAFE-3).
     """
     respx_mock.get(f"{_API_BASE}/api/v1/bills").mock(
         return_value=Response(200, json={"items": [], "total": 0})

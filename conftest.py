@@ -5,7 +5,7 @@ treats requests from the AsyncClient ``base_url="http://test"`` as same-origin.
 This lets the existing ~270 write-path tests continue to send POST/PUT/PATCH/
 DELETE without explicitly forging an Origin header on every call.
 
-In production the env var defaults to ``http://localhost:8000``, so this
+In production the env var defaults to https://books-dev.sauer.com.au, so this
 override only affects the test process.
 
 CSRF Layer 3 — test-suite cooperation
