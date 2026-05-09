@@ -1,0 +1,104 @@
+{# HTMX partial — quotes table body + pagination.
+   Rendered standalone for HX-Request fragments; embedded by list.html for
+   the initial full-page load.
+#}
+<div id="quotes-table">
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Number</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Expiry</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Customer</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% if quotes %}
+        {% for q in quotes %}
+        <tr
+          class="hover:bg-gray-50 cursor-pointer"
+          onclick="window.location='/quotes/{{ q.id }}'"
+        >
+          <td class="px-4 py-3 font-medium text-indigo-600">
+            <a href="/quotes/{{ q.id }}" class="hover:underline">
+              {{ q.number or "—" }}
+            </a>
+          </td>
+          <td class="px-4 py-3 text-gray-600">{{ q.issue_date }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ q.expiry_date or "—" }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ q.customer_name or "—" }}</td>
+          <td class="px-4 py-3 text-right text-gray-900 font-medium tabular-nums">
+            {{ q.currency }} {{ "%.2f"|format(q.total|float) }}
+          </td>
+          <td class="px-4 py-3">
+            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
+              {% if q.status == 'ACCEPTED' %}bg-green-100 text-green-700
+              {% elif q.status == 'INVOICED' %}bg-blue-100 text-blue-700
+              {% elif q.status == 'DRAFT' %}bg-gray-100 text-gray-600
+              {% elif q.status == 'SENT' %}bg-yellow-100 text-yellow-700
+              {% elif q.status == 'DECLINED' %}bg-red-100 text-red-600
+              {% elif q.status == 'ARCHIVED' %}bg-gray-100 text-gray-400
+              {% else %}bg-gray-100 text-gray-500{% endif %}">
+              {{ q.status | capitalize }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="6" class="px-4 py-12 text-center">
+            <p class="text-gray-400 text-sm mb-2">No quotes found.</p>
+            {% if not filter_status and not filter_customer_id %}
+            <a href="/quotes/new" class="text-sm text-indigo-600 hover:underline">Create your first quote →</a>
+            {% else %}
+            <p class="text-xs text-gray-400">Try clearing your filters.</p>
+            {% endif %}
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination #}
+{% if prev_offset is not none or next_offset is not none %}
+<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+  <div>
+    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+  </div>
+  <div class="flex gap-3">
+    {% if prev_offset is not none %}
+    <a
+      href="/quotes?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_customer_id %}&customer_id={{ filter_customer_id }}{% endif %}"
+      hx-get="/quotes?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_customer_id %}&customer_id={{ filter_customer_id }}{% endif %}"
+      hx-target="#quotes-table"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+    >Previous</a>
+    {% endif %}
+    {% if next_offset is not none %}
+    <a
+      href="/quotes?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_customer_id %}&customer_id={{ filter_customer_id }}{% endif %}"
+      hx-get="/quotes?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_customer_id %}&customer_id={{ filter_customer_id }}{% endif %}"
+      hx-target="#quotes-table"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+    >Next</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+</div>{# end #quotes-table #}
