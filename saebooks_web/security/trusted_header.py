@@ -15,6 +15,25 @@ The middleware activates only when ``SAEBOOKS_WEB_TRUSTED_HEADERS=1``. The
 container must not be reachable except via the trusted proxy — on this stack
 the API/web bind to ``10.0.2.1:18303`` / ``10.0.2.1:18313`` and only Caddy
 on the same host talks to them, so end-users cannot forge the headers.
+
+Default-deny
+------------
+When trusted-header mode is ON, a request that is not already authenticated
+and does not carry valid trusted headers MUST be denied — never silently
+allowed to fall through to the in-app email/password login form. Allowing
+fall-through would let a request that bypassed the trusted proxy reach the
+in-app login, defeating the purpose of forward-auth.
+
+The skip list (``_SKIP_PREFIXES``) is the only way to reach an unauthenticated
+handler in trusted-header mode: static assets, health checks, favicon, and
+``/logout`` (which must remain reachable so a confused session can be cleared).
+
+Failure modes:
+
+- Headers missing on a non-skip path → 401 (proxy misconfigured or bypassed)
+- ``SAEBOOKS_OAUTH_HANDOFF_SECRET`` unset → 503 (deployment misconfigured)
+- ``oauth-handoff`` returns non-2xx → 502 (upstream auth broken)
+- transport error talking to API → 502
 """
 from __future__ import annotations
 
@@ -24,7 +43,7 @@ import os
 import httpx
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import PlainTextResponse, Response
 
 from saebooks_web.config import settings
 
@@ -44,8 +63,17 @@ def _staff_allowlist() -> frozenset[str]:
     return frozenset(p.strip().lower() for p in raw.split(",") if p.strip())
 
 
+def _deny(status: int, reason: str, *, path: str) -> PlainTextResponse:
+    _log.warning("trusted-header deny %s on %s: %s", status, path, reason)
+    return PlainTextResponse(
+        f"Forbidden: {reason}\n",
+        status_code=status,
+        headers={"X-SAE-Auth-Deny": reason},
+    )
+
+
 class TrustedHeaderAuthMiddleware(BaseHTTPMiddleware):
-    """Mint a session from Authentik forward-auth headers if absent."""
+    """Mint a session from Authentik forward-auth headers; deny otherwise."""
 
     async def dispatch(self, request: Request, call_next):  # type: ignore[override]
         if not _enabled():
@@ -63,12 +91,14 @@ class TrustedHeaderAuthMiddleware(BaseHTTPMiddleware):
         username = (request.headers.get("x-authentik-username") or "").strip()
         uid = (request.headers.get("x-authentik-uid") or username or "").strip()
         if not email or not uid:
-            return await call_next(request)
+            return _deny(401, "missing trusted-auth headers", path=path)
 
         secret = os.environ.get("SAEBOOKS_OAUTH_HANDOFF_SECRET", "")
         if not secret:
-            _log.warning("trusted-header on but SAEBOOKS_OAUTH_HANDOFF_SECRET unset")
-            return await call_next(request)
+            return _deny(
+                503, "trusted-header config error (handoff secret unset)",
+                path=path,
+            )
 
         display_name = (
             request.headers.get("x-authentik-name")
@@ -95,7 +125,10 @@ class TrustedHeaderAuthMiddleware(BaseHTTPMiddleware):
                         "oauth-handoff %s for %s: %s",
                         resp.status_code, email, resp.text[:200],
                     )
-                    return await call_next(request)
+                    return _deny(
+                        502, f"upstream auth handoff failed ({resp.status_code})",
+                        path=path,
+                    )
 
                 token = resp.json()["access_token"]
                 request.session.pop("csrf_token", None)
@@ -107,7 +140,7 @@ class TrustedHeaderAuthMiddleware(BaseHTTPMiddleware):
                 )
         except httpx.RequestError as exc:
             _log.warning("oauth-handoff transport error: %s", exc)
-            return await call_next(request)
+            return _deny(502, "auth upstream unreachable", path=path)
 
         if me.is_success:
             prof = me.json()
