@@ -1,95 +1,46 @@
-{#
-  _line_row.html — single quote line-item row.
-
-  Used both when rendering the full new/edit-quote form and as an HTMX fragment
-  returned by GET /quotes/_add_line?index=N.
-
-  Expected context variables:
-    index      : int   — zero-based row index used in field names
-    line       : dict  — pre-filled values (empty dict for a blank row)
-    accounts   : list  — account dicts [{id, name, code, account_type}, ...]
-    tax_codes  : list  — tax code dicts [{id, name, rate}, ...]
-#}
-<tr class="line-row border-b border-gray-100">
-  {# Account (required for convert-to-invoice) #}
+{# _line_row.html — single quote line-item row. Used inline + by /quotes/_add_line htmx. #}
+<tr class="line-row">
   <td class="px-3 py-2">
-    <select
-      name="lines[{{ index }}][account_id]"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-    >
+    <select name="lines[{{ index }}][account_id]" class="saebooks-input text-sm py-1.5">
       <option value="">— account —</option>
       {% for acct in accounts %}
-      <option value="{{ acct.id }}"
-        {% if line.get("account_id") == acct.id %}selected{% endif %}>
+      <option value="{{ acct.id }}" {% if line.get("account_id") == acct.id %}selected{% endif %}>
         {{ acct.code }} — {{ acct.name }}
       </option>
       {% endfor %}
     </select>
   </td>
 
-  {# Description #}
   <td class="px-3 py-2">
-    <input
-      type="text"
-      name="lines[{{ index }}][description]"
-      value="{{ line.get('description', '') }}"
-      placeholder="Description"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-    >
+    <input type="text" name="lines[{{ index }}][description]" value="{{ line.get('description', '') }}"
+           placeholder="Description" class="saebooks-input text-sm py-1.5">
   </td>
 
-  {# Quantity #}
   <td class="px-3 py-2 w-24">
-    <input
-      type="number"
-      name="lines[{{ index }}][quantity]"
-      value="{{ line.get('quantity', '1') }}"
-      step="0.001"
-      min="0"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-    >
+    <input type="number" name="lines[{{ index }}][quantity]" value="{{ line.get('quantity', '1') }}"
+           step="0.001" min="0" class="saebooks-input num text-sm py-1.5 text-right">
   </td>
 
-  {# Unit price #}
   <td class="px-3 py-2 w-28">
-    <input
-      type="number"
-      name="lines[{{ index }}][unit_price]"
-      value="{{ line.get('unit_price', '') }}"
-      step="0.01"
-      placeholder="0.00"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-    >
+    <input type="number" name="lines[{{ index }}][unit_price]" value="{{ line.get('unit_price', '') }}"
+           step="0.01" placeholder="0.00"
+           class="saebooks-input num-display text-sm py-1.5 text-right">
   </td>
 
-  {# Tax code #}
   <td class="px-3 py-2 w-32">
-    <select
-      name="lines[{{ index }}][tax_code_id]"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-    >
+    <select name="lines[{{ index }}][tax_code_id]" class="saebooks-input text-sm py-1.5">
       <option value="">— none —</option>
       {% for tc in tax_codes %}
-      <option value="{{ tc.id }}"
-        {% if line.get("tax_code_id") == tc.id %}selected{% endif %}>
+      <option value="{{ tc.id }}" {% if line.get("tax_code_id") == tc.id %}selected{% endif %}>
         {{ tc.name }}
       </option>
       {% endfor %}
     </select>
   </td>
 
-  {# Remove button #}
   <td class="px-3 py-2 w-10 text-center">
-    <button
-      type="button"
-      onclick="this.closest('tr').remove()"
-      class="text-red-400 hover:text-red-600 text-lg leading-none font-bold"
-      title="Remove line"
-    >&times;</button>
+    <button type="button" onclick="this.closest('tr').remove()"
+            class="ink-4 hover:text-[color:var(--neg)] text-lg leading-none font-bold transition-colors"
+            title="Remove line">&times;</button>
   </td>
 </tr>

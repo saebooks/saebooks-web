@@ -5,45 +5,47 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Quotes</h1>
-    {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ total }} quote{{ "s" if total != 1 else "" }}</p>
-    {% endif %}
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">Sales</span>
+    <span class="reg-mark"></span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Quotes</span>
   </div>
+  <div class="flex items-end justify-between gap-4">
+    <div>
+      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">
+        Quotes
+      </h1>
+      {% if not error %}
+      <p class="mt-2 text-sm ink-3 font-mono">
+        {{ total }} quote{{ "s" if total != 1 else "" }}
+      </p>
+      {% endif %}
+    </div>
+    <a href="/quotes/new" class="btn-primary">+ New quote</a>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
 
-  <a
-    href="/quotes/new"
-    class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]"
-  >
-    + New quote
-  </a>
-</div>
-
-{# Filter form — HTMX-powered, swaps only the table on submit #}
 <form
   hx-get="/quotes"
   hx-target="#quotes-table"
   hx-swap="outerHTML"
   hx-push-url="true"
-  class="mb-4 flex flex-wrap gap-3 items-end"
+  class="card p-4 mb-5 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
-    <select
-      id="status"
-      name="status"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
-    >
+    <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Status</label>
+    <select id="status" name="status" class="saebooks-input text-sm py-1.5">
       <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="SENT" {% if filter_status == 'SENT' %}selected{% endif %}>Sent</option>
+      <option value="DRAFT"    {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
+      <option value="SENT"     {% if filter_status == 'SENT' %}selected{% endif %}>Sent</option>
       <option value="ACCEPTED" {% if filter_status == 'ACCEPTED' %}selected{% endif %}>Accepted</option>
       <option value="DECLINED" {% if filter_status == 'DECLINED' %}selected{% endif %}>Declined</option>
       <option value="INVOICED" {% if filter_status == 'INVOICED' %}selected{% endif %}>Invoiced</option>
@@ -51,30 +53,18 @@
     </select>
   </div>
 
-  <div>
-    <label for="customer_id" class="block text-xs font-medium text-gray-500 mb-1">Customer UUID</label>
-    <input
-      type="text"
-      id="customer_id"
-      name="customer_id"
-      value="{{ filter_customer_id }}"
-      placeholder="optional"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] w-64"
-    >
+  <div class="flex-1 min-w-[220px]">
+    <label for="customer_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Customer UUID</label>
+    <input type="text" id="customer_id" name="customer_id" value="{{ filter_customer_id }}"
+           placeholder="optional" class="saebooks-input num text-sm py-1.5 w-full">
   </div>
 
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
 
-  <button
-    type="submit"
-    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
-  >
-    Filter
-  </button>
+  <button type="submit" class="btn-primary text-sm py-1.5">Filter</button>
 </form>
 
-{# Table fragment — HTMX replaces this div on filter/pagination #}
 {% include "quotes/_table.html" %}
 
 {% endblock %}

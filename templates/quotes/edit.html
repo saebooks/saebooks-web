@@ -4,26 +4,30 @@
 
 {% block content %}
 
-<div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold text-gray-900">Edit Quote</h1>
-  <div class="flex items-center gap-3">
-    {% if quote %}
-    <a href="/quotes/{{ quote.id }}" class="text-sm text-[#194291] hover:underline">← Back to quote</a>
-    {% else %}
-    <a href="/quotes" class="text-sm text-[#194291] hover:underline">← Back to quotes</a>
-    {% endif %}
-  </div>
+<div class="mb-5 flex items-center gap-3">
+  {% if quote %}
+  <a href="/quotes/{{ quote.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← quote</a>
+  {% else %}
+  <a href="/quotes" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← quotes</a>
+  {% endif %}
+  <span class="ink-4">/</span>
+  <h1 class="font-display text-xl ink-1" style="font-variation-settings:'opsz' 36;">Edit quote</h1>
 </div>
 
 {% if conflict %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  This quote was modified by another session while you were editing.
-  Your changes are preserved below — the version has been updated to the server's current value.
-  Review and save again.
+<div class="card p-3 mb-5 flex items-start gap-3" style="border-color:var(--warm);">
+  <span class="dot mt-1.5" style="background:var(--warm);"></span>
+  <div class="text-sm ink-2 flex-1">
+    <p class="font-semibold ink-1 mb-1">Someone else updated this quote.</p>
+    <p>
+      Your changes are preserved below — the version has been bumped to the server's current value.
+      Review and save again.
+    </p>
+  </div>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
+<div class="card p-6">
   <form method="POST" action="/quotes/{{ quote.id if quote else '' }}/edit" novalidate>
     {{ csrf_input(request)|safe }}
 
@@ -31,23 +35,10 @@
 
     {% include "quotes/_form_fields.html" %}
 
-    <div class="mt-8 flex items-center gap-3">
-      <button
-        type="submit"
-        class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white
-               hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
-      >
-        Save changes
-      </button>
-      <a
-        href="/quotes/{{ quote.id if quote else '' }}"
-        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
-               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
-      >
-        Cancel
-      </a>
+    <div class="mt-7 hairline pt-5 flex items-center gap-3">
+      <button type="submit" class="btn-primary">Save changes</button>
+      <a href="/quotes/{{ quote.id if quote else '' }}" class="btn-secondary">Cancel</a>
     </div>
-
   </form>
 </div>
 
