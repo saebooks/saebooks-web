@@ -1,80 +1,77 @@
-{# HTMX partial — invoice table body + pagination.
-   Rendered standalone for HX-Request fragments; embedded by list.html for
-   the initial full-page load.
-#}
+{# HTMX partial — invoice table body + pagination. #}
 <div id="invoices-table">
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<section class="card overflow-hidden">
+  <table class="sae-table w-full">
+    <thead>
       <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Number</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Due</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Contact</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="text-left">Number</th>
+        <th class="text-left">Date</th>
+        <th class="text-left">Due</th>
+        <th class="text-left">Contact</th>
+        <th class="text-right">Total</th>
+        <th class="text-left">Status</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% if invoices %}
         {% for inv in invoices %}
-        <tr
-          class="hover:bg-gray-50 cursor-pointer"
-          onclick="window.location='/invoices/{{ inv.id }}'"
-        >
-          <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/invoices/{{ inv.id }}" class="hover:underline">
+        <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">
+          <td>
+            <a href="/invoices/{{ inv.id }}" class="sae hover:underline font-medium num">
               {{ inv.number or "—" }}
             </a>
           </td>
-          <td class="px-4 py-3 text-gray-600">{{ inv.issue_date }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ inv.due_date }}</td>
+          <td class="num ink-2">{{ inv.issue_date }}</td>
+          <td class="num ink-2">{{ inv.due_date }}</td>
           {% set _c = contacts_by_id.get(inv.contact_id) if contacts_by_id else None %}
-          <td class="px-4 py-3 text-gray-600">{{ _c.name if _c else "—" }}</td>
-          <td class="px-4 py-3 text-right text-gray-900 font-medium tabular-nums">
+          <td class="ink-1">{{ _c.name if _c else "—" }}</td>
+          <td class="text-right num-display ink-1" style="font-weight:500;">
             {{ inv.currency }} {{ "%.2f"|format(inv.total|float) }}
           </td>
-          <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if inv.status == 'POSTED' %}bg-green-100 text-green-700
-              {% elif inv.status == 'DRAFT' %}bg-gray-100 text-gray-600
-              {% elif inv.status == 'VOIDED' %}bg-red-100 text-red-600
-              {% else %}bg-gray-100 text-gray-500{% endif %}">
-              {{ inv.status | capitalize }}
-            </span>
+          <td>
+            {% if inv.status == 'POSTED' %}
+              <span class="badge-paid">Posted</span>
+            {% elif inv.status == 'DRAFT' %}
+              <span class="badge-draft">Draft</span>
+            {% elif inv.status == 'VOIDED' %}
+              <span class="badge-overdue">Voided</span>
+            {% else %}
+              <span class="badge-draft">{{ inv.status|capitalize }}</span>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
           <td colspan="6" class="px-4 py-12 text-center">
-            <p class="text-gray-400 text-sm mb-2">No invoices found.</p>
+            <p class="text-sm ink-3 font-mono mb-3">— no invoices found —</p>
             {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-            <a href="/invoices/new" class="text-sm text-[#194291] hover:underline">Create your first invoice →</a>
+            <a href="/invoices/new" class="sae hover:underline text-sm">Create your first invoice →</a>
             {% else %}
-            <p class="text-xs text-gray-400">Try clearing your filters.</p>
+            <p class="text-xs ink-3">Try clearing your filters.</p>
             {% endif %}
           </td>
         </tr>
       {% endif %}
     </tbody>
   </table>
-</div>
+</section>
 
 {# Pagination #}
 {% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
-  <div>
+<div class="mt-4 flex items-center justify-between text-sm">
+  <div class="ink-3 font-mono text-xs">
     Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
   </div>
-  <div class="flex gap-3">
+  <div class="flex gap-2">
     {% if prev_offset is not none %}
     <a
       href="/invoices?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
@@ -82,8 +79,8 @@
       hx-target="#invoices-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Previous</a>
+      class="btn-secondary text-sm py-1.5"
+    >← Previous</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -92,8 +89,8 @@
       hx-target="#invoices-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Next</a>
+      class="btn-secondary text-sm py-1.5"
+    >Next →</a>
     {% endif %}
   </div>
 </div>

@@ -5,26 +5,33 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Invoices</h1>
-    {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ total }} invoice{{ "s" if total != 1 else "" }}</p>
-    {% endif %}
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">Sales</span>
+    <span class="reg-mark"></span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Invoices</span>
   </div>
-
-  <a
-    href="/invoices/new"
-    class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]"
-  >
-    + New invoice
-  </a>
-</div>
+  <div class="flex items-end justify-between gap-4">
+    <div>
+      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">
+        Invoices
+      </h1>
+      {% if not error %}
+      <p class="mt-2 text-sm ink-3 font-mono">
+        {{ total }} invoice{{ "s" if total != 1 else "" }}
+      </p>
+      {% endif %}
+    </div>
+    <a href="/invoices/new" class="btn-primary">+ New invoice</a>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
 
 {# Filter form — HTMX-powered, swaps only the table on submit #}
 <form
@@ -32,15 +39,11 @@
   hx-target="#invoices-table"
   hx-swap="outerHTML"
   hx-push-url="true"
-  class="mb-4 flex flex-wrap gap-3 items-end"
+  class="card p-4 mb-5 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
-    <select
-      id="status"
-      name="status"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
-    >
+    <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Status</label>
+    <select id="status" name="status" class="saebooks-input text-sm py-1.5">
       <option value="" {% if not filter_status %}selected{% endif %}>All</option>
       <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
       <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>Posted</option>
@@ -49,49 +52,24 @@
   </div>
 
   <div>
-    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">Date from</label>
-    <input
-      type="date"
-      id="date_from"
-      name="date_from"
-      value="{{ filter_date_from }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
-    >
+    <label for="date_from" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">From</label>
+    <input type="date" id="date_from" name="date_from" value="{{ filter_date_from }}" class="saebooks-input num text-sm py-1.5">
   </div>
 
   <div>
-    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">Date to</label>
-    <input
-      type="date"
-      id="date_to"
-      name="date_to"
-      value="{{ filter_date_to }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
-    >
+    <label for="date_to" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">To</label>
+    <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}" class="saebooks-input num text-sm py-1.5">
   </div>
 
-  <div>
-    <label for="contact_id" class="block text-xs font-medium text-gray-500 mb-1">Contact UUID</label>
-    <input
-      type="text"
-      id="contact_id"
-      name="contact_id"
-      value="{{ filter_contact_id }}"
-      placeholder="optional"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] w-64"
-    >
+  <div class="flex-1 min-w-[220px]">
+    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Contact UUID</label>
+    <input type="text" id="contact_id" name="contact_id" value="{{ filter_contact_id }}" placeholder="optional" class="saebooks-input num text-sm py-1.5 w-full">
   </div>
 
-  {# carry pagination limit; reset offset to 0 on new filter #}
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
 
-  <button
-    type="submit"
-    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
-  >
-    Filter
-  </button>
+  <button type="submit" class="btn-primary text-sm py-1.5">Filter</button>
 </form>
 
 {# Table fragment — HTMX replaces this div on filter/pagination #}
