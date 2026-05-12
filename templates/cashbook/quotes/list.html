@@ -1,64 +1,78 @@
 {% extends "base.html" %}
-{% block title %}Quotes — Cashbook{% endblock %}
+
+{% block title %}Quotes — Cashbook — SAE Books{% endblock %}
+
 {% block content %}
 
 {% if flash %}
-<div class="mb-4 rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-800 dark:text-green-200">{{ flash }}</div>
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
+</div>
 {% endif %}
 
-<div class="mb-6 flex items-center justify-between">
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Quotes</h1>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Quote it. Win it. Convert to invoice.</p>
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">Cashbook</span>
+    <span class="reg-mark"></span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Quotes</span>
   </div>
-  <a href="/cashbook/quotes/new"
-     class="inline-flex items-center rounded-md bg-[#194291] hover:bg-[#133372] text-white px-4 py-2 text-sm font-medium">
-    + New quote
-  </a>
-</div>
+  <div class="flex items-end justify-between gap-4">
+    <div>
+      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">
+        Quotes
+      </h1>
+      <p class="mt-2 text-sm ink-3">Quote it. Win it. Convert to invoice.</p>
+    </div>
+    <a href="/cashbook/quotes/new" class="btn-primary">+ New quote</a>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
 
-<div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-  {% if not quotes %}
-  <div class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">
-    No quotes yet. Tap <em>New quote</em> to put your first one together.
-  </div>
-  {% else %}
-  <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+{% if quotes %}
+<section class="card overflow-hidden">
+  <ul class="divide-y" style="border-color:var(--line);">
     {% for q in quotes %}
     {% set contact = contacts_by_id.get(q.customer_id) %}
     <li>
-      <a href="/cashbook/quotes/{{ q.id }}" class="flex items-center gap-3 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/40">
+      <a href="/cashbook/quotes/{{ q.id }}" class="flex items-center gap-4 px-5 py-4 hover:bg-paper-2 transition-colors">
         <div class="flex-1 min-w-0">
-          <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-            {{ contact.name if contact else "Customer" }}
-          </div>
-          <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          <p class="ink-1 font-medium truncate">{{ contact.name if contact else "Customer" }}</p>
+          <p class="text-xs ink-3 font-mono mt-0.5">
             {{ q.issue_date }} · {{ q.number or "draft" }}
-          </div>
+          </p>
         </div>
+
         <div class="text-right">
-          <div class="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">${{ "%.2f"|format(q.total|float) }}</div>
-          <div class="text-xs mt-0.5">
+          <p class="num-display text-lg ink-1">${{ "%.2f"|format(q.total|float) }}</p>
+          <div class="mt-1">
             {% if q.status == 'DRAFT' %}
-              <span class="inline-block rounded px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">Draft</span>
+              <span class="badge-draft">Draft</span>
             {% elif q.status == 'SENT' %}
-              <span class="inline-block rounded px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">Sent</span>
+              <span class="badge-open">Sent</span>
             {% elif q.status == 'ACCEPTED' %}
-              <span class="inline-block rounded px-2 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">Accepted</span>
+              <span class="badge-paid">Accepted</span>
             {% elif q.status == 'DECLINED' %}
-              <span class="inline-block rounded px-2 py-0.5 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">Declined</span>
+              <span class="badge-overdue">Declined</span>
             {% elif q.status == 'INVOICED' %}
-              <span class="inline-block rounded px-2 py-0.5 bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb]">Invoiced</span>
+              <span class="badge-open">Invoiced</span>
             {% else %}
-              <span class="inline-block rounded px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">{{ q.status }}</span>
+              <span class="badge-draft">{{ q.status }}</span>
             {% endif %}
           </div>
         </div>
+
+        <span class="ink-4 text-lg">›</span>
       </a>
     </li>
     {% endfor %}
   </ul>
-  {% endif %}
-</div>
+</section>
+{% else %}
+<section class="card p-12 text-center">
+  <p class="text-sm ink-3 font-mono mb-4">— no quotes yet —</p>
+  <a href="/cashbook/quotes/new" class="btn-primary">Draft your first quote</a>
+</section>
+{% endif %}
 
 {% endblock %}

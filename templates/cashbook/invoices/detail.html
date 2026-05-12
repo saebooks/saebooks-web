@@ -1,74 +1,129 @@
 {% extends "base.html" %}
-{% block title %}Invoice — Cashbook{% endblock %}
+
+{% block title %}{{ invoice.number or "Draft" }} — Cashbook — SAE Books{% endblock %}
+
 {% block content %}
 
-{% if flash %}
-<div class="mb-4 rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-800 dark:text-green-200">{{ flash }}</div>
-{% endif %}
-
-<div class="mb-2 text-sm">
-  <a href="/cashbook/invoices" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">← Invoices</a>
+<div class="mb-4">
+  <a href="/cashbook/invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
+    ← invoices
+  </a>
 </div>
 
-<div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-6 max-w-xl">
-  <div class="flex items-start justify-between mb-4">
-    <div>
-      <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Invoice</div>
-      <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ invoice.number or "Draft" }}</div>
-    </div>
-    <div>
-      {% if invoice.status == 'DRAFT' %}
-        <span class="inline-block rounded px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs">Draft</span>
-      {% elif invoice.status == 'POSTED' %}
-        <span class="inline-block rounded px-2 py-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs">Sent</span>
-      {% elif invoice.status == 'VOIDED' %}
-        <span class="inline-block rounded px-2 py-1 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-xs">Voided</span>
+{% if flash %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="max-w-2xl">
+
+  <header class="mb-6 relative">
+    <div class="dot-grid-soft absolute inset-0 -z-10 opacity-40"></div>
+    <div class="flex items-center justify-between gap-3 mb-1">
+      <div class="flex items-center gap-2">
+        <span class="nav-section-label">Invoice</span>
+        <span class="reg-mark"></span>
+      </div>
+      {% if invoice.status == 'voided' %}
+        <span class="badge-overdue">Voided</span>
+      {% elif invoice.status == 'posted' %}
+        <span class="badge-paid">Sent</span>
       {% else %}
-        <span class="inline-block rounded px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs">{{ invoice.status }}</span>
+        <span class="badge-draft">Draft</span>
       {% endif %}
     </div>
+    <h1 class="font-display text-3xl leading-none tracking-tight num-display" style="font-variation-settings:'opsz' 72;">
+      {{ invoice.number or "Draft" }}
+    </h1>
+    <div class="drafting mt-4"></div>
+  </header>
+
+  <div class="card p-6 mb-5">
+    <dl class="space-y-3 text-sm">
+      <div class="flex items-baseline gap-3 hairline-b pb-2">
+        <dt class="w-28 nav-section-label">Customer</dt>
+        <dd class="ink-1 flex-1">{{ invoice.customer_name }}</dd>
+      </div>
+      {% if invoice.customer_email %}
+      <div class="flex items-baseline gap-3 hairline-b pb-2">
+        <dt class="w-28 nav-section-label">Email</dt>
+        <dd class="ink-1 flex-1 num">{{ invoice.customer_email }}</dd>
+      </div>
+      {% endif %}
+      <div class="flex items-baseline gap-3 hairline-b pb-2">
+        <dt class="w-28 nav-section-label">Issued</dt>
+        <dd class="ink-1 num">{{ invoice.issue_date }}</dd>
+      </div>
+      <div class="flex items-baseline gap-3">
+        <dt class="w-28 nav-section-label">Due</dt>
+        <dd class="ink-1 num">{{ invoice.due_date }}</dd>
+      </div>
+    </dl>
   </div>
 
-  <div class="space-y-3 text-sm">
-    <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">Customer</span><span class="text-gray-900 dark:text-gray-100 font-medium">{{ contact.name if contact else "—" }}</span></div>
-    {% if contact and contact.email %}
-    <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">Email</span><span class="text-gray-700 dark:text-gray-300">{{ contact.email }}</span></div>
-    {% endif %}
-    <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">Issue date</span><span class="text-gray-700 dark:text-gray-300">{{ invoice.issue_date }}</span></div>
-    <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">Due date</span><span class="text-gray-700 dark:text-gray-300">{{ invoice.due_date }}</span></div>
-  </div>
-
-  <div class="mt-4 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-2">
-    {% for line in invoice.lines %}
-    <div class="flex items-start justify-between gap-3">
-      <div class="text-sm text-gray-700 dark:text-gray-300">{{ line.description }}</div>
-      <div class="text-sm tabular-nums text-gray-900 dark:text-gray-100">${{ "%.2f"|format(line.line_total|float) }}</div>
+  <div class="card overflow-hidden mb-5">
+    <div class="px-6 py-3 hairline-b">
+      <p class="nav-section-label">Lines</p>
     </div>
-    {% endfor %}
+    <table class="sae-table w-full">
+      <tbody>
+        {% for line in invoice.lines %}
+        <tr>
+          <td class="ink-1">{{ line.description }}</td>
+          <td class="text-right num-display ink-1">${{ "%.2f"|format(line.line_total|float) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="hairline-t px-6 py-4 space-y-2 text-sm">
+      <div class="flex justify-between">
+        <span class="ink-2">Subtotal</span>
+        <span class="num ink-1">${{ "%.2f"|format(invoice.subtotal|float) }}</span>
+      </div>
+      {% if invoice.gst_total and invoice.gst_total|float > 0 %}
+      <div class="flex justify-between">
+        <span class="ink-2">GST</span>
+        <span class="num ink-1">${{ "%.2f"|format(invoice.gst_total|float) }}</span>
+      </div>
+      {% endif %}
+      <div class="flex justify-between hairline-t pt-2">
+        <span class="font-semibold ink-1">Total</span>
+        <span class="num-display text-lg ink-1">${{ "%.2f"|format(invoice.total|float) }}</span>
+      </div>
+    </div>
   </div>
 
-  <div class="mt-4 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-1 text-sm">
-    <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">Subtotal</span><span class="tabular-nums text-gray-900 dark:text-gray-100">${{ "%.2f"|format(invoice.subtotal|float) }}</span></div>
-    <div class="flex justify-between"><span class="text-gray-500 dark:text-gray-400">GST</span><span class="tabular-nums text-gray-900 dark:text-gray-100">${{ "%.2f"|format(invoice.tax_total|float) }}</span></div>
-    <div class="flex justify-between text-base font-semibold pt-1"><span class="text-gray-900 dark:text-gray-100">Total</span><span class="tabular-nums text-gray-900 dark:text-gray-100">${{ "%.2f"|format(invoice.total|float) }}</span></div>
+  {% if invoice.status == 'draft' %}
+  <div class="card p-5 space-y-3">
+    <form method="post" action="/cashbook/invoices/{{ invoice.id }}/send">
+      {{ csrf_input(request) | safe }}
+      <input type="hidden" name="version" value="{{ invoice.version }}">
+      <button type="submit" class="btn-primary w-full justify-center">Send invoice</button>
+    </form>
+    <a href="/cashbook/invoices/{{ invoice.id }}/edit" class="btn-secondary w-full justify-center">Edit draft</a>
   </div>
-
-  {% if invoice.status == 'DRAFT' %}
-  <form method="post" action="/cashbook/invoices/{{ invoice.id }}/send" class="mt-6">
-    {{ csrf_input(request) | safe }}
-    <input type="hidden" name="version" value="{{ invoice.version }}">
-    <button type="submit" class="w-full rounded-md bg-green-600 hover:bg-green-700 text-white px-4 py-3 text-base font-medium">Send invoice</button>
-  </form>
-  <a href="/cashbook/invoices/{{ invoice.id }}/edit"
-     class="mt-3 block w-full text-center rounded-md bg-white dark:bg-gray-800 text-[#194291] dark:text-[#8aa9d8] border border-[#194291]/30 dark:border-[#194291]/50 hover:bg-[#eaf0fa] dark:hover:bg-[#194291]/40 px-4 py-3 text-base font-medium">Edit draft</a>
-  {% elif invoice.status == 'POSTED' %}
-  <form method="post" action="/cashbook/invoices/{{ invoice.id }}/void" class="mt-6"
-        onsubmit="return confirm('Void this invoice? This reverses the journal entry.');">
-    {{ csrf_input(request) | safe }}
-    <input type="hidden" name="version" value="{{ invoice.version }}">
-    <button type="submit" class="w-full rounded-md bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950 px-4 py-3 text-base font-medium">Void invoice</button>
-  </form>
+  {% elif invoice.status == 'posted' %}
+  <div class="card p-5">
+    <form method="post" action="/cashbook/invoices/{{ invoice.id }}/void"
+          onsubmit="return confirm('Void this invoice? An audit record is preserved.');">
+      {{ csrf_input(request) | safe }}
+      <input type="hidden" name="version" value="{{ invoice.version }}">
+      <button type="submit" class="btn-secondary w-full justify-center" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
+        Void invoice
+      </button>
+    </form>
+    <p class="text-[11px] ink-3 text-center pt-3 font-mono">
+      Voiding writes a reversal record — audit trail preserved (ATO).
+    </p>
+  </div>
+  {% else %}
+  <div class="card p-4">
+    <p class="text-sm ink-3">This invoice has been voided. The audit record is preserved.</p>
+  </div>
   {% endif %}
+
 </div>
 
 {% endblock %}

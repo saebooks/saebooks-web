@@ -1,92 +1,119 @@
 {% extends "base.html" %}
-{% block title %}Edit invoice — Cashbook{% endblock %}
+
+{% block title %}Edit Invoice — Cashbook — SAE Books{% endblock %}
+
 {% block content %}
 
-{% if errors and errors.__all__ %}
-<div class="mb-4 rounded-md bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">{{ errors.__all__ }}</div>
-{% endif %}
+<div class="max-w-xl">
+  <div class="mb-5 flex items-center gap-3">
+    <a href="/cashbook/invoices/{{ invoice.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← invoice</a>
+    <span class="ink-4">/</span>
+    <h1 class="font-display text-xl ink-1" style="font-variation-settings:'opsz' 36;">Edit draft</h1>
+  </div>
 
-<div class="mb-2 text-sm">
-  <a href="/cashbook/invoices/{{ invoice.id }}" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">← Back to invoice</a>
-</div>
+  <div class="card p-3 mb-4 flex items-start gap-2" style="border-color:var(--warm);">
+    <span class="dot mt-1.5" style="background:var(--warm);"></span>
+    <span class="text-sm ink-2">
+      Drafts only. Once sent, you'll need to void and re-issue (ATO audit trail).
+    </span>
+  </div>
 
-<div class="mb-6">
-  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Edit invoice</h1>
-  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Drafts only. Once sent, you'll need to void and re-issue (ATO audit trail).</p>
-</div>
+  {% if errors.__all__ %}
+  <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+    <span class="dot" style="background:var(--neg);"></span>
+    <span class="text-sm" style="color:var(--neg);">{{ errors.__all__ }}</span>
+  </div>
+  {% endif %}
 
-<div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-6 max-w-xl">
-  <form method="post" action="/cashbook/invoices/{{ invoice.id }}/edit">
-    {{ csrf_input(request) | safe }}
-    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
-    <input type="hidden" name="version" value="{{ invoice.version }}">
+  <div class="card p-6">
+    <form method="post" action="/cashbook/invoices/{{ invoice.id }}/edit">
+      {{ csrf_input(request) | safe }}
+      <input type="hidden" name="version" value="{{ invoice.version }}">
 
-    <div class="space-y-4">
-      <div>
-        <label for="customer_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer</label>
-        <input type="text" id="customer_name" name="customer_name" required
-               value="{{ form.customer_name }}"
-               class="w-full rounded-md border {% if errors.customer_name %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
-        {% if errors.customer_name %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ errors.customer_name }}</p>{% endif %}
-      </div>
-
-      <div>
-        <label for="customer_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email <span class="text-xs text-gray-400">optional</span></label>
-        <input type="email" id="customer_email" name="customer_email"
-               value="{{ form.customer_email }}"
-               class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
-      </div>
-
-      <div>
-        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">What for</label>
-        <input type="text" id="description" name="description"
-               value="{{ form.description }}"
-               class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
-      </div>
-
-      <div>
-        <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-base pointer-events-none">$</span>
-          <input type="number" id="amount" name="amount" inputmode="decimal" min="0.01" step="0.01" required
-                 value="{{ form.amount }}" placeholder="0.00"
-                 class="w-full rounded-md border {% if errors.amount %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pl-8 pr-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label for="customer_name" class="cb-label-inline">Customer</label>
+          <input type="text" id="customer_name" name="customer_name" required maxlength="200"
+                 value="{{ form.customer_name or invoice.customer_name }}"
+                 class="saebooks-input"
+                 {% if errors.customer_name %}style="border-color:var(--neg);"{% endif %}>
+          {% if errors.customer_name %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.customer_name }}</p>{% endif %}
         </div>
-        {% if errors.amount %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ errors.amount }}</p>{% endif %}
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total amount including GST if charging it.</p>
-      </div>
 
-      <label class="flex items-center gap-3 select-none cursor-pointer">
-        <input type="checkbox" name="gst" {% if form.gst == 'on' %}checked{% endif %}
-               class="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]">
-        <span class="text-sm text-gray-700 dark:text-gray-300">Charging GST (10%)</span>
-      </label>
+        <div class="sm:col-span-2">
+          <label for="customer_email" class="cb-label-inline">
+            Email <span class="ink-4 font-normal">(optional)</span>
+          </label>
+          <input type="email" id="customer_email" name="customer_email" maxlength="200"
+                 value="{{ form.customer_email or invoice.customer_email or '' }}"
+                 class="saebooks-input">
+        </div>
 
-      <div class="grid grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label for="description" class="cb-label-inline">Description</label>
+          <input type="text" id="description" name="description" required maxlength="500"
+                 value="{{ form.description or (invoice.lines[0].description if invoice.lines else '') }}"
+                 class="saebooks-input"
+                 {% if errors.description %}style="border-color:var(--neg);"{% endif %}>
+          {% if errors.description %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.description }}</p>{% endif %}
+        </div>
+
         <div>
-          <label for="issue_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
-          <input type="date" id="issue_date" name="issue_date" value="{{ form.issue_date }}"
-                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+          <label for="amount" class="cb-label-inline">Amount</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center ink-3 num pointer-events-none">$</span>
+            <input type="number" id="amount" name="amount" required min="0.01" step="0.01" inputmode="decimal"
+                   value="{{ form.amount or invoice.subtotal }}"
+                   class="saebooks-input num-display pl-7"
+                   {% if errors.amount %}style="border-color:var(--neg);"{% endif %}>
+          </div>
+          {% if errors.amount %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.amount }}</p>{% endif %}
         </div>
+
+        <div class="flex items-end">
+          <label class="flex items-center gap-3 cursor-pointer select-none pb-2">
+            <input type="checkbox" id="gst" name="gst" value="on"
+                   {% if form.gst or (invoice.gst_total and invoice.gst_total|float > 0) %}checked{% endif %}
+                   class="h-4 w-4 accent-[#194291]" style="border-color:var(--line);">
+            <span class="text-sm ink-2">Charging GST (10%)</span>
+          </label>
+        </div>
+
         <div>
-          <label for="due_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due</label>
-          <input type="date" id="due_date" name="due_date" value="{{ form.due_date }}"
-                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+          <label for="issue_date" class="cb-label-inline">Issue date</label>
+          <input type="date" id="issue_date" name="issue_date" required
+                 value="{{ form.issue_date or invoice.issue_date }}"
+                 class="saebooks-input num"
+                 {% if errors.issue_date %}style="border-color:var(--neg);"{% endif %}>
+          {% if errors.issue_date %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.issue_date }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label for="due_date" class="cb-label-inline">Due date</label>
+          <input type="date" id="due_date" name="due_date" required
+                 value="{{ form.due_date or invoice.due_date }}"
+                 class="saebooks-input num"
+                 {% if errors.due_date %}style="border-color:var(--neg);"{% endif %}>
+          {% if errors.due_date %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.due_date }}</p>{% endif %}
         </div>
       </div>
-    </div>
 
-    <div class="mt-6 flex items-center gap-3">
-      <button type="submit"
-              class="flex-1 rounded-md bg-[#194291] hover:bg-[#133372] text-white px-4 py-3 text-base font-medium">
-        Save changes
-      </button>
-      <a href="/cashbook/invoices/{{ invoice.id }}"
-         class="rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">
-        Cancel
-      </a>
-    </div>
-  </form>
+      <div class="mt-6 hairline pt-5 flex gap-3">
+        <button type="submit" class="btn-primary">Save changes</button>
+        <a href="/cashbook/invoices/{{ invoice.id }}" class="btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
 </div>
+
+<style>
+  .cb-label-inline {
+    display:block; margin-bottom:.35rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing:.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+</style>
 
 {% endblock %}
