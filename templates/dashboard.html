@@ -79,6 +79,7 @@
     <p class="nav-section-label mb-2">AR · outstanding</p>
     <p class="num-display text-2xl sae">
       ${{ "{:,.0f}".format(ar.paid_total|float) }}
+      {% if ar.delta_pct is defined and ar.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ar.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ar.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ "%.1f"|format(ar.delta_pct|abs) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
       {{ ar.paid_count }} invoice{{ '' if ar.paid_count == 1 else 's' }}
@@ -91,6 +92,7 @@
     <p class="nav-section-label mb-2">AP · outstanding</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
       ${{ "{:,.0f}".format(ap.paid_total|float) }}
+      {% if ap.delta_pct is defined and ap.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ap.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ap.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ "%.1f"|format(ap.delta_pct|abs) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
       {{ ap.paid_count }} bill{{ '' if ap.paid_count == 1 else 's' }}
@@ -103,6 +105,7 @@
     <p class="nav-section-label mb-2">Cash · this month</p>
     <p class="num-display text-2xl" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
       {% if cash.net < 0 %}−{% endif %}${{ "{:,.0f}".format(cash.net|abs|float) }}
+      {% if cash.delta_pct is defined and cash.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if cash.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if cash.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ "%.1f"|format(cash.delta_pct|abs) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
       <span class="pos">▲ ${{ "{:,.0f}".format(cash.in_total|float) }}</span>
@@ -115,6 +118,7 @@
     <p class="num-display text-2xl"
        style="color: {% if gst and gst.threshold_crossed %}var(--neg){% elif gst and gst.threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
       ${{ "{:,.0f}".format((gst.ytd_turnover if gst else 0)|float) }}
+      {% if gst.delta_pct is defined and gst.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if gst.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if gst.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ "%.1f"|format(gst.delta_pct|abs) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
       of $75,000 threshold
@@ -427,7 +431,7 @@
    loud red/amber banners with prose under hairlines.
    ───────────────────────────────────────────────────────────────────────── #}
 {% if (gst and (gst.threshold_crossed or gst.threshold_approaching)) or concentration_warning or psi_status == "unsure" %}
-<section class="card p-6">
+<section class="card-hero p-6">
   <p class="nav-section-label mb-4">Compliance notes</p>
   <div class="space-y-4 text-sm">
 
@@ -509,10 +513,18 @@
   var inTotal  = {{ cash.in_total|float }};
   var outTotal = {{ cash.out_total|float }};
   var days = 30;
+  // Deterministic synthetic series seeded from in/out totals so the chart
+  // shape is stable across reloads. Real per-day data ships when the
+  // dashboard route exposes daily cash buckets.
+  var seed = ((Math.abs(inTotal) | 0) ^ ((Math.abs(outTotal) | 0) << 1)) || 1;
+  function rand() {
+    seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+    return ((seed >>> 0) % 10000) / 10000;
+  }
   var ins = [], outs = [], net = 0, nets = [];
   for (var i = 0; i < days; i++) {
-    var inJ  = (inTotal  / days) * (0.4 + Math.random() * 1.6);
-    var outJ = (outTotal / days) * (0.4 + Math.random() * 1.6);
+    var inJ  = (inTotal  / days) * (0.4 + rand() * 1.6);
+    var outJ = (outTotal / days) * (0.4 + rand() * 1.6);
     ins.push(inJ); outs.push(outJ);
     net += (inJ - outJ);
     nets.push(net);
