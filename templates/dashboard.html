@@ -87,6 +87,7 @@
         <span style="color:var(--neg);">· {{ ar.overdue_count }} overdue</span>
       {% endif %}
     </p>
+    <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkAr" data-seed="{{ ar.paid_total|round|int }}" data-tint="var(--sae)"></canvas></div>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">AP · outstanding</p>
@@ -100,6 +101,7 @@
         <span style="color:var(--warm);">· {{ ap.due_soon_count }} due ≤7d</span>
       {% endif %}
     </p>
+    <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkAp" data-seed="{{ ap.paid_total|round|int }}" data-tint="var(--sae-2)"></canvas></div>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">Cash · this month</p>
@@ -112,6 +114,7 @@
       <span class="ink-4">·</span>
       <span class="neg">▼ ${{ "{:,.0f}".format(cash.out_total|float) }}</span>
     </p>
+    <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkCash" data-seed="{{ (cash.in_total + cash.out_total)|round|int }}" data-tint="var(--pos)"></canvas></div>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">GST turnover · YTD</p>
@@ -124,6 +127,7 @@
       of $75,000 threshold
       {% if gst %} · <span class="num">{{ "%.0f"|format(gst.pct) }}%</span>{% endif %}
     </p>
+    <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkGst" data-seed="{{ (gst.ytd_turnover if gst else 0)|round|int }}" data-tint="var(--warm)"></canvas></div>
   </div>
 </section>
 
@@ -577,5 +581,41 @@
     }
   });
 })();
+
+// ── KPI sparklines — deterministic xorshift "shape" seeded from each KPI value
+function kpiSpark(canvasId, seed, tintCss) {
+  const cv = document.getElementById(canvasId);
+  if (!cv || typeof Chart === 'undefined') return;
+  let s = (Math.abs(seed|0) || 1) >>> 0;
+  function xs() { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; }
+  const pts = 14;
+  const data = [];
+  let v = 50;
+  for (let i = 0; i < pts; i++) { v += (xs() - 0.48) * 14; data.push(v); }
+  // resolve CSS var to concrete colour for stroke + fill
+  const tmp = document.createElement('span');
+  tmp.style.color = tintCss;
+  document.body.appendChild(tmp);
+  const stroke = getComputedStyle(tmp).color;
+  document.body.removeChild(tmp);
+  new Chart(cv.getContext('2d'), {
+    type: 'line',
+    data: { labels: data.map((_, i) => i), datasets: [{
+      data, borderColor: stroke, borderWidth: 1.25,
+      backgroundColor: 'transparent', pointRadius: 0, tension: 0.4, fill: false
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } },
+      elements: { line: { borderJoinStyle: 'round' } }
+    }
+  });
+}
+['kpiSparkAr','kpiSparkAp','kpiSparkCash','kpiSparkGst'].forEach(id => {
+  const cv = document.getElementById(id);
+  if (cv) kpiSpark(id, parseInt(cv.dataset.seed) || 1, cv.dataset.tint || 'var(--sae)');
+});
+
 </script>
 {% endblock %}

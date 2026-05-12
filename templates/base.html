@@ -749,6 +749,33 @@
     { g: 'Admin',   i: 'moon',         t: 'Toggle theme',           s: 'Light · Dark',           k: '⌘⇧L', href: '#theme' },
     { g: 'Admin',   i: 'log-out',      t: 'Sign out',               s: 'End session',                        href: '/logout' },
   ];
+  // ── Recent history (sessionStorage) — tracks routes the user actually visited
+  const SAEBOOKS_RECENT_KEY = 'saebooks-recent';
+  function recordRecent() {
+    try {
+      const path = location.pathname;
+      if (!path || path === '/login' || path.startsWith('/static') || path.startsWith('/api')) return;
+      // Map current route to a CMDK_ITEMS entry if we can — only "Go to" rows are useful as recents
+      const match = CMDK_ITEMS.find(it => it.href === path);
+      if (!match) return;
+      let recent = [];
+      try { recent = JSON.parse(sessionStorage.getItem(SAEBOOKS_RECENT_KEY) || '[]'); } catch (_) {}
+      // de-dup, push to front, cap to 5
+      recent = [match.href, ...recent.filter(h => h !== match.href)].slice(0, 5);
+      sessionStorage.setItem(SAEBOOKS_RECENT_KEY, JSON.stringify(recent));
+    } catch (_) { /* sessionStorage unavailable — degrade silently */ }
+  }
+  function getRecentItems() {
+    try {
+      const hrefs = JSON.parse(sessionStorage.getItem(SAEBOOKS_RECENT_KEY) || '[]');
+      return hrefs
+        .map(h => CMDK_ITEMS.find(it => it.href === h))
+        .filter(Boolean)
+        .map(it => ({ ...it, g: 'Recent' }));
+    } catch (_) { return []; }
+  }
+  recordRecent();
+
   let cmdkSel = 0, cmdkFiltered = CMDK_ITEMS;
   const cmdkBackdrop = document.getElementById('cmdkBackdrop');
   const cmdkInput = document.getElementById('cmdkInput');
@@ -783,16 +810,22 @@
   }
   function filterCmdK() {
     const q = cmdkInput.value.toLowerCase().trim();
-    cmdkFiltered = !q ? CMDK_ITEMS : CMDK_ITEMS.filter(it =>
-      it.t.toLowerCase().includes(q) || it.s.toLowerCase().includes(q) || it.g.toLowerCase().includes(q)
-    );
+    if (!q) {
+      const recent = getRecentItems();
+      cmdkFiltered = recent.length ? [...recent, ...CMDK_ITEMS] : CMDK_ITEMS;
+    } else {
+      cmdkFiltered = CMDK_ITEMS.filter(it =>
+        it.t.toLowerCase().includes(q) || it.s.toLowerCase().includes(q) || it.g.toLowerCase().includes(q)
+      );
+    }
     cmdkSel = 0; renderCmdK();
   }
   function openCmdK() {
     if (!cmdkBackdrop) return;
     cmdkBackdrop.classList.add('open');
     cmdkInput.value = '';
-    cmdkFiltered = CMDK_ITEMS;
+    const recent = getRecentItems();
+    cmdkFiltered = recent.length ? [...recent, ...CMDK_ITEMS] : CMDK_ITEMS;
     cmdkSel = 0;
     renderCmdK();
     setTimeout(() => cmdkInput.focus(), 30);
