@@ -1,3 +1,4 @@
+{% import "_partials/empty_state.html" as empty %}
 {# HTMX partial — bank accounts table body + pagination.
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
@@ -47,12 +48,9 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="6" class="px-4 py-12 text-center">
-            <p class="text-gray-400 text-sm mb-2">No bank accounts found.</p>
-            <a href="/bank-accounts/new" class="text-sm text-[#194291] hover:underline">Add your first bank account →</a>
-          </td>
-        </tr>
+        {{ empty.row(6, "landmark", "No bank accounts yet",
+                     "Add a bank account before importing statements.",
+                     "Add account", "/bank-accounts/new") }}
       {% endif %}
     </tbody>
   </table>

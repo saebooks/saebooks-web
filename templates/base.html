@@ -153,7 +153,9 @@
     .drafting { position: relative; height: 5px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 
     .dot-grid       { background-image: radial-gradient(rgba(20,23,28,.10) 1px, transparent 1px); background-size: 14px 14px; }
-    .dot-grid-soft  { background-image: radial-gradient(rgba(20,23,28,.06) 1px, transparent 1px); background-size: 14px 14px; }
+    .dot-grid-soft  { background-image: radial-gradient(rgba(20,23,28,.04) 1px, transparent 1px); background-size: 14px 14px; animation: dotgrid-drift 60s linear infinite; }
+    @keyframes dotgrid-drift { from { background-position: 0 0; } to { background-position: 14px 14px; } }
+    @media (prefers-reduced-motion: reduce) { .dot-grid-soft { animation: none; } }
     html.dark .dot-grid, html.dark .dot-grid-soft { background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px); }
 
     .reg-mark { width: 16px; height: 16px; border: 1px solid var(--sae); border-radius: 50%; position: relative; display: inline-block; }
@@ -206,11 +208,11 @@
     .nav-section-label {
       display: flex; align-items: center; justify-content: space-between;
       padding: .5rem .75rem .25rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--ink-3);
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .005em;
+      color: var(--ink-2);
       cursor: pointer;
       user-select: none;
       list-style: none;
@@ -251,10 +253,18 @@
 
     /* Tables */
     table.sae-table { width: 100%; border-collapse: collapse; }
-    table.sae-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); font-weight: 500; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--paper-2); }
+    table.sae-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); font-weight: 500; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--paper-2)); position: sticky; top: 0; z-index: 1; }
     table.sae-table tbody td { padding: 12px 16px; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; color: var(--ink); }
-    table.sae-table tbody tr { transition: background .1s ease; }
-    table.sae-table tbody tr:hover { background: var(--paper-2); cursor: pointer; }
+    table.sae-table tbody td:first-child { border-left: 2px solid transparent; }
+    table.sae-table tbody tr { transition: background .1s ease, box-shadow .1s ease; }
+    table.sae-table tbody tr:hover { background: var(--sae-tint); cursor: pointer; }
+    table.sae-table tbody tr:hover td:first-child { border-left-color: var(--sae); }
+    table.sae-table tbody tr[data-status="overdue"] td:first-child,
+    table.sae-table tbody tr[data-status="voided"]  td:first-child { border-left-color: var(--neg); }
+    table.sae-table tbody tr[data-status="paid"]    td:first-child,
+    table.sae-table tbody tr[data-status="posted"]  td:first-child { border-left-color: var(--pos); }
+    table.sae-table tbody tr[data-status="draft"]   td:first-child { border-left-color: var(--ink-4); }
+    table.sae-table tbody tr[data-status="sent"]    td:first-child { border-left-color: var(--sae); }
     table.sae-table tbody tr:last-child td { border-bottom: 0; }
 
     /* Brand logo */
@@ -266,10 +276,10 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      if (window.lucide) lucide.createIcons();
+      if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
     });
     document.body && document.body.addEventListener && document.body.addEventListener('htmx:afterSwap', function () {
-      if (window.lucide) lucide.createIcons();
+      if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
     });
   </script>
 
@@ -344,7 +354,7 @@
             <i data-lucide="file-text" class="nav-ico"></i>Invoices
           </a>
           <a href="/credit-notes" class="nav-item is-sub {% if path.startswith('/credit-notes') %}active{% endif %}">
-            <i data-lucide="rotate-ccw" class="nav-ico"></i>Credit Notes
+            <i data-lucide="file-minus" class="nav-ico"></i>Credit Notes
           </a>
           <a href="/recurring-invoices" class="nav-item is-sub {% if path.startswith('/recurring-invoices') %}active{% endif %}">
             <i data-lucide="repeat" class="nav-ico"></i>Recurring
@@ -416,7 +426,7 @@
             <i data-lucide="banknote" class="nav-ico"></i>Payments
           </a>
           <a href="/bank-statement-lines" class="nav-item is-sub {% if path.startswith('/bank-statement-lines') %}active{% endif %}">
-            <i data-lucide="lines-horizontal" class="nav-ico"></i>Statement Lines
+            <i data-lucide="align-justify" class="nav-ico"></i>Statement Lines
           </a>
           <a href="/reconciliation" class="nav-item is-sub {% if path.startswith('/reconciliation') %}active{% endif %}">
             <i data-lucide="git-pull-request" class="nav-ico"></i>Reconciliation
@@ -453,7 +463,7 @@
         </summary>
         <div class="space-y-0.5 mt-1">
           <a href="/fixed-assets" class="nav-item is-sub {% if path.startswith('/fixed-assets') %}active{% endif %}">
-            <i data-lucide="cuboid" class="nav-ico"></i>Fixed Assets
+            <i data-lucide="box" class="nav-ico"></i>Fixed Assets
           </a>
           <a href="/budgets" class="nav-item is-sub {% if path.startswith('/budgets') %}active{% endif %}">
             <i data-lucide="target" class="nav-ico"></i>Budgets
@@ -462,7 +472,7 @@
             <i data-lucide="layers" class="nav-ico"></i>Allocations
           </a>
           <a href="/projects" class="nav-item is-sub {% if path.startswith('/projects') %}active{% endif %}">
-            <i data-lucide="hammer" class="nav-ico"></i>Projects
+            <i data-lucide="folder-kanban" class="nav-ico"></i>Projects
           </a>
           <a href="/items" class="nav-item is-sub {% if path.startswith('/items') %}active{% endif %}">
             <i data-lucide="package" class="nav-ico"></i>Items
@@ -514,7 +524,7 @@
             <i data-lucide="history" class="nav-ico"></i>Audit
           </a>
           <a href="/admin/license" class="nav-item is-sub {% if path == '/admin/license' %}active{% endif %}">
-            <i data-lucide="shield-check" class="nav-ico"></i>Licence
+            <i data-lucide="shield-check" class="nav-ico"></i>License audit
           </a>
           {% endif %}
         </div>
@@ -731,7 +741,7 @@
     });
     if (!cmdkFiltered.length) html = `<div style="padding:24px 18px;text-align:center;color:var(--ink-3);font-size:13px;">No matches. Press <span style="font-family:'JetBrains Mono',monospace;color:var(--ink-2);">esc</span> to close.</div>`;
     cmdkListEl.innerHTML = html;
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
     cmdkListEl.querySelectorAll('.cmdk-item').forEach(el => {
       el.addEventListener('click', () => {
         const href = el.dataset.href;

@@ -1,3 +1,4 @@
+{% import "_partials/empty_state.html" as empty %}
 {# HTMX partial — quotes table body + pagination. #}
 <div id="quotes-table">
 
@@ -56,16 +57,14 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="6" class="px-4 py-12 text-center">
-            <p class="text-sm ink-3 font-mono mb-3">— no quotes found —</p>
-            {% if not filter_status and not filter_customer_id %}
-            <a href="/quotes/new" class="sae hover:underline text-sm">Create your first quote →</a>
-            {% else %}
-            <p class="text-xs ink-3">Try clearing your filters.</p>
-            {% endif %}
-          </td>
-        </tr>
+        {% if not filter_status and not filter_customer_id %}
+        {{ empty.row(6, "inbox", "No quotes yet",
+                     "Send your first quote to a customer.",
+                     "New quote", "/quotes/new") }}
+        {% else %}
+        {{ empty.row(6, "search-x", "No quotes match these filters",
+                     "Try clearing the filters above.") }}
+        {% endif %}
       {% endif %}
     </tbody>
   </table>

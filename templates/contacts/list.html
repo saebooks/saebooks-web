@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+
+{% import "_partials/empty_state.html" as empty %}
 {% import "_icons.html" as icons %}
 
 {% block title %}Contacts — SAE Books{% endblock %}
@@ -81,12 +83,9 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="6" class="text-center ink-3 font-mono text-sm py-10">
-            <p class="mb-2">— no contacts yet —</p>
-            <a href="/contacts/new" class="sae hover:underline">Add your first contact →</a>
-          </td>
-        </tr>
+        {{ empty.row(6, "users", "No contacts yet",
+                     "Add the customers and suppliers you work with.",
+                     "Add contact", "/contacts/new") }}
       {% endif %}
     </tbody>
   </table>

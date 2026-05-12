@@ -1,3 +1,4 @@
+{% import "_partials/empty_state.html" as empty %}
 {# HTMX partial — invoice table body + pagination. #}
 <div id="invoices-table">
 
@@ -50,16 +51,14 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="6" class="px-4 py-12 text-center">
-            <p class="text-sm ink-3 font-mono mb-3">— no invoices found —</p>
-            {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-            <a href="/invoices/new" class="sae hover:underline text-sm">Create your first invoice →</a>
-            {% else %}
-            <p class="text-xs ink-3">Try clearing your filters.</p>
-            {% endif %}
-          </td>
-        </tr>
+        {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
+        {{ empty.row(6, "inbox", "No invoices yet",
+                     "Bill your first customer to start the ledger.",
+                     "New invoice", "/invoices/new") }}
+        {% else %}
+        {{ empty.row(6, "search-x", "No invoices match these filters",
+                     "Try clearing the filters above.") }}
+        {% endif %}
       {% endif %}
     </tbody>
   </table>

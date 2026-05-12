@@ -1,3 +1,4 @@
+{% import "_partials/empty_state.html" as empty %}
 {# HTMX partial — journal entries table body + pagination.
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
@@ -55,11 +56,9 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
-            No journal entries found.
-          </td>
-        </tr>
+        {{ empty.row(5, "book-open", "No journal entries yet",
+                     "Post your first journal to record a manual transaction.",
+                     "New journal", "/journal-entries/new") }}
       {% endif %}
     </tbody>
   </table>
