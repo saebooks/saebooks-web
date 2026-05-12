@@ -4,48 +4,27 @@
 
 {% block content %}
 
-<div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold text-gray-900">New Bill</h1>
-  <a href="/bills" class="text-sm text-[#194291] hover:underline">← Back to bills</a>
+<div class="mb-5 flex items-center gap-3">
+  <a href="/bills" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← bills</a>
+  <span class="ink-4">/</span>
+  <h1 class="font-display text-xl ink-1" style="font-variation-settings:'opsz' 36;">New bill</h1>
 </div>
 
-{#
-  AI extraction upload panel — loaded lazily via an HTMX probe so the button
-  only appears when the FLAG_AI_EXTRACTION feature is enabled on the API.
-  On 404 (flag off) or 503 (key missing) HTMX swaps in nothing; the div
-  stays empty and invisible.
-#}
-<div
-  id="ai-extract-probe-target"
-  hx-get="/bills/extract-document/probe"
-  hx-trigger="load"
-  hx-swap="innerHTML"
-></div>
+<div id="ai-extract-probe-target"
+     hx-get="/bills/extract-document/probe"
+     hx-trigger="load"
+     hx-swap="innerHTML"></div>
 
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
+<div class="card p-6">
   <form method="POST" action="/bills/new" novalidate>
     {{ csrf_input(request)|safe }}
 
-
     {% include "bills/_form_fields.html" %}
 
-    <div class="mt-8 flex items-center gap-3">
-      <button
-        type="submit"
-        class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white
-               hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
-      >
-        Save bill
-      </button>
-      <a
-        href="/bills"
-        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
-               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
-      >
-        Cancel
-      </a>
+    <div class="mt-7 hairline pt-5 flex items-center gap-3">
+      <button type="submit" class="btn-primary">Save bill</button>
+      <a href="/bills" class="btn-secondary">Cancel</a>
     </div>
-
   </form>
 </div>
 

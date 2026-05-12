@@ -1,65 +1,51 @@
-{# HTMX partial — bill table body + pagination.
-   Rendered standalone for HX-Request fragments; embedded by list.html for
-   the initial full-page load.
-#}
+{# HTMX partial — bill table body + pagination. #}
 <div id="bills-table">
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card overflow-x-auto">
+  <table class="sae-table w-full">
+    <thead>
       <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Bill number</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Due</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Supplier</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="text-left">Bill number</th>
+        <th class="text-left">Date</th>
+        <th class="text-left">Due</th>
+        <th class="text-left">Supplier</th>
+        <th class="text-right">Total</th>
+        <th class="text-left">Status</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% if bills %}
         {% for bill in bills %}
-        <tr
-          class="hover:bg-gray-50 cursor-pointer"
-          onclick="window.location='/bills/{{ bill.id }}'"
-        >
-          <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/bills/{{ bill.id }}" class="hover:underline">
-              {{ bill.number or "—" }}
-            </a>
-          </td>
-          <td class="px-4 py-3 text-gray-600">{{ bill.issue_date }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ bill.due_date }}</td>
+        <tr class="cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">
+          <td class="num-display"><a href="/bills/{{ bill.id }}" class="sae hover:underline font-medium">{{ bill.number or "—" }}</a></td>
+          <td class="ink-2 num">{{ bill.issue_date }}</td>
+          <td class="ink-2 num">{{ bill.due_date }}</td>
           {% set _c = contacts_by_id.get(bill.contact_id) if contacts_by_id else None %}
-          <td class="px-4 py-3 text-gray-600">{{ _c.name if _c else "—" }}</td>
-          <td class="px-4 py-3 text-right text-gray-900 font-medium tabular-nums">
-            {{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}
-          </td>
-          <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if bill.status == 'POSTED' %}bg-green-100 text-green-700
-              {% elif bill.status == 'DRAFT' %}bg-gray-100 text-gray-600
-              {% elif bill.status == 'VOIDED' %}bg-red-100 text-red-600
-              {% else %}bg-gray-100 text-gray-500{% endif %}">
-              {{ bill.status | capitalize }}
-            </span>
+          <td class="ink-2">{{ _c.name if _c else "—" }}</td>
+          <td class="text-right num-display ink-1">{{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}</td>
+          <td>
+            {% if bill.status == 'POSTED' %}<span class="badge-paid">Posted</span>
+            {% elif bill.status == 'DRAFT' %}<span class="badge-draft">Draft</span>
+            {% elif bill.status == 'VOIDED' %}<span class="badge-overdue">Voided</span>
+            {% else %}<span class="badge-draft">{{ bill.status|capitalize }}</span>{% endif %}
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-12 text-center">
-            <p class="text-gray-400 text-sm mb-2">No bills found.</p>
+          <td colspan="6" class="text-center ink-3 font-mono text-sm py-10">
+            <p class="mb-2">— no bills found —</p>
             {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-            <a href="/bills/new" class="text-sm text-[#194291] hover:underline">Create your first bill →</a>
+            <a href="/bills/new" class="sae hover:underline">Create your first bill →</a>
             {% else %}
-            <p class="text-xs text-gray-400">Try clearing your filters.</p>
+            <p class="text-xs">Try clearing your filters.</p>
             {% endif %}
           </td>
         </tr>
@@ -68,35 +54,24 @@
   </table>
 </div>
 
-{# Pagination #}
 {% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
-  <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
-  </div>
-  <div class="flex gap-3">
+<div class="mt-4 flex items-center justify-between text-xs ink-3 font-mono">
+  <div>Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}</div>
+  <div class="flex gap-2">
     {% if prev_offset is not none %}
-    <a
-      href="/bills?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/bills?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#bills-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Previous</a>
+    <a href="/bills?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+       hx-get="/bills?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+       hx-target="#bills-table" hx-swap="outerHTML" hx-push-url="true"
+       class="btn-secondary text-xs">← Prev</a>
     {% endif %}
     {% if next_offset is not none %}
-    <a
-      href="/bills?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/bills?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#bills-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Next</a>
+    <a href="/bills?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+       hx-get="/bills?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+       hx-target="#bills-table" hx-swap="outerHTML" hx-push-url="true"
+       class="btn-secondary text-xs">Next →</a>
     {% endif %}
   </div>
 </div>
 {% endif %}
 
-</div>{# end #bills-table #}
+</div>

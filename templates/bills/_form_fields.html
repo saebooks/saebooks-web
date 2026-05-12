@@ -1,202 +1,120 @@
-{#
-  _form_fields.html — shared form fields partial for bill create (and future edit).
+{# _form_fields.html — shared bill form fields partial. #}
 
-  Expected context variables:
-    form              : dict  — submitted field values (empty dict for a blank form)
-    errors            : dict  — field name -> error message; "__all__" for non-field errors
-    idempotency_key   : str
-    contacts          : list  — supplier contact dicts [{id, name}, ...]
-    accounts          : list  — expense account dicts [{id, name, code}, ...]
-    tax_codes         : list  — tax code dicts [{id, name, rate}, ...]
-    lines             : list  — list of dicts with "index" + optional field pre-fills
-    line_count        : int   — current number of lines (used for the add-row counter)
-#}
-
-{# ── Non-field error banner ── #}
 {% if errors.get("__all__") %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
-  {{ errors["__all__"] }}
+<div class="card p-3 mb-5 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ errors["__all__"] }}</span>
 </div>
 {% endif %}
 
-{# ── Hidden idempotency key ── #}
 <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
-{# ── Header details ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Bill details</legend>
+  <legend class="nav-section-label mb-3">Bill details</legend>
 
-  {# Supplier #}
   <div>
-    <label for="contact_id" class="block text-sm font-medium text-gray-700 mb-1">
-      Supplier <span class="text-red-500">*</span>
+    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+      Supplier <span style="color:var(--neg);">*</span>
     </label>
-    <select
-      id="contact_id"
-      name="contact_id"
-      required
-      class="block w-full rounded-md border {% if errors.get('contact_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-    >
+    <select id="contact_id" name="contact_id" required class="saebooks-input"
+            {% if errors.get('contact_id') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
       <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>Select supplier…</option>
       {% for contact in contacts %}
-      <option value="{{ contact.id }}"
-        {% if form.get("contact_id") == contact.id %}selected{% endif %}>
+      <option value="{{ contact.id }}" {% if form.get("contact_id") == contact.id %}selected{% endif %}>
         {{ contact.name }}
       </option>
       {% endfor %}
     </select>
-    {% if errors.get("contact_id") %}
-    <p class="mt-1 text-xs text-red-600">{{ errors["contact_id"] }}</p>
-    {% endif %}
+    {% if errors.get("contact_id") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["contact_id"] }}</p>{% endif %}
   </div>
 
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-    {# Bill number (optional — API auto-numbers) #}
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div>
-      <label for="number" class="block text-sm font-medium text-gray-700 mb-1">
-        Bill number <span class="text-gray-400 font-normal">(optional)</span>
+      <label for="number" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+        Bill number <span class="ink-4 font-normal normal-case">(optional)</span>
       </label>
-      <input
-        type="text"
-        id="number"
-        name="number"
-        value="{{ form.get('number', '') }}"
-        placeholder="Auto-assigned if blank"
-        class="block w-full rounded-md border {% if errors.get('number') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-               px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-      >
-      {% if errors.get("number") %}
-      <p class="mt-1 text-xs text-red-600">{{ errors["number"] }}</p>
-      {% endif %}
+      <input type="text" id="number" name="number" value="{{ form.get('number', '') }}"
+             placeholder="Auto-assigned if blank" class="saebooks-input"
+             {% if errors.get('number') %}style="border-color:var(--neg);"{% endif %}>
+      {% if errors.get("number") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["number"] }}</p>{% endif %}
     </div>
 
-    {# Issue date #}
     <div>
-      <label for="issue_date" class="block text-sm font-medium text-gray-700 mb-1">
-        Issue date <span class="text-red-500">*</span>
+      <label for="issue_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+        Issue date <span style="color:var(--neg);">*</span>
       </label>
-      <input
-        type="date"
-        id="issue_date"
-        name="issue_date"
-        value="{{ form.get('issue_date', '') }}"
-        required
-        class="block w-full rounded-md border {% if errors.get('issue_date') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-               px-3 py-2 text-sm text-gray-900
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-      >
-      {% if errors.get("issue_date") %}
-      <p class="mt-1 text-xs text-red-600">{{ errors["issue_date"] }}</p>
-      {% endif %}
+      <input type="date" id="issue_date" name="issue_date" value="{{ form.get('issue_date', '') }}"
+             required class="saebooks-input num"
+             {% if errors.get('issue_date') %}style="border-color:var(--neg);"{% endif %}>
+      {% if errors.get("issue_date") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["issue_date"] }}</p>{% endif %}
     </div>
 
-    {# Due date #}
     <div>
-      <label for="due_date" class="block text-sm font-medium text-gray-700 mb-1">
-        Due date <span class="text-red-500">*</span>
+      <label for="due_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+        Due date <span style="color:var(--neg);">*</span>
       </label>
-      <input
-        type="date"
-        id="due_date"
-        name="due_date"
-        value="{{ form.get('due_date', '') }}"
-        required
-        class="block w-full rounded-md border {% if errors.get('due_date') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-               px-3 py-2 text-sm text-gray-900
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-      >
-      {% if errors.get("due_date") %}
-      <p class="mt-1 text-xs text-red-600">{{ errors["due_date"] }}</p>
-      {% endif %}
+      <input type="date" id="due_date" name="due_date" value="{{ form.get('due_date', '') }}"
+             required class="saebooks-input num"
+             {% if errors.get('due_date') %}style="border-color:var(--neg);"{% endif %}>
+      {% if errors.get("due_date") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["due_date"] }}</p>{% endif %}
     </div>
   </div>
 
-  {# Supplier reference (optional) #}
   <div>
-    <label for="supplier_reference" class="block text-sm font-medium text-gray-700 mb-1">
-      Supplier reference <span class="text-gray-400 font-normal">(optional)</span>
+    <label for="supplier_reference" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+      Supplier reference <span class="ink-4 font-normal normal-case">(optional)</span>
     </label>
-    <input
-      type="text"
-      id="supplier_reference"
-      name="supplier_reference"
-      value="{{ form.get('supplier_reference', '') }}"
-      placeholder="e.g. supplier invoice number"
-      class="block w-full sm:w-64 rounded-md border {% if errors.get('supplier_reference') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-    >
+    <input type="text" id="supplier_reference" name="supplier_reference"
+           value="{{ form.get('supplier_reference', '') }}"
+           placeholder="e.g. supplier invoice number"
+           class="saebooks-input sm:max-w-md"
+           {% if errors.get('supplier_reference') %}style="border-color:var(--neg);"{% endif %}>
   </div>
 
-  {# Currency + FX rate #}
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
-      <label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
-        Currency
-      </label>
-      <select
-        id="currency"
-        name="currency"
-        class="block w-full rounded-md border {% if errors.get('currency') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-               px-3 py-2 text-sm text-gray-900
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-        onchange="document.getElementById('fx-rate-row').style.display = this.value !== 'AUD' ? '' : 'none'"
-      >
+      <label for="currency" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Currency</label>
+      <select id="currency" name="currency" class="saebooks-input num"
+              onchange="document.getElementById('fx-rate-row').style.display = this.value !== 'AUD' ? '' : 'none'"
+              {% if errors.get('currency') %}style="border-color:var(--neg);"{% endif %}>
         {% set _cur = form.get('currency', 'AUD') | upper %}
         {% for code in ['AUD', 'JPY', 'USD', 'EUR', 'GBP', 'NZD', 'SGD', 'CNY', 'HKD', 'CAD'] %}
         <option value="{{ code }}" {% if _cur == code %}selected{% endif %}>{{ code }}</option>
         {% endfor %}
       </select>
-      {% if errors.get("currency") %}
-      <p class="mt-1 text-xs text-red-600">{{ errors["currency"] }}</p>
-      {% endif %}
+      {% if errors.get("currency") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["currency"] }}</p>{% endif %}
     </div>
 
     <div id="fx-rate-row" {% if form.get('currency', 'AUD') | upper == 'AUD' %}style="display:none"{% endif %}>
-      <label for="fx_rate" class="block text-sm font-medium text-gray-700 mb-1">
-        Exchange rate <span class="text-gray-400 font-normal">(1 foreign = ? AUD)</span>
+      <label for="fx_rate" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+        Exchange rate <span class="ink-4 font-normal normal-case">(1 foreign = ? AUD)</span>
       </label>
-      <input
-        type="number"
-        id="fx_rate"
-        name="fx_rate"
-        value="{{ form.get('fx_rate', '') }}"
-        placeholder="e.g. 0.0089 for JPY→AUD"
-        step="any"
-        min="0.000001"
-        class="block w-full rounded-md border {% if errors.get('fx_rate') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-               px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-      >
-      {% if errors.get("fx_rate") %}
-      <p class="mt-1 text-xs text-red-600">{{ errors["fx_rate"] }}</p>
-      {% endif %}
+      <input type="number" id="fx_rate" name="fx_rate" value="{{ form.get('fx_rate', '') }}"
+             placeholder="e.g. 0.0089 for JPY→AUD" step="any" min="0.000001"
+             class="saebooks-input num"
+             {% if errors.get('fx_rate') %}style="border-color:var(--neg);"{% endif %}>
+      {% if errors.get("fx_rate") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["fx_rate"] }}</p>{% endif %}
     </div>
   </div>
 </fieldset>
 
-{# ── Line items ── #}
-<fieldset class="mt-8">
-  <legend class="text-sm font-semibold text-gray-900 mb-3">Line items</legend>
+<fieldset class="mt-7">
+  <legend class="nav-section-label mb-3">Line items</legend>
 
-  {# line_count is a hidden input so JS can read the next index to use #}
   <input type="hidden" id="line-count" value="{{ line_count }}">
 
-  <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-    <table class="min-w-full text-sm">
-      <thead class="bg-gray-50 border-b border-gray-200">
+  <div class="card overflow-x-auto p-0">
+    <table class="sae-table w-full text-sm">
+      <thead>
         <tr>
-          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account</th>
-          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-          <th class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs w-24">Qty</th>
-          <th class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs w-28">Unit price</th>
-          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-32">Tax</th>
-          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-36">Project</th>
-          <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-32">Vehicle / VIN</th>
-          <th class="px-3 py-2 w-10"></th>
+          <th class="text-left">Account</th>
+          <th class="text-left">Description</th>
+          <th class="text-right w-24">Qty</th>
+          <th class="text-right w-28">Unit price</th>
+          <th class="text-left w-32">Tax</th>
+          <th class="text-left w-36">Project</th>
+          <th class="text-left w-32">Vehicle / VIN</th>
+          <th class="w-10"></th>
         </tr>
       </thead>
       <tbody id="line-rows">
@@ -208,32 +126,21 @@
     </table>
   </div>
 
-  {# Add line button — HTMX appends a new row from /bills/_add_line #}
-  <button
-    type="button"
-    id="add-line-btn"
-    class="mt-3 text-sm text-[#194291] hover:text-[#0c2255] font-medium"
-    hx-get="/bills/_add_line"
-    hx-target="#line-rows"
-    hx-swap="beforeend"
-    hx-include="#line-count"
-    hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
-    onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1"
-  >
+  <button type="button" id="add-line-btn"
+          class="mt-3 text-sm sae hover:underline font-medium"
+          hx-get="/bills/_add_line"
+          hx-target="#line-rows"
+          hx-swap="beforeend"
+          hx-include="#line-count"
+          hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
+          onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1">
     + Add line
   </button>
 </fieldset>
 
-{# ── Notes ── #}
-<div class="mt-6">
-  <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-  <textarea
-    id="notes"
-    name="notes"
-    rows="3"
-    class="block w-full rounded-md border {% if errors.get('notes') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-           px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-           focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-    placeholder="Optional notes"
-  >{{ form.get("notes", "") }}</textarea>
+<div class="mt-7">
+  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Notes</label>
+  <textarea id="notes" name="notes" rows="3" class="saebooks-input"
+            placeholder="Optional notes"
+            {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("notes", "") }}</textarea>
 </div>
