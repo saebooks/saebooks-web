@@ -5,111 +5,99 @@
 {% block content %}
 
 {% if flash %}
-<div class="mb-4 rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-800 dark:text-green-200">
-  {{ flash }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
 </div>
 {% endif %}
 
-<div class="flex items-center justify-between mb-6">
+<header class="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Entries</h1>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Full history with filters</p>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="nav-section-label">Cashbook</span>
+      <span class="reg-mark"></span>
+      <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Entries</span>
+    </div>
+    <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">
+      Full history
+    </h1>
   </div>
-  <a href="/cashbook"
-     class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291]">
+  <a href="/cashbook" class="btn-primary self-start sm:self-auto">
     + Quick entry
   </a>
-</div>
+</header>
 
-{# Filters bar #}
-<form method="get" action="/cashbook/entries"
-      class="mb-6 flex flex-wrap gap-3 items-end bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+{# Filters #}
+<form method="get" action="/cashbook/entries" class="card p-4 mb-6 flex flex-wrap gap-3 items-end">
   <div>
-    <label for="from_date" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">From</label>
-    <input type="date" id="from_date" name="from_date" value="{{ from_date }}"
-           class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">From</label>
+    <input type="date" id="from_date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="to_date" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">To</label>
-    <input type="date" id="to_date" name="to_date" value="{{ to_date }}"
-           class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">To</label>
+    <input type="date" id="to_date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="direction" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Direction</label>
-    <select id="direction" name="direction"
-            class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+    <label for="direction" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Direction</label>
+    <select id="direction" name="direction" class="saebooks-input text-sm py-1.5">
       <option value="" {% if not filter_direction %}selected{% endif %}>Any</option>
       <option value="income" {% if filter_direction == 'income' %}selected{% endif %}>Cash in</option>
       <option value="expense" {% if filter_direction == 'expense' %}selected{% endif %}>Cash out</option>
     </select>
   </div>
   <div>
-    <label for="category" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Category</label>
-    <select id="category" name="category"
-            class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+    <label for="category" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Category</label>
+    <select id="category" name="category" class="saebooks-input text-sm py-1.5">
       <option value="" {% if not filter_category %}selected{% endif %}>Any</option>
       {% for cat in categories %}
       <option value="{{ cat.code }}" {% if filter_category == cat.code %}selected{% endif %}>{{ cat.label }}</option>
       {% endfor %}
     </select>
   </div>
-  <button type="submit"
-          class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
-    Filter
-  </button>
-  <a href="/cashbook/entries" class="text-xs text-gray-500 dark:text-gray-400 hover:underline self-end pb-1.5">Reset</a>
+  <button type="submit" class="btn-primary text-sm py-1.5">Filter</button>
+  <a href="/cashbook/entries" class="text-xs ink-3 hover:underline self-end pb-1.5 font-mono">reset</a>
 </form>
 
-{# Entries — money-row list pattern (mobile-first, tap to detail) #}
+{# Money rows #}
 {% if entries %}
-<div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-  <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+<section class="card overflow-hidden">
+  <ul class="divide-y" style="border-color:var(--line);">
     {% for entry in entries %}
     <li>
       <a href="/cashbook/entries/{{ entry.id }}"
-         class="flex items-center gap-3 px-4 sm:px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/40">
-        <span class="flex-shrink-0 w-6 text-center font-bold leading-none {% if entry.direction == 'income' %}text-green-600 dark:text-green-400{% else %}text-red-500 dark:text-red-400{% endif %}"
-              title="{% if entry.direction == 'income' %}Cash in{% else %}Cash out{% endif %}">
+         class="flex items-center gap-3 px-5 sm:px-6 py-3 hover:bg-paper-2 transition-colors">
+        <span class="shrink-0 w-7 h-7 rounded-full grid place-items-center text-sm font-bold"
+              style="background: {% if entry.direction == 'income' %}rgba(62,122,78,0.12);color:var(--pos){% else %}rgba(161,67,51,0.12);color:var(--neg){% endif %};">
           {% if entry.direction == 'income' %}↓{% else %}↑{% endif %}
         </span>
         <div class="flex-1 min-w-0">
-          <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-            {{ entry.category_label or entry.category_code }}{% if entry.description %} <span class="font-normal text-gray-500 dark:text-gray-400">— {{ entry.description }}</span>{% endif %}
+          <div class="text-sm ink-1 truncate">
+            {{ entry.category_label or entry.category_code }}{% if entry.description %} <span class="ink-3">— {{ entry.description }}</span>{% endif %}
           </div>
-          <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 tabular-nums">{{ entry.entry_date }}</div>
+          <div class="text-[11px] num ink-3 mt-0.5">{{ entry.entry_date }}</div>
         </div>
-        <div class="text-right">
-          <div class="text-sm font-semibold tabular-nums {% if entry.direction == 'income' %}text-green-700 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
-            ${{ "%.2f"|format(entry.amount|float) }}
-          </div>
+        <div class="num text-sm" style="font-weight:600;color:{% if entry.direction == 'income' %}var(--pos){% else %}var(--neg){% endif %};">
+          ${{ "%.2f"|format(entry.amount|float) }}
         </div>
       </a>
     </li>
     {% endfor %}
   </ul>
-</div>
+</section>
 
-{# Pagination #}
 <div class="mt-4 flex items-center justify-between">
-  <p class="text-xs text-gray-500 dark:text-gray-400">{{ entries|length }} entries shown</p>
-  <div class="flex gap-2">
-    {% if next_cursor %}
-    <a href="/cashbook/entries?from_date={{ from_date }}&to_date={{ to_date }}&direction={{ filter_direction }}&category={{ filter_category }}&cursor={{ next_cursor }}&limit={{ limit }}"
-       class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-      Load more →
-    </a>
-    {% endif %}
-  </div>
+  <p class="text-xs ink-3 font-mono">{{ entries|length }} entries shown</p>
+  {% if next_cursor %}
+  <a href="/cashbook/entries?from_date={{ from_date }}&to_date={{ to_date }}&direction={{ filter_direction }}&category={{ filter_category }}&cursor={{ next_cursor }}&limit={{ limit }}"
+     class="btn-secondary text-sm">Load more →</a>
+  {% endif %}
 </div>
 
 {% else %}
-<div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
-  <p class="text-sm text-gray-400 dark:text-gray-500 mb-3">No entries found for this period.</p>
-  <a href="/cashbook"
-     class="inline-flex items-center rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]">
-    + Add your first entry
-  </a>
-</div>
+<section class="card p-12 text-center">
+  <p class="text-sm ink-3 font-mono mb-4">— no entries for this period —</p>
+  <a href="/cashbook" class="btn-primary inline-flex">+ Add your first entry</a>
+</section>
 {% endif %}
 
 {% endblock %}

@@ -5,86 +5,88 @@
 {% block content %}
 
 <div class="mb-4">
-  <a href="/cashbook/entries" class="text-sm text-[#194291] dark:text-[#8aa9d8] hover:underline">← Entries</a>
+  <a href="/cashbook/entries" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
+    ← entries
+  </a>
 </div>
 
 {% if flash %}
-<div class="mb-4 rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-800 dark:text-green-200">
-  {{ flash }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
 </div>
 {% endif %}
 
-<div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-6 max-w-xl">
+<div class="card p-6 max-w-xl relative overflow-hidden">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-40"></div>
 
   <div class="flex items-start justify-between mb-6">
     <div>
-      <p class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1">
+      <p class="nav-section-label mb-1">
         {% if entry.direction == 'income' %}Cash in{% else %}Cash out{% endif %}
       </p>
-      <h1 class="text-3xl font-bold tabular-nums {% if entry.direction == 'income' %}text-green-700 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
-        {% if entry.direction == 'expense' %}-{% endif %}${{ "%.2f"|format(entry.amount|float) }}
-      </h1>
+      <p class="num-display text-4xl"
+         style="color:{% if entry.direction == 'income' %}var(--pos){% else %}var(--neg){% endif %};">
+        {% if entry.direction == 'expense' %}−{% endif %}${{ "%.2f"|format(entry.amount|float) }}
+      </p>
     </div>
-    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                 {% if entry.status == 'voided' %}bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300
-                 {% elif entry.status == 'posted' %}bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300
-                 {% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+    <span class="chip
+      {% if entry.status == 'voided' %}badge-overdue{% elif entry.status == 'posted' %}badge-paid{% else %}badge-draft{% endif %}">
       {{ (entry.status or 'draft')|capitalize }}
     </span>
   </div>
 
-  <dl class="space-y-4 text-sm">
-    <div class="flex items-baseline gap-3">
-      <dt class="w-28 text-gray-500 dark:text-gray-400">Date</dt>
-      <dd class="text-gray-900 dark:text-gray-100 tabular-nums">{{ entry.entry_date }}</dd>
+  <div class="drafting mb-5"></div>
+
+  <dl class="space-y-3 text-sm">
+    <div class="flex items-baseline gap-3 hairline-b pb-2">
+      <dt class="w-28 nav-section-label">Date</dt>
+      <dd class="ink-1 num">{{ entry.entry_date }}</dd>
     </div>
-    <div class="flex items-baseline gap-3">
-      <dt class="w-28 text-gray-500 dark:text-gray-400">Category</dt>
-      <dd class="text-gray-900 dark:text-gray-100">{{ entry.category_label or entry.category_code }}</dd>
+    <div class="flex items-baseline gap-3 hairline-b pb-2">
+      <dt class="w-28 nav-section-label">Category</dt>
+      <dd class="ink-1">{{ entry.category_label or entry.category_code }}</dd>
     </div>
     {% if entry.description %}
-    <div class="flex items-baseline gap-3">
-      <dt class="w-28 text-gray-500 dark:text-gray-400">Description</dt>
-      <dd class="text-gray-900 dark:text-gray-100 flex-1">{{ entry.description }}</dd>
+    <div class="flex items-baseline gap-3 hairline-b pb-2">
+      <dt class="w-28 nav-section-label">Description</dt>
+      <dd class="ink-1 flex-1">{{ entry.description }}</dd>
     </div>
     {% endif %}
     {% if entry.gst_amount and entry.gst_amount|float > 0 %}
-    <div class="flex items-baseline gap-3">
-      <dt class="w-28 text-gray-500 dark:text-gray-400">GST</dt>
-      <dd class="text-gray-900 dark:text-gray-100 tabular-nums">${{ "%.2f"|format(entry.gst_amount|float) }}</dd>
+    <div class="flex items-baseline gap-3 hairline-b pb-2">
+      <dt class="w-28 nav-section-label">GST</dt>
+      <dd class="ink-1 num">${{ "%.2f"|format(entry.gst_amount|float) }}</dd>
     </div>
     {% endif %}
     {% if entry.journal_entry_ref %}
     <div class="flex items-baseline gap-3">
-      <dt class="w-28 text-gray-500 dark:text-gray-400">Reference</dt>
-      <dd class="text-gray-500 dark:text-gray-400 text-xs font-mono">{{ entry.journal_entry_ref }}</dd>
+      <dt class="w-28 nav-section-label">Reference</dt>
+      <dd class="ink-3 text-xs num">{{ entry.journal_entry_ref }}</dd>
     </div>
     {% endif %}
   </dl>
 
-  {# ── Actions ─────────────────────────────────────────────────────── #}
   {% if entry.status != 'voided' %}
-  <div class="mt-8 space-y-2 border-t border-gray-100 dark:border-gray-800 pt-6">
-    <a href="/cashbook/entries/{{ entry.id }}/edit"
-       class="block w-full text-center rounded-md bg-[#194291] hover:bg-[#133372] text-white px-4 py-3 text-base font-medium">
+  <div class="mt-7 hairline pt-5 space-y-2">
+    <a href="/cashbook/entries/{{ entry.id }}/edit" class="btn-primary w-full justify-center">
       Edit
     </a>
     <form method="post" action="/cashbook/entries/{{ entry.id }}/void"
           onsubmit="return confirm('Void this entry? An audit record is preserved.');">
       {{ csrf_input(request) | safe }}
       <input type="hidden" name="version" value="{{ entry.version }}">
-      <button type="submit"
-              class="w-full rounded-md bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950 px-4 py-3 text-base font-medium">
+      <button type="submit" class="btn-secondary w-full justify-center" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
         Void
       </button>
     </form>
-    <p class="text-xs text-gray-400 dark:text-gray-500 text-center pt-2">
-      Voiding writes a reversal record — the entry stays in your audit trail (ATO).
+    <p class="text-[11px] ink-3 text-center pt-2 font-mono">
+      Voiding writes a reversal record — audit trail preserved (ATO).
     </p>
   </div>
   {% else %}
-  <div class="mt-8 border-t border-gray-100 dark:border-gray-800 pt-6">
-    <p class="text-sm text-gray-500 dark:text-gray-400">This entry has been voided. The audit record is preserved.</p>
+  <div class="mt-7 hairline pt-5">
+    <p class="text-sm ink-3">This entry has been voided. The audit record is preserved.</p>
   </div>
   {% endif %}
 
