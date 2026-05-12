@@ -283,12 +283,16 @@
     table.sae-table tbody tr { transition: background .1s ease, box-shadow .1s ease; }
     table.sae-table tbody tr:hover { background: var(--sae-tint); cursor: pointer; }
     table.sae-table tbody tr:hover td:first-child { border-left-color: var(--sae); }
-    table.sae-table tbody tr[data-status="overdue"] td:first-child,
-    table.sae-table tbody tr[data-status="voided"]  td:first-child { border-left-color: var(--neg); }
-    table.sae-table tbody tr[data-status="paid"]    td:first-child,
-    table.sae-table tbody tr[data-status="posted"]  td:first-child { border-left-color: var(--pos); }
-    table.sae-table tbody tr[data-status="draft"]   td:first-child { border-left-color: var(--ink-4); }
-    table.sae-table tbody tr[data-status="sent"]    td:first-child { border-left-color: var(--sae); }
+    table.sae-table tbody tr[data-status="overdue"]  td:first-child,
+    table.sae-table tbody tr[data-status="voided"]   td:first-child,
+    table.sae-table tbody tr[data-status="declined"] td:first-child { border-left-color: var(--neg); }
+    table.sae-table tbody tr[data-status="paid"]     td:first-child,
+    table.sae-table tbody tr[data-status="posted"]   td:first-child,
+    table.sae-table tbody tr[data-status="accepted"] td:first-child { border-left-color: var(--pos); }
+    table.sae-table tbody tr[data-status="draft"]    td:first-child,
+    table.sae-table tbody tr[data-status="archived"] td:first-child { border-left-color: var(--ink-4); }
+    table.sae-table tbody tr[data-status="sent"]     td:first-child,
+    table.sae-table tbody tr[data-status="invoiced"] td:first-child { border-left-color: var(--sae); }
     table.sae-table tbody tr:last-child td { border-bottom: 0; }
 
     /* Brand logo */

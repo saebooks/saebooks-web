@@ -24,7 +24,7 @@
     <tbody>
       {% if invoices %}
         {% for inv in invoices %}
-        <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">
+        <tr class="hover:bg-paper-2 cursor-pointer" data-status="{{ (inv.status or 'draft')|lower }}" onclick="window.location='/invoices/{{ inv.id }}'">
           <td>
             <a href="/invoices/{{ inv.id }}" class="sae hover:underline font-medium num">
               {{ inv.number or "—" }}

@@ -24,7 +24,7 @@
     <tbody>
       {% if quotes %}
         {% for q in quotes %}
-        <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/quotes/{{ q.id }}'">
+        <tr class="hover:bg-paper-2 cursor-pointer" data-status="{{ (q.status or 'draft')|lower }}" onclick="window.location='/quotes/{{ q.id }}'">
           <td>
             <a href="/quotes/{{ q.id }}" class="sae hover:underline font-medium num">
               {{ q.number or "—" }}

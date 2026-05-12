@@ -24,7 +24,7 @@
     <tbody>
       {% if bills %}
         {% for bill in bills %}
-        <tr class="cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">
+        <tr class="cursor-pointer" data-status="{{ (bill.status or 'draft')|lower }}" onclick="window.location='/bills/{{ bill.id }}'">
           <td class="num-display"><a href="/bills/{{ bill.id }}" class="sae hover:underline font-medium">{{ bill.number or "—" }}</a></td>
           <td class="ink-2 num">{{ bill.issue_date }}</td>
           <td class="ink-2 num">{{ bill.due_date }}</td>
