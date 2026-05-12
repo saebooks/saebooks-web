@@ -1,0 +1,401 @@
+{% extends "preview/_layout.html" %}
+{% block title %}GST annual reconciliation · FY26 · ANTS GST Act 1999 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks">
+  <div class="max-w-[1240px] mx-auto px-6 py-8">
+
+    <!-- ============================================ -->
+    <!-- MASTHEAD                                     -->
+    <!-- ============================================ -->
+    <header class="mb-8 pb-6 border-b border-[var(--line)]">
+      <div class="flex items-start justify-between gap-6">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">
+            <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
+            <span>ATO &middot; A New Tax System (Goods and Services Tax) Act 1999 (Cth)</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Div 11 ITC &middot; Div 38 GST-free &middot; Div 40 input-taxed &middot; Div 129 adjustments</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Workpaper GST-26-R</span>
+          </div>
+          <h1 class="font-display text-[40px] leading-[1.05] tracking-[-0.02em] text-[var(--ink)]">
+            GST annual reconciliation
+            <span class="text-[var(--ink-3)]"> &middot; FY26</span>
+          </h1>
+          <p class="mt-3 text-[14px] text-[var(--ink-3)] max-w-[860px] leading-relaxed">
+            Four BASes lodged. Now the books and the BASes have to agree, and any adjustments under <em>Div 19</em> (change in price), <em>Div 21</em> (bad debts), <em>Div 129</em> (change in creditable purpose) and <em>Div 75</em> (margin scheme) have to be made before the next BAS lodges. SAE Books crystallises the year-end position: GST on supplies, ITC on acquisitions, creditable-purpose apportionment for mixed-supply items, financial-supplies De Minimis (Div 189), and the four-year ITC claim window under <em>s.93-5</em>.
+          </p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Status</div>
+          <div class="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[color:rgb(212_140_56_/_0.10)] border border-[color:rgb(212_140_56_/_0.35)]">
+            <span class="led warn"></span>
+            <span class="text-[12px] font-medium text-[var(--warm)]">2 Div 129 adjustments + 1 ITC under-claim recovery</span>
+          </div>
+          <div class="mt-2 text-[11px] text-[var(--ink-3)]"><span class="num">GST-184260-26-R</span> &middot; prepared 2026-05-11</div>
+          <div class="mt-1 text-[11px] text-[var(--ink-3)]">June BAS due <span class="num">2026-08-28</span> &middot; final adj posted</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- ACT 1 · MARKET GAP                            -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 01</div>
+        <h2 class="font-display text-[22px] tracking-tight">Why the year-end GST recon is its own workpaper</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Australian-market gap analysis</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Surface</th>
+                <th class="py-2 pr-2">Xero</th>
+                <th class="py-2 pr-2">MYOB</th>
+                <th class="py-2 pr-2">Reckon</th>
+                <th class="py-2">SAE Books</th>
+              </tr>
+            </thead>
+            <tbody class="text-[12px]">
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">GST on supplies recon (G1&ndash;G7)</td><td class="text-[var(--ink-3)]">BAS report only</td><td class="text-[var(--ink-3)]">BAS report</td><td class="text-[var(--ink-3)]">BAS report</td><td class="text-[var(--pos)] font-medium">G1&ndash;G24 + GL trace</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">ITC under-claim discovery</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">s.93-5 window scan</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Div 129 change-of-use</td><td class="text-[var(--ink-3)]">manual</td><td class="text-[var(--ink-3)]">manual</td><td class="text-[var(--ink-3)]">manual</td><td class="text-[var(--pos)] font-medium">5/10yr asset tracker</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Financial-supplies De Minimis</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">Div 189 test runs</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Bad debt Div 21</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">12mth ageing trigger</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Margin scheme Div 75</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">per-property workpaper</td></tr>
+              <tr><td class="py-2 pr-2">Going-concern Div 38-J</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">contract evidence pack</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)] leading-relaxed">BAS-time GST in the big three is a report run off the GL with tax-code summaries. The annual recon &mdash; ITC under-claim recovery, Div 129 change-of-purpose, FAT De Minimis, Div 21 bad debt, Div 75 margin-scheme per-property workpapers &mdash; lives in spreadsheets and tax-agent memos. SAE Books moves the recon back into the books.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Entity &middot; GST profile FY26</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 w-1/3 text-[var(--ink-3)]">Entity</td><td>SAE Engineering Pty Ltd</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">ABN / GST role</td><td><span class="num">82 184 260 521</span> &middot; supplier</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Reg date</td><td class="num">2014-05-25</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Accounting basis</td><td>Accrual (s.29-39)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Tax period</td><td>Quarterly (s.27-5)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Annualised turnover</td><td class="num text-right">A$4,184,260</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Threshold (s.188-25)</td><td>&gt; A$75k &mdash; <span class="text-[var(--pos)]">registered</span></td></tr>
+              <tr><td class="py-1.5 text-[var(--ink-3)]">Branches (Div 54)</td><td>none &middot; single ABN</td></tr>
+            </tbody>
+          </table>
+          <div class="mt-3 pt-3 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)]">
+            <div>4 BASes lodged FY26 Q1&ndash;Q4: <span class="num">2025-10-28</span> &middot; <span class="num">2026-02-28</span> &middot; <span class="num">2026-04-28</span> &middot; <span class="num">2026-08-28</span> (due)</div>
+            <div class="mt-1">Channel: SBR2 &middot; AS.0007.2024</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 2 · G-LABEL RECON                         -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 02</div>
+        <h2 class="font-display text-[22px] tracking-tight">G-label reconciliation &middot; BAS vs GL truth</h2>
+      </div>
+      <div class="p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)] overflow-x-auto">
+        <table class="w-full text-[12px]">
+          <thead>
+            <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 pr-2">Label</th>
+              <th class="py-2 pr-2">Description</th>
+              <th class="py-2 pr-2 text-right">BAS Q1</th>
+              <th class="py-2 pr-2 text-right">BAS Q2</th>
+              <th class="py-2 pr-2 text-right">BAS Q3</th>
+              <th class="py-2 pr-2 text-right">BAS Q4 prov</th>
+              <th class="py-2 pr-2 text-right">BAS total</th>
+              <th class="py-2 pr-2 text-right">GL FY26</th>
+              <th class="py-2">Var</th>
+            </tr>
+          </thead>
+          <tbody class="text-[12px]">
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G1</td><td>Total sales (incl GST)</td><td class="num text-right">A$1,028,420</td><td class="num text-right">A$1,182,840</td><td class="num text-right">A$1,118,260</td><td class="num text-right">A$1,090,420</td><td class="num text-right font-medium">A$4,419,940</td><td class="num text-right">A$4,419,940</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G2</td><td>Export sales</td><td class="num text-right">A$28,420</td><td class="num text-right">A$32,180</td><td class="num text-right">A$48,420</td><td class="num text-right">A$36,840</td><td class="num text-right font-medium">A$145,860</td><td class="num text-right">A$145,860</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G3</td><td>Other GST-free sales</td><td class="num text-right">A$2,180</td><td class="num text-right">A$2,420</td><td class="num text-right">A$1,820</td><td class="num text-right">A$2,100</td><td class="num text-right font-medium">A$8,520</td><td class="num text-right">A$8,520</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G4</td><td>Input-taxed sales</td><td class="num text-right">A$0</td><td class="num text-right">A$0</td><td class="num text-right">A$0</td><td class="num text-right">A$0</td><td class="num text-right">A$0</td><td class="num text-right">A$0</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G7</td><td>Adjustments (Div 19/21/75/129)</td><td class="num text-right">A$0</td><td class="num text-right">&minus;A$2,184</td><td class="num text-right">A$0</td><td class="num text-right text-[var(--warm)]">+A$3,820 prop</td><td class="num text-right">+A$1,636</td><td class="num text-right">+A$1,636</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">1A</td><td>GST on sales</td><td class="num text-right">A$90,800</td><td class="num text-right">A$103,832</td><td class="num text-right">A$97,094</td><td class="num text-right">A$95,016</td><td class="num text-right font-medium">A$386,742</td><td class="num text-right">A$386,742</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G10</td><td>Capital acquisitions</td><td class="num text-right">A$48,420</td><td class="num text-right">A$184,260</td><td class="num text-right">A$24,180</td><td class="num text-right">A$62,840</td><td class="num text-right font-medium">A$319,700</td><td class="num text-right">A$319,700</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G11</td><td>Non-capital acquisitions</td><td class="num text-right">A$284,180</td><td class="num text-right">A$312,420</td><td class="num text-right">A$298,420</td><td class="num text-right">A$272,180</td><td class="num text-right font-medium">A$1,167,200</td><td class="num text-right">A$1,168,562</td><td><span class="led warn"></span> &minus;1,362</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G13</td><td>Private/non-creditable</td><td class="num text-right">A$2,184</td><td class="num text-right">A$1,840</td><td class="num text-right">A$2,420</td><td class="num text-right">A$1,920</td><td class="num text-right">A$8,364</td><td class="num text-right">A$8,364</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G14</td><td>GST-free acquisitions</td><td class="num text-right">A$8,420</td><td class="num text-right">A$9,180</td><td class="num text-right">A$8,640</td><td class="num text-right">A$9,020</td><td class="num text-right">A$35,260</td><td class="num text-right">A$35,260</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G15</td><td>Total non-creditable</td><td class="num text-right">A$10,604</td><td class="num text-right">A$11,020</td><td class="num text-right">A$11,060</td><td class="num text-right">A$10,940</td><td class="num text-right">A$43,624</td><td class="num text-right">A$43,624</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">G18</td><td>Adjustments to ITCs</td><td class="num text-right">A$0</td><td class="num text-right">A$0</td><td class="num text-right">A$0</td><td class="num text-right text-[var(--warm)]">+A$4,820 prop</td><td class="num text-right">A$4,820</td><td class="num text-right">A$4,820</td><td><span class="led on"></span> 0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">1B</td><td>GST on purchases (ITC)</td><td class="num text-right">A$29,308</td><td class="num text-right">A$44,786</td><td class="num text-right">A$28,418</td><td class="num text-right">A$28,946</td><td class="num text-right font-medium">A$131,458</td><td class="num text-right">A$131,582</td><td><span class="led warn"></span> &minus;124</td></tr>
+            <tr class="border-t-2 border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">Net</td><td class="font-medium">1A &minus; 1B (GST payable)</td><td class="num text-right">A$61,492</td><td class="num text-right">A$59,046</td><td class="num text-right">A$68,676</td><td class="num text-right">A$66,070</td><td class="num text-right font-medium">A$255,284</td><td class="num text-right font-medium">A$255,160</td><td><span class="led warn"></span> &minus;124</td></tr>
+          </tbody>
+        </table>
+        <p class="mt-3 text-[11px] text-[var(--ink-3)]">G11 variance of A$1,362 isolates to <strong>3 supplier invoices</strong> entered after the Q3 BAS lodgement but dated within Q3 &mdash; recoverable as ITC under-claim adjustment on the June BAS per <em>s.93-5</em> (4-yr window).</p>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 3 · DIV 129 CHANGE-OF-PURPOSE             -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 03</div>
+        <h2 class="font-display text-[22px] tracking-tight">Div 129 adjustments &middot; change in creditable purpose</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Tracked assets &middot; 5-yr / 10-yr adjustment periods</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Asset</th>
+                <th class="py-2 pr-2 text-right">GST excl cost</th>
+                <th class="py-2 pr-2 text-right">Original ITC</th>
+                <th class="py-2 pr-2 text-right">Year</th>
+                <th class="py-2 pr-2">Intended use %</th>
+                <th class="py-2 pr-2">Actual use %</th>
+                <th class="py-2 pr-2 text-right">Adj this yr</th>
+                <th class="py-2">Authority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Ute &mdash; Hilux SR5 2023</td><td class="num text-right">A$54,200</td><td class="num text-right">A$5,420</td><td class="num text-right">3 of 5</td><td>95% biz</td><td class="text-[var(--warm)]">82% biz (logbook)</td><td class="num text-right text-[var(--warm)]">+A$704 payable</td><td class="text-[var(--ink-3)]">Div 129 s.129-40</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Workshop fit-out 2022</td><td class="num text-right">A$184,000</td><td class="num text-right">A$18,400</td><td class="num text-right">4 of 10</td><td>100% biz</td><td>100% biz</td><td class="num text-right text-[var(--ink-3)]">A$0</td><td class="text-[var(--ink-3)]">Div 129 s.129-40</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">CNC machine 2024</td><td class="num text-right">A$148,260</td><td class="num text-right">A$14,826</td><td class="num text-right">2 of 5</td><td>100% biz</td><td>100% biz</td><td class="num text-right text-[var(--ink-3)]">A$0</td><td class="text-[var(--ink-3)]">Div 129 s.129-40</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Mixed-use property 2023</td><td class="num text-right">A$1,082,000</td><td class="num text-right">A$108,200</td><td class="num text-right">3 of 10</td><td>74% biz</td><td class="text-[var(--warm)]">68% biz</td><td class="num text-right text-[var(--warm)]">+A$649 payable</td><td class="text-[var(--ink-3)]">Div 129 s.129-40 &middot; GSTR 2009/4</td></tr>
+              <tr><td class="py-1.5">Solar &middot; rooftop 2024</td><td class="num text-right">A$48,420</td><td class="num text-right">A$4,842</td><td class="num text-right">2 of 5</td><td>92% biz</td><td>92% biz</td><td class="num text-right text-[var(--ink-3)]">A$0</td><td class="text-[var(--ink-3)]">Div 129 s.129-40</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">Per <em>s.129-40</em>: <code>Adjustment = (Original ITC) &times; (Intended use % &minus; Actual use %) &divide; Adjustment period</code>. Posted to G18 on the June BAS &middot; A$1,353 total Div 129 payable.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Adjustment periods &middot; s.129-20</div>
+          <table class="w-full text-[12px]">
+            <thead><tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]"><th class="py-2 pr-2">GST-excl cost</th><th class="py-2 pr-2 text-right">Periods</th><th class="py-2">Use</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">&le; A$1,000</td><td class="num text-right">0</td><td class="text-[var(--ink-3)]">no Div 129</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">A$1,001&ndash;A$5,000</td><td class="num text-right">2</td><td class="text-[var(--ink-3)]">non-business</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">A$5,001&ndash;A$499,999</td><td class="num text-right">5</td><td class="text-[var(--ink-3)]">standard</td></tr>
+              <tr><td class="py-1.5">&ge; A$500,000</td><td class="num text-right">10</td><td class="text-[var(--ink-3)]">large &amp; real prop</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">SAE Books tags each capital acquisition at G10 lodgement with its applicable adjustment period and an &lsquo;intended creditable purpose %&rsquo;. The next year&rsquo;s actual usage (from logbook, floor-area schedule, or hours register) closes the loop on each anniversary BAS.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 4 · MIXED & INPUT-TAXED                   -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 04</div>
+        <h2 class="font-display text-[22px] tracking-tight">Mixed supplies &amp; financial-supplies De Minimis</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Mixed-supply attribution &middot; GSTR 2001/8</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)] w-1/2">Composite supplies (single dominant)</td><td class="text-right">8 invoices &middot; whole = taxable</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Mixed supplies (separately identified)</td><td class="text-right">4 invoices &middot; split apportioned</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Apportionment method</td><td class="text-right">by reasonable basis (cost / value)</td></tr>
+              <tr><td class="py-1.5 text-[var(--ink-3)]">Authority</td><td class="text-right">GSTR 2001/8 paras 19-26</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">Example: 2026-03-18 site-services invoice INV-4218 to mining client &mdash; A$48,420 split into A$42,180 engineering services (taxable) and A$6,240 fly-in/fly-out airfare reimbursement (GST-free Div 38 international). G1 reports A$48,420; G3 carries A$6,240.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Financial Acquisitions Threshold &middot; Div 189</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Financial acquisitions (interest, FX hedge)</td><td class="num text-right">A$4,820</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">FAT &middot; the lesser of</td><td class="text-right"></td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4">&middot; A$150,000 ITC equivalent</td><td class="num text-right text-[var(--ink-3)]">A$150,000</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4">&middot; 10% of total ITC entitlements</td><td class="num text-right text-[var(--ink-3)]">A$13,158</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">FAT applies if either exceeded</td><td class="text-right text-[var(--pos)]">no &mdash; under both</td></tr>
+              <tr><td class="py-1.5">Outcome</td><td class="text-right text-[var(--pos)]">full ITC available on FA costs</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">SAE&rsquo;s financial acquisitions for FY26 are below both FAT limbs &mdash; no apportionment between creditable and input-taxed needed. If next year&rsquo;s FA crossed the threshold, Div 70 reduced ITCs (RITC) of 75% on listed acquisitions would kick in.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 5 · DIV 21 BAD DEBT + DIV 75 MARGIN        -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 05</div>
+        <h2 class="font-display text-[22px] tracking-tight">Div 21 bad debts &amp; Div 75 margin scheme</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Bad-debt write-off &middot; Div 21 s.21-5</div>
+          <table class="w-full text-[12px]">
+            <thead><tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]"><th class="py-2 pr-2">Debtor</th><th class="py-2 pr-2 text-right">Invoice</th><th class="py-2 pr-2 text-right">Aged</th><th class="py-2 pr-2 text-right">GST element</th><th class="py-2">Status</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Aurora Mining (in admin)</td><td class="num text-right">A$24,184</td><td class="num text-right text-[var(--neg)]">412d</td><td class="num text-right text-[var(--pos)]">A$2,198</td><td><span class="led on"></span> recover</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Larkhall Building (deregistered)</td><td class="num text-right">A$8,420</td><td class="num text-right text-[var(--neg)]">368d</td><td class="num text-right text-[var(--pos)]">A$765</td><td><span class="led on"></span> recover</td></tr>
+              <tr><td class="py-1.5">Patel Constructions (disputed)</td><td class="num text-right">A$3,840</td><td class="num text-right text-[var(--warm)]">214d</td><td class="num text-right text-[var(--ink-3)]">hold</td><td><span class="led warn"></span> dispute</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">Two debts written off &mdash; GST decreasing adjustment of <strong>A$2,963</strong> claimed at <strong>G7</strong> on the June BAS per <em>s.21-5</em>. Authority: GSTR 2000/2. If the debt is subsequently recovered, Div 21 increasing adjustment under <em>s.21-10</em> reverses the relief.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Margin scheme &middot; Div 75 &middot; lot 47 sale</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 w-1/2">Property</td><td>Lot 47 Brisbane &middot; subdivided 2024</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Acquired</td><td class="num text-right">2018-09-12 &middot; A$420,000</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Sold</td><td class="num text-right">2026-03-22 &middot; A$840,000</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Eligibility (s.75-5)</td><td class="text-right text-[var(--pos)]">eligible &middot; acquired GST-free</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Written agreement (s.75-5(1A))</td><td class="text-right text-[var(--pos)]">signed 2026-03-12</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Margin (consideration &minus; cost)</td><td class="num text-right">A$420,000</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">GST &middot; 1/11 &times; margin</td><td class="num text-right font-medium">A$38,181.82</td></tr>
+              <tr><td class="py-1.5">Saving vs full GST</td><td class="num text-right text-[var(--pos)]">A$38,181.82</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">Margin scheme applied with written agreement before settlement (s.75-5(1A) deadline met). GST on sale is 1/11 of the A$420k margin, not 1/11 of the A$840k consideration. Purchaser <em>cannot</em> claim ITC on a margin-scheme acquisition (s.75-20). Workpaper: deed of margin election persisted to evidence pack.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 6 · ITC RECOVERY + GOING CONCERN          -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 06</div>
+        <h2 class="font-display text-[22px] tracking-tight">ITC under-claim recovery &amp; Div 38-J going-concern</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">4-year ITC window scan &middot; s.93-5</div>
+          <table class="w-full text-[12px]">
+            <thead><tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]"><th class="py-2 pr-2">Invoice</th><th class="py-2 pr-2">Supplier</th><th class="py-2 pr-2 text-right">Date</th><th class="py-2 pr-2 text-right">Total</th><th class="py-2 pr-2 text-right">ITC</th><th class="py-2">Reason</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">INV-9184</td><td>Holloway Eng</td><td class="num text-right">2026-03-28</td><td class="num text-right">A$8,420</td><td class="num text-right text-[var(--pos)]">A$765</td><td class="text-[var(--ink-3)]">late entry &middot; post Q3 BAS</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">INV-9211</td><td>Tan Electrical</td><td class="num text-right">2026-03-19</td><td class="num text-right">A$3,840</td><td class="num text-right text-[var(--pos)]">A$349</td><td class="text-[var(--ink-3)]">late entry</td></tr>
+              <tr><td class="py-1.5 num">INV-9243</td><td>Office &amp; Co</td><td class="num text-right">2026-03-22</td><td class="num text-right">A$2,640</td><td class="num text-right text-[var(--pos)]">A$240</td><td class="text-[var(--ink-3)]">late entry</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">SAE Books scans the GL each BAS cycle for new entries dated within a prior tax period where the BAS for that period has already lodged. Provided the invoice is within the 4-year window from <em>s.93-5</em> and SAE held the tax invoice when the entitlement was attributed, the ITC is recovered as a current-period claim under <em>s.29-10(4)</em>. Total recovery: <strong>A$1,354</strong>.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Div 38-J &middot; going-concern checklist</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Supplier carrying on enterprise to day of supply (s.38-325(2)(b))</td><td class="text-right text-[var(--ink-3)]">n/a no sale FY26</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">All things necessary supplied (s.38-325(2)(a))</td><td class="text-right text-[var(--ink-3)]">n/a</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Supplier &amp; recipient both registered (s.38-325(1)(a))</td><td class="text-right text-[var(--ink-3)]">n/a</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Written agreement for supply as GST-free (s.38-325(1)(c))</td><td class="text-right text-[var(--ink-3)]">n/a</td></tr>
+              <tr><td class="py-1.5">Authority</td><td class="text-right text-[var(--ink-3)]">GSTR 2002/5</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">No business or property sale this year. Template persisted for next year&rsquo;s planned divestment of the Sauerland service line &mdash; checklist will populate from the entity-graph and the contract repository when the sale enters the pipeline.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 7 · POSTING & MARKET COMPARISON           -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 07</div>
+        <h2 class="font-display text-[22px] tracking-tight">Posting summary &amp; market read</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Year-end adjustment journal (G7/G18) &middot; June BAS</div>
+          <table class="w-full text-[12px]">
+            <thead><tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]"><th class="py-2 pr-2">Line</th><th class="py-2 pr-2">Account</th><th class="py-2 pr-2 text-right">Dr</th><th class="py-2 pr-2 text-right">Cr</th><th class="py-2">Reference</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="num">1</td><td>2110 GST Collected (1A)</td><td class="num text-right">A$2,963.00</td><td></td><td class="text-[var(--ink-3)]">Div 21 G7 dec adj</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="num">2</td><td>1410 Bad debts written-off</td><td></td><td class="num text-right">A$2,963.00</td><td class="text-[var(--ink-3)]">Aurora + Larkhall</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">3</td><td>2110 GST Collected (1A)</td><td></td><td class="num text-right">A$1,353.00</td><td class="text-[var(--ink-3)]">Div 129 G18 inc adj</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="num">4</td><td>5210 Motor vehicle (private %)</td><td class="num text-right">A$704.00</td><td></td><td class="text-[var(--ink-3)]">Hilux change of use</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="num">5</td><td>1210 Property (mixed use)</td><td class="num text-right">A$649.00</td><td></td><td class="text-[var(--ink-3)]">Mixed-use property</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">6</td><td>2120 GST Paid (1B)</td><td class="num text-right">A$1,354.00</td><td></td><td class="text-[var(--ink-3)]">s.93-5 ITC recovery</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="num">7</td><td>6210 Subcontractors</td><td></td><td class="num text-right">A$1,114.00</td><td class="text-[var(--ink-3)]">Holloway + Tan</td></tr>
+              <tr><td class="num">8</td><td>6310 Office expenses</td><td></td><td class="num text-right">A$240.00</td><td class="text-[var(--ink-3)]">Office &amp; Co</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">Net BAS movement: <strong>+A$2,962 ITC recovery</strong> (Div 21 + s.93-5) less <strong>A$1,353 Div 129 payable</strong> = <strong>+A$1,609 favourable</strong>. Posted at JE-GST-FY26-FINAL with cross-reference to each substantiation line.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Market read</div>
+          <ul class="text-[12px] space-y-2 leading-relaxed">
+            <li><strong>Xero</strong> &mdash; GST reports (BAS report, Activity Statement) and tax-code summary. Div 129 / Div 21 / Div 75 are manual journals; the FAT is invisible.</li>
+            <li><strong>MYOB AE/AO</strong> &mdash; better margin-scheme worksheets via MYOB Tax; the GL-side workpapers still live in Excel.</li>
+            <li><strong>Reckon</strong> &mdash; tax-code transactions report; everything else by hand.</li>
+            <li><strong>SAE Books</strong> &mdash; G-label recon to GL, Div 129 anniversary tracker (5/10yr), Div 21 bad-debt trigger from receivables ageing, Div 75 per-property workpaper with s.75-5(1A) deadline check, s.93-5 ITC under-claim scanner, Div 189 FAT runner, Div 38-J going-concern template wired to entity-graph and contracts.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- FOOTER · AUTHORITY PACK                       -->
+    <!-- ============================================ -->
+    <footer class="mt-10 pt-6 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)] leading-relaxed">
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Primary law</div>
+          <ul class="space-y-0.5">
+            <li>ANTS (GST) Act 1999 (Cth) Div 9 supplies</li>
+            <li>Div 11 ITC &middot; Div 15 acquisitions</li>
+            <li>Div 19 adj events &middot; Div 21 bad debts</li>
+            <li>Div 27 tax periods &middot; Div 29 attribution</li>
+            <li>Div 38 GST-free (38-J going concern)</li>
+            <li>Div 40 input-taxed (financial supplies)</li>
+            <li>Div 70 reduced ITCs &middot; Div 75 margin</li>
+            <li>Div 129 change of creditable purpose</li>
+            <li>Div 165 anti-avoidance &middot; Div 189 FAT</li>
+            <li>s.29-10 attribution &middot; s.93-5 4-yr window</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">GST Rulings &amp; Determinations</div>
+          <ul class="space-y-0.5">
+            <li>GSTR 2000/2 &mdash; adjustments &amp; bad debts</li>
+            <li>GSTR 2001/8 &mdash; mixed &amp; composite supplies</li>
+            <li>GSTR 2002/5 &mdash; supply of going concern</li>
+            <li>GSTR 2006/3 &mdash; financial supplies</li>
+            <li>GSTR 2006/4 &mdash; methods to determine ITC</li>
+            <li>GSTR 2009/4 &mdash; new residential premises</li>
+            <li>GSTR 2013/1 &mdash; tax invoices</li>
+            <li>MT 2010/1 &mdash; misc tax matters (margin)</li>
+            <li>GSTD 2024/D1 &mdash; software / cloud</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Cases &amp; channels</div>
+          <ul class="space-y-0.5">
+            <li>FCT v Reliance Carpet [2008] HCA &mdash; supply</li>
+            <li>HP Mercantile v FCT [2005] FCAFC &mdash; FAT</li>
+            <li>FCT v Multiflex [2011] FCAFC &mdash; refunds</li>
+            <li>FCT v Unit Trend [2013] HCA &mdash; Div 165</li>
+            <li>SBR2 AS.0007.2024 &middot; PLS BAS lodgement</li>
+            <li>NAT 4189 &mdash; BAS form &middot; NAT 14541 &mdash; ann recon</li>
+            <li>ATO data-matching &middot; STP &middot; TPAR cross-refs</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-5 pt-4 border-t border-[var(--line)] flex flex-wrap items-center gap-3">
+        <span class="num-stamp">GST-184260-26-R</span>
+        <span>Workpaper hash <span class="num">b8c4&hellip;2d17</span></span>
+        <span>&middot; 4 BASes vs GL &middot; var A$124 isolated</span>
+        <span>&middot; prepared by SAE Books &middot; review by R Sauer (director)</span>
+        <span class="ml-auto">Four-BAS pulse, one annual ledger.</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+{% endblock %}

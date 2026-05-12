@@ -1,0 +1,341 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}Peppol inbound · BlueScope · INV-BS-20611 — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .row-cell td { padding: 9px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .row-cell:first-child td { border-top: 0; }
+  .xml-block { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10.5px; line-height: 1.55; background: var(--paper-2); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; color: var(--ink-2); overflow-x: auto; white-space: pre; }
+  .xml-block .k { color: var(--brand-2); }
+  .xml-block .v { color: var(--sae); }
+  .step-node { position: relative; padding-left: 28px; }
+  .step-node:before { content: ''; position: absolute; left: 9px; top: 4px; bottom: -8px; width: 1px; background: var(--line); }
+  .step-node:last-child:before { display: none; }
+  .step-node .dot { position: absolute; left: 4px; top: 2px; width: 12px; height: 12px; border-radius: 99px; background: var(--paper); border: 2px solid var(--sae); }
+  .step-node.done .dot { background: var(--pos); border-color: var(--pos); }
+  .step-node.pending .dot { background: var(--paper); border-color: var(--ink-3); }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider">
+        <a href="/preview/inbox" class="hover:text-[color:var(--sae)]">Inbox</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>Peppol · BlueScope · INV-BS-20611</span>
+        <span class="ml-2 chip-mini pos"><i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i>received via Peppol</span>
+        <span class="chip-mini sae">PINT-AU 1.0.2</span>
+        <span class="chip-mini warm">awaits 2-step approval</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">BlueScope Steel — INV-BS-20611</h1>
+      <div class="flex items-baseline gap-5 mt-1.5 text-[13px] ink-2">
+        <span class="num">A$4,820.40 incl GST</span>
+        <span class="ink-3">·</span>
+        <span>tax invoice · 09 May 2026 · due 08 Jun 2026</span>
+        <span class="ink-3">·</span>
+        <span>14 line items · Cairns delivery</span>
+      </div>
+      <div class="flex items-center gap-3 mt-2 text-[11.5px] ink-3 flex-wrap">
+        <span>From <span class="ink-2">BlueScope Steel (Aust) Pty Ltd</span> · ABN <span class="num">16 000 011 058</span></span><span>·</span>
+        <span>Peppol ID <span class="num">0151:16000011058</span></span><span>·</span>
+        <span>received 14:42 AEST · 28 min ago</span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <div class="flex gap-2">
+        <a href="#" class="btn-secondary"><i data-lucide="x" class="w-4 h-4"></i>Reject</a>
+        <a href="#" class="btn-primary"><i data-lucide="check" class="w-4 h-4"></i>Approve &amp; post BILL-1843</a>
+      </div>
+      <a href="/preview/activity?scope=inbox&id=inv-bs-20611" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>Inbox audit · 9 events</a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 text-[12px]">
+  {% set kpis = [
+    ('Total incl GST', 'A$4,820.40', '14 lines · job J-2603', 'banknote', 'ink'),
+    ('GST extracted',  'A$438.22',   '1B credit on Q4 BAS',   'percent',  'ink-2'),
+    ('Schema validation','PASS',     'PINT-AU XSD + Schematron AUNL-T010-CR-016', 'shield-check', 'pos'),
+    ('ABN match',      'verified',   'sender + recipient ABR-active',          'badge-check', 'pos'),
+    ('Approval',       '2-step',     'R. Sauer + S. Wong required >A$3k',      'user-cog',    'warm'),
+  ] %}
+  {% for label, val, sub, icon, tone in kpis %}
+    <div class="card p-3.5">
+      <div class="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider ink-3"><i data-lucide="{{ icon }}" class="w-3 h-3"></i>{{ label }}</div>
+      <div class="num text-[18px] mt-1 {% if tone == 'pos' %}pos{% elif tone == 'warm' %}warm{% elif tone == 'ink-2' %}ink-2{% endif %}">{{ val }}</div>
+      <div class="text-[10.5px] ink-3 mt-0.5">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- LEFT 7/12 -->
+  <div class="lg:col-span-7 space-y-6">
+
+    <!-- Peppol envelope -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">Peppol delivery envelope</h2>
+        <span class="chip-mini sae">SBDH 1.0 · AS4 · UBL Invoice 2.1</span>
+      </div>
+      <p class="text-[12px] ink-2 mb-3">
+        Document arrived through the Peppol AU network. Sender's Access Point delivered to our Access Point (Storecove AU), which validated against the
+        ATO-managed PINT-AU 1.0.2 specification and forwarded to SAE Books over the local C4 interface.
+      </p>
+      <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-[12px]">
+        <div class="flex items-center justify-between"><span class="ink-3">MessageId</span><span class="num text-[11px]">SBDH:5ad9c142-1842-4820-9c84-184293ae72b4</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">DocumentTypeId</span><span class="num text-[11px]">urn:peppol:pint:billing-1@aunz-1</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">ProcessId</span><span class="num text-[11px]">urn:peppol:bis:billing</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Profile</span><span class="num text-[11px]">PINT-AU v1.0.2</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Sender AP</span><span class="num text-[11px]">Pagero · pa.peppol.eu</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Receiver AP</span><span class="num text-[11px]">Storecove AU · ap.storecove.com</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Sender Peppol ID</span><span class="num text-[11px]">0151:16000011058</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Recipient Peppol ID</span><span class="num text-[11px]">0151:47168502343</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Transport</span><span class="num text-[11px]">AS4 ebMS3 · TLS 1.3</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Signed</span><span class="chip-mini pos">XML-Sig · cert SHA-256 c12a…84b8</span></div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-2">UBL invoice excerpt</div>
+        <div class="xml-block"><span class="k">&lt;Invoice xmlns="</span><span class="v">urn:oasis:names:specification:ubl:schema:xsd:Invoice-2</span><span class="k">"&gt;</span>
+  <span class="k">&lt;cbc:CustomizationID&gt;</span><span class="v">urn:peppol:pint:billing-1@aunz-1</span><span class="k">&lt;/cbc:CustomizationID&gt;</span>
+  <span class="k">&lt;cbc:ProfileID&gt;</span><span class="v">urn:peppol:bis:billing</span><span class="k">&lt;/cbc:ProfileID&gt;</span>
+  <span class="k">&lt;cbc:ID&gt;</span><span class="v">INV-BS-20611</span><span class="k">&lt;/cbc:ID&gt;</span>
+  <span class="k">&lt;cbc:IssueDate&gt;</span><span class="v">2026-05-09</span><span class="k">&lt;/cbc:IssueDate&gt;</span>
+  <span class="k">&lt;cbc:DueDate&gt;</span><span class="v">2026-06-08</span><span class="k">&lt;/cbc:DueDate&gt;</span>
+  <span class="k">&lt;cbc:InvoiceTypeCode&gt;</span><span class="v">380</span><span class="k">&lt;/cbc:InvoiceTypeCode&gt;</span>
+  <span class="k">&lt;cbc:DocumentCurrencyCode&gt;</span><span class="v">AUD</span><span class="k">&lt;/cbc:DocumentCurrencyCode&gt;</span>
+  <span class="k">&lt;cac:AccountingSupplierParty&gt;&lt;cac:Party&gt;</span>
+    <span class="k">&lt;cbc:EndpointID schemeID="0151"&gt;</span><span class="v">16000011058</span><span class="k">&lt;/cbc:EndpointID&gt;</span>
+    <span class="k">&lt;cac:PartyLegalEntity&gt;&lt;cbc:RegistrationName&gt;</span><span class="v">BlueScope Steel (Aust) Pty Ltd</span><span class="k">&lt;/cbc:RegistrationName&gt;</span>
+    <span class="k">&lt;cbc:CompanyID schemeID="0151"&gt;</span><span class="v">16000011058</span><span class="k">&lt;/cbc:CompanyID&gt;</span>
+    <span class="k">&lt;/cac:PartyLegalEntity&gt;&lt;/cac:Party&gt;&lt;/cac:AccountingSupplierParty&gt;</span>
+  <span class="k">&lt;cac:TaxTotal&gt;</span>
+    <span class="k">&lt;cbc:TaxAmount currencyID="AUD"&gt;</span><span class="v">438.22</span><span class="k">&lt;/cbc:TaxAmount&gt;</span>
+  <span class="k">&lt;/cac:TaxTotal&gt;</span>
+  <span class="k">&lt;cac:LegalMonetaryTotal&gt;</span>
+    <span class="k">&lt;cbc:PayableAmount currencyID="AUD"&gt;</span><span class="v">4820.40</span><span class="k">&lt;/cbc:PayableAmount&gt;</span>
+  <span class="k">&lt;/cac:LegalMonetaryTotal&gt;</span>
+<span class="k">&lt;/Invoice&gt;</span></div>
+      </div>
+    </section>
+
+    <!-- Validation -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">PINT-AU validation</h2>
+        <span class="chip-mini pos">9 of 9 rules pass</span>
+      </div>
+      <p class="text-[12px] ink-2 mb-3">Validation is layered: XSD shape, PINT-AU business rules, AU-specific Schematron, and ABN/GST cross-check against ABR.</p>
+      <ul class="text-[12px] space-y-2">
+        {% set vals = [
+          ('XSD shape',           'UBL Invoice 2.1 schema',                      'pos', 'all elements valid · 0 errors'),
+          ('PINT-AU business rules','urn:peppol:pint:billing-1@aunz-1',           'pos', '184 rules · all green'),
+          ('AUNL-T010-CR-016',    'AU Schematron — ABN format',                  'pos', '16 000 011 058 valid'),
+          ('AUNL-T010-CR-017',    'GST rate matches calculated tax',             'pos', '10% × A$4,382.18 = A$438.22'),
+          ('AUNL-T010-CR-018',    'Tax invoice fields if &gt; A$82.50',              'pos', 'GST shown, ABN, supplier identity, header'),
+          ('ABR live check',      'supplier active &amp; GST-registered',            'pos', 'ABR snapshot AbrXml v2025-11'),
+          ('Recipient match',     'Sauer Pty Ltd ABN 47 168 502 343',            'pos', 'matches our entity'),
+          ('Signature trust',     'X.509 cert chains to Peppol AU root CA',      'pos', 'cert valid until 14 Aug 2027'),
+          ('Duplicate check',     'no prior MessageId match · 7-day window',     'pos', 'first delivery'),
+        ] %}
+        {% for rule, what, status, detail in vals %}
+          <li class="flex items-start gap-3 py-1.5 border-b hairline last:border-b-0">
+            <i data-lucide="check-circle-2" class="w-4 h-4 pos mt-0.5"></i>
+            <div class="flex-1">
+              <div class="ink"><span class="num">{{ rule }}</span> · {{ what }}</div>
+              <div class="text-[10.5px] ink-3">{{ detail }}</div>
+            </div>
+            <span class="chip-mini pos">pass</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <!-- Line item coding -->
+    <section class="card">
+      <header class="px-5 py-3.5 border-b hairline flex items-baseline justify-between">
+        <div>
+          <h2 class="font-display text-[18px]">Proposed bill BILL-1843 · 14 line items</h2>
+          <p class="text-[11.5px] ink-3">Lines auto-coded via <a href="/preview/settings/bank-feed-rules" class="sae hover:underline">Rule R-21 (BlueScope steel)</a> · 12 of 14 high-confidence. 2 lines flagged for review.</p>
+        </div>
+        <span class="chip-mini sae">Job J-2603 · 14/14 lines</span>
+      </header>
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10px] font-mono uppercase tracking-wider ink-3 text-left">
+            <th class="px-3 py-2 border-b hairline">Code</th>
+            <th class="px-3 py-2 border-b hairline">Description</th>
+            <th class="px-3 py-2 border-b hairline">Qty</th>
+            <th class="px-3 py-2 border-b hairline">Net</th>
+            <th class="px-3 py-2 border-b hairline">GST</th>
+            <th class="px-3 py-2 border-b hairline">GL</th>
+            <th class="px-3 py-2 border-b hairline">Conf.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set lines = [
+            ('BS-CHS150',  'Cold-formed channel 150PFC × 9m',  '4', '1,840.00', '184.00', '5-205 Job materials', 99,  'pos'),
+            ('BS-RHS75',   'RHS 75×75×4 × 9m',                  '6', '1,260.00', '126.00', '5-205 Job materials', 99,  'pos'),
+            ('BS-PLT12',   'Plate 12mm 1200×600',               '2',   '420.00',  '42.00', '5-205 Job materials', 99,  'pos'),
+            ('BS-ANG50',   'Angle 50×50×5 × 6m',                '8',   '348.00',  '34.80', '5-205 Job materials', 98,  'pos'),
+            ('BS-CHS200',  'Cold-formed channel 200PFC × 6m',   '2',   '320.00',  '32.00', '5-205 Job materials', 99,  'pos'),
+            ('BS-CUT',     'Saw cuts to drawing rev C',         '14',   '98.00',   '9.80', '5-210 Job services',  92,  'pos'),
+            ('BS-DRILL',   'Drill program · 84 holes',          '1',    '84.00',   '8.40', '5-210 Job services',  88,  'warm'),
+            ('BS-DELIV',   'Delivery — Cairns',                 '1',    '12.18',   '1.22', '5-220 Freight in',    94,  'pos'),
+          ] %}
+          {% for code, desc, qty, net, gst, gl, conf, tone in lines %}
+          <tr class="row-cell hover:bg-[color:var(--paper-2)]">
+            <td><span class="num text-[10.5px]">{{ code }}</span></td>
+            <td class="text-[12px]">{{ desc }}</td>
+            <td class="num text-[11.5px]">{{ qty }}</td>
+            <td class="num text-[12px] tabular-nums">A${{ net }}</td>
+            <td class="num text-[11.5px] tabular-nums ink-2">A${{ gst }}</td>
+            <td class="text-[11.5px]"><a href="/preview/settings/chart-of-accounts" class="hover:text-[color:var(--sae)]">{{ gl }}</a></td>
+            <td>{% if tone == 'pos' %}<span class="chip-mini pos">{{ conf }}%</span>{% else %}<span class="chip-mini warm">{{ conf }}% · review</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+          <tr class="row-cell" style="border-top: 2px solid var(--ink); background: var(--paper-2);">
+            <td colspan="3" class="text-[12px] font-medium">Showing 8 of 14 · subtotal</td>
+            <td class="num text-[12.5px] tabular-nums font-medium">A$4,382.18</td>
+            <td class="num text-[12.5px] tabular-nums font-medium">A$438.22</td>
+            <td colspan="2" class="text-[11px] ink-3 text-right">Total incl GST <span class="num ink">A$4,820.40</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+
+  <!-- RIGHT 5/12 -->
+  <div class="lg:col-span-5 space-y-6">
+
+    <!-- Approval workflow -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">Approval workflow</h2>
+        <span class="chip-mini warm">2 of 2 pending</span>
+      </div>
+      <p class="text-[11.5px] ink-3 mb-3">Per <a href="/preview/settings/users" class="sae hover:underline">role matrix</a>, bills &gt; A$3,000 require two signoffs.</p>
+      <div class="space-y-3">
+        <div class="step-node done">
+          <span class="dot"></span>
+          <div class="text-[12px] font-medium">Auto-validated &amp; queued</div>
+          <div class="text-[10.5px] ink-3">today 14:42 AEST · system · MessageId 5ad9…72b4</div>
+        </div>
+        <div class="step-node pending">
+          <span class="dot"></span>
+          <div class="text-[12px] font-medium">Approval 1 · Admin BAS</div>
+          <div class="text-[10.5px] ink-3">awaiting <strong>S. Wong</strong> · notified 14:43</div>
+          <div class="mt-1.5 flex gap-1.5">
+            <a href="#" class="text-[11px] sae hover:underline">remind</a>
+            <span class="ink-3 text-[11px]">·</span>
+            <a href="#" class="text-[11px] sae hover:underline">delegate</a>
+          </div>
+        </div>
+        <div class="step-node pending">
+          <span class="dot"></span>
+          <div class="text-[12px] font-medium">Approval 2 · Owner</div>
+          <div class="text-[10.5px] ink-3">queued after approval 1 · <strong>R. Sauer</strong></div>
+        </div>
+        <div class="step-node pending">
+          <span class="dot"></span>
+          <div class="text-[12px] font-medium">Post bill &amp; schedule payment</div>
+          <div class="text-[10.5px] ink-3">becomes BILL-1843 · BECS DD batch 08 Jun 2026</div>
+        </div>
+        <div class="step-node pending">
+          <span class="dot"></span>
+          <div class="text-[12px] font-medium">Peppol Application Response sent</div>
+          <div class="text-[10.5px] ink-3">UBL ApplicationResponse · status AB-Accepted to BlueScope AP</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Supplier identity -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">Supplier identity — ABR live check</h2>
+        <span class="chip-mini pos"><i data-lucide="badge-check" class="w-2.5 h-2.5"></i>active · GST-registered</span>
+      </div>
+      <div class="text-[12px] space-y-1.5">
+        <div class="flex items-center justify-between"><span class="ink-3">Entity</span><span>BlueScope Steel (Aust) Pty Ltd</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">ABN</span><span class="num">16 000 011 058</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">ACN</span><span class="num">000 011 058</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">GST-registered since</span><span>01 Jul 2000</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Postcode (HQ)</span><span class="num">2500 Wollongong NSW</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">RCTI agreement</span><a href="/preview/settings/numbering" class="num sae hover:underline">signed 04 Mar 2024</a></div>
+        <div class="flex items-center justify-between"><span class="ink-3">ABR snapshot</span><span class="num">AbrXml v2025-11 · 04 May 2026</span></div>
+      </div>
+    </section>
+
+    <!-- Payment plan -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">Payment plan</h2>
+        <span class="chip-mini sae">BECS · APCA</span>
+      </div>
+      <div class="text-[12px] space-y-1.5">
+        <div class="flex items-center justify-between"><span class="ink-3">Method</span><span class="num">BECS DD batch</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Trading terms</span><span>Net 30 · no early-pay discount</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Schedule date</span><span class="num">08 Jun 2026 (Mon)</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Source account</span><a href="/preview/settings/banking/cba" class="num sae hover:underline">CBA Business Transaction ****6841</a></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Counterparty BSB/Acct</span><span class="num">062-001 · 1842 0611</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Reference</span><span class="num">SAUER J-2603</span></div>
+      </div>
+      <div class="text-[11px] ink-3 mt-3"><i data-lucide="info" class="w-3 h-3 inline align-middle"></i>Payment posts on settlement: <span class="ink-2 num">DR 2-150 A/P · CR 1-100 CBA</span> with auto-match score &gt; 0.99.</div>
+    </section>
+
+    <!-- Peppol response we'll send -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">Reply on approval — UBL ApplicationResponse</h2>
+        <span class="chip-mini">draft</span>
+      </div>
+      <p class="text-[11.5px] ink-3 mb-3">Once the bill is approved we acknowledge back on the Peppol network. BlueScope's AR system picks it up automatically.</p>
+      <div class="xml-block"><span class="k">&lt;ApplicationResponse&gt;</span>
+  <span class="k">&lt;cbc:ID&gt;</span><span class="v">SAUER-AR-001843</span><span class="k">&lt;/cbc:ID&gt;</span>
+  <span class="k">&lt;cac:DocumentResponse&gt;</span>
+    <span class="k">&lt;cac:Response&gt;&lt;cbc:ResponseCode&gt;</span><span class="v">AB</span><span class="k">&lt;/cbc:ResponseCode&gt;</span>
+    <span class="k">&lt;cbc:Description&gt;</span><span class="v">Accepted &amp; scheduled for payment 2026-06-08</span><span class="k">&lt;/cbc:Description&gt;&lt;/cac:Response&gt;</span>
+    <span class="k">&lt;cac:DocumentReference&gt;&lt;cbc:ID&gt;</span><span class="v">INV-BS-20611</span><span class="k">&lt;/cbc:ID&gt;</span>
+    <span class="k">&lt;cbc:DocumentTypeCode&gt;</span><span class="v">380</span><span class="k">&lt;/cbc:DocumentTypeCode&gt;&lt;/cac:DocumentReference&gt;</span>
+  <span class="k">&lt;/cac:DocumentResponse&gt;</span>
+<span class="k">&lt;/ApplicationResponse&gt;</span></div>
+    </section>
+
+    <!-- Audit -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Audit trail</h2>
+      <ul class="text-[11.5px] space-y-2.5">
+        <li class="flex items-start gap-2"><i data-lucide="inbox" class="w-3 h-3 pos mt-0.5"></i><div><span class="ink">Delivered via Peppol</span> · Storecove AP · <span class="ink-3">14:42:11 AEST</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="shield-check" class="w-3 h-3 pos mt-0.5"></i><div><span class="ink">PINT-AU validation pass</span> · 184 rules · <span class="ink-3">14:42:12</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="badge-check" class="w-3 h-3 pos mt-0.5"></i><div><span class="ink">ABR check</span> · 16 000 011 058 active · <span class="ink-3">14:42:12</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="wand-sparkles" class="w-3 h-3 sae mt-0.5"></i><div><span class="ink">Rule R-21 auto-coded</span> · 12 high-conf, 2 review · <span class="ink-3">14:42:13</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="user-cog" class="w-3 h-3 warm mt-0.5"></i><div><span class="ink">2-step approval routed</span> · S. Wong + R. Sauer · <span class="ink-3">14:43 by system</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="archive" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Original UBL stored</span> · s.262A · R2 sae-peppol-fy26 · <span class="ink-3">14:42:14</span></div></li>
+      </ul>
+      <a href="/preview/activity?scope=inbox&id=inv-bs-20611" class="text-[11.5px] sae hover:underline mt-3 inline-flex items-center gap-1">Open audit · 9 events <i data-lucide="chevron-right" class="w-3 h-3"></i></a>
+    </section>
+
+    <!-- Related -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Related</h2>
+      <ul class="space-y-1.5 text-[12.5px]">
+        <li><a href="/preview/inbox" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="inbox" class="w-3.5 h-3.5 ink-3"></i>Inbox</a></li>
+        <li><a href="/preview/settings/integrations/peppol" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="cable" class="w-3.5 h-3.5 ink-3"></i>Peppol integration · Storecove AP</a></li>
+        <li><a href="/preview/projects/j-2603" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="hard-hat" class="w-3.5 h-3.5 ink-3"></i>Job J-2603 · materials cost</a></li>
+        <li><a href="/preview/bills/bill-1842" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i>BILL-1842 (prior, Dale Maxwell)</a></li>
+        <li><a href="/preview/settings/numbering" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="list-ordered" class="w-3.5 h-3.5 ink-3"></i>BILL numbering stream</a></li>
+        <li><a href="/preview/settings/bank-feed-rules" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="wand-sparkles" class="w-3.5 h-3.5 ink-3"></i>Rule R-21 BlueScope</a></li>
+        <li><a href="/preview/compliance/bas-prep" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="landmark" class="w-3.5 h-3.5 ink-3"></i>BAS prep · 1B GST credit</a></li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

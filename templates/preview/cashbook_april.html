@@ -1,0 +1,428 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Cashbook · April 2026 · cash basis — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>Cashbook · monthly</span><span>·</span>
+      <span>Cash basis · GST attribution rule s.29-5(2) GST Act</span><span>·</span>
+      <span class="text-[var(--sae)]">April 2026</span><span>·</span>
+      <span>30-day period · 27 BD · 39 transactions</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">Cashbook · April 2026</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          Receipts A$184,620.18 · Payments A$118,420.42 · Net A$66,199.76 ·
+          GST collected A$16,420.02 · GST paid A$8,184.20 · Net GST A$8,235.82 ·
+          Bank reconciled to <span class="font-mono">CBA 062-001 0184 1842</span> at 30 Apr 2026
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Closing cash position</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$84,260.42</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">CBA op A$60,184 + CBA save A$22,420 + petty A$1,656.42</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="px-10 py-6 grid grid-cols-6 gap-3 border-b border-[var(--line)]">
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Opening cash</div>
+      <div class="num text-2xl mt-1">A$18,060.66</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">1 Apr 26 · all accounts</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Receipts</div>
+      <div class="num text-2xl mt-1 text-[var(--pos)]">A$184,620.18</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">21 deposits · incl GST</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Payments</div>
+      <div class="num text-2xl mt-1 text-[var(--neg)]">A$118,420.42</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">18 outflows · incl GST</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Net GST</div>
+      <div class="num text-2xl mt-1 text-[var(--sae)]">A$8,235.82</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">1A A$16,420 − 1B A$8,184</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Bank reconciled</div>
+      <div class="num text-2xl mt-1 text-[var(--pos)]">0.00¢</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">39/39 txns · 100%</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Closing cash</div>
+      <div class="num text-2xl mt-1">A$84,260.42</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">+A$66,199.76 net</div>
+    </div>
+  </section>
+
+  <!-- Two-column journal: receipts (left) + payments (right) -->
+  <section class="px-10 py-8 border-b border-[var(--line)] grid grid-cols-2 gap-6">
+    <!-- Receipts journal -->
+    <div>
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-xl">Cash receipts journal</h2>
+        <div class="text-[10px] text-[var(--ink-3)]">21 deposits · DR 1-100</div>
+      </div>
+      <table class="w-full text-[11px] num border-t border-[var(--line)]">
+        <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+          <tr class="border-b border-[var(--line)]">
+            <th class="text-left py-1.5 w-[60px]">Date</th>
+            <th class="text-left">Particulars</th>
+            <th class="text-right w-[80px]">Gross</th>
+            <th class="text-right w-[60px]">GST 1A</th>
+            <th class="text-right w-[70px]">4-100 sales</th>
+          </tr>
+        </thead>
+        <tbody class="text-[var(--ink)]">
+          <tr class="border-b border-dashed border-[var(--line)]"><td>02 Apr</td><td>Maxwell · PC-08 progress claim</td><td class="text-right">A$58,420.40</td><td class="text-right">A$5,310.95</td><td class="text-right">A$53,109.45</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>02 Apr</td><td>BHP · INV-3061 fabrication</td><td class="text-right">A$22,184.40</td><td class="text-right">A$2,016.76</td><td class="text-right">A$20,167.64</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>04 Apr</td><td>Brisbane Marine · INV-3062 weld repair</td><td class="text-right">A$4,820.00</td><td class="text-right">A$438.18</td><td class="text-right">A$4,381.82</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>08 Apr</td><td>Maxwell · VO-04 paid</td><td class="text-right">A$1,842.40</td><td class="text-right">A$167.49</td><td class="text-right">A$1,674.91</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>10 Apr</td><td>Cash sale · scrap steel · Sims</td><td class="text-right">A$1,184.20</td><td class="text-right">A$107.65</td><td class="text-right">A$1,076.55</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>11 Apr</td><td>BHP · INV-3063</td><td class="text-right">A$14,260.18</td><td class="text-right">A$1,296.38</td><td class="text-right">A$12,963.80</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>14 Apr</td><td>Northshore Crane · sub on-hire</td><td class="text-right">A$3,840.40</td><td class="text-right">A$349.13</td><td class="text-right">A$3,491.27</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>16 Apr</td><td>ATO BAS Q3 PAYG instalment credit (refund)</td><td class="text-right">A$7,927.82</td><td class="text-right">—</td><td class="text-right text-[var(--ink-3)]">GST-free</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>17 Apr</td><td>Maxwell · PC-09 progress claim (part)</td><td class="text-right">A$28,420.00</td><td class="text-right">A$2,583.64</td><td class="text-right">A$25,836.36</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>18 Apr</td><td>Interest CBA save A/C</td><td class="text-right">A$42.18</td><td class="text-right">—</td><td class="text-right text-[var(--ink-3)]">input-taxed</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>21 Apr</td><td>Maxwell · PC-09 balance</td><td class="text-right">A$18,184.40</td><td class="text-right">A$1,653.13</td><td class="text-right">A$16,531.27</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>22 Apr</td><td>Mayne · INV-3064 platform install</td><td class="text-right">A$9,840.40</td><td class="text-right">A$894.58</td><td class="text-right">A$8,945.82</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>23 Apr</td><td>Brisbane Marine · INV-3065</td><td class="text-right">A$2,840.18</td><td class="text-right">A$258.20</td><td class="text-right">A$2,581.98</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>24 Apr</td><td>BHP · INV-3066 stainless work</td><td class="text-right">A$5,820.20</td><td class="text-right">A$529.11</td><td class="text-right">A$5,291.09</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>25 Apr</td><td>Cash sale · weld bar drop · Apr show</td><td class="text-right">A$640.00</td><td class="text-right">A$58.18</td><td class="text-right">A$581.82</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>28 Apr</td><td>BHP · INV-3067 maintenance</td><td class="text-right">A$3,184.40</td><td class="text-right">A$289.49</td><td class="text-right">A$2,894.91</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>29 Apr</td><td>Northshore Crane · 2nd hire</td><td class="text-right">A$1,184.20</td><td class="text-right">A$107.65</td><td class="text-right">A$1,076.55</td></tr>
+          <tr><td>30 Apr</td><td colspan="2" class="text-right text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">+ 4 small receipts</td><td class="text-right">A$359.50</td><td class="text-right">—</td></tr>
+          <tr class="border-t-2 border-[var(--line)]"><td colspan="2" class="py-2 text-right text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Totals</td><td class="text-right py-2 font-medium">A$184,620.18</td><td class="text-right py-2 font-medium text-[var(--sae)]">A$16,420.02</td><td class="text-right py-2 font-medium">A$160,605.24</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Payments journal -->
+    <div>
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-xl">Cash payments journal</h2>
+        <div class="text-[10px] text-[var(--ink-3)]">18 outflows · CR 1-100</div>
+      </div>
+      <table class="w-full text-[11px] num border-t border-[var(--line)]">
+        <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+          <tr class="border-b border-[var(--line)]">
+            <th class="text-left py-1.5 w-[60px]">Date</th>
+            <th class="text-left">Particulars</th>
+            <th class="text-right w-[80px]">Gross</th>
+            <th class="text-right w-[60px]">GST 1B</th>
+            <th class="text-left w-[80px]">Account</th>
+          </tr>
+        </thead>
+        <tbody class="text-[var(--ink)]">
+          <tr class="border-b border-dashed border-[var(--line)]"><td>02 Apr</td><td>BlueScope · BILL-1820 mill steel</td><td class="text-right">A$18,420.40</td><td class="text-right">A$1,674.58</td><td>5-205</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>02 Apr</td><td>Bowen Steel · sub claim Mar</td><td class="text-right">A$14,840.00</td><td class="text-right">A$1,349.09</td><td>5-405</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>04 Apr</td><td>Coregas · welding gases</td><td class="text-right">A$842.18</td><td class="text-right">A$76.56</td><td>5-220</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>07 Apr</td><td>CBA · merchant fee</td><td class="text-right">A$184.20</td><td class="text-right">—</td><td class="text-[var(--ink-3)]">6-450 (input-tax)</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>08 Apr</td><td>BECS PR-26-0408 wages × 5</td><td class="text-right">A$11,184.40</td><td class="text-right">—</td><td>6-100</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>09 Apr</td><td>PAYG-W payment ATO Q3</td><td class="text-right">A$8,604.18</td><td class="text-right">—</td><td>2-310</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>10 Apr</td><td>BP fuel card · diesel × 6 fills</td><td class="text-right">A$1,842.40</td><td class="text-right">A$167.49</td><td>5-300</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>12 Apr</td><td>RACQ ins · ute fleet renewal</td><td class="text-right">A$2,184.40</td><td class="text-right">A$198.58</td><td>6-200</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>14 Apr</td><td>Bunnings · consumables</td><td class="text-right">A$640.18</td><td class="text-right">A$58.20</td><td>5-220</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>15 Apr</td><td>SuperStream batch SSB-26Q3 (Beam)</td><td class="text-right">A$8,420.40</td><td class="text-right">—</td><td>2-330</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>16 Apr</td><td>BECS PR-26-0416 wages × 5</td><td class="text-right">A$11,260.60</td><td class="text-right">—</td><td>6-100</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>18 Apr</td><td>BlueScope · BILL-1834 plate</td><td class="text-right">A$6,840.18</td><td class="text-right">A$621.83</td><td>5-205</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>22 Apr</td><td>Origin · workshop power</td><td class="text-right">A$1,242.40</td><td class="text-right">A$112.95</td><td>6-410</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>24 Apr</td><td>BECS PR-26-0423 wages × 5</td><td class="text-right">A$11,184.40</td><td class="text-right">—</td><td>6-100</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>25 Apr</td><td>Telstra · fleet phones</td><td class="text-right">A$418.40</td><td class="text-right">A$38.04</td><td>6-420</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>28 Apr</td><td>Pat Sheridan · subcontract welder</td><td class="text-right">A$8,420.00</td><td class="text-right">A$765.45</td><td>5-405</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>29 Apr</td><td>Div 7A DD · LN-2603 R. Sauer</td><td class="text-right">A$1,807.03</td><td class="text-right">—</td><td>1-340 / 1-470</td></tr>
+          <tr><td>30 Apr</td><td colspan="2" class="text-right text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">+ 1 small payment</td><td class="text-right">A$84.67</td><td class="text-right">—</td></tr>
+          <tr class="border-t-2 border-[var(--line)]"><td colspan="2" class="py-2 text-right text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Totals</td><td class="text-right py-2 font-medium">A$118,420.42</td><td class="text-right py-2 font-medium text-[var(--sae)]">A$8,184.20</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Bank reconciliation -->
+  <section class="px-10 py-8 border-b border-[var(--line)] grid grid-cols-3 gap-6">
+    <div class="drafting p-5 col-span-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Bank reconciliation · 30 Apr 2026</div>
+      <div class="font-display text-xl mt-1">Cashbook ↔ CBA statement</div>
+      <table class="w-full text-xs num mt-3">
+        <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+          <tr><th class="text-left py-1">Account</th><th class="text-right">Cashbook balance</th><th class="text-right">Bank statement</th><th class="text-right">Variance</th><th class="text-center">Reconciled</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">CBA Operating 062-001 0184 1842</td><td class="text-right">A$60,184.00</td><td class="text-right">A$60,184.00</td><td class="text-right text-[var(--pos)]">A$0.00</td><td class="text-center text-[var(--pos)]">✓</td></tr>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">CBA Savings 062-001 2603 1842</td><td class="text-right">A$22,420.00</td><td class="text-right">A$22,420.00</td><td class="text-right text-[var(--pos)]">A$0.00</td><td class="text-center text-[var(--pos)]">✓</td></tr>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">Petty cash · workshop tin</td><td class="text-right">A$1,656.42</td><td class="text-right">A$1,656.42</td><td class="text-right text-[var(--pos)]">A$0.00</td><td class="text-center text-[var(--pos)]">✓ count 30 Apr</td></tr>
+          <tr class="border-t border-[var(--line)]"><td class="py-1 font-medium">Total cash position</td><td class="text-right py-1 font-medium">A$84,260.42</td><td class="text-right py-1 font-medium">A$84,260.42</td><td class="text-right py-1 font-medium text-[var(--pos)]">A$0.00</td><td class="text-center text-[var(--pos)]">100%</td></tr>
+        </tbody>
+      </table>
+      <div class="grid grid-cols-2 gap-3 mt-4 text-[11px]">
+        <div class="drafting p-3">
+          <div class="text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Auto-match rate</div>
+          <div class="text-2xl num mt-1">39 / 39 · 100%</div>
+          <div class="text-[var(--ink-3)] mt-1">CDR open-banking feed · matched against journal by amount + date + payee (string distance ≤ 0.18) — 36 perfect · 3 fuzzy approved manually.</div>
+        </div>
+        <div class="drafting p-3">
+          <div class="text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Outstanding items</div>
+          <div class="text-2xl num mt-1">0</div>
+          <div class="text-[var(--ink-3)] mt-1">No unpresented cheques · no deposits in transit · no in-flight DDs at month-end. Statement closing date 30 Apr 23:59 AEST matches journal cut-off.</div>
+        </div>
+      </div>
+    </div>
+    <div class="drafting p-5">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Cash-basis BAS attribution</div>
+      <div class="font-display text-xl mt-1">s.29-5(2) GST Act</div>
+      <div class="text-xs mt-3 space-y-2">
+        <p><strong>Cash-basis entity</strong> (turnover &lt; A$10m) — GST attributed to BAS period when payment received / paid, not when invoice issued.</p>
+        <p>SAE elected cash-basis for GST under s.29-40 on 1 Jul 2023 · binding for one tax period · still in force.</p>
+        <p>Accrual-basis income tax — small-business simplified depreciation pool (s.328-D) — runs separately from cash-basis GST.</p>
+      </div>
+      <div class="mt-3 text-[10px] text-[var(--ink-3)]">If turnover crosses A$10m in any 12-month period, must switch to accrual under s.29-40(4) — current FY26 turnover projection A$3.8m, comfortably below.</div>
+    </div>
+  </section>
+
+  <!-- Monthly BAS labels driven from cashbook -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">Cashbook → BAS labels · April 2026 contribution</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Direct mapping receipts/payments → G1/G3/G10/G11/1A/1B · feeds quarterly BAS replay</div>
+    </div>
+    <div class="grid grid-cols-2 gap-8">
+      <table class="w-full text-xs num border-t border-[var(--line)]">
+        <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+          <tr><th class="text-left py-2 w-[60px]">Label</th><th class="text-left">Description</th><th class="text-right">April</th><th class="text-right">YTD Q4</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>G1</td><td>Total supplies incl GST</td><td class="text-right">A$176,250.18</td><td class="text-right">A$176,250.18</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>G2</td><td>Export supplies</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>G3</td><td>GST-free supplies</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>G10</td><td>Capital purchases</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td>G11</td><td>Non-capital purchases incl GST</td><td class="text-right">A$53,260.18</td><td class="text-right">A$53,260.18</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="text-[var(--sae)]">1A</td><td>GST on sales (cash recd)</td><td class="text-right text-[var(--sae)]">A$16,420.02</td><td class="text-right text-[var(--sae)]">A$16,420.02</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="text-[var(--sae)]">1B</td><td>GST on purchases (cash paid)</td><td class="text-right text-[var(--sae)]">A$8,184.20</td><td class="text-right text-[var(--sae)]">A$8,184.20</td></tr>
+          <tr><td colspan="2" class="py-2 text-right font-medium">Net GST attributable</td><td class="text-right py-2 font-display text-base text-[var(--sae)]">A$8,235.82</td><td class="text-right py-2 font-display text-base text-[var(--sae)]">A$8,235.82</td></tr>
+        </tbody>
+      </table>
+      <div>
+        <div class="drafting p-4 text-[11px]">
+          <div class="text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Reconciliation note</div>
+          <div class="mt-2">G1 (supplies incl GST) = Receipts A$184,620.18 − non-taxable A$7,927.82 (ATO refund) − A$42.18 (input-tax interest) − A$400 (other GST-free) = A$176,250.18. 1A check: A$176,250.18 ÷ 11 = A$16,022.74 — variance A$397.28 due to non-standard rounding on cash sales. Acceptable.</div>
+          <div class="text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px] mt-3">Replay against Q3 BAS</div>
+          <div class="mt-2">April is month 1 of BAS Q4 FY26 (Apr–Jun). Cashbook auto-stages all 3 months as separate ledgers and replays the consolidated quarterly BAS on lodgement — no re-keying. May and June cashbooks will append in the same shape.</div>
+        </div>
+        <div class="drafting p-4 text-[11px] mt-3">
+          <div class="text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Cash-basis vs accrual</div>
+          <div class="mt-2">If SAE were on accrual-basis: BAS would include Maxwell PC-09 invoice issued 11 May (A$184,420) crystallising A$16,765 GST in Q4. On cash basis, only the portion received (A$28,420 + A$18,184 = A$46,604) drives the 1A figure — A$4,236 GST. Cash-basis defers the cash-flow hit until customers actually pay.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Monthly trend visual -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">12-month cash trend · rolling year</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">May 25 → Apr 26 · receipts (sae) · payments (warm) · closing cash (ink)</div>
+    </div>
+    <div class="drafting p-6">
+      <svg viewBox="0 0 720 200" class="w-full h-48">
+        <!-- grid -->
+        <line x1="0" y1="40" x2="720" y2="40" stroke="var(--line)" stroke-dasharray="2 4"/>
+        <line x1="0" y1="100" x2="720" y2="100" stroke="var(--line)" stroke-dasharray="2 4"/>
+        <line x1="0" y1="160" x2="720" y2="160" stroke="var(--line)" stroke-dasharray="2 4"/>
+        <!-- receipts bars (sae) -->
+        <g fill="var(--sae)" opacity="0.85">
+          <rect x="10" y="92" width="40" height="68"/>
+          <rect x="70" y="80" width="40" height="80"/>
+          <rect x="130" y="105" width="40" height="55"/>
+          <rect x="190" y="86" width="40" height="74"/>
+          <rect x="250" y="72" width="40" height="88"/>
+          <rect x="310" y="98" width="40" height="62"/>
+          <rect x="370" y="60" width="40" height="100"/>
+          <rect x="430" y="84" width="40" height="76"/>
+          <rect x="490" y="90" width="40" height="70"/>
+          <rect x="550" y="76" width="40" height="84"/>
+          <rect x="610" y="68" width="40" height="92"/>
+          <rect x="670" y="48" width="40" height="112"/>
+        </g>
+        <!-- payments bars (warm, narrower, offset) -->
+        <g fill="var(--warm)" opacity="0.7">
+          <rect x="20" y="120" width="20" height="40"/>
+          <rect x="80" y="118" width="20" height="42"/>
+          <rect x="140" y="130" width="20" height="30"/>
+          <rect x="200" y="116" width="20" height="44"/>
+          <rect x="260" y="110" width="20" height="50"/>
+          <rect x="320" y="124" width="20" height="36"/>
+          <rect x="380" y="100" width="20" height="60"/>
+          <rect x="440" y="118" width="20" height="42"/>
+          <rect x="500" y="120" width="20" height="40"/>
+          <rect x="560" y="108" width="20" height="52"/>
+          <rect x="620" y="104" width="20" height="56"/>
+          <rect x="680" y="98" width="20" height="62"/>
+        </g>
+        <!-- closing cash line -->
+        <polyline fill="none" stroke="var(--ink)" stroke-width="1.5" points="30,140 90,138 150,142 210,130 270,128 330,134 390,116 450,128 510,124 570,118 630,108 690,86"/>
+        <g fill="var(--ink)">
+          <circle cx="30" cy="140" r="2"/><circle cx="90" cy="138" r="2"/><circle cx="150" cy="142" r="2"/><circle cx="210" cy="130" r="2"/><circle cx="270" cy="128" r="2"/><circle cx="330" cy="134" r="2"/><circle cx="390" cy="116" r="2"/><circle cx="450" cy="128" r="2"/><circle cx="510" cy="124" r="2"/><circle cx="570" cy="118" r="2"/><circle cx="630" cy="108" r="2"/><circle cx="690" cy="86" r="2"/>
+        </g>
+        <!-- month labels -->
+        <g font-family="JetBrains Mono" font-size="9" fill="var(--ink-3)">
+          <text x="22" y="180">May</text><text x="82" y="180">Jun</text><text x="142" y="180">Jul</text><text x="202" y="180">Aug</text><text x="262" y="180">Sep</text><text x="322" y="180">Oct</text><text x="382" y="180">Nov</text><text x="442" y="180">Dec</text><text x="502" y="180">Jan</text><text x="562" y="180">Feb</text><text x="622" y="180">Mar</text><text x="682" y="180" fill="var(--sae)" font-weight="600">Apr</text>
+        </g>
+        <!-- y-axis hints -->
+        <g font-family="JetBrains Mono" font-size="9" fill="var(--ink-3)">
+          <text x="0" y="38">A$200k</text><text x="0" y="98">A$120k</text><text x="0" y="158">A$40k</text>
+        </g>
+      </svg>
+      <div class="grid grid-cols-3 gap-3 mt-4 text-[11px]">
+        <div class="drafting p-3"><span class="text-[var(--ink-3)]">12-mo receipts</span> · A$1,842,604 · avg A$153,550/mo · Apr +20% on rolling-12</div>
+        <div class="drafting p-3"><span class="text-[var(--ink-3)]">12-mo payments</span> · A$1,294,420 · avg A$107,868/mo · Apr +10% (BlueScope mill order)</div>
+        <div class="drafting p-3"><span class="text-[var(--ink-3)]">Net cash trajectory</span> · started A$24,184 last May · closed A$84,260 April · 12-mo Δ +A$60,076</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13-week cash forecast -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">13-week cash forecast · from 11 May 2026</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Receivables ageing × terms · AP scheduled DDs · payroll calendar · BAS Q4 26 Jul · FBT bal 25 Jun · super 28 Jul</div>
+    </div>
+    <table class="w-full text-[11px] num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2 w-[80px]">Week</th>
+          <th class="text-left w-[100px]">Period end</th>
+          <th class="text-right">Receipts forecast</th>
+          <th class="text-right">Payments forecast</th>
+          <th class="text-right">Net</th>
+          <th class="text-right">Closing cash</th>
+          <th class="text-left">Notes</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W20</td><td>17 May</td><td class="text-right">A$42,184</td><td class="text-right">A$28,184</td><td class="text-right text-[var(--pos)]">A$14,000</td><td class="text-right">A$98,260</td><td>STP-2 W19 + W20</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W21</td><td>24 May</td><td class="text-right">A$22,184</td><td class="text-right">A$18,840</td><td class="text-right text-[var(--pos)]">A$3,344</td><td>A$101,604</td><td>BAS Q3 DD 26 May A$14,260</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W22</td><td>31 May</td><td class="text-right">A$184,420</td><td class="text-right">A$22,840</td><td class="text-right text-[var(--pos)]">A$161,580</td><td class="text-right">A$263,184</td><td>PC-09 settle (s.67(2) due 25 May)</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W23</td><td>07 Jun</td><td class="text-right">A$24,184</td><td class="text-right">A$84,261</td><td class="text-right text-[var(--neg)]">−A$60,077</td><td class="text-right">A$203,107</td><td>AP-26-0608-DD batch (incl BILL-1843)</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W24</td><td>14 Jun</td><td class="text-right">A$48,184</td><td class="text-right">A$22,420</td><td class="text-right text-[var(--pos)]">A$25,764</td><td class="text-right">A$228,871</td><td></td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W25</td><td>21 Jun</td><td class="text-right">A$28,184</td><td class="text-right">A$24,184</td><td class="text-right text-[var(--pos)]">A$4,000</td><td class="text-right">A$232,871</td><td>FBT bal A$2,236 (25 Jun)</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W26</td><td>28 Jun</td><td class="text-right">A$58,420</td><td class="text-right">A$28,184</td><td class="text-right text-[var(--pos)]">A$30,236</td><td class="text-right">A$263,107</td><td>EOFY · stocktake</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W27</td><td>05 Jul</td><td class="text-right">A$32,184</td><td class="text-right">A$22,420</td><td class="text-right text-[var(--pos)]">A$9,764</td><td class="text-right">A$272,871</td><td></td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W28</td><td>12 Jul</td><td class="text-right">A$28,420</td><td class="text-right">A$32,184</td><td class="text-right text-[var(--neg)]">−A$3,764</td><td class="text-right">A$269,107</td><td>STP-2 FY26 finalisation 14 Jul</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W29</td><td>19 Jul</td><td class="text-right">A$24,840</td><td class="text-right">A$22,184</td><td class="text-right text-[var(--pos)]">A$2,656</td><td class="text-right">A$271,763</td><td></td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W30</td><td>26 Jul</td><td class="text-right">A$28,420</td><td class="text-right">A$48,420</td><td class="text-right text-[var(--neg)]">−A$20,000</td><td class="text-right">A$251,763</td><td>BAS Q4 due 28 Jul · est A$22k</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>W31</td><td>02 Aug</td><td class="text-right">A$32,184</td><td class="text-right">A$22,184</td><td class="text-right text-[var(--pos)]">A$10,000</td><td class="text-right">A$261,763</td><td></td></tr>
+        <tr><td>W32</td><td>09 Aug</td><td class="text-right">A$28,420</td><td class="text-right">A$24,184</td><td class="text-right text-[var(--pos)]">A$4,236</td><td class="text-right">A$265,999</td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="text-[10px] text-[var(--ink-3)] mt-3">Lowest point W23 (W/E 7 Jun) A$203k — well above A$60k working-capital floor. No cash crunch projected.</div>
+  </section>
+
+  <!-- Cashbook journals → GL -->
+  <section class="px-10 py-8 border-b border-[var(--line)] grid grid-cols-2 gap-8">
+    <div class="drafting p-5">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Period journal · 30 Apr 2026</div>
+      <div class="font-display text-xl mt-1">Cashbook → general ledger</div>
+      <table class="w-full text-xs num mt-3">
+        <tbody>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 1-100 Bank · CBA op + sav + petty</td><td class="text-right">A$66,199.76</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">CR 4-100 Sales income</td><td class="text-right">−A$160,605.24</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">CR 2-410 GST receivable (1A)</td><td class="text-right">−A$16,420.02</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 5-205 Materials · steel</td><td class="text-right">A$23,422.72</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 5-405 Subcontractors</td><td class="text-right">A$21,145.46</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 5-220 Consumables</td><td class="text-right">A$1,346.42</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 5-300 Fuel</td><td class="text-right">A$1,674.91</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 6-100 Wages</td><td class="text-right">A$33,629.40</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 6-2/4xx OPEX (utilities, ins, comms)</td><td class="text-right">A$3,608.92</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 2-310 / 2-330 ATO + super clear</td><td class="text-right">A$17,024.58</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 1-340 / 1-470 Div 7A loan amort</td><td class="text-right">A$1,807.03</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 2-410 GST payable on purchases (1B)</td><td class="text-right">A$8,184.20</td></tr>
+          <tr><td class="py-1 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Balanced</td><td class="text-right text-[var(--pos)]">A$0.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Cashbook close pipeline · April 2026</div>
+      <div class="font-display text-xl mt-1">7-step monthly close</div>
+      <div class="grid grid-cols-7 gap-1 text-[11px] mt-3">
+        <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">1</div><div class="mt-1">CDR feed pull</div><div class="text-[10px] text-[var(--ink-3)] mt-1">CBA · 30 Apr</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+        <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">2</div><div class="mt-1">Auto-match</div><div class="text-[10px] text-[var(--ink-3)] mt-1">39/39 · 100%</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+        <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">3</div><div class="mt-1">GST classify</div><div class="text-[10px] text-[var(--ink-3)] mt-1">17 · 22 GST-free</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+        <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">4</div><div class="mt-1">Petty cash count</div><div class="text-[10px] text-[var(--ink-3)] mt-1">A$1,656.42</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+        <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">5</div><div class="mt-1">Recon all 3 acc</div><div class="text-[10px] text-[var(--ink-3)] mt-1">Var A$0.00</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+        <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">6</div><div class="mt-1">Stage BAS labels</div><div class="text-[10px] text-[var(--ink-3)] mt-1">G1/G11/1A/1B</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+        <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">7</div><div class="mt-1">Period lock</div><div class="text-[10px] text-[var(--ink-3)] mt-1">WORM archive</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+      </div>
+      <div class="drafting p-4 mt-4 text-[11px]">
+        <div class="text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Period lock</div>
+        <div class="mt-2">After step 7, journal entries against April are blocked. Backdated changes go through a reversing-entry process (DR/CR equal-and-opposite in May with reference). BAS replay always uses frozen TB.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">How AU cashbooks compare</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Cash-basis BAS · open-banking CDR feeds · auto-classify · period-lock · 13-week forecast</div>
+    </div>
+    <table class="w-full text-xs num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2">Capability</th>
+          <th class="text-left">SAE Books</th>
+          <th class="text-left">Xero Cashbook</th>
+          <th class="text-left">MYOB Essentials Cashbook</th>
+          <th class="text-left">Reckon Cashbook Solo</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Cash-basis GST attribution (s.29-5(2))</td><td class="text-[var(--pos)]">native toggle</td><td class="text-[var(--pos)]">supported</td><td class="text-[var(--pos)]">supported</td><td class="text-[var(--pos)]">supported</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">CDR open-banking feeds (all 4 majors + neobanks)</td><td class="text-[var(--pos)]">CBA/Westpac/NAB/ANZ + Up + Macquarie</td><td class="text-[var(--pos)]">core + most neobanks</td><td class="text-[var(--warm)]">majors + most</td><td class="text-[var(--warm)]">majors only</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">100% auto-match floor (39/39 this month)</td><td class="text-[var(--pos)]">fuzzy 0.18 + rules</td><td class="text-[var(--warm)]">~70-85%</td><td class="text-[var(--warm)]">~65-80%</td><td class="text-[var(--warm)]">~55-75%</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">13-week rolling cash forecast w/ ATO obligations</td><td class="text-[var(--pos)]">incl BAS/FBT/super</td><td class="text-[var(--warm)]">via Float add-on</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Cashbook → BAS replay (frozen TB)</td><td class="text-[var(--pos)]">cents-exact</td><td class="text-[var(--warm)]">rebuild on lodge</td><td class="text-[var(--warm)]">rebuild on lodge</td><td class="text-[var(--warm)]">rebuild on lodge</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Petty-cash module incl handheld count</td><td class="text-[var(--pos)]">tin + receipt OCR</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Period-lock + WORM 7yr archive</td><td class="text-[var(--pos)]">R2 WORM</td><td class="text-[var(--warm)]">soft lock</td><td class="text-[var(--warm)]">soft lock</td><td class="text-[var(--neg)]">none</td></tr>
+        <tr><td class="py-2">Cents-balanced journal vs P&L drilldown</td><td class="text-[var(--pos)]">live</td><td>via Reports</td><td>via Reports</td><td class="text-[var(--warm)]">limited</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Cross-links -->
+  <section class="px-10 py-8">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Related</div>
+    <div class="font-display text-xl mt-1">Adjacent cashbook surfaces</div>
+    <div class="grid grid-cols-5 gap-3 mt-4 text-xs">
+      <a href="/preview/cashbook" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Index</div>
+        <div class="font-medium mt-1">All months · 12-mo trail</div>
+      </a>
+      <a href="/preview/cashbook/capture" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Capture</div>
+        <div class="font-medium mt-1">CDR feed pull / OCR queue</div>
+      </a>
+      <a href="/preview/cashbook/tax-time" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Tax time</div>
+        <div class="font-medium mt-1">FY26 schedule prep</div>
+      </a>
+      <a href="/preview/reports/cash-flow" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Cash flow</div>
+        <div class="font-medium mt-1">Statement · indirect method</div>
+      </a>
+      <a href="/preview/compliance/bas/26-q3" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">BAS</div>
+        <div class="font-medium mt-1">Q3 ACCEPTED · Q4 draft</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

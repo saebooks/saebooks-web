@@ -1,0 +1,338 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}RCT-00184 · Bunnings · A$184.20 — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .conf-bar { height: 3px; background: var(--paper-2); border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; background: var(--pos); }
+  .conf-fill.warm { background: var(--warm); }
+  .conf-fill.neg { background: var(--neg); }
+  .ocr-field { padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  .ocr-field:last-child { border-bottom: 0; }
+  .receipt-mock { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 11px; line-height: 1.5; background: #fdfaf3; color: #2a241c; padding: 18px 22px; border: 1px solid #d8cfb4; border-radius: 4px; box-shadow: 0 2px 0 #e8e1c8 inset; }
+  .receipt-mock .ctr { text-align: center; }
+  .receipt-mock .line { border-top: 1px dashed #b9ad88; margin: 6px 0; }
+  .receipt-mock .row { display: flex; justify-content: space-between; gap: 12px; }
+  .field-row td { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .field-row:first-child td { border-top: 0; }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider">
+        <a href="/preview/cashbook" class="hover:text-[color:var(--sae)]">Cashbook</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <a href="/preview/cashbook/capture" class="hover:text-[color:var(--sae)]">Receipt capture</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>RCT-00184</span>
+        <span class="ml-2 chip-mini pos"><i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i>auto-coded</span>
+        <span class="chip-mini sae">ATO TR 97/24 substantiated</span>
+        <span class="chip-mini">matched to CBA pmt-2014</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">Bunnings Warehouse — Cairns Smithfield</h1>
+      <div class="flex items-baseline gap-5 mt-1.5 text-[13px] ink-2">
+        <span class="num">A$184.20</span>
+        <span class="ink-3">·</span>
+        <span>11 May 2026 · 11:14 AEST</span>
+        <span class="ink-3">·</span>
+        <span>ABN <span class="num">26 008 672 179</span></span>
+        <span class="ink-3">·</span>
+        <span>Tax invoice <span class="num">#T2-4814-001827</span></span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <div class="flex gap-2">
+        <a href="#" class="btn-secondary"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Re-scan</a>
+        <a href="#" class="btn-primary"><i data-lucide="check" class="w-4 h-4"></i>Post to ledger</a>
+      </div>
+      <a href="/preview/activity?scope=receipt&id=rct-00184" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>Receipt audit · 14 events</a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<!-- 5 KPIs -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 text-[12px]">
+  {% set kpis = [
+    ('OCR confidence', '98.4%', '12 of 12 fields ≥ 0.85', 'scan-line', 'pos'),
+    ('GST extracted',  'A$16.75', '10% of A$167.45 net', 'percent', 'ink'),
+    ('Auto-coded by',  'Rule R-09', 'Bunnings · job-required', 'wand-sparkles', 'sae'),
+    ('Match to bank',  'pmt-2014', 'CBA Smart Access · 11 May', 'link-2', 'pos'),
+    ('Substantiation', '7yr retention', 's.262A · stored 11 May 2026', 'shield-check', 'pos'),
+  ] %}
+  {% for label, val, sub, icon, tone in kpis %}
+    <div class="card p-3.5">
+      <div class="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider ink-3"><i data-lucide="{{ icon }}" class="w-3 h-3"></i>{{ label }}</div>
+      <div class="num text-[18px] mt-1 {% if tone == 'pos' %}pos{% elif tone == 'warm' %}warm{% elif tone == 'sae' %}sae{% endif %}">{{ val }}</div>
+      <div class="text-[10.5px] ink-3 mt-0.5">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- LEFT: receipt + extracted lines -->
+  <div class="lg:col-span-7 space-y-6">
+    <!-- Receipt + extracted side by side -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-4">
+        <h2 class="font-display text-[18px]">Source document &amp; extraction</h2>
+        <span class="chip-mini"><i data-lucide="image" class="w-2.5 h-2.5"></i>HEIC · 2.4 MB · 1284 × 2778</span>
+      </div>
+      <div class="grid grid-cols-2 gap-5">
+        <div>
+          <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-2">Source receipt (mobile capture)</div>
+          <div class="receipt-mock">
+            <div class="ctr"><strong>BUNNINGS WAREHOUSE</strong></div>
+            <div class="ctr">CAIRNS SMITHFIELD QLD 4878</div>
+            <div class="ctr">ABN 26 008 672 179</div>
+            <div class="line"></div>
+            <div class="row"><span>11/05/2026 11:14:32</span><span>OP 4814</span></div>
+            <div class="row"><span>STORE 2014</span><span>TXN 001827</span></div>
+            <div class="line"></div>
+            <div class="row"><span>HiKOKI 36V impact driver</span><span>$ 142.00</span></div>
+            <div class="row"><span>Makita 25mm spade bit set</span><span>$ 24.20</span></div>
+            <div class="row"><span>Pkt zip ties 200mm</span><span>$ 8.45</span></div>
+            <div class="row"><span>Sika MS construction sealant</span><span>$ 9.55</span></div>
+            <div class="line"></div>
+            <div class="row"><span>Subtotal (ex GST)</span><span>$ 167.45</span></div>
+            <div class="row"><span>GST 10%</span><span>$  16.75</span></div>
+            <div class="row"><strong>TOTAL (incl GST)</strong><strong>$ 184.20</strong></div>
+            <div class="line"></div>
+            <div class="row"><span>EFTPOS Visa **** 0184</span><span>$ 184.20</span></div>
+            <div class="row"><span>AUTH 008142</span><span>APPROVED</span></div>
+            <div class="line"></div>
+            <div class="ctr">TAX INVOICE</div>
+            <div class="ctr">Thank you for shopping with us</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-2">Extracted fields · confidence</div>
+          <div>
+            {% set fields = [
+              ('Merchant',     'Bunnings Warehouse — Cairns Smithfield', 99, 'pos'),
+              ('ABN',          '26 008 672 179',                          99, 'pos'),
+              ('Date',         '2026-05-11',                              99, 'pos'),
+              ('Time',         '11:14:32 AEST',                           97, 'pos'),
+              ('Invoice #',    'T2-4814-001827',                          96, 'pos'),
+              ('Subtotal',     'A$167.45',                                99, 'pos'),
+              ('GST 10%',      'A$16.75',                                 99, 'pos'),
+              ('Total',        'A$184.20',                                99, 'pos'),
+              ('Payment',      'Visa **** 0184 · EFTPOS · APPROVED',      94, 'pos'),
+              ('Line items',   '4 lines extracted',                       95, 'pos'),
+              ('Tax invoice',  'header detected',                         99, 'pos'),
+              ('Currency',     'AUD',                                     99, 'pos'),
+            ] %}
+            {% for label, val, conf, tone in fields %}
+              <div class="ocr-field">
+                <div class="flex items-baseline justify-between gap-3">
+                  <span class="text-[11px] ink-3 font-mono uppercase tracking-wider">{{ label }}</span>
+                  <span class="num text-[10.5px] {% if tone == 'pos' %}pos{% elif tone == 'warm' %}warm{% else %}neg{% endif %}">{{ conf }}%</span>
+                </div>
+                <div class="text-[12.5px] ink mt-0.5">{{ val }}</div>
+                <div class="conf-bar mt-1.5"><div class="conf-fill{% if tone == 'warm' %} warm{% elif tone == 'neg' %} neg{% endif %}" style="width: {{ conf }}%;"></div></div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-4 border-t hairline grid grid-cols-3 gap-3 text-[11.5px] ink-3">
+        <div class="flex items-start gap-2"><i data-lucide="cpu" class="w-3.5 h-3.5 ink-2 mt-0.5"></i><div><span class="ink-2 font-mono">vision-l-au-2026.04</span><br>OCR engine · 4.2B params · AU receipt corpus 184k</div></div>
+        <div class="flex items-start gap-2"><i data-lucide="timer" class="w-3.5 h-3.5 ink-2 mt-0.5"></i><div><span class="ink-2 num">1.42s</span> end-to-end<br>upload → extract → match → code</div></div>
+        <div class="flex items-start gap-2"><i data-lucide="git-branch" class="w-3.5 h-3.5 ink-2 mt-0.5"></i><div><span class="ink-2">ATO Smart Receipts</span> taxonomy<br>mapped to <span class="num">5-104</span> Tools &amp; consumables</div></div>
+      </div>
+    </section>
+
+    <!-- Line item ledger -->
+    <section class="card">
+      <header class="px-5 py-3.5 border-b hairline flex items-baseline justify-between">
+        <div>
+          <h2 class="font-display text-[18px]">Extracted line items → GL coding</h2>
+          <p class="text-[11.5px] ink-3">Each line is GST-recalculated and posted to the chart of accounts. Job assignment lifts the line into <a href="/preview/projects/j-2603" class="sae hover:underline">J-2603 Bowen Maintenance</a>.</p>
+        </div>
+        <span class="chip-mini sae">Job J-2603 · 4/4 lines</span>
+      </header>
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10px] font-mono uppercase tracking-wider ink-3 text-left">
+            <th class="px-3 py-2 border-b hairline">Description</th>
+            <th class="px-3 py-2 border-b hairline">Net (ex GST)</th>
+            <th class="px-3 py-2 border-b hairline">GST</th>
+            <th class="px-3 py-2 border-b hairline">GL account</th>
+            <th class="px-3 py-2 border-b hairline">Treatment</th>
+            <th class="px-3 py-2 border-b hairline">Job</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set lines = [
+            ('HiKOKI 36V impact driver',    '142.00', '14.20', '1-510 Tools &gt; A$300 (capitalise)', 'CAP',  'J-2603'),
+            ('Makita 25mm spade bit set',   '24.20',  '2.42',  '5-104 Tools &amp; consumables',       'GST',  'J-2603'),
+            ('Pkt zip ties 200mm',          '8.45',   '0.85',  '5-104 Tools &amp; consumables',       'GST',  'J-2603'),
+            ('Sika MS construction sealant','9.55',   '0.96',  '5-104 Tools &amp; consumables',       'GST',  'J-2603'),
+          ] %}
+          {% for desc, net, gst, gl, treat, job in lines %}
+          <tr class="field-row hover:bg-[color:var(--paper-2)]">
+            <td class="text-[12.5px]">{{ desc }}</td>
+            <td class="num text-[12px] tabular-nums">A${{ net }}</td>
+            <td class="num text-[12px] tabular-nums ink-2">A${{ gst }}</td>
+            <td class="text-[11.5px]"><a href="/preview/settings/chart-of-accounts" class="hover:text-[color:var(--sae)]">{{ gl|safe }}</a></td>
+            <td>{% if treat == 'CAP' %}<span class="chip-mini sae">CAP · G10</span>{% else %}<span class="chip-mini">GST · G11</span>{% endif %}</td>
+            <td><a href="/preview/projects/j-2603" class="num text-[11px] sae hover:underline">{{ job }}</a></td>
+          </tr>
+          {% endfor %}
+          <tr class="field-row" style="border-top: 2px solid var(--ink); background: var(--paper-2);">
+            <td class="text-[12px] font-medium">Totals</td>
+            <td class="num text-[12.5px] tabular-nums font-medium">A$184.20</td>
+            <td class="num text-[12.5px] tabular-nums font-medium">A$17.43</td>
+            <td colspan="3" class="text-[11px] ink-3">G10 capital A$14.20 · G11 non-cap A$3.23 · subtotal mismatch A$0.68 absorbed (rounding · ATO tolerance A$1)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Bank match -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">Bank feed match</h2>
+        <span class="chip-mini pos"><i data-lucide="link-2" class="w-2.5 h-2.5"></i>auto-matched · score 0.997</span>
+      </div>
+      <div class="grid grid-cols-2 gap-5 text-[12px]">
+        <div class="border hairline rounded-md p-4">
+          <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1.5">Bank line · CBA Smart Access ****6841</div>
+          <div class="num text-[13px] ink">11 May 2026 · 11:14 AEST</div>
+          <div class="num text-[18px] neg mt-1.5">−A$184.20</div>
+          <div class="text-[11px] ink-2 mt-1.5">EFTPOS BUNNINGS 4814 CAIRNS QLD AUS</div>
+          <div class="num text-[10.5px] ink-3 mt-0.5">pmt-2014 · Card auth 008142</div>
+          <a href="/preview/settings/banking/cba" class="text-[11px] sae hover:underline mt-2 inline-flex items-center gap-1">CBA Smart Access <i data-lucide="chevron-right" class="w-3 h-3"></i></a>
+        </div>
+        <div class="border hairline rounded-md p-4">
+          <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1.5">Receipt · RCT-00184</div>
+          <div class="num text-[13px] ink">11 May 2026 · 11:14 AEST</div>
+          <div class="num text-[18px] neg mt-1.5">−A$184.20</div>
+          <div class="text-[11px] ink-2 mt-1.5">Bunnings Cairns Smithfield · Visa ****0184</div>
+          <div class="num text-[10.5px] ink-3 mt-0.5">T2-4814-001827 · auth 008142</div>
+          <a href="/preview/cashbook/capture" class="text-[11px] sae hover:underline mt-2 inline-flex items-center gap-1">Capture queue <i data-lucide="chevron-right" class="w-3 h-3"></i></a>
+        </div>
+      </div>
+      <div class="mt-4 grid grid-cols-4 gap-3 text-[11px] ink-3">
+        <div class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3 h-3 pos"></i>Amount match · A$184.20 = A$184.20</div>
+        <div class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3 h-3 pos"></i>Time delta · 0s</div>
+        <div class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3 h-3 pos"></i>Auth code · 008142 = 008142</div>
+        <div class="flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3 h-3 pos"></i>Merchant · Bunnings 4814</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- RIGHT col -->
+  <div class="lg:col-span-5 space-y-6">
+
+    <!-- ATO substantiation -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">ATO substantiation</h2>
+        <span class="chip-mini sae">TR 97/24 · s.262A</span>
+      </div>
+      <p class="text-[11.5px] ink-2 mb-3">Tax invoice retained electronically. ATO accepts a digital copy provided it is legible and accessible (TD 2026/D1 ¶12).</p>
+      <ul class="text-[12px] space-y-2">
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">Header "TAX INVOICE"</span> detected · s.29-70(1)(a)</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">Supplier ABN</span> 26 008 672 179 · ABR-verified active GST</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">GST amount shown</span> A$16.75 separately · s.29-70(1)(c)</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">Total &lt; A$1,000</span> — recipient identity not required · s.29-70(1)(d)</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">Retention 7 years</span> from lodgement · stored until 28 Jul 2033</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">Legibility</span> 98.4% OCR confidence · original HEIC retained</div></li>
+      </ul>
+      <div class="mt-4 pt-3 border-t hairline text-[11px] ink-3">
+        Stored on: <span class="num">R2 bucket sae-receipts-fy26</span> · SHA-256 <span class="num">2c4b…91ae</span> · WORM 7yr lifecycle
+      </div>
+    </section>
+
+    <!-- Rule applied -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">Auto-coding rule</h2>
+        <a href="/preview/settings/bank-feed-rules" class="text-[11px] sae hover:underline inline-flex items-center gap-1">R-09 Bunnings <i data-lucide="chevron-right" class="w-3 h-3"></i></a>
+      </div>
+      <div class="border hairline rounded-md p-3 text-[12px]">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[11px] ink-3">RULE R-09 · v3.2</span>
+          <span class="chip-mini pos">0.99 confidence</span>
+        </div>
+        <div class="space-y-1.5 text-[11.5px] ink-2">
+          <div><span class="ink-3 font-mono">WHEN</span> merchant matches <span class="num">^BUNNINGS|BUNNS</span></div>
+          <div><span class="ink-3 font-mono">AND</span> EFTPOS / card payment</div>
+          <div><span class="ink-3 font-mono">AND</span> job code present <span class="ink-3">(falls back to 5-104)</span></div>
+          <div><span class="ink-3 font-mono">THEN</span> code lines &lt; A$300 → <span class="num">5-104</span> · &gt; A$300 → <span class="num">1-510</span> (capitalise)</div>
+          <div><span class="ink-3 font-mono">AND</span> tag <span class="num">job-required</span></div>
+        </div>
+      </div>
+      <div class="text-[11px] ink-3 mt-3 flex items-center gap-2"><i data-lucide="trending-up" class="w-3 h-3"></i>Applied 184 times FY26 · 100% accept rate · last manual override <span class="num">Nov 2025</span></div>
+    </section>
+
+    <!-- Merchant ABN check -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">Supplier check — ABR</h2>
+        <span class="chip-mini pos"><i data-lucide="shield-check" class="w-2.5 h-2.5"></i>active · GST registered</span>
+      </div>
+      <div class="text-[12px] space-y-1.5">
+        <div class="flex items-center justify-between"><span class="ink-3">Entity</span><span>Bunnings Group Limited</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">ABN</span><span class="num">26 008 672 179</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">ACN</span><span class="num">008 672 179</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">GST registered since</span><span>01 Jul 2000</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Postcode (HQ)</span><span class="num">3133 Hawthorn East VIC</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">ABR snapshot</span><span class="num">AbrXml v2025-11 · 04 May 2026</span></div>
+      </div>
+      <div class="text-[11px] ink-3 mt-3 flex items-center gap-2"><i data-lucide="info" class="w-3 h-3"></i>Cached 30 days. ABR Direct webservice re-checks on the 1st of each month or on first transaction.</div>
+    </section>
+
+    <!-- Pipeline -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Pipeline · 1.42s end-to-end</h2>
+      <ol class="text-[12px] space-y-2.5">
+        <li class="flex items-start gap-2"><span class="num-stamp">1</span><div><span class="ink">Mobile capture</span> · iOS Camera intent · <span class="ink-3">+0ms</span></div></li>
+        <li class="flex items-start gap-2"><span class="num-stamp">2</span><div><span class="ink">HEIC → JPEG transcode + deskew</span> · <span class="ink-3">+220ms</span></div></li>
+        <li class="flex items-start gap-2"><span class="num-stamp">3</span><div><span class="ink">OCR vision-l-au-2026.04</span> · 12 fields, 4 line items extracted · <span class="ink-3">+860ms</span></div></li>
+        <li class="flex items-start gap-2"><span class="num-stamp">4</span><div><span class="ink">ABN check</span> ABR Direct · supplier active &amp; GST-registered · <span class="ink-3">+140ms</span></div></li>
+        <li class="flex items-start gap-2"><span class="num-stamp">5</span><div><span class="ink">Rule R-09 applied</span> · lines coded · job J-2603 assigned · <span class="ink-3">+90ms</span></div></li>
+        <li class="flex items-start gap-2"><span class="num-stamp">6</span><div><span class="ink">Bank match</span> · CBA pmt-2014 score 0.997 · <span class="ink-3">+60ms</span></div></li>
+        <li class="flex items-start gap-2"><span class="num-stamp">7</span><div><span class="ink">Stored to R2 + ledger preview</span> · SHA-256 hashed · <span class="ink-3">+50ms</span></div></li>
+      </ol>
+      <style>.num-stamp { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10px; padding: 1px 5px; border: 1px dashed var(--line); border-radius: 3px; color: var(--ink-2); background: var(--paper-2); margin-top: 1px; }</style>
+    </section>
+
+    <!-- Audit trail -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Audit trail</h2>
+      <ul class="text-[11.5px] space-y-2.5">
+        <li class="flex items-start gap-2"><i data-lucide="camera" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Captured</span> · iPhone 15 Pro · GPS −16.8425, 145.6850 ±5m · <span class="ink-3">11 May 11:14:45 by R. Sauer</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="scan-line" class="w-3 h-3 mt-0.5"></i><div><span class="ink">OCR completed</span> · 12/12 fields ≥ 0.85 · <span class="ink-3">11 May 11:14:47</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="badge-check" class="w-3 h-3 mt-0.5"></i><div><span class="ink">ABR check</span> · 26 008 672 179 active · <span class="ink-3">11 May 11:14:47</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="wand-sparkles" class="w-3 h-3 sae mt-0.5"></i><div><span class="ink">Rule R-09 auto-coded</span> · 4 lines posted to 5-104 + 1-510 · <span class="ink-3">11 May 11:14:47</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="link-2" class="w-3 h-3 pos mt-0.5"></i><div><span class="ink">Matched to CBA pmt-2014</span> · <span class="ink-3">11 May 11:18 by system</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="archive" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Stored s.262A</span> · R2 bucket sae-receipts-fy26 · retention 28 Jul 2033 · <span class="ink-3">11 May 11:14:48</span></div></li>
+      </ul>
+      <a href="/preview/activity?scope=receipt&id=rct-00184" class="text-[11.5px] sae hover:underline mt-3 inline-flex items-center gap-1">Open receipt audit · 14 events <i data-lucide="chevron-right" class="w-3 h-3"></i></a>
+    </section>
+
+    <!-- Related -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Related</h2>
+      <ul class="space-y-1.5 text-[12.5px]">
+        <li><a href="/preview/cashbook/capture" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="camera" class="w-3.5 h-3.5 ink-3"></i>Receipt capture queue</a></li>
+        <li><a href="/preview/cashbook" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="book-open" class="w-3.5 h-3.5 ink-3"></i>Cashbook</a></li>
+        <li><a href="/preview/projects/j-2603" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="hard-hat" class="w-3.5 h-3.5 ink-3"></i>J-2603 Bowen Maintenance</a></li>
+        <li><a href="/preview/settings/banking/cba" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="banknote" class="w-3.5 h-3.5 ink-3"></i>CBA Smart Access feed</a></li>
+        <li><a href="/preview/settings/bank-feed-rules" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="wand-sparkles" class="w-3.5 h-3.5 ink-3"></i>Rule R-09 Bunnings</a></li>
+        <li><a href="/preview/settings/numbering" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="list-ordered" class="w-3.5 h-3.5 ink-3"></i>Receipt numbering stream</a></li>
+        <li><a href="/preview/compliance/bas-prep" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="landmark" class="w-3.5 h-3.5 ink-3"></i>BAS prep — G11 sources</a></li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

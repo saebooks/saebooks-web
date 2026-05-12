@@ -1,0 +1,402 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Pay event PE-26W19 · STP-2 · 8 May → 14 May — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>Payroll · STP Phase 2</span><span>·</span>
+      <span>Pay event</span><span>·</span>
+      <span class="text-[var(--sae)]">PE-26W19</span><span>·</span>
+      <span>Week ending 10 May 2026 · pay date 14 May 2026</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">Pay event · week 19 · FY26</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          5 employees · gross A$14,461.40 · PAYG-W A$3,124.00 · super A$1,664.06 · net A$11,337.40 ·
+          Disaggregated per STP-2 BMS specification 2024.07 · SBR2 transmission queued 14 May 02:00 AEST
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Net to bank</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$11,337.40</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">BECS batch PR-26-0514 · CBA 062-001 · 5 credits</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="px-10 py-6 grid grid-cols-6 gap-3 border-b border-[var(--line)]">
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Gross</div>
+      <div class="num text-2xl mt-1">A$14,461.40</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">disagg: O/PL/B</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">PAYG-W</div>
+      <div class="num text-2xl mt-1 text-[var(--sae)]">A$3,124.00</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">→ W2 BAS Q4</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Super (SG 12%)</div>
+      <div class="num text-2xl mt-1">A$1,664.06</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">→ SuperStream Q4</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Sal-sac super</div>
+      <div class="num text-2xl mt-1">A$167.50</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">type S · R. Sauer</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Allowances</div>
+      <div class="num text-2xl mt-1">A$220.50</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">CD A$84 · TD A$136.50</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">SBR2 transmit</div>
+      <div class="num text-2xl mt-1 text-[var(--warm)]">queued</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">14 May 02:00 AEST</div>
+    </div>
+  </section>
+
+  <!-- Per-employee disaggregated grid -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">Per-employee disaggregated · STP-2 BMS v2024.07</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Income Type · Tax Treatment Code (6-char) · Gross / OT / PL / Bonus / Allow / SalSac / SuperLib</div>
+    </div>
+    <table class="w-full text-[11px] num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2">Employee</th>
+          <th class="text-left">IT · TTC</th>
+          <th class="text-right">Hrs</th>
+          <th class="text-right">Ord (O)</th>
+          <th class="text-right">OT</th>
+          <th class="text-right">PL</th>
+          <th class="text-right">Bonus</th>
+          <th class="text-right">Allow</th>
+          <th class="text-right">SalSac S</th>
+          <th class="text-right">Gross</th>
+          <th class="text-right">PAYG-W</th>
+          <th class="text-right">SG 12%</th>
+          <th class="text-right">Net</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]">
+          <td>R. Sauer · DIR</td><td>SAW · RTSXXX</td>
+          <td class="text-right">38.00</td>
+          <td class="text-right">A$3,800.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$167.50</td>
+          <td class="text-right">A$3,632.50</td>
+          <td class="text-right">A$891.00</td>
+          <td class="text-right">A$420.00</td>
+          <td class="text-right">A$2,741.50</td>
+        </tr>
+        <tr class="border-b border-dashed border-[var(--line)]">
+          <td>S. Wong · ACC</td><td>SAW · RTSXXX</td>
+          <td class="text-right">38.00</td>
+          <td class="text-right">A$2,964.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$2,964.00</td>
+          <td class="text-right">A$649.00</td>
+          <td class="text-right">A$355.68</td>
+          <td class="text-right">A$2,315.00</td>
+        </tr>
+        <tr class="border-b border-dashed border-[var(--line)]">
+          <td>L. Patel · WLD</td><td>SAW · RTNXXX</td>
+          <td class="text-right">38.00</td>
+          <td class="text-right">A$2,348.40</td>
+          <td class="text-right">A$268.20</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$84.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$2,700.60</td>
+          <td class="text-right">A$540.00</td>
+          <td class="text-right">A$315.91</td>
+          <td class="text-right">A$2,160.60</td>
+        </tr>
+        <tr class="border-b border-dashed border-[var(--line)]">
+          <td>M. Chen · WLD</td><td>SAW · RTSXXX</td>
+          <td class="text-right">30.40</td>
+          <td class="text-right">A$1,478.40</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$308.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$1,786.40</td>
+          <td class="text-right">A$338.00</td>
+          <td class="text-right">A$177.41</td>
+          <td class="text-right">A$1,448.40</td>
+        </tr>
+        <tr class="border-b border-dashed border-[var(--line)]">
+          <td>P. Sheridan · FIT</td><td>SAW · RTSXXX</td>
+          <td class="text-right">38.00</td>
+          <td class="text-right">A$3,012.40</td>
+          <td class="text-right">A$192.00</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$36.00</td>
+          <td class="text-right">A$136.50</td>
+          <td class="text-right">A$0.00</td>
+          <td class="text-right">A$3,376.90</td>
+          <td class="text-right">A$706.00</td>
+          <td class="text-right">A$395.06</td>
+          <td class="text-right">A$2,671.90</td>
+        </tr>
+        <tr class="border-t border-[var(--line)]">
+          <td colspan="2" class="py-2 text-right text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Totals</td>
+          <td class="text-right py-2">182.40</td>
+          <td class="text-right py-2">A$13,603.20</td>
+          <td class="text-right py-2">A$460.20</td>
+          <td class="text-right py-2">A$308.00</td>
+          <td class="text-right py-2">A$36.00</td>
+          <td class="text-right py-2">A$220.50</td>
+          <td class="text-right py-2">A$167.50</td>
+          <td class="text-right py-2 font-medium">A$14,461.40</td>
+          <td class="text-right py-2 font-medium text-[var(--sae)]">A$3,124.00</td>
+          <td class="text-right py-2 font-medium">A$1,664.06</td>
+          <td class="text-right py-2 font-medium">A$11,337.40</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="text-[10px] text-[var(--ink-3)] mt-3">TTC decode · char 1 R=Regular · char 2 T=TFN claimed · char 3 S=tax-free threshold or N=no TFT · char 4 X=no STSL · char 5 X=no Medicare adj · char 6 X=no further variation. Patel TTC RTNXXX = no tax-free threshold (second job).</div>
+  </section>
+
+  <!-- Allowances breakdown + Tax treatment matrix -->
+  <section class="px-10 py-8 border-b border-[var(--line)] grid grid-cols-2 gap-8">
+    <div>
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Allowances · disaggregated per STP-2</div>
+      <div class="font-display text-xl mt-1">Coded by ATO category</div>
+      <table class="w-full text-xs num mt-3">
+        <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+          <tr><th class="text-left py-1 w-[50px]">Code</th><th class="text-left">Category</th><th class="text-left">Emp</th><th class="text-right">Amount</th><th class="text-center">PAYG</th><th class="text-center">SG OTE</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">CD</td><td>Cents per km · 120 km @ A$0.70</td><td>L. Patel</td><td class="text-right">A$84.00</td><td class="text-center text-[var(--pos)]">no</td><td class="text-center text-[var(--pos)]">no</td></tr>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">TD</td><td>Tools allowance · award MA000020 cl.21.4</td><td>P. Sheridan</td><td class="text-right">A$136.50</td><td class="text-center text-[var(--warm)]">yes (above ATO TD 2025/3)</td><td class="text-center">no</td></tr>
+          <tr><td class="py-1 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Total</td><td colspan="2"></td><td class="text-right py-1">A$220.50</td><td colspan="2"></td></tr>
+        </tbody>
+      </table>
+      <div class="text-[10px] text-[var(--ink-3)] mt-2">ATO reasonable-amount thresholds (TD 2025/3): cents per km A$0.88, tools A$3.16/day. Excess subject to PAYG-W; CD within rate so not taxed.</div>
+    </div>
+    <div>
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Bonus + paid leave detail</div>
+      <div class="font-display text-xl mt-1">Coded B · PL</div>
+      <table class="w-full text-xs num mt-3">
+        <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+          <tr><th class="text-left py-1">Type</th><th class="text-left">Detail</th><th class="text-left">Emp</th><th class="text-right">Amount</th><th class="text-center">SG OTE</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">PL</td><td>Sick leave · 7.6 hrs @ A$40.53</td><td>M. Chen</td><td class="text-right">A$308.00</td><td class="text-center text-[var(--pos)]">yes</td></tr>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">B</td><td>Safety bonus · monthly · MA000020 cl.21.7</td><td>P. Sheridan</td><td class="text-right">A$36.00</td><td class="text-center text-[var(--pos)]">yes</td></tr>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">OT</td><td>Overtime · 4.0 hrs @ 1.5×</td><td>L. Patel</td><td class="text-right">A$268.20</td><td class="text-center text-[var(--neg)]">no (SGR 2009/2)</td></tr>
+          <tr><td class="py-1">OT</td><td>Overtime · 3.0 hrs @ 1.5×</td><td>P. Sheridan</td><td class="text-right">A$192.00</td><td class="text-center text-[var(--neg)]">no</td></tr>
+        </tbody>
+      </table>
+      <div class="text-[10px] text-[var(--ink-3)] mt-2">Overtime excluded from OTE per SGR 2009/2 — does not attract SG. Sick leave on OTE per s.6(2) SGAA.</div>
+    </div>
+  </section>
+
+  <!-- BAS impact + Super flow -->
+  <section class="px-10 py-8 border-b border-[var(--line)] grid grid-cols-3 gap-8">
+    <div class="drafting p-5">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">BAS Q4 FY26 impact</div>
+      <div class="font-display text-xl mt-1">W1 / W2 update</div>
+      <table class="w-full text-xs num mt-3">
+        <tbody>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">W1 Total salaries/wages</td><td class="text-right">+A$14,461.40</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">W2 PAYG withheld</td><td class="text-right text-[var(--sae)]">+A$3,124.00</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">W3 Other amounts withheld</td><td class="text-right">A$0.00</td></tr>
+          <tr><td class="py-1 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">STP parity check</td><td class="text-right text-[var(--pos)]">0.00¢ Δ</td></tr>
+        </tbody>
+      </table>
+      <div class="text-[10px] text-[var(--ink-3)] mt-3">YTD pay events tally exactly with W1/W2 draft on BAS preview — replays from frozen TB.</div>
+    </div>
+    <div class="drafting p-5">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Super flow → next batch</div>
+      <div class="font-display text-xl mt-1">SuperStream Q4 FY26</div>
+      <table class="w-full text-xs num mt-3">
+        <tbody>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">SG 12% accrued this run</td><td class="text-right">A$1,664.06</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">Salary sacrifice (S · R. Sauer)</td><td class="text-right">A$167.50</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">Quarter-to-date total</td><td class="text-right">A$8,420.16</td></tr>
+          <tr><td class="py-1 text-[var(--ink-3)]">Beam batch</td><td class="text-right">SSB-26Q4-0184</td></tr>
+        </tbody>
+      </table>
+      <div class="text-[10px] text-[var(--ink-3)] mt-3">From 1 Jul 2026 (Payday Super 51d countdown), SG settles per pay event within 7BD — not quarterly.</div>
+    </div>
+    <div class="drafting p-5">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Ledger journal · PE-26W19</div>
+      <div class="font-display text-xl mt-1">DR · CR balanced</div>
+      <table class="w-full text-xs num mt-3">
+        <tbody>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 6-100 Wages & salaries</td><td class="text-right">A$13,603.20</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 6-105 Overtime</td><td class="text-right">A$460.20</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 6-108 Allowances</td><td class="text-right">A$220.50</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 6-112 Bonus + leave</td><td class="text-right">A$344.00</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">DR 6-130 Super expense</td><td class="text-right">A$1,664.06</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">CR 2-310 PAYG-W payable</td><td class="text-right">−A$3,124.00</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">CR 2-330 Super payable</td><td class="text-right">−A$1,831.56</td></tr>
+          <tr class="border-b border-dashed border-[var(--line)]"><td class="py-1">CR 1-100 Bank (BECS PR-26-0514)</td><td class="text-right">−A$11,337.40</td></tr>
+          <tr><td class="py-1 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Balanced</td><td class="text-right text-[var(--pos)]">A$0.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SBR2 envelope + Pipeline -->
+  <section class="px-10 py-8 border-b border-[var(--line)] grid grid-cols-2 gap-8">
+    <div>
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">SBR2 envelope · STP-2 pay event</div>
+      <div class="font-display text-xl mt-1">ebMS3 / AS4 · mTLS · TLS 1.3</div>
+      <pre class="text-[10px] num leading-relaxed mt-3 text-[var(--ink)] whitespace-pre-wrap drafting p-4">&lt;PayEvent xmlns="http://sbr.gov.au/stp/PayEvent.2024.07"&gt;
+  &lt;BMSID&gt;SAEBOOKS-prod-2026&lt;/BMSID&gt;
+  &lt;ABN&gt;18184261842&lt;/ABN&gt;
+  &lt;PeriodEnd&gt;2026-05-10&lt;/PeriodEnd&gt;
+  &lt;PaymentDate&gt;2026-05-14&lt;/PaymentDate&gt;
+  &lt;Payee&gt;
+    &lt;TFN&gt;184261842&lt;/TFN&gt;
+    &lt;PayeeID&gt;EMP-R-SAUER&lt;/PayeeID&gt;
+    &lt;IncomeType&gt;SAW&lt;/IncomeType&gt;
+    &lt;TaxTreatmentCode&gt;RTSXXX&lt;/TaxTreatmentCode&gt;
+    &lt;GrossOrdinary&gt;3800.00&lt;/GrossOrdinary&gt;
+    &lt;SalarySacrificeSuper&gt;167.50&lt;/SalarySacrificeSuper&gt;
+    &lt;PaygWithheld&gt;891.00&lt;/PaygWithheld&gt;
+    &lt;SuperEntitlement&gt;420.00&lt;/SuperEntitlement&gt;
+  &lt;/Payee&gt;
+  &lt;Payee&gt;
+    &lt;TFN&gt;346 184 261&lt;/TFN&gt;
+    &lt;PayeeID&gt;EMP-S-WONG&lt;/PayeeID&gt;
+    &lt;IncomeType&gt;SAW&lt;/IncomeType&gt;
+    &lt;TaxTreatmentCode&gt;RTSXXX&lt;/TaxTreatmentCode&gt;
+    &lt;GrossOrdinary&gt;2964.00&lt;/GrossOrdinary&gt;
+    &lt;PaygWithheld&gt;649.00&lt;/PaygWithheld&gt;
+    &lt;SuperEntitlement&gt;355.68&lt;/SuperEntitlement&gt;
+  &lt;/Payee&gt;
+  &lt;!-- 3 more payees omitted for brevity --&gt;
+&lt;/PayEvent&gt;</pre>
+    </div>
+    <div>
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">8-step pipeline · timesheet → ATO</div>
+      <div class="font-display text-xl mt-1">PE-26W19 progression</div>
+      <div class="grid grid-cols-2 gap-1 text-[11px] mt-3">
+        <div class="drafting p-3"><div class="text-[10px] text-[var(--ink-3)]">1</div><div class="mt-1">Timesheet sync</div><div class="text-[10px] mt-0.5">Workmate · 5 emp · 182.4 hrs</div><div class="text-[var(--pos)] mt-1">✓ 11 May 09:14</div></div>
+        <div class="drafting p-3"><div class="text-[10px] text-[var(--ink-3)]">2</div><div class="mt-1">Award interp</div><div class="text-[10px] mt-0.5">MA000020 cl.21 · OT 1.5×</div><div class="text-[var(--pos)] mt-1">✓ 11 May 09:14</div></div>
+        <div class="drafting p-3"><div class="text-[10px] text-[var(--ink-3)]">3</div><div class="mt-1">Calc gross + PAYG</div><div class="text-[10px] mt-0.5">TTC matrix · TFT · STSL</div><div class="text-[var(--pos)] mt-1">✓ 11 May 09:15</div></div>
+        <div class="drafting p-3"><div class="text-[10px] text-[var(--ink-3)]">4</div><div class="mt-1">SG OTE filter</div><div class="text-[10px] mt-0.5">SGR 2009/2 · 12% PY26</div><div class="text-[var(--pos)] mt-1">✓ 11 May 09:15</div></div>
+        <div class="drafting p-3"><div class="text-[10px] text-[var(--ink-3)]">5</div><div class="mt-1">Pay slip render</div><div class="text-[10px] mt-0.5">FW Reg 3.46 · 5 PDFs</div><div class="text-[var(--pos)] mt-1">✓ 11 May 09:16</div></div>
+        <div class="drafting p-3"><div class="text-[10px] text-[var(--ink-3)]">6</div><div class="mt-1">BECS DD build</div><div class="text-[10px] mt-0.5">batch PR-26-0514 · 5 cred</div><div class="text-[var(--warm)] mt-1">⌛ release 14 May 03:00</div></div>
+        <div class="drafting p-3"><div class="text-[10px] text-[var(--ink-3)]">7</div><div class="mt-1">STP-2 transmit</div><div class="text-[10px] mt-0.5">SBR2 sbr.gov.au/stp</div><div class="text-[var(--warm)] mt-1">⌛ 14 May 02:00</div></div>
+        <div class="drafting p-3"><div class="text-[10px] text-[var(--ink-3)]">8</div><div class="mt-1">myGov push</div><div class="text-[10px] mt-0.5">5× income-statement upd</div><div class="text-[var(--ink-3)] mt-1">— post-ack</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FY26 finalisation event preview -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">FY26 finalisation event preview · due 14 Jul 2026</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">YTD per-employee · final declaration switches income statement to "Tax ready" on myGov</div>
+    </div>
+    <table class="w-full text-xs num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2">Employee</th>
+          <th class="text-left">IT</th>
+          <th class="text-right w-[120px]">Gross YTD</th>
+          <th class="text-right w-[110px]">PAYG-W YTD</th>
+          <th class="text-right w-[100px]">SG YTD</th>
+          <th class="text-right w-[120px]">RESC (sal-sac)</th>
+          <th class="text-right w-[120px]">RFBA · grossed</th>
+          <th class="text-center w-[100px]">Tax-ready</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]"><td>R. Sauer</td><td>SAW</td><td class="text-right">A$197,640.00</td><td class="text-right">A$46,320.00</td><td class="text-right">A$25,011.04</td><td class="text-right">A$8,710.00</td><td class="text-right text-[var(--pos)]">A$0</td><td class="text-center text-[var(--warm)]">queued 14 Jul</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>S. Wong</td><td>SAW</td><td class="text-right">A$154,128.00</td><td class="text-right">A$33,748.00</td><td class="text-right">A$18,495.36</td><td class="text-right">A$0.00</td><td class="text-right text-[var(--sae)]">A$17,816.94</td><td class="text-center text-[var(--warm)]">queued 14 Jul</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>L. Patel</td><td>SAW</td><td class="text-right">A$140,431.20</td><td class="text-right">A$28,080.00</td><td class="text-right">A$16,431.74</td><td class="text-right">A$0.00</td><td class="text-right text-[var(--pos)]">A$0</td><td class="text-center text-[var(--warm)]">queued 14 Jul</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>M. Chen</td><td>SAW</td><td class="text-right">A$92,892.80</td><td class="text-right">A$17,576.00</td><td class="text-right">A$9,228.93</td><td class="text-right">A$0.00</td><td class="text-right text-[var(--pos)]">A$0</td><td class="text-center text-[var(--warm)]">queued 14 Jul</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>P. Sheridan</td><td>SAW</td><td class="text-right">A$175,598.80</td><td class="text-right">A$36,712.00</td><td class="text-right">A$20,543.41</td><td class="text-right">A$0.00</td><td class="text-right text-[var(--pos)]">A$0</td><td class="text-center text-[var(--warm)]">queued 14 Jul</td></tr>
+        <tr class="border-t border-[var(--line)]"><td colspan="2" class="text-right py-2 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Totals YTD</td><td class="text-right py-2 font-medium">A$760,690.80</td><td class="text-right py-2 font-medium text-[var(--sae)]">A$162,436.00</td><td class="text-right py-2 font-medium">A$89,710.48</td><td class="text-right py-2">A$8,710.00</td><td class="text-right py-2">A$17,816.94</td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="grid grid-cols-3 gap-4 mt-4 text-[11px]">
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">RESC</span> · Reportable Employer Super Contributions — R. Sauer's sal-sac A$8,710 reported here, flows to Div 293 testing and Centrelink income test (but not assessable income).</div>
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">RFBA</span> · S. Wong's reportable A$17,816.94 from FY26 FBT workpaper (statutory-method UTE-2603 · Type 2 grossed-up). Threshold A$3,773 taxable value exceeded.</div>
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">Tax-ready</span> · Final event signs the form on myGov · employees can lodge from 15 Jul. SAE-side declaration s.388-50 TAA Sch 1 attests YTD accuracy.</div>
+    </div>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">How AU STP-2 payroll compares</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Disaggregated gross · TTC matrix · allowance codes · RESC/RFBA flow · SBR2 native · payday-super-ready</div>
+    </div>
+    <table class="w-full text-xs num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2">Capability</th>
+          <th class="text-left">SAE Books</th>
+          <th class="text-left">Xero Payroll</th>
+          <th class="text-left">MYOB AccountRight</th>
+          <th class="text-left">Reckon Payroll</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Disaggregated gross (O/OT/PL/B/D/L)</td><td class="text-[var(--pos)]">8 fields native</td><td>STP-2 supported</td><td>STP-2 supported</td><td class="text-[var(--warm)]">via Reckon One only</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">6-char Tax Treatment Code auto-build</td><td class="text-[var(--pos)]">matrix · TFT/STSL/Med</td><td>auto</td><td>auto</td><td class="text-[var(--warm)]">manual selection</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Allowance codes CD/MD/KN/TD/LD</td><td class="text-[var(--pos)]">9 codes · TD2025/3 check</td><td>core codes</td><td>core codes</td><td class="text-[var(--warm)]">limited</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Award interpreter MA000020</td><td class="text-[var(--pos)]">cl.21 OT/penalty live</td><td class="text-[var(--warm)]">add-on KeyPay</td><td class="text-[var(--warm)]">add-on Tanda</td><td class="text-[var(--neg)]">no</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">SBR2 direct (ebMS3/AS4)</td><td class="text-[var(--pos)]">native · TLS 1.3</td><td>SBR2</td><td>SBR2</td><td>SBR2</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Payday Super ready 1 Jul 2026 (7BD)</td><td class="text-[var(--pos)]">live · 51d countdown</td><td class="text-[var(--warm)]">in development</td><td class="text-[var(--warm)]">in development</td><td class="text-[var(--neg)]">not announced</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">FY finalisation w/ RFBA + RESC</td><td class="text-[var(--pos)]">linked to FBT WP</td><td class="text-[var(--warm)]">manual entry</td><td class="text-[var(--warm)]">manual entry</td><td class="text-[var(--warm)]">manual entry</td></tr>
+        <tr><td class="py-2">YTD parity STP ↔ BAS W1/W2</td><td class="text-[var(--pos)]">0¢ continuous</td><td class="text-[var(--warm)]">nightly recalc</td><td class="text-[var(--warm)]">on-demand</td><td class="text-[var(--neg)]">manual</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Cross-links -->
+  <section class="px-10 py-8">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Related</div>
+    <div class="font-display text-xl mt-1">Adjacent surfaces</div>
+    <div class="grid grid-cols-5 gap-3 mt-4 text-xs">
+      <a href="/preview/super/batch/26q4-0184" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Super</div>
+        <div class="font-medium mt-1">SuperStream Q4 · Beam</div>
+      </a>
+      <a href="/preview/compliance/bas/26-q3" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">BAS</div>
+        <div class="font-medium mt-1">W1/W2 parity · Q3 ACCEPTED</div>
+      </a>
+      <a href="/preview/compliance/fbt/fy26" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">FBT</div>
+        <div class="font-medium mt-1">RFBA → S. Wong A$17,817</div>
+      </a>
+      <a href="/preview/compliance/div7a/ln-2603" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Div 7A</div>
+        <div class="font-medium mt-1">LN-2603 · DD CBA · interest</div>
+      </a>
+      <a href="/preview/jobs/j-2603/financials" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Job</div>
+        <div class="font-medium mt-1">Loaded labour · J-2603</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

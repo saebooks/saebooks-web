@@ -1,0 +1,158 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'home' %}
+{% block page_title %}Inbox · SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-56 h-24 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Workspace · Everything inbound</span>
+      </div>
+      <h1 class="font-display text-[36px] leading-[1.05] font-medium">
+        Inbox <span class="italic" style="color: var(--sae);">— ATO · Peppol · supplier bills · customer replies</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">One stream for everything the business needs to read or action.</p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="check-check" class="w-3.5 h-3.5"></i>Mark all read</button>
+      <button class="chip"><i data-lucide="filter" class="w-3.5 h-3.5"></i>Rules</button>
+      <button class="chip"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i>Channels</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- Filter strip -->
+<div class="card p-3 mb-5">
+  <div class="flex items-center gap-2 flex-wrap text-[12px]">
+    <button class="chip chip-active">All <span class="num ml-1 opacity-70">18</span></button>
+    <button class="chip">Action needed <span class="num ml-1 opacity-70">5</span></button>
+    <button class="chip">ATO <span class="num ml-1 opacity-70">3</span></button>
+    <button class="chip">Bills (OCR) <span class="num ml-1 opacity-70">6</span></button>
+    <button class="chip">Peppol <span class="num ml-1 opacity-70">2</span></button>
+    <button class="chip">Customer replies <span class="num ml-1 opacity-70">4</span></button>
+    <button class="chip">Bank <span class="num ml-1 opacity-70">3</span></button>
+    <div class="flex-1"></div>
+    <div class="relative">
+      <i data-lucide="search" class="w-3.5 h-3.5 ink-3 absolute left-2.5 top-1/2 -translate-y-1/2"></i>
+      <input type="text" placeholder="Search inbox…" class="text-sm pl-7 pr-3 py-1.5 bg-[color:var(--paper)] border hairline rounded-md w-56 ring-focus">
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-12 gap-5">
+  <!-- LEFT: message list -->
+  <div class="col-span-7 card overflow-hidden">
+    <ul class="divide-y" style="border-color: var(--line);">
+
+      {% set msgs = [
+        {'sel':true,'src':'ato','icon':'landmark','col':'#1A4E8B','from':'ATO · MyGovID portal','subj':'Activity Statement Q3 FY26 — assessment notice','snip':'Your activity statement has been lodged and assessed. Net result A$1,820.00 payable. Payment ref 751 234 567 891.','time':'10:21','tag':'ATO','tag_col':'#1A4E8B','status':'action','status_lbl':'Pay by 28 May'},
+        {'sel':false,'src':'bill','icon':'receipt','col':'#3E7A4E','from':'bills@dale-maxwell.com.au','subj':'INV-4012 — Switchboard install · Phase 2','snip':'OCR confidence 98% · matched to PO-SAE-1184. 3 line items totalling A$6,912.40 (GST A$628.40). TPAR-reportable subcontractor.','time':'09:42','tag':'Bill','tag_col':'#3E7A4E','status':'awaiting','status_lbl':'Awaiting approval'},
+        {'sel':false,'src':'peppol','icon':'cable','col':'#7C5C8B','from':'Peppol · BPC0211 AU PINT','subj':'Inbound e-invoice from Bunnings Trade','snip':'NSW Bunnings Trade has sent a structured invoice via Peppol. Direct match to bank-feed CBA-3211 transaction.','time':'09:14','tag':'Peppol','tag_col':'#7C5C8B','status':'auto','status_lbl':'Auto-coded'},
+        {'sel':false,'src':'customer','icon':'mail','col':'#194291','from':'accounts@acme.com.au','subj':'Re: INV-0028 — Payment confirmation','snip':'Hi Richard, payment of A$14,179.00 sent today via EFT (ref INV-0028). Should land tomorrow. Cheers, Acme accounts team.','time':'Yesterday','tag':'Reply','tag_col':'#194291','status':'info','status_lbl':'Read'},
+        {'sel':false,'src':'ato','icon':'shield-check','col':'#1A4E8B','from':'ATO · STP receipt','subj':'STP submission confirmed — 2 May 2026 pay run','snip':'Pay event STP-FY26-W18 received and validated. 4 employees · A$11,840.00 gross.','time':'Yesterday','tag':'ATO','tag_col':'#1A4E8B','status':'done','status_lbl':'Confirmed'},
+        {'sel':false,'src':'bank','icon':'banknote','col':'#3E7A4E','from':'CBA Smart Access · CDR feed','subj':'5 transactions need coding','snip':'Bunnings A$486.20, Shell A$112.40, Telstra A$198.00, Dale Maxwell A$6,912.40, EFT IN A$14,179.00.','time':'Yesterday','tag':'Bank','tag_col':'#3E7A4E','status':'action','status_lbl':'Reconcile 5'},
+        {'sel':false,'src':'bill','icon':'receipt','col':'#3E7A4E','from':'noreply@telstra.com.au','subj':'Tax invoice — May 2026 services','snip':'OCR confidence 99% · A$198.00 inc GST. Recurring bill matched · no approval needed.','time':'Yesterday','tag':'Bill','tag_col':'#3E7A4E','status':'auto','status_lbl':'Auto-scheduled'},
+        {'sel':false,'src':'ato','icon':'calendar-clock','col':'#1A4E8B','from':'ATO · DSP reminder','subj':'Payday Super switchover — 51 days','snip':'From 1 July 2026, SG must be paid every pay cycle. SAE Books is configured. No action required.','time':'2 days','tag':'ATO','tag_col':'#1A4E8B','status':'info','status_lbl':'For info'},
+        {'sel':false,'src':'customer','icon':'mail','col':'#194291','from':'james@northshore-marine.com.au','subj':'Q-0033 — Need extra access platform','snip':'Hi, can you add a second access platform to the quote? Same spec as the first. We can lock in by Friday if pricing works.','time':'2 days','tag':'Reply','tag_col':'#194291','status':'action','status_lbl':'Revise quote'},
+      ] %}
+
+      {% for m in msgs %}
+      <li class="flex items-start gap-3 p-4 hover:bg-[color:var(--paper)] cursor-pointer {% if m.sel %}bg-[color:var(--paper)]{% endif %}" {% if m.sel %}style="border-left: 3px solid var(--sae); padding-left: calc(1rem - 3px);"{% endif %}>
+        <span class="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0" style="background: {{ m.col }};">
+          <i data-lucide="{{ m.icon }}" class="w-4 h-4"></i>
+        </span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-3 mb-0.5">
+            <p class="text-[12px] ink-2 truncate"><span class="font-medium ink">{{ m.from }}</span></p>
+            <span class="text-[11px] font-mono ink-3 shrink-0">{{ m.time }}</span>
+          </div>
+          <p class="font-medium text-[14px] truncate">{{ m.subj }}</p>
+          <p class="text-[12px] ink-2 mt-1 line-clamp-1">{{ m.snip }}</p>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded" style="background: {{ m.tag_col }}1a; color: {{ m.tag_col }};">{{ m.tag }}</span>
+            {% if m.status == 'action' %}
+              <span class="badge badge-warm text-[10px]"><span class="dot" style="background: var(--warm);"></span>{{ m.status_lbl }}</span>
+            {% elif m.status == 'awaiting' %}
+              <span class="badge badge-warm text-[10px]"><span class="dot" style="background: var(--warm);"></span>{{ m.status_lbl }}</span>
+            {% elif m.status == 'done' or m.status == 'auto' %}
+              <span class="badge badge-pos text-[10px]"><span class="dot" style="background: var(--pos);"></span>{{ m.status_lbl }}</span>
+            {% else %}
+              <span class="badge badge-ink text-[10px]"><span class="dot" style="background: var(--ink-3);"></span>{{ m.status_lbl }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="flex items-center justify-between px-4 py-3 border-t hairline text-xs ink-2 bg-[color:var(--paper)]">
+      <div>Showing <span class="num font-medium">9</span> of <span class="num font-medium">18</span> messages · 5 need action</div>
+      <button class="chip">Load more</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: focused message detail -->
+  <div class="col-span-5 card p-5">
+    <div class="flex items-start justify-between gap-3 pb-4 border-b hairline mb-4">
+      <div class="flex items-start gap-3 min-w-0">
+        <span class="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0" style="background: #1A4E8B;">
+          <i data-lucide="landmark" class="w-5 h-5"></i>
+        </span>
+        <div class="min-w-0">
+          <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">From ATO · DSP channel</p>
+          <p class="font-medium truncate">Activity Statement Q3 FY26 — assessment notice</p>
+          <p class="text-[11px] ink-3 mt-0.5 font-mono">Received 10:21 today · MyGovID + RAM verified</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <button class="rail-btn !w-8 !h-8" title="Archive"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
+        <button class="rail-btn !w-8 !h-8" title="Reply"><i data-lucide="reply" class="w-3.5 h-3.5"></i></button>
+        <button class="rail-btn !w-8 !h-8" title="Forward"><i data-lucide="forward" class="w-3.5 h-3.5"></i></button>
+      </div>
+    </div>
+
+    <div class="space-y-3 text-[13px]">
+      <p>Your activity statement for <strong>Q3 FY26 (Jan–Mar 2026)</strong> has been lodged and assessed by the ATO.</p>
+
+      <div class="rounded-md p-3" style="background: var(--paper);">
+        <table class="w-full text-[12px]">
+          <tbody>
+            <tr><td class="ink-3 py-0.5">GST on sales (1A)</td><td class="text-right num">A$11,420.91</td></tr>
+            <tr><td class="ink-3 py-0.5">GST on purchases (1B)</td><td class="text-right num">−7,210.54</td></tr>
+            <tr><td class="ink-3 py-0.5">PAYG withheld (W2)</td><td class="text-right num">+3,820.00</td></tr>
+            <tr><td class="ink-3 py-0.5">PAYG instalment (5A)</td><td class="text-right num">+1,182.00</td></tr>
+            <tr style="border-top: 1px solid var(--line); font-weight: 600;"><td class="py-1 mt-1">Net assessment</td><td class="text-right num" style="color: var(--sae);">A$1,820.00 payable</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Due date:</strong> <span class="font-mono">28 May 2026</span></p>
+      <p><strong>Payment ref (PRN):</strong> <span class="font-mono">751 234 567 891</span></p>
+
+      <div class="p-3 rounded-md" style="background: rgba(200,99,31,.06); border: 1px dashed var(--sae);">
+        <p class="font-medium text-[12px]" style="color: var(--sae);">Auto-action available</p>
+        <p class="text-[12px] ink-2 mt-1">SAE Books can schedule the BPAY payment through your CBA Smart Access feed for 27 May — one business day before the ATO deadline.</p>
+        <div class="mt-2 flex gap-2">
+          <button class="btn-primary text-[12px]"><i data-lucide="banknote" class="w-3.5 h-3.5"></i>Schedule BPAY</button>
+          <button class="chip">Pay another way</button>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t hairline">
+        <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3 mb-2">Linked records</p>
+        <ul class="space-y-1.5 text-[12px]">
+          <li class="flex items-center gap-2"><i data-lucide="landmark" class="w-3.5 h-3.5 ink-3"></i><span>Q3 FY26 BAS worksheet · lodged 28 Apr</span></li>
+          <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i><span>Lodgement receipt ATO-BAS-Q3-7491</span></li>
+          <li class="flex items-center gap-2"><i data-lucide="calendar" class="w-3.5 h-3.5 ink-3"></i><span>Next BAS: <a href="/preview/compliance/bas-prep" class="sae hover:underline">Q4 FY26 prep</a></span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

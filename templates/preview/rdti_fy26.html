@@ -1,0 +1,502 @@
+{% extends "preview/_layout.html" %}
+{% block title %}R&D Tax Incentive · FY26 · SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>ITAA 1997 · Division 355</span><span>·</span>
+      <span>R&amp;D Tax Incentive · refundable offset (aggregated turnover &lt; A$20m)</span><span>·</span>
+      <span class="text-[var(--sae)]">RDTI-FY26</span><span>·</span>
+      <span>AusIndustry reg + ATO claim</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">R&amp;D Tax Incentive · FY26 workpaper</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          SAE Engineering Pty Ltd · ABN 18 184 261 842 · Aggregated turnover <span class="font-mono">A$6.84m</span> &lt; <span class="font-mono">A$20m</span> SBE-RDTI threshold ·
+          R&amp;D registration via <span class="font-mono">IISA portal</span> ·
+          Refundable offset rate <span class="font-mono">43.5%</span> per <span class="font-mono">s.355-100(1)</span>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FY26 cash benefit</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$58,420.18</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">Notional deduction A$134,298.10 × 43.5% offset − 25% BRE tax</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Status banner -->
+  <section class="px-10 py-5 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Entity eligibility · s.355-35</div>
+        <div class="text-sm">R&amp;D entity · resident company · not exempt · &gt;A$20k expenditure</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Activity register</div>
+        <div class="text-sm">2 core + 4 supporting · A$134,298.10 notional ded · ITAA s.355-25 + s.355-30</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led warn"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">AusIndustry registration</div>
+        <div class="text-sm">Due <span class="num">30 Apr 2027</span> · 10 mo after Y/E · 354 days remaining</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Contemporaneity</div>
+        <div class="text-sm">Time records + lab notebook entries timestamped at activity · per ATO TR 2021/5</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="px-10 py-6 grid grid-cols-6 gap-3 border-b border-[var(--line)]">
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Notional deduction</div>
+      <div class="num text-2xl mt-1">A$134,298.10</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">s.355-100</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Offset rate</div>
+      <div class="num text-2xl mt-1 text-[var(--sae)]">43.5%</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">Refundable · BRE</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Gross offset</div>
+      <div class="num text-2xl mt-1">A$58,419.67</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">Pre-tax cost-back</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">R&amp;D entity tax</div>
+      <div class="num text-2xl mt-1">A$33,574.53</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">25% on notional ded reversed</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Core activities</div>
+      <div class="num text-2xl mt-1">2</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">s.355-25</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Supporting activities</div>
+      <div class="num text-2xl mt-1">4</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">s.355-30 (dominant purpose test)</div>
+    </div>
+  </section>
+
+  <!-- Project register -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Activity register · FY26</div>
+        <h2 class="font-display text-2xl mt-1">Core + supporting R&amp;D activities</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Activities must satisfy: (a) experimental, (b) outcome unknown a priori, (c) systematic progression — <span class="font-mono">s.355-25(1)</span>
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-20">Activity</th>
+          <th class="text-left w-24">Class</th>
+          <th class="text-left">Title</th>
+          <th class="text-left">Hypothesis / new knowledge sought</th>
+          <th class="text-right w-32">Expenditure</th>
+          <th class="text-left w-24">Status</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">RD-26-01</td>
+          <td>Core</td>
+          <td>Friction-stir-weld parameter envelope for AA-6082-T6 vs AA-5083</td>
+          <td>Whether dissimilar-alloy lap-joint with tool revs 1,840 RPM + 184 mm/min traverse achieves &gt;245 MPa UTS without root anomalies — published literature inconclusive for &gt;6 mm plate</td>
+          <td class="text-right">A$58,420.10</td>
+          <td>complete</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">RD-26-02</td>
+          <td>Core</td>
+          <td>Algorithmic mill-path optimisation for thin-wall (&lt;1.5mm) stainless</td>
+          <td>Whether adaptive feed-rate algorithm coupled to vibration FFT can reduce chatter-induced runout below 0.025 mm on parts where conventional tooling consistently fails QA</td>
+          <td class="text-right">A$31,840.20</td>
+          <td>in-progress</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">RD-26-03</td>
+          <td>Supporting</td>
+          <td>Bench rig design + build for RD-26-01 specimen prep</td>
+          <td>Supports the experimental conduct of RD-26-01 — dominant purpose test met per s.355-30(1)(b)</td>
+          <td class="text-right">A$18,420.40</td>
+          <td>complete</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">RD-26-04</td>
+          <td>Supporting</td>
+          <td>NATA-accredited UT/MT testing of FSW coupons</td>
+          <td>External NDT — required to falsify/confirm RD-26-01 hypothesis · dominant-purpose pass</td>
+          <td class="text-right">A$11,840.60</td>
+          <td>complete</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">RD-26-05</td>
+          <td>Supporting</td>
+          <td>FFT vibration data acquisition rig for RD-26-02</td>
+          <td>Sampling at 25 kHz, 24-bit ADC · supports adaptive-feed algorithm validation</td>
+          <td class="text-right">A$8,420.18</td>
+          <td>in-progress</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">RD-26-06</td>
+          <td>Supporting</td>
+          <td>Software model + simulation harness</td>
+          <td>Numerical model used to set up RD-26-02 experimental runs · supports core activity</td>
+          <td class="text-right">A$5,356.62</td>
+          <td>in-progress</td>
+        </tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium">
+          <td class="py-3" colspan="4">6 activities · 2 core + 4 supporting · all with dominant-purpose justification</td>
+          <td class="text-right text-[var(--sae)]">A$134,298.10</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      <span class="font-medium text-[var(--ink)]">Dominant-purpose test (supporting activities):</span> s.355-30(1)(b) requires the supporting activity to be conducted for the
+      <em>dominant purpose</em> of supporting a core R&amp;D activity. Activities RD-26-03 through RD-26-06 each have a one-page justification
+      tied to RD-26-01 or RD-26-02 hypothesis in the project notebook. The post-July 2014 dominant-purpose test is stricter than the pre-2014 "direct support" test.
+    </div>
+  </section>
+
+  <!-- Expenditure buildup -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Notional deduction build-up · s.355-205 / s.355-215 / s.355-225</div>
+        <h2 class="font-display text-2xl mt-1">Expenditure by category</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Salary apportioned by timesheet · contractor capped at arm's-length per s.355-220 · depreciation 1-for-1 not pool
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-32">Category</th>
+          <th class="text-left">Detail</th>
+          <th class="text-right w-32">Gross A$</th>
+          <th class="text-right w-32">R&amp;D %</th>
+          <th class="text-right w-32">Notional A$</th>
+          <th class="text-left w-32">Section</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Salary &amp; wages</td><td>R. Sauer (director-engineer) · 1,840 h × A$84.40 + on-cost</td><td class="text-right">A$155,296.00</td><td class="text-right">38%</td><td class="text-right">A$59,012.48</td><td>s.355-205</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Salary &amp; wages</td><td>M. Chen (welder-engineer L2) · 720 h R&amp;D × A$58.40 + on-cost</td><td class="text-right">A$53,011.84</td><td class="text-right">100%</td><td class="text-right">A$53,011.84</td><td>s.355-205</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Contractors</td><td>NATA UT/MPI testing · Tech-Test Pty Ltd (arm's-length)</td><td class="text-right">A$11,840.60</td><td class="text-right">100%</td><td class="text-right">A$11,840.60</td><td>s.355-210</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Consumables</td><td>AA-6082/5083 coupons + ER70S-6 + Ar/He shielding · attributable</td><td class="text-right">A$5,184.20</td><td class="text-right">100%</td><td class="text-right">A$5,184.20</td><td>s.355-205</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Depreciation</td><td>FA-1812 mill + FA-2047 TIG · prorated time-on-R&amp;D usage</td><td class="text-right">A$48,420.18</td><td class="text-right">8%</td><td class="text-right">A$3,873.61</td><td>s.355-305</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Overheads</td><td>Apportioned utilities + insurance · square-metre method</td><td class="text-right">A$28,420.40</td><td class="text-right">4.5%</td><td class="text-right">A$1,278.92</td><td>s.355-205</td></tr>
+        <tr class="border-b border-[var(--line)] text-[var(--ink-3)]"><td class="py-2">Excluded</td><td>Interest on Div 7A loan · cap. expenditure on plant ≥ instant w/o</td><td class="text-right">A$5,290.86</td><td class="text-right">—</td><td class="text-right">A$0.00</td><td>s.355-225</td></tr>
+        <tr class="border-b border-[var(--line)] text-[var(--ink-3)]"><td class="py-2">Excluded</td><td>Cost of acquiring physical IP / patent fees / acquired know-how</td><td class="text-right">A$1,420.00</td><td class="text-right">—</td><td class="text-right">A$0.00</td><td>s.355-225</td></tr>
+        <tr class="border-b border-[var(--line)] text-[var(--ink-3)]"><td class="py-2">Excluded</td><td>R&amp;D done overseas (no AusIndustry overseas finding)</td><td class="text-right">A$0.00</td><td class="text-right">—</td><td class="text-right">A$0.00</td><td>s.28C / s.355-210</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Feedstock adj</td><td>Coupons later sold as scrap · feedstock-output value</td><td class="text-right">−A$103.55</td><td class="text-right">100%</td><td class="text-right">A$96.45</td><td>s.355-465</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3" colspan="4">Notional R&amp;D deduction</td><td class="text-right text-[var(--sae)]">A$134,298.10</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Offset calculation -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Refundable offset calc · s.355-100</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Step-by-step offset</h2>
+
+        <table class="w-full text-sm">
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Notional R&amp;D deduction (above)</td><td class="text-right">A$134,298.10</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Aggregated turnover &lt; A$20m → refundable offset @ 43.5% (s.355-100(1)(a))</td><td class="text-right">×43.5%</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 font-medium">Gross R&amp;D tax offset</td><td class="text-right font-medium">A$58,419.67</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pt-3">Reversal of standard deduction at company rate (25%)</td><td class="text-right">−A$33,574.53</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Net cash benefit · FY26</td><td class="text-right text-[var(--pos)]">A$24,845.14</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pt-3 text-[var(--ink-3)]">Above-and-beyond benefit (vs no RDTI · 25% std deduction baseline)</td><td class="text-right text-[var(--ink-3)]">A$24,845.14 (18.5% of qualifying spend)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pt-3">Cumulative refund expected at FY26 return lodgement</td><td class="text-right">A$24,845.14</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pt-3 text-[var(--ink-3)]">Plus: standard deduction value (would apply anyway)</td><td class="text-right text-[var(--ink-3)]">A$33,574.53</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">Total tax effect of RDTI scheme</td><td class="text-right text-[var(--sae)]">A$58,419.67</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-5">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Decision tree · refundable vs non-refundable</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Why refundable applies</h2>
+
+        <div class="border border-[var(--line)] bg-[var(--paper)] p-5">
+          <ol class="text-sm space-y-3">
+            <li class="flex gap-3">
+              <span class="num font-medium w-6">1.</span>
+              <span>Aggregated turnover &lt; <span class="font-mono">A$20m</span> · A$6.84m measured · <span class="text-[var(--pos)]">PASS</span></span>
+            </li>
+            <li class="flex gap-3">
+              <span class="num font-medium w-6">2.</span>
+              <span>Entity is R&amp;D entity per <span class="font-mono">s.355-35</span> · Australian resident company · <span class="text-[var(--pos)]">PASS</span></span>
+            </li>
+            <li class="flex gap-3">
+              <span class="num font-medium w-6">3.</span>
+              <span>Notional deduction &gt; <span class="font-mono">A$20,000</span> threshold · A$134,298 · <span class="text-[var(--pos)]">PASS</span></span>
+            </li>
+            <li class="flex gap-3">
+              <span class="num font-medium w-6">4.</span>
+              <span>Refundable rate <span class="font-mono">43.5%</span> per <span class="font-mono">s.355-100(1)(a)</span> applies (else non-refundable 25%+8.5%/16.5%)</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="num font-medium w-6">5.</span>
+              <span>Cash-refundable component = excess of offset over income tax payable · A$24,845 expected refund</span>
+            </li>
+          </ol>
+
+          <div class="mt-4 pt-4 border-t border-[var(--line)] text-xs text-[var(--ink-3)] leading-relaxed">
+            If FY27 turnover exceeds A$20m, offset reverts to non-refundable tiered scheme:
+            25% (base) + 8.5% on intensity 0–2% + 16.5% intensity &gt;2% of total expenses (s.355-100(1)(b)).
+            For SAE the differential against current scheme is ~7.5% (A$10k) — worth re-modelling at FY27 if turnover grows.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Audit + ATO risk -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">ATO/AusIndustry review risk · top 6</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Audit hotspots — pre-emptive evidence</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-12">#</th>
+              <th class="text-left">Risk</th>
+              <th class="text-left">Evidence held</th>
+              <th class="text-right w-20">Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 num">R1</td><td>Dominant-purpose test fails on RD-26-03/04/05/06</td><td>Per-activity 1-pg memo linking to RD-26-01 / RD-26-02 hypothesis</td><td class="text-right text-[var(--pos)]">Low</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 num">R2</td><td>Activity reclassified as "ordinary engineering"</td><td>Pre-experiment literature search · novelty memo · hypothesis statement</td><td class="text-right text-[var(--warm)]">Med</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 num">R3</td><td>Time apportionment of R. Sauer salary (38%) challenged</td><td>Daily 30-min timesheet · 184 days × 6 h on RD-26-* · attendance log</td><td class="text-right text-[var(--pos)]">Low</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 num">R4</td><td>Overhead apportionment method (4.5%) not arm's-length</td><td>Sqm-based method documented · floor plan · TR 92/2 reasoning</td><td class="text-right text-[var(--pos)]">Low</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 num">R5</td><td>Feedstock adj missed (scrap coupons sold)</td><td>Feedstock-output value A$103.55 added back per s.355-465</td><td class="text-right text-[var(--pos)]">Low</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 num">R6</td><td>Late registration past 30 Apr deadline (s.27A IR&amp;D Act)</td><td>Calendar alert · 354 days remaining</td><td class="text-right text-[var(--pos)]">Low</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-5">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Recent precedent · context</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Case-law landscape</h2>
+
+        <ul class="text-sm space-y-3 leading-relaxed">
+          <li>
+            <span class="font-medium">Moreton Resources Ltd v IISA [2019] FCAFC 10</span> ·
+            <span class="text-[var(--ink-3)]">Full Federal Court — even prior commercial activities can support R&amp;D where outcome was genuinely uncertain. Strengthens hypothesis-first defensibility.</span>
+          </li>
+          <li>
+            <span class="font-medium">PKWK and IISA [2021] AATA 706</span> ·
+            <span class="text-[var(--ink-3)]">AAT clarified "systematic progression" requires evidence of staged experimental design — contemporaneous notebook entries critical.</span>
+          </li>
+          <li>
+            <span class="font-medium">Coal of Queensland Holdings v IISA [2020] FCAFC 121</span> ·
+            <span class="text-[var(--ink-3)]">Dominant-purpose test for supporting activities is objective, not subjective — internal memos linking to core hypothesis must be contemporaneous, not constructed after-the-fact.</span>
+          </li>
+          <li>
+            <span class="font-medium">ATO TR 2021/5</span> ·
+            <span class="text-[var(--ink-3)]">Clarifies cost apportionment, feedstock rules, and the meaning of "expenditure on R&amp;D activities" — SAE workpaper structured to satisfy each test point.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Annual RDTI pipeline · automated</div>
+    <ol class="grid grid-cols-8 gap-2 text-xs">
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">1 · plan</div>
+        <div class="font-medium mt-1">Pre-Y/E memo</div>
+        <div class="text-[var(--ink-3)] mt-1">Hypothesis · activities · expected expenditure</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">2 · time</div>
+        <div class="font-medium mt-1">Daily timesheet</div>
+        <div class="text-[var(--ink-3)] mt-1">30-min granularity · activity tag · auto-derived from STP-2 pay event</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">3 · notebook</div>
+        <div class="font-medium mt-1">Lab record</div>
+        <div class="text-[var(--ink-3)] mt-1">Timestamped entries · WORM-sealed contemporaneously</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">4 · attribute</div>
+        <div class="font-medium mt-1">Cost mapping</div>
+        <div class="text-[var(--ink-3)] mt-1">Bills tagged R&amp;D% at posting · contractor invoices recognised</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">5 · close</div>
+        <div class="font-medium mt-1">Y/E reconciliation</div>
+        <div class="text-[var(--ink-3)] mt-1">Feedstock adj · OH apportionment · final notional ded</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">6 · IISA file</div>
+        <div class="font-medium mt-1">Registration</div>
+        <div class="text-[var(--ink-3)] mt-1">AusIndustry portal · activity register submitted by 30 Apr</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">7 · ATO claim</div>
+        <div class="font-medium mt-1">Company return</div>
+        <div class="text-[var(--ink-3)] mt-1">Sched RDTI · labels 7T/7U/7V · refundable offset claim</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">8 · refund</div>
+        <div class="font-medium mt-1">Cash receipt</div>
+        <div class="text-[var(--ink-3)] mt-1">ATO disburses ~6 wk · cashbook auto-categorises 4-830 R&amp;D income</div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">AU-market positioning · RDTI surface</div>
+    <h2 class="font-display text-2xl mb-4">SAE Books vs Xero · MYOB · Reckon · RDTI specialists</h2>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-44">Capability</th>
+          <th class="text-left">Xero (AU)</th>
+          <th class="text-left">MYOB Business</th>
+          <th class="text-left">Reckon One</th>
+          <th class="text-left">Specialists (RSM/BDO)</th>
+          <th class="text-left">SAE Books</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Activity register</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Engagement letter, ~A$15k fee</td>
+          <td>Native · core/supporting/dominant-purpose memo per activity</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">R&amp;D timesheet</td>
+          <td>Generic project</td>
+          <td>Generic</td>
+          <td>Generic</td>
+          <td>Spreadsheet</td>
+          <td>30-min granularity · activity tag · STP-2 hours auto-derived</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Cost attribution</td>
+          <td>Manual journal</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Year-end exercise</td>
+          <td>Bills tagged R&amp;D% at posting · feedstock + depn auto-handled</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Refundable vs non-refundable decision</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Advisor-judged</td>
+          <td>Decision tree live · monitors aggregated turnover threshold A$20m</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Audit-evidence pack</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Hand-assembled</td>
+          <td>Pre-built · case-law mapped · risk register</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">IISA portal submission</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Manual upload</td>
+          <td>IISA portal API queued · CSV + memo bundles auto-built</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">ATO 7T/7U/7V pre-fill</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Advisor enters</td>
+          <td>SBR2 company return labels pre-populated from workpaper</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Cash-refund forecast</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>End-of-engagement</td>
+          <td>Live · feeds 13-week cash forecast (6-wk ATO refund hook)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      Most SMEs outsource RDTI to specialist advisors at A$8–25k per claim — Xero/MYOB/Reckon don't carry the working papers and don't speak the IISA portal.
+      SAE Books makes the workpaper a first-class ledger document with timesheet, lab notebook, cost attribution, and submission bundles in one place —
+      collapsing the advisor cost while retaining audit-grade evidence.
+    </div>
+  </section>
+
+  <!-- Cross-link mesh -->
+  <section class="px-10 py-8">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Related</div>
+    <div class="grid grid-cols-5 gap-3">
+      <a href="/preview/compliance/depreciation/sbe-pool-fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Depn linkage</div>
+        <div class="font-medium mt-1">SBE pool · Subdiv 328-D</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">RDTI depn calc cannot use SBE pool — must allocate per-asset on time-on-R&amp;D basis</div>
+      </a>
+      <a href="/preview/payroll/pay-event/26w19" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Wages source</div>
+        <div class="font-medium mt-1">STP-2 pay event PE-26W19</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">R. Sauer/M. Chen STP gross feeds salary-component build-up · timesheet tagging</div>
+      </a>
+      <a href="/preview/compliance/payg-i/q4-fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Tax interaction</div>
+        <div class="font-medium mt-1">PAYG-I Q4 FY26</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">RDTI refund A$24,845 reduces FY26 net tax → next-year T7 projection updated</div>
+      </a>
+      <a href="/preview/cashbook/april-2026" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Cash receipt</div>
+        <div class="font-medium mt-1">Cashbook · April 2026</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">FY26 refund lands ~early Aug 2026 once company return lodged</div>
+      </a>
+      <a href="/preview/bills/bill-1843" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Bill tagging</div>
+        <div class="font-medium mt-1">BILL-1843 BlueScope</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">R&amp;D% checkbox on bill posting — same pattern flows AA-6082 coupon bills to RD-26-01</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

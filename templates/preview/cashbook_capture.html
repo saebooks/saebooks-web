@@ -1,0 +1,242 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'cashbook' %}
+{% block page_title %}Receipt capture · Cashbook · SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-56 h-24 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <a href="/preview/cashbook" class="text-[11px] font-mono ink-3 hover:underline">← Cashbook</a>
+        <span class="text-[11px] font-mono ink-3">/</span>
+        <span class="text-[11px] font-mono">Capture</span>
+      </div>
+      <h1 class="font-display text-[36px] leading-[1.05] font-medium">
+        Receipt capture <span class="italic" style="color: var(--sae);">— snap, forward, drag.</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">3 ways in, one place to review. OCR runs locally on your account.</p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="qr-code" class="w-3.5 h-3.5"></i>Phone QR</button>
+      <button class="chip"><i data-lucide="mail" class="w-3.5 h-3.5"></i>Forwarding addr</button>
+      <button class="btn-primary"><i data-lucide="check-check" class="w-4 h-4"></i>Approve all (4)</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- Three intake channels -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+  <div class="card p-5">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(200,99,31,.14); color: var(--sae);"><i data-lucide="camera" class="w-5 h-5"></i></span>
+      <div>
+        <p class="font-medium">Snap on your phone</p>
+        <p class="text-[11px] ink-3 font-mono">Native iOS / Android</p>
+      </div>
+    </div>
+    <p class="text-[12px] ink-2">Scan QR with your phone — capture page opens straight in your browser. No app to install. Works one-handed at the supplier counter.</p>
+    <div class="mt-3 inline-flex items-center gap-2 text-[11px] font-mono ink-3 px-2 py-1 rounded border hairline">
+      <i data-lucide="link" class="w-3 h-3"></i>cap.saebooks.com.au/r/4-X9B2
+    </div>
+  </div>
+
+  <div class="card p-5">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(26,78,139,.12); color: var(--brand-2);"><i data-lucide="mail" class="w-5 h-5"></i></span>
+      <div>
+        <p class="font-medium">Forward an email</p>
+        <p class="text-[11px] ink-3 font-mono">Supplier PDFs</p>
+      </div>
+    </div>
+    <p class="text-[12px] ink-2">Receipts hit your account when you forward them. Auto-detects supplier from the sender address. Recurring bills (Telstra, AGL) match without review.</p>
+    <div class="mt-3 inline-flex items-center gap-2 text-[11px] font-mono ink-3 px-2 py-1 rounded border hairline">
+      <i data-lucide="at-sign" class="w-3 h-3"></i>receipts.saee@in.saebooks.com.au
+    </div>
+  </div>
+
+  <div class="card p-5" style="border: 1px dashed var(--sae);">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(200,99,31,.14); color: var(--sae);"><i data-lucide="upload-cloud" class="w-5 h-5"></i></span>
+      <div>
+        <p class="font-medium">Drag-drop here</p>
+        <p class="text-[11px] ink-3 font-mono">PDF · JPG · HEIC · PNG</p>
+      </div>
+    </div>
+    <div class="mt-2 rounded-lg p-4 text-center" style="background: rgba(200,99,31,.04); border: 1px dashed var(--sae);">
+      <i data-lucide="image-plus" class="w-7 h-7 mx-auto" style="color: var(--sae);"></i>
+      <p class="text-[12px] font-medium mt-2" style="color: var(--sae);">Drop files to upload</p>
+      <p class="text-[11px] ink-3 mt-0.5">or click to browse</p>
+    </div>
+  </div>
+</div>
+
+<!-- Capture queue (gallery + detail) -->
+<div class="grid grid-cols-12 gap-5">
+  <!-- LEFT: gallery -->
+  <div class="col-span-5">
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 border-b hairline bg-[color:var(--paper)] flex items-center justify-between">
+        <h3 class="font-medium text-sm">In capture queue</h3>
+        <div class="flex items-center gap-1.5 text-[11px]">
+          <button class="chip chip-active">All <span class="num ml-1 opacity-70">7</span></button>
+          <button class="chip">Needs review <span class="num ml-1 opacity-70">3</span></button>
+          <button class="chip">Auto-ready <span class="num ml-1 opacity-70">4</span></button>
+        </div>
+      </div>
+
+      {% set caps = [
+        {'sel':true, 'thumb':'#1A4E8B','init':'BT','vendor':'Bunnings Trade','total':'112.40','time':'10:38','src':'camera','conf':82,'status':'review'},
+        {'sel':false,'thumb':'#194291','init':'SH','vendor':'Shell Coles Express','total':'68.50','time':'10:22','src':'camera','conf':94,'status':'ok'},
+        {'sel':false,'thumb':'#7C5C8B','init':'TE','vendor':'Telstra Business','total':'198.00','time':'09:11','src':'email','conf':99,'status':'auto'},
+        {'sel':false,'thumb':'#3E7A4E','init':'CO','vendor':'Coles Group','total':'24.80','time':'09:04','src':'camera','conf':91,'status':'ok'},
+        {'sel':false,'thumb':'#1A4E8B','init':'SD','vendor':'Sandvik Tools','total':'940.50','time':'Yesterday','src':'upload','conf':76,'status':'review'},
+        {'sel':false,'thumb':'#5C7A8B','init':'RP','vendor':'Reece Plumbing','total':'1,320.00','time':'Yesterday','src':'email','conf':97,'status':'auto'},
+        {'sel':false,'thumb':'#194291','init':'OE','vendor':'Origin Energy','total':'129.50','time':'2 days','src':'email','conf':99,'status':'auto'},
+      ] %}
+
+      <ul class="divide-y" style="border-color: var(--line);">
+        {% for c in caps %}
+        <li class="flex items-center gap-3 p-3 hover:bg-[color:var(--paper)] cursor-pointer {% if c.sel %}bg-[color:var(--paper)]{% endif %}" {% if c.sel %}style="border-left: 3px solid var(--sae); padding-left: calc(.75rem - 3px);"{% endif %}>
+          <div class="relative w-12 h-14 rounded shrink-0 flex items-center justify-center text-white text-[10px] font-medium font-mono" style="background: {{ c.thumb }};">
+            {{ c.init }}
+            <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center" style="background: white; border: 1px solid var(--line);">
+              {% if c.src == 'camera' %}<i data-lucide="camera" class="w-2.5 h-2.5 ink-2"></i>
+              {% elif c.src == 'email' %}<i data-lucide="mail" class="w-2.5 h-2.5 ink-2"></i>
+              {% else %}<i data-lucide="upload" class="w-2.5 h-2.5 ink-2"></i>{% endif %}
+            </span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium text-[13px] truncate">{{ c.vendor }}</p>
+            <p class="text-[11px] ink-3 font-mono">{{ c.time }} · OCR {{ c.conf }}%</p>
+            {% if c.status == 'review' %}
+              <span class="badge badge-warm text-[10px] mt-1"><span class="dot" style="background: var(--warm);"></span>Needs a glance</span>
+            {% elif c.status == 'auto' %}
+              <span class="badge badge-pos text-[10px] mt-1"><span class="dot" style="background: var(--pos);"></span>Auto-matched</span>
+            {% else %}
+              <span class="badge badge-pos text-[10px] mt-1"><span class="dot" style="background: var(--pos);"></span>Ready</span>
+            {% endif %}
+          </div>
+          <p class="font-mono num font-medium text-right">A${{ c.total }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- RIGHT: capture detail (selected = Bunnings 4-X9B2) -->
+  <div class="col-span-7">
+    <div class="card overflow-hidden">
+      <!-- Receipt image placeholder -->
+      <div class="relative h-72 bg-gradient-to-b from-[#1a4e8b] to-[#0f2940] flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(45deg, transparent 49%, white 49%, white 51%, transparent 51%); background-size: 8px 8px;"></div>
+        <div class="relative w-44 bg-white rounded shadow-2xl p-4 font-mono text-[10px] text-black transform rotate-[-2deg]" style="font-family: 'JetBrains Mono', monospace;">
+          <p class="text-center font-bold text-[11px]">BUNNINGS TRADE</p>
+          <p class="text-center text-[8px]">PORTSMITH QLD · 25 MAY 2026</p>
+          <p class="text-center text-[8px]">ABN 26 008 672 179</p>
+          <hr class="my-1.5 border-dashed">
+          <div class="flex justify-between"><span>2× 6mm SDS</span><span>18.80</span></div>
+          <div class="flex justify-between"><span>1× M16 SS</span><span>4.20</span></div>
+          <div class="flex justify-between"><span>1× Bosch tip</span><span>87.20</span></div>
+          <hr class="my-1.5 border-dashed">
+          <div class="flex justify-between font-bold"><span>TOTAL inc GST</span><span>112.40</span></div>
+          <div class="flex justify-between text-[8px]"><span>GST 10%</span><span>10.22</span></div>
+          <p class="text-center mt-2 text-[8px]">PAID · EFTPOS ****8421</p>
+        </div>
+        <div class="absolute top-3 right-3 flex items-center gap-2">
+          <button class="chip text-[10px]"><i data-lucide="rotate-cw" class="w-3 h-3"></i></button>
+          <button class="chip text-[10px]"><i data-lucide="crop" class="w-3 h-3"></i></button>
+          <button class="chip text-[10px]"><i data-lucide="maximize-2" class="w-3 h-3"></i></button>
+        </div>
+        <div class="absolute bottom-3 left-3 text-white text-[11px] font-mono opacity-90">cap.saebooks.com.au/r/4-X9B2</div>
+      </div>
+
+      <!-- OCR fields -->
+      <div class="p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-medium">Bunnings Trade · 25 May 2026</h3>
+          <span class="badge badge-warm"><span class="dot" style="background: var(--warm);"></span>OCR 82% · needs your glance</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-4 text-[12px]">
+          <div>
+            <p class="ink-3 mb-1">Supplier</p>
+            <input value="Bunnings Trade" class="w-full px-2 py-1.5 bg-[color:var(--paper)] border hairline rounded ring-focus font-medium">
+            <p class="text-[11px] pos mt-0.5"><i data-lucide="check" class="w-3 h-3 inline"></i> ABN matched</p>
+          </div>
+          <div>
+            <p class="ink-3 mb-1">Date</p>
+            <input value="2026-05-25" class="w-full px-2 py-1.5 bg-[color:var(--paper)] border hairline rounded font-mono ring-focus">
+          </div>
+          <div>
+            <p class="ink-3 mb-1">Total (inc GST)</p>
+            <input value="A$112.40" class="w-full px-2 py-1.5 bg-[color:var(--paper)] border hairline rounded font-mono num ring-focus">
+          </div>
+          <div>
+            <p class="ink-3 mb-1">GST</p>
+            <input value="A$10.22" class="w-full px-2 py-1.5 bg-[color:var(--paper)] border hairline rounded font-mono num ring-focus">
+          </div>
+          <div>
+            <p class="ink-3 mb-1">Payment method</p>
+            <select class="w-full px-2 py-1.5 bg-[color:var(--paper)] border hairline rounded ring-focus">
+              <option>EFTPOS — CBA ****8421</option>
+              <option>Cash</option>
+              <option>Personal card (reimburse)</option>
+            </select>
+            <p class="text-[11px] pos mt-0.5"><i data-lucide="link" class="w-3 h-3 inline"></i> Matched to bank txn 25 May</p>
+          </div>
+          <div>
+            <p class="ink-3 mb-1">Category</p>
+            <select class="w-full px-2 py-1.5 bg-[color:var(--paper)] border hairline rounded ring-focus">
+              <option>5-310 · Materials (consumables)</option>
+              <option>5-300 · Subcontractors</option>
+              <option>6-100 · Tools (capital)</option>
+              <option>6-200 · Motor vehicle</option>
+              <option>6-900 · Other operating</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rounded-md p-3 mb-4" style="background: var(--paper);">
+          <p class="text-[11px] uppercase tracking-wider ink-3 mb-2">Line items (auto-extracted)</p>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr><td>2× 6mm SDS masonry drill bits</td><td class="text-right num">18.80</td></tr>
+              <tr><td>1× M16 stainless bolt pack (50)</td><td class="text-right num">4.20</td></tr>
+              <tr><td>1× Bosch impact driver tip</td><td class="text-right num">87.20</td></tr>
+              <tr style="border-top: 1px solid var(--line); font-weight: 600;"><td class="pt-1">Total inc GST</td><td class="text-right num pt-1">112.40</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="rounded-md p-3 mb-4" style="background: rgba(200,99,31,.06); border: 1px dashed var(--sae);">
+          <div class="flex items-start gap-2">
+            <i data-lucide="lightbulb" class="w-4 h-4 mt-0.5" style="color: var(--sae);"></i>
+            <div class="text-[12px]">
+              <p class="font-medium" style="color: var(--sae);">Auto-rule suggestion</p>
+              <p class="ink-2 mt-0.5">You've coded the last 8 Bunnings Trade receipts to <span class="font-mono">5-310 Materials</span>. Save this as a rule so all future Bunnings receipts auto-code (you'll still see them in the queue).</p>
+              <div class="mt-2 flex gap-2">
+                <button class="chip">Save rule</button>
+                <button class="chip">Just this one</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-[12px] ink-3">
+            <label class="flex items-center gap-1.5"><input type="checkbox" class="rounded border-gray-300"> Job-cost to <a href="/preview/projects/j-2603" class="sae hover:underline">J-2603</a></label>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="chip">Skip</button>
+            <button class="btn-primary"><i data-lucide="check" class="w-4 h-4"></i>Approve &amp; next <span class="text-[10px] font-mono opacity-70 ml-1">⌘↵</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

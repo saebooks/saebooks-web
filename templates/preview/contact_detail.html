@@ -1,0 +1,239 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'contacts' %}
+{% block page_title %}Acme Pty Ltd · SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between gap-4 mb-5 text-[12px] ink-3 font-mono">
+  <div class="flex items-center gap-2">
+    <a href="/preview/contacts" class="hover:text-[color:var(--sae)]">Contacts</a>
+    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+    <span class="ink-2">Acme Pty Ltd</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <button class="chip"><i data-lucide="mail" class="w-3.5 h-3.5"></i>Send statement</button>
+    <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export ledger</button>
+    <button class="chip"><i data-lucide="archive" class="w-3.5 h-3.5"></i>Archive</button>
+    <a href="#" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i>New invoice</a>
+  </div>
+</div>
+
+<!-- Identity hero -->
+<div class="card p-6 mb-7 relative overflow-hidden">
+  <div class="absolute right-0 top-0 w-56 h-32 dot-grid-soft pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6 relative">
+    <div class="flex items-center gap-4">
+      <span class="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-[26px] font-display font-medium" style="background: #1A4E8B;">A</span>
+      <div>
+        <div class="flex items-center gap-3 mb-1">
+          <span class="reg-mark"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Customer · Engineering</span>
+          <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Active</span>
+        </div>
+        <h1 class="font-display text-[28px] leading-[1.05] font-medium">Acme Pty Ltd</h1>
+        <p class="text-[12px] font-mono ink-3 mt-1">ABN 12 345 678 901 · ACN 168 502 343</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-6 text-right">
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Open balance</p>
+        <p class="font-display text-[24px] num mt-0.5">A$1,562<span class="text-[12px] ink-3">.00</span></p>
+        <a href="/preview/reports/aged-receivables" class="text-[10px] sae font-mono mt-0.5 hover:underline">1 invoice awaiting →</a>
+      </div>
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-wider ink-3">YTD revenue</p>
+        <p class="font-display text-[24px] num mt-0.5">A$14,920</p>
+        <p class="text-[10px] pos font-mono mt-0.5">↑ 42% vs FY25</p>
+      </div>
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Avg pay time</p>
+        <p class="font-display text-[24px] num mt-0.5">12<span class="text-[12px] ink-3">d</span></p>
+        <p class="text-[10px] pos font-mono mt-0.5">Net 14 terms</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="flex items-center gap-1 mb-5 border-b hairline">
+  {% set tabs = [('overview', 'Overview', true), ('ledger', 'Ledger', false), ('quotes', 'Quotes', false), ('invoices', 'Invoices', false), ('jobs', 'Jobs', false), ('history', 'Activity', false), ('settings', 'Settings', false)] %}
+  {% for slug, label, active in tabs %}
+    <a href="#{{ slug }}" class="px-4 py-2.5 text-[13px] {% if active %}border-b-2 font-medium text-[color:var(--ink)]{% else %}ink-3 hover:text-[color:var(--ink-2)]{% endif %}" {% if active %}style="border-color: var(--sae);"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <!-- Main column -->
+  <div class="md:col-span-2 space-y-6">
+    <!-- Receivables aging -->
+    <div class="card p-5">
+      <div class="flex items-end justify-between mb-3">
+        <h3 class="font-display text-[18px]">Receivables aging</h3>
+        <span class="text-[11px] font-mono ink-3">As at 11 May 2026</span>
+      </div>
+      <div class="grid grid-cols-5 gap-3 text-center">
+        {% set buckets = [
+          {'label': 'Current', 'amt': '1,562', 'pct': 100, 'col': 'var(--pos)'},
+          {'label': '1–30d', 'amt': '0', 'pct': 0, 'col': 'var(--warm)'},
+          {'label': '31–60d', 'amt': '0', 'pct': 0, 'col': 'var(--warm)'},
+          {'label': '61–90d', 'amt': '0', 'pct': 0, 'col': 'var(--neg)'},
+          {'label': '90+', 'amt': '0', 'pct': 0, 'col': 'var(--neg)'},
+        ] %}
+        {% for b in buckets %}
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ b.label }}</p>
+          <p class="font-display text-[18px] num mt-1 {% if b.amt == '0' %}ink-3{% endif %}">A${{ b.amt }}</p>
+          <div class="mt-2 h-1.5 rounded-full bg-[color:var(--paper-2)] overflow-hidden">
+            <div class="h-full rounded-full" style="width:{{ b.pct }}%; background: {{ b.col }};"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="text-[12px] ink-2 mt-4 italic">Pays consistently within terms. Last 12 invoices all settled before due date — eligible for early-pay discount tier.</p>
+    </div>
+
+    <!-- Recent transactions ledger -->
+    <div class="card overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b hairline">
+        <h3 class="font-display text-[18px]">Ledger — last 90 days</h3>
+        <div class="flex items-center gap-2">
+          <button class="chip text-[11px]"><i data-lucide="calendar" class="w-3 h-3"></i>90 days</button>
+          <button class="chip text-[11px]"><i data-lucide="filter" class="w-3 h-3"></i>All</button>
+        </div>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Ref</th>
+            <th>Description</th>
+            <th class="text-right">Charge</th>
+            <th class="text-right">Payment</th>
+            <th class="text-right">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set ledger = [
+            ('11 May', 'Invoice',  'INV-0028', 'Conveyor retrofit — progress claim',      '1,562.00', '',         '1,562.00', 'inv'),
+            ('10 May', 'Payment',  'EFT',      'CBA EFT — INV-0027 settlement',            '',         '14,179.00', '0.00',    'pay'),
+            ('5 May',  'Invoice',  'INV-0027', 'Service contract — May',                    '14,179.00','',         '14,179.00','inv'),
+            ('1 May',  'Payment',  'EFT',      'CBA EFT — INV-0025 settlement',            '',         '352.00',    '0.00',    'pay'),
+            ('20 Apr', 'Invoice',  'INV-0025', 'Site visit + report',                       '352.00',   '',         '352.00',  'inv'),
+            ('15 Apr', 'Payment',  'EFT',      'CBA EFT — INV-0024 settlement',            '',         '2,310.00',  '0.00',    'pay'),
+            ('1 Apr',  'Invoice',  'INV-0024', 'Annual inspection + compliance certificate','2,310.00', '',         '2,310.00','inv'),
+            ('28 Mar', 'Quote',    'Q-0030',   'Conveyor retrofit (accepted 4 Apr)',        '',         '',         '0.00',    'qte'),
+          ] %}
+          {% for date, type, ref, desc, charge, pay, bal, kind in ledger %}
+          <tr>
+            <td class="font-mono text-[12px] ink-2">{{ date }}</td>
+            <td>
+              {% if kind == 'inv' %}<span class="badge badge-ink text-[10px]">Invoice</span>
+              {% elif kind == 'pay' %}<span class="badge badge-pos text-[10px]">Payment</span>
+              {% else %}<span class="badge badge-warm text-[10px]">Quote</span>{% endif %}
+            </td>
+            <td class="font-mono text-[12px]">
+              {% if kind == 'inv' and ref == 'INV-0028' %}<a href="/preview/invoices/inv-0028" class="text-[color:var(--brand-2)] hover:underline">{{ ref }}</a>
+              {% else %}<a href="#" class="text-[color:var(--brand-2)] hover:underline">{{ ref }}</a>{% endif %}
+            </td>
+            <td class="ink-2 text-[13px]">{{ desc }}</td>
+            <td class="text-right num {% if charge %}{% else %}ink-3{% endif %}">{% if charge %}A${{ charge }}{% else %}—{% endif %}</td>
+            <td class="text-right num {% if pay %}pos{% else %}ink-3{% endif %}">{% if pay %}A${{ pay }}{% else %}—{% endif %}</td>
+            <td class="text-right num font-medium">A${{ bal }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Linked jobs -->
+    <div class="card p-5">
+      <div class="flex items-end justify-between mb-3">
+        <h3 class="font-display text-[18px]">Active jobs</h3>
+        <a href="/preview/projects" class="text-[12px] sae hover:underline">All jobs →</a>
+      </div>
+      <div class="space-y-2.5">
+        {% set jobs = [
+          ('J-2603', 'Conveyor retrofit — drive line 2', 'On site', '34,320', 62, 'pos'),
+          ('J-2592', 'Service contract — May',           'Recurring', '14,420', 50, 'ink'),
+        ] %}
+        {% for ref, name, stage, quoted, prog, kind in jobs %}
+        <a href="{% if ref == 'J-2603' %}/preview/projects/j-2603{% else %}/preview/projects{% endif %}" class="block p-3 rounded-lg border hairline hover:border-[color:var(--sae)] transition-colors">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <i data-lucide="hammer" class="w-4 h-4 ink-3"></i>
+              <div>
+                <p class="text-[13.5px] font-medium">{{ name }}</p>
+                <p class="text-[11px] font-mono ink-3">{{ ref }} · A${{ quoted }} quoted</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              {% if kind == 'pos' %}<span class="badge badge-pos text-[10px]"><span class="dot" style="background: var(--pos);"></span>{{ stage }}</span>
+              {% else %}<span class="badge badge-ink text-[10px]"><span class="dot" style="background: var(--ink-3);"></span>{{ stage }}</span>{% endif %}
+              <div class="w-20 h-1.5 rounded-full bg-[color:var(--paper-2)] overflow-hidden">
+                <div class="h-full rounded-full" style="width:{{ prog }}%; background: var(--sae);"></div>
+              </div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="space-y-4">
+    <!-- Contact card -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Contact details</h3>
+      <div class="space-y-2.5 text-[12.5px]">
+        <div class="flex items-start gap-2"><i data-lucide="mail" class="w-3.5 h-3.5 ink-3 mt-0.5"></i><div><p class="ink-2">paul@acme.com.au</p><p class="text-[10.5px] ink-3 font-mono">Primary · billing</p></div></div>
+        <div class="flex items-start gap-2"><i data-lucide="phone" class="w-3.5 h-3.5 ink-3 mt-0.5"></i><p class="ink-2">02 4961 8821</p></div>
+        <div class="flex items-start gap-2"><i data-lucide="user" class="w-3.5 h-3.5 ink-3 mt-0.5"></i><p class="ink-2">Paul Macready</p></div>
+        <div class="flex items-start gap-2"><i data-lucide="map-pin" class="w-3.5 h-3.5 ink-3 mt-0.5"></i><div><p class="ink-2">14 Industrial Dr</p><p class="ink-2">Wickham NSW 2293</p></div></div>
+      </div>
+      <a href="#" class="text-[12px] sae mt-3 inline-flex items-center gap-1 hover:underline"><i data-lucide="edit-3" class="w-3 h-3"></i>Edit</a>
+    </div>
+
+    <!-- Trade terms -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Trade terms</h3>
+      <div class="space-y-2 text-[12.5px]">
+        <div class="flex justify-between"><span class="ink-3">Payment terms</span><span>Net 14</span></div>
+        <div class="flex justify-between"><span class="ink-3">Credit limit</span><span class="num">A$25,000</span></div>
+        <div class="flex justify-between"><span class="ink-3">Default tax</span><span>GST inclusive</span></div>
+        <div class="flex justify-between"><span class="ink-3">Default currency</span><span>AUD</span></div>
+        <div class="flex justify-between"><span class="ink-3">Discount</span><span class="ink-3">—</span></div>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Tags</h3>
+      <div class="flex flex-wrap gap-1">
+        <span class="badge badge-ink text-[10px]">Engineering</span>
+        <span class="badge badge-ink text-[10px]">Net 14</span>
+        <span class="badge badge-pos text-[10px]">Repeat</span>
+        <span class="badge badge-sae text-[10px]">Priority</span>
+      </div>
+      <button class="text-[12px] sae mt-3 inline-flex items-center gap-1 hover:underline"><i data-lucide="plus" class="w-3 h-3"></i>Add tag</button>
+    </div>
+
+    <!-- Notes -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Notes</h3>
+      <div class="space-y-2 text-[12px]">
+        <div class="pb-2 border-b hairline">
+          <p class="ink-2">Prefers progress claims weekly during major retrofits — invoice on Fri for prior week.</p>
+          <p class="text-[10.5px] font-mono ink-3 mt-1">Richard · 4 Apr 2026</p>
+        </div>
+        <div>
+          <p class="ink-2">Site safety: induction valid until Nov 2026, lift permit MK-2261.</p>
+          <p class="text-[10.5px] font-mono ink-3 mt-1">Richard · 18 Mar 2026</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

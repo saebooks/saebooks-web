@@ -1,0 +1,585 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'home' %}
+{% block page_title %}Home · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero strip with dot-grid corner + registration mark -->
+<div class="relative mb-9">
+  <div class="absolute right-0 top-0 w-56 h-28 dot-grid-soft rounded-tr-2xl rounded-bl-3xl pointer-events-none opacity-60"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div class="relative">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Home · FY26 · Q4</span>
+      </div>
+      <h1 class="font-display text-[44px] leading-[1.05] font-medium">Good morning, Richard</h1>
+      <p class="mt-3 ink-2 text-sm">
+        Monday, 11 May 2026 · <span class="num">A$5.00</span> in bank ·
+        <span class="ink-2">11 transactions to review</span>
+      </p>
+    </div>
+    <div class="flex items-center gap-2 pt-2 relative">
+      <button class="chip"><i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>Customise</button>
+      <button class="chip"><i data-lucide="eye-off" class="w-3.5 h-3.5"></i>Privacy</button>
+      <button class="btn-primary"><i data-lucide="zap" class="w-3.5 h-3.5"></i>Quick BAS draft</button>
+    </div>
+  </div>
+  <div class="drafting mt-7"></div>
+</div>
+
+<!-- Pill nav row -->
+<div class="relative -mx-2 mb-9">
+  <div class="overflow-x-auto scroll-x px-2 grad-fade-r">
+    <div class="flex gap-2 pb-1 min-w-max">
+      <a href="#" class="pill-nav">
+        <span class="pill-ico" style="background:var(--brand);"><i data-lucide="book-open" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Accounting</span>
+      </a>
+      <a href="/preview/bills" class="pill-nav">
+        <span class="pill-ico" style="background:var(--brand-2);"><i data-lucide="receipt" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Expenses &amp; Pay Bills</span>
+      </a>
+      <a href="/preview/invoices" class="pill-nav">
+        <span class="pill-ico" style="background:var(--pos);"><i data-lucide="trending-up" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Sales &amp; Get Paid</span>
+      </a>
+      <a href="/preview/contacts" class="pill-nav">
+        <span class="pill-ico" style="background:#5C7A8B;"><i data-lucide="users" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Customer Hub</span>
+      </a>
+      <a href="#" class="pill-nav">
+        <span class="pill-ico" style="background:var(--warm);"><i data-lucide="megaphone" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Marketing</span>
+        <i data-lucide="external-link" class="w-3.5 h-3.5 ink-3 -ml-1"></i>
+      </a>
+      <a href="#" class="pill-nav">
+        <span class="pill-ico" style="background:#7C5C8B;"><i data-lucide="briefcase" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Payroll &amp; STP</span>
+      </a>
+      <a href="/preview/projects" class="pill-nav">
+        <span class="pill-ico" style="background:var(--sae);"><i data-lucide="hammer" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Projects &amp; Jobs</span>
+      </a>
+      <a href="#" class="pill-nav">
+        <span class="pill-ico" style="background:#8B6F4A;"><i data-lucide="package" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Inventory</span>
+      </a>
+      <a href="/preview/compliance" class="pill-nav">
+        <span class="pill-ico" style="background:#4A5C8B;"><i data-lucide="landmark" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">ATO &amp; BAS</span>
+      </a>
+      <a href="/preview/cashbook" class="pill-nav">
+        <span class="pill-ico" style="background:var(--ink);"><i data-lucide="book-marked" class="w-4 h-4"></i></span>
+        <span class="text-sm font-medium">Cashbook</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Business Feed -->
+<section class="mb-9">
+  <div class="flex items-end justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <h2 class="text-[15px] font-semibold tracking-tight">Business feed</h2>
+      <span class="badge badge-sae"><span class="dot" style="background: var(--sae);"></span> 3 new</span>
+    </div>
+    <a href="#" class="text-xs ink-2 hover:text-[color:var(--sae)]">View all</a>
+  </div>
+  <div class="card p-5">
+    <div class="space-y-4">
+      <article class="flex items-start gap-4">
+        <span class="mt-0.5 w-9 h-9 rounded-full flex items-center justify-center" style="background: var(--pos-tint); color: var(--pos);">
+          <i data-lucide="file-check-2" class="w-4 h-4"></i>
+        </span>
+        <div class="flex-1">
+          <p class="text-sm"><span class="font-medium">Quote accepted</span> · <span class="ink-2">2 hours ago</span></p>
+          <p class="text-sm ink-2 mt-0.5">Acme Pty Ltd accepted quote <a href="/preview/quotes" class="text-[color:var(--brand-2)] hover:underline">Q-0032</a> worth <span class="num font-medium ink">A$34,321.00</span> — ready to convert to invoice.</p>
+        </div>
+        <a href="/preview/quotes/q-0032/convert" class="chip">Convert to invoice</a>
+      </article>
+
+      <article class="flex items-start gap-4 border-t hairline pt-4">
+        <span class="mt-0.5 w-9 h-9 rounded-full flex items-center justify-center" style="background: var(--warm-tint); color: #8a6a1c;">
+          <i data-lucide="alarm-clock" class="w-4 h-4"></i>
+        </span>
+        <div class="flex-1">
+          <p class="text-sm"><span class="font-medium">3 bills due this week</span> · <span class="ink-2">total <span class="num font-medium ink">A$813.70</span></span></p>
+          <p class="text-sm ink-2 mt-0.5">Bunnings Trade, Telstra Business, and Origin Energy — earliest due Wednesday 13 May.</p>
+        </div>
+        <a href="/preview/bills" class="chip">Schedule pay run</a>
+      </article>
+
+      <article class="flex items-start gap-4 border-t hairline pt-4">
+        <span class="mt-0.5 w-9 h-9 rounded-full flex items-center justify-center" style="background: var(--neg-tint); color: var(--neg);">
+          <i data-lucide="circle-alert" class="w-4 h-4"></i>
+        </span>
+        <div class="flex-1">
+          <p class="text-sm"><span class="font-medium">11 transactions need categorising</span> · <span class="ink-2">imported overnight from ANZ Business</span></p>
+          <p class="text-sm ink-2 mt-0.5">Bank rules already match 7 of them — quick approve to keep the books tidy.</p>
+        </div>
+        <a href="#" class="chip">Review</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Create actions -->
+<section class="mb-10">
+  <div class="flex items-end justify-between mb-3">
+    <h2 class="text-[15px] font-semibold tracking-tight">Create actions</h2>
+    <a href="#" class="text-xs ink-2 hover:text-[color:var(--sae)]">Show all</a>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="/preview/invoices" class="chip"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>Create invoice</a>
+    <a href="/preview/bills" class="chip"><i data-lucide="receipt" class="w-3.5 h-3.5"></i>Record expense</a>
+    <a href="/preview/quotes" class="chip"><i data-lucide="file-pen-line" class="w-3.5 h-3.5"></i>Create quote</a>
+    <a href="#" class="chip"><i data-lucide="banknote" class="w-3.5 h-3.5"></i>Record payment</a>
+    <a href="#" class="chip"><i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>Create purchase order</a>
+    <a href="#" class="chip"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Create statement</a>
+    <a href="#" class="chip"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Add time entry</a>
+    <a href="#" class="chip"><i data-lucide="credit-card" class="w-3.5 h-3.5"></i>Pay bills</a>
+    <a href="#" class="chip"><i data-lucide="package-plus" class="w-3.5 h-3.5"></i>Add product or service</a>
+    <a href="#" class="chip"><i data-lucide="book-text" class="w-3.5 h-3.5"></i>Create journal entry</a>
+    <a href="/preview/compliance" class="chip"><i data-lucide="landmark" class="w-3.5 h-3.5"></i>Lodge BAS</a>
+  </div>
+</section>
+
+<!-- Business at a glance -->
+<section>
+  <div class="flex items-end justify-between mb-3">
+    <h2 class="text-[15px] font-semibold tracking-tight">Business at a glance</h2>
+    <a href="#" class="text-xs ink-2 hover:text-[color:var(--sae)]">Customise widgets</a>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+
+    <!-- P&L -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Profit &amp; Loss</p>
+          <p class="text-xs ink-2 mt-1">Net profit for FY26</p>
+        </div>
+        <button class="text-xs ink-2 flex items-center gap-1 hover:text-[color:var(--sae)]">
+          This financial year <i data-lucide="chevron-down" class="w-3 h-3"></i>
+        </button>
+      </div>
+      <p class="font-display text-[32px] mt-2 num neg">−A$9,572</p>
+      <p class="text-xs ink-2 mt-1 flex items-center gap-1.5"><span class="pos inline-flex items-center gap-0.5"><i data-lucide="arrow-up" class="w-3 h-3"></i>24%</span> from FY 25</p>
+
+      <div class="mt-5 space-y-3">
+        <div>
+          <div class="flex items-baseline justify-between text-xs mb-1.5">
+            <span class="ink-2">Income</span>
+            <span class="num font-medium">A$70,059</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-[color:var(--paper-2)] overflow-hidden">
+            <div class="h-full rounded-full" style="width:88%; background: var(--pos);"></div>
+          </div>
+          <p class="text-[11px] ink-3 mt-1">1 to review</p>
+        </div>
+        <div>
+          <div class="flex items-baseline justify-between text-xs mb-1.5">
+            <span class="ink-2">Expenses</span>
+            <span class="num font-medium">A$79,631</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-[color:var(--paper-2)] overflow-hidden">
+            <div class="h-full rounded-full" style="width:100%; background: var(--ink);"></div>
+          </div>
+          <p class="text-[11px] ink-3 mt-1">11 to review</p>
+        </div>
+      </div>
+      <a href="#" class="block mt-4 text-xs text-[color:var(--sae)] hover:underline">Categorise 12 transactions →</a>
+    </div>
+
+    <!-- Expenses donut -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Expenses</p>
+          <p class="text-xs ink-2 mt-1">Spending for FY26 to date</p>
+        </div>
+        <button class="text-xs ink-2 flex items-center gap-1 hover:text-[color:var(--sae)]">
+          This FY <i data-lucide="chevron-down" class="w-3 h-3"></i>
+        </button>
+      </div>
+      <p class="font-display text-[32px] mt-2 num">A$79,631</p>
+      <p class="text-xs ink-2 mt-1 flex items-center gap-1.5"><span class="pos inline-flex items-center gap-0.5"><i data-lucide="arrow-down" class="w-3 h-3"></i>27%</span> from same time FY25</p>
+
+      <div class="mt-5 flex items-center gap-5">
+        <svg viewBox="0 0 42 42" class="w-24 h-24 -rotate-90">
+          <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f1ecdf" stroke-width="6"/>
+          <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#0F2940" stroke-width="6"
+                  stroke-dasharray="37 63" stroke-dashoffset="0"/>
+          <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#1A4E8B" stroke-width="6"
+                  stroke-dasharray="24 76" stroke-dashoffset="-37"/>
+          <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#3E7A4E" stroke-width="6"
+                  stroke-dasharray="20 80" stroke-dashoffset="-61"/>
+          <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#194291" stroke-width="6"
+                  stroke-dasharray="19 81" stroke-dashoffset="-81"/>
+        </svg>
+        <ul class="text-xs space-y-1.5 flex-1">
+          <li class="flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="donut-leg" style="background:#0F2940;"></span>Cost of goods</span>
+            <span class="num ink-2">A$29,563 · 37%</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="donut-leg" style="background:#1A4E8B;"></span>Operating</span>
+            <span class="num ink-2">A$19,291 · 24%</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="donut-leg" style="background:#3E7A4E;"></span>Company</span>
+            <span class="num ink-2">A$14,885 · 19%</span>
+          </li>
+          <li class="flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="donut-leg" style="background:#194291;"></span>Other</span>
+            <span class="num ink-2">A$15,891 · 20%</span>
+          </li>
+        </ul>
+      </div>
+      <a href="#" class="block mt-4 text-xs text-[color:var(--sae)] hover:underline">Categorise 11 transactions →</a>
+    </div>
+
+    <!-- Bank accounts -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Bank accounts</p>
+          <p class="text-xs ink-2 mt-1">Total bank balance</p>
+        </div>
+        <span class="text-xs ink-3 flex items-center gap-1">
+          <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+          As of today
+        </span>
+      </div>
+      <p class="font-display text-[32px] mt-2 num">A$5.00</p>
+
+      <ul class="mt-5 space-y-3.5">
+        <li>
+          <div class="flex items-center justify-between text-sm">
+            <div class="flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-mono" style="background: rgba(15,41,64,.08); color: var(--brand);">
+                ANZ
+              </span>
+              <div>
+                <p class="text-sm leading-tight">SAE Engineering Pty Ltd</p>
+                <p class="text-[11px] ink-3 leading-tight">ANZ Business · ●●●● 4912</p>
+              </div>
+            </div>
+            <span class="num font-medium neg">−A$86.62</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] ink-3 mt-1 pl-10">
+            <span>In SAE Books</span>
+            <span class="num neg">−A$11,613.58</span>
+          </div>
+          <a href="#" class="block mt-1 text-[11px] pl-10 text-[color:var(--sae)] hover:underline">12 to review →</a>
+        </li>
+        <li class="border-t hairline pt-3">
+          <div class="flex items-center justify-between text-sm">
+            <div class="flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-mono" style="background: rgba(15,41,64,.08); color: var(--brand);">
+                CBA
+              </span>
+              <div>
+                <p class="text-sm leading-tight">Smart Access Saver</p>
+                <p class="text-[11px] ink-3 leading-tight">Commonwealth Bank · ●●●● 2204</p>
+              </div>
+            </div>
+            <span class="num font-medium pos">A$91.62</span>
+          </div>
+        </li>
+      </ul>
+      <a href="#" class="block mt-4 text-xs text-[color:var(--sae)] hover:underline">Go to registers →</a>
+    </div>
+
+    <!-- Outstanding -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Outstanding</p>
+          <p class="text-xs ink-2 mt-1">Money owed to you / by you</p>
+        </div>
+        <a href="/preview/reports/aged-receivables" class="text-[11px] sae hover:underline">Aged report →</a>
+      </div>
+
+      <div class="mt-3 grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-xs ink-2">Invoices unpaid</p>
+          <p class="font-display text-[24px] num">A$1,210<span class="text-[16px] ink-3">.00</span></p>
+          <div class="mt-1 flex items-center gap-1 text-[11px]">
+            <span class="badge badge-neg">1 overdue</span>
+            <span class="ink-3">2 open</span>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between">
+            <p class="text-xs ink-2">Bills due</p>
+            <a href="/preview/reports/aged-payables" class="text-[10px] sae hover:underline">aged →</a>
+          </div>
+          <p class="font-display text-[24px] num">A$813<span class="text-[16px] ink-3">.70</span></p>
+          <div class="mt-1 flex items-center gap-1 text-[11px]">
+            <span class="badge badge-warm">3 this week</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="ink-2">Acme Pty Ltd · INV-0001</span>
+          <span class="num">A$1,100.00</span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="ink-2">Bunnings Trade · BILL-002</span>
+          <span class="num">A$486.20</span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="ink-2">Telstra Business · BILL-003</span>
+          <span class="num">A$198.00</span>
+        </div>
+      </div>
+      <a href="/preview/invoices" class="block mt-4 text-xs text-[color:var(--sae)] hover:underline">Review →</a>
+    </div>
+
+    <!-- BAS / tax -->
+    <div class="card card-hover p-5 relative overflow-hidden">
+      <div class="absolute -right-3 -bottom-3 reg-mark opacity-30"></div>
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">GST &amp; BAS</p>
+          <p class="text-xs ink-2 mt-1">Next lodgement</p>
+        </div>
+        <span class="badge badge-warm">Due 28 Jul</span>
+      </div>
+      <p class="font-display text-[32px] mt-2 num">A$2,145</p>
+      <p class="text-xs ink-2 mt-1">Estimated net GST · Q4 FY26 (Apr–Jun)</p>
+
+      <div class="mt-5 space-y-2 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="ink-2">GST collected (1A)</span>
+          <span class="num">A$6,369</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="ink-2">GST paid (1B)</span>
+          <span class="num">A$4,224</span>
+        </div>
+        <div class="flex items-center justify-between font-medium border-t hairline pt-2">
+          <span>Net payable</span>
+          <span class="num">A$2,145</span>
+        </div>
+      </div>
+      <a href="/preview/compliance" class="block mt-4 text-xs text-[color:var(--sae)] hover:underline">Start BAS draft →</a>
+    </div>
+
+    <!-- Payroll / STP -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Payroll &amp; STP</p>
+          <p class="text-xs ink-2 mt-1">Next pay run · Fri 15 May</p>
+        </div>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span> STP ready</span>
+      </div>
+      <p class="font-display text-[32px] mt-2 num">A$8,420</p>
+      <p class="text-xs ink-2 mt-1">3 employees · gross fortnightly</p>
+
+      <ul class="mt-5 space-y-2 text-xs">
+        <li class="flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-[color:var(--paper-2)] flex items-center justify-center text-[10px] font-medium ink-2">DC</span>
+            Daniel C
+          </span>
+          <span class="num">A$3,200</span>
+        </li>
+        <li class="flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-[color:var(--paper-2)] flex items-center justify-center text-[10px] font-medium ink-2">RS</span>
+            Richard S
+          </span>
+          <span class="num">A$3,400</span>
+        </li>
+        <li class="flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-[color:var(--paper-2)] flex items-center justify-center text-[10px] font-medium ink-2">JT</span>
+            Jess T
+          </span>
+          <span class="num">A$1,820</span>
+        </li>
+      </ul>
+      <a href="#" class="block mt-4 text-xs text-[color:var(--sae)] hover:underline">Open pay run →</a>
+    </div>
+
+    <!-- Top customers -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Top customers</p>
+          <p class="text-xs ink-2 mt-1">By revenue · last 90 days</p>
+        </div>
+      </div>
+
+      <ul class="mt-4 space-y-3">
+        <li class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-medium" style="background: var(--brand-2);">A</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm leading-tight truncate">Acme Pty Ltd</p>
+            <p class="text-[11px] ink-3 leading-tight">3 invoices · 2 paid</p>
+          </div>
+          <span class="num text-sm font-medium">A$1,430</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-medium" style="background: var(--pos);">B</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm leading-tight truncate">Bob's Bakery</p>
+            <p class="text-[11px] ink-3 leading-tight">1 invoice · paid</p>
+          </div>
+          <span class="num text-sm font-medium">A$880</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-medium" style="background:#7C5C8B;">N</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm leading-tight truncate">Northshore Marine</p>
+            <p class="text-[11px] ink-3 leading-tight">2 quotes · pending</p>
+          </div>
+          <span class="num text-sm font-medium ink-3">—</span>
+        </li>
+      </ul>
+      <a href="/preview/contacts" class="block mt-4 text-xs text-[color:var(--sae)] hover:underline">Customer hub →</a>
+    </div>
+
+    <!-- Add widget -->
+    <div class="rounded-[14px] border-2 border-dashed flex flex-col items-center justify-center text-center p-5 hover:bg-white transition relative dot-grid-soft" style="border-color: var(--line); min-height: 200px;">
+      <span class="w-10 h-10 rounded-full flex items-center justify-center bg-white" style="color: var(--ink-2);">
+        <i data-lucide="plus" class="w-5 h-5"></i>
+      </span>
+      <p class="mt-3 text-sm font-medium">Add widget</p>
+      <p class="mt-1 text-xs ink-3">Pick from the library to make Home yours.</p>
+    </div>
+
+  </div>
+
+  <!-- Cash flow full row -->
+  <div class="card card-hover p-5 mt-5 relative">
+    <div class="absolute right-5 top-5 reg-mark opacity-40"></div>
+    <div class="flex items-start justify-between">
+      <div>
+        <p class="text-[11px] uppercase tracking-wider ink-3">Cash flow</p>
+        <p class="text-xs ink-2 mt-1">Today's balance · projected next 90 days · <a href="/preview/reports/cash-flow" class="sae hover:underline">13-week forecast →</a></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="inline-flex p-0.5 bg-[color:var(--paper-2)] rounded-md text-xs">
+          <button class="px-2.5 py-1 rounded bg-white shadow-sm font-medium">Cash balance</button>
+          <button class="px-2.5 py-1 ink-2">Money in / out</button>
+        </div>
+        <button class="text-xs ink-2 flex items-center gap-1 hover:text-[color:var(--sae)]">
+          12 months <i data-lucide="chevron-down" class="w-3 h-3"></i>
+        </button>
+      </div>
+    </div>
+    <p class="font-display text-[36px] mt-2 num">−A$82.00</p>
+    <p class="text-xs ink-2">Today's cash balance</p>
+
+    <div class="mt-4 h-[280px]">
+      <canvas id="cashflow"></canvas>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const months = ['Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26','Jul 26'];
+  const series = [3200, 5800, 7400, 4900, 6200, 8100, 11900, 13400, 9800, -82, 4200, 8600];
+  const proj   = [null,null,null,null,null,null,null,null,null,-82,4200,8600];
+  const ctx = document.getElementById('cashflow');
+  if (ctx) {
+    const g = ctx.getContext('2d').createLinearGradient(0,0,0,260);
+    g.addColorStop(0,  'rgba(62,122,78,.35)');
+    g.addColorStop(1,  'rgba(62,122,78,0)');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [
+          {
+            label: 'Cash balance',
+            data: series,
+            borderColor: '#3E7A4E',
+            backgroundColor: g,
+            borderWidth: 2,
+            fill: true,
+            tension: .35,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: '#3E7A4E',
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2,
+          },
+          {
+            label: 'Projected balance',
+            data: proj,
+            borderColor: '#194291',
+            borderWidth: 1.5,
+            borderDash: [4,4],
+            fill: false,
+            tension: .35,
+            pointRadius: 0,
+          },
+          {
+            label: 'Threshold',
+            data: months.map(() => 0),
+            borderColor: '#A14333',
+            borderWidth: 1,
+            borderDash: [2,3],
+            fill: false,
+            pointRadius: 0,
+          }
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              boxWidth: 8, boxHeight: 8, usePointStyle: true,
+              font: { family: 'Inter', size: 11 },
+              color: '#4a4f57',
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: c => `A$${c.parsed.y.toLocaleString()}`
+            },
+            backgroundColor: '#14171c',
+            titleFont: { family: 'Inter', size: 11 },
+            bodyFont: { family: 'JetBrains Mono', size: 12, weight: '500' },
+            padding: 10,
+            displayColors: false,
+            cornerRadius: 8,
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#8a8f97', font: { family: 'JetBrains Mono', size: 10 } },
+            border: { color: '#e9e3d6' },
+          },
+          y: {
+            grid: { color: '#f1ecdf' },
+            ticks: {
+              color: '#8a8f97',
+              font: { family: 'JetBrains Mono', size: 10 },
+              callback: v => '$' + (v/1000).toFixed(0) + 'K',
+            },
+            border: { display: false },
+          }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

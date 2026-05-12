@@ -1,0 +1,479 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'projects' %}
+{% block page_title %}J-2603 · Conveyor retrofit · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="flex items-center gap-2 text-[11px] font-mono ink-3 mb-3">
+  <a href="/preview/projects" class="hover:text-[color:var(--sae)]">Jobs</a>
+  <i data-lucide="chevron-right" class="w-3 h-3"></i>
+  <span>J-2603</span>
+  <span class="ink-3">·</span>
+  <a href="/preview/contacts/acme" class="hover:text-[color:var(--sae)]">Acme Pty Ltd</a>
+</div>
+
+<!-- Hero -->
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-tr-2xl rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-medium" style="background:#1A4E8B;">A</div>
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <span class="reg-mark"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Job · Engineering retrofit</span>
+          <span class="num text-[10px] font-mono ink-3 px-1.5 py-0.5 rounded border hairline">J-2603</span>
+          <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full" style="background:rgba(62,122,78,.12);color:var(--pos);">On site</span>
+        </div>
+        <h1 class="font-display text-[34px] leading-[1.05] font-medium">Conveyor retrofit <span class="text-[color:var(--sae)] italic">— drive line 2</span></h1>
+        <p class="mt-1.5 ink-2 text-sm">Acme Pty Ltd · Bay 4 · 38 Industrial Ave, Acacia Ridge · Site supervisor M. Karras · Started 06 Apr 2026</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="timer" class="w-3.5 h-3.5"></i>Log time</button>
+      <button class="chip"><i data-lucide="receipt" class="w-3.5 h-3.5"></i>Bill stage</button>
+      <a href="/preview/invoices/new" class="btn-primary"><i data-lucide="file-text" class="w-4 h-4"></i>Progress claim</a>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-7">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Quoted</p>
+    <p class="font-display text-[24px] mt-1 num">A$34,320</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">QUO-Q-0032 · accepted 28 Mar</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Spent</p>
+    <p class="font-display text-[24px] mt-1 num">A$18,460</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">54% of quote</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Invoiced</p>
+    <p class="font-display text-[24px] mt-1 num">A$12,860</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">37% claimed · INV-0019 paid</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">WIP</p>
+    <p class="font-display text-[24px] mt-1 num warm">A$5,600</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">Cost - invoiced (uninvoiced)</p>
+  </div>
+  <div class="card p-4 relative overflow-hidden" style="border-color: var(--sae); border-width: 1.5px;">
+    <span class="reg-mark absolute right-3 top-3"></span>
+    <p class="text-[11px] uppercase tracking-wider ink-3">Forecast margin</p>
+    <p class="font-display text-[24px] mt-1 num pos">38<span class="text-[14px] ink-3">%</span></p>
+    <p class="text-[10px] pos mt-0.5 font-mono">↑ 4pp vs quote · A$13,040</p>
+  </div>
+</div>
+
+<!-- Two-column workspace -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+  <!-- LEFT: main detail -->
+  <div class="lg:col-span-8 space-y-6">
+
+    <!-- Cost vs quote table -->
+    <div class="card overflow-hidden">
+      <div class="flex items-center justify-between px-5 pt-5 pb-3">
+        <div>
+          <h3 class="font-display text-[18px]">Job costing · category</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Quoted vs actual vs forecast remaining</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="chip"><i data-lucide="filter" class="w-3 h-3"></i>Filter</button>
+          <button class="chip"><i data-lucide="download" class="w-3 h-3"></i>CSV</button>
+        </div>
+      </div>
+      <div class="drafting mx-5"></div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th class="text-right">Quoted</th>
+            <th class="text-right">Actual</th>
+            <th class="text-right">Forecast</th>
+            <th class="text-right">Variance</th>
+            <th class="text-right">%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set cats = [
+            {'cat':'Materials',      'q': 14200, 'a': 8420, 'f': 13800, 'icon':'package'},
+            {'cat':'Labour',         'q': 11400, 'a': 6840, 'f': 11200, 'icon':'hard-hat'},
+            {'cat':'Subcontractors', 'q':  4200, 'a': 2460, 'f':  4100, 'icon':'truck'},
+            {'cat':'Plant hire',     'q':  2400, 'a':  740, 'f':  1980, 'icon':'forklift'},
+            {'cat':'Other / freight','q':  2120, 'a':    0, 'f':  1200, 'icon':'box'},
+          ] %}
+          {% set ns = namespace(tq=0, ta=0, tf=0) %}
+          {% for c in cats %}
+            {% set var = c.q - c.f %}
+            {% set ns.tq = ns.tq + c.q %}{% set ns.ta = ns.ta + c.a %}{% set ns.tf = ns.tf + c.f %}
+            <tr>
+              <td><span class="flex items-center gap-2"><i data-lucide="{{ c.icon }}" class="w-3.5 h-3.5 ink-3"></i>{{ c.cat }}</span></td>
+              <td class="text-right num">A${{ '{:,.0f}'.format(c.q) }}</td>
+              <td class="text-right num">A${{ '{:,.0f}'.format(c.a) }}</td>
+              <td class="text-right num">A${{ '{:,.0f}'.format(c.f) }}</td>
+              <td class="text-right num {% if var >= 0 %}pos{% else %}neg{% endif %}">{% if var >= 0 %}+{% endif %}A${{ '{:,.0f}'.format(var) }}</td>
+              <td class="text-right num text-[11px] ink-3">{{ (c.a / c.q * 100) | round(0, 'floor') | int }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="font-medium" style="background: var(--paper-2);">
+            <td>Total</td>
+            <td class="text-right num">A${{ '{:,.0f}'.format(ns.tq) }}</td>
+            <td class="text-right num">A${{ '{:,.0f}'.format(ns.ta) }}</td>
+            <td class="text-right num">A${{ '{:,.0f}'.format(ns.tf) }}</td>
+            <td class="text-right num pos">+A${{ '{:,.0f}'.format(ns.tq - ns.tf) }}</td>
+            <td class="text-right num text-[11px] ink-3">{{ (ns.ta / ns.tq * 100) | round(0, 'floor') | int }}%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Profitability waterfall -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-display text-[18px]">Profitability waterfall</h3>
+          <p class="text-[11px] ink-3 mt-0.5">From quoted revenue to forecast margin</p>
+        </div>
+        <span class="text-[10px] font-mono ink-3 px-2 py-0.5 rounded-full" style="background: var(--paper-2);">forecast as of 11 May 2026</span>
+      </div>
+      <div class="space-y-2">
+        {% set waterfall = [
+          {'lbl':'Quoted revenue (ex GST)', 'amt': 34320, 'kind':'base'},
+          {'lbl':'Materials forecast',       'amt': -13800,'kind':'neg'},
+          {'lbl':'Labour forecast',          'amt': -11200,'kind':'neg'},
+          {'lbl':'Subcontractor forecast',   'amt': -4100, 'kind':'neg'},
+          {'lbl':'Plant hire forecast',      'amt': -1980, 'kind':'neg'},
+          {'lbl':'Other / freight',          'amt': -1200, 'kind':'neg'},
+          {'lbl':'Forecast gross margin',    'amt': 13040, 'kind':'final'},
+        ] %}
+        {% for w in waterfall %}
+          {% set width = (w.amt|abs / 34320 * 100) if w.amt|abs > 0 else 0 %}
+          <div class="flex items-center gap-3 text-[13px]">
+            <div class="w-44 ink-2 {% if w.kind == 'final' %}font-medium{% endif %}">{{ w.lbl }}</div>
+            <div class="flex-1 h-6 relative rounded bg-[color:var(--paper-2)] overflow-hidden">
+              <div class="h-full" style="width:{{ width }}%; background: {% if w.kind == 'base' %}var(--brand-2){% elif w.kind == 'final' %}var(--pos){% else %}rgba(184,58,58,.55){% endif %};"></div>
+            </div>
+            <div class="w-28 text-right num font-medium {% if w.kind == 'final' %}pos{% elif w.kind == 'neg' %}neg{% endif %}">
+              {% if w.amt < 0 %}−A${{ '{:,.0f}'.format(w.amt|abs) }}{% else %}A${{ '{:,.0f}'.format(w.amt) }}{% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="drafting my-4"></div>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Margin at quote</p>
+          <p class="font-display text-[20px] num mt-0.5">34%</p>
+        </div>
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Forecast margin</p>
+          <p class="font-display text-[20px] num pos mt-0.5">38%</p>
+        </div>
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Cash margin (paid only)</p>
+          <p class="font-display text-[20px] num mt-0.5">A$12,860<span class="text-[11px] ink-3"> rec'd</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage timeline -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-display text-[18px]">Stages</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Site progress against contracted scope</p>
+        </div>
+        <span class="text-[10px] font-mono ink-3">62% complete</span>
+      </div>
+      {% set stages = [
+        {'name':'Strip and decommission',  'q':4200,  'a':4180, 'pct':100,'state':'done',   'dates':'06–09 Apr','note':'Old gearbox returned to Sigma Hydraulics for credit'},
+        {'name':'Frame fabrication',       'q':9800,  'a':8640, 'pct':100,'state':'done',   'dates':'10–22 Apr','note':'Saved A$1,160 on RHS off-cuts from stock'},
+        {'name':'Drive + gearbox install', 'q':12400, 'a':5640, 'pct':50, 'state':'wip',    'dates':'25 Apr – 18 May','note':'Awaiting motor coupling from Sigma — ETA 14 May'},
+        {'name':'Electrical and PLC',      'q':5920,  'a':0,    'pct':0,  'state':'pending','dates':'19 May – 04 Jun','note':'Subbed to Coast Industrial Electrical'},
+        {'name':'Commissioning + sign-off','q':2000,  'a':0,    'pct':0,  'state':'pending','dates':'05–10 Jun','note':'Acme to provide test loads · cert AS/NZS 4024.3611'},
+      ] %}
+      <div class="space-y-3">
+        {% for s in stages %}
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 mt-0.5 rounded-full flex items-center justify-center text-[11px] font-medium text-white shrink-0"
+            style="background: {% if s.state == 'done' %}var(--pos){% elif s.state == 'wip' %}var(--sae){% else %}var(--paper-2){% endif %}; {% if s.state == 'pending' %}color: var(--ink-3);{% endif %}">
+            {% if s.state == 'done' %}<i data-lucide="check" class="w-3.5 h-3.5"></i>{% else %}<span class="num">{{ loop.index }}</span>{% endif %}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline justify-between gap-3">
+              <span class="text-[14px] {% if s.state != 'pending' %}font-medium{% else %}ink-3{% endif %}">{{ s.name }}</span>
+              <span class="num text-[12px] ink-2">A${{ '{:,.0f}'.format(s.a) }} <span class="ink-3">/ A${{ '{:,.0f}'.format(s.q) }}</span></span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] mt-0.5">
+              <span class="ink-3 font-mono">{{ s.dates }}</span>
+              <span class="ink-3 italic max-w-md text-right">{{ s.note }}</span>
+            </div>
+            <div class="mt-1.5 h-1 rounded-full bg-[color:var(--paper-2)] overflow-hidden">
+              <div class="h-full rounded-full" style="width:{{ s.pct }}%; background: {% if s.state == 'done' %}var(--pos){% elif s.state == 'wip' %}var(--sae){% else %}var(--ink-3){% endif %};"></div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Linked records — bills + invoices -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <!-- Bills to this job -->
+      <div class="card overflow-hidden">
+        <div class="px-5 pt-5 pb-2 flex items-center justify-between">
+          <h3 class="font-display text-[18px]">Bills coded to job</h3>
+          <span class="text-[10px] font-mono ink-3">7 bills · A$18,460</span>
+        </div>
+        <div class="drafting mx-5 mb-1"></div>
+        <table class="data-table">
+          <tbody>
+            {% set bills = [
+              {'ref':'BILL-1842','sup':'Dale Maxwell Engineering','amt':'6,912.40','date':'08 May','tag':'Materials','state':'awaiting'},
+              {'ref':'BILL-1839','sup':'Sigma Hydraulics',         'amt':'3,420.00','date':'02 May','tag':'Materials','state':'paid'},
+              {'ref':'BILL-1835','sup':'Coast Industrial Electrical','amt':'2,460.00','date':'28 Apr','tag':'Subcontractor','state':'paid'},
+              {'ref':'BILL-1828','sup':'Bunnings Trade',           'amt':'742.30',  'date':'22 Apr','tag':'Materials','state':'paid'},
+              {'ref':'BILL-1822','sup':'Northern Steel Supplies',  'amt':'3,180.00','date':'18 Apr','tag':'Materials','state':'paid'},
+              {'ref':'BILL-1816','sup':'Coates Hire',              'amt':'740.50',  'date':'14 Apr','tag':'Plant hire','state':'paid'},
+              {'ref':'BILL-1810','sup':'Onesteel Reinforcing',     'amt':'1,005.20','date':'10 Apr','tag':'Materials','state':'paid'},
+            ] %}
+            {% for b in bills %}
+            <tr>
+              <td>
+                <a href="/preview/bills/bill-1842" class="font-mono text-[11px] sae hover:underline">{{ b.ref }}</a>
+                <span class="block text-[11px] ink-3">{{ b.sup }}</span>
+              </td>
+              <td class="text-[11px] ink-3">{{ b.tag }}</td>
+              <td>
+                {% if b.state == 'paid' %}
+                  <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">paid</span>
+                {% else %}
+                  <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(200,99,31,.12);color:var(--sae);">awaiting</span>
+                {% endif %}
+              </td>
+              <td class="text-right num text-[13px]">A${{ b.amt }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="px-5 py-3 border-t hairline flex items-center justify-between text-[11px]">
+          <span class="ink-3">PO refs: PO-SAE-1184, PO-SAE-1181, PO-SAE-1178</span>
+          <a href="/preview/bills" class="sae hover:underline">Open bills →</a>
+        </div>
+      </div>
+
+      <!-- Invoices/progress claims -->
+      <div class="card overflow-hidden">
+        <div class="px-5 pt-5 pb-2 flex items-center justify-between">
+          <h3 class="font-display text-[18px]">Progress claims</h3>
+          <span class="text-[10px] font-mono ink-3">2 invoices · A$12,860 of A$34,320</span>
+        </div>
+        <div class="drafting mx-5 mb-1"></div>
+        <table class="data-table">
+          <tbody>
+            <tr>
+              <td>
+                <a href="/preview/invoices/inv-0028" class="font-mono text-[11px] sae hover:underline">INV-0019</a>
+                <span class="block text-[11px] ink-3">Claim 1 of 4 · Stages 1–2 complete</span>
+              </td>
+              <td class="text-[11px] ink-3">12 Apr</td>
+              <td><span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">paid</span></td>
+              <td class="text-right num text-[13px]">A$8,610.00</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="/preview/invoices/inv-0028" class="font-mono text-[11px] sae hover:underline">INV-0024</a>
+                <span class="block text-[11px] ink-3">Claim 2 of 4 · Stage 3 (50%)</span>
+              </td>
+              <td class="text-[11px] ink-3">02 May</td>
+              <td><span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">paid</span></td>
+              <td class="text-right num text-[13px]">A$4,250.00</td>
+            </tr>
+            <tr style="background: var(--paper-2);">
+              <td>
+                <span class="font-mono text-[11px] ink-3">—next—</span>
+                <span class="block text-[11px] ink-3 italic">Claim 3 ready · stage 3 close-out</span>
+              </td>
+              <td class="text-[11px] ink-3">~ 20 May</td>
+              <td><span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(200,99,31,.12);color:var(--sae);">draft</span></td>
+              <td class="text-right num text-[13px]">~ A$6,200</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="px-5 py-3 border-t hairline flex items-center justify-between text-[11px]">
+          <span class="ink-3">Acme PO ref: 4500-AC-2026-0118</span>
+          <a href="/preview/invoices/new?job=J-2603" class="sae hover:underline">Create claim 3 →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time entries -->
+    <div class="card overflow-hidden">
+      <div class="px-5 pt-5 pb-2 flex items-center justify-between">
+        <h3 class="font-display text-[18px]">Time entries · last 7 days</h3>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-mono ink-3">38.5 h · A$3,465 chargeable</span>
+          <button class="chip"><i data-lucide="timer" class="w-3 h-3"></i>Log time</button>
+        </div>
+      </div>
+      <div class="drafting mx-5 mb-1"></div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Date</th><th>Tech</th><th>Activity</th><th>Stage</th><th class="text-right">Hours</th><th class="text-right">Rate</th><th class="text-right">Charge</th></tr>
+        </thead>
+        <tbody>
+          {% set times = [
+            {'d':'09 May Fri','t':'M. Karras', 'init':'M','col':'#1A4E8B','act':'Bearing housing align + shimming','stage':'Drive install','h':'7.5','r':'95','c':'712.50'},
+            {'d':'09 May Fri','t':'B. Otto',   'init':'B','col':'#194291','act':'Gearbox bolt-up + torque check','stage':'Drive install','h':'7.5','r':'85','c':'637.50'},
+            {'d':'08 May Thu','t':'M. Karras', 'init':'M','col':'#1A4E8B','act':'Coupling adapter machining','stage':'Drive install','h':'6.0','r':'95','c':'570.00'},
+            {'d':'08 May Thu','t':'B. Otto',   'init':'B','col':'#194291','act':'Tail roller bracket weld + grind','stage':'Drive install','h':'7.0','r':'85','c':'595.00'},
+            {'d':'07 May Wed','t':'R. Sauer',  'init':'R','col':'#3E7A4E','act':'Site survey + PLC scope sign-off','stage':'Electrical (planning)','h':'2.5','r':'140','c':'350.00'},
+            {'d':'07 May Wed','t':'M. Karras', 'init':'M','col':'#1A4E8B','act':'Drive frame setting','stage':'Drive install','h':'8.0','r':'95','c':'760.00'},
+          ] %}
+          {% for t in times %}
+          <tr>
+            <td class="text-[11px] ink-2 font-mono whitespace-nowrap">{{ t.d }}</td>
+            <td>
+              <span class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px]" style="background:{{ t.col }};">{{ t.init }}</span>
+                <span class="text-[12.5px]">{{ t.t }}</span>
+              </span>
+            </td>
+            <td class="text-[12.5px]">{{ t.act }}</td>
+            <td class="text-[11px] ink-3">{{ t.stage }}</td>
+            <td class="text-right num">{{ t.h }}</td>
+            <td class="text-right num text-[11px] ink-3">A${{ t.r }}</td>
+            <td class="text-right num">A${{ t.c }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="px-5 py-3 border-t hairline flex items-center justify-between text-[11px]">
+        <span class="ink-3">Awaiting timesheet sign-off: 0 · STP Phase 2 ready</span>
+        <a href="/preview/activity" class="sae hover:underline">All activity →</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT rail -->
+  <div class="lg:col-span-4 space-y-6">
+
+    <!-- Customer card -->
+    <div class="card p-5">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-medium" style="background:#1A4E8B;">A</div>
+        <div class="flex-1">
+          <a href="/preview/contacts/acme" class="font-display text-[17px] hover:text-[color:var(--sae)]">Acme Pty Ltd</a>
+          <p class="text-[11px] ink-3">ABN 81 134 567 890 · Net 14</p>
+        </div>
+        <a href="/preview/contacts/acme" class="ink-3 hover:text-[color:var(--sae)]"><i data-lucide="external-link" class="w-4 h-4"></i></a>
+      </div>
+      <div class="drafting my-4"></div>
+      <dl class="text-[12px] space-y-1.5">
+        <div class="flex justify-between"><dt class="ink-3">Site address</dt><dd class="text-right">38 Industrial Ave, Acacia Ridge 4110</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Contact</dt><dd>M. Trent · ops@acme.com.au</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">PO ref</dt><dd class="num">4500-AC-2026-0118</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Retention</dt><dd class="num">5% (held A$1,716)</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">YTD revenue</dt><dd class="num">A$42,180</dd></div>
+      </dl>
+    </div>
+
+    <!-- Team -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Team on site</h3>
+      <div class="space-y-2">
+        {% set team = [
+          {'n':'M. Karras', 'i':'M','c':'#1A4E8B','r':'Site supervisor','rate':'A$95/h'},
+          {'n':'B. Otto',   'i':'B','c':'#194291','r':'Boilermaker',     'rate':'A$85/h'},
+          {'n':'R. Sauer',  'i':'R','c':'#3E7A4E','r':'Engineering / PLC','rate':'A$140/h'},
+          {'n':'C. Pham',   'i':'C','c':'#7C5C8B','r':'Apprentice',      'rate':'A$48/h'},
+        ] %}
+        {% for p in team %}
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px]" style="background:{{ p.c }};">{{ p.i }}</span>
+            <span>
+              <span class="text-[13px] font-medium block leading-tight">{{ p.n }}</span>
+              <span class="text-[11px] ink-3">{{ p.r }}</span>
+            </span>
+          </span>
+          <span class="num text-[11px] ink-3 font-mono">{{ p.rate }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- WIP + retention summary -->
+    <div class="card p-5" style="background: var(--paper-2);">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-display text-[16px]">WIP &amp; cash position</h3>
+        <span class="text-[10px] font-mono ink-3">As at 11 May</span>
+      </div>
+      <div class="drafting mb-3"></div>
+      <dl class="text-[12.5px] space-y-1.5">
+        <div class="flex justify-between"><dt class="ink-3">Costs to date</dt><dd class="num">A$18,460</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Invoiced</dt><dd class="num">A$12,860</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Cash received</dt><dd class="num pos">A$12,860</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Retention held</dt><dd class="num warm">A$1,716</dd></div>
+        <div class="flex justify-between" style="border-top: 1px solid var(--line-soft); padding-top: 6px;">
+          <dt class="font-medium">Uninvoiced WIP</dt>
+          <dd class="num font-medium">A$5,600</dd>
+        </div>
+      </dl>
+      <a href="/preview/invoices/new?job=J-2603" class="block mt-3 text-center w-full py-2 rounded text-white text-[12px]" style="background: var(--sae);">Bill stage 3 (A$6,200) →</a>
+    </div>
+
+    <!-- Documents -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-display text-[16px]">Files</h3>
+        <button class="chip text-[10px]"><i data-lucide="upload" class="w-3 h-3"></i>Upload</button>
+      </div>
+      <div class="space-y-2 text-[12.5px]">
+        {% set files = [
+          {'n':'Q-0032 conveyor retrofit quote.pdf','sz':'412 KB','d':'28 Mar'},
+          {'n':'AS40242-3611 cert checklist.pdf','sz':'88 KB','d':'04 Apr'},
+          {'n':'Site induction — Acme bay 4.pdf','sz':'1.1 MB','d':'06 Apr'},
+          {'n':'Drive arrangement REV-C.dwg','sz':'2.6 MB','d':'14 Apr'},
+          {'n':'PLC scope sign-off (Trent).pdf','sz':'304 KB','d':'07 May'},
+        ] %}
+        {% for f in files %}
+        <a href="#" class="flex items-center justify-between gap-2 py-1 hover:text-[color:var(--sae)]">
+          <span class="flex items-center gap-2 min-w-0"><i data-lucide="file" class="w-3.5 h-3.5 ink-3 shrink-0"></i><span class="truncate">{{ f.n }}</span></span>
+          <span class="text-[10px] ink-3 font-mono whitespace-nowrap">{{ f.sz }} · {{ f.d }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Auto checks -->
+    <div class="card p-5 relative overflow-hidden" style="border: 1.5px dashed var(--sae);">
+      <span class="reg-mark absolute right-3 top-3"></span>
+      <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Insight</p>
+      <h3 class="font-display text-[17px] mt-1 mb-2">Margin trending <span class="italic sae">up 4pp</span></h3>
+      <p class="text-[12.5px] ink-2 leading-relaxed">Materials came in <span class="num">A$400</span> under quote on stage 2 (RHS off-cuts from stock) and labour is tracking 3% under estimate. Stage 3 is the risk — coupling delivery slipped to <span class="num">14 May</span>; if it slips again, bill stage 3 partial on <span class="num">20 May</span> to keep WIP under <span class="num">A$8k</span>.</p>
+      <div class="flex items-center gap-2 mt-3">
+        <a href="/preview/invoices/new?job=J-2603" class="chip"><i data-lucide="receipt" class="w-3 h-3"></i>Bill stage 3</a>
+        <a href="/preview/reports/cash-flow" class="chip"><i data-lucide="trending-up" class="w-3 h-3"></i>Forecast impact</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  if (window.lucide) window.lucide.createIcons();
+</script>
+{% endblock %}

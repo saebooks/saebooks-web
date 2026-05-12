@@ -1,0 +1,347 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'settings' %}
+{% block page_title %}Chart of accounts · Settings · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-1.5">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Settings · GL · SBR2 taxonomy</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-[1.05] font-medium">
+        Chart of accounts <span class="italic" style="color: var(--sae);">— FY26</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">Based on ATO Simpler-BAS · mapped to SBR2 General Purpose Financial Report taxonomy v2024.07 · 5 classes · 4-digit codes</p>
+      <div class="mt-2 flex items-center gap-2">
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>SBR2 mapped</span>
+        <span class="badge"><i data-lucide="lock" class="w-3 h-3"></i>Periods locked to 30 Apr 2026</span>
+        <span class="badge"><i data-lucide="git-branch" class="w-3 h-3"></i>v2024.07 taxonomy</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/settings" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Settings</a>
+      <button class="chip"><i data-lucide="upload" class="w-3.5 h-3.5"></i>Import CSV</button>
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export</button>
+      <button class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i>New account</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Active accounts</p>
+    <p class="font-display text-[24px] mt-1 num">68</p>
+    <p class="text-[11px] ink-3 mt-0.5">+4 archived · 72 total</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">SBR2 mapped</p>
+    <p class="font-display text-[24px] mt-1 num pos">68 / 68</p>
+    <p class="text-[11px] ink-3 mt-0.5">100% · all postable</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">GST treatments</p>
+    <p class="font-display text-[24px] mt-1 num">5</p>
+    <p class="text-[11px] ink-3 mt-0.5">GST · Free · BAS-Excl · Input-Tx · Capital</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">BAS labels in use</p>
+    <p class="font-display text-[24px] mt-1 num">11</p>
+    <p class="text-[11px] ink-3 mt-0.5">G1 G2 G3 G10 G11 · 1A 1B · W1 W2 · T1 T2</p>
+  </div>
+  <div class="card p-4" style="border: 1px solid var(--sae);">
+    <p class="text-[11px] uppercase tracking-wider" style="color: var(--sae);">FY26 net result</p>
+    <p class="font-display text-[24px] mt-1 num">A$112,420<span class="text-[13px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">As at 30 Apr 2026 · before tax</p>
+  </div>
+</div>
+
+<!-- Class chips -->
+<div class="card p-3 mb-5">
+  <div class="flex flex-wrap items-center gap-2 text-[12px]">
+    <span class="ink-3 text-[11px] font-mono uppercase tracking-wider mr-2">Filter class</span>
+    {% for cls, col, n in [('All','#5A5F66',68),('Assets','#1A4E8B',14),('Liabilities','#A14333',9),('Equity','#7C5C8B',4),('Revenue','#3E7A4E',8),('Cost of sales','#194291',7),('Expenses','#C89B3C',26)] %}
+    <button class="chip"><span class="w-1.5 h-1.5 rounded-full" style="background: {{ col }};"></span>{{ cls }} <span class="ink-3 font-mono ml-0.5">{{ n }}</span></button>
+    {% endfor %}
+    <span class="ink-3 mx-2">·</span>
+    <input placeholder="Filter by code, name, SBR element …" class="px-2 py-1 border hairline rounded-md text-[12px] flex-1 min-w-[200px] ring-focus" />
+  </div>
+</div>
+
+<!-- 8 / 4 -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+  <div class="lg:col-span-8 space-y-5">
+
+    <!-- Accounts table -->
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 border-b hairline bg-[color:var(--paper)] flex items-center justify-between">
+        <h3 class="font-medium text-sm">Accounts</h3>
+        <div class="flex items-center gap-2 text-[11px] font-mono ink-3">
+          <span>Code · Name · GST · BAS · SBR2 element · FY26 balance</span>
+        </div>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr>
+            <th class="w-16">Code</th>
+            <th>Account</th>
+            <th>GST</th>
+            <th>BAS</th>
+            <th>SBR2 element</th>
+            <th class="text-right">FY26</th>
+          </tr>
+        </thead>
+        <tbody class="text-[12px]">
+          {% set classes = [
+            ('Assets', '#1A4E8B', [
+              ('1-100','Cheque · CBA Smart Access',       'BAS Excluded','—',  'au.icr.CashAndCashEquivalents',   4820.40, '/preview/settings/banking/cba'),
+              ('1-101','Savings · Suncorp',               'BAS Excluded','—',  'au.icr.CashAndCashEquivalents',  18420.00, None),
+              ('1-105','Stripe clearing · AU',            'BAS Excluded','—',  'au.icr.OtherCurrentAssets',       1860.20, None),
+              ('1-110','Trade debtors',                   'BAS Excluded','—',  'au.icr.TradeAndOtherReceivables',19960.50, '/preview/reports/aged-receivables'),
+              ('1-120','GST receivable',                  'BAS Excluded','1B', 'au.icr.GSTReceivable',            8420.00, None),
+              ('1-200','Plant &amp; equipment · at cost', 'Capital · GST','G10','au.icr.PropertyPlantAndEquipmentAtCost', 142800.00, None),
+              ('1-210','Accumulated depreciation P&amp;E','BAS Excluded','—',  'au.icr.AccumulatedDepreciationPPE',  -38420.00, None),
+              ('1-300','Work in progress',                'BAS Excluded','—',  'au.icr.Inventories',              5600.00, None),
+            ]),
+            ('Liabilities', '#A14333', [
+              ('2-100','Trade creditors',                 'BAS Excluded','—',  'au.icr.TradeAndOtherPayables',   -14420.00, '/preview/reports/aged-payables'),
+              ('2-110','GST payable',                     'BAS Excluded','1A', 'au.icr.GSTPayable',              -12840.00, None),
+              ('2-120','PAYG withheld',                   'BAS Excluded','W2', 'au.icr.PAYGWithholdingPayable',   -2410.00, None),
+              ('2-130','Super payable · clearing',        'BAS Excluded','—',  'au.icr.SuperannuationPayable',    -1420.80, None),
+              ('2-140','Income tax payable',              'BAS Excluded','T1', 'au.icr.CurrentTaxLiabilities',   -18420.00, None),
+              ('2-200','CBA business loan',               'BAS Excluded','—',  'au.icr.BorrowingsCurrent',       -42800.00, None),
+            ]),
+            ('Equity', '#7C5C8B', [
+              ('3-100','Issued capital',                  'BAS Excluded','—',  'au.icr.IssuedCapital',             -100.00, None),
+              ('3-110','Retained earnings',               'BAS Excluded','—',  'au.icr.RetainedEarnings',       -182420.00, None),
+              ('3-120','Drawings · R. Sauer',             'BAS Excluded','—',  'au.icr.OwnersDrawings',           42000.00, None),
+            ]),
+            ('Revenue', '#3E7A4E', [
+              ('4-100','Sales · Engineering services',    'GST on income','G1', 'au.icr.GeneralPurposeOperatingRevenue', -348240.00, '/preview/reports/profit-loss/sales-engineering'),
+              ('4-110','Sales · Plant hire',              'GST on income','G1', 'au.icr.OtherOperatingRevenue',   -42800.00, None),
+              ('4-120','Sales · Materials &amp; markup',  'GST on income','G1', 'au.icr.OtherOperatingRevenue',   -54600.00, None),
+              ('4-200','Export sales',                    'GST Free','G2',     'au.icr.ExportSales',              -8420.00, None),
+              ('4-900','Interest income',                 'Input Taxed','—',   'au.icr.InterestIncome',             -184.20, None),
+            ]),
+            ('Cost of sales', '#194291', [
+              ('5-100','Materials',                       'GST on expenses','G11','au.icr.RawMaterialsAndConsumablesUsed', 84210.00, None),
+              ('5-110','Subcontractors',                  'GST on expenses','G11','au.icr.SubcontractorCosts',     57610.00, '/preview/compliance/tpar'),
+              ('5-120','Plant hire',                      'GST on expenses','G11','au.icr.PlantHireExpenses',       14260.00, None),
+              ('5-200','Freight in',                      'GST on expenses','G11','au.icr.FreightAndCartage',        3420.00, None),
+            ]),
+            ('Expenses · selected', '#C89B3C', [
+              ('6-100','Wages &amp; salaries',            'BAS Excluded','W1', 'au.icr.EmployeeBenefitsExpense', 148420.00, '/preview/payroll/pay-run'),
+              ('6-110','Superannuation expense',          'BAS Excluded','—',  'au.icr.SuperannuationExpense',    17810.40, '/preview/super'),
+              ('6-120','Workers compensation',            'GST on expenses','G11','au.icr.WorkersCompensationExpense', 3820.00, None),
+              ('6-220','Fuel · diesel + petrol',          'GST on expenses','G11','au.icr.MotorVehicleExpenses',     4820.00, None),
+              ('6-310','Telstra · phone &amp; data',      'GST on expenses','G11','au.icr.TelephoneExpense',         1840.20, None),
+              ('6-410','Bank fees',                       'Input Taxed','—',   'au.icr.BankFees',                    420.00, None),
+              ('6-510','Insurance · public liability',    'GST on expenses','G11','au.icr.InsuranceExpense',        4820.00, None),
+              ('6-600','Depreciation expense',            'BAS Excluded','—',  'au.icr.DepreciationExpense',      9820.00, None),
+              ('6-900','Other operating expenses',        'GST on expenses','G11','au.icr.OtherOperatingExpenses',  6820.40, None),
+            ]),
+          ] %}
+          {% for cls, col, rows in classes %}
+          <tr style="background: var(--paper);">
+            <td colspan="6" class="font-display text-[13px]" style="color: {{ col }};">
+              <span class="flex items-center gap-2">
+                <span class="w-1 h-3.5 rounded-sm" style="background: {{ col }};"></span>
+                {{ cls|safe }}
+                <span class="ink-3 text-[11px] font-mono">{{ rows|length }} accounts</span>
+              </span>
+            </td>
+          </tr>
+          {% for code, name, gst, bas, sbr, bal, href in rows %}
+          <tr>
+            <td class="font-mono">{{ code }}</td>
+            <td>
+              {% if href %}<a href="{{ href }}" class="hover:text-[color:var(--sae)] flex items-center gap-1">{{ name|safe }}<i data-lucide="chevron-right" class="w-3 h-3 sae"></i></a>{% else %}{{ name|safe }}{% endif %}
+            </td>
+            <td>
+              {% if gst == 'GST on income' %}<span class="badge"><span class="dot" style="background: var(--pos);"></span>GST income</span>
+              {% elif gst == 'GST on expenses' %}<span class="badge"><span class="dot" style="background: #194291;"></span>GST exp</span>
+              {% elif gst == 'GST Free' %}<span class="badge"><span class="dot" style="background: #1A4E8B;"></span>GST free</span>
+              {% elif gst == 'Input Taxed' %}<span class="badge"><span class="dot" style="background: #7C5C8B;"></span>Input tx</span>
+              {% elif gst == 'Capital · GST' %}<span class="badge"><span class="dot" style="background: #C89B3C;"></span>Capital</span>
+              {% else %}<span class="ink-3 text-[11px] font-mono">BAS-excl</span>{% endif %}
+            </td>
+            <td class="font-mono text-[11px]">{% if bas == '—' %}<span class="ink-3">—</span>{% else %}<span style="color: var(--sae);">{{ bas }}</span>{% endif %}</td>
+            <td class="font-mono text-[11px] ink-2">{{ sbr }}</td>
+            <td class="text-right num {% if bal < 0 %}pos{% endif %}">A${{ '{:,.2f}'.format(bal) }}</td>
+          </tr>
+          {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="px-5 py-3 border-t hairline flex items-center justify-between bg-[color:var(--paper)] text-xs ink-2">
+        <span>Showing 39 of 68 active accounts · grouped by class</span>
+        <a href="#" class="sae hover:underline">Show all 68 →</a>
+      </div>
+    </div>
+
+    <!-- GST treatment matrix -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">GST treatment matrix</h3>
+        <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst" class="text-[11px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1">ATO reference<i data-lucide="external-link" class="w-3 h-3"></i></a>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Code</th><th>Treatment</th><th>Rate</th><th>BAS field (sales)</th><th>BAS field (purchases)</th><th class="text-right">FY26 net</th></tr>
+        </thead>
+        <tbody class="text-[12px]">
+          <tr><td class="font-mono">GST</td><td>GST on income · standard</td><td class="font-mono">10%</td><td class="font-mono sae">G1 → 1A</td><td class="font-mono ink-3">—</td><td class="text-right num">A$348,240</td></tr>
+          <tr><td class="font-mono">GST</td><td>GST on expenses · standard</td><td class="font-mono">10%</td><td class="font-mono ink-3">—</td><td class="font-mono sae">G11 → 1B</td><td class="text-right num">A$174,020</td></tr>
+          <tr><td class="font-mono">FRE</td><td>GST-free · exports, basic food, health</td><td class="font-mono">0%</td><td class="font-mono sae">G3</td><td class="font-mono sae">G14</td><td class="text-right num">A$8,420</td></tr>
+          <tr><td class="font-mono">EXP</td><td>Export sales</td><td class="font-mono">0%</td><td class="font-mono sae">G2</td><td class="font-mono ink-3">—</td><td class="text-right num">A$8,420</td></tr>
+          <tr><td class="font-mono">CAP</td><td>Capital purchases</td><td class="font-mono">10%</td><td class="font-mono ink-3">—</td><td class="font-mono sae">G10 → 1B</td><td class="text-right num">A$22,400</td></tr>
+          <tr><td class="font-mono">INP</td><td>Input-taxed · interest, residential rent</td><td class="font-mono">—</td><td class="font-mono ink-3">excl from G1</td><td class="font-mono ink-3">excl from G11</td><td class="text-right num">A$604</td></tr>
+          <tr><td class="font-mono">N-T</td><td>BAS Excluded · wages, super, drawings</td><td class="font-mono">—</td><td class="font-mono ink-3">—</td><td class="font-mono ink-3">—</td><td class="text-right num">A$208,650</td></tr>
+        </tbody>
+      </table>
+      <p class="mt-3 text-[11px] ink-3 font-mono">When a transaction posts to an account, the GST treatment auto-fills from this table; line-level override is recorded in the audit trail.</p>
+    </div>
+
+    <!-- BAS code mapping -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">BAS field mapping · Simpler-BAS</h3>
+        <a href="/preview/compliance/bas-prep" class="text-[11px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1">Prep Q4 FY26<i data-lucide="external-link" class="w-3 h-3"></i></a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[12px]">
+        <div class="space-y-1.5">
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Goods &amp; services</p>
+          {% for k, lbl, rhs in [
+            ('G1','Total sales (incl. GST)','A$430,240'),
+            ('G2','Export sales','A$8,420'),
+            ('G3','Other GST-free sales','A$0'),
+            ('G10','Capital purchases','A$22,400'),
+            ('G11','Non-capital purchases','A$174,020'),
+            ('1A','GST on sales','A$34,824'),
+            ('1B','GST on purchases','A$17,402'),
+          ] %}
+          <div class="flex items-center justify-between">
+            <span><span class="font-mono sae">{{ k }}</span> <span class="ink-2 ml-1">{{ lbl }}</span></span>
+            <span class="font-mono">{{ rhs }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="space-y-1.5">
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">PAYG &amp; instalments</p>
+          {% for k, lbl, rhs in [
+            ('W1','Total salary, wages &amp; allowances','A$148,420'),
+            ('W2','PAYG W amounts withheld','A$32,420'),
+            ('W4','Other amts withheld (no ABN)','A$0'),
+            ('5A','PAYG instalment','A$5,420'),
+            ('T1','PAYG instalment income','A$348,240'),
+            ('T2','Commissioner\'s instalment rate','1.4%'),
+            ('T7','Instalment (variation)','A$0'),
+          ] %}
+          <div class="flex items-center justify-between">
+            <span><span class="font-mono sae">{{ k }}</span> <span class="ink-2 ml-1">{{ lbl|safe }}</span></span>
+            <span class="font-mono">{{ rhs }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <p class="mt-4 text-[11px] ink-3">Net BAS for Q4 FY26 (Apr–Jun): <span class="font-mono sae">A$34,824 − A$17,402 + A$32,420 + A$5,420 = A$55,262</span></p>
+    </div>
+
+  </div>
+
+  <!-- Right rail -->
+  <div class="lg:col-span-4 space-y-5">
+
+    <!-- SBR2 taxonomy card -->
+    <div class="card p-5" style="background: var(--paper-2);">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="git-branch" class="w-4 h-4 sae"></i>
+        <h4 class="font-medium">SBR2 taxonomy</h4>
+      </div>
+      <p class="text-[12px] ink-2 mb-3">All accounts map to the Standard Business Reporting (SBR) AU General Purpose Financial Report taxonomy. This is what the ATO, ASIC and APRA consume for lodgements.</p>
+      <div class="space-y-1.5 text-[12px]">
+        <div class="flex items-center justify-between"><span class="ink-3">Taxonomy version</span><span class="font-mono">2024.07</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Effective</span><span class="font-mono">01 Jul 2024 →</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Element coverage</span><span class="font-mono pos">68 / 68</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Unmapped (post-only)</span><span class="font-mono">0</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Namespace</span><span class="font-mono">au.icr.*</span></div>
+      </div>
+      <a href="/preview/settings/integrations/ato" class="text-[11px] sae mt-3 inline-flex items-center gap-1">DSP integration → SBR2 lodgement<i data-lucide="external-link" class="w-3 h-3"></i></a>
+    </div>
+
+    <!-- Lock period -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3 flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4 pos"></i>Lock periods</h4>
+      <p class="text-[12px] ink-2 mb-3">Prevent retro-edits to closed periods.</p>
+      <div class="space-y-1.5 text-[12px]">
+        <div class="flex items-center justify-between"><span>Locked through</span><span class="font-mono">30 Apr 2026</span></div>
+        <div class="flex items-center justify-between"><span>Reason</span><span class="ink-3">BAS Q3 lodged</span></div>
+        <div class="flex items-center justify-between"><span>Override role</span><span class="font-mono">Owner / Adviser</span></div>
+      </div>
+      <button class="chip w-full justify-center mt-3"><i data-lucide="calendar-x" class="w-3.5 h-3.5"></i>Extend lock</button>
+    </div>
+
+    <!-- Account class card -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Account classes</h4>
+      <div class="space-y-2 text-[12px]">
+        {% for cls, col, normal, bsorpl in [
+          ('Assets','#1A4E8B','Debit','Balance sheet'),
+          ('Liabilities','#A14333','Credit','Balance sheet'),
+          ('Equity','#7C5C8B','Credit','Balance sheet'),
+          ('Revenue','#3E7A4E','Credit','P&amp;L'),
+          ('Cost of sales','#194291','Debit','P&amp;L · gross profit line'),
+          ('Expenses','#C89B3C','Debit','P&amp;L · below GP'),
+        ] %}
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full" style="background: {{ col }};"></span>
+          <span class="font-medium">{{ cls }}</span>
+          <span class="ink-3 ml-auto font-mono text-[11px]">{{ normal }} · {{ bsorpl|safe }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Recent changes -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Recent changes</h4>
+      <div class="space-y-2.5 text-[12px]">
+        {% for d, who, what, col in [
+          ('11 May','R. Sauer','Added 4-120 · Materials markup','#3E7A4E'),
+          ('02 May','System','SBR2 taxonomy bumped 2023.07 → 2024.07','#1A4E8B'),
+          ('28 Apr','S. Wong','Renamed 6-220 Fuel → Fuel · diesel + petrol','#7C5C8B'),
+          ('14 Apr','R. Sauer','Archived 6-540 Vending (no postings 18 mo)','#C89B3C'),
+          ('11 Apr','S. Wong','Mapped 6-310 → au.icr.TelephoneExpense','#3E7A4E'),
+        ] %}
+        <div class="flex items-baseline gap-2">
+          <span class="w-1 self-stretch rounded-full" style="background: {{ col }};"></span>
+          <div class="flex-1 flex items-baseline justify-between">
+            <span><span class="font-medium">{{ who }}</span> · <span class="ink-2">{{ what|safe }}</span></span>
+            <span class="font-mono text-[11px] ink-3">{{ d }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Related -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Related</h4>
+      <div class="space-y-2 text-[13px]">
+        <a href="/preview/compliance/bas-prep" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Prep BAS Q4 FY26</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/settings/integrations/ato" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>ATO &amp; DSP integration</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/reports/profit-loss" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Profit &amp; loss</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/reports/balance-sheet" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Balance sheet</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

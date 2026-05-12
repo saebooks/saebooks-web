@@ -1,0 +1,385 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}Migrate from Xero · MYOB · Reckon — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .row-cell td { padding: 9px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .row-cell:first-child td { border-top: 0; }
+  .vendor-tile { border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 6px; transition: border-color 0.15s; }
+  .vendor-tile:hover { border-color: var(--sae); }
+  .vendor-tile.active { border-color: var(--sae); background: color-mix(in srgb, var(--sae) 4%, var(--paper)); }
+  .stage-pipe { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .stage-pipe .stage { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); position: relative; }
+  .stage-pipe .stage.done { background: color-mix(in srgb, var(--pos) 6%, var(--paper)); border-color: color-mix(in srgb, var(--pos) 30%, transparent); }
+  .stage-pipe .stage.active { background: color-mix(in srgb, var(--sae) 6%, var(--paper)); border-color: var(--sae); }
+  .stage-pipe .stage.pending { opacity: 0.7; }
+  .conf-bar { height: 4px; background: var(--paper-2); border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; background: var(--pos); }
+  .conf-fill.warm { background: var(--warm); }
+  .num-stamp { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10px; padding: 1px 5px; border: 1px dashed var(--line); border-radius: 3px; color: var(--ink-2); background: var(--paper-2); }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider">
+        <a href="/preview/settings" class="hover:text-[color:var(--sae)]">Settings</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>Migration importer</span>
+        <span class="ml-2 chip-mini sae">FY18 → FY26 · 8 financial years</span>
+        <span class="chip-mini pos">free during migration</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">Switch from Xero · MYOB · Reckon</h1>
+      <p class="ink-2 text-[13.5px] mt-1 max-w-3xl">
+        Bring your last 8 financial years across in one go — chart of accounts, contacts, invoices, bills, manual journals, bank transactions,
+        attachments, fixed assets, payroll YTD, BAS history, super contributions, opening balances. Typical book: <span class="num">4–12 minutes</span>.
+        Original source-system IDs are retained on every record so your auditor can trace back.
+      </p>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <a href="#" class="btn-primary"><i data-lucide="play" class="w-4 h-4"></i>Start migration</a>
+      <a href="/preview/activity?scope=migration" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>Migration audit · 18 events</a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<!-- Vendor picker -->
+<section class="card p-5 mb-6">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="font-display text-[18px]">Source system</h2>
+    <span class="chip-mini">3 connectors + CSV fallback</span>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div class="vendor-tile active">
+      <div class="flex items-center justify-between">
+        <div class="font-display text-[16px]">Xero (AU)</div>
+        <span class="chip-mini sae">selected</span>
+      </div>
+      <div class="text-[11px] ink-3">OAuth 2.0 · Accounting + Payroll AU + Files</div>
+      <div class="text-[11px] ink-2"><strong>Coverage:</strong> CoA · Contacts · AR/AP · MJ · Bank · STP YTD · BAS history · Files</div>
+      <div class="text-[10.5px] ink-3 mt-1 num">api.xero.com · scope accounting.read payroll.au.read files.read</div>
+    </div>
+    <div class="vendor-tile">
+      <div class="flex items-center justify-between">
+        <div class="font-display text-[16px]">MYOB AccountRight</div>
+        <span class="chip-mini">ready</span>
+      </div>
+      <div class="text-[11px] ink-3">AccountRight Live API v2 · OAuth 2.0</div>
+      <div class="text-[11px] ink-2"><strong>Coverage:</strong> CoA · Cards · Sales · Purchases · GJ · Banking · Payroll YTD · BASlink</div>
+      <div class="text-[10.5px] ink-3 mt-1 num">api.myob.com/accountright</div>
+    </div>
+    <div class="vendor-tile">
+      <div class="flex items-center justify-between">
+        <div class="font-display text-[16px]">Reckon One</div>
+        <span class="chip-mini">ready</span>
+      </div>
+      <div class="text-[11px] ink-3">GovConnect API + Reckon One REST</div>
+      <div class="text-[11px] ink-2"><strong>Coverage:</strong> CoA · Customers · Invoices · Bills · Journals · Banking · STP</div>
+      <div class="text-[10.5px] ink-3 mt-1 num">api.reckon.com.au · v3</div>
+    </div>
+    <div class="vendor-tile">
+      <div class="flex items-center justify-between">
+        <div class="font-display text-[16px]">CSV / OFX upload</div>
+        <span class="chip-mini">fallback</span>
+      </div>
+      <div class="text-[11px] ink-3">Quickbooks Online · QuickBooks AU · Saasu</div>
+      <div class="text-[11px] ink-2"><strong>Coverage:</strong> auto-detect schema, line-mapper UI, OFX bank import</div>
+      <div class="text-[10.5px] ink-3 mt-1 num">drag any export · CoA · invoices · bills · bank statements</div>
+    </div>
+  </div>
+</section>
+
+<!-- Pipeline -->
+<section class="card p-5 mb-6">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="font-display text-[18px]">Pipeline · Xero AU · TenantId b8c4-…d92</h2>
+    <span class="chip-mini sae"><i data-lucide="loader-2" class="w-2.5 h-2.5 animate-spin"></i>stage 4 of 6 · 6m 12s elapsed</span>
+  </div>
+  <div class="stage-pipe">
+    <div class="stage done">
+      <div class="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider ink-3"><i data-lucide="check-circle-2" class="w-3 h-3 pos"></i>1 · Auth</div>
+      <div class="text-[12.5px] ink mt-0.5">OAuth granted</div>
+      <div class="text-[10.5px] ink-3 num">14:08:24 · 4s</div>
+    </div>
+    <div class="stage done">
+      <div class="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider ink-3"><i data-lucide="check-circle-2" class="w-3 h-3 pos"></i>2 · Discover</div>
+      <div class="text-[12.5px] ink mt-0.5">8 FYs · 18 entities</div>
+      <div class="text-[10.5px] ink-3 num">14:08:28 · 22s</div>
+    </div>
+    <div class="stage done">
+      <div class="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider ink-3"><i data-lucide="check-circle-2" class="w-3 h-3 pos"></i>3 · Map</div>
+      <div class="text-[12.5px] ink mt-0.5">CoA + tax codes</div>
+      <div class="text-[10.5px] ink-3 num">14:08:50 · 1m 14s</div>
+    </div>
+    <div class="stage active">
+      <div class="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider sae"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>4 · Import</div>
+      <div class="text-[12.5px] ink mt-0.5">42% · 18,420 of 43,820</div>
+      <div class="text-[10.5px] ink-3 num">14:10:04 · running</div>
+    </div>
+    <div class="stage pending">
+      <div class="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider ink-3"><i data-lucide="circle" class="w-3 h-3"></i>5 · Validate</div>
+      <div class="text-[12.5px] ink-2 mt-0.5">Trial balance check</div>
+      <div class="text-[10.5px] ink-3">queued</div>
+    </div>
+    <div class="stage pending">
+      <div class="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider ink-3"><i data-lucide="circle" class="w-3 h-3"></i>6 · Cutover</div>
+      <div class="text-[12.5px] ink-2 mt-0.5">Source set read-only</div>
+      <div class="text-[10.5px] ink-3">queued</div>
+    </div>
+  </div>
+</section>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- LEFT: entity import table + tax code mapping -->
+  <div class="lg:col-span-7 space-y-6">
+    <section class="card">
+      <header class="px-5 py-3.5 border-b hairline flex items-baseline justify-between">
+        <div>
+          <h2 class="font-display text-[18px]">Entities — import progress</h2>
+          <p class="text-[11.5px] ink-3">Each Xero entity becomes a SAE Books record. Source IDs are preserved in <span class="num">x_source_*</span> metadata for audit traceability.</p>
+        </div>
+        <span class="chip-mini sae">FY18 → FY26 · 8 years</span>
+      </header>
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10px] font-mono uppercase tracking-wider ink-3 text-left">
+            <th class="px-3 py-2 border-b hairline">Xero entity</th>
+            <th class="px-3 py-2 border-b hairline">SAE Books target</th>
+            <th class="px-3 py-2 border-b hairline">Count</th>
+            <th class="px-3 py-2 border-b hairline">Status</th>
+            <th class="px-3 py-2 border-b hairline">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set rows = [
+            ('Accounts',                 'Chart of accounts',       '184',     'done',    '7 GL renames staged · 0 conflicts'),
+            ('Contacts',                 'Contacts (customer + supplier)','842','done',  'merged 14 duplicates · ABNs verified vs ABR'),
+            ('TaxRates',                 'Tax rates / GST treatments','11',    'done',    'mapped to SAE GST/FRE/EXP/INP/CAP/N-T/GNR'),
+            ('Invoices (AR)',            'Tax invoices',            '4,184',   'done',    'pdf + xml stored · numbering rebased'),
+            ('Invoices (AP)',            'Bills',                   '1,842',   'done',    'pdf attachments imported · 1.2 GB'),
+            ('CreditNotes',              'Credit / adjustment notes','184',    'done',    'linked to source invoices'),
+            ('ManualJournals',           'Manual journals',         '184',     'done',    'narration preserved verbatim'),
+            ('BankTransactions',         'Bank lines',              '14,840',  'running', '6,184 imported · 8,656 queued'),
+            ('BankTransfers',            'Inter-account transfers', '184',     'pending', 'queued after BankTransactions'),
+            ('Items',                    'Items / inventory',       '184',     'pending', 'will land alongside Reports'),
+            ('FixedAssets',              'Fixed assets',            '42',      'pending', 'depreciation schedule preserved'),
+            ('PayRunsAU',                'Pay runs · STP YTD',      '184',     'pending', 'YTD per-payee carried; STP submitted only as evidence, not re-lodged'),
+            ('SuperContributionsAU',     'Super contributions',     '420',     'pending', 'mapped to current SuperStream batch flow'),
+            ('Files',                    'Attachments',             '8,420',   'pending', '4.8 GB · R2 sae-migration-fy26 · de-dup hash'),
+            ('Reports.BAS',              'BAS lodgement history',   '32',      'pending', 'PDFs + raw labels per quarter'),
+          ] %}
+          {% for src, tgt, count, status, note in rows %}
+          <tr class="row-cell hover:bg-[color:var(--paper-2)]">
+            <td><span class="num text-[11px]">{{ src }}</span></td>
+            <td class="text-[12px]">{{ tgt }}</td>
+            <td class="num text-[11.5px]">{{ count }}</td>
+            <td>
+              {% if status == 'done' %}<span class="chip-mini pos">done</span>
+              {% elif status == 'running' %}<span class="chip-mini sae"><i data-lucide="loader-2" class="w-2.5 h-2.5 animate-spin"></i>{{ status }}</span>
+              {% else %}<span class="chip-mini">queued</span>{% endif %}
+            </td>
+            <td class="text-[11px] ink-3">{{ note }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- CoA mapping -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">Chart of accounts mapping</h2>
+        <span class="chip-mini pos">184 of 184 mapped · 0 unassigned</span>
+      </div>
+      <p class="text-[12px] ink-2 mb-3">Auto-mapped by Xero account type + name fingerprinting. 7 lines staged for rename; review and accept on the right.</p>
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10px] font-mono uppercase tracking-wider ink-3 text-left">
+            <th class="px-3 py-2 border-b hairline">Xero code</th>
+            <th class="px-3 py-2 border-b hairline">Xero name</th>
+            <th class="px-3 py-2 border-b hairline">SAE code</th>
+            <th class="px-3 py-2 border-b hairline">SAE name</th>
+            <th class="px-3 py-2 border-b hairline">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set coas = [
+            ('200', 'Sales',                    '4-100', 'Sales — engineering services', 'auto'),
+            ('260', 'Other revenue',            '6-512', 'Card surcharge income',        'rename'),
+            ('400', 'Advertising',              '6-100', 'Marketing',                    'rename'),
+            ('453', 'Bank fees',                '6-510', 'Merchant fees',                'rename'),
+            ('310', 'Cost of goods sold',       '5-200', 'Job materials',                'auto'),
+            ('500', 'Cost of subcontract',      '5-210', 'Subcontractor labour',         'auto'),
+            ('820', 'GST',                      '2-410', 'GST collected · 1A',           'auto'),
+            ('825', 'PAYG Withholdings Payable','2-320', 'PAYG-W payable · W2',         'auto'),
+            ('826', 'Superannuation Payable',   '2-330', 'SG payable',                   'auto'),
+            ('477', 'Fuel',                     '6-220', 'Fuel — diesel road · FTD eligible','rename'),
+          ] %}
+          {% for xc, xn, sc, sn, action in coas %}
+          <tr class="row-cell hover:bg-[color:var(--paper-2)]">
+            <td><span class="num text-[11px]">{{ xc }}</span></td>
+            <td class="text-[12px] ink-2">{{ xn }}</td>
+            <td><a href="/preview/settings/chart-of-accounts" class="num text-[11px] sae hover:underline">{{ sc }}</a></td>
+            <td class="text-[12px]">{{ sn }}</td>
+            <td>{% if action == 'auto' %}<span class="chip-mini pos">auto-mapped</span>{% else %}<span class="chip-mini warm">rename</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="text-[11px] ink-3 mt-3 flex items-center gap-2"><i data-lucide="info" class="w-3 h-3"></i>Unmapped accounts default to <span class="num">9-999 Migration suspense</span>. SAE Books refuses to start importing transactions until this lands at zero.</div>
+    </section>
+
+    <!-- Tax-rate mapping -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">Tax rate mapping</h2>
+        <span class="chip-mini pos">11 of 11 mapped</span>
+      </div>
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10px] font-mono uppercase tracking-wider ink-3 text-left">
+            <th class="px-3 py-2 border-b hairline">Xero tax type</th>
+            <th class="px-3 py-2 border-b hairline">Xero name</th>
+            <th class="px-3 py-2 border-b hairline">SAE treatment</th>
+            <th class="px-3 py-2 border-b hairline">BAS label</th>
+            <th class="px-3 py-2 border-b hairline">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set tax = [
+            ('OUTPUT',     'GST on Income',                'GST',  'G1 + 1A',  'auto'),
+            ('INPUT',      'GST on Expenses',              'GST',  'G11 + 1B', 'auto'),
+            ('CAPEXINPUT', 'GST on Capital',               'CAP',  'G10 + 1B', 'auto'),
+            ('EXEMPTOUTPUT','GST Free Income',             'FRE',  'G1 + G3',  'auto'),
+            ('EXEMPTEXPENSES','GST Free Expenses',         'FRE',  'G14',      'auto'),
+            ('EXEMPTCAPITAL','GST Free Capital',           'FRE',  'G14',      'auto'),
+            ('EXEMPTEXPORT','GST Free Exports',            'EXP',  'G1 + G2',  'auto'),
+            ('BASEXCLUDED','BAS Excluded',                 'N-T',  'not reportable','auto'),
+            ('INPUTTAXED', 'Input Taxed',                  'INP',  'G1 + G4',  'auto'),
+            ('GSTONIMPORTS','GST on Imports',              'GST',  '7A + 1B',  'auto'),
+            ('NONE',       'No ABN withholding 47%',       'GNR',  'W4',       'auto'),
+          ] %}
+          {% for typ, name, treat, label, status in tax %}
+          <tr class="row-cell">
+            <td><span class="num text-[10.5px]">{{ typ }}</span></td>
+            <td class="text-[11.5px] ink-2">{{ name }}</td>
+            <td><a href="/preview/settings/tax-rates" class="chip-mini sae">{{ treat }}</a></td>
+            <td class="num text-[11px] ink-2">{{ label }}</td>
+            <td><span class="chip-mini pos">auto</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- RIGHT col -->
+  <div class="lg:col-span-5 space-y-6">
+
+    <!-- Trial balance reconciliation -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">Trial balance · 30 Apr 2026</h2>
+        <span class="chip-mini sae">staged · runs in stage 5</span>
+      </div>
+      <p class="text-[11.5px] ink-3 mb-3">After import we run a balance-by-balance comparison against the source. The migration won't cut over until the variance is &lt; A$1.00 absolute.</p>
+      <div class="text-[12px] space-y-1.5">
+        <div class="flex items-center justify-between"><span class="ink-3">Xero TB total (debits)</span><span class="num">A$1,842,420.18</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">SAE TB total (debits)</span><span class="num">A$1,842,420.18</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Variance</span><span class="num pos">A$0.00</span></div>
+        <div class="drafting my-2"></div>
+        <div class="flex items-center justify-between"><span class="ink-3">GST liability (2-410)</span><span class="num pos">match</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">PAYG-W payable (2-320)</span><span class="num pos">match</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Super payable (2-330)</span><span class="num pos">match</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">A/R control (1-110)</span><span class="num pos">match</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">A/P control (2-150)</span><span class="num pos">match</span></div>
+      </div>
+      <div class="text-[11px] ink-3 mt-3"><i data-lucide="info" class="w-3 h-3 inline align-middle"></i>Rounding tolerance ±A$1 absorbs known cent-level Xero/SAE differences in GST line allocation. Anything bigger blocks cutover.</div>
+    </section>
+
+    <!-- Pre-flight checks -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Pre-flight checks</h2>
+      <ul class="text-[11.5px] space-y-2.5">
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">ABN match</span> · Sauer Pty Ltd 47 168 502 343 in Xero = SAE org · safe to import</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">FY boundary</span> · cutover proposed at <span class="num">30 Apr 2026</span> end-of-month · 8 weeks before BAS Q4</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">No open lodgement</span> · BAS Q3 already finalised in Xero · no overlap risk</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">STP YTD parity</span> · 4 payees · gross + PAYG-W match to the cent</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 warm mt-0.5"></i><div><span class="ink">SuperStream re-auth</span> · ATO needs new SBR2 software ID once cutover · queued post-cutover</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 warm mt-0.5"></i><div><span class="ink">CDR bank consent</span> · already issued to SAE Books for CBA Smart Access · no re-consent needed</div></li>
+      </ul>
+    </section>
+
+    <!-- Source-system traceability -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Source-system traceability</h2>
+      <p class="text-[11.5px] ink-3 mb-3">Every imported record retains its Xero identifiers — auditors can trace any SAE line back to its origin.</p>
+      <div class="border hairline rounded-md p-3 text-[11px] num leading-snug bg-[color:var(--paper-2)]">
+        <div><span class="ink-3">x_source:</span> xero</div>
+        <div><span class="ink-3">x_source_tenant:</span> b8c4...d92</div>
+        <div><span class="ink-3">x_source_id:</span> 8c11-1842-4820-7c84</div>
+        <div><span class="ink-3">x_source_url:</span> go.xero.com/Invoice/View/8c11-1842-...</div>
+        <div><span class="ink-3">x_imported_at:</span> 2026-05-11T14:10:32+10:00</div>
+        <div><span class="ink-3">x_hash:</span> sha256:2c4b...91ae</div>
+      </div>
+    </section>
+
+    <!-- Post-migration tasks -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Post-migration checklist</h2>
+      <ul class="text-[11.5px] space-y-2">
+        <li class="flex items-start gap-2"><i data-lucide="square" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Switch ATO software ID</span> · enter SAE Books SWID <span class="num">2614 1827 0184</span> in <a href="/preview/settings/integrations/ato" class="sae hover:underline">RAM/Access Manager</a></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="square" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Re-register Peppol participant</span> · move Peppol ID 0151:47168502343 from Xero AP to <a href="/preview/settings/integrations/peppol" class="sae hover:underline">Storecove AP</a></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="square" class="w-3 h-3 mt-0.5"></i><div><span class="ink">SuperStream re-link</span> · associate SBR2 with current SuperStream gateway (Beam) under new SWID</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="square" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Bank feed re-route</span> · CBA + ANZ CDR consent already covers SAE Books; just confirm in <a href="/preview/settings/banking/cba" class="sae hover:underline">CBA settings</a></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="square" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Set Xero to read-only</span> · lock the source org for 90 days; SAE retains read access for auditor</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="square" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Notify TPB BAS Agent</span> · Jaspreet Singh — new SWID + login link emailed</div></li>
+      </ul>
+    </section>
+
+    <!-- Why ours -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">vs. competitor migration tools</h2>
+      <div class="text-[12px] space-y-2.5">
+        <div class="grid grid-cols-4 text-[10px] font-mono uppercase tracking-wider ink-3 border-b hairline pb-1.5 gap-1.5">
+          <div></div><div>SAE</div><div>Xero</div><div>MYOB</div>
+        </div>
+        {% set comp = [
+          ('Source IDs retained',  '✓', '✗', '✗'),
+          ('Attachments imported', '✓', 'limited', '✗'),
+          ('BAS history',          '✓ PDFs + labels', 'no', 'no'),
+          ('STP YTD parity',       'cent-level', '∼', '∼'),
+          ('Auto Peppol re-route', '✓ Storecove', 'manual', 'manual'),
+          ('Cost',                 'free', 'A$500–2,000 specialist', 'A$1,200+ specialist'),
+          ('Typical time',         '4–12 min', '2–8 weeks', '3–10 weeks'),
+        ] %}
+        {% for label, a, b, c in comp %}
+          <div class="grid grid-cols-4 gap-1.5 py-1 border-b hairline last:border-b-0 items-baseline">
+            <div class="ink-3 text-[11px]">{{ label }}</div>
+            <div class="num text-[11.5px] sae">{{ a }}</div>
+            <div class="num text-[11.5px] ink-2">{{ b }}</div>
+            <div class="num text-[11.5px] ink-2">{{ c }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Audit trail -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Audit trail (so far)</h2>
+      <ul class="text-[11.5px] space-y-2.5">
+        <li class="flex items-start gap-2"><i data-lucide="key" class="w-3 h-3 sae mt-0.5"></i><div><span class="ink">Xero OAuth granted</span> · tenant b8c4-…d92 · <span class="ink-3">14:08:24 by R. Sauer</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="search" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Discovery complete</span> · 8 FYs · 18 entities · 43,820 records · <span class="ink-3">14:08:50</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="git-merge" class="w-3 h-3 mt-0.5"></i><div><span class="ink">CoA mapping confirmed</span> · 184/184 mapped, 7 renames · <span class="ink-3">14:10:04 by R. Sauer</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="loader-2" class="w-3 h-3 sae animate-spin mt-0.5"></i><div><span class="ink">Import in progress</span> · BankTransactions 6,184 of 14,840 · <span class="ink-3">14:14 by system</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="archive" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Source payloads stored</span> · R2 sae-migration-fy26 · 4.8 GB · <span class="ink-3">14:10–14:14</span></div></li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

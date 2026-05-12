@@ -1,0 +1,259 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'settings' %}
+{% block page_title %}Settings · SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-56 h-24 dot-grid-soft rounded-tr-2xl rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Workspace · Sauer Pty Ltd</span>
+      </div>
+      <h1 class="font-display text-[36px] leading-[1.05] font-medium">Settings</h1>
+      <p class="mt-1.5 ink-2 text-sm">Organisation, integrations, banking, and the toggles your accountant cares about.</p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export workspace</button>
+      <a href="#" class="btn-primary"><i data-lucide="user-cog" class="w-4 h-4"></i>Invite accountant</a>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+  <!-- Section nav -->
+  <aside class="md:col-span-1">
+    <nav class="space-y-1 sticky top-4 text-[13px]">
+      {% set sections = [
+        ('org', 'Organisation', 'building-2', true),
+        ('users', 'Users &amp; roles', 'users-round', false),
+        ('tax-rates', 'Tax rates &amp; GST', 'percent', false),
+        ('financial', 'Financial year &amp; tax', 'calendar-cog', false),
+        ('chart', 'Chart of accounts', 'list-tree', false),
+        ('numbering', 'Numbering &amp; identifiers', 'list-ordered', false),
+        ('banking', 'Bank accounts &amp; feeds', 'banknote', false),
+        ('integrations', 'Integrations', 'plug-zap', false),
+        ('lodgement', 'ATO lodgement', 'landmark', false),
+        ('appearance', 'Appearance', 'palette', false),
+        ('billing', 'Plan &amp; billing', 'credit-card', false),
+        ('danger', 'Danger zone', 'alert-octagon', false),
+      ] %}
+      {% for slug, label, icon, active in sections %}
+        <a href="{% if slug == 'chart' %}/preview/settings/chart-of-accounts{% elif slug == 'banking' %}/preview/settings/bank-feed-rules{% elif slug == 'users' %}/preview/settings/users{% elif slug == 'tax-rates' %}/preview/settings/tax-rates{% elif slug == 'numbering' %}/preview/settings/numbering{% else %}#{{ slug }}{% endif %}" class="flex items-center gap-2.5 px-3 py-2 rounded-md
+          {% if active %}font-medium bg-[color:var(--paper-2)] text-[color:var(--ink)]{% else %}ink-2 hover:bg-[color:var(--paper-2)]{% endif %}">
+          <i data-lucide="{{ icon }}" class="w-4 h-4 {% if active %}sae{% else %}ink-3{% endif %}"></i>
+          <span>{{ label|safe }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <!-- Body -->
+  <div class="md:col-span-3 space-y-6">
+    <!-- Organisation -->
+    <section id="org" class="card p-6">
+      <h2 class="font-display text-[20px] mb-1">Organisation</h2>
+      <p class="text-[12.5px] ink-3 mb-5">This goes on every invoice, quote, and BAS lodgement.</p>
+      <div class="grid grid-cols-2 gap-4 text-[12.5px]">
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Legal name</label>
+          <input value="Sauer Pty Ltd" class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ring-focus">
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Trading name</label>
+          <input value="SAE Engineering" class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ring-focus">
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">ABN</label>
+          <input value="47 168 502 343" class="mt-1 w-full px-3 py-2 border hairline rounded-md font-mono text-[13px] ring-focus">
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">ACN</label>
+          <input value="168 502 343" class="mt-1 w-full px-3 py-2 border hairline rounded-md font-mono text-[13px] ring-focus">
+        </div>
+        <div class="col-span-2">
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Trading address</label>
+          <input value="Unit 4, 18 Sandstone Pl · Tighes Hill NSW 2297" class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ring-focus">
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Industry</label>
+          <select class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ring-focus bg-white">
+            <option>Engineering services (ANZSIC 6923)</option><option>Construction trade services</option><option>Manufacturing</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Default contact email</label>
+          <input value="admin@saee.com.au" class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ring-focus">
+        </div>
+      </div>
+      <div class="mt-5 flex items-center gap-2">
+        <button class="btn-primary !py-1.5 !px-3 !text-[13px]"><i data-lucide="check" class="w-3.5 h-3.5"></i>Save</button>
+        <span class="text-[11px] ink-3 font-mono">Last edited 11 May 2026</span>
+      </div>
+    </section>
+
+    <!-- Financial year + tax -->
+    <section id="financial" class="card p-6">
+      <h2 class="font-display text-[20px] mb-1">Financial year &amp; tax</h2>
+      <p class="text-[12.5px] ink-3 mb-5">Australian conventions assumed — change only if you've moved to a substituted accounting period.</p>
+      <div class="grid grid-cols-2 gap-4 text-[12.5px]">
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">FY start</label>
+          <input value="1 July" class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ring-focus" readonly>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Current period</label>
+          <input value="FY26 (1 Jul 2025 – 30 Jun 2026)" class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ink-2 ring-focus" readonly>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">GST registration</label>
+          <select class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ring-focus bg-white">
+            <option>Registered (quarterly)</option><option>Registered (monthly)</option><option>Not registered</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Accounting basis</label>
+          <select class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ring-focus bg-white">
+            <option>Cash</option><option>Accruals</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Company tax rate</label>
+          <input value="25% — base rate entity" class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ink-2 ring-focus">
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">PAYG instalments</label>
+          <input value="Quarterly · A$5,820 per instalment" class="mt-1 w-full px-3 py-2 border hairline rounded-md text-[13px] ink-2 ring-focus">
+        </div>
+      </div>
+    </section>
+
+    <!-- Banking -->
+    <section id="banking" class="card p-6">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="font-display text-[20px]">Bank accounts &amp; feeds</h2>
+        <button class="chip text-[12px]"><i data-lucide="plus" class="w-3.5 h-3.5"></i>Connect via CDR</button>
+      </div>
+      <p class="text-[12.5px] ink-3 mb-5">Direct CDR open-banking feeds — no scraping, no third-party fee.</p>
+      <div class="space-y-2.5">
+        {% set banks = [
+          ('CBA Smart Access', '****8421', 'A$4,820.40',  'live',  'Last sync 4 min ago'),
+          ('ANZ Business',     '****2914', 'A$28,140.20', 'live',  'Last sync 12 min ago'),
+          ('Macquarie CMA',    '****0073', 'A$92,140.00', 'live',  'Last sync 2 min ago'),
+          ('NAB Business Card','****1108', '−A$1,840.20', 'pending','Awaiting reauth · 14 days left'),
+        ] %}
+        {% for name, acct, bal, state, note in banks %}
+        <a href="{% if 'CBA' in name %}/preview/settings/banking/cba{% else %}#{% endif %}" class="flex items-center gap-3 p-3 border hairline rounded-lg hover:border-[color:var(--sae)]
+          {% if state == 'pending' %}bg-[color:var(--warm-tint)] bg-opacity-30{% endif %}">
+          <span class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--paper-2);"><i data-lucide="banknote" class="w-4 h-4 ink-2"></i></span>
+          <div class="flex-1">
+            <p class="text-[13.5px] font-medium">{{ name }}</p>
+            <p class="text-[11px] font-mono ink-3">{{ acct }} · {{ note }}</p>
+          </div>
+          <p class="num text-[13.5px] font-medium">{{ bal }}</p>
+          {% if state == 'live' %}<span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Live</span>
+          {% else %}<span class="badge badge-warm"><span class="dot" style="background: var(--warm);"></span>Reauth</span>{% endif %}
+          <i data-lucide="chevron-right" class="w-4 h-4 ink-3"></i>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Integrations -->
+    <section id="integrations" class="card p-6">
+      <h2 class="font-display text-[20px] mb-1">Integrations</h2>
+      <p class="text-[12.5px] ink-3 mb-5">All Australian DSP-approved. Toggle, don't configure — sensible defaults.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {% set ints = [
+          ('ATO Online — DSP', 'landmark',    'Lodge BAS, IAS, TPAR and STP', 'connected', '#1A4E8B'),
+          ('Peppol e-invoicing — AU PINT', 'cable', 'Structured invoices in/out · 60 docs FY26', 'connected', '#7C5C8B'),
+          ('MyGovID + RAM',    'shield-check','Auth method for ATO lodgement','connected', '#3E7A4E'),
+          ('SuperStream — clearing', 'wallet','AustralianSuper, REST, Cbus + 18 funds','connected', '#194291'),
+          ('Stripe AU',         'credit-card','Pay-by-link on invoices',     'connected', '#5C7A8B'),
+          ('Square AU',         'square',     'POS bank-feed reconciliation','connected', '#7C5C8B'),
+          ('Email — Postmark',  'mail',       'Outbound invoice + statement','connected', '#0F2940'),
+          ('Stripe Tax + ABS data', 'globe-2','Cross-border GST (deferred)', 'available', '#8a8f97'),
+          ('Karbon — accountant portal', 'briefcase','Workpaper sync (off by default)','available', '#8a8f97'),
+        ] %}
+        {% for name, ico, sub, state, col in ints %}
+        <a href="{% if 'ATO' in name %}/preview/settings/integrations/ato{% elif 'Peppol' in name %}/preview/settings/integrations/peppol{% elif 'Stripe AU' == name %}/preview/settings/integrations/stripe-au{% else %}#{% endif %}" class="flex items-center gap-3 p-3 border hairline rounded-lg hover:border-[color:var(--sae)]">
+          <span class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: {{ col }}1A; color: {{ col }};"><i data-lucide="{{ ico }}" class="w-4 h-4"></i></span>
+          <div class="flex-1">
+            <p class="text-[13px] font-medium">{{ name }}</p>
+            <p class="text-[11px] ink-3 mt-0.5">{{ sub }}</p>
+          </div>
+          {% if state == 'connected' %}
+            <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Connected</span>
+          {% else %}
+            <span class="chip text-[11px]">Connect</span>
+          {% endif %}
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- ATO lodgement -->
+    <section id="lodgement" class="card p-6">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="font-display text-[20px]">ATO lodgement</h2>
+        <a href="/preview/settings/integrations/ato" class="text-[12px] sae hover:underline">Open detail →</a>
+      </div>
+      <p class="text-[12.5px] ink-3 mb-5">SAE Books is a registered Digital Service Provider — lodge straight from here.</p>
+      <div class="grid grid-cols-2 gap-4 text-[12.5px]">
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">DSP status</label>
+          <p class="mt-1 flex items-center gap-2"><span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Active</span><span class="font-mono text-[11px] ink-3">SBR ID DSP-94821</span></p>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">MyGovID</label>
+          <p class="mt-1">richard@saee.com.au · <span class="ink-3 text-[11px]">Strong identity</span></p>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">RAM authorisation</label>
+          <p class="mt-1">Principal authority — Sauer Pty Ltd</p>
+        </div>
+        <div>
+          <label class="text-[10px] font-mono uppercase tracking-wider ink-3">Lodgement role</label>
+          <p class="mt-1">Self-lodger · No tax agent linked</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plan & billing -->
+    <section id="billing" class="card p-6">
+      <h2 class="font-display text-[20px] mb-1">Plan &amp; billing</h2>
+      <p class="text-[12.5px] ink-3 mb-5">Australian pricing, GST inclusive, no annual lock-in.</p>
+      <div class="grid grid-cols-3 gap-3">
+        {% set plans = [
+          ('Cashbook', '12', 'Solo trader · bank feeds + BAS', False),
+          ('Pro', '48', 'Multi-entity · payroll · projects', True),
+          ('Accountant', '0', 'Read + lodge for your clients', False),
+        ] %}
+        {% for name, price, desc, active in plans %}
+        <div class="card p-4 {% if active %}border-[color:var(--sae)]{% endif %} {% if active %}shadow-md{% endif %}"
+          {% if active %}style="border-width:1.5px;"{% endif %}>
+          <div class="flex items-baseline justify-between mb-1">
+            <p class="font-display text-[18px]">{{ name }}</p>
+            {% if active %}<span class="badge badge-sae text-[10px]">Current</span>{% endif %}
+          </div>
+          <p class="text-[11px] ink-3 mb-2">{{ desc }}</p>
+          <p class="font-display num text-[24px]">A${{ price }}<span class="text-[12px] ink-3">/mo</span></p>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="drafting my-5"></div>
+      <div class="flex items-center justify-between text-[12.5px]">
+        <div>
+          <p class="ink-3 text-[11px] font-mono uppercase tracking-wider">Next billing</p>
+          <p class="mt-0.5">1 June 2026 · A$48.00 inc GST · Visa ****4242</p>
+        </div>
+        <button class="chip text-[12px]">Update payment method</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+{% endblock %}

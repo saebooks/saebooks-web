@@ -1,0 +1,385 @@
+{% extends "preview/_layout.html" %}
+{% block title %}ECPI &amp; actuarial certificate · ART SMSF · FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks">
+  <div class="max-w-[1240px] mx-auto px-6 py-8">
+
+    <!-- ============================================ -->
+    <!-- MASTHEAD                                     -->
+    <!-- ============================================ -->
+    <header class="mb-8 pb-6 border-b border-[var(--line)]">
+      <div class="flex items-start justify-between gap-6">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">
+            <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+            <span>ATO &middot; SMSF retirement phase &middot; ECPI exemption</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>ITAA 1997 s.295-385 &middot; s.295-390 &middot; s.295-395</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Workpaper ECPI-26</span>
+          </div>
+          <h1 class="font-display text-[40px] leading-[1.05] tracking-[-0.02em] text-[var(--ink)]">
+            ECPI &amp; actuarial certificate
+            <span class="text-[var(--ink-3)]"> &middot; ART SMSF &middot; FY26</span>
+          </h1>
+          <p class="mt-3 text-[14px] text-[var(--ink-3)] max-w-[860px] leading-relaxed">
+            Income from assets supporting a retirement-phase income stream is exempt from the 15% accumulation-phase tax (<em>ITAA 1997 s.295-385 to s.295-400</em>). Where the fund is unsegregated (or partially), an <strong>actuarial certificate</strong> must apportion the exempt slice. With the <em>Disregarded Small Fund Assets</em> rule under <em>s.295-385(7)</em> &mdash; triggered when any member has a Total Super Balance &gt; A$1.6m on the prior 30-Jun <strong>and</strong> receives a retirement-phase pension at any point in the year &mdash; the fund must use the proportionate method even where it would otherwise be segregated. SAE Books wires the ECPI calc into the GL, drives the TBAR feed, and produces an actuary-ready data pack.
+          </p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Status</div>
+          <div class="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[color:rgb(34_139_84_/_0.10)] border border-[color:rgb(34_139_84_/_0.35)]">
+            <span class="led on"></span>
+            <span class="text-[12px] font-medium text-[var(--pos)]">DSFA triggered &middot; proportionate method &middot; actuary instructed</span>
+          </div>
+          <div class="mt-2 text-[11px] text-[var(--ink-3)]"><span class="num">ECPI-184260-26</span> &middot; prepared 2026-05-11</div>
+          <div class="mt-1 text-[11px] text-[var(--ink-3)]">SMSF annual return due <span class="num">2026-05-15</span> &middot; certificate received <span class="num">2026-04-22</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- ACT 1 · MARKET GAP                            -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 01</div>
+        <h2 class="font-display text-[22px] tracking-tight">Where ECPI lives elsewhere &mdash; and why it&rsquo;s on the books here</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Australian SMSF software gap analysis</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Surface</th>
+                <th class="py-2 pr-2">Xero</th>
+                <th class="py-2 pr-2">MYOB</th>
+                <th class="py-2 pr-2">BGL Simple Fund 360</th>
+                <th class="py-2 pr-2">Class</th>
+                <th class="py-2">SAE Books</th>
+              </tr>
+            </thead>
+            <tbody class="text-[12px]">
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">DSFA test runner (s.295-385(7))</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)]">yes</td><td class="text-[var(--pos)]">yes</td><td class="text-[var(--pos)] font-medium">yes + entity-graph TSB</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Daily asset value (segregated test)</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)]">yes</td><td class="text-[var(--pos)]">yes</td><td class="text-[var(--pos)] font-medium">yes</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">TBAR generator &middot; NAT 75807</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)]">yes</td><td class="text-[var(--pos)]">yes</td><td class="text-[var(--pos)] font-medium">yes + cap headroom</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Actuary data pack export</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)]">yes (Accurium/Lime)</td><td class="text-[var(--pos)]">yes</td><td class="text-[var(--pos)] font-medium">yes + GL-source</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Div 296 shadow (A$3m TSB)</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--warm)]">partial</td><td class="text-[var(--warm)]">partial</td><td class="text-[var(--pos)] font-medium">yes &middot; cross-entity</td></tr>
+              <tr><td class="py-2 pr-2">Wired to non-super GL (Div 7A, FBT&hellip;)</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">unified party-graph</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)] leading-relaxed">Class and BGL Simple Fund 360 dominate the SMSF compliance market and handle ECPI well in-fund. SAE Books does not displace them for SMSF-only practices; what it adds is the cross-entity view &mdash; the SMSF and the company and the trust share members and beneficiaries, and a Div 7A loan in the operating company can interact with an in-house asset balance in the fund.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Fund profile &middot; FY26</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)] w-1/3">Fund</td><td>Australian Retirement Trust (Saueesti) SMSF</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">ABN</td><td><span class="num">93 184 260 487</span></td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Trustee structure</td><td>Corporate (Sauerland Pty Ltd)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Members</td><td class="num">2 (R + M Sauer)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Net assets 30-Jun-25</td><td class="num text-right">A$2,684,180</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Net assets 30-Jun-26 (est)</td><td class="num text-right">A$2,842,418</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">R Sauer TSB 30-Jun-25</td><td class="num text-right text-[var(--warm)]">A$1,684,260</td></tr>
+              <tr><td class="py-1.5 text-[var(--ink-3)]">M Sauer TSB 30-Jun-25</td><td class="num text-right">A$999,920</td></tr>
+            </tbody>
+          </table>
+          <div class="mt-3 pt-3 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)]">
+            <div>Retirement-phase pension: R Sauer TRIS, started 2024-07-01, A$65,200 paid YTD vs A$65,126 minimum per <em>SISR 1994 r.6.21</em>.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 2 · DSFA TEST                             -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 02</div>
+        <h2 class="font-display text-[22px] tracking-tight">Disregarded Small Fund Assets test &middot; s.295-385(7)</h2>
+      </div>
+      <div class="p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+        <ol class="text-[12px] space-y-2 leading-relaxed">
+          <li><span class="num">1</span> &mdash; Is the fund an SMSF (or small APRA fund) for FY26? <strong>Yes</strong> &mdash; SMSF (SIS Act 1993 s.17A). <span class="led on inline-block ml-2"></span></li>
+          <li><span class="num">2</span> &mdash; Does the fund have a member who, on prior 30-Jun (2025-06-30), had a Total Super Balance &gt; <strong>A$1.6m</strong>? <strong>Yes</strong> &mdash; R Sauer TSB A$1,684,260 (across all funds: ART SMSF A$1.62m + employer fund A$64,260). <span class="led on inline-block ml-2"></span></li>
+          <li><span class="num">3</span> &mdash; Does that member receive a <strong>retirement-phase income stream</strong> at any point during FY26 from any super interest? <strong>Yes</strong> &mdash; R Sauer&rsquo;s TRIS in ART SMSF was in retirement phase from 2024-07-01 (member turned 65, automatic conversion under <em>ITAA 1997 s.307-80(4)</em>).</li>
+          <li><span class="num">4</span> &mdash; <strong>Both yes &rArr; DSFA applies for FY26.</strong> Fund <em>cannot</em> use the segregated current pension assets method (s.295-385) even where the trust deed segregates and even where 100% of assets support pensions. Must use the <em>proportionate method</em> under s.295-390 for the whole year. <span class="led on inline-block ml-2 led warn"></span> <span class="text-[var(--warm)]">DSFA triggered</span></li>
+        </ol>
+        <p class="mt-4 text-[11px] text-[var(--ink-3)]">DSFA was inserted by <em>Treasury Laws Amendment (2019 Measures No. 3) Act 2020</em> with effect FY18 onwards. ATO interpretive: <em>LCR 2021/2</em>. The fund retains the ECPI exemption &mdash; only the <em>method</em> of calculating it changes &mdash; but the actuarial certificate is now mandatory and the segregation election is overridden.</p>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 3 · DAILY POOLS                           -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 03</div>
+        <h2 class="font-display text-[22px] tracking-tight">Pool valuations &middot; daily snapshots for the actuary</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)] overflow-x-auto">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Quarterly pool snapshots &middot; 365 daily rows in actuary export</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Snapshot</th>
+                <th class="py-2 pr-2 text-right">Total fund</th>
+                <th class="py-2 pr-2 text-right">Accumulation</th>
+                <th class="py-2 pr-2 text-right">Retirement phase</th>
+                <th class="py-2 pr-2 text-right">RP &divide; total</th>
+                <th class="py-2">Comment</th>
+              </tr>
+            </thead>
+            <tbody class="text-[12px]">
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-07-01</td><td class="num text-right">A$2,684,180</td><td class="num text-right">A$1,002,420</td><td class="num text-right">A$1,681,760</td><td class="num text-right">62.66%</td><td class="text-[var(--ink-3)]">opening</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-09-30</td><td class="num text-right">A$2,720,420</td><td class="num text-right">A$1,016,820</td><td class="num text-right">A$1,703,600</td><td class="num text-right">62.62%</td><td class="text-[var(--ink-3)]">Q1 close</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-12-31</td><td class="num text-right">A$2,762,840</td><td class="num text-right">A$1,028,260</td><td class="num text-right">A$1,734,580</td><td class="num text-right">62.78%</td><td class="text-[var(--ink-3)]">Q2 close</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2026-03-31</td><td class="num text-right">A$2,808,180</td><td class="num text-right">A$1,041,820</td><td class="num text-right">A$1,766,360</td><td class="num text-right">62.90%</td><td class="text-[var(--ink-3)]">Q3 close</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2026-06-30 est</td><td class="num text-right">A$2,842,418</td><td class="num text-right">A$1,054,180</td><td class="num text-right">A$1,788,238</td><td class="num text-right">62.91%</td><td class="text-[var(--ink-3)]">forecast</td></tr>
+              <tr class="border-t-2 border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5"><strong>FY26 weighted avg</strong></td><td class="num text-right">A$2,763,608</td><td class="num text-right">A$1,028,700</td><td class="num text-right">A$1,734,908</td><td class="num text-right font-medium">62.77%</td><td>= preliminary ECPI %</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">Proportionate ECPI under s.295-390 = (weighted-average retirement-phase liability) &divide; (weighted-average superannuation liability). The actuary computes the final % using a 365-day cash-flow model; the preliminary 62.77% reflects pool-level snapshots only and excludes mid-period contributions, rollovers, and pension drawdowns timing effects.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Mid-year events &middot; cash-flow impact on actuarial %</div>
+          <table class="w-full text-[12px]">
+            <thead><tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]"><th class="py-2 pr-2">Date</th><th class="py-2 pr-2">Event</th><th class="py-2 pr-2 text-right">A$</th><th class="py-2">Pool</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-07-28</td><td>R Sauer pension payment</td><td class="num text-right">A$5,420</td><td>RP &darr;</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-09-15</td><td>SG contribution &mdash; M Sauer</td><td class="num text-right">A$3,420</td><td>Acc &uarr;</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-10-28</td><td>R Sauer pension payment</td><td class="num text-right">A$5,420</td><td>RP &darr;</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-12-22</td><td>NCC &mdash; M Sauer</td><td class="num text-right">A$20,000</td><td>Acc &uarr;</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2026-01-28</td><td>R Sauer pension payment</td><td class="num text-right">A$5,420</td><td>RP &darr;</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2026-03-15</td><td>SG contribution &mdash; M Sauer</td><td class="num text-right">A$3,420</td><td>Acc &uarr;</td></tr>
+              <tr><td class="py-1.5 num">2026-04-28</td><td>R Sauer pension payment</td><td class="num text-right">A$5,420</td><td>RP &darr;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 4 · ECPI CALC                             -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 04</div>
+        <h2 class="font-display text-[22px] tracking-tight">ECPI calculation &middot; proportionate method &middot; s.295-390</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Assessable income split &middot; FY26 (actuary % 63.18 final)</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Income stream</th>
+                <th class="py-2 pr-2 text-right">FY26 income</th>
+                <th class="py-2 pr-2 text-right">Exempt (ECPI 63.18%)</th>
+                <th class="py-2 pr-2 text-right">Assessable</th>
+                <th class="py-2">Tax @15%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Interest income</td><td class="num text-right">A$18,420</td><td class="num text-right text-[var(--pos)]">A$11,638</td><td class="num text-right">A$6,782</td><td class="num text-right">A$1,017</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Dividends franked</td><td class="num text-right">A$48,420</td><td class="num text-right text-[var(--pos)]">A$30,593</td><td class="num text-right">A$17,827</td><td class="num text-right">A$2,674</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Franking credits attached</td><td class="num text-right">A$20,752</td><td class="num text-right text-[var(--pos)]">A$13,107</td><td class="num text-right">A$7,645</td><td class="num text-right text-[var(--ink-3)]">refundable</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Dividends unfranked</td><td class="num text-right">A$2,420</td><td class="num text-right text-[var(--pos)]">A$1,529</td><td class="num text-right">A$891</td><td class="num text-right">A$134</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Property rent (Wynnum)</td><td class="num text-right">A$72,000</td><td class="num text-right text-[var(--pos)]">A$45,490</td><td class="num text-right">A$26,510</td><td class="num text-right">A$3,977</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Capital gains discount (s.115)</td><td class="num text-right">A$8,420</td><td class="num text-right text-[var(--pos)]">A$5,320</td><td class="num text-right">A$3,100</td><td class="num text-right">A$465</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Cryptocurrency CG (s.295-85 NALI test)</td><td class="num text-right">A$2,840</td><td class="num text-right text-[var(--pos)]">A$1,794</td><td class="num text-right">A$1,046</td><td class="num text-right">A$157</td></tr>
+              <tr class="border-t-2 border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">TOTAL</td><td class="num text-right font-medium">A$173,272</td><td class="num text-right font-medium text-[var(--pos)]">A$109,471</td><td class="num text-right font-medium">A$63,801</td><td class="num text-right font-medium">A$8,424</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]"><strong>Saving vs accumulation:</strong> tax would have been A$25,991 (A$173,272 &times; 15%) without ECPI exemption. ECPI saves <span class="text-[var(--pos)] font-medium">A$17,567</span>. Net tax position: A$8,424 tax payable minus A$20,752 franking credit refund = <strong>A$12,328 refund</strong>.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">What ECPI does NOT cover</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Non-arm&rsquo;s-length income (s.295-550)</td><td class="text-right text-[var(--neg)]">45% &middot; no ECPI</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Concessional contributions &middot; s.295-160</td><td class="text-right text-[var(--neg)]">15% no ECPI</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">No-TFN contributions</td><td class="text-right text-[var(--neg)]">47% no ECPI</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Excess contributions tax</td><td class="text-right text-[var(--neg)]">handled at member</td></tr>
+              <tr><td class="py-1.5">Capital gains on direct-to-pension transfer (s.118-320)</td><td class="text-right text-[var(--warm)]">special rules</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">Concessional contributions are taxed at 15% irrespective of ECPI &mdash; the exemption only applies to <em>ordinary income</em> and capital gains on supporting assets. NALI bypasses ECPI entirely under <em>s.295-550</em>: 45% tax on every dollar.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 5 · TBAR + TBC                             -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 05</div>
+        <h2 class="font-display text-[22px] tracking-tight">TBAR &amp; Transfer Balance Cap &middot; s.294-15 to s.294-145</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Member TBAR ledger &middot; R Sauer &middot; TBC indexed A$2.0m FY26</div>
+          <table class="w-full text-[12px]">
+            <thead><tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]"><th class="py-2 pr-2">Date</th><th class="py-2 pr-2">Event</th><th class="py-2 pr-2 text-right">Credit (debit)</th><th class="py-2 pr-2 text-right">TBA balance</th><th class="py-2">TBAR form</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2024-07-01</td><td>Pension commencement (TRIS &rarr; RP at 65)</td><td class="num text-right">A$1,580,260</td><td class="num text-right">A$1,580,260</td><td class="text-[var(--ink-3)]">NAT 75807 PIE</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2024-08-15</td><td>Lump-sum commutation</td><td class="num text-right">(A$24,000)</td><td class="num text-right">A$1,556,260</td><td class="text-[var(--ink-3)]">NAT 75807 LSC</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-02-20</td><td>Pension rebalance &mdash; commutation back to acc</td><td class="num text-right">(A$48,420)</td><td class="num text-right">A$1,507,840</td><td class="text-[var(--ink-3)]">NAT 75807 LSC</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-03-15</td><td>Re-commencement at higher rate</td><td class="num text-right">A$72,420</td><td class="num text-right">A$1,580,260</td><td class="text-[var(--ink-3)]">NAT 75807 PIE</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">2025-07-01</td><td>Indexation event (TBC moved A$1.9m &rarr; A$2.0m)</td><td class="num text-right text-[var(--pos)]">PTBC reset to A$1.94m</td><td class="num text-right">A$1,580,260</td><td>indexed proportionally</td></tr>
+              <tr><td class="py-1.5 num">2026-05-11</td><td>Headroom available</td><td class="num text-right text-[var(--pos)]">A$359,740</td><td class="num text-right">A$1,580,260</td><td><span class="led on"></span> compliant</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">R Sauer&rsquo;s Personal Transfer Balance Cap (PTBC) was set to A$1.9m on 2024-07-01 (first retirement-phase credit). The 2025-07-01 indexation move from A$1.9m to A$2.0m gave a proportional 8.66% boost to remaining headroom &mdash; PTBC indexed to A$1,940,000. The TBA balance A$1,580,260 sits A$359,740 below the indexed cap; further pension commencement is available without excess transfer balance tax (s.294-230).</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">TBAR submission cadence</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">FY18&ndash;FY23 cadence</td><td class="text-[var(--ink-3)]">28 days after Q-end (large funds)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">SMSF from 2023-07-01</td><td class="text-[var(--pos)] font-medium">quarterly all events (28 days after Q-end)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Excess events</td><td class="text-[var(--neg)]">10 business days</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">SMSF FY26 next TBAR</td><td class="num text-right">2026-07-28 (Q4)</td></tr>
+              <tr><td class="py-1.5">Channel</td><td class="text-right">Online Services for Business / Tax Agent Portal</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">From 2023-07-01 the ATO unified SMSF TBAR cadence to quarterly. SAE Books locks the TBA balance and event timeline to each TBAR window and surfaces excess-event triggers (over PTBC) within the 10-business-day fast-track.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 6 · ACTUARY DATA PACK + DECISIONS         -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 06</div>
+        <h2 class="font-display text-[22px] tracking-tight">Actuary data pack &amp; method decision</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Data pack sent to actuary 2026-04-12</div>
+          <ul class="text-[12px] space-y-1.5 leading-relaxed">
+            <li>Daily fund market-value series &middot; 365 rows &middot; CSV + JSON</li>
+            <li>Member account balances &middot; opening + closing + 4 quarter cuts</li>
+            <li>Retirement-phase &amp; accumulation tagging per member per day</li>
+            <li>Contribution ledger &middot; CC + NCC + spouse + transfer-in</li>
+            <li>Pension drawdown ledger &middot; date, amount, RP source</li>
+            <li>Lump-sum commutation ledger &middot; TBAR-aligned</li>
+            <li>Asset register MV &middot; Wynnum property, ASX shares, ETFs, cash, TD, BTC</li>
+            <li>NALI evidence pack &middot; LRBA + IHA disclosures</li>
+            <li>Prior-year actuarial certificate &middot; FY25 (63.42%)</li>
+            <li>Hashed snapshot of GL &middot; 2026-04-12 19:14 AEST</li>
+          </ul>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">Provider: <strong>Accurium</strong> (one of the four major SMSF actuary firms; alternatives: Lime Actuarial, Heffron, Act2). Quoted A$184 incl. GST. Certificate received 2026-04-22 (10 business days) at <strong>63.18%</strong> &mdash; close to the preliminary pool calc.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Method decision tree</div>
+          <table class="w-full text-[12px]">
+            <thead><tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]"><th class="py-2 pr-2">Year</th><th class="py-2 pr-2">100% RP whole year?</th><th class="py-2 pr-2">DSFA?</th><th class="py-2">Method</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">FY24 (pre-pension)</td><td>n/a accumulation only</td><td class="text-[var(--ink-3)]">no</td><td class="text-[var(--ink-3)]">no ECPI</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">FY25 (started 2024-07-01)</td><td>no (partial year)</td><td class="text-[var(--warm)]">yes</td><td class="text-[var(--pos)]">proportionate (actuary)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">FY26 (this year)</td><td>no (member still in acc + RP)</td><td class="text-[var(--warm)]">yes (R Sauer TSB &gt; A$1.6m)</td><td class="text-[var(--pos)]">proportionate (actuary)</td></tr>
+              <tr><td class="py-1.5">FY27 plan</td><td>maybe (M starts RP at 65?)</td><td class="text-[var(--warm)]">forecast yes</td><td class="text-[var(--pos)]">proportionate plan</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">From 2023-07-01 the optional choice of segregated method during &ldquo;deemed segregation&rdquo; periods (100% RP days) was repealed by <em>Treasury Laws Amendment (Reducing Pressure on Housing Affordability Measures) Act 2017</em>. With DSFA in play this fund will continue on the proportionate method as long as the test bites.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 7 · MARKET COMPARISON                     -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 07</div>
+        <h2 class="font-display text-[22px] tracking-tight">Market read &middot; SMSF software vs SAE Books</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">SMSF-specific tools</div>
+          <ul class="text-[12px] space-y-2 leading-relaxed">
+            <li><strong>BGL Simple Fund 360</strong> &mdash; market leader. End-to-end SMSF ledger with daily valuations, DSFA test, TBAR generator, integrated actuary export (Accurium, Lime, Heffron). Excellent for SMSF-only practices.</li>
+            <li><strong>Class</strong> &mdash; cloud-native competitor; similar feature set; strong reporting.</li>
+            <li><strong>Supermate</strong> &mdash; legacy; declining.</li>
+            <li><strong>Xero / MYOB / Reckon</strong> &mdash; not SMSF-aware. Trust-account ledgers but no DSFA, no TBAR, no actuary export. Tax-agent treats the SMSF separately in BGL/Class.</li>
+          </ul>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">SAE Books &middot; cross-entity</div>
+          <ul class="text-[12px] space-y-2 leading-relaxed">
+            <li>The SMSF lives in the same party-graph as the operating company, the trust, and the directors &mdash; Div 7A loans, in-house assets, related-unit-trust investments, and NALI risk all surface as one register.</li>
+            <li>DSFA test runs on the unified TSB (across all super interests for each member), not just this fund&rsquo;s balance.</li>
+            <li>Div 296 shadow ledger (A$3m threshold, FY26 proposed) projects member-level liability across calendar years.</li>
+            <li>Actuary data pack exports in Accurium/Lime/Heffron schemas &mdash; nothing displaces the actuary itself, but the data hand-off is a one-click GL-sourced JSON instead of an Excel re-key.</li>
+            <li>For SMSF-only practices, SAE Books does not displace BGL Simple Fund 360 or Class &mdash; but for families with operating-business + trust + SMSF the cross-entity coherence pays.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- FOOTER · AUTHORITY PACK                       -->
+    <!-- ============================================ -->
+    <footer class="mt-10 pt-6 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)] leading-relaxed">
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Primary law</div>
+          <ul class="space-y-0.5">
+            <li>ITAA 1997 s.295-385 segregated method</li>
+            <li>s.295-390 proportionate (actuary)</li>
+            <li>s.295-395 anti-detriment (legacy)</li>
+            <li>s.295-385(7) DSFA</li>
+            <li>s.295-550 NALI</li>
+            <li>s.294-15 to s.294-145 TBA</li>
+            <li>s.307-80 retirement-phase</li>
+            <li>s.307-230 Total Super Balance</li>
+            <li>SIS Act 1993 s.17A SMSF</li>
+            <li>SISR 1994 r.6.21 min pension</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Rulings &amp; forms</div>
+          <ul class="space-y-0.5">
+            <li>LCR 2021/2 &mdash; ECPI &amp; DSFA</li>
+            <li>TR 2013/5 &mdash; super income streams</li>
+            <li>SMSFR 2010/1 &mdash; pension commutation</li>
+            <li>NAT 75807 &mdash; TBAR</li>
+            <li>NAT 71287 &mdash; SMSF annual return</li>
+            <li>NAT 11239 &mdash; ACR</li>
+            <li>Treasury Laws (Reducing Pressure Hous Aff) Act 2017</li>
+            <li>Treasury Laws (2019 Measures No. 3) Act 2020 &mdash; DSFA</li>
+            <li>Treasury Laws (Better Targeted Super Concessions) Bill 2025 &mdash; Div 296</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Actuaries &amp; cases</div>
+          <ul class="space-y-0.5">
+            <li>Accurium &middot; Lime Actuarial &middot; Heffron &middot; Act2</li>
+            <li>FCT v Allen [2011] FCAFC &middot; NALI scope</li>
+            <li>Coronica v FCT [2021] AATA 17 &middot; segregation</li>
+            <li>BGL Simple Fund 360 &middot; Class &middot; data export schemas</li>
+            <li>ATO ID 2014/14 &middot; ECPI deemed</li>
+            <li>Indexation events &middot; TBC A$1.6m&rarr;A$1.7m&rarr;A$1.9m&rarr;A$2.0m</li>
+            <li>IAAust / AIA actuary registration</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-5 pt-4 border-t border-[var(--line)] flex flex-wrap items-center gap-3">
+        <span class="num-stamp">ECPI-184260-26</span>
+        <span>Workpaper hash <span class="num">c4f1&hellip;28a3</span></span>
+        <span>&middot; Accurium cert 63.18% &middot; saved A$17,567 vs accumulation</span>
+        <span>&middot; prepared by SAE Books &middot; review by R Sauer (trustee director)</span>
+        <span class="ml-auto">Retirement-phase, GL-traceable.</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,472 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}J-2603 financials · WIP — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .row-cell td { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .row-cell:first-child td { border-top: 0; }
+  .num-stamp { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10px; padding: 1px 5px; border: 1px dashed var(--line); border-radius: 3px; color: var(--ink-2); background: var(--paper-2); }
+  .bar-track { background: var(--paper-2); border-radius: 2px; height: 6px; overflow: hidden; }
+  .bar-fill { background: var(--sae); height: 100%; }
+  .bar-fill.pos { background: var(--pos); }
+  .bar-fill.warm { background: var(--warm); }
+  .poc-ring { transform: rotate(-90deg); }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider flex-wrap">
+        <a href="/preview/projects" class="hover:text-[color:var(--sae)]">Jobs</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <a href="/preview/jobs/j-2603" class="hover:text-[color:var(--sae)]">J-2603</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>Financials · WIP</span>
+        <span class="ml-2 chip-mini pos"><i data-lucide="trending-up" class="w-2.5 h-2.5"></i>on plan</span>
+        <span class="chip-mini sae">QBCC PTA-linked</span>
+        <span class="chip-mini">AASB 15 · POC method</span>
+        <span class="chip-mini">FY26</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">J-2603 · Northshore Marina Stage 4 fabrication — financials</h1>
+      <p class="ink-2 text-[13.5px] mt-1 max-w-3xl">
+        Head contract with <span class="num">Maxwell Marine Constructions Pty Ltd</span> (ABN 86 154 220 184), QBCC project value
+        <span class="num">A$2,184,420.18</span> ex GST. Recognising revenue under <strong>AASB 15</strong> on the input-method
+        percentage-of-completion basis. As at 11 May 2026: <span class="num">62.4%</span> complete, <span class="num">A$184,260</span>
+        held in <a class="text-[color:var(--sae)] hover:underline" href="/preview/banking/trust/j-2603">project trust account</a>,
+        forecast gross margin <span class="num text-[color:var(--pos)]">18.4%</span> (A$402,140.84).
+      </p>
+      <div class="flex items-center gap-3 mt-2 text-[11.5px] ink-3 flex-wrap">
+        <span>Head contract ref <span class="num">HCT-26-0184-NSM</span></span><span>·</span>
+        <span>Variation register <span class="num">7 approved · 2 pending</span></span><span>·</span>
+        <span>Site supervisor <span class="num">M. Karras</span></span><span>·</span>
+        <span>Practical completion target <span class="num">18 Sep 2026</span></span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <a href="#" class="btn-secondary"><i data-lucide="download" class="w-4 h-4"></i>Job pack PDF (184 pp)</a>
+      <a href="/preview/jobs/j-2603" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="briefcase" class="w-3 h-3"></i>Operational view</a>
+      <a href="/preview/banking/trust/j-2603" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="vault" class="w-3 h-3"></i>Project trust account</a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6 text-[12px]">
+  {% set kpis = [
+    ('Contract value', 'A$2,184,420', 'ex GST · 7 approved variations included', 'file-signature', 'ink'),
+    ('Claimed to date', 'A$1,362,840', '62.4% of contract · 11 progress claims', 'send', 'ink'),
+    ('Cost to date', 'A$1,114,184', 'subs + mats + labour + plant + OH', 'wallet', 'ink'),
+    ('Earned (POC)', 'A$1,363,242', 'cost-to-date / total cost × contract', 'percent-circle', 'sae'),
+    ('Forecast GP%', '18.4%', 'A$402,140.84 margin at completion', 'trending-up', 'pos'),
+    ('Days to PC', '130', 'target 18 Sep 2026 · DLP 12 mo', 'calendar-clock', 'ink'),
+  ] %}
+  {% for label, val, sub, icon, tone in kpis %}
+    <div class="border hairline rounded-[4px] p-3 bg-[color:var(--paper)]">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider">{{ label }}</div>
+        <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 {% if tone == 'pos' %}text-[color:var(--pos)]{% elif tone == 'sae' %}text-[color:var(--sae)]{% else %}ink-3{% endif %}"></i>
+      </div>
+      <div class="num text-[18px] mt-1 {% if tone == 'pos' %}text-[color:var(--pos)]{% elif tone == 'sae' %}text-[color:var(--sae)]{% endif %}">{{ val }}</div>
+      <div class="text-[11px] ink-3 mt-0.5">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <!-- POC / earned value -->
+  <div class="col-span-12 lg:col-span-7">
+    <h2 class="font-display text-[22px] mb-3">Percentage of completion · AASB 15 input method</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-5">
+      <div class="grid grid-cols-3 gap-4 items-center">
+        <div class="flex flex-col items-center">
+          <svg class="poc-ring" width="120" height="120" viewBox="0 0 36 36">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none" stroke="var(--paper-2)" stroke-width="3" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  fill="none" stroke="var(--sae)" stroke-width="3"
+                  stroke-dasharray="62.4 100" stroke-linecap="round" />
+          </svg>
+          <div class="num text-[24px] text-[color:var(--sae)] mt-[-78px]" style="transform: translateY(0);">62.4%</div>
+          <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mt-14">POC ratio</div>
+        </div>
+        <div class="col-span-2 space-y-2 text-[12px] font-mono">
+          <div class="flex justify-between"><span class="ink-3">Costs incurred to date</span><span class="num">A$1,114,184.42</span></div>
+          <div class="flex justify-between"><span class="ink-3">Total estimated cost at completion (EAC)</span><span class="num">A$1,782,279.34</span></div>
+          <div class="flex justify-between"><span class="ink-3">POC ratio (cost-to-date ÷ EAC)</span><span class="num text-[color:var(--sae)]">62.4%</span></div>
+          <div class="flex justify-between"><span class="ink-3">Contract value (ex GST)</span><span class="num">A$2,184,420.18</span></div>
+          <div class="flex justify-between"><span class="ink-3">Revenue earned (POC × contract)</span><span class="num text-[color:var(--sae)]">A$1,363,242.18</span></div>
+          <div class="flex justify-between"><span class="ink-3">Revenue claimed to date (s.75 sched)</span><span class="num">A$1,362,840.00</span></div>
+          <div class="border-t hairline my-2"></div>
+          <div class="flex justify-between"><span>Underclaim / (overclaim)</span><span class="num {% if 1 %}text-[color:var(--pos)]{% endif %}">A$402.18</span></div>
+          <div class="text-[10.5px] ink-3">earned slightly &gt; claimed → no IFRS 15 contract-liability adjustment needed (immaterial &lt; 0.05%)</div>
+        </div>
+      </div>
+      <div class="drafting my-4"></div>
+      <div class="grid grid-cols-2 gap-4 text-[11.5px]">
+        <div>
+          <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-1">Period revenue journal · May 2026</div>
+          <div class="space-y-0.5 font-mono">
+            <div>DR 1-340 Contract asset / WIP · A$118,420.18</div>
+            <div>CR 4-100 Revenue · fabrication · A$118,420.18</div>
+            <div class="ink-3">AASB 15 §B19 · transferred over time · cost-to-cost</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-1">Loss recognition test (AASB 15 §35)</div>
+          <div class="space-y-0.5 font-mono">
+            <div>EAC margin A$402,140.84 (18.4%) &gt; 0</div>
+            <div>no onerous-contract provision required</div>
+            <div class="ink-3">recheck monthly · last 14 Apr 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job P&L summary -->
+  <div class="col-span-12 lg:col-span-5">
+    <h2 class="font-display text-[22px] mb-3">Job P&amp;L · to date + forecast</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full text-[11.5px]">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2">Line</th>
+            <th class="text-right px-3 py-2 w-[100px]">Budget</th>
+            <th class="text-right px-3 py-2 w-[100px]">Actual</th>
+            <th class="text-right px-3 py-2 w-[80px]">EAC</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set pl = [
+            ('Revenue (ex GST)','2,184,420','1,363,242','2,184,420','rev'),
+            ('— Materials (BlueScope, hardware, consumables)','684,182','428,184','684,840','cost'),
+            ('— Subbies (welding, crane, rigging, cuts)','620,184','362,420','620,420','cost'),
+            ('— Direct labour (hours × loaded rate)','312,420','198,840','312,420','cost'),
+            ('— Plant &amp; equipment hire','84,420','52,184','84,420','cost'),
+            ('— Site overhead (PPE, traffic mgmt, freight)','68,180','42,260','68,184','cost'),
+            ('— Margin recovery on variations','12,395','7,840','12,395','cost'),
+            ('Total cost','1,781,781','1,091,728','1,782,679','sub'),
+            ('Gross profit','402,639','271,514','401,741','gp'),
+            ('Gross margin %','18.4%','19.9%','18.4%','gp'),
+          ] %}
+          {% for ln, bud, act, eac, kind in pl %}
+          <tr class="row-cell {% if kind == 'sub' %}bg-[color:var(--paper-2)]{% elif kind == 'gp' %}bg-[color:color-mix(in_srgb,var(--sae)_5%,var(--paper))]{% endif %}">
+            <td class="{% if kind == 'cost' %}pl-5 ink-2{% elif kind == 'sub' or kind == 'gp' %}font-semibold{% endif %}">{{ ln }}</td>
+            <td class="text-right num">{{ bud }}</td>
+            <td class="text-right num">{{ act }}</td>
+            <td class="text-right num {% if kind == 'gp' %}text-[color:var(--sae)] font-semibold{% endif %}">{{ eac }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="text-[10.5px] ink-3 font-mono mt-2">All A$ ex GST · EAC = Estimate At Completion (rolling forecast 14 Apr 2026)</div>
+  </div>
+</div>
+
+<!-- Progress claims register -->
+<div class="mb-8">
+  <h2 class="font-display text-[22px] mb-3">Progress claim register · BIF Act 2017 (Qld) chapter 3</h2>
+  <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+          <th class="text-left px-3 py-2 w-[70px]">Claim #</th>
+          <th class="text-left px-3 py-2 w-[110px]">Reference date</th>
+          <th class="text-right px-3 py-2 w-[120px]">Claim ex GST</th>
+          <th class="text-right px-3 py-2 w-[120px]">Sched ex GST</th>
+          <th class="text-left px-3 py-2 w-[140px]">s.75 payment sched</th>
+          <th class="text-right px-3 py-2 w-[110px]">Paid by principal</th>
+          <th class="text-left px-3 py-2">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set claims = [
+          ('01','30 Sep 2025','120,420.00','120,420.00','issued 12 BD','A$132,462.00','paid 02 Nov 2025'),
+          ('02','31 Oct 2025','108,184.00','108,184.00','issued 8 BD','A$118,202.40','paid 28 Nov 2025'),
+          ('03','30 Nov 2025','142,420.00','142,420.00','issued 11 BD','A$156,662.00','paid 24 Dec 2025'),
+          ('04','31 Dec 2025','118,840.00','118,840.00','issued 9 BD','A$130,724.00','paid 28 Jan 2026'),
+          ('05','31 Jan 2026','132,184.00','132,184.00','issued 10 BD','A$145,402.40','paid 26 Feb 2026'),
+          ('06','28 Feb 2026','144,260.00','144,260.00','issued 8 BD','A$158,686.00','paid 25 Mar 2026'),
+          ('07','31 Mar 2026','118,184.00','118,184.00','issued 11 BD','A$130,002.40','paid 24 Apr 2026'),
+          ('08','30 Apr 2026','167,510.00','167,510.00','issued 9 BD','A$184,261.00','paid 27 Apr 2026'),
+          ('09','11 May 2026 (interim)','118,420.00','—','issued in 4 BD (target)','—','submitted · awaiting schedule'),
+        ] %}
+        {% for n, ref, claim, sched, when, paid, status in claims %}
+        <tr class="row-cell">
+          <td class="num">{{ n }}</td>
+          <td class="text-[11.5px]">{{ ref }}</td>
+          <td class="text-right num">{{ claim }}</td>
+          <td class="text-right num {% if sched == '—' %}ink-3{% endif %}">{{ sched }}</td>
+          <td class="text-[11px] font-mono ink-2">{{ when }}</td>
+          <td class="text-right num text-[11.5px] {% if paid == '—' %}ink-3{% endif %}">{{ paid }}</td>
+          <td><span class="chip-mini {% if 'paid' in status %}pos{% elif 'awaiting' in status or 'submitted' in status %}warm{% else %}sae{% endif %}">{{ status }}</span></td>
+        </tr>
+        {% endfor %}
+        <tr class="row-cell bg-[color:color-mix(in_srgb,var(--sae)_4%,var(--paper))]">
+          <td colspan="2" class="text-right text-[11px] font-mono ink-3">TOTAL claimed ex GST · 9 of est. 12 claims</td>
+          <td class="text-right num font-semibold">1,362,840.00</td>
+          <td class="text-right num font-semibold">1,244,002.00</td>
+          <td></td>
+          <td class="text-right num font-semibold text-[color:var(--pos)]">A$1,156,402.20</td>
+          <td><span class="chip-mini sae">avg sched 9.7 BD ≤ 15 BD</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Subbie cost lines and retention -->
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <div class="col-span-12 lg:col-span-7">
+    <h2 class="font-display text-[22px] mb-3">Subcontractor commitments &amp; retention pool</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2">Subcontractor</th>
+            <th class="text-right px-3 py-2 w-[100px]">Contract</th>
+            <th class="text-right px-3 py-2 w-[100px]">Claimed</th>
+            <th class="text-right px-3 py-2 w-[100px]">Retention</th>
+            <th class="text-left px-3 py-2 w-[130px]">DLP release</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set subs = [
+            ('Dale Maxwell Welding · SF1','220,400','142,184','7,109.20','PC + 6 mo · 18 Mar 2027'),
+            ('Northshore Crane Hire · SC1','84,200','64,260','3,213.00','PC + 3 mo · 18 Dec 2026'),
+            ('Bowen Steel Cuttings · SF1','102,840','78,420','3,921.00','PC + 12 mo · 18 Sep 2027'),
+            ('Pat Sheridan Rigging · SC2','64,420','42,840','2,142.00','PC + 6 mo · 18 Mar 2027'),
+            ('Reece Plumbing · SP1','46,260','24,420','1,221.00','PC + 12 mo · 18 Sep 2027'),
+            ('Tropic Marine Coatings · SF1','102,064','22,840','1,142.00','PC + 12 mo · 18 Sep 2027'),
+          ] %}
+          {% for name, ctr, clm, ret, dlp in subs %}
+          <tr class="row-cell">
+            <td class="text-[12px]">{{ name }}</td>
+            <td class="text-right num text-[11.5px]">{{ ctr }}</td>
+            <td class="text-right num text-[11.5px]">{{ clm }}</td>
+            <td class="text-right num text-[11.5px] text-[color:var(--sae)]">{{ ret }}</td>
+            <td class="text-[11px] font-mono ink-2">{{ dlp }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="row-cell bg-[color:color-mix(in_srgb,var(--sae)_4%,var(--paper))]">
+            <td class="font-semibold">Total committed · 6 subs</td>
+            <td class="text-right num font-semibold">620,184</td>
+            <td class="text-right num font-semibold">374,964</td>
+            <td class="text-right num font-semibold text-[color:var(--sae)]">18,748.20</td>
+            <td class="text-[11px] font-mono ink-3">held in PTA-J2603 · BIF s.65</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-span-12 lg:col-span-5">
+    <h2 class="font-display text-[22px] mb-3">Direct labour · hours by employee</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2">Employee · role</th>
+            <th class="text-right px-3 py-2 w-[70px]">Hours</th>
+            <th class="text-right px-3 py-2 w-[80px]">Rate</th>
+            <th class="text-right px-3 py-2 w-[100px]">Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set hours = [
+            ('R. Sauer · principal welder / supervisor','842','A$118','A$99,356'),
+            ('M. Karras · site supervisor','620','A$104','A$64,480'),
+            ('Mia Chen · welder / fitter','684','A$84','A$57,456'),
+            ('Liam Patel · welder','420','A$78','A$32,760'),
+            ('Sarah Wong · admin / dockets (split)','120','A$62','A$7,440'),
+          ] %}
+          {% for who, hrs, rate, cost in hours %}
+          <tr class="row-cell">
+            <td class="text-[12px]">{{ who }}</td>
+            <td class="text-right num text-[11.5px]">{{ hrs }}</td>
+            <td class="text-right num text-[11.5px] ink-3">{{ rate }}</td>
+            <td class="text-right num text-[11.5px]">{{ cost }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="row-cell bg-[color:color-mix(in_srgb,var(--sae)_4%,var(--paper))]">
+            <td class="font-semibold">Total · 5 employees</td>
+            <td class="text-right num font-semibold">2,686 hr</td>
+            <td class="text-right num font-semibold ink-3">A$74 avg</td>
+            <td class="text-right num font-semibold text-[color:var(--sae)]">A$261,492</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Loaded rate composition</div>
+      <div class="space-y-0.5 text-[11.5px] font-mono ink-2">
+        <div class="flex justify-between"><span>Base hourly</span><span class="num">A$58.20</span></div>
+        <div class="flex justify-between"><span>+ Super 12% (OTE basis)</span><span class="num">A$6.98</span></div>
+        <div class="flex justify-between"><span>+ WorkCover QLD premium</span><span class="num">A$2.84</span></div>
+        <div class="flex justify-between"><span>+ Public &amp; product liability</span><span class="num">A$1.84</span></div>
+        <div class="flex justify-between"><span>+ PPE / tools amortisation</span><span class="num">A$2.40</span></div>
+        <div class="flex justify-between"><span>+ Site overhead allocation</span><span class="num">A$1.74</span></div>
+        <div class="border-t hairline my-1"></div>
+        <div class="flex justify-between font-semibold"><span>Loaded · welder Mia Chen</span><span class="num text-[color:var(--sae)]">A$74.00</span></div>
+        <div class="ink-3 text-[10.5px] mt-1">Black Coal Mining Award 2020 base + EBA loading not applicable here · MA000020 Manufacturing &amp; Associated Industries Award referenced</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Variations register + materials BOM + doc pack -->
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <div class="col-span-12 lg:col-span-7">
+    <h2 class="font-display text-[22px] mb-3">Variations register · approved + pending</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2 w-[60px]">VO #</th>
+            <th class="text-left px-3 py-2">Description</th>
+            <th class="text-right px-3 py-2 w-[110px]">Value ex GST</th>
+            <th class="text-left px-3 py-2 w-[140px]">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set vos = [
+            ('VO-01','Extra 6 m of 200×200 RHS marina pile sleeve','12,840.00','approved 14 Nov 2025'),
+            ('VO-02','Upgrade fender plate 12mm → 16mm BlueScope','24,420.00','approved 02 Dec 2025'),
+            ('VO-03','Add 4× galvanised handrail bays (Bowen cuts)','18,260.00','approved 28 Dec 2025'),
+            ('VO-04','Reroute power-pedestal cable trays','8,420.00','approved 14 Jan 2026'),
+            ('VO-05','Stainless 316L bollard caps × 12','14,184.00','approved 28 Feb 2026'),
+            ('VO-06','Site latent condition · piling spoils','22,184.18','approved 14 Mar 2026'),
+            ('VO-07','Replace coating spec to Jotun · marine grade','14,260.20','approved 28 Mar 2026'),
+            ('VO-08','Wind-survey re-anchor (cyclone variation)','18,420.00','pending principal · 18 Apr 2026'),
+            ('VO-09','Extra access platform mid-span','9,420.00','pending principal · 02 May 2026'),
+          ] %}
+          {% for n, desc, val, st in vos %}
+          <tr class="row-cell">
+            <td class="num">{{ n }}</td>
+            <td class="text-[12px]">{{ desc }}</td>
+            <td class="text-right num text-[11.5px]">{{ val }}</td>
+            <td><span class="chip-mini {% if 'approved' in st %}pos{% else %}warm{% endif %}">{{ st }}</span></td>
+          </tr>
+          {% endfor %}
+          <tr class="row-cell bg-[color:color-mix(in_srgb,var(--sae)_4%,var(--paper))]">
+            <td colspan="2" class="text-right text-[11px] font-mono ink-3">Approved · 7 VOs</td>
+            <td class="text-right num font-semibold text-[color:var(--sae)]">114,568.38</td>
+            <td><span class="chip-mini">5.5% of base contract</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-span-12 lg:col-span-5">
+    <h2 class="font-display text-[22px] mb-3">Document pack · 184 items</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4 space-y-1.5 text-[12px]">
+      {% set docs = [
+        ('Head contract HCT-26-0184-NSM signed PDF', 'file-signature', '14 Aug 2025'),
+        ('QBCC Form 6A trust establishment', 'vault', '14 Feb 2026'),
+        ('QBCC Form 6B subbie notice (×6)', 'file-text', '18 Feb 2026'),
+        ('AS/NZS 1554.1 welder qualifications', 'shield-check', 'on file'),
+        ('AS 1657 platform &amp; handrail certs', 'shield-check', 'on file'),
+        ('SWMS · hot works · confined space · piling', 'hard-hat', '4 SWMS lodged'),
+        ('Public liability insurance A$20M', 'umbrella', 'to 30 Jun 2026'),
+        ('WorkCover QLD WIC 2841 cert', 'badge-check', 'to 30 Jun 2026'),
+        ('Marine permit (Maritime Safety QLD)', 'anchor', 'to 30 Nov 2026'),
+        ('DA conditions · Brisbane City Council', 'file-text', 'site display copy'),
+        ('Material test certs (BlueScope mill certs)', 'flask-conical', '14 sheets traceable'),
+        ('Galv coating thickness reports', 'paint-bucket', '24 measurements'),
+        ('Site induction register (114 entries)', 'users-round', 'live'),
+      ] %}
+      {% for label, icon, when in docs %}
+        <div class="flex items-start gap-2">
+          <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 ink-3 mt-0.5"></i>
+          <div class="flex-1 text-[11.5px]">{{ label|safe }}</div>
+          <span class="text-[10.5px] font-mono ink-3">{{ when }}</span>
+        </div>
+      {% endfor %}
+      <div class="ink-3 text-[11px] pt-2">… 171 more dockets · plant pre-start sheets · mill certs · NCRs · ITPs · …</div>
+    </div>
+  </div>
+</div>
+
+<!-- Plant utilisation + cross-links -->
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <div class="col-span-12 lg:col-span-7">
+    <h2 class="font-display text-[22px] mb-3">Plant &amp; equipment utilisation</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2">Plant</th>
+            <th class="text-left px-3 py-2 w-[120px]">Hours / km</th>
+            <th class="text-left px-3 py-2">Utilisation</th>
+            <th class="text-right px-3 py-2 w-[110px]">Cost-to-job</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set plant = [
+            ('UTE-1842 · Ford Ranger PX III · primary site ute','4,820 km','67','A$8,420 (FBT type 1)'),
+            ('UTE-2603 · Toyota Hilux · ops','3,184 km','58','A$6,184 (FBT type 1)'),
+            ('Trailer · 3.5t tipping','184 hr','41','A$1,840'),
+            ('Mig welder · HiKOKI MMA200','620 hr','82','A$3,420'),
+            ('Plasma cutter · Hypertherm Powermax 65','420 hr','64','A$2,840'),
+            ('Crane hire · Northshore (sub-contracted)','84 hr','—','A$64,260 (subbie)'),
+            ('Air compressor · Atlas Copco XAS 188','340 hr','71','A$2,184'),
+            ('Generator · 25 kVA diesel','420 hr','58','A$3,840 (FTC 7D claim)'),
+          ] %}
+          {% for plt, hrs, util, cost in plant %}
+          <tr class="row-cell">
+            <td class="text-[12px]">{{ plt }}</td>
+            <td class="text-[11.5px] num">{{ hrs }}</td>
+            <td>
+              <div class="bar-track w-32"><div class="bar-fill {% if util != '—' and util|int >= 70 %}pos{% elif util != '—' and util|int >= 50 %}warm{% endif %}" style="width: {{ util if util != '—' else 0 }}%"></div></div>
+              <span class="text-[10.5px] font-mono ink-3">{{ util }}{% if util != '—' %}%{% endif %}</span>
+            </td>
+            <td class="text-right num text-[11.5px]">{{ cost }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-span-12 lg:col-span-5">
+    <h2 class="font-display text-[22px] mb-3">Cross-links</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4 space-y-2 text-[12px]">
+      {% set links = [
+        ('Project trust account · PTA-J2603', 'vault', '/preview/banking/trust/j-2603'),
+        ('Job operational view J-2603', 'briefcase', '/preview/jobs/j-2603'),
+        ('Inbox · BlueScope BILL-1843 (in approval)', 'inbox', '/preview/inbox/inv-bs-20611'),
+        ('Receipt RCT-00184 · Bunnings (cashbook)', 'scan-line', '/preview/cashbook/receipts/rct-00184'),
+        ('Dale Maxwell · subbie SF1', 'user', '/preview/contacts/dale-maxwell'),
+        ('Compliance · BAS Q3 FY26', 'file-check-2', '/preview/compliance/bas/26-q3'),
+        ('Payroll · STP 26-051104', 'send', '/preview/payroll/stp-events/26-051104'),
+      ] %}
+      {% for label, icon, href in links %}
+        <a href="{{ href }}" class="flex items-center gap-2 hover:text-[color:var(--sae)]">
+          <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 ink-3"></i>
+          <span>{{ label|safe }}</span>
+          <i data-lucide="arrow-up-right" class="w-3 h-3 ink-3 ml-auto"></i>
+        </a>
+      {% endfor %}
+    </div>
+
+    <div class="mt-4 border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Why a separate WIP page</div>
+      <div class="text-[11.5px] ink-2">
+        Construction-style head contracts force three views of one job: <strong>operational</strong> (site, scope, schedule),
+        <strong>financial</strong> (WIP, POC, EAC, P&amp;L — this page) and <strong>trust</strong> (statutory PTA, beneficiary cash).
+        Xero, MYOB and Reckon collapse these into one ledger view and rely on spreadsheets for the rest. SAE Books keeps each
+        view first-class and reconciled.
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

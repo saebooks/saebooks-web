@@ -1,0 +1,361 @@
+{% extends "preview/_layout.html" %}
+{% block title %}FBT FY26 workpaper · year ended 31 Mar 2026 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>ATO · Fringe Benefits Tax</span><span>·</span>
+      <span>FBT year 1 Apr 2025 – 31 Mar 2026</span><span>·</span>
+      <span class="text-[var(--sae)]">Lodgement form W</span><span>·</span>
+      <span>Due 21 May 2026 (self-prep) · 25 Jun (BAS agent)</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">FBT return FY26 · workpaper</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          SAE Engineering Pty Ltd · TFN 184 261 842 · ABN 18 184 261 842 ·
+          Cars · Entertainment · LAFHA · Property · Expense payments ·
+          STP Reportable Fringe Benefits to 4 employees
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FBT payable</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$8,420.06</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">Instalments paid A$6,184 · Balance owing A$2,236.06</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Countdown banner -->
+  <section class="px-10 py-5 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <span class="led warn"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Lodgement due</div>
+        <div class="text-sm"><strong>10 days</strong> · 21 May 2026 (self-prep paper) — BAS-agent ELS extends to 25 Jun 2026.</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FBT rate</div>
+        <div class="text-sm">47% · gross-up Type 1 2.0802 · Type 2 1.8868 (FY26)</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Reportable threshold</div>
+        <div class="text-sm">A$3,773 grossed-up per employee → STP RFBA</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="px-10 py-6 grid grid-cols-6 gap-3 border-b border-[var(--line)]">
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Taxable value (cars)</div>
+      <div class="num text-2xl mt-1">A$10,840.00</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">2 vehicles · statutory formula</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Entertainment</div>
+      <div class="num text-2xl mt-1">A$2,420.18</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">50/50 split · TR 96/26</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">LAFHA</div>
+      <div class="num text-2xl mt-1 text-[var(--pos)]">A$0.00</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">2 employees · exempt under s.31</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Expense payments</div>
+      <div class="num text-2xl mt-1">A$1,184.20</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">phone reimburse · OTRD</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Total grossed-up</div>
+      <div class="num text-2xl mt-1 text-[var(--sae)]">A$17,914.18</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">A$9,422.18 T1 + A$5,022 T2</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FBT payable</div>
+      <div class="num text-2xl mt-1">A$8,420.06</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">@47% · bal A$2,236.06</div>
+    </div>
+  </section>
+
+  <!-- Cars (Item 23 / Type 1) -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">Item 23 · Car benefits · Statutory Formula (s.9 FBTAA)</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Stat % 20% of cost · base value frozen at FBT-start cost ex GST · 2 cars · Type 1 (GST claimed)</div>
+    </div>
+    <table class="w-full text-xs num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2 w-[110px]">Rego</th>
+          <th class="text-left">Vehicle · driver</th>
+          <th class="text-right w-[120px]">Cost base</th>
+          <th class="text-right w-[80px]">Stat %</th>
+          <th class="text-right w-[80px]">Days held</th>
+          <th class="text-right w-[110px]">Employee contrib</th>
+          <th class="text-right w-[120px]">Taxable value</th>
+          <th class="text-center w-[80px]">Type</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]">
+          <td>UTE-1842</td>
+          <td>Ford Ranger Wildtrak 2024 · R. Sauer</td>
+          <td class="text-right">A$68,420.00</td>
+          <td class="text-right">20%</td>
+          <td class="text-right">365</td>
+          <td class="text-right">A$2,200.00</td>
+          <td class="text-right">A$11,484.00</td>
+          <td class="text-center"><span class="chip-mini-sae">T1</span></td>
+        </tr>
+        <tr class="border-b border-dashed border-[var(--line)]">
+          <td>UTE-2603</td>
+          <td>Toyota Hilux SR5 2023 · S. Wong</td>
+          <td class="text-right">A$56,420.00</td>
+          <td class="text-right">20%</td>
+          <td class="text-right">365</td>
+          <td class="text-right">A$1,840.00</td>
+          <td class="text-right">A$9,444.00</td>
+          <td class="text-center"><span class="chip-mini-sae">T1</span></td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td>—</td>
+          <td colspan="5" class="text-right py-2 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Subtotal taxable value (cars)</td>
+          <td class="text-right py-2 font-medium">A$20,928.00</td>
+          <td></td>
+        </tr>
+        <tr class="border-b border-dashed border-[var(--line)]">
+          <td colspan="6" class="text-right text-[var(--ink-3)]">Less: operating-cost method election (UTE-1842 logbook 18% private)</td>
+          <td class="text-right text-[var(--pos)]">−A$10,088.00</td>
+          <td class="text-center"><span class="chip-mini-pos">OC</span></td>
+        </tr>
+        <tr>
+          <td colspan="6" class="text-right py-2 font-medium">Net taxable value · cars</td>
+          <td class="text-right py-2 font-display text-base">A$10,840.00</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="grid grid-cols-3 gap-4 mt-4 text-[11px]">
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">Logbook · UTE-1842</span> · 12-wk register valid Mar 2025–Aug 2025 · 82% business / 18% private · operating costs A$22,184 (fuel A$8,420 + rego A$1,184 + ins A$2,840 + repair A$3,640 + depn A$6,100) · taxable value 18% × A$22,184 − contrib A$2,200 = A$1,793 vs stat A$11,484 — election saves A$9,691.</div>
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">UTE-2603</span> · no logbook held this year · statutory formula default · cost-base reduced by 1/3 not yet eligible (acquired 18 Jan 2023, 4-yr rule kicks in FBT-Apr-2027) · plan logbook for FY27.</div>
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">Employee contributions</span> · A$4,040 deducted post-tax from R. Sauer + S. Wong wages (GST-inclusive · DR 6-100 / CR 4-410 · GST-1A A$367.27 → BAS Q4) reducing taxable value dollar-for-dollar.</div>
+    </div>
+  </section>
+
+  <!-- Entertainment (Item 24 / Type 2 split) -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">Item 24 · Meal entertainment · 50/50 split (s.37BA · TR 96/26)</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Election: 50% of all meal-entertainment is taxable · simpler than 12-wk register · Type 2 (in-house catering · GST not claimable on entertainment)</div>
+    </div>
+    <table class="w-full text-xs num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2 w-[120px]">Period</th>
+          <th class="text-left">Event class</th>
+          <th class="text-right w-[120px]">Gross spend</th>
+          <th class="text-right w-[100px]">Employees</th>
+          <th class="text-right w-[100px]">Clients</th>
+          <th class="text-right w-[120px]">50% taxable</th>
+          <th class="text-center w-[80px]">Account</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]"><td>Apr–Jun 25</td><td>Site BBQs · 4 events · workshop</td><td class="text-right">A$1,184.20</td><td class="text-right">7</td><td class="text-right">0</td><td class="text-right">A$592.10</td><td class="text-center">6-310</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>Jul–Sep 25</td><td>Client lunch · Maxwell, BHP, Brisbane Marine (3 mtgs)</td><td class="text-right">A$2,184.40</td><td class="text-right">4</td><td class="text-right">8</td><td class="text-right">A$1,092.20</td><td class="text-center">6-310</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>Oct–Dec 25</td><td>Xmas party 18 Dec · workshop · alcohol incl</td><td class="text-right">A$1,140.40</td><td class="text-right">9</td><td class="text-right">2</td><td class="text-right">A$570.20</td><td class="text-center">6-310</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>Jan–Mar 26</td><td>Friday lunch run · 3 events · subs included</td><td class="text-right">A$331.36</td><td class="text-right">7</td><td class="text-right">0</td><td class="text-right">A$165.68</td><td class="text-center">6-310</td></tr>
+        <tr><td colspan="2" class="text-right py-2 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Totals</td><td class="text-right py-2">A$4,840.36</td><td class="text-right py-2">27</td><td class="text-right py-2">10</td><td class="text-right py-2 font-medium">A$2,420.18</td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="grid grid-cols-3 gap-4 mt-4 text-[11px]">
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">50/50 election</span> · FBTAA s.37BA · made in FBT return Item 24A · binding all subsequent years until revoked · saves logging each diner per occasion.</div>
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">Minor benefits</span> · s.58P · <A$300 per occasion + infrequent + difficult to record otherwise — Xmas party per-head A$103.67 qualifies in principle, but 50/50 once elected overrides exemption (cannot mix).</div>
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">GST</span> · Entertainment GST not claimable (s.69-5 GST Act + s.32-5 deny) · gross amounts entered at GST-inclusive value · Type 2 gross-up applies.</div>
+    </div>
+  </section>
+
+  <!-- LAFHA + Expense payments (Items 14, 21) -->
+  <section class="px-10 py-8 border-b border-[var(--line)] grid grid-cols-2 gap-8">
+    <div>
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Item 21 · LAFHA · s.30 / s.31</div>
+      <div class="font-display text-xl mt-1">Living-Away-From-Home Allowance · 2 employees</div>
+      <table class="w-full text-xs num mt-3">
+        <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+          <tr><th class="text-left py-1">Employee</th><th class="text-left">Site</th><th class="text-right">Allowance paid</th><th class="text-right">Exempt</th><th class="text-right">Taxable</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">L. Patel</td><td>Gladstone · 12 wks</td><td class="text-right">A$14,420.00</td><td class="text-right">A$14,420.00</td><td class="text-right text-[var(--pos)]">A$0.00</td></tr>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">M. Chen</td><td>Townsville · 8 wks</td><td class="text-right">A$9,840.00</td><td class="text-right">A$9,840.00</td><td class="text-right text-[var(--pos)]">A$0.00</td></tr>
+          <tr class="border-t border-[var(--line)]"><td class="py-1 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Total</td><td></td><td class="text-right py-1">A$24,260.00</td><td class="text-right py-1">A$24,260.00</td><td class="text-right py-1 font-medium text-[var(--pos)]">A$0.00</td></tr>
+        </tbody>
+      </table>
+      <div class="grid grid-cols-2 gap-2 mt-3 text-[11px]">
+        <div class="drafting p-3"><span class="text-[var(--ink-3)]">Accommodation</span> · Mantra Mackay · Quest Townsville · receipts retained · within reasonable amount (TD 2025/2 single A$185/night, dual A$285/night) · maintained "usual place of residence" declaration s.31C.</div>
+        <div class="drafting p-3"><span class="text-[var(--ink-3)]">Food component</span> · per TD 2025/2 weekly reasonable amount A$334 (one adult, AU site) · paid A$320/wk · entirely under cap · no taxable shortfall.</div>
+      </div>
+    </div>
+    <div>
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Item 14 · Expense payments · s.20</div>
+      <div class="font-display text-xl mt-1">Reimburse / direct pay · Type 1</div>
+      <table class="w-full text-xs num mt-3">
+        <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+          <tr><th class="text-left py-1">Description</th><th class="text-right">Amount</th><th class="text-right">Reducible</th><th class="text-right">Taxable</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">Phone bill reimbursements · 4 emp × 12 mo (78% business · OTRD)</td><td class="text-right">A$5,382.20</td><td class="text-right">A$4,198.00</td><td class="text-right">A$1,184.20</td></tr>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">Tools-of-trade · Milwaukee kit · S. Wong (work-related · otherwise deductible)</td><td class="text-right">A$1,840.00</td><td class="text-right">A$1,840.00</td><td class="text-right text-[var(--pos)]">A$0.00</td></tr>
+          <tr class="border-t border-dashed border-[var(--line)]"><td class="py-1">Gym memberships · 0 paid this year</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td></tr>
+          <tr class="border-t border-[var(--line)]"><td class="py-1 text-[var(--ink-3)] uppercase tracking-[0.24em] text-[10px]">Net taxable · expense payments</td><td></td><td></td><td class="text-right py-1 font-medium">A$1,184.20</td></tr>
+        </tbody>
+      </table>
+      <div class="drafting p-3 mt-3 text-[11px]"><span class="text-[var(--ink-3)]">OTRD</span> · "otherwise deductible rule" reduces taxable value by what employee could have claimed as a deduction had they paid themselves · backed by employee declaration (s.20A) signed annually · 78% business-use evidenced by 4-week phone log Mar 2026.</div>
+    </div>
+  </section>
+
+  <!-- Gross-up calculation + FBT payable -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">Gross-up + FBT payable · Item 14A / 14B / 15</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Type 1 = entity entitled to GST credit · 2.0802 · Type 2 = no GST credit (entertainment) · 1.8868 · rate 47% FY26</div>
+    </div>
+    <table class="w-full text-xs num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2">Category</th>
+          <th class="text-right">Taxable value</th>
+          <th class="text-right">Gross-up rate</th>
+          <th class="text-right">Grossed-up</th>
+          <th class="text-right">FBT @ 47%</th>
+          <th class="text-left">Refs</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]"><td>Type 1 · Cars + expense payments (phone)</td><td class="text-right">A$12,024.20</td><td class="text-right">×2.0802</td><td class="text-right">A$25,012.95</td><td class="text-right">A$11,756.08</td><td>Item 14A</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>Type 2 · Entertainment (50/50)</td><td class="text-right">A$2,420.18</td><td class="text-right">×1.8868</td><td class="text-right">A$4,566.98</td><td class="text-right">A$2,146.48</td><td>Item 14B</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2 font-medium">Subtotal</td><td class="text-right py-2 font-medium">A$14,444.38</td><td></td><td class="text-right py-2">A$29,579.93</td><td class="text-right py-2 font-medium">A$13,902.56</td><td></td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>Less: FBT instalments paid via BAS Q1–Q3 (label F1)</td><td class="text-right text-[var(--pos)]">−A$5,482.50</td><td colspan="4"></td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>Less: rebatable / aggregate threshold</td><td class="text-right">A$0.00</td><td colspan="4"></td></tr>
+        <tr><td class="py-2 font-medium">FBT payable on lodgement</td><td colspan="3"></td><td class="text-right py-2 font-display text-base text-[var(--sae)]">A$8,420.06</td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="grid grid-cols-3 gap-4 mt-4 text-[11px]">
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">Instalment reconciliation</span> · FY26 Q1 A$1,420 + Q2 A$1,840 + Q3 A$2,222.50 = A$5,482.50 paid via BAS label F1 (Q4 instalment replaced by final return per s.103 FBTAA).</div>
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">Balance owing</span> · A$8,420.06 due 28 May 2026 (BPAY biller 75556 CRN 4 184 261 842 1) · BAS-agent ELS extension to 25 Jun 2026 + 25 Jun payment deadline.</div>
+      <div class="drafting p-3"><span class="text-[var(--ink-3)]">Forecast FY27</span> · expect lower (UTE-1842 logbook continues · entertainment trending down · Patel/Chen LAFHA likely ends Jul 26) · target FBT A$5,800 · instalment 5A A$1,450/qtr.</div>
+    </div>
+  </section>
+
+  <!-- RFBA per employee -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">Reportable Fringe Benefits Amount · STP finalisation</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Per-employee RFBA shown on Income Statement (myGov) · grossed-up at Type 2 1.8868 (per s.135C) · threshold A$3,773 taxable value</div>
+    </div>
+    <table class="w-full text-xs num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2">Employee</th>
+          <th class="text-left">Benefits attributed</th>
+          <th class="text-right w-[120px]">Taxable value</th>
+          <th class="text-right w-[80px]">Threshold</th>
+          <th class="text-right w-[120px]">RFBA (grossed)</th>
+          <th class="text-center w-[120px]">STP report</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]"><td>R. Sauer</td><td>Ute UTE-1842 · entertainment share · phone</td><td class="text-right">A$2,184.20</td><td class="text-right">A$3,773</td><td class="text-right text-[var(--pos)]">A$0</td><td class="text-center text-[var(--ink-3)]">below threshold</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>S. Wong</td><td>Ute UTE-2603 · phone · tools (OTRD)</td><td class="text-right">A$9,444.00</td><td class="text-right">A$3,773</td><td class="text-right text-[var(--sae)]">A$17,816.94</td><td class="text-center"><span class="chip-mini-sae">reportable</span></td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td>L. Patel</td><td>LAFHA exempt · phone share</td><td class="text-right">A$296.05</td><td class="text-right">A$3,773</td><td class="text-right text-[var(--pos)]">A$0</td><td class="text-center text-[var(--ink-3)]">below threshold</td></tr>
+        <tr><td>M. Chen</td><td>LAFHA exempt · phone share</td><td class="text-right">A$296.05</td><td class="text-right">A$3,773</td><td class="text-right text-[var(--pos)]">A$0</td><td class="text-center text-[var(--ink-3)]">below threshold</td></tr>
+      </tbody>
+    </table>
+    <div class="drafting p-3 mt-3 text-[11px]"><span class="text-[var(--ink-3)]">STP-2 reporting</span> · S. Wong's RFBA A$17,816.94 lodged via STP finalisation event before 14 Jul 2026 · category type "T" (taxable) since SAE is non-rebatable · impacts S. Wong's Centrelink income test / HELP repayment / Div 293 super testing but NOT taxable income.</div>
+  </section>
+
+  <!-- Pipeline / lodgement workflow -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">Lodgement pipeline · workpaper → form W → SBR2 → ATO</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">10 steps · FBT form W (NAT 1067) · same SBR2 envelope as BAS</div>
+    </div>
+    <div class="grid grid-cols-10 gap-1 text-[11px]">
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">1</div><div class="mt-1">Year-end roll</div><div class="text-[10px] text-[var(--ink-3)] mt-1">31 Mar 26 · close</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">2</div><div class="mt-1">Logbook upload</div><div class="text-[10px] text-[var(--ink-3)] mt-1">UTE-1842 · 12wk</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">3</div><div class="mt-1">Entertainment scan</div><div class="text-[10px] text-[var(--ink-3)] mt-1">GL 6-310 · 50/50</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">4</div><div class="mt-1">LAFHA decl pull</div><div class="text-[10px] text-[var(--ink-3)] mt-1">2 emp · s.31C</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">5</div><div class="mt-1">Gross-up calc</div><div class="text-[10px] text-[var(--ink-3)] mt-1">T1+T2 · 14A/B</div><div class="text-[var(--pos)] mt-1">✓</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">6</div><div class="mt-1">Workpaper review</div><div class="text-[10px] text-[var(--ink-3)] mt-1">S. Wong sign</div><div class="text-[var(--warm)] mt-1">⌛</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">7</div><div class="mt-1">Form W draft</div><div class="text-[10px] text-[var(--ink-3)] mt-1">NAT 1067 · XML</div><div class="text-[var(--warm)] mt-1">⌛ today</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">8</div><div class="mt-1">Agent declare s.32 TASR</div><div class="text-[10px] text-[var(--ink-3)] mt-1">R. Sauer TPB</div><div class="text-[var(--warm)] mt-1">⌛ 14 May</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">9</div><div class="mt-1">SBR2 transmit</div><div class="text-[10px] text-[var(--ink-3)] mt-1">sbr.gov.au/fbt</div><div class="text-[var(--ink-3)] mt-1">— planned</div></div>
+      <div class="drafting p-2"><div class="text-[10px] text-[var(--ink-3)]">10</div><div class="mt-1">BPAY balance pay</div><div class="text-[10px] text-[var(--ink-3)] mt-1">25 Jun · A$2,236</div><div class="text-[var(--ink-3)] mt-1">— planned</div></div>
+    </div>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-display text-2xl">How AU FBT prep compares</h2>
+      <div class="text-[11px] text-[var(--ink-3)]">Logbook · 50/50 election · LAFHA decl · gross-up · RFBA on STP · SBR2 lodge · BPAY pay</div>
+    </div>
+    <table class="w-full text-xs num border-t border-[var(--line)]">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">
+        <tr class="border-b border-[var(--line)]">
+          <th class="text-left py-2">Capability</th>
+          <th class="text-left">SAE Books</th>
+          <th class="text-left">Xero</th>
+          <th class="text-left">MYOB</th>
+          <th class="text-left">Reckon</th>
+        </tr>
+      </thead>
+      <tbody class="text-[var(--ink)]">
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Built-in FBT module (cars/ent/LAFHA)</td><td class="text-[var(--pos)]">Native form W</td><td class="text-[var(--neg)]">no · export to spreadsheet</td><td class="text-[var(--warm)]">AccountRight bolt-on</td><td class="text-[var(--neg)]">no</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Logbook 12-wk register w/ OC vs stat election</td><td class="text-[var(--pos)]">UTE-1842 saved A$9,691</td><td class="text-[var(--neg)]">manual</td><td class="text-[var(--warm)]">Workpapers add-on</td><td class="text-[var(--neg)]">manual</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">50/50 entertainment auto-class (GL 6-310)</td><td class="text-[var(--pos)]">tag + half</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--warm)]">category filter</td><td class="text-[var(--neg)]">no</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">LAFHA TD 2025/2 reasonable-amount check</td><td class="text-[var(--pos)]">auto vs A$185/A$334</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">Type 1 / Type 2 gross-up auto</td><td class="text-[var(--pos)]">2.0802 / 1.8868</td><td class="text-[var(--warm)]">paid add-on</td><td class="text-[var(--warm)]">spreadsheet</td><td class="text-[var(--neg)]">manual</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">RFBA → STP-2 finalisation event</td><td class="text-[var(--pos)]">per-emp threshold A$3,773</td><td class="text-[var(--warm)]">STP supports but manual entry</td><td class="text-[var(--warm)]">STP supports manual</td><td class="text-[var(--neg)]">no</td></tr>
+        <tr class="border-b border-dashed border-[var(--line)]"><td class="py-2">SBR2 e-lodge form W direct</td><td class="text-[var(--pos)]">sbr.gov.au/fbt</td><td class="text-[var(--neg)]">paper / portal upload</td><td class="text-[var(--neg)]">paper / portal upload</td><td class="text-[var(--neg)]">paper</td></tr>
+        <tr><td class="py-2">7-year workpaper retention (s.262A)</td><td class="text-[var(--pos)]">R2 WORM</td><td class="text-[var(--warm)]">snapshots</td><td class="text-[var(--warm)]">snapshots</td><td class="text-[var(--neg)]">none</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Cross-links -->
+  <section class="px-10 py-8">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Related</div>
+    <div class="font-display text-xl mt-1">Related compliance</div>
+    <div class="grid grid-cols-5 gap-3 mt-4 text-xs">
+      <a href="/preview/compliance/bas/26-q3" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">BAS</div>
+        <div class="font-medium mt-1">Q3 ACCEPTED · F1 instalments</div>
+      </a>
+      <a href="/preview/super/batch/26q4-0184" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Super</div>
+        <div class="font-medium mt-1">SuperStream Q4 · RFBA Div 293</div>
+      </a>
+      <a href="/preview/jobs/j-2603/financials" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Plant</div>
+        <div class="font-medium mt-1">UTE-1842 / UTE-2603 utilisation</div>
+      </a>
+      <a href="/preview/bills/bill-1843" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Bills</div>
+        <div class="font-medium mt-1">Fuel / rego / repairs trail</div>
+      </a>
+      <a href="/preview/contracts/j-2603/payment-schedule-09" class="drafting p-4 hover:bg-[var(--paper-2)] block">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">BIF</div>
+        <div class="font-medium mt-1">Payment schedule J-2603</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

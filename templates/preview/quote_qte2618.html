@@ -1,0 +1,518 @@
+{% extends "preview/_layout.html" %}
+{% block title %}QTE-2618 · Maxwell Marine fab quote — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>AR · structural fabrication quote</span><span>·</span>
+      <span>AS/NZS 5131 CC3 · ISO 3834-2 weld quality</span><span>·</span>
+      <span class="text-[var(--sae)]">QTE-2618</span><span>·</span>
+      <span>Issued 09 May 2026 · valid 30 days</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">QTE-2618 · Steel staircase tower — Mary River expansion</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          To Maxwell Marine Pty Ltd · ABN 26 184 261 942 · Project J-2618 ·
+          Scope: 2× braced steel staircase towers, 5-level + roof access · 14.3t fabricated steel · hot-dip galvanised AS/NZS 4680 ·
+          Site delivery Mary River boatyard · payment terms BIF s.13 reference date 25th
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Quote total · GST-incl</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$202,686.44</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">A$184,260.40 ex + A$18,426.04 GST · 21.8% gross margin</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Status banner -->
+  <section class="px-10 py-5 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Status</div>
+        <div class="text-sm">Issued · awaiting acceptance · 21 days left to expiry · client opened email 10 May 14:42</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Margin</div>
+        <div class="text-sm">Gross 21.8% · net 13.2% after fixed OH allocation · within target band 20–28%</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led warn"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Material lead time</div>
+        <div class="text-sm">BlueScope plate 12 wk lead · order on acceptance · price protection 14 days</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Win probability</div>
+        <div class="text-sm">68% · prior 4 quotes to Maxwell Marine · 3 won · 1 lost (price)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="px-10 py-6 grid grid-cols-6 gap-3 border-b border-[var(--line)]">
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Fabricated steel</div>
+      <div class="num text-2xl mt-1">14.3 t</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">2× towers + landings</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Labour hours</div>
+      <div class="num text-2xl mt-1">684 h</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">cut/weld/fit/paint</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Materials</div>
+      <div class="num text-2xl mt-1 text-[var(--sae)]">A$72,184.20</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">39.2% of price</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Labour cost</div>
+      <div class="num text-2xl mt-1">A$48,260.40</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">26.2% of price</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Gross profit</div>
+      <div class="num text-2xl mt-1 text-[var(--pos)]">A$40,184.20</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">21.8% margin</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Expected value</div>
+      <div class="num text-2xl mt-1">A$125,297.07</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">68% × ex-GST</div>
+    </div>
+  </section>
+
+  <!-- Bill of materials -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Bill of materials · BlueScope mill order pre-priced</div>
+        <h2 class="font-display text-2xl mt-1">Material schedule — 14.3t fabricated</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Quote-line ↔ supplier-rule R-21 mapped · price valid 14 days from acceptance
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-20">Item</th>
+          <th class="text-left">Description</th>
+          <th class="text-left w-32">Grade / spec</th>
+          <th class="text-right w-20">Qty</th>
+          <th class="text-left w-16">UoM</th>
+          <th class="text-right w-32">Unit A$</th>
+          <th class="text-right w-32">Line total</th>
+          <th class="text-left w-20">Supplier</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-1</td><td>UC 200×46 universal column · landings</td><td>AS/NZS 3679.1 300+</td><td class="text-right">6</td><td>×6m</td><td class="text-right">A$2,184.20</td><td class="text-right">A$13,105.20</td><td>BlueScope</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-2</td><td>UB 250×31 universal beam · stair stringers</td><td>AS/NZS 3679.1 300+</td><td class="text-right">8</td><td>×6m</td><td class="text-right">A$1,484.20</td><td class="text-right">A$11,873.60</td><td>BlueScope</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-3</td><td>RHS 150×100×6 · bracing</td><td>AS/NZS 1163 C350L0</td><td class="text-right">14</td><td>×8m</td><td class="text-right">A$684.20</td><td class="text-right">A$9,578.80</td><td>BlueScope</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-4</td><td>CHS 88.9×4.0 · handrail</td><td>AS/NZS 1163 C350L0</td><td class="text-right">24</td><td>×6m</td><td class="text-right">A$240.50</td><td class="text-right">A$5,772.00</td><td>BlueScope</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-5</td><td>Plate 12mm · base plates / gussets</td><td>AS/NZS 3678 350</td><td class="text-right">1,840</td><td>kg</td><td class="text-right">A$3.42</td><td class="text-right">A$6,292.80</td><td>BlueScope</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-6</td><td>Plate 6mm · treads + landings (anti-slip)</td><td>AS/NZS 3678 250 · raised pattern</td><td class="text-right">2,420</td><td>kg</td><td class="text-right">A$3.18</td><td class="text-right">A$7,695.60</td><td>BlueScope</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-7</td><td>HD-galv bolts M20 8.8 / chemset</td><td>AS/NZS 1252 class 8.8</td><td class="text-right">280</td><td>set</td><td class="text-right">A$18.40</td><td class="text-right">A$5,152.00</td><td>Allfasteners</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-8</td><td>Welding consumables · ER70S-6 + flux</td><td>AS/NZS 4855 + 14171</td><td class="text-right">86</td><td>kg</td><td class="text-right">A$28.40</td><td class="text-right">A$2,442.40</td><td>Coregas</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-9</td><td>Hot-dip galvanise — sub-contract</td><td>AS/NZS 4680 · 86 µm avg</td><td class="text-right">14,300</td><td>kg</td><td class="text-right">A$0.78</td><td class="text-right">A$11,154.00</td><td>Industrial Galv</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-10</td><td>Freight Brisbane→Mary River</td><td>HC + crane</td><td class="text-right">1</td><td>load</td><td class="text-right">A$4,184.20</td><td class="text-right">A$4,184.20</td><td>FreightSafe</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">M-11</td><td>Site installation · 2-day crew of 3 + crane</td><td>incl HSEQ</td><td class="text-right">48</td><td>h</td><td class="text-right">A$84.20</td><td class="text-right">A$4,041.60</td><td>SAE labour</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium">
+          <td class="py-3" colspan="6">Σ direct material + freight + galvanising + installation</td>
+          <td class="text-right text-[var(--sae)]">A$81,292.20</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Labour buildup -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Labour estimate · MA000020 award + on-costs</div>
+        <h2 class="font-display text-2xl mt-1">Labour hours by trade — 684 h total</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Rates include 26% on-cost (super 12% + WC 2.4% + leave 8.9% + ETP 2.7%) · ITP weld inspection from L2 supervisor
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-32">Trade</th>
+          <th class="text-left">Activity</th>
+          <th class="text-right w-24">Hours</th>
+          <th class="text-right w-32">Rate A$/h</th>
+          <th class="text-right w-32">On-cost A$/h</th>
+          <th class="text-right w-32">Effective A$/h</th>
+          <th class="text-right w-32">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Fitter</td><td>Mark-out / cut / drill / prep</td><td class="text-right">120</td><td class="text-right">A$52.40</td><td class="text-right">A$13.62</td><td class="text-right">A$66.02</td><td class="text-right">A$7,922.40</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Welder L2</td><td>Stringer + bracing welds · ISO 3834-2 ITP</td><td class="text-right">240</td><td class="text-right">A$58.40</td><td class="text-right">A$15.18</td><td class="text-right">A$73.58</td><td class="text-right">A$17,659.20</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Welder L1</td><td>Tack + minor fillets</td><td class="text-right">140</td><td class="text-right">A$48.20</td><td class="text-right">A$12.53</td><td class="text-right">A$60.73</td><td class="text-right">A$8,502.20</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Assembler</td><td>Fit-up + bolting + handrail</td><td class="text-right">100</td><td class="text-right">A$46.50</td><td class="text-right">A$12.09</td><td class="text-right">A$58.59</td><td class="text-right">A$5,859.00</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Supervisor</td><td>WPS oversight · ITP sign-off · CAR clear</td><td class="text-right">36</td><td class="text-right">A$78.40</td><td class="text-right">A$20.38</td><td class="text-right">A$98.78</td><td class="text-right">A$3,556.08</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">QA · NATA inspection</td><td>Independent UT + MPI sub-contract</td><td class="text-right">8</td><td class="text-right">A$184.20</td><td class="text-right">—</td><td class="text-right">A$184.20</td><td class="text-right">A$1,473.60</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Drafting</td><td>Shop drawings · Tekla · MTOs</td><td class="text-right">40</td><td class="text-right">A$74.20</td><td class="text-right">A$19.29</td><td class="text-right">A$93.49</td><td class="text-right">A$3,739.60</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium">
+          <td class="py-3" colspan="2">7 trade lines · 684 h fabrication labour</td>
+          <td class="text-right">684</td>
+          <td colspan="2"></td>
+          <td class="text-right">avg A$70.55</td>
+          <td class="text-right text-[var(--sae)]">A$48,712.08</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Margin stack + price build -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Price build · cost → margin → quote</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Quote total — A$202,686.44</h2>
+
+        <table class="w-full text-sm">
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Direct materials + freight + galv + installation (M-1…M-11)</td><td class="text-right">A$81,292.20</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Direct labour (7 trade lines · 684 h fully-burdened)</td><td class="text-right">A$48,712.08</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 font-medium">Direct cost subtotal</td><td class="text-right font-medium">A$130,004.28</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ Workshop overhead @ 8% direct cost</td><td class="text-right">A$10,400.34</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ Engineering / management OH @ 4%</td><td class="text-right">A$5,200.17</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ Contingency · 5% (CC3 weld risk + galv lead time)</td><td class="text-right">A$7,280.04</td></tr>
+            <tr class="border-b border-[var(--line)] font-medium"><td class="py-2">Cost basis</td><td class="text-right">A$152,884.83</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ Target gross margin · 20.5%</td><td class="text-right">A$31,375.57</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 font-medium">Quote — GST-exclusive</td><td class="text-right font-medium text-[var(--sae)]">A$184,260.40</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ GST @ 10%</td><td class="text-right">A$18,426.04</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">Quote — GST-inclusive</td><td class="text-right text-[var(--ink)]">A$202,686.44</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-5">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Margin stack</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Profitability check</h2>
+
+        <table class="w-full text-sm">
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Gross margin (price − direct cost)</td><td class="text-right">A$40,184.20</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Gross margin %</td><td class="text-right">21.81%</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Net margin after fixed OH allocation</td><td class="text-right">A$24,256.07</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Net margin %</td><td class="text-right">13.17%</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Break-even discount % (still ≥ 5% net)</td><td class="text-right">5.4%</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Floor price (5% net minimum)</td><td class="text-right">A$174,820.00</td></tr>
+          </tbody>
+        </table>
+
+        <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed">
+          <span class="font-medium text-[var(--ink)]">Negotiation latitude:</span> sales has board approval to discount to A$174,820 (ex-GST) without further sign-off —
+          ~5.1% headroom. Below that the quote routes back for re-pricing or scope reduction.
+          Floor is pinned to the 5% net-margin policy to keep overhead recovery whole.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Optional / variation pricing + payment terms -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Optional adds &amp; variations</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Pre-priced add-ons · client decides on PO</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-20">Add-on</th>
+              <th class="text-left">Description</th>
+              <th class="text-right w-32">Price ex-GST</th>
+              <th class="text-left w-32">Lead time</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">A-1</td><td>Duplex paint system C5-I marine</td><td class="text-right">A$14,260.40</td><td>+10 days</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">A-2</td><td>NATA-accredited 100% weld UT (vs spec 20%)</td><td class="text-right">A$3,840.00</td><td>+2 days</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">A-3</td><td>Mesh infill panels safety guards</td><td class="text-right">A$8,184.20</td><td>+3 days</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">A-4</td><td>EWP-assisted install (vs crane)</td><td class="text-right">A$2,420.00</td><td>—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">A-5</td><td>Spare bracing kit 10% for site mods</td><td class="text-right">A$1,840.00</td><td>—</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3" colspan="2">If all 5 elected · maximum scope</td><td class="text-right">A$30,544.60</td><td>—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]" colspan="2">Maximum quote total ex-GST (base + all options)</td><td class="text-right">A$214,805.00</td><td class="text-[var(--ink-3)]">A$236,285.50 incl</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-5">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Payment terms · BIF Act 2017 (Qld) compliant</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Schedule of payments</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2">Milestone</th>
+              <th class="text-right w-24">% price</th>
+              <th class="text-right w-32">Amount ex</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Deposit on PO (materials)</td><td class="text-right">20%</td><td class="text-right">A$36,852.08</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Steel cut + drilled (PC-01)</td><td class="text-right">25%</td><td class="text-right">A$46,065.10</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Welding complete + ITP signed (PC-02)</td><td class="text-right">25%</td><td class="text-right">A$46,065.10</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Galvanise + dispatch (PC-03)</td><td class="text-right">20%</td><td class="text-right">A$36,852.08</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Site install complete (final)</td><td class="text-right">10%</td><td class="text-right">A$18,426.04</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-2">Σ ex-GST</td><td class="text-right">100%</td><td class="text-right">A$184,260.40</td></tr>
+            <tr><td class="py-1 text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]" colspan="3">Reference date 25th of each month (BIF s.13) · payment due 15 BD after submission (s.68)</td></tr>
+          </tbody>
+        </table>
+
+        <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed">
+          Retention 5% withheld for 12 months from PC-03 per AS 4000-1997 sub-cl 5.2 ·
+          released against bank guarantee form provided · BIF s.67(2) endorsed.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Risk + conversion forecast -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-6">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Risk register · top 5</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Quoted risk reserve A$7,280</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-12">#</th>
+              <th class="text-left">Risk</th>
+              <th class="text-right w-20">Prob</th>
+              <th class="text-right w-32">Impact A$</th>
+              <th class="text-right w-32">Reserve A$</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">R1</td><td>BlueScope plate price rise during 12 wk lead</td><td class="text-right">35%</td><td class="text-right">A$4,200</td><td class="text-right">A$1,470</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">R2</td><td>Weld rework · ITP fail · 100% UT triggered</td><td class="text-right">15%</td><td class="text-right">A$6,800</td><td class="text-right">A$1,020</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">R3</td><td>Galvaniser slot push · 2-wk schedule slip LD risk</td><td class="text-right">25%</td><td class="text-right">A$3,200</td><td class="text-right">A$800</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">R4</td><td>Site access delay · Mary River tidal · re-mobilise</td><td class="text-right">20%</td><td class="text-right">A$2,400</td><td class="text-right">A$480</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">R5</td><td>Variation creep · undocumented scope add</td><td class="text-right">40%</td><td class="text-right">A$8,775</td><td class="text-right">A$3,510</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3" colspan="2">Σ expected-value reserve</td><td colspan="2"></td><td class="text-right text-[var(--sae)]">A$7,280.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-6">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Conversion forecast · if won</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Cash projection — Maxwell J-2618</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-24">Month</th>
+              <th class="text-left">Milestone trigger</th>
+              <th class="text-right w-32">Invoice ex</th>
+              <th class="text-right w-32">Receipt expected</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Jun 2026</td><td>PO + deposit · INV draft INV-2618-D</td><td class="text-right">A$36,852.08</td><td class="text-right">25 Jul 2026</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Aug 2026</td><td>PC-01 cut + drill complete</td><td class="text-right">A$46,065.10</td><td class="text-right">25 Sep 2026</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Sep 2026</td><td>PC-02 weld + ITP</td><td class="text-right">A$46,065.10</td><td class="text-right">25 Oct 2026</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Oct 2026</td><td>PC-03 galv + dispatch</td><td class="text-right">A$36,852.08</td><td class="text-right">25 Nov 2026</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Nov 2026</td><td>PC-04 install · final claim</td><td class="text-right">A$18,426.04</td><td class="text-right">25 Dec 2026</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">Σ over 5 months</td><td></td><td class="text-right">A$184,260.40</td><td class="text-right">A$202,686.44 incl</td></tr>
+          </tbody>
+        </table>
+
+        <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed">
+          Expected-value contribution to 13-week cash forecast — 0% (quote not yet accepted);
+          once converted, payments flow into cashbook as 5 progress claims under BIF s.75 reference-date 25th.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Quote → invoice → cash pipeline · automated</div>
+    <ol class="grid grid-cols-8 gap-2 text-xs">
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">1 · estimate</div>
+        <div class="font-medium mt-1">Take-off</div>
+        <div class="text-[var(--ink-3)] mt-1">Tekla MTO ingested · units priced from supplier rate cards</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">2 · cost build</div>
+        <div class="font-medium mt-1">Mat + labour</div>
+        <div class="text-[var(--ink-3)] mt-1">Labour rates from MA000020 award + on-costs · OH allocated</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">3 · margin</div>
+        <div class="font-medium mt-1">Target band</div>
+        <div class="text-[var(--ink-3)] mt-1">Apply 20.5% GM · floor check 5% NM · approval routing if below</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">4 · issue</div>
+        <div class="font-medium mt-1">PDF + Peppol</div>
+        <div class="text-[var(--ink-3)] mt-1">UBL quote message · ABN-validated client</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">5 · acceptance</div>
+        <div class="font-medium mt-1">PO ↔ quote match</div>
+        <div class="text-[var(--ink-3)] mt-1">Client PO arrives · cross-match · variance alert</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">6 · convert</div>
+        <div class="font-medium mt-1">Quote → project</div>
+        <div class="text-[var(--ink-3)] mt-1">Schedule of payments materialised · BIF s.13 dates locked</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">7 · claim</div>
+        <div class="font-medium mt-1">Progress claim</div>
+        <div class="text-[var(--ink-3)] mt-1">% complete → invoice line · BIF s.75 schedule expected back in 15 BD</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">8 · cash</div>
+        <div class="font-medium mt-1">Receipt match</div>
+        <div class="text-[var(--ink-3)] mt-1">Bank feed reconciles to invoice number · ledger settles · retention pool grows</div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">AU-market positioning · construction-quote surface</div>
+    <h2 class="font-display text-2xl mb-4">SAE Books vs Xero · MYOB · Reckon · Buildxact</h2>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-44">Capability</th>
+          <th class="text-left">Xero (AU)</th>
+          <th class="text-left">MYOB Business Pro</th>
+          <th class="text-left">Reckon One</th>
+          <th class="text-left">Buildxact</th>
+          <th class="text-left">SAE Books</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Cost-buildup quote</td>
+          <td>Flat line items</td>
+          <td>Flat line items</td>
+          <td>Flat line items</td>
+          <td>Mat + labour buildup</td>
+          <td>Mat + labour + OH + contingency + GM stack</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Award rates + on-costs</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>MA000020 award rates live · 26% on-cost auto-applied</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">BIF Qld payment schedule</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Reference date + s.68 due date baked into milestone table</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Margin floor enforcement</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Manual</td>
+          <td>Auto floor at 5% NM · approval routing under threshold</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Quote → milestone invoices</td>
+          <td>Manual conversion</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Native</td>
+          <td>5 milestone invoices pre-materialised · % complete triggers issue</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Risk reserve transparency</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Lump-sum contingency</td>
+          <td>Risk register × prob × impact = reserve line · audit trail</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Win-probability + pipeline EV</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Client-history-derived · feeds 13-week cash forecast</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Peppol quote outbound</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>UBL quote message via Storecove · ABR-validated client side</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      Buildxact is the dominant AU residential-construction estimating tool but doesn't carry the books and doesn't speak Peppol.
+      Xero/MYOB/Reckon carry the books but quote as a flat line list, leaving the estimating workpaper on a spreadsheet.
+      SAE Books integrates both — the quote workpaper is a first-class ledger document with auditable cost stack and direct invoice-milestone materialisation.
+    </div>
+  </section>
+
+  <!-- Cross-link mesh -->
+  <section class="px-10 py-8">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Related</div>
+    <div class="grid grid-cols-5 gap-3">
+      <a href="/preview/bills/bill-1843" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Material bill</div>
+        <div class="font-medium mt-1">BILL-1843 BlueScope</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Same supplier rate card feeds quote materials · acceptance triggers PO to BlueScope</div>
+      </a>
+      <a href="/preview/contracts/j-2603/payment-schedule-09" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">BIF analogue</div>
+        <div class="font-medium mt-1">Payment schedule J-2603</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Same Maxwell client · how their cycle plays out under s.75 once won</div>
+      </a>
+      <a href="/preview/cashbook/april-2026" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Cash forecast</div>
+        <div class="font-medium mt-1">Cashbook · April 2026</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">If converted, 5 progress claims land in cashbook Jul–Dec 2026 forecast</div>
+      </a>
+      <a href="/preview/payroll/pay-event/26w19" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Labour rates</div>
+        <div class="font-medium mt-1">STP-2 pay event PE-26W19</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Same welder/fitter rates that build STP pay run also build labour estimates here</div>
+      </a>
+      <a href="/preview/compliance/payg-i/q4-fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Tax effect</div>
+        <div class="font-medium mt-1">PAYG-I Q4 FY26</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Quote conversion lifts FY27 instalment income — Q1 FY27 T7 projection updated</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

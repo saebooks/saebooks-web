@@ -1,0 +1,261 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'reports' %}
+{% block page_title %}Cash Flow Forecast · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-72 h-32 dot-grid rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <p class="text-[10px] font-mono uppercase tracking-[0.16em] ink-3"><a href="/preview/reports" class="hover:text-[color:var(--sae)]">Reports</a> · Cash flow</p>
+      <h1 class="font-display text-[36px] leading-[1.05] font-medium mt-1">Cash flow, <span class="sae italic">forward</span> 13 weeks.</h1>
+      <p class="ink-2 text-sm mt-1.5">Receipts vs payments per week — pulled live from AR, AP, payroll, super and ATO obligations. <span class="font-mono ink-3">CBA Smart Access · ●●●● 2204 · A$4,820.40 opening</span></p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export CSV</button>
+      <button class="chip"><i data-lucide="sliders" class="w-3.5 h-3.5"></i>Scenarios</button>
+      <button class="chip chip-active"><i data-lucide="zap" class="w-3.5 h-3.5"></i>Recalculate</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Opening balance</p>
+    <p class="font-display text-[26px] mt-1 num">A$4,820<span class="text-[13px] ink-3">.40</span></p>
+    <p class="text-[11px] ink-3 mt-0.5 font-mono">As at 11 May · CBA</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Receipts (13w)</p>
+    <p class="font-display text-[26px] mt-1 num pos">+A$54,210</p>
+    <p class="text-[11px] pos mt-0.5 font-mono">19 invoices · 4 jobs</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Payments (13w)</p>
+    <p class="font-display text-[26px] mt-1 num neg">−A$42,880</p>
+    <p class="text-[11px] neg mt-0.5 font-mono">Bills · payroll · super · ATO</p>
+  </div>
+  <div class="card p-4" style="border-color: var(--sae);">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Closing forecast</p>
+    <p class="font-display text-[26px] mt-1 num">A$16,150<span class="text-[13px] ink-3">.40</span></p>
+    <p class="text-[11px] ink-3 mt-0.5 font-mono">Week of 09 Aug · best estimate</p>
+  </div>
+  <div class="card p-4" style="border: 1px dashed var(--neg);">
+    <p class="text-[11px] uppercase tracking-wider neg">Lowest point</p>
+    <p class="font-display text-[26px] mt-1 num neg">A$1,170<span class="text-[13px] ink-3">.10</span></p>
+    <p class="text-[11px] neg mt-0.5 font-mono">Week of 22 Jun · BAS week</p>
+  </div>
+</div>
+
+<!-- Forecast bar/area chart -->
+<section class="card p-5 mb-6">
+  <div class="flex items-end justify-between mb-3">
+    <div>
+      <h3 class="text-[14px] font-semibold tracking-tight">Receipts vs payments · weekly</h3>
+      <p class="text-[11px] ink-3 font-mono mt-0.5">Bars: in/out · line: closing balance · annotations: BAS, super, payroll</p>
+    </div>
+    <div class="flex items-center gap-2 text-[11px]">
+      <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background: var(--pos);"></span>Receipts</span>
+      <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background: var(--neg);"></span>Payments</span>
+      <span class="flex items-center gap-1"><span class="w-3 h-0.5" style="background: var(--sae);"></span>Closing</span>
+    </div>
+  </div>
+  <div class="relative h-56">
+    <canvas id="cashflowChart"></canvas>
+  </div>
+  <p class="text-[10px] font-mono ink-3 mt-3 text-right">Forecast confidence: 87% for weeks 1–4 · 64% for weeks 5–13. Confidence drops the further out we look.</p>
+</section>
+
+<!-- Two-pane: weekly table + drivers rail -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-7">
+
+  <!-- LEFT: weekly breakdown -->
+  <div class="lg:col-span-8 card overflow-hidden">
+    <div class="px-5 py-3 border-b hairline">
+      <h3 class="text-[14px] font-semibold tracking-tight">Weekly breakdown · next 6 weeks</h3>
+      <p class="text-[11px] ink-3 mt-0.5">Showing weeks 1–6 of 13 — scroll table for weeks 7–13.</p>
+    </div>
+    <table class="sae-table">
+      <thead>
+        <tr>
+          <th>Week beginning</th>
+          <th class="text-right">Receipts</th>
+          <th class="text-right">Bills</th>
+          <th class="text-right">Payroll</th>
+          <th class="text-right">Super / ATO</th>
+          <th class="text-right">Net</th>
+          <th class="text-right">Closing</th>
+        </tr>
+      </thead>
+      <tbody class="text-[12px]">
+        {% set weeks = [
+          {'wb':'11 May 2026','rx':4180,'bx':-1855,'px':-9430,'sx':0,'note':'Pay run W19','open':4820.40},
+          {'wb':'18 May 2026','rx':3240,'bx':-1162,'px':0,'sx':0,'note':'','open':null},
+          {'wb':'25 May 2026','rx':6180,'bx':-486,'px':-9430,'sx':-1820,'note':'Pay run W21 · BAS Q3 (A$1,820)','open':null},
+          {'wb':'01 Jun 2026','rx':4820,'bx':-1240,'px':0,'sx':0,'note':'','open':null},
+          {'wb':'08 Jun 2026','rx':7140,'bx':-2470,'px':-9430,'sx':0,'note':'Pay run W23','open':null},
+          {'wb':'15 Jun 2026','rx':5180,'bx':-892,'px':0,'sx':-1430.40,'note':'SuperStream Q4 batch','open':null}
+        ] %}
+        {% set ns = namespace(bal=4820.40) %}
+        {% for w in weeks %}
+        {% set net = w.rx + w.bx + w.px + w.sx %}
+        {% set ns.bal = ns.bal + net %}
+        <tr>
+          <td>
+            <div class="font-medium">{{ w.wb }}</div>
+            {% if w.note %}<div class="text-[10px] font-mono sae mt-0.5">⌃ {{ w.note }}</div>{% endif %}
+          </td>
+          <td class="text-right num pos">A${{ '{:,.0f}'.format(w.rx) }}</td>
+          <td class="text-right num neg">{% if w.bx %}A${{ '{:,.0f}'.format(w.bx) }}{% else %}<span class="ink-3">—</span>{% endif %}</td>
+          <td class="text-right num neg">{% if w.px %}A${{ '{:,.0f}'.format(w.px) }}{% else %}<span class="ink-3">—</span>{% endif %}</td>
+          <td class="text-right num neg">{% if w.sx %}A${{ '{:,.2f}'.format(w.sx) }}{% else %}<span class="ink-3">—</span>{% endif %}</td>
+          <td class="text-right num {% if net < 0 %}neg{% else %}pos{% endif %} font-medium">{% if net >= 0 %}+{% endif %}A${{ '{:,.0f}'.format(net) }}</td>
+          <td class="text-right num font-medium">A${{ '{:,.2f}'.format(ns.bal) }}</td>
+        </tr>
+        {% endfor %}
+        <tr style="border-top: 1.5px solid var(--ink); background: var(--paper);">
+          <td class="font-medium">6-week total</td>
+          <td class="text-right num font-medium pos">+A$30,740</td>
+          <td class="text-right num font-medium neg">−A$8,105</td>
+          <td class="text-right num font-medium neg">−A$28,290</td>
+          <td class="text-right num font-medium neg">−A$3,250</td>
+          <td class="text-right num font-medium">−A$8,905</td>
+          <td class="text-right num font-display text-[16px]">A$−4,084</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="px-5 py-3 border-t hairline flex items-center justify-between bg-[color:var(--paper)] text-xs ink-2">
+      <span>Weeks 7–13 not shown · BAS Q4 lands week of 27 Jul (A$2,145)</span>
+      <a href="#" class="sae hover:underline">Open full forecast →</a>
+    </div>
+  </div>
+
+  <!-- RIGHT: drivers + risks -->
+  <div class="lg:col-span-4 space-y-4">
+
+    <div class="card p-5">
+      <h3 class="font-medium text-sm mb-3">Forecast drivers</h3>
+      <div class="space-y-3 text-[12px]">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="ink-2">AR (Aged receivables)</span>
+            <a href="/preview/reports/aged-receivables" class="text-[10px] sae hover:underline">view →</a>
+          </div>
+          <p class="num font-medium pos">+A$19,960</p>
+          <div class="mt-1 h-1 rounded-full bg-[color:var(--paper-2)] overflow-hidden"><div class="h-full" style="width:82%; background: var(--pos);"></div></div>
+          <p class="text-[10px] ink-3 font-mono mt-1">82% likely to clear · risk A$4,020</p>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="ink-2">AP (Aged payables)</span>
+            <a href="/preview/reports/aged-payables" class="text-[10px] sae hover:underline">view →</a>
+          </div>
+          <p class="num font-medium neg">−A$11,547</p>
+          <div class="mt-1 h-1 rounded-full bg-[color:var(--paper-2)] overflow-hidden"><div class="h-full" style="width:60%; background: var(--ink-2);"></div></div>
+          <p class="text-[10px] ink-3 font-mono mt-1">Held A$1,240 · disputed A$0</p>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="ink-2">Payroll (4 employees)</span>
+            <a href="/preview/payroll/pay-run" class="text-[10px] sae hover:underline">view →</a>
+          </div>
+          <p class="num font-medium neg">−A$28,290</p>
+          <p class="text-[10px] ink-3 font-mono">3 pay runs · weekly cadence</p>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="ink-2">ATO + SuperStream</span>
+            <a href="/preview/compliance" class="text-[10px] sae hover:underline">view →</a>
+          </div>
+          <p class="num font-medium neg">−A$3,250</p>
+          <p class="text-[10px] ink-3 font-mono">BAS Q3 A$1,820 · Super A$1,430</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-5" style="border: 1.5px dashed var(--neg);">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="alert-triangle" class="w-4 h-4 neg"></i>
+        <h3 class="font-medium neg">Tight week · 22 Jun</h3>
+      </div>
+      <p class="text-[12px] ink-2">BAS Q3 + W23 pay run + SuperStream all land in the same week. Forecast closing dips to <strong class="num">A$1,170</strong>.</p>
+
+      <div class="mt-3 space-y-1 text-[12px]">
+        <p class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos shrink-0"></i>Stripe instant settle on INV-0034 (+A$4,180)</p>
+        <p class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos shrink-0"></i>Push Coastal Builders to 14 Jun</p>
+        <p class="flex items-center gap-2"><i data-lucide="circle-dashed" class="w-3.5 h-3.5 ink-3 shrink-0"></i>Defer Coast Plumbing approval to W24</p>
+      </div>
+      <button class="btn-primary w-full mt-3 justify-center"><i data-lucide="wand-sparkles" class="w-3.5 h-3.5"></i>Apply 3 mitigations</button>
+    </div>
+
+    <div class="card p-5">
+      <h3 class="font-medium text-sm mb-3">Scenarios</h3>
+      <div class="space-y-2 text-[12px]">
+        <label class="flex items-center justify-between p-2 rounded hover:bg-[color:var(--paper)] cursor-pointer">
+          <span class="flex items-center gap-2"><input type="radio" name="scn" checked> Base case</span>
+          <span class="num ink-3">A$16,150</span>
+        </label>
+        <label class="flex items-center justify-between p-2 rounded hover:bg-[color:var(--paper)] cursor-pointer">
+          <span class="flex items-center gap-2"><input type="radio" name="scn"> 90+ writes off</span>
+          <span class="num neg">A$12,130</span>
+        </label>
+        <label class="flex items-center justify-between p-2 rounded hover:bg-[color:var(--paper)] cursor-pointer">
+          <span class="flex items-center gap-2"><input type="radio" name="scn"> Q-0032 wins (+A$34K)</span>
+          <span class="num pos">A$48,471</span>
+        </label>
+        <label class="flex items-center justify-between p-2 rounded hover:bg-[color:var(--paper)] cursor-pointer">
+          <span class="flex items-center gap-2"><input type="radio" name="scn"> Payday Super active</span>
+          <span class="num">A$15,720</span>
+        </label>
+      </div>
+      <p class="text-[10px] ink-3 mt-2 font-mono">Switch scenarios to repaint chart + tables</p>
+    </div>
+  </div>
+</div>
+
+<p class="text-[10px] font-mono ink-3 text-right">Forecast uses scheduled invoices, bills, payroll runs, super batches, and ATO obligations. Edit any of these to repaint live.</p>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+  const ctx = document.getElementById('cashflowChart');
+  if (!ctx) return;
+  const labels = ['11 May','18 May','25 May','01 Jun','08 Jun','15 Jun','22 Jun','29 Jun','06 Jul','13 Jul','20 Jul','27 Jul','03 Aug'];
+  const rx     = [4180,3240,6180,4820,7140,5180,3420,6840,5180,4180,3840,4820,3210];
+  const px     = [-11285,-1162,-11736,-1240,-11900,-2322,-13980,-892,-11340,-1820,-892,-13585,-1240];
+  const closing = (function(){ let b=4820; return labels.map((_,i)=>{ b += rx[i]+px[i]; return Math.round(b); }); })();
+  const css = getComputedStyle(document.documentElement);
+  const pos = css.getPropertyValue('--pos').trim() || '#3E7A4E';
+  const neg = css.getPropertyValue('--neg').trim() || '#A14333';
+  const sae = css.getPropertyValue('--sae').trim() || '#194291';
+  const ink2 = css.getPropertyValue('--ink-2').trim() || '#4d4d4d';
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { type:'bar', label:'Receipts', data: rx, backgroundColor: pos, borderRadius: 3, stack:'cashflow' },
+        { type:'bar', label:'Payments', data: px, backgroundColor: neg, borderRadius: 3, stack:'cashflow' },
+        { type:'line', label:'Closing', data: closing, borderColor: sae, borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: sae, tension: 0.25, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: ink2 } },
+        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: ink2, callback: v => 'A$' + (v/1000).toFixed(0) + 'k' } },
+        y1: { position: 'right', grid: { display: false }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: sae, callback: v => 'A$' + (v/1000).toFixed(0) + 'k' } }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

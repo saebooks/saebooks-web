@@ -1,0 +1,237 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'compliance' %}
+{% block page_title %}TPAR draft · FY26 · SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-56 h-24 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Australian compliance · Taxable Payments Annual Report</span>
+      </div>
+      <h1 class="font-display text-[36px] leading-[1.05] font-medium">
+        TPAR draft <span class="italic" style="color: var(--sae);">— FY26</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">Reporting period <span class="font-mono">01 Jul 2025 – 30 Jun 2026</span> · ATO due <span class="font-mono">28 Aug 2026</span> · industry: construction services</p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/compliance" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Compliance</a>
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>ATO file (DSP)</button>
+      <button class="chip"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>Working papers</button>
+      <button class="btn-primary"><i data-lucide="upload" class="w-4 h-4"></i>Lodge to ATO</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Subcontractors</p>
+    <p class="font-display text-[28px] mt-1 num">6</p>
+    <p class="text-[11px] ink-3 mt-0.5">FY26 to date · 1 needs ABN</p>
+  </div>
+  <div class="card p-4" style="border: 1px solid var(--sae);">
+    <p class="text-[11px] uppercase tracking-wider" style="color: var(--sae);">Total payments</p>
+    <p class="font-display text-[28px] mt-1 num">A$57,610<span class="text-[14px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Gross incl. GST</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">GST portion</p>
+    <p class="font-display text-[28px] mt-1 num">A$5,238<span class="text-[14px] ink-3">.18</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Already claimed via BAS</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Status</p>
+    <p class="font-display text-[20px] mt-1" style="color: var(--warm);">1 issue</p>
+    <p class="text-[11px] ink-3 mt-0.5">Resolve before lodge</p>
+  </div>
+</div>
+
+<!-- 2-col layout -->
+<div class="grid grid-cols-12 gap-5">
+  <!-- LEFT: subcontractor table -->
+  <div class="col-span-8 space-y-5">
+
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 border-b hairline bg-[color:var(--paper)] flex items-center justify-between">
+        <h3 class="font-medium text-sm">Subcontractor payments · FY26</h3>
+        <div class="flex items-center gap-1.5">
+          <button class="chip chip-active">All <span class="num ml-1 opacity-70">6</span></button>
+          <button class="chip">Issues <span class="num ml-1 opacity-70">1</span></button>
+          <button class="chip">Verified <span class="num ml-1 opacity-70">5</span></button>
+        </div>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr>
+            <th>Subcontractor</th>
+            <th>ABN</th>
+            <th class="text-right">Gross paid</th>
+            <th class="text-right">GST</th>
+            <th class="text-right">Net (ex GST)</th>
+            <th>Bills</th>
+            <th>Status</th>
+            <th class="w-8"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set subs = [
+            {'name':'Dale Maxwell Electrical','init':'D','col':'#1A4E8B','abn':'72 184 593 401','gross':'18,420.00','gst':'1,674.55','net':'16,745.45','bills':'8','status':'verified'},
+            {'name':'Coast Plumbing Pty Ltd','init':'C','col':'#5C7A8B','abn':'45 210 884 762','gross':'12,640.00','gst':'1,149.09','net':'11,490.91','bills':'5','status':'verified'},
+            {'name':'Northshore Marine','init':'N','col':'#7C5C8B','abn':'82 411 920 117','gross':'9,820.00','gst':'892.73','net':'8,927.27','bills':'4','status':'verified'},
+            {'name':'Sigma Hydraulics','init':'S','col':'#3E7A4E','abn':'68 305 718 234','gross':'8,640.00','gst':'785.45','net':'7,854.55','bills':'3','status':'verified'},
+            {'name':'Bowen Crane Hire','init':'B','col':'#194291','abn':'12 449 081 553','gross':'5,250.00','gst':'477.27','net':'4,772.73','bills':'2','status':'verified'},
+            {'name':'Russell Lifting (sole trader)','init':'R','col':'#888','abn':'—','gross':'2,840.00','gst':'0.00','net':'2,840.00','bills':'1','status':'no-abn'},
+          ] %}
+          {% for s in subs %}
+          <tr {% if s.status == 'no-abn' %}style="background: rgba(255,179,71,.05);"{% endif %}>
+            <td>
+              {% if s.name == 'Dale Maxwell Electrical' %}
+              <a href="/preview/contacts/dale-maxwell" class="flex items-center gap-2 hover:text-[color:var(--sae)]">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-medium" style="background: {{ s.col }};">{{ s.init }}</span>
+                <span class="font-medium">{{ s.name }}</span>
+              </a>
+              {% else %}
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-medium" style="background: {{ s.col }};">{{ s.init }}</span>
+                <span class="font-medium">{{ s.name }}</span>
+              </div>
+              {% endif %}
+            </td>
+            <td class="font-mono text-[12px] {% if s.abn == '—' %}text-[color:var(--warm)] font-medium{% endif %}">{{ s.abn }}</td>
+            <td class="text-right num font-medium">{{ s.gross }}</td>
+            <td class="text-right num ink-2 text-[12px]">{{ s.gst }}</td>
+            <td class="text-right num">{{ s.net }}</td>
+            <td class="text-[12px] ink-2"><a href="/preview/bills" class="sae hover:underline">{{ s.bills }} bills</a></td>
+            <td>
+              {% if s.status == 'verified' %}
+                <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>ABN OK</span>
+              {% else %}
+                <span class="badge badge-warm"><span class="dot" style="background: var(--warm);"></span>No ABN</span>
+              {% endif %}
+            </td>
+            <td><button class="ink-3 hover:text-[color:var(--ink)]"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+          </tr>
+          {% endfor %}
+          <tr style="border-top: 2px solid var(--ink-3); font-weight: 600;">
+            <td colspan="2">Totals · 6 subcontractors</td>
+            <td class="text-right num">A$57,610.00</td>
+            <td class="text-right num">A$4,978.09</td>
+            <td class="text-right num">A$52,631.91</td>
+            <td colspan="3"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ABN exception -->
+    <div class="card p-5" style="border: 1px solid var(--warm); background: rgba(255,179,71,.04);">
+      <div class="flex items-start gap-3">
+        <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5" style="color: var(--warm);"></i>
+        <div class="flex-1">
+          <p class="font-medium" style="color: var(--warm);">1 subcontractor missing ABN — Russell Lifting</p>
+          <p class="text-[13px] ink-2 mt-1">Without an ABN on file, the ATO requires you to withhold the top marginal rate (47%) from this payment. <strong>Cumulative A$2,840.00</strong> paid this FY without withholding.</p>
+          <div class="mt-3 grid grid-cols-3 gap-3 text-[12px]">
+            <div class="rounded-md p-2 border hairline bg-white">
+              <p class="ink-3">Option A</p>
+              <p class="font-medium mt-0.5">Request ABN</p>
+              <p class="ink-2 mt-0.5">Email Russell directly with a TFN/ABN Declaration form</p>
+            </div>
+            <div class="rounded-md p-2 border hairline bg-white">
+              <p class="ink-3">Option B</p>
+              <p class="font-medium mt-0.5">Adjust PAYG W</p>
+              <p class="ink-2 mt-0.5">Apply 47% withhold to next bill; report retrospectively</p>
+            </div>
+            <div class="rounded-md p-2 border hairline bg-white">
+              <p class="ink-3">Option C</p>
+              <p class="font-medium mt-0.5">Reclassify</p>
+              <p class="ink-2 mt-0.5">Treat as employee — payroll backfill (rare)</p>
+            </div>
+          </div>
+          <div class="mt-3 flex gap-2">
+            <button class="chip" style="border-color: var(--warm); color: var(--warm);">Send ABN request</button>
+            <button class="chip">Mark as resolved</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Industry rules -->
+    <div class="card p-5">
+      <h3 class="font-medium text-sm mb-3">Industry coverage · why you report TPAR</h3>
+      <p class="text-[13px] ink-2 mb-3">TPAR applies to your account because your primary industry classification is <strong class="font-mono">construction services</strong>. The ATO uses TPAR data to match contractor income reported in their own returns.</p>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Industry</th><th>Reports TPAR?</th><th>Status here</th></tr>
+        </thead>
+        <tbody class="text-[12px]">
+          <tr><td>Building &amp; construction</td><td><span class="pos">Yes</span></td><td class="font-mono pos">Active</td></tr>
+          <tr><td>Cleaning services</td><td><span class="pos">Yes</span></td><td class="ink-3">N/A</td></tr>
+          <tr><td>Courier &amp; road freight</td><td><span class="pos">Yes</span></td><td class="ink-3">N/A</td></tr>
+          <tr><td>IT services</td><td><span class="pos">Yes</span></td><td class="ink-3">N/A</td></tr>
+          <tr><td>Security, investigation, surveillance</td><td><span class="pos">Yes</span></td><td class="ink-3">N/A</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT: side rail -->
+  <aside class="col-span-4 space-y-4">
+
+    <div class="card p-4">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Lodgement</p>
+      <div class="mt-2 text-[12px] space-y-1.5">
+        <div class="flex justify-between"><span class="ink-3">Form</span><span class="font-mono">TPAR · NAT 74109</span></div>
+        <div class="flex justify-between"><span class="ink-3">Method</span><span class="font-medium">ATO DSP (direct)</span></div>
+        <div class="flex justify-between"><span class="ink-3">Identifier</span><span class="font-mono">MyGovID + RAM</span></div>
+        <div class="flex justify-between"><span class="ink-3">Due</span><span class="font-medium">28 Aug 2026</span></div>
+        <div class="flex justify-between"><span class="ink-3">Reporting period</span><span class="font-mono">01 Jul 25 → 30 Jun 26</span></div>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Prior FY comparison</p>
+      <div class="mt-3 grid grid-cols-2 gap-3 text-[12px]">
+        <div>
+          <p class="ink-3">FY25 lodged</p>
+          <p class="font-display text-[18px] num mt-0.5">A$43,210</p>
+          <p class="ink-3 text-[11px] mt-0.5">4 subs</p>
+        </div>
+        <div>
+          <p class="ink-3">FY26 draft</p>
+          <p class="font-display text-[18px] num mt-0.5" style="color: var(--sae);">A$57,610</p>
+          <p class="pos text-[11px] mt-0.5">+33% · 6 subs</p>
+        </div>
+      </div>
+      <div class="mt-3 h-1.5 rounded-full bg-[color:var(--paper-2)] overflow-hidden flex">
+        <div class="h-full" style="width:43%; background: var(--ink-3);"></div>
+        <div class="h-full" style="width:57%; background: var(--sae);"></div>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Pre-lodge checks</p>
+      <ul class="mt-2 space-y-2 text-[12px]">
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>ABN format valid (5 of 6)</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 mt-0.5" style="color: var(--warm);"></i><span>1 supplier without ABN</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>All payments reconciled (bank feed)</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>Industry classification matches ANZSIC</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>No duplicate ABN entries</span></li>
+      </ul>
+    </div>
+
+    <div class="card p-4" style="border: 1px dashed var(--sae);">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="zap" class="w-3.5 h-3.5" style="color: var(--sae);"></i>
+        <p class="text-[11px] uppercase tracking-wider" style="color: var(--sae);">Auto-track for next FY</p>
+      </div>
+      <p class="text-[12px] ink-2 mt-1">SAE Books tags every bill from a registered subcontractor as TPAR-reportable in real time — no end-of-year scramble.</p>
+    </div>
+  </aside>
+</div>
+
+{% endblock %}

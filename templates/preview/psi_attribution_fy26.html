@@ -1,0 +1,482 @@
+{% extends "preview/_layout.html" %}
+{% block title %}PSI attribution & PSB test — FY26 · SAE Books{% endblock %}
+{% block body %}
+<main class="reg-marks dot-grid-soft min-h-screen px-6 pb-24 pt-8">
+  <!-- ============ MASTHEAD ============ -->
+  <header class="mx-auto max-w-[1480px]">
+    <div class="flex items-start justify-between gap-8">
+      <div>
+        <div class="flex items-center gap-3 text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">
+          <span class="rounded-sm border border-[var(--line)] bg-[var(--paper-2)] px-2 py-[3px]">DOC · PSI-184260-26</span>
+          <span>Compliance · Personal services income · attribution &amp; PSB test</span>
+          <span class="text-[var(--ink-3)]">·</span>
+          <span>FY26 self-assessment · prepared 2026-05-11 22:40</span>
+          <span class="text-[var(--ink-3)]">·</span>
+          <span class="text-[var(--pos)]">PSB · results test passed</span>
+        </div>
+        <h1 class="font-display mt-3 text-[40px] leading-[1.04] tracking-[-0.018em]">
+          R Sauer engineering → Sauerland Pty Ltd — Personal Services Business under Div 87.
+        </h1>
+        <p class="mt-2 max-w-[860px] text-[13.5px] leading-[1.55] text-[var(--ink-3)]">
+          PSI rules in <span class="text-[var(--ink)]">ITAA 1997 Part 2-42</span> (Divs 84–87) attribute personal-services
+          income earned through an interposed entity back to the individual unless the entity passes the PSB test.
+          The <span class="text-[var(--ink)]">80% test (s.87-15(3))</span> determines whether the results-test path is
+          mandatory or whether the unrelated-clients / employment / business-premises tests are available. SAE Books runs
+          each limb with the year's actual engagements, deciding the path automatically. Outcome — <span class="text-[var(--ink)]">Sauerland qualifies as a PSB on three independent limbs</span>;
+          no Div 86 attribution applies; income flows through normal company tax.
+        </p>
+      </div>
+      <div class="shrink-0 text-right">
+        <div class="num-stamp text-[11px] uppercase tracking-[0.18em]">
+          <div class="text-[var(--ink-3)]">PSB tests passed</div>
+          <div class="font-display text-[26px] tracking-[-0.01em] text-[var(--pos)]">3 / 4</div>
+          <div class="text-[var(--ink-3)]">results · unrelated · employment</div>
+        </div>
+        <div class="mt-2 flex items-center justify-end gap-3 text-[11px] text-[var(--ink-3)]">
+          <span class="led on"></span><span>PCG 2024/D2 zone · green</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ HEAD STRIP ============ -->
+  <section class="mx-auto mt-8 max-w-[1480px] grid grid-cols-12 gap-5">
+    <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">PSI in FY26</div>
+      <div class="font-display mt-1 text-[28px] tracking-[-0.01em]">A$684,210</div>
+      <div class="mt-1 text-[12px] text-[var(--ink-3)]">Engineering consulting income · gross fees · 89% of company turnover</div>
+    </div>
+    <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">80% test gateway</div>
+      <div class="font-display mt-1 text-[28px] tracking-[-0.01em] text-[var(--pos)]">PASS</div>
+      <div class="mt-1 text-[12px] text-[var(--ink-3)]">Top client RPS 64% &lt; 80% — non-results limbs available</div>
+    </div>
+    <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">PSB determination</div>
+      <div class="font-display mt-1 text-[28px] tracking-[-0.01em] text-[var(--pos)]">Self-assessed</div>
+      <div class="mt-1 text-[12px] text-[var(--ink-3)]">s.87-60 written PSB determination not requested · self-assessment basis</div>
+    </div>
+    <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Tax outcome if attribution applied</div>
+      <div class="font-display mt-1 text-[28px] tracking-[-0.01em] text-[var(--neg)]">+A$84,360</div>
+      <div class="mt-1 text-[12px] text-[var(--ink-3)]">MTR 47% on attributed share vs current 25% company · saving preserved</div>
+    </div>
+  </section>
+
+  <!-- ============ 80% TEST GATEWAY ============ -->
+  <section class="mx-auto mt-10 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">80% test gateway — s.87-15(3)</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">If any single client ≥80% of PSI · results test is the only PSB path</div>
+    </div>
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-4">Client (test individual: R Sauer)</div>
+        <div class="col-span-2">ABN</div>
+        <div class="col-span-2 text-right">Gross fees</div>
+        <div class="col-span-1 text-right">% of PSI</div>
+        <div class="col-span-2 text-right">Engagement type</div>
+        <div class="col-span-1 text-right">Status</div>
+      </div>
+      {% set clients = [
+        ('RPS Drilling Pty Ltd','38 614 218 904','A$437,894','64.0%','Per-project fixed-price','clean'),
+        ('Ararat Engineering Pty Ltd','62 198 614 320','A$143,684','21.0%','Per-project fixed-price','clean'),
+        ('SunWater Limited','46 102 358 421','A$102,632','15.0%','Milestone-billed','clean')
+      ] %}
+      {% for c in clients %}
+      <div class="grid grid-cols-12 items-center px-4 py-[6px] text-[12.5px] border-t border-[var(--line)]">
+        <div class="col-span-4">{{ c[0] }}</div>
+        <div class="col-span-2 num text-[var(--ink-3)]">{{ c[1] }}</div>
+        <div class="col-span-2 num text-right">{{ c[2] }}</div>
+        <div class="col-span-1 num text-right">{{ c[3] }}</div>
+        <div class="col-span-2 text-right text-[var(--ink-3)]">{{ c[4] }}</div>
+        <div class="col-span-1 text-right"><span class="led on"></span></div>
+      </div>
+      {% endfor %}
+      <div class="grid grid-cols-12 items-center px-4 py-[8px] text-[12.5px] border-t border-[var(--line)] bg-[var(--paper-2)] font-medium">
+        <div class="col-span-4">Total PSI</div>
+        <div class="col-span-2"></div>
+        <div class="col-span-2 num text-right">A$684,210</div>
+        <div class="col-span-1 num text-right">100.0%</div>
+        <div class="col-span-2 text-right text-[var(--ink-3)]">3 clients</div>
+        <div class="col-span-1 text-right text-[var(--pos)] text-[10.5px] uppercase tracking-[0.16em]">gate open</div>
+      </div>
+    </div>
+    <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">
+      Top client 64% &lt; 80% → s.87-15(3) gateway open → results test <span class="text-[var(--ink)]">and</span>
+      non-results limbs (unrelated clients · employment · business premises) all available.
+    </div>
+  </section>
+
+  <!-- ============ THE 4 PSB LIMBS ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Personal Services Business — 4 alternative tests (Div 87)</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Pass any one · attribution avoided</div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-12 gap-5">
+      <!-- RESULTS TEST -->
+      <div class="col-span-6 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="flex items-center justify-between">
+          <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Test 1 · Results test · s.87-18</div>
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--pos)]"><span class="led on"></span>&nbsp;PASS 4/4</div>
+        </div>
+        <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">All 3 limbs satisfied for ≥75% of contracts (s.87-18(3) threshold)</div>
+        <table class="mt-3 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">(a) Paid for result · s.87-18(3)(a)</td>
+            <td class="text-right">Per-project lump-sum on milestone</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">(b) Supplies plant/equip · s.87-18(3)(b)</td>
+            <td class="text-right">SolidWorks · Hilux · CAD WS · gauges</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">(c) Liable for rectification · s.87-18(3)(c)</td>
+            <td class="text-right">PI insurance A$5m · contracts cl 14</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr>
+            <td class="py-1">Coverage across contracts</td>
+            <td class="text-right">11 of 11 engagements · 100%</td>
+            <td class="text-right num text-[var(--pos)]">≥75%</td>
+          </tr>
+        </table>
+        <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">
+          Authority · <span class="text-[var(--ink)]">TR 2022/3 ¶22-78</span> · <span class="text-[var(--ink)]">IRG Technical Services v FCT</span> [2007] AATA 178 ·
+          <span class="text-[var(--ink)]">Skiba v FCT</span> [2007] AATA 1705.
+        </div>
+      </div>
+
+      <!-- UNRELATED CLIENTS -->
+      <div class="col-span-6 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="flex items-center justify-between">
+          <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Test 2 · Unrelated clients · s.87-20</div>
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--pos)]"><span class="led on"></span>&nbsp;PASS</div>
+        </div>
+        <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">≥2 unrelated clients + offer-to-public present</div>
+        <table class="mt-3 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">Unrelated clients (s.87-20(1)(a))</td>
+            <td class="text-right">3 — RPS · Ararat · SunWater</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">Offer-to-public · s.87-20(1)(b)</td>
+            <td class="text-right">LinkedIn co. page · saee.com.au · referral</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr>
+            <td class="py-1">Word-of-mouth-only carve-out</td>
+            <td class="text-right">Not relied on — direct advertising present</td>
+            <td class="text-right num text-[var(--pos)]">N/A</td>
+          </tr>
+        </table>
+        <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">
+          Authority · <span class="text-[var(--ink)]">TR 2022/3 ¶80-110</span> · <span class="text-[var(--ink)]">Yalos Engineering v FCT</span> [2009] AATA 11.
+        </div>
+      </div>
+
+      <!-- EMPLOYMENT TEST -->
+      <div class="col-span-6 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="flex items-center justify-between">
+          <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Test 3 · Employment test · s.87-25</div>
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--pos)]"><span class="led on"></span>&nbsp;PASS</div>
+        </div>
+        <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">Engages others performing ≥20% of principal work · market value</div>
+        <table class="mt-3 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">Sub-contractor — J Chen (struct. eng.)</td>
+            <td class="text-right">A$58,420 / A$208,260 design hours</td>
+            <td class="text-right num">28.06%</td>
+          </tr>
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">Threshold · s.87-25(1)(a)</td>
+            <td class="text-right">≥20% of principal work</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">Engaged at market value · s.87-25(2)</td>
+            <td class="text-right">A$165/hr · benchmarked APESB</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr>
+            <td class="py-1">Spouse/associate excluded</td>
+            <td class="text-right">J Chen not an associate · s.318</td>
+            <td class="text-right num text-[var(--pos)]">OK</td>
+          </tr>
+        </table>
+        <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">
+          Authority · <span class="text-[var(--ink)]">TR 2022/3 ¶111-145</span> · <span class="text-[var(--ink)]">Park v FCT</span> [2011] AATA 567.
+        </div>
+      </div>
+
+      <!-- BUSINESS PREMISES -->
+      <div class="col-span-6 rounded-md border border-[var(--line)] bg-[rgba(200,99,31,0.05)] p-5">
+        <div class="flex items-center justify-between">
+          <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Test 4 · Business premises · s.87-30</div>
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--warm)]"><span class="led warn"></span>&nbsp;FAIL</div>
+        </div>
+        <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">Premises not exclusively used — home office shared with residential</div>
+        <table class="mt-3 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">Owned/leased by entity · s.87-30(1)(a)</td>
+            <td class="text-right">Yes — leased portion 23 m²</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">Used for personal services · s.87-30(1)(b)</td>
+            <td class="text-right">Yes</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+          <tr class="border-b border-[var(--line)]">
+            <td class="py-1">Exclusive use · s.87-30(1)(c)</td>
+            <td class="text-right">No — shared family use evenings</td>
+            <td class="text-right num text-[var(--neg)]">FAIL</td>
+          </tr>
+          <tr>
+            <td class="py-1">Physically separate · s.87-30(1)(d)</td>
+            <td class="text-right">Yes — detached studio</td>
+            <td class="text-right num text-[var(--pos)]">PASS</td>
+          </tr>
+        </table>
+        <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">
+          Not material — three other limbs passed independently. Authority · <span class="text-[var(--ink)]">TR 2022/3 ¶146-160</span>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ IF ATTRIBUTION APPLIED ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Counterfactual — if PSB tests had failed (Div 86 attribution mechanics)</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Net attributable income · s.86-20 to s.86-35</div>
+    </div>
+
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-5">Line</div>
+        <div class="col-span-2 text-right">Allowed in entity?</div>
+        <div class="col-span-2 text-right">Amount</div>
+        <div class="col-span-3 text-right">Authority</div>
+      </div>
+      {% set lines = [
+        ('PSI gross fees','—','A$684,210','s.84-5'),
+        ('Less: SG super on R Sauer arm\'s-length salary','Yes','(A$13,068)','s.85-10'),
+        ('Less: deductible salary R Sauer (arm\'s-length engineering rate)','Yes','(A$210,000)','s.85-10 · TR 2022/3 ¶165'),
+        ('Less: J Chen sub-contractor (unrelated)','Yes','(A$58,420)','s.85-20 ordinary trade'),
+        ('Less: PI / WC / public liability insurance','Yes','(A$12,640)','s.85-10'),
+        ('Less: travel between client sites','Yes','(A$7,840)','s.85-10'),
+        ('Less: home office occupancy (not exclusive)','No','—','s.85-15 · TR 2022/3 ¶180'),
+        ('Less: personal MV running costs (LCT-limited)','No','—','s.86-65'),
+        ('Less: payments to associate (spouse admin)','No','—','s.86-60'),
+        ('= Net PSI attributable to R Sauer','—','A$382,242','Div 86')
+      ] %}
+      {% for ln in lines %}
+      <div class="grid grid-cols-12 items-center px-4 py-[6px] text-[12.5px] border-t border-[var(--line)] {% if ln[0]=='= Net PSI attributable to R Sauer' %}bg-[var(--paper-2)] font-medium{% endif %}">
+        <div class="col-span-5">{{ ln[0] }}</div>
+        <div class="col-span-2 text-right">
+          {% if ln[1]=='Yes' %}<span class="text-[var(--pos)]">Yes</span>
+          {% elif ln[1]=='No' %}<span class="text-[var(--neg)]">No</span>
+          {% else %}—{% endif %}
+        </div>
+        <div class="col-span-2 num text-right">{{ ln[2] }}</div>
+        <div class="col-span-3 text-right text-[var(--ink-3)] text-[11.5px]">{{ ln[3] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-5 grid grid-cols-3 gap-4 text-[12.5px]">
+      <div class="rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">If attribution had applied</div>
+        <table class="num mt-2 w-full">
+          <tr><td>Attributable to R Sauer</td><td class="text-right">A$382,242</td></tr>
+          <tr><td>R Sauer MTR (incl Medicare)</td><td class="text-right">47.00%</td></tr>
+          <tr><td>Tax (attribution)</td><td class="text-right">A$179,654</td></tr>
+        </table>
+      </div>
+      <div class="rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">PSB outcome (actual)</div>
+        <table class="num mt-2 w-full">
+          <tr><td>Co. taxable income (post-salary)</td><td class="text-right">A$382,242</td></tr>
+          <tr><td>Co. tax rate (base-rate)</td><td class="text-right">25.00%</td></tr>
+          <tr><td>Tax (company)</td><td class="text-right">A$95,560</td></tr>
+        </table>
+      </div>
+      <div class="rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">PSB saving (timing only)</div>
+        <table class="num mt-2 w-full">
+          <tr><td>Tax delta this year</td><td class="text-right text-[var(--pos)]">A$84,094</td></tr>
+          <tr><td>Note · franked div top-up later</td><td class="text-right">to MTR on payout</td></tr>
+          <tr><td>Substantive saving</td><td class="text-right">deferral / split / retention</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="mt-3 text-[11.5px] text-[var(--ink-3)]">
+      Saving above is a <span class="text-[var(--ink)]">timing</span> benefit unless retained — franked distributions
+      gross up at marginal rate (s.207-20 grossed up; franking credit refundable below MTR). The substantive value of PSB
+      status is access to <span class="text-[var(--ink)]">income-splitting through arm's-length salary &amp; super</span>,
+      <span class="text-[var(--ink)]">retention of working capital</span>, and <span class="text-[var(--ink)]">ordinary
+      deductions outside the s.85 narrow list</span>.
+    </div>
+  </section>
+
+  <!-- ============ PCG 2024/D2 PART IVA RISK ZONE ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">PCG 2024/D2 — Part IVA risk zone (PSI &amp; alienation)</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Even if PSB · alienation through retention/splitting can still attract Pt IVA</div>
+    </div>
+    <div class="mt-4 grid grid-cols-3 gap-4 text-[12.5px]">
+      <div class="rounded-md border border-[rgba(56,142,60,0.3)] bg-[rgba(56,142,60,0.05)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--pos)]">Green · low</div>
+        <ul class="mt-1 list-disc pl-4 space-y-[2px] text-[var(--ink-3)]">
+          <li>≥75% net income paid as salary to test individual</li>
+          <li>Retained earnings &lt;A$50k cumulative</li>
+          <li>No interest-free loans to associates</li>
+          <li>Spouse/associate not on payroll without commercial role</li>
+        </ul>
+        <div class="mt-2 text-[var(--ink)]">Sauerland · 71% salary · A$42k retained · loans Div 7A compliant (Fire 52)</div>
+      </div>
+      <div class="rounded-md border border-[rgba(200,99,31,0.4)] bg-[rgba(200,99,31,0.05)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--warm)]">Amber · moderate</div>
+        <ul class="mt-1 list-disc pl-4 space-y-[2px] text-[var(--ink-3)]">
+          <li>50–75% net income paid as salary</li>
+          <li>Retained earnings A$50k–A$200k cumulative</li>
+          <li>Spouse on payroll with limited evidence of role</li>
+          <li>Distribution to bucket company &gt;20%</li>
+        </ul>
+        <div class="mt-2 text-[var(--ink)]">SAE position — outside amber by margin · zone GREEN</div>
+      </div>
+      <div class="rounded-md border border-[rgba(180,40,40,0.35)] bg-[rgba(180,40,40,0.05)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--neg)]">Red · high</div>
+        <ul class="mt-1 list-disc pl-4 space-y-[2px] text-[var(--ink-3)]">
+          <li>&lt;50% net income paid as salary</li>
+          <li>Retained earnings &gt;A$200k accumulated 3+ yrs</li>
+          <li>Associate on payroll with no commercial role</li>
+          <li>Distributions to trust beneficiaries on low MTR</li>
+        </ul>
+        <div class="mt-2 text-[var(--ink-3)]">Not applicable — not in zone</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ASSOCIATED PARTY ARM'S-LENGTH ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px] grid grid-cols-12 gap-6">
+    <div class="col-span-7 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Arm's-length test individual salary — s.85-10 / TR 2022/3 ¶165</div>
+      <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">R Sauer salary benchmarked against APESB &amp; Engineers Australia 2025 rates · 25-yr experience structural / mining engineering</div>
+      <table class="num mt-3 w-full text-[12.5px]">
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Hays Engineering Salary Guide 2025 · senior</td><td class="text-right">A$195k–A$245k</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Engineers Australia salary survey 2025 (P25–P75)</td><td class="text-right">A$188k–A$236k</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Robert Walters 2025 mining / structural</td><td class="text-right">A$200k–A$260k</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Adopted FY26 R Sauer salary</td><td class="text-right">A$210,000</td></tr>
+        <tr><td class="py-1">Position within band</td><td class="text-right text-[var(--pos)]">Median · defensible</td></tr>
+      </table>
+    </div>
+    <div class="col-span-5 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Spouse / associate payroll exclusion</div>
+      <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">M Sauer (spouse) not on PAYG · paid via trust distribution only · no PSI alienation risk</div>
+      <table class="num mt-3 w-full text-[12.5px]">
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Spouse PAYG salary</td><td class="text-right">Nil</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Spouse director fee</td><td class="text-right">A$8,000 · trustee role</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Spouse distribution · Saueesti Trust</td><td class="text-right">A$250,956 · Fire 55</td></tr>
+        <tr><td class="py-1">PSI alienation risk</td><td class="text-right text-[var(--pos)]">Nil — not deducted in Sauerland</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ MARKET READ ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Market read · PSI / PSB tooling</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Xero / MYOB / Reckon · Australian PSI surface</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-4 text-[12.5px]">
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Xero (Practice Manager + Tax)</div>
+        <div class="mt-2 text-[var(--ink)]">Schedule labels in tax return; no PSB-test workflow.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Tax-agent-driven Q&amp;A at lodgement; client-facing PSI dashboard absent.
+          Self-assessment of PSB lives in the agent's spreadsheet, not in the books.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">MYOB (AE / AO)</div>
+        <div class="mt-2 text-[var(--ink)]">Tax-return checklist; no automated 80% test from GL.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Strong company tax workflow but PSI is asked via checklist — the
+          underlying client mix isn't computed against the GL party-graph automatically.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Reckon APS</div>
+        <div class="mt-2 text-[var(--ink)]">PSI labels at lodgement; manual workpapers for PSB.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Engineered for tax-return assembly. No live PSB-test panel year-round.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">SAE Books · this surface</div>
+        <div class="mt-2 text-[var(--ink)]">Live PSB-test panel re-computed nightly against GL party-graph.</div>
+        <div class="mt-2 text-[var(--ink-3)]">If RPS billings tip past 80% mid-year, the panel alerts and the results-test
+          path narrows automatically — restructure (engage J Chen on RPS work, or add a 4th client) before EOFY rather than
+          after.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AUTHORITY PACK ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Authority pack</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Statute · rulings · cases</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-6 text-[12px] leading-[1.55]">
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Statute</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li>ITAA 1997 <span class="text-[var(--ink)]">s.84-5</span> · PSI definition</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">Div 85</span> · entity deduction limits</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">Div 86</span> · attribution</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">Div 87</span> · PSB tests</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">s.87-15(3)</span> · 80% gateway</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">s.87-18 / 20 / 25 / 30</span> · 4 tests</li>
+          <li>ITAA 1936 <span class="text-[var(--ink)]">Pt IVA</span> · alienation general</li>
+          <li>ITAA 1936 <span class="text-[var(--ink)]">s.318</span> · associate</li>
+        </ul>
+      </div>
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">ATO rulings &amp; PCG</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li><span class="text-[var(--ink)]">TR 2022/3</span> · PSI &amp; PSB current ruling</li>
+          <li><span class="text-[var(--ink)]">TR 2003/10</span> · alienation Pt IVA</li>
+          <li><span class="text-[var(--ink)]">IT 2503 · IT 2639</span> · personal services historic</li>
+          <li><span class="text-[var(--ink)]">PCG 2024/D2</span> · PSI Pt IVA risk zones</li>
+          <li><span class="text-[var(--ink)]">PCG 2021/4</span> · professional firm profits</li>
+          <li><span class="text-[var(--ink)]">PS LA 2005/22</span> · PSB self-assessment</li>
+          <li><span class="text-[var(--ink)]">s.87-60 written PSB determination</span></li>
+          <li><span class="text-[var(--ink)]">NAT 72510</span> · PSI workbook</li>
+        </ul>
+      </div>
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Cases</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li><span class="text-[var(--ink)]">IRG Technical Services v FCT</span> [2007] AATA 178 · results</li>
+          <li><span class="text-[var(--ink)]">Skiba v FCT</span> [2007] AATA 1705 · results limbs</li>
+          <li><span class="text-[var(--ink)]">Park v FCT</span> [2011] AATA 567 · employment test</li>
+          <li><span class="text-[var(--ink)]">Yalos Engineering v FCT</span> [2009] AATA 11 · unrelated</li>
+          <li><span class="text-[var(--ink)]">Cameron Brae v FCT</span> [2007] FCAFC 135 · alienation</li>
+          <li><span class="text-[var(--ink)]">Fortunatow v FCT</span> [2020] FCAFC 139 · unrelated &amp; offer</li>
+          <li><span class="text-[var(--ink)]">Douglass v FCT</span> [2019] AATA 4392 · results</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mx-auto mt-14 max-w-[1480px] border-t border-[var(--line)] pt-4 text-[11px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
+    <div class="flex justify-between">
+      <div>PSI-184260-26 · 80% gate open · 3 PSB limbs pass · zone green · prepared 2026-05-11 22:40</div>
+      <div>SAE BOOKS · /preview/compliance/psi-attribution/fy26</div>
+    </div>
+  </footer>
+</main>
+{% endblock %}

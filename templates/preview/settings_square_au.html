@@ -1,0 +1,352 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}Square Australia — Integrations — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .row-cell td { padding: 9px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .row-cell:first-child td { border-top: 0; }
+  .device-card { border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider">
+        <a href="/preview/settings" class="hover:text-[color:var(--sae)]">Settings</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <a href="/preview/settings#integrations" class="hover:text-[color:var(--sae)]">Integrations</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>Square Australia</span>
+        <span class="ml-2 chip-mini pos"><i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i>connected</span>
+        <span class="chip-mini">3 devices</span>
+        <span class="chip-mini sae">tap-to-pay on iPhone</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">Square Australia</h1>
+      <p class="ink-2 text-[13.5px] mt-1 max-w-3xl">
+        On-site card acceptance for site visits, callouts, and field service. Two Square Terminals (workshop + ute), one Square Reader (Bowen),
+        and Tap-to-Pay on iPhone for Sarah. Funds settle next business day to <a href="/preview/settings/banking/cba" class="sae hover:underline">CBA Business Transaction ****6841</a>.
+      </p>
+      <div class="flex items-center gap-3 mt-2 text-[11.5px] ink-3 flex-wrap">
+        <span>Square AU Pty Ltd · ABN <span class="num">38 167 106 176</span></span><span>·</span>
+        <span>Merchant <span class="num">MLR4ZE2K4Z3VS</span></span><span>·</span>
+        <span>Location AU-AUS-Cairns-01</span><span>·</span>
+        <span>AUSTRAC <span class="num">DCE100618189-001</span></span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <a href="https://squareup.com/dashboard" class="btn-secondary"><i data-lucide="external-link" class="w-4 h-4"></i>Square Dashboard</a>
+      <div class="text-right text-[10.5px] ink-3">
+        <div>OAuth scopes: <span class="num">PAYMENTS_READ · ORDERS_READ · CUSTOMERS_READ · DEVICE_CREDENTIAL_MANAGEMENT</span></div>
+        <div>connected 14 Aug 2024 · R. Sauer</div>
+      </div>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 text-[12px]">
+  {% set kpis = [
+    ('Volume FY26', 'A$84,420', '184 transactions · 28 callouts', 'banknote', 'ink'),
+    ('Effective fee', '1.72%', 'A$1,452.02 · domestic Visa/MC card-present', 'percent', 'ink-2'),
+    ('Last payout', 'A$2,184.20', 'PO-SQ-1842 · CBA · today 03:14 AEST', 'arrow-down-to-line', 'pos'),
+    ('Devices', '4', '2 Terminal · 1 Reader · 1 Tap-iPhone', 'cpu', 'ink'),
+    ('Disputes', '0', 'no chargebacks FY26', 'shield-check', 'pos'),
+  ] %}
+  {% for label, val, sub, icon, tone in kpis %}
+    <div class="card p-3.5">
+      <div class="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider ink-3"><i data-lucide="{{ icon }}" class="w-3 h-3"></i>{{ label }}</div>
+      <div class="num text-[18px] mt-1 {% if tone == 'pos' %}pos{% elif tone == 'warm' %}warm{% elif tone == 'ink-2' %}ink-2{% endif %}">{{ val }}</div>
+      <div class="text-[10.5px] ink-3 mt-0.5">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- LEFT 2/3 -->
+  <div class="lg:col-span-2 space-y-6">
+
+    <!-- Fees table -->
+    <section class="card">
+      <header class="px-5 py-3.5 border-b hairline flex items-baseline justify-between">
+        <div>
+          <h2 class="font-display text-[18px]">Card-present rates · Australia</h2>
+          <p class="text-[11.5px] ink-3">Square AU domestic rates per <a href="https://squareup.com/au/en/pricing" class="sae hover:underline">squareup.com/au/pricing</a>. AU surcharging follows RBA Standard No 3 — cost of acceptance only, no upcharge.</p>
+        </div>
+        <span class="chip-mini sae">RBA No 3 compliant</span>
+      </header>
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10px] font-mono uppercase tracking-wider ink-3 text-left">
+            <th class="px-3 py-2 border-b hairline">Method</th>
+            <th class="px-3 py-2 border-b hairline">Acceptance</th>
+            <th class="px-3 py-2 border-b hairline">Fee</th>
+            <th class="px-3 py-2 border-b hairline">Surcharge (passed on)</th>
+            <th class="px-3 py-2 border-b hairline">Volume FY26</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set methods = [
+            ('eftpos (savings/cheque)', 'Tap · insert · swipe',  '1.1%',   'no (under cap)',         'A$24,180'),
+            ('Visa / Mastercard',      'Tap · insert · swipe',  '1.6%',   '1.5% (RBA No 3)',        'A$48,420'),
+            ('AmEx',                   'Tap · insert',          '1.6%',   '2.9% (cost-of-acceptance)','A$4,820'),
+            ('Apple Pay / Google Pay', 'NFC tokenised',         '1.6%',   'matches card-of-record', 'A$5,840'),
+            ('JCB / Diners / UnionPay', 'Tap · insert',         '1.9%',   '1.9% (Tier 2)',          'A$420'),
+            ('Manual entry (MOTO)',    'keyed-in card',         '1.9%',   '1.9% (CNP)',             'A$740'),
+            ('Invoice paid online',    'Square Invoice link',   '1.6% + A$0.30','disabled',         'disabled'),
+          ] %}
+          {% for method, accept, fee, surch, vol in methods %}
+          <tr class="row-cell hover:bg-[color:var(--paper-2)]">
+            <td><div class="font-medium ink">{{ method }}</div></td>
+            <td class="text-[11.5px] ink-3">{{ accept }}</td>
+            <td><span class="num">{{ fee }}</span></td>
+            <td class="text-[11.5px] ink-2">{{ surch }}</td>
+            <td class="num text-[11.5px] {% if vol == 'disabled' %}ink-3{% endif %}">{{ vol }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="px-5 py-3 border-t hairline text-[11px] ink-3 flex items-start gap-2">
+        <i data-lucide="info" class="w-3.5 h-3.5 mt-0.5"></i>
+        Square fees are <strong>GST-free</strong> per <a class="sae hover:underline" href="#">GSTR 2014/D2</a> (financial supply). Surcharges collected from customers are taxable supplies in their own right and post to <span class="num">6-512 Card surcharge income</span>.
+      </div>
+    </section>
+
+    <!-- Devices -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">Connected devices</h2>
+        <span class="chip-mini"><i data-lucide="signal" class="w-2.5 h-2.5"></i>4 online · last seen ≤ 4 min</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        {% set devices = [
+          ('Square Terminal', 'TRM-2014',   'Workshop · counter',   'D-AU-T2-184293', 'firmware 2026.04.2', '4 min ago', '127 txns FY26'),
+          ('Square Terminal', 'TRM-1842',   'Ute · field 02',       'D-AU-T2-201184', 'firmware 2026.04.2', '14 min ago','48 txns FY26'),
+          ('Square Reader (BT)', 'RDR-0048','Bowen · client site',  'D-AU-R2-184820', 'firmware 1.84.3',    '2h ago',    '6 txns FY26'),
+          ('Tap-to-Pay iPhone','S. Wong iPhone 15','Sarah · sales calls','iOS 18.4 · TP-AU-v2.1', 'paired 14 Aug 2024', 'now','3 txns FY26'),
+        ] %}
+        {% for type, serial, location, dev_id, firmware, seen, vol in devices %}
+          <div class="device-card">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <div class="font-medium text-[12.5px]">{{ type }}</div>
+                <div class="num text-[10.5px] ink-3">{{ serial }} · {{ location }}</div>
+              </div>
+              <span class="chip-mini pos"><i data-lucide="dot" class="w-2.5 h-2.5"></i>online</span>
+            </div>
+            <div class="text-[11px] ink-2 space-y-0.5">
+              <div class="flex justify-between"><span class="ink-3">Device ID</span><span class="num">{{ dev_id }}</span></div>
+              <div class="flex justify-between"><span class="ink-3">Firmware</span><span class="num">{{ firmware }}</span></div>
+              <div class="flex justify-between"><span class="ink-3">Last seen</span><span>{{ seen }}</span></div>
+              <div class="flex justify-between"><span class="ink-3">Volume</span><span class="num">{{ vol }}</span></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Recent transactions -->
+    <section class="card">
+      <header class="px-5 py-3.5 border-b hairline flex items-baseline justify-between">
+        <div>
+          <h2 class="font-display text-[18px]">Recent card-present transactions</h2>
+          <p class="text-[11.5px] ink-3">Each txn becomes a receipt + cashbook line via the <a href="/preview/settings/bank-feed-rules" class="sae hover:underline">Square AU rule (R-12)</a>. Match-to-bank lands on T+1 payout.</p>
+        </div>
+        <a href="#" class="text-[11.5px] sae hover:underline">All 184 txns →</a>
+      </header>
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10px] font-mono uppercase tracking-wider ink-3 text-left">
+            <th class="px-3 py-2 border-b hairline">Time</th>
+            <th class="px-3 py-2 border-b hairline">Device</th>
+            <th class="px-3 py-2 border-b hairline">Customer</th>
+            <th class="px-3 py-2 border-b hairline">Method</th>
+            <th class="px-3 py-2 border-b hairline">Net</th>
+            <th class="px-3 py-2 border-b hairline">Surcharge</th>
+            <th class="px-3 py-2 border-b hairline">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set txns = [
+            ('Today 14:18', 'TRM-2014', 'Walk-in · J-2604',     'Visa **** 4818 · tap',  '420.00', '6.30',  'captured'),
+            ('Today 11:42', 'TRM-1842', 'Bowen Crane Hire',     'eftpos savings · tap',  '184.20', '0.00',  'captured'),
+            ('Today 09:08', 'iPhone',   'Sarah · CCB Cairns',   'AmEx **** 1004 · tap',  '1,840.00','53.36','captured'),
+            ('Yesterday',   'TRM-2014', 'Walk-in · INV-00027',  'Visa **** 0184 · ins',  '320.00', '4.80',  'captured'),
+            ('Yesterday',   'RDR-0048', 'Bowen on-site',        'Mastercard tap',        '184.40', '2.77',  'captured'),
+            ('10 May 16:42','TRM-1842', 'Refund · J-2598',      'Visa **** 9119 · refund','-220.00','-3.30', 'refunded'),
+          ] %}
+          {% for ts, dev, cust, method, net, surch, status in txns %}
+          <tr class="row-cell hover:bg-[color:var(--paper-2)]">
+            <td class="text-[11.5px] ink-2">{{ ts }}</td>
+            <td class="num text-[11px]">{{ dev }}</td>
+            <td class="text-[12px]">{{ cust }}</td>
+            <td class="text-[11.5px] ink-2">{{ method }}</td>
+            <td class="num text-[12px] tabular-nums {% if '-' in net %}neg{% endif %}">A${{ net }}</td>
+            <td class="num text-[11px] tabular-nums ink-2">A${{ surch }}</td>
+            <td>{% if status == 'captured' %}<span class="chip-mini pos">captured</span>{% else %}<span class="chip-mini warm">refunded</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Posting flow -->
+    <section class="card p-5">
+      <h2 class="font-display text-[18px] mb-3">Square txn → ledger posting</h2>
+      <ol class="text-[12px] space-y-2.5">
+        <li class="flex items-start gap-3">
+          <span class="num-stamp">1</span>
+          <div><span class="ink">Card-present capture</span> on TRM-2014 · A$420 + A$6.30 surcharge · 3-DS bypassed (card-present)</div>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="num-stamp">2</span>
+          <div><span class="ink">Webhook payment.created</span> → SAE Books · receipt RCT-00185 generated · matched to invoice INV-00027</div>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="num-stamp">3</span>
+          <div><span class="ink">DR 2-180</span> Square clearing A$426.30 · <span class="ink">CR 1-110</span> A/R A$420 · <span class="ink">CR 6-512</span> Card surcharge income A$5.73 (ex GST) + <span class="ink">CR 2-410 GST collected</span> A$0.57</div>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="num-stamp">4</span>
+          <div><span class="ink">Webhook payout.sent</span> next business day · PO-SQ-1843 · A$2,184.20 net of A$32.10 fees</div>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="num-stamp">5</span>
+          <div><span class="ink">CBA feed lands</span> the payout · auto-match score 0.998 · <span class="ink">DR 1-100 CBA Trans</span> · <span class="ink">CR 2-180 Square clearing</span> · fee posts to <span class="num">6-510 Merchant fees</span> (GST-free)</div>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="num-stamp">6</span>
+          <div><span class="ink">BAS rollup</span> · surcharge income → G1, GST → 1A; fees N-T (GST-free supply, no G14 hit)</div>
+        </li>
+      </ol>
+      <style>.num-stamp { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10px; padding: 1px 5px; border: 1px dashed var(--line); border-radius: 3px; color: var(--ink-2); background: var(--paper-2); margin-top: 1px; min-width: 18px; text-align: center; }</style>
+    </section>
+  </div>
+
+  <!-- RIGHT col -->
+  <div class="space-y-6">
+    <!-- AU compliance -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">AU compliance</h2>
+      <ul class="text-[11.5px] space-y-2.5">
+        <li class="flex items-start gap-2"><i data-lucide="landmark" class="w-3.5 h-3.5 sae mt-0.5"></i><div><span class="ink">RBA Standard No 3</span> · cost-of-acceptance only · effective 1.84% blended → 1.50% applied · 0.34pp headroom</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="shield" class="w-3.5 h-3.5 sae mt-0.5"></i><div><span class="ink">AUSTRAC DCE-100618189</span> · CDD on merchant onboarding · transaction monitoring ATM2 program</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 sae mt-0.5"></i><div><span class="ink">GSTR 2014/D2</span> · Square fees treated as GST-free financial supply input · no G14 reporting</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="lock" class="w-3.5 h-3.5 sae mt-0.5"></i><div><span class="ink">PCI-DSS Level 1</span> · P2PE on Terminal · no card data touches SAE Books · tokenised customer IDs only</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="user-check" class="w-3.5 h-3.5 sae mt-0.5"></i><div><span class="ink">ePayments Code part 5</span> · unauthorised txn dispute window 21d · pass-through to Square</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="globe" class="w-3.5 h-3.5 sae mt-0.5"></i><div><span class="ink">Data residency</span> · AU + US dual-region · AWS ap-southeast-2 primary</div></li>
+      </ul>
+    </section>
+
+    <!-- Payouts -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">Recent payouts → CBA</h2>
+        <span class="chip-mini">T+1 standard</span>
+      </div>
+      <ul class="text-[12px] space-y-2.5">
+        <li class="flex items-baseline justify-between border-b hairline pb-2">
+          <div>
+            <div class="num text-[11.5px]">PO-SQ-1842</div>
+            <div class="text-[10.5px] ink-3">today 03:14 AEST · 6 txns</div>
+          </div>
+          <div class="num text-[12px] pos">A$2,184.20</div>
+        </li>
+        <li class="flex items-baseline justify-between border-b hairline pb-2">
+          <div>
+            <div class="num text-[11.5px]">PO-SQ-1841</div>
+            <div class="text-[10.5px] ink-3">yesterday 03:14 · 4 txns</div>
+          </div>
+          <div class="num text-[12px] pos">A$684.40</div>
+        </li>
+        <li class="flex items-baseline justify-between border-b hairline pb-2">
+          <div>
+            <div class="num text-[11.5px]">PO-SQ-1840</div>
+            <div class="text-[10.5px] ink-3">09 May 03:14 · 2 txns · 1 refund</div>
+          </div>
+          <div class="num text-[12px] pos">A$184.20</div>
+        </li>
+        <li class="flex items-baseline justify-between">
+          <div>
+            <div class="num text-[11.5px]">PO-SQ-1839</div>
+            <div class="text-[10.5px] ink-3">08 May 03:14 · 11 txns</div>
+          </div>
+          <div class="num text-[12px] pos">A$3,820.10</div>
+        </li>
+      </ul>
+      <div class="text-[11px] ink-3 mt-3"><i data-lucide="info" class="w-3 h-3 inline align-middle"></i> Instant deposit available 24/7 at <span class="num">1.5% + A$0.50</span> — currently disabled (standard T+1 settles in time).</div>
+    </section>
+
+    <!-- Square vs Stripe AU -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Square vs Stripe AU — fit</h2>
+      <div class="text-[12px] space-y-2">
+        <div class="grid grid-cols-3 text-[10px] font-mono uppercase tracking-wider ink-3 border-b hairline pb-1.5">
+          <div></div><div>Square AU</div><div><a href="/preview/settings/integrations/stripe-au" class="sae hover:underline">Stripe AU →</a></div>
+        </div>
+        {% set comp = [
+          ('Use case',       'Card-present · site',  'Online · invoice'),
+          ('Card-present',   '1.6% blended',          'n/a'),
+          ('Online card',    '1.6% + A$0.30',         '1.7% + A$0.30'),
+          ('Settlement',     'T+1 daily',             'T+2 standard'),
+          ('eftpos savings', 'yes · 1.1%',            'no'),
+          ('Hardware',       'Terminal · Reader · TP-iPhone', 'none'),
+          ('FY26 volume',    'A$84,420',              'A$284,420'),
+        ] %}
+        {% for label, sq, st in comp %}
+          <div class="grid grid-cols-3 gap-2 py-1 border-b hairline last:border-b-0">
+            <div class="ink-3">{{ label }}</div>
+            <div class="ink num text-[11.5px]">{{ sq }}</div>
+            <div class="ink-2 num text-[11.5px]">{{ st }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Webhooks -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Webhooks</h2>
+      <ul class="text-[11.5px] space-y-2">
+        <li class="flex items-center justify-between"><span>payment.created</span><span class="chip-mini pos">184 OK · 0 fail</span></li>
+        <li class="flex items-center justify-between"><span>payment.updated</span><span class="chip-mini pos">94 OK</span></li>
+        <li class="flex items-center justify-between"><span>refund.created</span><span class="chip-mini pos">3 OK</span></li>
+        <li class="flex items-center justify-between"><span>payout.sent</span><span class="chip-mini pos">42 OK</span></li>
+        <li class="flex items-center justify-between"><span>device.code.paired</span><span class="chip-mini pos">4 OK</span></li>
+        <li class="flex items-center justify-between"><span>dispute.created</span><span class="chip-mini">0</span></li>
+        <li class="flex items-center justify-between"><span>customer.created</span><span class="chip-mini pos">28 OK</span></li>
+      </ul>
+      <div class="text-[10.5px] ink-3 mt-3 num">endpoint <span class="ink-2">webhooks.saebooks.com.au/v1/square/au</span></div>
+      <div class="text-[10.5px] ink-3 num">signing key <span class="ink-2">whsec_3a…b842</span> · rotated 02 Apr 2026</div>
+    </section>
+
+    <!-- Audit -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Audit trail</h2>
+      <ul class="text-[11.5px] space-y-2.5">
+        <li class="flex items-start gap-2"><i data-lucide="zap" class="w-3 h-3 pos mt-0.5"></i><div><span class="ink">payout PO-SQ-1842 received</span> · A$2,184.20 · <span class="ink-3">today 03:14</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="credit-card" class="w-3 h-3 mt-0.5"></i><div><span class="ink">TRM-2014 firmware updated</span> · 2026.04.2 · <span class="ink-3">04 May by system</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="key" class="w-3 h-3 warm mt-0.5"></i><div><span class="ink">Webhook signing key rotated</span> · whsec_3a…b842 · <span class="ink-3">02 Apr 2026 by R. Sauer</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="cpu" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Tap-to-Pay paired</span> · S. Wong iPhone 15 · <span class="ink-3">14 Mar 2026</span></div></li>
+        <li class="flex items-start gap-2"><i data-lucide="plug" class="w-3 h-3 mt-0.5"></i><div><span class="ink">Square OAuth connected</span> · scopes granted · <span class="ink-3">14 Aug 2024 by R. Sauer</span></div></li>
+      </ul>
+    </section>
+
+    <!-- Related -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Related</h2>
+      <ul class="space-y-1.5 text-[12.5px]">
+        <li><a href="/preview/settings/integrations/stripe-au" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="credit-card" class="w-3.5 h-3.5 ink-3"></i>Stripe AU integration</a></li>
+        <li><a href="/preview/settings/banking/cba" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="banknote" class="w-3.5 h-3.5 ink-3"></i>CBA Business Transaction</a></li>
+        <li><a href="/preview/settings/bank-feed-rules" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="wand-sparkles" class="w-3.5 h-3.5 ink-3"></i>Rule R-12 Square AU</a></li>
+        <li><a href="/preview/settings/chart-of-accounts" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="list-tree" class="w-3.5 h-3.5 ink-3"></i>2-180 Square clearing</a></li>
+        <li><a href="/preview/cashbook/receipts/rct-00184" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="scan-line" class="w-3.5 h-3.5 ink-3"></i>Receipt detail example</a></li>
+        <li><a href="/preview/compliance/bas-prep" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="landmark" class="w-3.5 h-3.5 ink-3"></i>BAS prep · G1 + 1A</a></li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,296 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'contacts' %}
+{% block page_title %}Dale Maxwell Electrical · Contact · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start gap-4">
+    <span class="w-14 h-14 rounded-md flex items-center justify-center text-white font-display text-[24px]" style="background: #1A4E8B;">D</span>
+    <div class="flex-1">
+      <div class="flex items-center gap-3 mb-1.5">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Contact · Subcontractor · TPAR-reportable</span>
+      </div>
+      <h1 class="font-display text-[32px] leading-[1.05] font-medium">
+        Dale Maxwell Electrical <span class="italic" style="color: var(--sae);">— Pty Ltd</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">D. Maxwell Electrical Services Pty Ltd · ABN 72 184 593 401 · ACN 184 593 401 · Master electrician licence QLD EC-184593 · GST registered since 04 Apr 2018 · primary trade: industrial controls &amp; switchboard</p>
+      <div class="mt-2 flex items-center gap-2 flex-wrap">
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>ABR active · ABN OK</span>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>GST registered</span>
+        <span class="badge"><i data-lucide="hard-hat" class="w-3 h-3"></i>TPAR-reportable · 8 bills FY26</span>
+        <span class="badge"><i data-lucide="shield-check" class="w-3 h-3"></i>Public liability A$20m</span>
+        <span class="badge"><i data-lucide="check-circle-2" class="w-3 h-3" style="color: var(--pos);"></i>WHS induction · 12 Mar 2026</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/contacts" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Contacts</a>
+      <button class="chip"><i data-lucide="receipt" class="w-3.5 h-3.5"></i>New bill</button>
+      <button class="chip"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i>Assign to job</button>
+      <button class="btn-primary"><i data-lucide="send" class="w-4 h-4"></i>Send RFQ</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">FY26 paid</p>
+    <p class="font-display text-[24px] mt-1 num">A$18,420</p>
+    <p class="text-[11px] ink-3 mt-1">8 bills · net A$16,745.45 ex GST</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Open balance</p>
+    <p class="font-display text-[24px] mt-1 num">A$2,420</p>
+    <p class="text-[11px] ink-3 mt-1">2 bills · due 18 May</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Avg pay cycle</p>
+    <p class="font-display text-[24px] mt-1 num">22 d</p>
+    <p class="text-[11px] ink-3 mt-1">Terms 30 net · 8 d under</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">TPAR liability</p>
+    <p class="font-display text-[24px] mt-1 num">A$18,420</p>
+    <p class="text-[11px] ink-3 mt-1">Form NAT 74109 · 28 Aug 2026</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Quality score</p>
+    <p class="font-display text-[24px] mt-1 num" style="color: var(--pos);">A+</p>
+    <p class="text-[11px] ink-3 mt-1">0 defects · 8/8 on-time</p>
+  </div>
+</div>
+
+<!-- Identity verification + payment terms -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+  <div class="lg:col-span-2 card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h2 class="font-display text-[18px]">Identity &amp; entity verification</h2>
+        <p class="text-[12px] ink-3">Live-checked against the ABR, ASIC connect, and trade-licence registers · re-verified on every bill</p>
+      </div>
+      <span class="text-[11px] font-mono ink-3">Last refresh 04 May 2026 09:14 AEST</span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-[12.5px]">
+      <div class="flex items-start gap-2 pt-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">ABR — ABN 72 184 593 401</div>
+          <div class="ink-3 text-[11px] font-mono">Status: Active · entity type: Australian Private Company · effective 02 Apr 2018 · last AbrXml v2025-10</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-2 pt-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">GST registration</div>
+          <div class="ink-3 text-[11px] font-mono">Registered for GST since 04 Apr 2018 · monthly cycle since 01 Jul 2024 (turnover &gt; A$20m threshold not met — voluntary)</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-2 pt-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">ASIC company extract</div>
+          <div class="ink-3 text-[11px] font-mono">ACN 184 593 401 · status: Registered · sole director Dale R. Maxwell · review fee paid 14 Sep 2025 · solvency resolution lodged</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-2 pt-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">QBCC licence — Electrical contractor</div>
+          <div class="ink-3 text-[11px] font-mono">EC-184593 · class 1 unrestricted · effective 11 Jul 2018 · renewal 11 Jul 2026 (warm · 62 d) · public-record check ok</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-2 pt-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">Workers compensation</div>
+          <div class="ink-3 text-[11px] font-mono">WorkCover QLD policy 1184593 · 4 employees declared · currency cert 31 Mar 2026 → 30 Mar 2027</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-2 pt-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">Public liability cert</div>
+          <div class="ink-3 text-[11px] font-mono">CGU Insurance · A$20m PL + A$10m product · cert 12 Mar 2026 → 12 Mar 2027 · stored on file</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-2 pt-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">Bank account · DE-name match</div>
+          <div class="ink-3 text-[11px] font-mono">CBA BSB 064-129 acc ••4129 · DE name "D MAXWELL ELECTRICAL" matches ABN entity · APCA PayTo agreement on file</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-2 pt-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">ATO disclosable debt</div>
+          <div class="ink-3 text-[11px] font-mono">No CCR-disclosable debt reported · last sync via DPN bureau 02 May 2026 · supplier safe to engage</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-[11px] ink-3 mt-4 pt-3 border-t" style="border-color: var(--line);">
+      Verification log retained 7 years per FW Reg 24(3) + s.286. <a href="#audit" class="underline">View full audit trail →</a>
+    </p>
+  </div>
+
+  <aside class="card p-5">
+    <h3 class="font-display text-[16px] mb-3">Payment terms · withholding</h3>
+    <dl class="text-[12.5px] space-y-2">
+      <div class="flex justify-between"><dt class="ink-3">Default terms</dt><dd>Net 30 from invoice</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Early-pay discount</dt><dd>1.5% if paid &lt; 10 d</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Pay method</dt><dd>BECS DD · weekly batch Tue</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Approval workflow</dt><dd>2-step over A$3,000</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Retention</dt><dd>5% for 12 m on jobs &gt; A$10k</dd></div>
+      <div class="border-t pt-2 mt-2" style="border-color: var(--line);">
+        <div class="flex justify-between"><dt class="ink-3">PAYG withholding</dt><dd>None · ABN supplied</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">If ABN missing</dt><dd class="font-mono text-[11px]">47% no-ABN WH</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Voluntary agreement</dt><dd>Not in place</dd></div>
+      </div>
+    </dl>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">
+      Supplier is GST-registered and TPAR-reportable. No PAYG-W applies. <a href="/preview/compliance/tpar" class="underline">→ TPAR FY26</a>
+    </p>
+  </aside>
+</div>
+
+<!-- Bills + AP ledger -->
+<div class="card p-0 overflow-hidden mb-6">
+  <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--line);">
+    <div>
+      <h2 class="font-display text-[18px]">Bills · FY26</h2>
+      <p class="text-[12px] ink-3">8 bills total · 6 paid · 2 open · all bills GST-credited 1B</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="chip text-[11px]"><i data-lucide="plus" class="w-3 h-3"></i>New bill</button>
+      <button class="chip text-[11px]"><i data-lucide="download" class="w-3 h-3"></i>Export</button>
+    </div>
+  </div>
+  <table class="w-full text-[12.5px]">
+    <thead style="background: var(--paper-2);">
+      <tr class="text-left text-[11px] uppercase tracking-wider ink-3">
+        <th class="px-4 py-2">Bill</th>
+        <th class="py-2">Date</th>
+        <th class="py-2">Job</th>
+        <th class="py-2 text-right">Net</th>
+        <th class="py-2 text-right">GST</th>
+        <th class="py-2 text-right pr-3">Gross</th>
+        <th class="py-2">Status</th>
+        <th class="py-2 pr-4">TPAR</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set bills = [
+        ('BILL-1842','12 May 2026','J-2603 Bowen Wharf · switchboard refit',  '1,420.00','142.00','1,562.00','open · due 11 Jun',  '#C89B3C', 'reportable'),
+        ('BILL-1839','03 May 2026','J-2598 Ammonia plant · MCC #4',           '780.00','78.00','858.00','open · due 02 Jun',     '#C89B3C', 'reportable'),
+        ('BILL-1828','22 Apr 2026','J-2598 Ammonia plant · MCC #4',           '3,420.00','342.00','3,762.00','paid · 11 May',     '#3E7A4E', 'reportable'),
+        ('BILL-1819','11 Apr 2026','J-2587 Conveyor MCC upgrade',             '4,820.00','482.00','5,302.00','paid · 03 May',     '#3E7A4E', 'reportable'),
+        ('BILL-1806','02 Apr 2026','J-2587 Conveyor MCC upgrade',             '1,840.00','184.00','2,024.00','paid · 24 Apr',     '#3E7A4E', 'reportable'),
+        ('BILL-1798','18 Mar 2026','Workshop indirect · meter swap',          '420.00','42.00','462.00','paid · 11 Apr',          '#3E7A4E', 'reportable'),
+        ('BILL-1782','24 Feb 2026','J-2562 Tank weld · earth bonding',        '1,640.00','164.00','1,804.00','paid · 18 Mar',     '#3E7A4E', 'reportable'),
+        ('BILL-1765','12 Jan 2026','J-2548 Service truck · loomwork',         '4,080.00','408.00','4,488.00','paid · 04 Feb',     '#3E7A4E', 'reportable'),
+        ('BILL-1742','04 Dec 2025','J-2519 Diesel genset · changeover',       '160.00','16.00','176.00','paid · 28 Dec',          '#3E7A4E', 'reportable'),
+      ] %}
+      {% for ref, d, job, net, gst, gross, status, col, tpar in bills %}
+      <tr class="border-t hover:bg-[var(--paper-2)]" style="border-color: var(--line);">
+        <td class="px-4 py-2"><a href="/preview/bills/bill-1842" class="font-mono text-[11px] hover:underline" style="color: var(--brand-2);">{{ ref }}</a></td>
+        <td class="py-2 ink-2">{{ d }}</td>
+        <td class="py-2 text-[11px]">{{ job }}</td>
+        <td class="py-2 text-right num">{{ net }}</td>
+        <td class="py-2 text-right num ink-3 text-[11px]">{{ gst }}</td>
+        <td class="py-2 text-right pr-3 num font-medium">{{ gross }}</td>
+        <td class="py-2 text-[11px]"><span class="inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full" style="background: {{ col }};"></span>{{ status }}</span></td>
+        <td class="py-2 pr-4"><span class="badge" style="font-size: 10px;">{{ tpar }}</span></td>
+      </tr>
+      {% endfor %}
+      <tr style="background: var(--paper-2); font-weight: 600;">
+        <td colspan="3" class="px-4 py-2">FY26 totals · 8 bills + 1 carry-forward FY25</td>
+        <td class="py-2 text-right num">18,580.00</td>
+        <td class="py-2 text-right num">1,858.00</td>
+        <td class="py-2 text-right pr-3 num">20,438.00</td>
+        <td colspan="2" class="ink-3 text-[11px]">A$18,420.00 falls in FY26 reporting window</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TPAR + audit + contacts -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">TPAR reporting · FY26</h3>
+    <p class="text-[11px] ink-3 mb-3">Form NAT 74109 · due 28 Aug 2026 · 109 days away</p>
+    <dl class="text-[12.5px] space-y-2">
+      <div class="flex justify-between"><dt class="ink-3">Gross paid</dt><dd class="font-mono num">A$18,420.00</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">GST included</dt><dd class="font-mono num">A$1,674.55</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Net (ex GST)</dt><dd class="font-mono num">A$16,745.45</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">PAYG withheld</dt><dd class="font-mono num">A$0.00</dd></div>
+      <div class="border-t pt-2 mt-1" style="border-color: var(--line);">
+        <div class="flex justify-between"><dt class="ink-3">Trading name</dt><dd>Dale Maxwell Electrical</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">ABN</dt><dd class="font-mono">72 184 593 401</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Postal</dt><dd>23 Foundry Rd, Mackay QLD 4740</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Phone</dt><dd class="font-mono">07 4951 8421</dd></div>
+      </div>
+    </dl>
+    <a href="/preview/compliance/tpar" class="mt-3 inline-flex items-center gap-1 text-[12px] sae hover:underline"><i data-lucide="external-link" class="w-3 h-3"></i>Open TPAR draft FY26</a>
+  </div>
+
+  <div class="card p-5" id="audit">
+    <h3 class="font-display text-[16px] mb-2">Audit trail · s.286 + FW Reg 24</h3>
+    <ul class="text-[12px] space-y-2 ink-2">
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">04 May</span><span>Auto ABR re-check passed · status Active · GST current</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">11 May</span><span>BILL-1839 received via Peppol PINT · auto-coded 5-110 Materials by ML 99%</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">28 Apr</span><span>S. Wong approved BILL-1828 · 2-step over A$3k</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">12 Mar</span><span>PL insurance cert re-uploaded · CGU A$20m · expiry 12 Mar 2027</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">14 Sep</span><span>ASIC annual review fee paid by supplier (linked record)</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">04 Aug</span><span>WHS site induction · J-2587 · R. Sauer countersigned</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">02 Apr 2018</span><span>Contact created · entity registered with ABR same day</span></li>
+    </ul>
+  </div>
+
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Contacts &amp; documents</h3>
+    <ul class="text-[12.5px] space-y-2">
+      <li>
+        <div class="font-medium">Dale Maxwell · director</div>
+        <div class="text-[11px] ink-3 font-mono">dale@maxwell-elec.com.au · 0427 184 593</div>
+      </li>
+      <li>
+        <div class="font-medium">Kelly Maxwell · admin / AP</div>
+        <div class="text-[11px] ink-3 font-mono">accounts@maxwell-elec.com.au · 07 4951 8421</div>
+      </li>
+      <li class="pt-2 border-t" style="border-color: var(--line);">
+        <div class="text-[11px] uppercase ink-3 mb-1">Documents on file</div>
+        <ul class="space-y-1">
+          <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3 h-3 ink-3"></i>PL_cert_CGU_12mar26.pdf</li>
+          <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3 h-3 ink-3"></i>WorkCover_QLD_currency_31mar26.pdf</li>
+          <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3 h-3 ink-3"></i>QBCC_EC184593_extract.pdf</li>
+          <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3 h-3 ink-3"></i>Master_subby_agreement_2024.pdf · signed 11 Apr 2024</li>
+          <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3 h-3 ink-3"></i>BECS_PayTo_authority.pdf</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Related row -->
+<div class="card p-4 mb-10">
+  <h3 class="font-display text-[16px] mb-2">Related</h3>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1.5 text-[12.5px]">
+    <a href="/preview/bills/bill-1842" class="hover:underline">Open bill BILL-1842 · A$1,562</a>
+    <a href="/preview/projects/j-2603" class="hover:underline">Job J-2603 Bowen Wharf</a>
+    <a href="/preview/compliance/tpar" class="hover:underline">TPAR FY26 draft</a>
+    <a href="/preview/settings/chart-of-accounts" class="hover:underline">CoA · 5-110 Subcontractors</a>
+    <a href="/preview/settings/bank-feed-rules" class="hover:underline">Bank feed rule · BECS payroll out</a>
+    <a href="/preview/reports/aged-payables" class="hover:underline">Aged payables — current</a>
+    <a href="/preview/bills" class="hover:underline">All bills</a>
+    <a href="/preview/contacts" class="hover:underline">All contacts</a>
+  </div>
+</div>
+
+{% endblock %}

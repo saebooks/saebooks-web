@@ -73,6 +73,7 @@ async def invoices_list(
     error: str | None = None
     invoices: list[dict] = []
     total: int = 0
+    contacts_by_id: dict[str, dict] = {}
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/invoices", params=params)
@@ -86,6 +87,14 @@ async def invoices_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+        c_resp = await client.get(
+            "/api/v1/contacts",
+            params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+        )
+        if c_resp.is_success:
+            for c in c_resp.json().get("items", []):
+                contacts_by_id[c["id"]] = c
+
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -98,6 +107,7 @@ async def invoices_list(
         "total": total,
         "error": error,
         "flash": flash,
+        "contacts_by_id": contacts_by_id,
         # Filter values echoed back to the form.
         "filter_status": status or "",
         "filter_contact_id": contact_id or "",

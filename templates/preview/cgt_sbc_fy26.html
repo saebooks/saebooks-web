@@ -1,0 +1,487 @@
+{% extends "preview/_layout.html" %}
+{% block title %}CGT · small-business concessions FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>CGT · capital gains schedule</span><span>·</span>
+      <span>ITAA 1997 Pt 3-1 + 3-3 + Div 152</span><span>·</span>
+      <span class="text-[var(--sae)]">CGT-26-A1-04</span><span>·</span>
+      <span>Event date 14 Mar 2026 · contract 21 Feb 2026</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">CGT event A1 · disposal of vacant lot 47 Mill Rd · Subdiv 152 stack</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          Asset · adjoining industrial lot vacated 2024 retained as active fab-yard expansion · sold to Cosgrove Logistics Pty Ltd ·
+          contract 21 Feb 2026 settled 14 Mar 2026 · CGT event A1 s.104-10(1) ·
+          disposal proceeds A$1,840,000 cap proceeds s.116-20 · cost base A$420,250 indexed + 50% disc s.115 · active asset test passed ·
+          basic conditions s.152-10 + s.152-35 satisfied · 15-year exemption s.152-105 declined (asset &lt; 15 yrs) · stack 50%+50%+retirement
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Net taxable gain</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$0</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">Raw gain A$1,419,750 · post-concessions nil · A$354,937 to retirement-exempt s.152-D</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI rail -->
+  <section class="grid grid-cols-6 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Capital proceeds</div>
+      <div class="num font-display text-2xl mt-1">A$1,840,000</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">s.116-20 · cash A$1.8m + GST A$40k</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Cost base</div>
+      <div class="num font-display text-2xl mt-1">A$420,250</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">s.110-25 · 5 elements stacked</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Raw gain</div>
+      <div class="num font-display text-2xl text-[var(--sae)] mt-1">A$1,419,750</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">before any discount or concession</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Post 50%+50%</div>
+      <div class="num font-display text-2xl mt-1">A$354,937</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">s.115-25 + s.152-205</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Retirement exempt</div>
+      <div class="num font-display text-2xl text-[var(--pos)] mt-1">A$354,937</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">s.152-305 lifetime cap A$500k</div>
+    </div>
+    <div class="px-6 py-4">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Cash tax saved</div>
+      <div class="num font-display text-2xl text-[var(--pos)] mt-1">A$497,996</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">vs A$0 of concessions @ 35.1% blended</div>
+    </div>
+  </section>
+
+  <!-- Basic conditions cascade -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Basic conditions · s.152-10 — must satisfy ALL four</div>
+        <div class="font-display text-2xl">Subdiv 152-A eligibility cascade</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Condition</th><th class="text-left">Source</th><th class="text-left">Working</th><th class="text-right">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A1. CGT event happened</td><td class="text-xs text-[var(--ink-3)]">s.152-10(1)(a)</td><td class="text-xs">Disposal of land 14 Mar 2026 · A1 s.104-10(1) · contract date 21 Feb 2026 is CGT time s.104-10(3)</td><td class="text-xs text-[var(--pos)]">PASS</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A2. Event would result in gain</td><td class="text-xs text-[var(--ink-3)]">s.152-10(1)(b)</td><td class="text-xs">Raw gain A$1,419,750 before discount/concession</td><td class="text-xs text-[var(--pos)]">PASS</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A3. SBE turnover OR Max net asset value (MNAV) test</td><td class="text-xs text-[var(--ink-3)]">s.152-10(1)(c) → s.152-15</td><td class="text-xs">SBE turnover A$6.84m &gt; A$2m SBE limit — fail. MNAV A$5.92m &lt; A$6m s.152-15 — PASS via MNAV path</td><td class="text-xs text-[var(--pos)]">PASS (MNAV)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A4. Asset is "active asset"</td><td class="text-xs text-[var(--ink-3)]">s.152-10(1)(d) → s.152-35 + s.152-40</td><td class="text-xs">Lot 47 used in business 86% of ownership period (16.3 yrs of 19.0) · &gt; 7.5 yr threshold s.152-35(2)(b)</td><td class="text-xs text-[var(--pos)]">PASS</td></tr>
+          </tbody>
+        </table>
+
+        <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div class="num-stamp p-3">
+            <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">A3 deep-dive · MNAV s.152-15</div>
+            <table class="w-full text-xs">
+              <tbody>
+                <tr><td class="py-0.5">Net business assets — SAE Eng.</td><td class="num text-right">A$3,184,260</td></tr>
+                <tr><td class="py-0.5">+ entity passive — Saueesti Trust</td><td class="num text-right">A$1,840,000</td></tr>
+                <tr><td class="py-0.5">+ R. Sauer affiliate s.152-47</td><td class="num text-right">A$894,260</td></tr>
+                <tr><td class="py-0.5">+ M. Sauer (spouse, affiliate)</td><td class="num text-right">A$240,260</td></tr>
+                <tr><td class="py-0.5">− personal-use exclusion s.152-20(2)</td><td class="num text-right text-[var(--pos)]">−A$238,420</td></tr>
+                <tr class="border-t border-[var(--line)] font-medium"><td class="py-0.5">MNAV (just-before test)</td><td class="num text-right">A$5,920,360</td></tr>
+                <tr><td class="py-0.5">Threshold s.152-15</td><td class="num text-right text-[var(--ink-3)]">A$6,000,000</td></tr>
+                <tr class="font-medium"><td class="py-0.5">Headroom</td><td class="num text-right text-[var(--pos)]">A$79,640</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="num-stamp p-3">
+            <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">A4 deep-dive · active-asset test s.152-35</div>
+            <table class="w-full text-xs">
+              <tbody>
+                <tr><td class="py-0.5">Ownership total</td><td class="num text-right">19.0 yrs</td></tr>
+                <tr><td class="py-0.5">Required (≥ 15 yrs → ≥ 7.5)</td><td class="num text-right text-[var(--ink-3)]">≥ 7.5 yrs</td></tr>
+                <tr><td class="py-0.5">Used in business</td><td class="num text-right">16.3 yrs</td></tr>
+                <tr><td class="py-0.5">% active</td><td class="num text-right">86%</td></tr>
+                <tr class="font-medium"><td class="py-0.5">Test outcome</td><td class="text-right text-[var(--pos)]">PASS</td></tr>
+              </tbody>
+            </table>
+            <div class="text-[10px] text-[var(--ink-3)] mt-1">
+              Vacancy 2024–2026 (1.7 yrs) for fab-yard expansion planning · still "used in business" per Carter
+              [2008] AATA 1018 — temporary cessation OK if part of expansion intent (documented in Board Min 14 Mar 2024).
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Concession decision tree · 4 paths · choose optimally</div>
+        <div class="font-display text-2xl">Concession stack selection</div>
+      </div>
+      <div class="px-8 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Concession</th><th class="text-left">Test</th><th class="text-right">Applied?</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">15-year exemption s.152-105</td><td class="text-xs">Held ≥ 15 yrs · age ≥ 55 + retiring OR perm. incapacitated</td><td class="text-xs text-[var(--neg)]">NO — held 19 yrs OK but R. Sauer 52, not retiring</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">50% active-asset reduction s.152-205</td><td class="text-xs">Basic conditions only</td><td class="text-xs text-[var(--pos)]">YES — automatic</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CGT retirement-exempt s.152-305</td><td class="text-xs">A$500k lifetime cap · &lt; 55 → must be paid to super</td><td class="text-xs text-[var(--pos)]">YES — A$354,937 to ART SMSF</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Small-business rollover s.152-405</td><td class="text-xs">Acquire replacement asset within 2 yrs</td><td class="text-xs text-[var(--neg)]">NO — proceeds going to super, not replacement</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">+ general 50% disc s.115-25</td><td class="text-xs">Asset held &gt; 12 mths · individual/trust/super</td><td class="text-xs text-[var(--pos)]">YES — applies BEFORE 152-205</td></tr>
+          </tbody>
+        </table>
+        <div class="mt-3 rounded border border-[var(--line)] p-3 bg-[var(--paper)] text-sm">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">Optimal ordering · s.102-5(1) Note + s.152-220</div>
+          <ol class="text-xs list-decimal pl-4 space-y-1">
+            <li>Capital losses applied first (none for FY26)</li>
+            <li>50% general discount s.115-25 · halves gain</li>
+            <li>50% active-asset reduction s.152-205 · halves again (¼ of raw)</li>
+            <li>Retirement exemption s.152-305 → super contribution under CC cap</li>
+            <li>Remainder taxable in entity at MTR</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gain calc + super contribution path -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Concession stack · raw → discounted → reduced → retirement-exempt</div>
+        <div class="font-display text-2xl">Capital gain calculation</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Capital proceeds (cap proceeds s.116-20)</td><td class="num text-right">A$1,840,000.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4 text-xs">  Sale price (contract 21 Feb)</td><td class="num text-right text-[var(--ink-3)]">A$1,840,000.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4 text-xs">  GST out-of-scope · margin-scheme not elected · supply input-taxed s.40-65(2)</td><td class="num text-right text-[var(--ink-3)]">A$0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Less cost base s.110-25</td><td class="num text-right text-[var(--ink-3)]"></td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4 text-xs">  E1 · acquisition cost (purchased 24 Mar 2007)</td><td class="num text-right">A$320,000.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4 text-xs">  E2 · incidental — stamp duty A$11,400 + legal A$3,840 + buyer's agent A$8,420</td><td class="num text-right">A$23,660.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4 text-xs">  E3 · ownership costs (non-deductible) — rates A$48,420 + insurance A$11,840 + land tax A$2,840</td><td class="num text-right">A$63,100.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4 text-xs">  E4 · capital improvements — perimeter fence 2014</td><td class="num text-right">A$8,420.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 pl-4 text-xs">  E5 · capital cost of title/rights — survey re-peg 2019</td><td class="num text-right">A$5,070.00</td></tr>
+            <tr class="border-b border-[var(--line)] font-medium"><td class="py-1.5">Total cost base</td><td class="num text-right">A$420,250.00</td></tr>
+            <tr class="border-b border-[var(--line)] font-display"><td class="py-2 text-base">Raw capital gain</td><td class="num text-right text-[var(--sae)]">A$1,419,750.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Step 1 · capital losses applied</td><td class="num text-right text-[var(--ink-3)]">A$0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Step 2 · general 50% disc s.115-25</td><td class="num text-right text-[var(--pos)]">−A$709,875.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Sub-total after general 50%</td><td class="num text-right">A$709,875.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Step 3 · 50% active-asset reduction s.152-205</td><td class="num text-right text-[var(--pos)]">−A$354,937.50</td></tr>
+            <tr class="border-b border-[var(--line)] font-medium"><td class="py-1.5">Sub-total after stacking</td><td class="num text-right">A$354,937.50</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Step 4 · retirement exemption s.152-305 (paid to super)</td><td class="num text-right text-[var(--pos)]">−A$354,937.50</td></tr>
+            <tr class="font-display text-lg"><td class="py-2">Step 5 · taxable amount remaining</td><td class="num text-right text-[var(--pos)]">A$0.00</td></tr>
+          </tbody>
+        </table>
+        <div class="text-[10px] text-[var(--ink-3)] mt-2">
+          Even-numbered split of 50%+50% reduces gain to ¼ of raw before retirement-exempt absorbs the residue.
+          R. Sauer aged 52 at CGT event → s.152-305(1)(b)(ii) requires payment into complying super · contribution &le; lifetime A$500k cap · non-concessional treatment under s.292-100 (excluded from NCC cap).
+        </div>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Retirement-exempt amount · contribution into super</div>
+        <div class="font-display text-2xl">CGT cap election to super</div>
+      </div>
+      <div class="px-8 pb-6 space-y-3 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Lifetime cap usage · s.292-100</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">Lifetime CGT cap (indexed 2025-26)</td><td class="num text-right">A$1,780,000</td></tr>
+              <tr><td class="py-0.5">Used to date (prior dispositions)</td><td class="num text-right">A$0</td></tr>
+              <tr><td class="py-0.5">Available cap</td><td class="num text-right">A$1,780,000</td></tr>
+              <tr><td class="py-0.5">Elected this disposal</td><td class="num text-right text-[var(--sae)]">A$354,937</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-0.5">Remaining lifetime cap</td><td class="num text-right">A$1,425,063</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Election form &amp; timing</div>
+          <ul class="text-xs list-disc pl-4 space-y-1">
+            <li>NAT 71161 "Capital gains tax cap election" lodged with super fund <em>before or at</em> contribution time s.292-100(7)</li>
+            <li>Contribution must be made <em>before</em> tax return lodgement date for FY26 (15 May 2027 std lodger via tax agent) — s.152-305(1)(b)(iii)</li>
+            <li>Per CGT event, must be paid within 30 days of choice s.152-325 — election made 18 Mar 2026, contribution due 17 Apr 2026 → already paid 31 Mar 2026 ✓</li>
+          </ul>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Super fund · ART SMSF (Saueesti Retirement)</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">ABN</td><td class="num text-right">68 184 260 947</td></tr>
+              <tr><td class="py-0.5">Fund balance pre-contribution</td><td class="num text-right">A$684,260</td></tr>
+              <tr><td class="py-0.5">Contribution lodged 31 Mar</td><td class="num text-right">A$354,937</td></tr>
+              <tr><td class="py-0.5">Receipt acknowledgement</td><td class="text-right text-[var(--pos)]">CGT-CAP-184260</td></tr>
+              <tr><td class="py-0.5">TBC headroom (CGT cap excluded)</td><td class="num text-right">unaffected</td></tr>
+              <tr><td class="py-0.5">Div 293 — extra 15% tax</td><td class="text-right text-[var(--ink-3)]">CGT cap contribs excluded s.293-25(2)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="rounded border border-[var(--line)] p-3 bg-[var(--paper-2)] text-xs">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">Why retirement-exempt and not rollover</div>
+          Replacement-asset rollover s.152-405 requires reinvestment within 2 yrs · proceeds are going into super for retirement bridge ·
+          rollover would only defer not eliminate · retirement-exempt is structurally permanent and combines cleanly with the 50%+50% stack.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Asset history + CGT discount working -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Asset history · 19-year ownership chronology</div>
+        <div class="font-display text-2xl">Lot 47 Mill Rd — chain of custody</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Date</th><th class="text-left">Event</th><th class="text-left">Doc</th><th class="text-right">Active?</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">24 Mar 2007</td><td>Acquired ex Tomlinson Industries A$320k</td><td class="text-xs text-[var(--ink-3)]">Title 184260/47 · settlement statement</td><td class="text-xs">— start —</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">12 Jun 2007</td><td>Erected temporary shed for plate storage</td><td class="text-xs text-[var(--ink-3)]">DA 184260-S</td><td class="text-xs text-[var(--pos)]">active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">14 Mar 2014</td><td>Perimeter security fence (capital improvement E4)</td><td class="text-xs text-[var(--ink-3)]">INV-OP-1842</td><td class="text-xs text-[var(--pos)]">active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">2007–2018</td><td>Continuous use · plate storage + outdoor weld bay 2</td><td class="text-xs text-[var(--ink-3)]">P&amp;L use-of-property line</td><td class="text-xs text-[var(--pos)]">active · 11 yrs</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Aug 2019</td><td>Survey re-peg for expansion DA</td><td class="text-xs text-[var(--ink-3)]">SP184260</td><td class="text-xs text-[var(--pos)]">active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">2019–2023</td><td>Use · subassembly stillage yard</td><td class="text-xs text-[var(--ink-3)]">Site plan rev D</td><td class="text-xs text-[var(--pos)]">active · 4 yrs</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Feb 2024</td><td>Vacated pending expansion DA · slab demolished</td><td class="text-xs text-[var(--ink-3)]">Board Min 14 Mar 2024</td><td class="text-xs text-[var(--warn)]">paused</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">14 Jan 2026</td><td>Board pivoted — fab-yard expansion deferred · listed for sale</td><td class="text-xs text-[var(--ink-3)]">Board Min 14 Jan 2026</td><td class="text-xs text-[var(--ink-3)]">vacant 1.7 yrs (still active per Carter)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Feb 2026</td><td>Contract signed Cosgrove Logistics</td><td class="text-xs text-[var(--ink-3)]">CONT-CGT-184260</td><td class="text-xs">— CGT time —</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">14 Mar 2026</td><td class="font-medium">Settlement — A$1,840,000 banked</td><td class="text-xs text-[var(--ink-3)]">DEPO-1843</td><td class="text-xs">— end —</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">CGT discount working · s.115 + indexation choice</div>
+        <div class="font-display text-2xl">Indexation vs 50% discount</div>
+      </div>
+      <div class="px-8 pb-6 space-y-3 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Indexation path s.114-1</div>
+          <div class="text-xs">Asset acquired 24 Mar 2007 — post 21 Sep 1999 → indexation frozen at 30 Sep 1999. Indexation not available for this asset.</div>
+          <div class="text-[10px] text-[var(--ink-3)] mt-1">Default to 50% discount under s.115-25.</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">CGT discount entity check s.115-10</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">Entity</td><td class="text-right">SAE Engineering Pty Ltd</td></tr>
+              <tr><td class="py-0.5">Entity type</td><td class="text-right">company (not eligible)</td></tr>
+              <tr><td class="py-0.5">Approach</td><td class="text-right">stream gain to working director via dividend &amp; rebase</td></tr>
+              <tr><td class="py-0.5 text-[10px] text-[var(--ink-3)]" colspan="2">Alternative: hold lot 47 in Saueesti Trust (discretionary) — would access 50% disc directly. Asset was held in SAE Eng. since 2007 → structural finding requires election under s.152 path described here. Workaround: trustee elects beneficiary R. Sauer (individual) under s.115-228 (trust→beneficiary streaming) before 50% reduction</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Holding period</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">Acquired</td><td class="text-right">24 Mar 2007</td></tr>
+              <tr><td class="py-0.5">CGT event time</td><td class="text-right">21 Feb 2026 (contract)</td></tr>
+              <tr><td class="py-0.5">Holding</td><td class="num text-right">18 yrs 11 mths</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-0.5">12-month rule s.115-25(1)</td><td class="text-right text-[var(--pos)]">PASS</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tax saved comparison + journal -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Tax outcome counterfactual · vs no-concession baseline</div>
+        <div class="font-display text-2xl">What the stack saves</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Scenario</th><th class="text-right">Taxable gain</th><th class="text-right">Effective rate</th><th class="text-right">Tax cost</th><th class="text-right">Saving</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A · No concessions, entity taxes at 25% SBE rate</td><td class="num text-right">A$1,419,750</td><td class="num text-right">25.00%</td><td class="num text-right text-[var(--neg)]">A$354,937</td><td class="num text-right text-[var(--ink-3)]">baseline</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">B · No concessions, stream to individual @ MTR + Medicare</td><td class="num text-right">A$1,419,750</td><td class="num text-right">47.00%</td><td class="num text-right text-[var(--neg)]">A$667,283</td><td class="num text-right text-[var(--ink-3)]">−A$312,346 vs A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">C · 50% disc only via trust streaming</td><td class="num text-right">A$709,875</td><td class="num text-right">47.00%</td><td class="num text-right text-[var(--neg)]">A$333,641</td><td class="num text-right text-[var(--pos)]">A$21,296 vs A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">D · 50% + 50% stack only (no retirement-exempt)</td><td class="num text-right">A$354,937</td><td class="num text-right">47.00%</td><td class="num text-right text-[var(--neg)]">A$166,820</td><td class="num text-right text-[var(--pos)]">A$188,117 vs A</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">E · FULL STACK · 50% + 50% + retirement-exempt to super</td><td class="num text-right">A$0</td><td class="num text-right">15.00%*</td><td class="num text-right text-[var(--pos)]">A$0 personal tax + A$0 fund tax**</td><td class="num text-right text-[var(--pos)]">A$354,937 vs A</td></tr>
+            <tr class="font-display text-base"><td class="py-2">Cash tax saved vs <em>likely</em> counterfactual (B)</td><td colspan="3"></td><td class="num text-right text-[var(--pos)]">A$667,283</td></tr>
+          </tbody>
+        </table>
+        <div class="text-[10px] text-[var(--ink-3)] mt-2">
+          * 15% only applies if treated as concessional contribution — CGT cap election under s.292-100 is non-concessional / excluded — fund earnings on amount taxed @ 15% but principal not.<br>
+          ** Asset becomes part of super accumulation phase pre-pension; on transfer to pension phase (post-65) earnings taxed nil up to TBC.
+        </div>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Journal &amp; CGT schedule lodgement</div>
+        <div class="font-display text-2xl">Books posting + ATO label map</div>
+      </div>
+      <div class="px-8 pb-6 space-y-3 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">JNL-CGT-184260 · Settlement 14 Mar 2026</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-0.5">DR 1-110 Bank</td><td class="num text-right">A$1,840,000</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-0.5">CR 1-2410 Land asset (1-2410-047)</td><td class="num text-right">A$328,420</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-0.5">CR 4-184 Capital gain on disposal</td><td class="num text-right">A$1,419,750</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-0.5">DR 5-184 CGT-cap election contribution</td><td class="num text-right">A$354,937</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-0.5">CR 1-110 Bank (to ART SMSF)</td><td class="num text-right">A$354,937</td></tr>
+              <tr class="font-medium"><td class="py-0.5">Net P&amp;L gain (book)</td><td class="num text-right">A$1,419,750</td></tr>
+              <tr><td class="py-0.5">Tax adjustment — concessions stack</td><td class="num text-right text-[var(--pos)]">−A$1,419,750</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-0.5">Taxable gain in FY26 return</td><td class="num text-right text-[var(--pos)]">A$0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">FY26 income tax return — labels</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">Item 7A Total current year gross capital gains</td><td class="num text-right">A$1,419,750</td></tr>
+              <tr><td class="py-0.5">Item 7H 50% disc applied</td><td class="num text-right">A$709,875</td></tr>
+              <tr><td class="py-0.5">Item 7H Active asset 50% reduction</td><td class="num text-right">A$354,937</td></tr>
+              <tr><td class="py-0.5">Item 7H Retirement exemption</td><td class="num text-right">A$354,937</td></tr>
+              <tr><td class="py-0.5">Item 7A Net capital gain</td><td class="num text-right text-[var(--pos)]">A$0</td></tr>
+              <tr><td class="py-0.5">Schedule 152-E §B — election + contribution evidence</td><td class="text-right text-[var(--ink-3)]">attached</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8-step pipeline -->
+  <section class="border-b border-[var(--line)]">
+    <div class="px-10 pt-6 pb-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Pipeline · CGT event → concession stack → super contribution → return label map → audit pack</div>
+      <div class="font-display text-2xl">CGT concession workflow</div>
+    </div>
+    <div class="px-10 pb-6">
+      <ol class="grid grid-cols-8 gap-3 text-xs">
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">1 CGT event</span><div class="text-[var(--ink-3)] mt-1">A1/B1/D1/E4… auto-detect from journal · contract date</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">2 Basic conds</span><div class="text-[var(--ink-3)] mt-1">s.152-10 four-step cascade · MNAV vs SBE</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">3 Active-asset</span><div class="text-[var(--ink-3)] mt-1">s.152-35 7.5yr / 50% test · use-history</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">4 Cost-base</span><div class="text-[var(--ink-3)] mt-1">E1–E5 stack with full audit trail</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">5 Stack opt</span><div class="text-[var(--ink-3)] mt-1">Counterfactual A–E · pick lowest after-tax</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led warn"></span> <span class="font-medium">6 Super contrib</span><div class="text-[var(--ink-3)] mt-1">NAT 71161 election · 30-day window timer</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led off"></span> <span class="font-medium">7 Return label</span><div class="text-[var(--ink-3)] mt-1">Item 7A/7H map · Schedule 152-E evidence</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led off"></span> <span class="font-medium">8 Audit pack</span><div class="text-[var(--ink-3)] mt-1">7yr retention · TR 2002/10 indicators · board mins</div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Risk register + case law -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Audit risk register · ATO Subdiv 152 review program</div>
+        <div class="font-display text-2xl">Risk register — 5 areas of ATO scrutiny</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Risk</th><th class="text-left">Authority</th><th class="text-left">Mitigation</th><th class="text-left">Evidence held</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Active-asset test during vacancy 2024–2026</td><td class="text-xs">s.152-35 + Carter v FCT [2008] AATA 1018 + TD 2007/2</td><td class="text-xs">Board minutes documenting expansion intent · DA application 2024</td><td class="text-xs text-[var(--pos)]">Board Min 14 Mar 2024 · DA-184260</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">MNAV — affiliate definition (R. Sauer spouse + Saueesti Trust)</td><td class="text-xs">s.152-25 + s.328-130 + TR 2002/10</td><td class="text-xs">Affiliate analysis memo · acts independently? · trust control declaration</td><td class="text-xs text-[var(--pos)]">Memo CGT-AFF-184260</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Retirement-exempt — under 55 + super timing</td><td class="text-xs">s.152-305(1)(b)(ii) + s.152-325</td><td class="text-xs">Contribution paid 31 Mar 2026 (within 30 d of election) · NAT 71161 filed</td><td class="text-xs text-[var(--pos)]">CGT-CAP-184260 receipt</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CGT discount entity — SAE company vs trust streaming</td><td class="text-xs">s.115-10 + s.115-228 + Bamford [2010] HCA 10</td><td class="text-xs">Structure: trustee election form 152-G beneficiary nomination R. Sauer</td><td class="text-xs text-[var(--pos)]">Trustee Min 18 Mar 2026</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Cost-base E3 ownership costs (rates, insurance)</td><td class="text-xs">s.110-25(4) — only if not deducted</td><td class="text-xs">Cross-tied with tax returns FY08–FY26 · non-deductible portion isolated</td><td class="text-xs text-[var(--pos)]">FY08-FY26 returns + GL extract</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Case-law landscape · Subdiv 152 disputes</div>
+        <div class="font-display text-2xl">Authority deck</div>
+      </div>
+      <div class="px-8 pb-6 space-y-2 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Carter v FCT [2008] AATA 1018</div>
+          <div class="text-xs">Temporary cessation of active use during planned expansion does NOT break "active asset" test if intent documented. Directly applicable to lot 47 vacancy 2024–26.</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Bamford v FCT [2010] HCA 10</div>
+          <div class="text-xs">Trust streaming of net income permitted under deed power · enables capital gain → beneficiary path to access individual's 50% disc s.115-228. Relevant if structure pivots to trust ownership.</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Devuba Pty Ltd v FCT [2015] FCA 951</div>
+          <div class="text-xs">MNAV affiliate analysis — spouse independently operating business is NOT an affiliate. Supports excluding M. Sauer's nail salon from MNAV pool (separate business decisions, no acting per direction).</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">FCT v White [2010] FCAFC 41</div>
+          <div class="text-xs">Cost-base element 3 (ownership costs) only allowed for asset acquired post-21 Aug 1991 and never deducted. SAE acquired 24 Mar 2007 — qualifies · rates/insurance never deducted (vacant land).</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">TR 2002/10</div>
+          <div class="text-xs">Affiliate ruling · "control" indicators · trustee relationship · used to test Saueesti Trust inclusion (control through R. Sauer 80% capacity).</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">TD 2007/2 + ATO ID 2010/74</div>
+          <div class="text-xs">Active-asset test — temporary breaks not fatal where the cessation is incidental to the business or under expansion. Strong direct support.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="border-b border-[var(--line)]">
+    <div class="px-10 pt-6 pb-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">AU-first comparison · CGT/Subdiv 152 workflow</div>
+      <div class="font-display text-2xl">Why this lives in SAE Books and not in Xero/MYOB/Reckon</div>
+    </div>
+    <div class="px-10 pb-6">
+      <table class="w-full text-sm">
+        <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+          <tr><th class="text-left py-2 w-44">Capability</th><th class="text-left">SAE Books</th><th class="text-left">Xero Tax (advisor only)</th><th class="text-left">MYOB AE/AO</th><th class="text-left">Reckon One</th><th class="text-left">PwC / BDO / RSM (advisor)</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">CGT event A1–K6 auto-detect from journal</td><td class="text-xs text-[var(--pos)]">YES · journal-pattern</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">5-element cost base s.110-25 buildup</td><td class="text-xs text-[var(--pos)]">YES · cross-tied to GL</td><td class="text-xs text-[var(--warn)]">Partial (CGT calculator)</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Subdiv 152-A basic conds cascade (4-step)</td><td class="text-xs text-[var(--pos)]">YES · MNAV vs SBE auto</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual A$8-25k/disposal</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Active-asset test s.152-35 timeline</td><td class="text-xs text-[var(--pos)]">YES · 7.5/15 yr auto</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Concession-stack counterfactual A–E</td><td class="text-xs text-[var(--pos)]">YES · pick optimal</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--warn)]">PowerPoint per case</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Retirement-exempt to super NAT 71161 election + 30d timer</td><td class="text-xs text-[var(--pos)]">YES · clock visible</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">FY26 return Item 7A/7H + Schedule 152-E auto-attach</td><td class="text-xs text-[var(--pos)]">YES · evidence pack</td><td class="text-xs text-[var(--warn)]">Tax pro app only</td><td class="text-xs text-[var(--warn)]">Tax pro app only</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Affiliate analysis (TR 2002/10 + Devuba)</td><td class="text-xs text-[var(--pos)]">YES · memo template</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual A$3-8k</td></tr>
+        </tbody>
+      </table>
+      <div class="text-[10px] text-[var(--ink-3)] mt-3">
+        Sources: ITAA 1997 Pt 3-1 + Pt 3-3 + Div 152 consolidated 01 Jul 2025 · ATO TR 2002/10 · TD 2007/2 · ATO ID 2010/74 ·
+        Carter [2008] AATA 1018 · Bamford [2010] HCA 10 · Devuba [2015] FCA 951 · White [2010] FCAFC 41.
+        SME structural-fab disposal of A$1.8m active asset typically costs A$8,000–25,000 in advisor fees (PwC / BDO / RSM survey 2025) — SAE Books replaces with a single workpaper.
+      </div>
+    </div>
+  </section>
+
+  <!-- Cross-links -->
+  <section class="px-10 py-6">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Cross-links</div>
+    <div class="grid grid-cols-5 gap-3 text-sm">
+      <a href="/preview/compliance/depreciation/sbe-pool-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="package" class="w-4 h-4 mb-1"></i><div class="font-medium">SBE pool FY26</div><div class="text-xs text-[var(--ink-3)]">aggregated turnover cross-tie</div></a>
+      <a href="/preview/compliance/payg-i/q4-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="trending-up" class="w-4 h-4 mb-1"></i><div class="font-medium">PAYG-I Q4</div><div class="text-xs text-[var(--ink-3)]">capital A$3,184 exclusion ref</div></a>
+      <a href="/preview/compliance/rdti/fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="flask-conical" class="w-4 h-4 mb-1"></i><div class="font-medium">RDTI FY26</div><div class="text-xs text-[var(--ink-3)]">aggregated turnover SBE-CGT</div></a>
+      <a href="/preview/compliance/super" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="calendar-clock" class="w-4 h-4 mb-1"></i><div class="font-medium">Super clearing</div><div class="text-xs text-[var(--ink-3)]">CGT cap contribution path</div></a>
+      <a href="/preview/cashbook/april-2026" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="book-marked" class="w-4 h-4 mb-1"></i><div class="font-medium">Cashbook April</div><div class="text-xs text-[var(--ink-3)]">A$1.84m receipt detail</div></a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

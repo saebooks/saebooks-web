@@ -1,0 +1,260 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'settings' %}
+{% block page_title %}Tax rates · Settings · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-1.5">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Settings · ATO · BAS taxonomy</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-[1.05] font-medium">
+        Tax rates <span class="italic" style="color: var(--sae);">— Australia FY26</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">Per ATO Simpler-BAS + SBR2 taxonomy v2024.07 · GST 10% · WET 29% · LCT thresholds updated 01 Jul 2025 · fuel tax credit rates per ATO determination 4 Feb 2026</p>
+      <div class="mt-2 flex items-center gap-2 flex-wrap">
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Auto-synced from ATO determinations</span>
+        <span class="badge"><i data-lucide="git-branch" class="w-3 h-3"></i>BAS labels mapped 11/11</span>
+        <span class="badge"><i data-lucide="lock" class="w-3 h-3"></i>Locked to 30 Apr 2026</span>
+        <span class="badge"><i data-lucide="globe-2" class="w-3 h-3"></i>AU only · GST-only entity</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/settings" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Settings</a>
+      <a href="/preview/settings/chart-of-accounts" class="chip"><i data-lucide="list-tree" class="w-3.5 h-3.5"></i>Chart of accounts</a>
+      <button class="chip"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>Re-sync ATO</button>
+      <button class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i>Custom rate</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">Active rates</p><p class="font-display text-[24px] mt-1 num">14</p><p class="text-[11px] ink-3 mt-1">7 GST + 4 fuel + 3 special</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">FY26 GST collected</p><p class="font-display text-[24px] mt-1 num" style="color: var(--pos);">A$34,824</p><p class="text-[11px] ink-3 mt-1">BAS 1A · sales</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">FY26 GST credits</p><p class="font-display text-[24px] mt-1 num" style="color: var(--neg);">A$17,402</p><p class="text-[11px] ink-3 mt-1">BAS 1B · purchases</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">Net BAS due Q4</p><p class="font-display text-[24px] mt-1 num">A$5,420</p><p class="text-[11px] ink-3 mt-1">payable 28 Jul 2026</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">Fuel tax credit Q4</p><p class="font-display text-[24px] mt-1 num" style="color: var(--pos);">A$420.18</p><p class="text-[11px] ink-3 mt-1">BAS 7D · heavy diesel</p></div>
+</div>
+
+<!-- GST rates table -->
+<div class="card p-0 overflow-hidden mb-6">
+  <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--line);">
+    <div>
+      <h2 class="font-display text-[18px]">GST treatments</h2>
+      <p class="text-[12px] ink-3">Per ANTS (GST) Act 1999 · all rates effective for FY26 unless noted</p>
+    </div>
+    <span class="text-[11px] font-mono ink-3">7 active · 0 deprecated</span>
+  </div>
+  <table class="w-full text-[12.5px]">
+    <thead style="background: var(--paper-2);">
+      <tr class="text-left text-[11px] uppercase tracking-wider ink-3">
+        <th class="px-4 py-2">Code</th>
+        <th class="py-2">Name</th>
+        <th class="py-2 text-right">Rate</th>
+        <th class="py-2">Applies to</th>
+        <th class="py-2">BAS · sales</th>
+        <th class="py-2">BAS · purchases</th>
+        <th class="py-2 pr-3">Effective</th>
+        <th class="py-2 pr-4">FY26 total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set rates = [
+        ('GST',  'GST 10% taxable',          '10.00%','Most domestic supplies (s 9-5, 11-5)',  'G1 incl · G2 export ✘','G10 capital · G11 non-cap','01 Jul 2000','A$348,240'),
+        ('FRE',  'GST-free supply',          '0%',    'Health · education · childcare · basic food · exports · religious','G1 incl · G3','G14 (informational)','01 Jul 2000','A$12,420'),
+        ('EXP',  'GST-free · export',        '0%',    'Goods exported within 60 d · services consumed outside AU',  'G1 incl · G2','—','01 Jul 2000','A$8,420'),
+        ('INP',  'Input-taxed',              '0% / nil credit','Financial supplies (s 40) · residential rent · precious metals','G1 incl · G4','no credits claimable','01 Jul 2000','A$1,820'),
+        ('CAP',  'GST · capital purchase',   '10.00%','Plant, equipment, vehicles &gt; A$1,000', '—','G10','01 Jul 2000','A$8,420 GST · A$84,200 base'),
+        ('N-T',  'Not reportable',           '0%',    'Wages · super · ATO payments · internal transfers · ASIC fees', '—','—','01 Jul 2000','A$184,420'),
+        ('GNR',  'No ABN withholding (47%)','—',     'Supplier did not quote ABN · invoice ≥ A$75 ex GST','—','W4','01 Jul 2000','A$0 (none flagged)'),
+      ] %}
+      {% for code, name, rate, applies, bas_s, bas_p, eff, total in rates %}
+      <tr class="border-t hover:bg-[var(--paper-2)]" style="border-color: var(--line);">
+        <td class="px-4 py-2"><span class="font-mono text-[11px] font-medium">{{ code }}</span></td>
+        <td class="py-2">{{ name }}</td>
+        <td class="py-2 text-right font-mono">{{ rate }}</td>
+        <td class="py-2 text-[11px] ink-2">{{ applies|safe }}</td>
+        <td class="py-2 text-[11px] font-mono ink-2">{{ bas_s }}</td>
+        <td class="py-2 text-[11px] font-mono ink-2">{{ bas_p }}</td>
+        <td class="py-2 pr-3 text-[11px] ink-3 font-mono">{{ eff }}</td>
+        <td class="py-2 pr-4 num text-[12px]">{{ total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="px-4 py-2.5 border-t text-[11px] ink-3 flex items-center justify-between" style="border-color: var(--line); background: var(--paper-2);">
+    <span>Mapped to CoA on every account · per-rate override allowed per txn for mixed supplies</span>
+    <span class="font-mono">ATO ruling refs: GSTR 2000/24 · GSTD 2024/1</span>
+  </div>
+</div>
+
+<!-- Special taxes -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Wine Equalisation Tax (WET) <span class="ink-3 text-[12px] font-mono">· inactive</span></h3>
+    <p class="text-[11px] ink-3 mb-3">Per A New Tax System (Wine Equalisation Tax) Act 1999 · applies to wine producers/wholesalers · not enabled for this entity</p>
+    <table class="w-full text-[12px]">
+      <thead><tr class="text-[10px] uppercase ink-3 text-left"><th>Rate</th><th>Applies</th><th>BAS</th><th>Producer rebate cap</th></tr></thead>
+      <tbody>
+        <tr><td class="font-mono py-1">29%</td><td>Wholesale value of wine</td><td class="font-mono">7A · 7B</td><td>A$350,000 / year</td></tr>
+      </tbody>
+    </table>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">Enable on Settings → Organisation → Industry classification if SAE Engineering ever ships into wine sector.</p>
+  </div>
+
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Luxury Car Tax (LCT) <span class="ink-3 text-[12px] font-mono">· standby</span></h3>
+    <p class="text-[11px] ink-3 mb-3">Per A New Tax System (Luxury Car Tax) Act 1999 · applies on retail or fleet acquisitions above threshold</p>
+    <table class="w-full text-[12px]">
+      <thead><tr class="text-[10px] uppercase ink-3 text-left"><th>Threshold (FY26)</th><th>Rate</th><th>BAS</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td class="font-mono py-1">A$76,950</td><td class="font-mono">33%</td><td class="font-mono">7C · 7D</td><td>Standard vehicle</td></tr>
+        <tr class="border-t" style="border-color: var(--line);"><td class="font-mono py-1">A$91,387</td><td class="font-mono">33%</td><td class="font-mono">7C · 7D</td><td>Fuel-efficient ≤ 7L/100km</td></tr>
+      </tbody>
+    </table>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">Current vehicle: Toyota HiLux SR5 — A$58,420 lease, below threshold. Triggered automatically on capital purchases &gt; threshold.</p>
+  </div>
+</div>
+
+<!-- Fuel tax credits -->
+<div class="card p-0 overflow-hidden mb-6">
+  <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--line);">
+    <div>
+      <h2 class="font-display text-[18px]">Fuel tax credit rates</h2>
+      <p class="text-[12px] ink-3">Auto-claimed on BAS 7D · indexed twice yearly by CPI · current ATO determination FTD 2026/2 effective 04 Feb 2026</p>
+    </div>
+    <span class="text-[11px] font-mono ink-3">4 active uses · A$420.18 Q4</span>
+  </div>
+  <table class="w-full text-[12.5px]">
+    <thead style="background: var(--paper-2);">
+      <tr class="text-left text-[11px] uppercase tracking-wider ink-3">
+        <th class="px-4 py-2">Fuel</th>
+        <th class="py-2">Use</th>
+        <th class="py-2 text-right">Rate / litre</th>
+        <th class="py-2 text-right">Litres FY26</th>
+        <th class="py-2 text-right pr-3">Credit FY26</th>
+        <th class="py-2 pr-4">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set fuel = [
+        ('Diesel',   'Heavy vehicles &gt; 4.5 t on public roads', '20.5 c/L',  '1,842',   '377.61','RUC offset · BAS 7D'),
+        ('Diesel',   'Off-road plant · workshop forklift',        '50.8 c/L',  '420',     '213.36','Full credit'),
+        ('Petrol',   'Off-road plant · welding gen-set',          '50.8 c/L',  '184',     '93.47', 'Limited use · log retained'),
+        ('LPG',      'Forklift LPG',                              '16.6 c/L',  '92',      '15.27', 'BAS 7D'),
+      ] %}
+      {% for fuel, use, rate, litres, credit, notes in fuel %}
+      <tr class="border-t hover:bg-[var(--paper-2)]" style="border-color: var(--line);">
+        <td class="px-4 py-2 font-medium">{{ fuel }}</td>
+        <td class="py-2 ink-2">{{ use|safe }}</td>
+        <td class="py-2 text-right font-mono">{{ rate }}</td>
+        <td class="py-2 text-right num">{{ litres }}</td>
+        <td class="py-2 text-right pr-3 num font-medium" style="color: var(--pos);">{{ credit }}</td>
+        <td class="py-2 pr-4 text-[11px] ink-3">{{ notes }}</td>
+      </tr>
+      {% endfor %}
+      <tr style="background: var(--paper-2); font-weight: 600;">
+        <td class="px-4 py-2" colspan="4">Total Q4 FY26 fuel tax credit</td>
+        <td class="py-2 text-right pr-3 num" style="color: var(--pos);">699.71</td>
+        <td class="py-2 pr-4 text-[11px] ink-3">A$420.18 net of unclaimed off-road portion</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- BAS label map + history -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+  <div class="lg:col-span-2 card p-5">
+    <h3 class="font-display text-[16px] mb-2">BAS label map · Q4 FY26</h3>
+    <p class="text-[11px] ink-3 mb-3">Each rate maps deterministically to one or more BAS labels · live preview from BAS prep</p>
+    <table class="w-full text-[12px]">
+      <thead><tr class="text-left text-[10px] uppercase ink-3"><th>Label</th><th>Description</th><th>Fed by rates</th><th class="text-right">Q4 amount</th></tr></thead>
+      <tbody>
+        {% set labels = [
+          ('G1','Total sales (incl GST · ex WET/LCT)','GST · FRE · EXP · INP · CAP-N/A','A$382,820'),
+          ('G2','Exports','EXP','A$8,420'),
+          ('G3','Other GST-free sales','FRE','A$12,420'),
+          ('G10','Capital purchases (incl GST)','CAP','A$92,620'),
+          ('G11','Non-capital purchases (incl GST)','GST · FRE · INP','A$184,220'),
+          ('1A','GST on sales','GST · CAP','A$34,824'),
+          ('1B','GST on purchases','GST · CAP-input','A$17,402'),
+          ('W1','Total salary, wages &amp; other payments','N-T (gross)','A$148,420'),
+          ('W2','Amount withheld','PAYG W RTSXXX','A$32,420'),
+          ('W4','Amounts withheld where no ABN quoted','GNR (none triggered)','A$0'),
+          ('7D','Fuel tax credit · all fuels','Fuel tax credit table','A$420.18'),
+        ] %}
+        {% for lbl, desc, fed, amt in labels %}
+        <tr class="border-t" style="border-color: var(--line);">
+          <td class="font-mono py-1.5 pr-3 font-medium">{{ lbl }}</td>
+          <td class="py-1.5 pr-3">{{ desc|safe }}</td>
+          <td class="py-1.5 pr-3 text-[11px] ink-3 font-mono">{{ fed }}</td>
+          <td class="py-1.5 text-right num">{{ amt }}</td>
+        </tr>
+        {% endfor %}
+        <tr style="background: var(--paper-2); font-weight: 600;" class="border-t" >
+          <td colspan="3" class="px-3 py-2">Net BAS payable Q4 FY26 (1A + W2 − 1B − 7D)</td>
+          <td class="text-right num">A$49,421.82</td>
+        </tr>
+      </tbody>
+    </table>
+    <a href="/preview/compliance/bas-prep" class="mt-3 inline-flex items-center gap-1 text-[12px] sae hover:underline"><i data-lucide="external-link" class="w-3 h-3"></i>Open BAS prep · Q4 FY26 →</a>
+  </div>
+
+  <aside class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Rate history</h3>
+    <ul class="text-[12px] space-y-2 ink-2">
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-16 shrink-0">04 Feb 26</span><span>Fuel tax credit indexed: heavy diesel 20.3 → 20.5 c/L · off-road 50.6 → 50.8 c/L (FTD 2026/2)</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-16 shrink-0">01 Jul 25</span><span>LCT thresholds updated: A$76,950 (was A$76,950) · fuel-efficient A$91,387 (was A$89,332)</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-16 shrink-0">01 Aug 24</span><span>Fuel tax credit indexed mid-year (FTD 2024/4)</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-16 shrink-0">01 Jul 24</span><span>GST taxonomy v2024.07 applied · SBR2 namespace au.icr.* aligned</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-16 shrink-0">01 Jul 00</span><span>GST commenced · ANTS (GST) Act 1999</span></li>
+    </ul>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">Rates apply by transaction date · historic rates preserved for amendment lodgements (4-yr period).</p>
+  </aside>
+</div>
+
+<!-- Cross-border + audit + related -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Cross-border GST</h3>
+    <p class="text-[11px] ink-3 mb-2">For exports/imports — currently 1 export rate active (EXP), no GST on imported services from non-resident suppliers yet.</p>
+    <ul class="text-[12px] space-y-1.5">
+      <li class="flex justify-between"><span>Exports of goods (s 38-185)</span><span class="font-mono ink-2">EXP · 0% · A$8,420 FY26</span></li>
+      <li class="flex justify-between"><span>Exports of services (s 38-190)</span><span class="font-mono ink-2">EXP · 0% · A$0</span></li>
+      <li class="flex justify-between"><span>Low-value imports &lt; A$1,000</span><span class="font-mono ink-3">supplier-collected (GST)</span></li>
+      <li class="flex justify-between"><span>Reverse-charge (s 84-5)</span><span class="font-mono ink-3">N/A · no qualifying purchases</span></li>
+    </ul>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">Stripe Tax can be enabled to auto-calculate non-AU customer GST/VAT — see <a href="/preview/settings/integrations/stripe-au" class="underline">Stripe Australia</a>.</p>
+  </div>
+
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Audit trail · s.286</h3>
+    <ul class="text-[12px] space-y-2 ink-2">
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">04 Feb</span><span>Auto-applied FTD 2026/2 indexation · 4 fuel rates updated · 0 historical txns affected</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">22 Jan</span><span>R. Sauer reviewed BlueScope BLDG invoice override — kept on GST, not CAP (component not stand-alone capital asset)</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">28 Oct</span><span>S. Wong enabled INP for residential investment property income (held in trust)</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-14 shrink-0">01 Jul</span><span>FY26 lock: rates frozen for audit period; new rates apply prospectively only</span></li>
+    </ul>
+  </div>
+
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Related</h3>
+    <ul class="text-[13px] space-y-1.5">
+      <li><a href="/preview/compliance/bas-prep" class="hover:underline">BAS prep · Q4 FY26</a></li>
+      <li><a href="/preview/settings/chart-of-accounts" class="hover:underline">Chart of accounts &amp; GST mapping</a></li>
+      <li><a href="/preview/reports/profit-loss" class="hover:underline">P&amp;L by tax treatment</a></li>
+      <li><a href="/preview/settings/integrations/ato" class="hover:underline">ATO Online · DSP lodgement</a></li>
+      <li><a href="/preview/settings/integrations/stripe-au" class="hover:underline">Stripe AU · surcharge passthrough</a></li>
+      <li><a href="/preview/compliance/tpar" class="hover:underline">TPAR FY26 (no-ABN withholding gate)</a></li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}

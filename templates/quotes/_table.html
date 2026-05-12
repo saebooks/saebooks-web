@@ -29,14 +29,15 @@
           class="hover:bg-gray-50 cursor-pointer"
           onclick="window.location='/quotes/{{ q.id }}'"
         >
-          <td class="px-4 py-3 font-medium text-indigo-600">
+          <td class="px-4 py-3 font-medium text-[#194291]">
             <a href="/quotes/{{ q.id }}" class="hover:underline">
               {{ q.number or "—" }}
             </a>
           </td>
           <td class="px-4 py-3 text-gray-600">{{ q.issue_date }}</td>
           <td class="px-4 py-3 text-gray-600">{{ q.expiry_date or "—" }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ q.customer_name or "—" }}</td>
+          {% set _c = contacts_by_id.get(q.customer_id) if contacts_by_id else None %}
+          <td class="px-4 py-3 text-gray-600">{{ _c.name if _c else (q.customer_name or "—") }}</td>
           <td class="px-4 py-3 text-right text-gray-900 font-medium tabular-nums">
             {{ q.currency }} {{ "%.2f"|format(q.total|float) }}
           </td>
@@ -59,7 +60,7 @@
           <td colspan="6" class="px-4 py-12 text-center">
             <p class="text-gray-400 text-sm mb-2">No quotes found.</p>
             {% if not filter_status and not filter_customer_id %}
-            <a href="/quotes/new" class="text-sm text-indigo-600 hover:underline">Create your first quote →</a>
+            <a href="/quotes/new" class="text-sm text-[#194291] hover:underline">Create your first quote →</a>
             {% else %}
             <p class="text-xs text-gray-400">Try clearing your filters.</p>
             {% endif %}

@@ -1,0 +1,456 @@
+{% extends "preview/_layout.html" %}
+{% block title %}PAYG instalment · Q4 FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>TAA 1953 Schedule 1 · Division 45</span><span>·</span>
+      <span>PAYG instalments — company taxpayer</span><span>·</span>
+      <span class="text-[var(--sae)]">PAYG-I Q4 FY26</span><span>·</span>
+      <span>BAS-Q · due 28 Jul 2026</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">PAYG instalment · Q4 FY26 · variation worksheet</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          SAE Engineering Pty Ltd · ABN 18 184 261 842 · Quarterly · Rate method (Option 2) ·
+          Base year FY25 tax A$184,260 · GDP-adj uplift <span class="font-mono">4.00%</span> per <span class="font-mono">s.45-405</span> ·
+          Variation election T9 6.84% → 5.84% (<span class="font-mono">s.45-210</span>)
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Q4 instalment · variation applied</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$24,857.38</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">Var saves A$4,256.40 vs default A$29,113.78 · &gt;85% safe-harbour</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Status banner -->
+  <section class="px-10 py-5 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Cycle</div>
+        <div class="text-sm">Quarterly · Option 2 (rate method) · auto-elected when income volatile · s.45-130</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Variation safe-harbour</div>
+        <div class="text-sm">Variation A$24,857 ≥ 85% of projected actual A$26,184 · <span class="text-[var(--pos)]">no s.284-75 penalty risk</span></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Cashbook link</div>
+        <div class="text-sm">T7 instalment income A$425,640 reconciles to cashbook receipts less GST less FTC</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led warn"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Lodgement</div>
+        <div class="text-sm">BAS Q4 due <span class="num">28 Jul 2026</span> · 78 days · SBR2 envelope queued</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="px-10 py-6 grid grid-cols-6 gap-3 border-b border-[var(--line)]">
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">T7 · Instalment income</div>
+      <div class="num text-2xl mt-1">A$425,640.18</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">Apr–Jun 2026</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">T8 · ATO rate</div>
+      <div class="num text-2xl mt-1">6.84%</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">Commissioner notice</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">T9 · Varied rate</div>
+      <div class="num text-2xl mt-1 text-[var(--sae)]">5.84%</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">SAE election · s.45-210</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">T11 · Instalment payable</div>
+      <div class="num text-2xl mt-1">A$24,857.38</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">T7 × T9</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FY26 cumulative</div>
+      <div class="num text-2xl mt-1">A$103,184.40</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">Q1+Q2+Q3+Q4</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">T4 variation reason</div>
+      <div class="num text-2xl mt-1">25</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">Current trading conditions</div>
+    </div>
+  </section>
+
+  <!-- T7 build-up -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Instalment income calc · s.45-120</div>
+        <h2 class="font-display text-2xl mt-1">T7 = ordinary income − exclusions</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Cash-basis attribution under s.45-180 · derived from cashbook receipts column
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Q4 receipts (cashbook · April + May + June)</td><td class="text-right text-[var(--ink-3)]">A$494,260.42</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">− GST collected at G1 (1A)</td><td class="text-right">−A$44,932.76</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">− Capital receipts (loan / asset sale / FTC) · s.45-120(2)</td><td class="text-right">−A$3,184.20</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">− Interest income (input-taxed financial supply)</td><td class="text-right">−A$184.42</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">− GST refunds &amp; ATO grants</td><td class="text-right">−A$1,684.20</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ Income recognised but unbanked at quarter-end (cleared 1 Jul)</td><td class="text-right">A$21,684.30</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ Earnings-rate adjustment · BIF retention release J-2603</td><td class="text-right">A$8,260.00</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ Manufacturing-margin progress claim accrual (TR 97/11)</td><td class="text-right">A$0.00</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">T7 · ordinary income for the instalment quarter</td><td class="text-right text-[var(--sae)]">A$425,640.18</td></tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      <span class="font-medium text-[var(--ink)]">Reconciliation control:</span> T7 must reconcile to ordinary income reported on the FY26 company return at Item 6, Label C (sales income).
+      Engine compares quarterly T7 sums vs FY26 Item 6 C at lodgement and flags any &gt;1% variance.
+    </div>
+  </section>
+
+  <!-- Variation calc + safe-harbour test -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Variation calculation · s.45-205 / s.45-210</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Rate-method variation · T8 → T9</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-16">Label</th>
+              <th class="text-left">Description</th>
+              <th class="text-right w-32">Amount / rate</th>
+              <th class="text-left w-24">Source</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T1</td><td>Total FY25 base income tax</td><td class="text-right">A$184,260.00</td><td>FY25 NoA</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T2</td><td>Less FY25 imputation refund</td><td class="text-right">A$0.00</td><td>FY25 NoA</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T3</td><td>FY25 PAYG-I base</td><td class="text-right">A$184,260.00</td><td>T1−T2</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">—</td><td>GDP-adjustment uplift · FY26 · s.45-405</td><td class="text-right">4.00%</td><td>ATO notice</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T8</td><td>Commissioner instalment rate FY26 · pre-var</td><td class="text-right">6.84%</td><td>FY25 NoA</td></tr>
+            <tr class="border-b border-[var(--line) bg-[var(--paper)]"><td class="py-2">T9</td><td><span class="text-[var(--sae)]">Varied rate · SAE election (post-Bendel UPE + SBE pool depn)</span></td><td class="text-right text-[var(--sae)]">5.84%</td><td>s.45-210</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T7</td><td>Instalment income (above)</td><td class="text-right">A$425,640.18</td><td>cashbook</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T11</td><td>Instalment payable · T7 × T9</td><td class="text-right">A$24,857.38</td><td>=</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T4</td><td>Reason code for variation</td><td class="text-right">25</td><td>Current trading conditions</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3" colspan="2">5A · Net payable on this BAS</td><td class="text-right text-[var(--ink)]">A$24,857.38</td><td>BAS field</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-5">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Safe-harbour test · s.284-75</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Variation ≥ 85% of actual?</h2>
+
+        <div class="border border-[var(--line)] bg-[var(--paper)] p-5">
+          <div class="text-[11px] uppercase tracking-[0.24em] text-[var(--ink-3)] mb-2">Projected FY26 actual tax</div>
+          <table class="w-full text-sm num">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">FY26 ordinary income</td><td class="text-right">A$1,584,184.20</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">− SBE pool deduction (Subdiv 328-D)</td><td class="text-right">−A$117,598.05</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">− OpEx / wages / interest / other</td><td class="text-right">−A$1,063,840.10</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">FY26 taxable income (projected)</td><td class="text-right">A$402,746.05</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">FY26 company tax @ 25% BRE rate</td><td class="text-right">A$100,686.51</td></tr>
+            </tbody>
+          </table>
+
+          <div class="mt-4 text-[11px] uppercase tracking-[0.24em] text-[var(--ink-3)] mb-2">85% safe-harbour calc</div>
+          <table class="w-full text-sm num">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">85% × A$100,686.51</td><td class="text-right">A$85,583.53</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">FY26 cumulative PAYG-I after Q4 var</td><td class="text-right">A$103,184.40</td></tr>
+              <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-2 text-[var(--pos)]">Safe — A$103,184.40 ≥ A$85,583.53</td><td class="text-right text-[var(--pos)]">PASS</td></tr>
+            </tbody>
+          </table>
+
+          <div class="mt-3 text-xs text-[var(--ink-3)] leading-relaxed">
+            Penalty per <span class="font-mono">s.284-75</span>:
+            if cumulative variation falls below 85% of actual, ATO imposes a 25% shortfall penalty
+            on the under-variation. SAE variation passes by A$17,600 headroom.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4-quarter history -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FY26 quarterly history · all 4 instalments</div>
+        <h2 class="font-display text-2xl mt-1">PAYG-I trail · Q1 → Q4 FY26</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Cumulative A$103,184.40 lodged · projected FY26 credit A$2,498 at return reconciliation
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-24">Quarter</th>
+          <th class="text-left w-28">Period</th>
+          <th class="text-right w-32">T7 income</th>
+          <th class="text-right w-24">T8 default</th>
+          <th class="text-right w-24">T9 varied</th>
+          <th class="text-right w-32">T11 paid</th>
+          <th class="text-right w-32">Cumulative</th>
+          <th class="text-right w-32">Lodged</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Q1 FY26</td><td>Jul–Sep 25</td><td class="text-right">A$420,184.00</td><td class="text-right">6.84%</td><td class="text-right">5.84%</td><td class="text-right">A$24,538.75</td><td class="text-right">A$24,538.75</td><td class="text-right">28 Oct 2025 ✓</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Q2 FY26</td><td>Oct–Dec 25</td><td class="text-right">A$468,260.00</td><td class="text-right">6.84%</td><td class="text-right">5.84%</td><td class="text-right">A$27,346.40</td><td class="text-right">A$51,885.15</td><td class="text-right">28 Feb 2026 ✓</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Q3 FY26</td><td>Jan–Mar 26</td><td class="text-right">A$453,184.10</td><td class="text-right">6.84%</td><td class="text-right">5.84%</td><td class="text-right">A$26,465.95</td><td class="text-right">A$78,351.10</td><td class="text-right">26 May 2026 ✓</td></tr>
+        <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-2 text-[var(--sae)]">Q4 FY26 (this)</td><td>Apr–Jun 26</td><td class="text-right">A$425,640.18</td><td class="text-right">6.84%</td><td class="text-right">5.84%</td><td class="text-right text-[var(--sae)]">A$24,857.38</td><td class="text-right">A$103,208.48</td><td class="text-right">28 Jul 2026 queued</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">FY26 Σ</td><td>—</td><td class="text-right">A$1,767,268.28</td><td class="text-right">avg 6.84%</td><td class="text-right">avg 5.84%</td><td class="text-right">A$103,208.48</td><td class="text-right">A$103,208.48</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      <span class="font-medium text-[var(--ink)]">Reconciliation at lodgement:</span> FY26 company tax projected A$100,686.51 vs PAYG-I paid A$103,208.48 →
+      net credit at return A$2,521.97 (refunded or applied against next-year FY27 Q1 instalment). The variation rate was tightened from 6.84% to 5.84%
+      after Q4 FY25 once the SBE pool deduction projection stabilised — earlier years used the default.
+    </div>
+  </section>
+
+  <!-- BAS field map + journal -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">BAS Q4 FY26 · field map</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Pre-fill landing points</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-20">Field</th>
+              <th class="text-left">Description</th>
+              <th class="text-right w-32">Amount</th>
+              <th class="text-left w-32">Section</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T1</td><td>PAYG instalment base year tax</td><td class="text-right">A$184,260.00</td><td>read-only</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T2</td><td>PAYG instalment base year imputation</td><td class="text-right">A$0.00</td><td>read-only</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T3</td><td>FY25 PAYG-I base</td><td class="text-right">A$184,260.00</td><td>derived</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T7</td><td>Instalment income · this quarter</td><td class="text-right">A$425,640.18</td><td>computed</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T8</td><td>Commissioner instalment rate</td><td class="text-right">6.84%</td><td>ATO notice</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper)]"><td class="py-2">T9</td><td>New varied rate</td><td class="text-right text-[var(--sae)]">5.84%</td><td>variation</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T4</td><td>Reason for variation</td><td class="text-right">25</td><td>s.45-210</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">T11</td><td>New instalment amount</td><td class="text-right">A$24,857.38</td><td>T7 × T9</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">5A</td><td>PAYG instalment payable</td><td class="text-right text-[var(--ink)]">A$24,857.38</td><td>this BAS</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Combined Q4 net BAS pay (1A−1B−7D+5A−5B)</td><td>incl GST &amp; FTC</td><td class="text-right">A$32,168.40</td><td>summary</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-5">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Ledger journal</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Journal at BAS lodgement</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-16">Acct</th>
+              <th class="text-left">Description</th>
+              <th class="text-right w-28">DR</th>
+              <th class="text-right w-28">CR</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">8-110</td><td>Income tax expense · PAYG instalment</td><td class="text-right">A$24,857.38</td><td class="text-right">—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">2-510</td><td>PAYG-I payable to ATO</td><td class="text-right">—</td><td class="text-right">A$24,857.38</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">— BPAY release · 28 Jul 2026 —</td><td colspan="3"></td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">2-510</td><td>PAYG-I payable cleared on BAS pay</td><td class="text-right">A$24,857.38</td><td class="text-right">—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">1-100</td><td>CBA op · BPAY 75556 to ATO</td><td class="text-right">—</td><td class="text-right">A$24,857.38</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-2" colspan="2">Net journal</td><td class="text-right">A$49,714.76</td><td class="text-right">A$49,714.76</td></tr>
+          </tbody>
+        </table>
+
+        <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed">
+          PAYG-I is a tax payment, not an expense at year-end: it offsets the company income-tax liability at lodgement.
+          The 8-110 line is reclassified to 8-100 (current tax expense) on year-end accruals journal,
+          with PAYG-I credited as a prepayment refunded at return.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Quarterly PAYG-I pipeline · automated</div>
+    <ol class="grid grid-cols-8 gap-2 text-xs">
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">1 · cashbook close</div>
+        <div class="font-medium mt-1">Period locked</div>
+        <div class="text-[var(--ink-3)] mt-1">WORM seal · reconciliation 0.00¢</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">2 · T7 derive</div>
+        <div class="font-medium mt-1">Income build-up</div>
+        <div class="text-[var(--ink-3)] mt-1">Receipts − GST − capital − interest +/− accruals</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">3 · rate decision</div>
+        <div class="font-medium mt-1">T8 vs T9</div>
+        <div class="text-[var(--ink-3)] mt-1">Projection compares T8 to 85% safe-harbour line</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">4 · variation</div>
+        <div class="font-medium mt-1">Reason code</div>
+        <div class="text-[var(--ink-3)] mt-1">T4 = 25 current trading · auto-pick from rule set</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">5 · BAS pre-fill</div>
+        <div class="font-medium mt-1">5A populated</div>
+        <div class="text-[var(--ink-3)] mt-1">T7 × T9 = T11 = 5A</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">6 · journal</div>
+        <div class="font-medium mt-1">8-110 / 2-510</div>
+        <div class="text-[var(--ink-3)] mt-1">Expense + liability raised on lodge</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">7 · BPAY queue</div>
+        <div class="font-medium mt-1">ATO 75556</div>
+        <div class="text-[var(--ink-3)] mt-1">Schedule release 28th of month</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">8 · year-end</div>
+        <div class="font-medium mt-1">FY return recon</div>
+        <div class="text-[var(--ink-3)] mt-1">Cumulative PAYG-I offsets actual tax · refund or carry</div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">AU-market positioning · PAYG-I surface</div>
+    <h2 class="font-display text-2xl mb-4">SAE Books vs Xero · MYOB · Reckon</h2>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-44">Capability</th>
+          <th class="text-left">Xero (AU)</th>
+          <th class="text-left">MYOB Business Pro</th>
+          <th class="text-left">Reckon One</th>
+          <th class="text-left">SAE Books</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">T7 income calc</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Derived from cashbook period close · exclusions auto-applied</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Variation safe-harbour test</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>85% line drawn against projected tax · live PASS/FAIL</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">SBE pool / FBT / FTC linkage</td>
+          <td>Spreadsheet</td>
+          <td>Spreadsheet</td>
+          <td>Spreadsheet</td>
+          <td>SBE pool depn flows directly into projected-tax denominator</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Reason-code suggestion</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Auto-suggest T4 from rule set · justification audit-logged</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">FY year-end recon</td>
+          <td>End-of-year adjustment</td>
+          <td>End-of-year adjustment</td>
+          <td>End-of-year adjustment</td>
+          <td>Live PAYG-I credit projection · variance to tax provision</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">SBR2 5A pre-fill</td>
+          <td>Native BAS</td>
+          <td>Native BAS</td>
+          <td>Native BAS</td>
+          <td>Native · with full T1–T11 working paper attached to lodgement</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">BPAY scheduling</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Auto-queued · 28th of month · CRN auto-built from ABN</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Trail of working papers</td>
+          <td>Spreadsheet attached</td>
+          <td>Spreadsheet attached</td>
+          <td>Spreadsheet attached</td>
+          <td>Workpaper rendered live · WORM-sealed per quarter</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      Xero/MYOB/Reckon treat the BAS PAYG-I section as a single number to type. The accountant maintains a spreadsheet that
+      projects FY tax and decides whether to vary; the safe-harbour test is done manually. SAE Books promotes the spreadsheet to
+      a live workpaper attached to the lodgement, with the safe-harbour test passing or failing as cashbook data changes.
+    </div>
+  </section>
+
+  <!-- Cross-link mesh -->
+  <section class="px-10 py-8">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Related</div>
+    <div class="grid grid-cols-5 gap-3">
+      <a href="/preview/cashbook/april-2026" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Income source</div>
+        <div class="font-medium mt-1">Cashbook · April 2026</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Receipts column feeds T7 build-up · cashbook lock-date gates BAS lodgement</div>
+      </a>
+      <a href="/preview/compliance/depreciation/sbe-pool-fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Projected-tax driver</div>
+        <div class="font-medium mt-1">SBE pool · Subdiv 328-D</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">A$117,598 deduction reduces FY26 projected tax → justifies T9 5.84%</div>
+      </a>
+      <a href="/preview/compliance/ftc/q4-fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Sibling on BAS</div>
+        <div class="font-medium mt-1">FTC Q4 FY26</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Label 7D credits offset 1A on same BAS · same 28 Jul 2026 due date</div>
+      </a>
+      <a href="/preview/compliance/fbt/fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">FBT interaction</div>
+        <div class="font-medium mt-1">FBT FY26 workpaper</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">FBT paid is itself a separate ATO instalment — sibling cash-out of A$8,420</div>
+      </a>
+      <a href="/preview/compliance/div7a/ln-2603" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Franking interaction</div>
+        <div class="font-medium mt-1">Div 7A LN-2603</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">PAYG-I credits inflate franking account → headroom for frankable dividends to clear UPE</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

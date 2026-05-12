@@ -5,9 +5,12 @@ Routes
 GET  /cashbook                      — landing page with quick-entry form + recent entries
 POST /cashbook/entries              — create entry (form submission)
 GET  /cashbook/entries              — full entries list with filters + pagination
+GET  /cashbook/entries/{id}         — detail view with edit/void actions
 GET  /cashbook/entries/{id}/edit    — edit form
 POST /cashbook/entries/{id}/edit    — submit PATCH
-POST /cashbook/entries/{id}/delete  — delete with If-Match
+POST /cashbook/entries/{id}/void    — void with If-Match (no delete affordance per ATO)
+POST /cashbook/entries/{id}/delete  — legacy alias for /void; same behaviour
+GET  /cashbook/about                — orientation / first-run "what is this"
 GET  /cashbook/report               — totals report with date-range picker
 GET  /cashbook/report/csv           — CSV export of entries for a date range
 GET  /cashbook/upgrade              — upgrade-to-full confirmation page
@@ -24,7 +27,7 @@ import csv
 import io
 import logging
 import uuid
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
@@ -87,6 +90,22 @@ def _au_fy_start_str() -> str:
     if today.month >= 7:
         return date(today.year, 7, 1).isoformat()
     return date(today.year - 1, 7, 1).isoformat()
+
+
+def _company_age_days(company: dict) -> int:
+    """Days since the company was created (best-effort; 0 on parse failure)."""
+    created = company.get("created_at") or company.get("created")
+    if not created:
+        return 0
+    try:
+        if isinstance(created, str):
+            ts = created.rstrip("Z").split(".")[0]
+            dt = datetime.fromisoformat(ts).date()
+        else:
+            return 0
+    except (ValueError, TypeError):
+        return 0
+    return max(0, (date.today() - dt).days)
 
 
 def _parse_errors(resp_json: dict) -> dict[str, str]:
@@ -190,6 +209,7 @@ async def cashbook_landing(request: Request) -> HTMLResponse | RedirectResponse:
             "month_start": month_start,
             "default_direction": default_direction,
             "idempotency_key": str(uuid.uuid4()),
+            "company_age_days": _company_age_days(company),
         },
     )
 
@@ -289,6 +309,7 @@ async def cashbook_entry_create(request: Request) -> HTMLResponse | RedirectResp
             "month_start": month_start,
             "default_direction": direction,
             "idempotency_key": str(uuid.uuid4()),
+            "company_age_days": _company_age_days(company),
             "form_errors": errors,
             "form_values": form,
         },
@@ -409,6 +430,95 @@ async def cashbook_entries_list(
             "filter_direction": direction or "",
             "filter_category": category or "",
             "limit": limit,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /cashbook/entries/{id}/void — alias of /delete; ATO-friendly UI label.
+# Drafts are pre-ledger so the engine endpoint is still DELETE; the affordance
+# in the UI is "Void" everywhere for consistency with posted-document voids.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/cashbook/entries/{entry_id}/void",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def cashbook_entry_void(
+    request: Request, entry_id: str
+) -> RedirectResponse:
+    return await cashbook_entry_delete(request, entry_id)
+
+
+# ---------------------------------------------------------------------------
+# GET /cashbook/entries/{id} — detail view
+# Replaces the hover-only edit/void icons in the entries list — phone users
+# can't hover. Each row in the list is now an anchor to this page.
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/cashbook/entries/{entry_id}",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def cashbook_entry_detail(
+    request: Request, entry_id: str
+) -> HTMLResponse | RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    company = await _get_active_company(request)
+    if not company or company.get("bookkeeping_mode") != "cashbook":
+        request.session["flash"] = "This page is for Cashbook companies only."
+        return RedirectResponse(url="/", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/cashbook/entries/{entry_id}")
+
+    if resp.status_code == 404 or not resp.is_success:
+        request.session["flash"] = "Entry not found."
+        return RedirectResponse(url="/cashbook/entries", status_code=303)
+
+    entry = resp.json()
+    flash = request.session.pop("flash", None)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "cashbook/entry_detail.html",
+        {
+            "company": company,
+            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
+            "entry": entry,
+            "flash": flash,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /cashbook/about — orientation / first-run "what is this" page
+# ---------------------------------------------------------------------------
+
+
+@router.get("/cashbook/about", response_class=HTMLResponse, response_model=None)
+async def cashbook_about(request: Request) -> HTMLResponse | RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    company = await _get_active_company(request)
+    if not company:
+        return RedirectResponse(url="/", status_code=303)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "cashbook/about.html",
+        {
+            "company": company,
+            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
         },
     )
 

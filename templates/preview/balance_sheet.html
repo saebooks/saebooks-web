@@ -1,0 +1,224 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'reports' %}
+{% block page_title %}Balance Sheet · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-72 h-32 dot-grid rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <p class="text-[10px] font-mono uppercase tracking-[0.16em] ink-3"><a href="/preview/reports" class="hover:text-[color:var(--sae)]">Reports</a> · Financial</p>
+      <h1 class="font-display text-[36px] leading-[1.05] font-medium mt-1">Balance <span class="sae italic">Sheet</span></h1>
+      <p class="ink-2 text-sm mt-1.5">A snapshot of what you own, what you owe, and what you've earned. <span class="font-mono ink-3">As at 11 May 2026 · accrual basis · A$ AUD</span></p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <select class="text-sm px-3 py-1.5 bg-[color:var(--paper)] border hairline rounded-md">
+        <option>As at today (11 May)</option>
+        <option>End of FY25 (30 Jun 2025)</option>
+        <option>End of FY26 forecast</option>
+        <option>Custom date…</option>
+      </select>
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export</button>
+      <button class="chip"><i data-lucide="printer" class="w-3.5 h-3.5"></i>PDF</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Total assets</p>
+    <p class="font-display text-[26px] mt-1 num">A$148,420</p>
+    <p class="text-[11px] pos mt-0.5 font-mono">+A$12,840 vs FY25</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Total liabilities</p>
+    <p class="font-display text-[26px] mt-1 num">A$32,180</p>
+    <p class="text-[11px] ink-3 mt-0.5 font-mono">PAYG · GST · super · loans</p>
+  </div>
+  <div class="card p-4" style="border-color: var(--sae);">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Net equity</p>
+    <p class="font-display text-[26px] mt-1 num">A$116,240</p>
+    <p class="text-[11px] pos mt-0.5 font-mono">+13% vs same date FY25</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Working capital</p>
+    <p class="font-display text-[26px] mt-1 num">A$28,420</p>
+    <p class="text-[11px] ink-3 mt-0.5 font-mono">Current ratio 2.3 · healthy</p>
+  </div>
+</div>
+
+<!-- Two-pane: detail + ratios -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-7">
+
+  <!-- LEFT: balance sheet detail -->
+  <div class="lg:col-span-8 space-y-5">
+
+    <!-- ASSETS -->
+    <div class="card overflow-hidden">
+      <div class="px-5 py-3 border-b hairline">
+        <h3 class="text-[14px] font-semibold tracking-tight">Assets</h3>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Account</th><th class="text-right">This date</th><th class="text-right">FY25 end</th><th class="text-right">Δ</th></tr>
+        </thead>
+        <tbody class="text-[12px]">
+          <tr style="background: var(--paper);"><td colspan="4" class="text-[10px] font-mono uppercase tracking-wider ink-3">Current assets</td></tr>
+          <tr><td>1-110 · CBA Smart Access</td><td class="text-right num">A$4,820.40</td><td class="text-right num">A$8,140.20</td><td class="text-right num neg">−A$3,319.80</td></tr>
+          <tr><td>1-115 · Stripe AU balance</td><td class="text-right num">A$2,184.10</td><td class="text-right num">A$0.00</td><td class="text-right num pos">+A$2,184.10</td></tr>
+          <tr><td>1-120 · Petty cash</td><td class="text-right num">A$240.00</td><td class="text-right num">A$240.00</td><td class="text-right num ink-3">A$0.00</td></tr>
+          <tr><td>1-200 · Trade receivables</td><td class="text-right num"><a href="/preview/reports/aged-receivables" class="hover:text-[color:var(--sae)]">A$19,960.50</a></td><td class="text-right num">A$11,420.00</td><td class="text-right num pos">+A$8,540.50</td></tr>
+          <tr><td>1-210 · Stock on hand</td><td class="text-right num">A$8,420.00</td><td class="text-right num">A$5,180.00</td><td class="text-right num pos">+A$3,240.00</td></tr>
+          <tr><td>1-230 · Work-in-progress (<a href="/preview/projects/j-2603" class="sae hover:underline">J-2603</a>)</td><td class="text-right num">A$14,250.00</td><td class="text-right num">A$0.00</td><td class="text-right num pos">+A$14,250.00</td></tr>
+          <tr style="font-weight: 600;"><td>Total current assets</td><td class="text-right num">A$49,875.00</td><td class="text-right num">A$24,980.20</td><td class="text-right num pos">+A$24,894.80</td></tr>
+
+          <tr style="background: var(--paper);"><td colspan="4" class="text-[10px] font-mono uppercase tracking-wider ink-3">Non-current assets</td></tr>
+          <tr><td>1-400 · Vehicles (HiLux)</td><td class="text-right num">A$42,180.00</td><td class="text-right num">A$48,920.00</td><td class="text-right num neg">−A$6,740.00</td></tr>
+          <tr><td>1-410 · Plant &amp; equipment</td><td class="text-right num">A$38,440.00</td><td class="text-right num">A$42,820.00</td><td class="text-right num neg">−A$4,380.00</td></tr>
+          <tr>
+            <td>1-415 · IAWO additions (FY26)
+              <div class="text-[10px] font-mono sae">⌃ Sandvik DX800 + brackets · A$18,420</div>
+            </td>
+            <td class="text-right num">A$18,420.00</td><td class="text-right num">A$0.00</td><td class="text-right num pos">+A$18,420.00</td></tr>
+          <tr><td>1-500 · Accumulated depreciation</td><td class="text-right num">−A$485.00</td><td class="text-right num">−A$300.00</td><td class="text-right num neg">−A$185.00</td></tr>
+          <tr style="font-weight: 600;"><td>Total non-current assets</td><td class="text-right num">A$98,555.00</td><td class="text-right num">A$91,440.00</td><td class="text-right num pos">+A$7,115.00</td></tr>
+
+          <tr style="border-top: 1.5px solid var(--ink); background: var(--paper-2); font-weight: 600;">
+            <td>Total assets</td>
+            <td class="text-right num font-display text-[16px]">A$148,430.00</td>
+            <td class="text-right num">A$116,420.20</td>
+            <td class="text-right num pos">+A$32,009.80</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- LIABILITIES -->
+    <div class="card overflow-hidden">
+      <div class="px-5 py-3 border-b hairline">
+        <h3 class="text-[14px] font-semibold tracking-tight">Liabilities</h3>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Account</th><th class="text-right">This date</th><th class="text-right">FY25 end</th><th class="text-right">Δ</th></tr>
+        </thead>
+        <tbody class="text-[12px]">
+          <tr style="background: var(--paper);"><td colspan="4" class="text-[10px] font-mono uppercase tracking-wider ink-3">Current liabilities</td></tr>
+          <tr><td>2-100 · Trade payables</td><td class="text-right num"><a href="/preview/reports/aged-payables" class="hover:text-[color:var(--sae)]">A$11,547.50</a></td><td class="text-right num">A$6,820.00</td><td class="text-right num neg">+A$4,727.50</td></tr>
+          <tr><td>2-200 · GST payable (Q4 in progress)</td><td class="text-right num"><a href="/preview/compliance/bas-prep" class="hover:text-[color:var(--sae)]">A$842.50</a></td><td class="text-right num">A$1,840.00</td><td class="text-right num pos">−A$997.50</td></tr>
+          <tr><td>2-210 · PAYG withholding</td><td class="text-right num">A$2,410.00</td><td class="text-right num">A$1,980.00</td><td class="text-right num neg">+A$430.00</td></tr>
+          <tr><td>2-220 · PAYG instalments</td><td class="text-right num">A$1,182.00</td><td class="text-right num">A$3,546.00</td><td class="text-right num pos">−A$2,364.00</td></tr>
+          <tr><td>2-300 · Superannuation payable</td><td class="text-right num"><a href="/preview/super" class="hover:text-[color:var(--sae)]">A$1,430.40</a></td><td class="text-right num">A$1,820.00</td><td class="text-right num pos">−A$389.60</td></tr>
+          <tr><td>2-310 · Wages accrued</td><td class="text-right num">A$2,140.00</td><td class="text-right num">A$1,820.00</td><td class="text-right num neg">+A$320.00</td></tr>
+          <tr><td>2-400 · GST input credit</td><td class="text-right num">−A$1,740.00</td><td class="text-right num">−A$1,210.00</td><td class="text-right num">−A$530.00</td></tr>
+          <tr style="font-weight: 600;"><td>Total current liabilities</td><td class="text-right num">A$17,812.40</td><td class="text-right num">A$16,616.00</td><td class="text-right num neg">+A$1,196.40</td></tr>
+
+          <tr style="background: var(--paper);"><td colspan="4" class="text-[10px] font-mono uppercase tracking-wider ink-3">Non-current liabilities</td></tr>
+          <tr><td>2-500 · CBA equipment loan</td><td class="text-right num">A$14,370.00</td><td class="text-right num">A$18,250.00</td><td class="text-right num pos">−A$3,880.00</td></tr>
+          <tr style="font-weight: 600;"><td>Total non-current liabilities</td><td class="text-right num">A$14,370.00</td><td class="text-right num">A$18,250.00</td><td class="text-right num pos">−A$3,880.00</td></tr>
+
+          <tr style="border-top: 1.5px solid var(--ink); background: var(--paper-2); font-weight: 600;">
+            <td>Total liabilities</td>
+            <td class="text-right num font-display text-[16px]">A$32,182.40</td>
+            <td class="text-right num">A$34,866.00</td>
+            <td class="text-right num pos">−A$2,683.60</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- EQUITY -->
+    <div class="card overflow-hidden">
+      <div class="px-5 py-3 border-b hairline">
+        <h3 class="text-[14px] font-semibold tracking-tight">Equity</h3>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Account</th><th class="text-right">This date</th><th class="text-right">FY25 end</th><th class="text-right">Δ</th></tr>
+        </thead>
+        <tbody class="text-[12px]">
+          <tr><td>3-100 · Owner's contribution</td><td class="text-right num">A$50,000.00</td><td class="text-right num">A$50,000.00</td><td class="text-right num ink-3">A$0.00</td></tr>
+          <tr><td>3-200 · Retained earnings</td><td class="text-right num">A$31,627.20</td><td class="text-right num">A$8,420.00</td><td class="text-right num pos">+A$23,207.20</td></tr>
+          <tr><td>3-300 · Owner's drawings</td><td class="text-right num">−A$23,000.00</td><td class="text-right num">−A$18,000.00</td><td class="text-right num neg">−A$5,000.00</td></tr>
+          <tr><td>3-400 · Current year earnings</td><td class="text-right num"><a href="/preview/reports/profit-loss" class="hover:text-[color:var(--sae)]">A$57,620.40</a></td><td class="text-right num">A$41,134.20</td><td class="text-right num pos">+A$16,486.20</td></tr>
+          <tr style="border-top: 1.5px solid var(--ink); background: var(--paper-2); font-weight: 600;">
+            <td>Total equity</td>
+            <td class="text-right num font-display text-[16px]">A$116,247.60</td>
+            <td class="text-right num">A$81,554.20</td>
+            <td class="text-right num pos">+A$34,693.40</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Balance check -->
+    <div class="card p-4 flex items-center justify-between" style="border-color: var(--pos);">
+      <div class="flex items-center gap-2">
+        <i data-lucide="check-circle-2" class="w-4 h-4 pos"></i>
+        <p class="text-[12px] ink-2"><strong class="ink">Books balance:</strong> Assets = Liabilities + Equity</p>
+      </div>
+      <p class="text-[12px] font-mono"><span class="ink-3">A$148,430.00 =</span> <span class="num font-medium">A$32,182.40 + A$116,247.60</span></p>
+    </div>
+  </div>
+
+  <!-- RIGHT: ratios + sanity -->
+  <div class="lg:col-span-4 space-y-4">
+
+    <div class="card p-5">
+      <h3 class="font-medium text-sm mb-3">Health ratios</h3>
+      <div class="space-y-3 text-[12px]">
+        <div>
+          <div class="flex items-center justify-between mb-0.5"><span class="ink-2">Current ratio</span><span class="num font-medium">2.80</span></div>
+          <div class="h-1 rounded-full bg-[color:var(--paper-2)] overflow-hidden"><div class="h-full" style="width:80%; background: var(--pos);"></div></div>
+          <p class="text-[10px] ink-3 font-mono mt-1">target &gt; 1.5 · healthy liquidity</p>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-0.5"><span class="ink-2">Quick ratio</span><span class="num font-medium">1.55</span></div>
+          <div class="h-1 rounded-full bg-[color:var(--paper-2)] overflow-hidden"><div class="h-full" style="width:55%; background: var(--pos);"></div></div>
+          <p class="text-[10px] ink-3 font-mono mt-1">target &gt; 1.0 · solid even without stock</p>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-0.5"><span class="ink-2">Debt-to-equity</span><span class="num font-medium">0.28</span></div>
+          <div class="h-1 rounded-full bg-[color:var(--paper-2)] overflow-hidden"><div class="h-full" style="width:28%; background: var(--warm);"></div></div>
+          <p class="text-[10px] ink-3 font-mono mt-1">target &lt; 1.0 · conservative leverage</p>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-0.5"><span class="ink-2">Working capital</span><span class="num font-medium">A$28,420</span></div>
+          <p class="text-[10px] ink-3 font-mono">covers ~6 weeks of payroll</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-5" style="border: 1.5px dashed var(--sae);">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="sparkles" class="w-4 h-4" style="color: var(--sae);"></i>
+        <h3 class="font-medium" style="color: var(--sae);">Auto-insights</h3>
+      </div>
+      <ul class="space-y-2 text-[12px] ink-2">
+        <li class="flex items-start gap-2"><i data-lucide="trending-up" class="w-3.5 h-3.5 pos mt-0.5 shrink-0"></i>Equity up 43% on FY25 — strong reinvestment.</li>
+        <li class="flex items-start gap-2"><i data-lucide="info" class="w-3.5 h-3.5 sae mt-0.5 shrink-0"></i>WIP on J-2603 (A$14,250) is the biggest balance-sheet swing — invoice phase 2 to release it.</li>
+        <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 warm mt-0.5 shrink-0"></i>Trade receivables +75% — chase 90+d before quarter end.</li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5 shrink-0"></i>Equipment loan paid down A$3,880 — on schedule.</li>
+      </ul>
+    </div>
+
+    <div class="card p-5">
+      <h3 class="font-medium text-sm mb-3">Cross-checks</h3>
+      <ul class="space-y-2 text-[12px] ink-2">
+        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos"></i>Reconciled to CBA Smart Access</li>
+        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos"></i>GST payable matches BAS Q4 in progress</li>
+        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos"></i>Super payable matches SuperStream Q4 batch</li>
+        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos"></i>AR / AP roll-up matches aged reports</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<p class="text-[10px] font-mono ink-3 text-right">Accrual basis · prepared in accordance with AASB SMC framework · figures to nearest A$0.01.</p>
+
+{% endblock %}

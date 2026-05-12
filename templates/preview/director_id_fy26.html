@@ -1,0 +1,366 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Director ID (DIN) register · FY26 · ABRS · Corp Act s.1272C — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks">
+  <div class="max-w-[1240px] mx-auto px-6 py-8">
+
+    <!-- ============================================ -->
+    <!-- MASTHEAD                                     -->
+    <!-- ============================================ -->
+    <header class="mb-8 pb-6 border-b border-[var(--line)]">
+      <div class="flex items-start justify-between gap-6">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">
+            <i data-lucide="badge-check" class="w-3.5 h-3.5"></i>
+            <span>ABRS · Australian Business Registry Services</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Corporations Act 2001 (Cth) s.1272C</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Workpaper DIN-26</span>
+          </div>
+          <h1 class="font-display text-[40px] leading-[1.05] tracking-[-0.02em] text-[var(--ink)]">
+            Director Identification register
+            <span class="text-[var(--ink-3)]"> · FY26</span>
+          </h1>
+          <p class="mt-3 text-[14px] text-[var(--ink-3)] max-w-[820px] leading-relaxed">
+            Mandatory under <em>Treasury Laws Amendment (Registries Modernisation and Other Measures) Act 2020</em> — director ID is a 15-digit identifier issued by ABRS. Applies to directors of Corporations Act, CATSI Act, and registered foreign companies. Existing directors had to apply by <strong>30 November 2022</strong>; appointees now have <strong>28 days from appointment</strong> (s.1272C(2)). Failure carries criminal penalty <strong>A$13,320</strong> (60 PU @ A$222) under s.1272G plus civil penalty <strong>A$1,565,000</strong> (5,000 PU) under s.1272H. ASIC sync via Form 484 / Form 506.
+          </p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Status</div>
+          <div class="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[color:rgb(34_139_84_/_0.10)] border border-[color:rgb(34_139_84_/_0.35)]">
+            <span class="led on"></span>
+            <span class="text-[12px] font-medium text-[var(--pos)]">4 of 4 directors compliant</span>
+          </div>
+          <div class="mt-2 text-[11px] text-[var(--ink-3)]"><span class="num">DIN-184260-26</span> · prepared 2026-05-11</div>
+          <div class="mt-1 text-[11px] text-[var(--ink-3)]">Next ASIC Form 484 due <span class="num">none pending</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- ACT 1 · WHY SAE BOOKS surfaces this           -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 01</div>
+        <h2 class="font-display text-[22px] tracking-tight">Why this register lives in the books</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Australian-market gap analysis</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Surface</th>
+                <th class="py-2 pr-2">Xero</th>
+                <th class="py-2 pr-2">MYOB AE/AO</th>
+                <th class="py-2 pr-2">Reckon</th>
+                <th class="py-2">SAE Books</th>
+              </tr>
+            </thead>
+            <tbody class="num">
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2 text-[var(--ink-3)]">Stores DIN per director</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--pos)]">yes — encrypted at rest</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2 text-[var(--ink-3)]">28-day countdown on appointment</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--pos)]">yes — auto</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2 text-[var(--ink-3)]">ASIC Form 484 cross-tie</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--warm)]">Practice add-on</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--pos)]">yes — register sync</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2 text-[var(--ink-3)]">Multi-entity directorship map</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--pos)]">yes — graph</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2 text-[var(--ink-3)]">CATSI parallel handling</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--pos)]">yes</td></tr>
+              <tr><td class="py-2 pr-2 text-[var(--ink-3)]">Penalty exposure roll-up</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--neg)]">no</td><td class="text-[var(--pos)]">yes — s.1272G/H</td></tr>
+            </tbody>
+          </table>
+          <div class="mt-3 text-[11px] text-[var(--ink-3)] italic">Sources: Xero AU practice docs (2026-04), MYOB AE Compliance roadmap v26.1, Reckon One features matrix. DIN sits in ABRS, not the accounting GL — none of the incumbents bridge it.</div>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Statutory anchor</div>
+          <ul class="space-y-2 text-[12px] leading-relaxed">
+            <li class="flex gap-2"><i data-lucide="chevron-right" class="w-3.5 h-3.5 mt-0.5 text-[var(--sae)]"></i><div><span class="font-medium">s.1272C(1)</span> — director must have a DIN before being appointed (post 5-Apr-2022).</div></li>
+            <li class="flex gap-2"><i data-lucide="chevron-right" class="w-3.5 h-3.5 mt-0.5 text-[var(--sae)]"></i><div><span class="font-medium">s.1272C(2)</span> — transitional: directors at 4-Apr-2021 had until <span class="num">30-Nov-2022</span>.</div></li>
+            <li class="flex gap-2"><i data-lucide="chevron-right" class="w-3.5 h-3.5 mt-0.5 text-[var(--sae)]"></i><div><span class="font-medium">s.1272G</span> — failure to apply: 60 PU criminal (A$13,320 @ FY26 PU A$222).</div></li>
+            <li class="flex gap-2"><i data-lucide="chevron-right" class="w-3.5 h-3.5 mt-0.5 text-[var(--sae)]"></i><div><span class="font-medium">s.1272H</span> — civil penalty 5,000 PU (A$1.565m).</div></li>
+            <li class="flex gap-2"><i data-lucide="chevron-right" class="w-3.5 h-3.5 mt-0.5 text-[var(--sae)]"></i><div><span class="font-medium">s.205B</span> — separate ASIC obligation: company must maintain register of directors and notify changes within 28d (Form 484).</div></li>
+            <li class="flex gap-2"><i data-lucide="chevron-right" class="w-3.5 h-3.5 mt-0.5 text-[var(--sae)]"></i><div><span class="font-medium">CATSI Act 2006 s.304-5</span> — Aboriginal &amp; TSI corporation directors mirror via ORIC.</div></li>
+            <li class="flex gap-2"><i data-lucide="chevron-right" class="w-3.5 h-3.5 mt-0.5 text-[var(--sae)]"></i><div><span class="font-medium">PUA Act 1995 s.4AA</span> — penalty unit indexed; FY26 PU = A$222 (gazetted 1-Jul-2025).</div></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 2 · DIRECTOR REGISTER                    -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 02</div>
+        <h2 class="font-display text-[22px] tracking-tight">Director register — Saueesti Trust group</h2>
+        <span class="text-[11px] text-[var(--ink-3)]">5 entities · 4 natural-person directors · 11 directorship rows</span>
+      </div>
+
+      <div class="border border-[var(--line)] rounded-lg overflow-hidden">
+        <table class="w-full text-[12px]">
+          <thead class="bg-[var(--paper-2)] border-b border-[var(--line)]">
+            <tr class="text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 px-3">Director</th>
+              <th class="py-2 px-3">DIN</th>
+              <th class="py-2 px-3">Issued</th>
+              <th class="py-2 px-3">DOB verified</th>
+              <th class="py-2 px-3">myGovID</th>
+              <th class="py-2 px-3">Entities</th>
+              <th class="py-2 px-3">Appt date (earliest)</th>
+              <th class="py-2 px-3">Status</th>
+            </tr>
+          </thead>
+          <tbody class="num divide-y divide-[var(--line)]">
+            <tr>
+              <td class="py-2.5 px-3"><span class="font-medium not-num">R. Sauer</span><div class="text-[10px] text-[var(--ink-3)] not-num">Principal · 4 entities</div></td>
+              <td class="px-3">036 547 821 996</td>
+              <td class="px-3">2021-12-04</td>
+              <td class="px-3"><span class="text-[var(--pos)]">✓ Passport</span></td>
+              <td class="px-3"><span class="text-[var(--pos)]">Strong</span></td>
+              <td class="px-3">SAE Pty Ltd · Saueesti Pty Ltd · ART Pty Ltd · Sauerland Pty Ltd</td>
+              <td class="px-3">2009-03-18</td>
+              <td class="px-3"><span class="led on inline-block mr-1"></span><span class="text-[var(--pos)]">compliant</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3"><span class="font-medium not-num">M. Sauer</span><div class="text-[10px] text-[var(--ink-3)] not-num">Co-director · 2 entities</div></td>
+              <td class="px-3">036 547 821 998</td>
+              <td class="px-3">2022-02-12</td>
+              <td class="px-3"><span class="text-[var(--pos)]">✓ DL+Medicare</span></td>
+              <td class="px-3"><span class="text-[var(--pos)]">Strong</span></td>
+              <td class="px-3">Saueesti Pty Ltd · ART Pty Ltd</td>
+              <td class="px-3">2014-07-01</td>
+              <td class="px-3"><span class="led on inline-block mr-1"></span><span class="text-[var(--pos)]">compliant</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3"><span class="font-medium not-num">J. Holloway</span><div class="text-[10px] text-[var(--ink-3)] not-num">External · audit chair</div></td>
+              <td class="px-3">036 547 822 014</td>
+              <td class="px-3">2022-10-19</td>
+              <td class="px-3"><span class="text-[var(--pos)]">✓ Passport</span></td>
+              <td class="px-3"><span class="text-[var(--pos)]">Strong</span></td>
+              <td class="px-3">SAE Pty Ltd · Sauerland Pty Ltd</td>
+              <td class="px-3">2022-10-12</td>
+              <td class="px-3"><span class="led on inline-block mr-1"></span><span class="text-[var(--pos)]">compliant</span></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3"><span class="font-medium not-num">A. Nakamura</span><div class="text-[10px] text-[var(--ink-3)] not-num">Appointed 2026-04-22</div></td>
+              <td class="px-3">036 547 825 401</td>
+              <td class="px-3">2026-04-28</td>
+              <td class="px-3"><span class="text-[var(--pos)]">✓ Visa+Passport</span></td>
+              <td class="px-3"><span class="text-[var(--pos)]">Strong</span></td>
+              <td class="px-3">SAE Pty Ltd</td>
+              <td class="px-3">2026-04-22</td>
+              <td class="px-3">
+                <span class="led on inline-block mr-1"></span><span class="text-[var(--pos)]">compliant</span>
+                <div class="text-[10px] text-[var(--ink-3)] not-num">Applied day 6 of 28 · safe margin</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-3 grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Counterfactual · A. Nakamura</div>
+          <div class="text-[12px] leading-relaxed text-[var(--ink-3)]">
+            Appointed <span class="num text-[var(--ink)]">22-Apr-2026</span>. Without SAE Books prompt, application could slip past <span class="num text-[var(--ink)]">20-May-2026</span> (day 28). Exposure: criminal <span class="num text-[var(--neg)]">A$13,320</span> + civil up to <span class="num text-[var(--neg)]">A$1,565,000</span> + ASIC late-fee Form 484 (<span class="num">A$96</span> ≤ 1m, <span class="num">A$401</span> &gt; 1m). SAE Books pinged on day-1, application lodged via ABRS myGovID flow on day-6, DIN issued day-12.
+          </div>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Privacy posture</div>
+          <ul class="text-[12px] space-y-1.5 text-[var(--ink-3)]">
+            <li>• DIN field encrypted at rest (libsodium · per-tenant key)</li>
+            <li>• Decrypted only on render; never logged to audit table in clear</li>
+            <li>• ABRS Privacy Notice 2022 · DIN <em>not</em> on public ASIC extract</li>
+            <li>• Privacy Act 1988 APP 11 — reasonable steps to protect</li>
+            <li>• <span class="text-[var(--warm)]">Note:</span> directors must disclose DIN to ABRS &amp; ASIC only — not on invoices</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 3 · MULTI-ENTITY DIRECTORSHIP MAP        -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 03</div>
+        <h2 class="font-display text-[22px] tracking-tight">Directorship map · entity × director</h2>
+      </div>
+      <div class="border border-[var(--line)] rounded-lg overflow-hidden">
+        <table class="w-full text-[12px]">
+          <thead class="bg-[var(--paper-2)] border-b border-[var(--line)]">
+            <tr class="text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 px-3">Entity</th>
+              <th class="py-2 px-3">ACN</th>
+              <th class="py-2 px-3">Type</th>
+              <th class="py-2 px-3">R. Sauer</th>
+              <th class="py-2 px-3">M. Sauer</th>
+              <th class="py-2 px-3">J. Holloway</th>
+              <th class="py-2 px-3">A. Nakamura</th>
+              <th class="py-2 px-3">s.205B register</th>
+            </tr>
+          </thead>
+          <tbody class="num divide-y divide-[var(--line)]">
+            <tr><td class="py-2 px-3 not-num font-medium">SAE Pty Ltd</td><td class="px-3">628 042 184</td><td class="px-3 not-num">Pty · Corp Act</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir 22-Apr-26</td><td class="px-3 text-[var(--pos)]">in sync · Form 484 lodged 24-Apr</td></tr>
+            <tr><td class="py-2 px-3 not-num font-medium">Saueesti Pty Ltd <span class="text-[var(--ink-3)] text-[10px]">(ATF Saueesti Trust)</span></td><td class="px-3">142 805 967</td><td class="px-3 not-num">Pty · trustee</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-[var(--pos)]">in sync</td></tr>
+            <tr><td class="py-2 px-3 not-num font-medium">ART Pty Ltd <span class="text-[var(--ink-3)] text-[10px]">(ATF ART SMSF)</span></td><td class="px-3">657 219 044</td><td class="px-3 not-num">Pty · SMSF trustee</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-[var(--pos)]">in sync · SIS Act mirror</td></tr>
+            <tr><td class="py-2 px-3 not-num font-medium">Sauerland Pty Ltd</td><td class="px-3">683 401 217</td><td class="px-3 not-num">Pty · property</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-center text-[var(--pos)]">✓ Dir</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-[var(--pos)]">in sync</td></tr>
+            <tr><td class="py-2 px-3 not-num font-medium">SAE Holdings Pty Ltd <span class="text-[var(--ink-3)] text-[10px]">(deregistered 2024)</span></td><td class="px-3">412 064 805</td><td class="px-3 not-num text-[var(--ink-3)]">Strike-off</td><td class="px-3 text-center text-[var(--ink-3)]">— prior</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-center text-[var(--ink-3)]">—</td><td class="px-3 text-[var(--ink-3)]">closed · DIN persists (lifetime)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3 text-[11px] text-[var(--ink-3)] italic">A DIN is a lifetime identifier — survives company deregistration, resignation, and director's death (retained for ABRS audit window). One number per natural person, regardless of how many companies.</div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 4 · APPLICATION PIPELINE                 -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 04</div>
+        <h2 class="font-display text-[22px] tracking-tight">Application pipeline — A. Nakamura · day-by-day</h2>
+      </div>
+      <ol class="space-y-2 text-[12px]">
+        <li class="flex gap-3 p-3 border border-[var(--line)] rounded bg-[var(--paper)]">
+          <div class="num-stamp shrink-0">01</div>
+          <div><span class="font-medium">Day 0 · 22-Apr-2026</span> — appointment minuted; SAE Books captures appointment event via Form 484 draft.<div class="text-[var(--ink-3)] text-[11px] mt-0.5">28-day clock starts. Penalty exposure A$13,320 + A$1,565,000 if missed.</div></div>
+        </li>
+        <li class="flex gap-3 p-3 border border-[var(--line)] rounded bg-[var(--paper)]">
+          <div class="num-stamp shrink-0">02</div>
+          <div><span class="font-medium">Day 1 · 23-Apr-2026</span> — director onboarded into SAE Books; auto-task created with due date <span class="num">20-May-2026</span>.<div class="text-[var(--ink-3)] text-[11px] mt-0.5">Email + dashboard banner + Cmd-K surfaces &quot;DIN due in 27 days&quot;.</div></div>
+        </li>
+        <li class="flex gap-3 p-3 border border-[var(--line)] rounded bg-[var(--paper)]">
+          <div class="num-stamp shrink-0">03</div>
+          <div><span class="font-medium">Day 4 · 26-Apr-2026</span> — director establishes myGovID at <span class="num">Strong</span> identity strength (passport + Medicare + DL).<div class="text-[var(--ink-3)] text-[11px] mt-0.5">Required: myGovID ≥ Standard for ABRS online flow; Strong unlocks instant DIN.</div></div>
+        </li>
+        <li class="flex gap-3 p-3 border border-[var(--line)] rounded bg-[var(--paper)]">
+          <div class="num-stamp shrink-0">04</div>
+          <div><span class="font-medium">Day 5 · 27-Apr-2026</span> — proof-of-record-ownership check: ATO records vs ABRS application (DOB, residential address, TFN if used).<div class="text-[var(--ink-3)] text-[11px] mt-0.5">SAE Books pre-fills from director profile · cross-checks against last-lodged Form 484.</div></div>
+        </li>
+        <li class="flex gap-3 p-3 border border-[var(--line)] rounded bg-[var(--paper)]">
+          <div class="num-stamp shrink-0">05</div>
+          <div><span class="font-medium">Day 6 · 28-Apr-2026</span> — DIN application lodged via ABRS portal · 15-digit <span class="num">036 547 825 401</span> issued instantly.<div class="text-[var(--ink-3)] text-[11px] mt-0.5">Captured into SAE Books director record · encrypted at rest · audit row written.</div></div>
+        </li>
+        <li class="flex gap-3 p-3 border border-[var(--line)] rounded bg-[var(--paper)]">
+          <div class="num-stamp shrink-0">06</div>
+          <div><span class="font-medium">Day 7 · 29-Apr-2026</span> — director notifies company of DIN (Corp Act s.117C); s.205B register updated; Form 484 lodged 24-Apr already covers appointment.<div class="text-[var(--ink-3)] text-[11px] mt-0.5">Form 484 fee · A$0 (within 28d). Late: A$96 (1m) / A$401 (&gt; 1m).</div></div>
+        </li>
+        <li class="flex gap-3 p-3 border border-[var(--line)] rounded bg-[var(--paper)]">
+          <div class="num-stamp shrink-0">07</div>
+          <div><span class="font-medium">Day 12 · 04-May-2026</span> — auto-ping ABRS verification; status confirmed; task closed.<div class="text-[var(--ink-3)] text-[11px] mt-0.5">22 days clear of the 28-day deadline.</div></div>
+        </li>
+        <li class="flex gap-3 p-3 border border-[var(--line)] rounded bg-[color:rgb(34_139_84_/_0.05)]">
+          <div class="num-stamp shrink-0">08</div>
+          <div><span class="font-medium text-[var(--pos)]">Outcome</span> — all four directors compliant · zero penalty exposure · audit trail retained 7y (ABRS data-retention rule).</div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 5 · PENALTY EXPOSURE LADDER              -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 05</div>
+        <h2 class="font-display text-[22px] tracking-tight">Penalty exposure ladder · FY26</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-8 border border-[var(--line)] rounded-lg overflow-hidden">
+          <table class="w-full text-[12px]">
+            <thead class="bg-[var(--paper-2)] border-b border-[var(--line)]">
+              <tr class="text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 px-3">Breach</th>
+                <th class="py-2 px-3">Provision</th>
+                <th class="py-2 px-3">Penalty units</th>
+                <th class="py-2 px-3">A$ @ PU 222</th>
+                <th class="py-2 px-3">Limitation</th>
+              </tr>
+            </thead>
+            <tbody class="num divide-y divide-[var(--line)]">
+              <tr><td class="py-2 px-3 not-num">Fail to apply by deadline</td><td class="px-3">s.1272G(1)</td><td class="px-3">60</td><td class="px-3 text-[var(--neg)]">A$13,320</td><td class="px-3 not-num">criminal · summary</td></tr>
+              <tr><td class="py-2 px-3 not-num">Same — civil penalty alt.</td><td class="px-3">s.1272H(1)</td><td class="px-3">5,000</td><td class="px-3 text-[var(--neg)]">A$1,110,000 indiv. cap</td><td class="px-3 not-num">civil</td></tr>
+              <tr><td class="py-2 px-3 not-num">Apply for &gt; 1 DIN</td><td class="px-3">s.1272J(1)</td><td class="px-3">600</td><td class="px-3 text-[var(--neg)]">A$133,200</td><td class="px-3 not-num">criminal</td></tr>
+              <tr><td class="py-2 px-3 not-num">Misrepresent DIN</td><td class="px-3">s.1272K(1)</td><td class="px-3">5,000 + jail</td><td class="px-3 text-[var(--neg)]">A$1,110,000 + 12mo</td><td class="px-3 not-num">indictable</td></tr>
+              <tr><td class="py-2 px-3 not-num">Failure to notify (company)</td><td class="px-3">s.205B(5)</td><td class="px-3">5</td><td class="px-3 text-[var(--neg)]">A$1,110</td><td class="px-3 not-num">strict liability</td></tr>
+              <tr><td class="py-2 px-3 not-num">Form 484 lodgement late</td><td class="px-3">ASIC Fees Reg Sch.1</td><td class="px-3 not-num">fee</td><td class="px-3 text-[var(--neg)]">A$96 ≤1m · A$401 &gt;1m</td><td class="px-3 not-num">civil · ASIC</td></tr>
+              <tr class="bg-[var(--paper-2)]"><td class="py-2 px-3 not-num font-medium">Single-director worst case</td><td class="px-3 not-num text-[var(--ink-3)]">stacked</td><td class="px-3"></td><td class="px-3 text-[var(--neg)] font-medium">A$1,257,630</td><td class="px-3 not-num text-[var(--ink-3)]">per director per breach</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-span-12 lg:col-span-4 p-4 border border-[var(--line)] rounded-lg bg-[var(--paper-2)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Current group exposure</div>
+          <div class="font-display text-[32px] leading-none text-[var(--pos)] num">A$0</div>
+          <div class="text-[11px] text-[var(--ink-3)] mt-1">All 4 directors have valid DIN · s.205B registers up to date · no Form 484 in late window.</div>
+          <hr class="my-3 border-[var(--line)]"/>
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Counter-factual</div>
+          <div class="text-[12px] text-[var(--ink-3)] leading-relaxed">If A. Nakamura missed the 28-day window (worst plausible), Saueesti group exposure would have been <span class="text-[var(--neg)] num">A$1,124,401</span> (s.1272H civil cap + Form 484 late + s.205B SL × 1) plus reputational ASIC enforceable undertaking risk.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 6 · ASIC SYNC                            -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 06</div>
+        <h2 class="font-display text-[22px] tracking-tight">ASIC Form 484 / 506 cross-tie</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Form 484 — change to company details</div>
+          <div class="text-[12px] space-y-1.5">
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">Section A1</span><span>Appoint/cease officeholder</span></div>
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">Section A4</span><span>Officeholder details change</span></div>
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">Lodge by</span><span class="num">28d from change</span></div>
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">Late fee &lt;1m</span><span class="num">A$96</span></div>
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">Late fee &gt;1m</span><span class="num">A$401</span></div>
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">FY26 lodgements (group)</span><span class="num">7 of 7 on time</span></div>
+          </div>
+          <div class="mt-3 text-[11px] text-[var(--ink-3)] italic">SAE Books pre-populates Form 484 A1 from the same director event that opens the DIN task — single source, two filings.</div>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Form 506 — notice of change (registered office)</div>
+          <div class="text-[12px] space-y-1.5">
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">Trigger</span><span>Registered office moves</span></div>
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">Lodge by</span><span class="num">14d from move</span></div>
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">Cross-ties to</span><span>Director s.205B reg notice</span></div>
+            <div class="flex justify-between"><span class="text-[var(--ink-3)] not-num">FY26 lodgements</span><span class="num">1 of 1 on time (Sauerland Pty)</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 7 · CATSI PARALLEL                       -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 07</div>
+        <h2 class="font-display text-[22px] tracking-tight">CATSI Act parallel · ORIC sync</h2>
+        <span class="text-[11px] text-[var(--ink-3)]">applicable to Aboriginal &amp; Torres Strait Islander corporations</span>
+      </div>
+      <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)] text-[12px] leading-relaxed text-[var(--ink-3)]">
+        Not currently in scope — no CATSI-registered entity in the Saueesti group. Schema and pipeline are pre-built: if a CATSI corporation joins, SAE Books mirrors DIN handling under <em>CATSI Act 2006 s.304-5</em> with ORIC reporting (Form ORIC-7 — Change in directors) within 28d. Penalty stack is structurally identical (5,000 PU civil under s.1272H applies to CATSI directors via Treasury Laws Amendment Sch.2).
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- FOOTER                                       -->
+    <!-- ============================================ -->
+    <footer class="pt-6 mt-10 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)] flex flex-wrap gap-x-6 gap-y-2 justify-between">
+      <div>
+        <span class="font-medium not-num">SAE Books · Director ID (DIN) register</span>
+        <span class="mx-2">·</span>
+        <span>Workpaper <span class="num">DIN-184260-26</span></span>
+        <span class="mx-2">·</span>
+        <span class="num">prepared 2026-05-11</span>
+      </div>
+      <div>
+        <span>Authority pack:</span>
+        <span class="num">Corp Act 2001 Pt 9.1A · CATSI Act 2006 s.304-5 · Treasury Laws Amend. (Reg Mod) Act 2020 Sch.2 · ABRS Privacy Notice 2022 · PUA Act 1995 s.4AA</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+{% endblock %}

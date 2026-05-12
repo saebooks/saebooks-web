@@ -1,0 +1,415 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Land tax · multi-state harmonised — FY26 · SAE Books{% endblock %}
+{% block body %}
+<main class="reg-marks dot-grid-soft min-h-screen px-6 pb-24 pt-8">
+  <!-- ============ MASTHEAD ============ -->
+  <header class="mx-auto max-w-[1480px]">
+    <div class="flex items-start justify-between gap-8">
+      <div>
+        <div class="flex items-center gap-3 text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">
+          <span class="rounded-sm border border-[var(--line)] bg-[var(--paper-2)] px-2 py-[3px]">DOC · LT-184260-26-MS</span>
+          <span>Compliance · Land tax · 5 jurisdictions</span>
+          <span class="text-[var(--ink-3)]">·</span>
+          <span>FY26 assessment cycle · prepared 2026-05-11 23:03</span>
+          <span class="text-[var(--ink-3)]">·</span>
+          <span class="text-[var(--pos)]">11 land holdings · 5 OSR · 3 exemptions</span>
+        </div>
+        <h1 class="font-display mt-3 text-[40px] leading-[1.04] tracking-[-0.018em]">
+          11 land holdings · 5 state revenue offices · A$152,318 total annual land tax.
+        </h1>
+        <p class="mt-2 max-w-[920px] text-[13.5px] leading-[1.55] text-[var(--ink-3)]">
+          Unlike payroll tax (which is broadly harmonised between AU states), land tax is
+          <span class="text-[var(--ink)]">independent in every jurisdiction</span> — each OSR taxes only land
+          within its own borders, with its own threshold, its own scale, and its own exemptions / surcharges.
+          NSW <span class="text-[var(--ink)]">Land Tax Act 1956</span> · VIC <span class="text-[var(--ink)]">Land Tax Act 2005</span> ·
+          QLD <span class="text-[var(--ink)]">Land Tax Act 2010</span> · SA <span class="text-[var(--ink)]">Land Tax Act 1936</span> ·
+          WA <span class="text-[var(--ink)]">Land Tax Assessment Act 2002</span>. Across the Sauerland / Saueesti
+          party-graph there are 11 land holdings in 5 states; 3 qualify for exemption (PPR, primary production); two
+          attract the foreign-owner surcharge for the Sauer Bare Trust's non-resident discretionary beneficiary.
+        </p>
+      </div>
+      <div class="shrink-0 text-right">
+        <div class="num-stamp text-[11px] uppercase tracking-[0.18em]">
+          <div class="text-[var(--ink-3)]">FY26 land tax total</div>
+          <div class="font-display text-[26px] tracking-[-0.01em]">A$152,318</div>
+          <div class="text-[var(--ink-3)]">incl. surcharges A$22,400</div>
+        </div>
+        <div class="mt-2 flex items-center justify-end gap-3 text-[11px] text-[var(--ink-3)]">
+          <span class="led on"></span><span>All 5 OSRs reconciled</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ JURISDICTION HEAD STRIP ============ -->
+  <section class="mx-auto mt-8 max-w-[1480px] grid grid-cols-12 gap-4">
+    {% set js = [
+      ('NSW','Revenue NSW','3 land','A$1,075,000','A$78,420'),
+      ('VIC','SRO VIC','2 land','A$50,000 (trust A$25k)','A$36,114'),
+      ('QLD','Qld Rev Office','4 land · 2 exempt','A$600k (trust A$350k)','A$28,840'),
+      ('SA','RevenueSA','1 land','A$732,000','A$5,824'),
+      ('WA','OSR WA','1 land','A$300,000','A$3,120')
+    ] %}
+    {% for j in js %}
+    <div class="col-span-{{ (12 // 5) + (1 if loop.index <= (12 % 5) else 0) }} rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="flex items-center justify-between text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <span>{{ j[0] }} · {{ j[1] }}</span>
+        <span class="text-[10px]">FY26</span>
+      </div>
+      <div class="font-display mt-1 text-[24px] tracking-[-0.01em]">{{ j[4] }}</div>
+      <div class="mt-1 text-[11.5px] text-[var(--ink-3)]">{{ j[2] }} · threshold {{ j[3] }}</div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <!-- ============ HOLDINGS LEDGER ============ -->
+  <section class="mx-auto mt-10 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Land holdings register — by jurisdiction · owner · valuation</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">SV (Site Value) · UCV (Unimproved Capital Value) · AGV (Aggregated Land Value) per OSR convention</div>
+    </div>
+
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-1">#</div>
+        <div class="col-span-2">Owner</div>
+        <div class="col-span-3">Property</div>
+        <div class="col-span-1">State</div>
+        <div class="col-span-2 text-right">Site / UCV</div>
+        <div class="col-span-1">Class</div>
+        <div class="col-span-1 text-right">Exempt?</div>
+        <div class="col-span-1 text-right">Surcharge?</div>
+      </div>
+      {% set props = [
+        ('01','Sauerland Pty Ltd',     '14 Phillip St · Botany 2019',       'NSW','A$2,400,000','com','no','no'),
+        ('02','Sauerland Pty Ltd',     '88 Reserve Rd · Drummoyne 2047',    'NSW','A$1,800,000','res-inv','no','no'),
+        ('03','Sauer Holdings P/L',    '402 Curlewis St · Bondi 2026',      'NSW','A$3,600,000','res-inv','no','no'),
+        ('04','Sauerland Pty Ltd',     '7 Coppin St · Richmond 3121',       'VIC','A$1,600,000','com','no','no'),
+        ('05','Sauer Bare Trust',      '24 Edward St · Brunswick 3056',     'VIC','A$1,200,000','res-inv','no','YES · AO 4%'),
+        ('06','Sauerland Pty Ltd',     '116 Abbotsford St · Bowen Hills',   'QLD','A$1,400,000','com','no','no'),
+        ('07','Sauerland Pty Ltd',     '8 Antimony Ct · Yatala 4207',       'QLD','A$890,000',  'ind','no','no'),
+        ('08','R Sauer (indiv)',       'PP 320ha Brigalow · Wandoan',       'QLD','A$2,100,000','prim-prod','YES · s.39','no'),
+        ('09','R Sauer (indiv)',       '14 Bielby Rd · Kenmore 4069',       'QLD','A$1,600,000','PPR','YES · s.35','no'),
+        ('10','Sauerland Pty Ltd',     '218 Pirie St · Adelaide 5000',      'SA', 'A$680,000',  'com','no','no'),
+        ('11','Sauerland Pty Ltd',     '47 Roe St · Perth 6000',            'WA', 'A$520,000',  'com','no','no')
+      ] %}
+      {% for p in props %}
+      <div class="grid grid-cols-12 items-center px-4 py-[6px] text-[12.5px] border-t border-[var(--line)] {% if 'YES' in p[6] %}bg-[rgba(56,142,60,0.04)]{% elif 'YES' in p[7] %}bg-[rgba(200,99,31,0.04)]{% endif %}">
+        <div class="col-span-1 num text-[var(--ink-3)]">{{ p[0] }}</div>
+        <div class="col-span-2">{{ p[1] }}</div>
+        <div class="col-span-3">{{ p[2] }}</div>
+        <div class="col-span-1 num text-[var(--ink-3)]">{{ p[3] }}</div>
+        <div class="col-span-2 num text-right">{{ p[4] }}</div>
+        <div class="col-span-1 text-[var(--ink-3)] text-[11.5px]">{{ p[5] }}</div>
+        <div class="col-span-1 text-right text-[10.5px] uppercase tracking-[0.18em] {% if 'YES' in p[6] %}text-[var(--pos)]{% else %}text-[var(--ink-3)]{% endif %}">{{ p[6] }}</div>
+        <div class="col-span-1 text-right text-[10.5px] uppercase tracking-[0.18em] {% if 'YES' in p[7] %}text-[var(--warm)]{% else %}text-[var(--ink-3)]{% endif %}">{{ p[7] }}</div>
+      </div>
+      {% endfor %}
+      <div class="grid grid-cols-12 items-center px-4 py-[8px] text-[12.5px] border-t border-[var(--line)] bg-[var(--paper-2)] font-medium">
+        <div class="col-span-1"></div>
+        <div class="col-span-2">Totals (11)</div>
+        <div class="col-span-3"></div>
+        <div class="col-span-1"></div>
+        <div class="col-span-2 num text-right">A$17,790,000</div>
+        <div class="col-span-1"></div>
+        <div class="col-span-1 text-right text-[var(--pos)] text-[10.5px] uppercase tracking-[0.18em]">3 exempt</div>
+        <div class="col-span-1 text-right text-[var(--warm)] text-[10.5px] uppercase tracking-[0.18em]">1 surcharge</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ JURISDICTION CALC TABS ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Per-jurisdiction assessment — scale &amp; band cascade</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Each OSR scale applied independently · no aggregation between states</div>
+    </div>
+
+    <!-- NSW -->
+    <div class="mt-4 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">NSW · Revenue NSW · 3 holdings · owner aggregation per s.27 LTA 1956</div>
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Scale · A$100 + 1.6% above A$1.075m · premium 2% above A$6.571m</div>
+      </div>
+      <div class="mt-3 grid grid-cols-12 gap-4 text-[12.5px]">
+        <div class="col-span-7">
+          <table class="num w-full">
+            <tr class="border-b border-[var(--line)]"><td class="py-1">#01 Botany commercial</td><td class="text-right">A$2,400,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">#02 Drummoyne residential</td><td class="text-right">A$1,800,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">#03 Bondi residential (Sauer Holdings)</td><td class="text-right">A$3,600,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--ink-3)]">Sauerland aggregate (own #01+#02)</td><td class="text-right">A$4,200,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--ink-3)]">Sauer Holdings (own #03 separately assessed)</td><td class="text-right">A$3,600,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Sauerland · taxable amount above threshold</td><td class="text-right">A$3,125,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Sauerland · base A$100 + 1.6% × A$3,125,000</td><td class="text-right">A$50,100</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Sauer Holdings · taxable A$2,525,000</td><td class="text-right">A$40,500</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Sauer Holdings · base A$100 + 1.6% × A$2,525,000</td><td class="text-right">A$40,500</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--ink-3)]">Premium 2% band · neither over A$6.571m</td><td class="text-right">—</td></tr>
+            <tr><td class="py-1 font-medium">NSW total</td><td class="text-right font-medium">A$90,600 → adj. A$78,420 cap reset</td></tr>
+          </table>
+        </div>
+        <div class="col-span-5 rounded-md border border-[var(--line)] p-3 text-[11.5px] text-[var(--ink-3)]">
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink)]">NSW peculiarities</div>
+          <ul class="mt-1 list-disc pl-4 space-y-1">
+            <li>Owner-by-owner aggregation (s.27) — different owners assessed separately</li>
+            <li>PPR exempt by default (s.10AA); IPP not</li>
+            <li>Surcharge land tax 5% on residential held by foreign person (s.5A)</li>
+            <li>Discretionary trusts deemed foreign unless deed precludes foreign benefit (s.104J) — Sauer Holdings deed amended 2024-11-12</li>
+            <li>Premium band 2% kicks at A$6.571m FY26</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIC -->
+    <div class="mt-5 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">VIC · SRO VIC · 2 holdings · absentee owner surcharge 4%</div>
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Scale · 0.2%–2.55% above A$50k · trust surcharge 0.375%–0.825% to A$3m</div>
+      </div>
+      <div class="mt-3 grid grid-cols-12 gap-4 text-[12.5px]">
+        <div class="col-span-7">
+          <table class="num w-full">
+            <tr class="border-b border-[var(--line)]"><td class="py-1">#04 Richmond commercial (Sauerland)</td><td class="text-right">A$1,600,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">#05 Brunswick residential (Sauer Bare Trust)</td><td class="text-right">A$1,200,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Sauerland (#04 only) · base + scale to A$1.6m</td><td class="text-right">A$11,400</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Sauer Bare Trust · trust surcharge applies (s.46IA)</td><td class="text-right">A$10,800</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Absentee owner surcharge 4% × A$1.2m (s.3D)</td><td class="text-right text-[var(--warm)]">A$48,000 → cap A$22,400</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--ink-3)]">Vacant residential land tax · checked · property tenanted 280+ days</td><td class="text-right">—</td></tr>
+            <tr><td class="py-1 font-medium">VIC total</td><td class="text-right font-medium">A$36,114 (incl. surcharge A$22,400 capped)</td></tr>
+          </table>
+        </div>
+        <div class="col-span-5 rounded-md border border-[var(--line)] p-3 text-[11.5px] text-[var(--ink-3)]">
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink)]">VIC peculiarities</div>
+          <ul class="mt-1 list-disc pl-4 space-y-1">
+            <li>Lowest threshold A$50k (A$25k for trusts) · sweeps low-value land</li>
+            <li>Trust surcharge unless beneficiary nominated under s.46H</li>
+            <li>Absentee owner 4% – Sauer Bare Trust has one beneficiary in NZ (Br Sauer)</li>
+            <li>Vacant residential land tax 1-3% if &lt;6mo occupied (s.34A)</li>
+            <li>Windfall gains tax on rezoning (separate · not engaged this year)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- QLD -->
+    <div class="mt-5 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">QLD · Qld Rev Office · 4 holdings · 2 exempt (PPR · primary production)</div>
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Scale · 1.0% → 2.75% · trust/company A$350k threshold · absentee 2%</div>
+      </div>
+      <div class="mt-3 grid grid-cols-12 gap-4 text-[12.5px]">
+        <div class="col-span-7">
+          <table class="num w-full">
+            <tr class="border-b border-[var(--line)]"><td class="py-1">#06 Bowen Hills commercial</td><td class="text-right">A$1,400,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">#07 Yatala industrial</td><td class="text-right">A$890,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--pos)]">#08 Wandoan 320ha primary production · EXEMPT s.39</td><td class="text-right">A$0</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--pos)]">#09 Kenmore PPR (R Sauer) · EXEMPT s.35</td><td class="text-right">A$0</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Sauerland aggregate (#06 + #07)</td><td class="text-right">A$2,290,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Above A$350k threshold (trust/co rate)</td><td class="text-right">A$1,940,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Scale calc · A$1,450 + 1.7% to A$2.29m · then 1.7%</td><td class="text-right">A$28,840</td></tr>
+            <tr><td class="py-1 font-medium">QLD total</td><td class="text-right font-medium">A$28,840</td></tr>
+          </table>
+        </div>
+        <div class="col-span-5 rounded-md border border-[var(--line)] p-3 text-[11.5px] text-[var(--ink-3)]">
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink)]">QLD peculiarities</div>
+          <ul class="mt-1 list-disc pl-4 space-y-1">
+            <li>Primary production s.39 — must be principal business of owner (not lessee)</li>
+            <li>PPR s.35 — only one PPR claimable per individual</li>
+            <li>Trust/company threshold A$350k vs A$600k for individuals</li>
+            <li>Interstate aggregation proposal 2022 abandoned 2022-09-30 (Palaszczuk reversal)</li>
+            <li>Absentee surcharge 2% for foreign persons (s.55A)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SA + WA combined -->
+    <div class="mt-5 grid grid-cols-12 gap-5">
+      <div class="col-span-6 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">SA · RevenueSA · 1 holding</div>
+        <table class="num mt-3 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]"><td class="py-1">#10 Adelaide commercial</td><td class="text-right">A$680,000</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Less threshold A$732,000</td><td class="text-right text-[var(--pos)]">below threshold</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Note · trust aggregation (Land Tax (Trusts) Amendment Act 2020) — separate trust assessment if nominated</td><td class="text-right text-[var(--ink-3)]">elected · separate</td></tr>
+          <tr><td class="py-1 font-medium">SA · scheduled tax</td><td class="text-right font-medium">A$5,824 (above trust rate · 0.85%)</td></tr>
+        </table>
+        <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">Trust deemed assessment under s.13C until nominated beneficiary lodged · nomination form 2024-09-18.</div>
+      </div>
+      <div class="col-span-6 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">WA · OSR WA · 1 holding</div>
+        <table class="num mt-3 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]"><td class="py-1">#11 Perth commercial</td><td class="text-right">A$520,000</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Threshold A$300k · taxable A$220,000</td><td class="text-right">A$220,000</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Scale · A$300 + 0.9% × A$220,000</td><td class="text-right">A$2,280</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Metropolitan region improvement tax (MRIT) · 0.14%</td><td class="text-right">A$840</td></tr>
+          <tr><td class="py-1 font-medium">WA total</td><td class="text-right font-medium">A$3,120</td></tr>
+        </table>
+        <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">MRIT (Metro Region Improvement Tax Act 1959) is a Perth-specific overlay; collected with land tax.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SURCHARGE PANEL ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Foreign / absentee owner surcharge — Sauer Bare Trust deep-dive</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">VIC AO 4% · A$22,400 cap on A$1.2m Brunswick property</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-5 text-[12.5px]">
+      <div class="col-span-7 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Why surcharge applies</div>
+        <ul class="mt-2 list-disc pl-5 space-y-1 text-[var(--ink-3)]">
+          <li>Sauer Bare Trust holds Brunswick (#05) under bare-trust deed dated 2017-08-04 for Br Sauer (R Sauer's brother, NZ resident since 2014)</li>
+          <li>VIC <span class="text-[var(--ink)]">Land Tax Act 2005 s.3D</span> · absentee owner = natural person who is not Australian citizen/permanent resident and is absent from AU for &gt;6 months in calendar year</li>
+          <li>Br Sauer has been in NZ continuously 2014-present · clearly absentee</li>
+          <li>Bare trust attributes proprietorship to beneficiary for AO purposes (s.46DC)</li>
+        </ul>
+        <div class="mt-3 text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Whether the bare trust election helps</div>
+        <ul class="mt-2 list-disc pl-5 space-y-1 text-[var(--ink-3)]">
+          <li>Bare trust ↔ absentee · the chain is direct; no shelter via interposed entities</li>
+          <li>If Br Sauer returned to Australia for &gt;183 days in CY26 → AO falls away from next assessment</li>
+          <li>If property sold to AU-resident family member → AO falls away from settlement</li>
+          <li>Existing position · genuinely held for non-resident; AO accepted as cost</li>
+        </ul>
+      </div>
+      <div class="col-span-5 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Cross-state surcharge comparison</div>
+        <table class="num mt-2 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]"><td class="py-1">NSW surcharge land tax · residential foreign 5%</td><td class="text-right">A$0 · all comm/no foreign benef</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">VIC absentee owner 4%</td><td class="text-right text-[var(--neg)]">A$22,400</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">QLD foreign surcharge 2%</td><td class="text-right">A$0</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">SA foreign surcharge 7% (stamp duty only)</td><td class="text-right">—</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">WA — no land tax foreign surcharge</td><td class="text-right">A$0</td></tr>
+          <tr><td class="py-1 font-medium">Surcharge total FY26</td><td class="text-right text-[var(--neg)] font-medium">A$22,400</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPARISON MATRIX ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">5-state matrix · thresholds · rates · trust loadings · surcharges</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">FY26 published rates · OSR-confirmed</div>
+    </div>
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-2">State</div>
+        <div class="col-span-2 text-right">Individual threshold</div>
+        <div class="col-span-2 text-right">Trust/co threshold</div>
+        <div class="col-span-2 text-right">Top marginal rate</div>
+        <div class="col-span-2 text-right">Foreign/AO surcharge</div>
+        <div class="col-span-2 text-right">PPR / PP exempt?</div>
+      </div>
+      {% set mat = [
+        ('NSW','A$1,075,000','A$1,075,000','2.0% (>A$6.571m)','5% residential foreign','PPR + PP'),
+        ('VIC','A$50,000',   'A$25,000',   '2.55%',           '4% absentee · vacant 1-3%','PPR + PP'),
+        ('QLD','A$600,000',  'A$350,000',  '2.75%',           '2% absentee · 3% foreign','PPR + PP'),
+        ('SA', 'A$732,000',  'A$25,000',   '2.4%',            'no land tax surcharge','PPR + PP'),
+        ('WA', 'A$300,000',  'A$300,000',  '2.67% + MRIT 0.14%','no land tax surcharge','PPR + PP')
+      ] %}
+      {% for m in mat %}
+      <div class="grid grid-cols-12 items-center px-4 py-[6px] text-[12.5px] border-t border-[var(--line)]">
+        <div class="col-span-2 font-medium">{{ m[0] }}</div>
+        <div class="col-span-2 num text-right">{{ m[1] }}</div>
+        <div class="col-span-2 num text-right">{{ m[2] }}</div>
+        <div class="col-span-2 num text-right">{{ m[3] }}</div>
+        <div class="col-span-2 num text-right text-[var(--ink-3)] text-[11.5px]">{{ m[4] }}</div>
+        <div class="col-span-2 text-right text-[var(--ink-3)] text-[11.5px]">{{ m[5] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ============ MARKET READ ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Market read · land tax multi-state tooling</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Xero / MYOB / Reckon vs SAE Books</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-4 text-[12.5px]">
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Xero</div>
+        <div class="mt-2 text-[var(--ink)]">Land tax bills tracked as supplier invoices.</div>
+        <div class="mt-2 text-[var(--ink-3)]">No aggregation logic; no surcharge modelling. Practitioners reconcile
+          OSR statements manually against fixed-asset register. Owner-aggregation errors are common when properties
+          held by different entities of the same group.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">MYOB AE / property tools</div>
+        <div class="mt-2 text-[var(--ink)]">Asset register + manual workpaper.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Tracks site values per asset; no automatic state-specific scale
+          calculation. Surcharge & exemption handling outside MYOB · separate analyst workpaper.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Reckon · property mgrs (Console / PropertyMe)</div>
+        <div class="mt-2 text-[var(--ink)]">PM products track rent / leases · not tax.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Tax left to the firm's accountants. Multi-state owner-graph not
+          modelled.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">SAE Books · this surface</div>
+        <div class="mt-2 text-[var(--ink)]">Per-state assessor with surcharge engine.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Each property keyed to a state assessor module; owner-aggregation
+          performed within state; surcharges modelled by beneficiary residence; exemption rules drawn from a code-base of
+          OSR sections. Adds annual forecast to the FY27 budget &amp; flags property purchases that cross threshold bands
+          before contract.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AUTHORITIES ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Authority pack</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Statute · rulings · cases · OSR rulings</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-6 text-[12px] leading-[1.55]">
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Statute</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li>NSW <span class="text-[var(--ink)]">Land Tax Act 1956</span> · s.5A · s.10AA · s.27</li>
+          <li>NSW <span class="text-[var(--ink)]">Land Tax Management Act 1956</span></li>
+          <li>VIC <span class="text-[var(--ink)]">Land Tax Act 2005</span> · s.3D · s.34A · s.46DC · s.46H · s.46IA</li>
+          <li>QLD <span class="text-[var(--ink)]">Land Tax Act 2010</span> · s.35 · s.39 · s.55A</li>
+          <li>SA <span class="text-[var(--ink)]">Land Tax Act 1936</span> · s.13C</li>
+          <li>WA <span class="text-[var(--ink)]">Land Tax Assessment Act 2002</span></li>
+          <li>WA <span class="text-[var(--ink)]">Metro Region Improvement Tax Act 1959</span></li>
+        </ul>
+      </div>
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">OSR rulings</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li>NSW <span class="text-[var(--ink)]">Revenue Ruling LT 082</span> · principal place of residence</li>
+          <li>NSW <span class="text-[var(--ink)]">Revenue Ruling SLT 001</span> · surcharge foreign person</li>
+          <li>VIC <span class="text-[var(--ink)]">SRO Ruling LTA-009</span> · absentee owner</li>
+          <li>QLD <span class="text-[var(--ink)]">Public Ruling LTA000.1</span> · trust assessment</li>
+          <li>QLD <span class="text-[var(--ink)]">Public Ruling LTA035.1</span> · PPR conditions</li>
+          <li>QLD <span class="text-[var(--ink)]">Public Ruling LTA039.1</span> · primary production</li>
+          <li>SA <span class="text-[var(--ink)]">Information Circular IC1</span> · trust nomination</li>
+          <li>WA <span class="text-[var(--ink)]">Commissioner's Practice LT 04.6</span> · valuation</li>
+        </ul>
+      </div>
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Cases</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li><span class="text-[var(--ink)]">Spencer v Commonwealth</span> [1907] HCA 82 · UCV/site value</li>
+          <li><span class="text-[var(--ink)]">CCSR v Investa Properties</span> [2001] NSWCA 277 · aggregation</li>
+          <li><span class="text-[var(--ink)]">Yang v Comm of State Revenue</span> [2014] VSC 558 · absentee</li>
+          <li><span class="text-[var(--ink)]">Sun Trust Pty Ltd v Chief CSR</span> [2022] QSC 41 · trust assessment</li>
+          <li><span class="text-[var(--ink)]">Hwang v Commissioner of State Revenue (VIC)</span> [2024] VCAT 132</li>
+          <li><span class="text-[var(--ink)]">Vella v Chief CSR (NSW)</span> [2020] NSWSC 1090</li>
+          <li><span class="text-[var(--ink)]">Lake Macquarie SC v Chief CSR</span> [2013] NSWSC 1133 · PP</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mx-auto mt-14 max-w-[1480px] border-t border-[var(--line)] pt-4 text-[11px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
+    <div class="flex justify-between">
+      <div>LT-184260-26-MS · 5 OSRs · 11 land · A$17.79m UCV · A$152,318 land tax · A$22,400 AO surcharge · prepared 2026-05-11 23:03</div>
+      <div>SAE BOOKS · /preview/compliance/land-tax-multistate/fy26</div>
+    </div>
+  </footer>
+</main>
+{% endblock %}

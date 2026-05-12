@@ -1,0 +1,316 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'settings' %}
+{% block page_title %}Peppol e-invoicing · Settings · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="flex items-center gap-2 text-[11px] font-mono ink-3 mb-3">
+  <a href="/preview/settings" class="hover:text-[color:var(--sae)]">Settings</a>
+  <i data-lucide="chevron-right" class="w-3 h-3"></i>
+  <a href="/preview/settings#integrations" class="hover:text-[color:var(--sae)]">Integrations</a>
+  <i data-lucide="chevron-right" class="w-3 h-3"></i>
+  <span>Peppol e-invoicing</span>
+</div>
+
+<!-- Hero -->
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-tr-2xl rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white" style="background:#7C5C8B;"><i data-lucide="cable" class="w-5 h-5"></i></div>
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <span class="reg-mark"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Integration · Peppol · AU PINT</span>
+          <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full" style="background:rgba(62,122,78,.12);color:var(--pos);">Connected</span>
+        </div>
+        <h1 class="font-display text-[34px] leading-[1.05] font-medium">Peppol <span class="text-[color:var(--sae)] italic">e-invoicing</span></h1>
+        <p class="mt-1.5 ink-2 text-sm">Structured invoices in and out of the SAE Books workspace via the AU Peppol network. ATO is the AU Peppol Authority — federal agencies require Peppol e-invoicing from <span class="num">1 July 2027</span>.</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="send" class="w-3.5 h-3.5"></i>Send test invoice</button>
+      <a href="/preview/inbox" class="btn-primary"><i data-lucide="inbox" class="w-4 h-4"></i>Open Peppol inbox</a>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-7">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Participant ID</p>
+    <p class="font-display text-[18px] mt-1 num font-mono">0151:47168502343</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">ABN scheme · registered in SML</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Sent FY26</p>
+    <p class="font-display text-[24px] mt-1 num">18</p>
+    <p class="text-[10px] pos mt-0.5 font-mono">All acks received</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Received FY26</p>
+    <p class="font-display text-[24px] mt-1 num">42</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">86% auto-coded</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Avg delivery</p>
+    <p class="font-display text-[24px] mt-1 num">4.2<span class="text-[14px] ink-3">s</span></p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">From send to MLR</p>
+  </div>
+  <div class="card p-4 relative overflow-hidden" style="border-color: var(--sae); border-width: 1.5px;">
+    <span class="reg-mark absolute right-3 top-3"></span>
+    <p class="text-[11px] uppercase tracking-wider ink-3">Federal mandate</p>
+    <p class="font-display text-[24px] mt-1 num">421d</p>
+    <p class="text-[10px] sae mt-0.5 font-mono">to 1 Jul 2027</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+  <!-- LEFT main -->
+  <div class="lg:col-span-8 space-y-6">
+
+    <!-- Participant + AP card -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-display text-[18px]">Network participation</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Your ID, your Access Point, and the documents you'll send/receive</p>
+        </div>
+        <a href="#" class="text-[11px] sae hover:underline">Peppol Directory →</a>
+      </div>
+      <div class="drafting mb-4"></div>
+      <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-[12.5px]">
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Participant identifier</dt><dd class="mt-0.5 font-mono">iso6523-actorid-upis:: 0151:47168502343</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Display name</dt><dd class="mt-0.5">Sauer Pty Ltd (SAE Engineering)</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Peppol Authority</dt><dd class="mt-0.5">Australian Taxation Office (AU)</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Network spec</dt><dd class="mt-0.5"><span class="font-mono">AU PINT v1.0.1</span> · billing 3.0 AU</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Access Point</dt><dd class="mt-0.5">Storecove BV · AU edge Sydney</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">SMP record</dt><dd class="mt-0.5 font-mono ink-3">smp.storecove.com/peppol/0151/47168502343</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Registered since</dt><dd class="mt-0.5 num">14 Feb 2024</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">SML cert expires</dt><dd class="mt-0.5 num">11 Feb 2027 <span class="ink-3">(641 days)</span></dd></div>
+      </dl>
+    </div>
+
+    <!-- Document types supported -->
+    <div class="card p-5">
+      <h3 class="font-display text-[18px] mb-1">Document types you'll exchange</h3>
+      <p class="text-[11px] ink-3 mb-4">AU PINT billing process — process ID <span class="font-mono">urn:peppol:bis:billing</span></p>
+      <div class="drafting mb-4"></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {% set docs = [
+          {'code':'INV','n':'Commercial invoice','sub':'UBL 2.1 · profile billing 3.0 AU · gst-inclusive line items','dir':'send + receive','state':'live','col':'#3E7A4E'},
+          {'code':'CRN','n':'Credit note','sub':'UBL CreditNote · references original invoice ID','dir':'send + receive','state':'live','col':'#3E7A4E'},
+          {'code':'RFI','n':'Request for invoice','sub':'Self-billing request — not in scope for trades','dir':'receive only','state':'off','col':'#8a8f97'},
+          {'code':'MLR','n':'Message-level response','sub':'Auto-reply to inbound on technical receipt','dir':'auto','state':'live','col':'#3E7A4E'},
+          {'code':'IRR','n':'Invoice response','sub':'Customer acceptance / dispute response','dir':'receive only','state':'live','col':'#3E7A4E'},
+          {'code':'SBI','n':'Self-billing invoice','sub':'Reverse-charge between parties','dir':'send + receive','state':'off','col':'#8a8f97'},
+        ] %}
+        {% for d in docs %}
+        <div class="flex items-start gap-3 p-3 border hairline rounded-lg">
+          <span class="num font-mono text-[10px] uppercase tracking-wider w-10 text-center py-1 rounded" style="background: {{ d.col }}1A; color: {{ d.col }};">{{ d.code }}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-[13px] font-medium">{{ d.n }}</p>
+              {% if d.state == 'live' %}<span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">live</span>
+              {% else %}<span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:var(--paper-2);color:var(--ink-3);">off</span>{% endif %}
+            </div>
+            <p class="text-[11px] ink-3 mt-0.5">{{ d.sub }}</p>
+            <p class="text-[10px] font-mono ink-3 mt-1">{{ d.dir }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 4-corner model diagram -->
+    <div class="card p-5">
+      <h3 class="font-display text-[18px] mb-1">4-corner model</h3>
+      <p class="text-[11px] ink-3 mb-4">How a Peppol invoice flows from you to the customer — every leg signed and logged</p>
+      <div class="drafting mb-4"></div>
+      <div class="grid grid-cols-4 gap-3 text-[11.5px]">
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 text-white" style="background: var(--brand-2);"><i data-lucide="user" class="w-5 h-5"></i></div>
+          <p class="font-medium">C1 · You</p>
+          <p class="ink-3 mt-1">Sauer Pty Ltd<br>0151:47168502343</p>
+        </div>
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 text-white" style="background: var(--sae);"><i data-lucide="cable" class="w-5 h-5"></i></div>
+          <p class="font-medium">C2 · Sender AP</p>
+          <p class="ink-3 mt-1">Storecove BV<br>AU Sydney</p>
+        </div>
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 text-white" style="background: var(--sae);"><i data-lucide="cable" class="w-5 h-5"></i></div>
+          <p class="font-medium">C3 · Receiver AP</p>
+          <p class="ink-3 mt-1">Looked up via SML<br>e.g. MessageXchange</p>
+        </div>
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 text-white" style="background: var(--brand-2);"><i data-lucide="building" class="w-5 h-5"></i></div>
+          <p class="font-medium">C4 · Customer</p>
+          <p class="ink-3 mt-1">Acme Pty Ltd<br>0151:81134567890</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 mt-3 text-[10px] ink-3 font-mono justify-center">
+        <i data-lucide="arrow-right" class="w-3 h-3"></i><span>AS4 over TLS · UBL 2.1 envelope · MLR returns within seconds</span>
+      </div>
+    </div>
+
+    <!-- Recent traffic -->
+    <div class="card overflow-hidden">
+      <div class="px-5 pt-5 pb-2 flex items-center justify-between">
+        <h3 class="font-display text-[18px]">Recent traffic · last 7 days</h3>
+        <a href="/preview/activity" class="text-[11px] sae hover:underline">Full log →</a>
+      </div>
+      <div class="drafting mx-5 mb-1"></div>
+      <table class="data-table">
+        <thead><tr><th>Time</th><th>Dir</th><th>Counterparty</th><th>Document</th><th class="text-right">Total</th><th>State</th></tr></thead>
+        <tbody>
+          {% set traffic = [
+            {'t':'11 May 09:14','d':'in', 'cp':'Bunnings Trade (0151:63008672179)','doc':'INV BTN-Q5-4128',     'amt':'742.30','s':'auto-coded'},
+            {'t':'10 May 18:24','d':'out','cp':'Acme Pty Ltd  (0151:81134567890)',  'doc':'INV-0028',           'amt':'14,179.00','s':'delivered'},
+            {'t':'10 May 14:51','d':'in', 'cp':'Coast Ind Elec (0151:51687218842)','doc':'INV CIE-4421',        'amt':'2,460.00','s':'auto-coded'},
+            {'t':'09 May 11:42','d':'in', 'cp':'Sigma Hydraulics (0151:72119445628)','doc':'INV SIG-7782',      'amt':'3,420.00','s':'auto-coded'},
+            {'t':'08 May 17:08','d':'out','cp':'Northshore Marine (0151:84221567890)','doc':'INV-0027',         'amt':'9,262.00','s':'delivered'},
+            {'t':'08 May 09:33','d':'in', 'cp':'Telstra Corporation (0151:33051775556)','doc':'INV TLS-Apr-26', 'amt':'198.00','s':'review'},
+            {'t':'07 May 16:14','d':'out','cp':'Acme Pty Ltd  (0151:81134567890)',   'doc':'CRN-0011',          'amt':'−420.00','s':'delivered'},
+          ] %}
+          {% for tx in traffic %}
+          <tr>
+            <td class="text-[11px] ink-3 font-mono whitespace-nowrap">{{ tx.t }}</td>
+            <td>
+              {% if tx.d == 'in' %}<span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(124,92,139,.12);color:#7C5C8B;">IN</span>
+              {% else %}<span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(200,99,31,.12);color:var(--sae);">OUT</span>{% endif %}
+            </td>
+            <td class="text-[12px]">{{ tx.cp }}</td>
+            <td class="text-[11px] font-mono ink-3">{{ tx.doc }}</td>
+            <td class="text-right num text-[12.5px] {% if tx.amt.startswith('−') %}neg{% endif %}">A${{ tx.amt[1:] if tx.amt.startswith('−') else tx.amt }}</td>
+            <td>
+              {% if tx.s == 'review' %}<span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(200,99,31,.12);color:var(--sae);">review</span>
+              {% elif tx.s == 'auto-coded' %}<span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">auto</span>
+              {% else %}<span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">delivered</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Customer Peppol-readiness -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-display text-[18px]">Customer Peppol-readiness</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Cached SML lookups · refresh weekly</p>
+        </div>
+        <button class="chip text-[11px]"><i data-lucide="refresh-cw" class="w-3 h-3"></i>Refresh now</button>
+      </div>
+      <div class="space-y-2">
+        {% set readiness = [
+          {'n':'Acme Pty Ltd',          'abn':'81 134 567 890','pid':'0151:81134567890','ready':True,'ap':'MessageXchange','last':'04 May'},
+          {'n':'Northshore Marine',     'abn':'84 221 567 890','pid':'0151:84221567890','ready':True,'ap':'Storecove','last':'04 May'},
+          {'n':'Coastal Builders',      'abn':'62 776 553 010','pid':'0151:62776553010','ready':True,'ap':'Link4','last':'04 May'},
+          {'n':'Sigma Hydraulics',      'abn':'72 119 445 628','pid':'0151:72119445628','ready':True,'ap':'B2BE','last':'04 May'},
+          {'n':'Bowen Crane Hire',      'abn':'21 552 117 008','pid':'—','ready':False,'ap':'—','last':'04 May'},
+          {'n':'Russell Lifting',       'abn':'88 116 224 119','pid':'—','ready':False,'ap':'—','last':'04 May'},
+        ] %}
+        {% for r in readiness %}
+        <div class="flex items-center gap-3 p-3 border hairline rounded-lg">
+          <i data-lucide="building" class="w-4 h-4 ink-3 shrink-0"></i>
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-medium">{{ r.n }}</p>
+            <p class="text-[10px] font-mono ink-3 mt-0.5">ABN {{ r.abn }} · {{ r.pid }}</p>
+          </div>
+          <div class="text-right">
+            {% if r.ready %}
+              <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">Peppol</span>
+              <p class="text-[10px] ink-3 font-mono mt-0.5">{{ r.ap }}</p>
+            {% else %}
+              <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:var(--paper-2);color:var(--ink-3);">PDF only</span>
+              <p class="text-[10px] ink-3 font-mono mt-0.5">no AP</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="text-[11px] ink-3 mt-3">4 of 6 contacts can receive Peppol e-invoices today · the rest receive standard PDF invoices via email (Postmark).</p>
+    </div>
+  </div>
+
+  <!-- RIGHT rail -->
+  <div class="lg:col-span-4 space-y-6">
+
+    <!-- Mandate timeline -->
+    <div class="card p-5 relative overflow-hidden" style="border: 1.5px solid var(--sae);">
+      <span class="reg-mark absolute right-3 top-3"></span>
+      <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">AU mandate timeline</p>
+      <h3 class="font-display text-[17px] mt-1 mb-3">Plan around the calendar</h3>
+      <ol class="space-y-3 text-[12px]">
+        <li class="flex gap-3">
+          <span class="num font-mono text-[10px] mt-0.5 ink-3">2019</span>
+          <span>Australia joins OpenPeppol · ATO becomes AU Peppol Authority</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="num font-mono text-[10px] mt-0.5 ink-3">Jul 22</span>
+          <span>Commonwealth agencies must <em>be able to</em> receive Peppol invoices</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="num font-mono text-[10px] mt-0.5 pos">Today</span>
+          <span><span class="font-medium">You're connected</span> · 60 invoices through the network FY26</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="num font-mono text-[10px] mt-0.5 sae">1 Jul 2027</span>
+          <span><span class="font-medium">Federal agencies require Peppol e-invoicing</span> from suppliers · paper / email PDFs no longer accepted</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="num font-mono text-[10px] mt-0.5 ink-3">2028</span>
+          <span>Expected state-government roll-out (QLD, NSW signalled · others TBC)</span>
+        </li>
+      </ol>
+    </div>
+
+    <!-- Access Point card -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-2">Access Point</h3>
+      <p class="text-[12.5px] ink-2 mb-3">Storecove BV is your sender AP. They handle the SML lookup, AS4 transport, MLR receipt, and message archival (7y AU rule).</p>
+      <dl class="text-[12px] space-y-1.5">
+        <div class="flex justify-between"><dt class="ink-3">Plan</dt><dd>Pro · A$22/mo</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Included</dt><dd>500 docs/mo</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">FY26 usage</dt><dd class="num">60 / 5,500</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Overage</dt><dd>A$0.08 / doc</dd></div>
+      </dl>
+      <div class="flex items-center gap-2 mt-3">
+        <button class="chip text-[11px]"><i data-lucide="arrow-left-right" class="w-3 h-3"></i>Switch AP</button>
+        <button class="chip text-[11px]"><i data-lucide="receipt" class="w-3 h-3"></i>Billing</button>
+      </div>
+    </div>
+
+    <!-- Diagnostics -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Diagnostics</h3>
+      <div class="space-y-1.5 text-[12px]">
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 pos shrink-0"></i>SML lookup · 41 ms avg</div>
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 pos shrink-0"></i>AS4 TLS handshake</div>
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 pos shrink-0"></i>UBL 2.1 schematron validation</div>
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 pos shrink-0"></i>MLR receipt within 60s</div>
+        <div class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 pos shrink-0"></i>Archive sealed in AU region</div>
+      </div>
+      <button class="chip text-[11px] mt-3 w-full justify-center"><i data-lucide="play" class="w-3 h-3"></i>Send loopback test</button>
+    </div>
+
+    <!-- Cross-links -->
+    <div class="card p-5" style="background: var(--paper-2);">
+      <h3 class="font-display text-[16px] mb-3">Related</h3>
+      <ul class="text-[12.5px] space-y-2">
+        <li><a href="/preview/inbox" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="inbox" class="w-3.5 h-3.5 ink-3"></i>Peppol inbox</a></li>
+        <li><a href="/preview/invoices/new" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="file-output" class="w-3.5 h-3.5 ink-3"></i>Send a test e-invoice</a></li>
+        <li><a href="/preview/settings/integrations/ato" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="landmark" class="w-3.5 h-3.5 ink-3"></i>ATO &amp; DSP</a></li>
+        <li><a href="/preview/activity" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="history" class="w-3.5 h-3.5 ink-3"></i>Audit log</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}<script>if (window.lucide) window.lucide.createIcons();</script>{% endblock %}

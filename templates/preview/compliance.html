@@ -1,0 +1,348 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'compliance' %}
+{% block page_title %}Australian compliance · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-64 h-32 dot-grid-soft rounded-tr-2xl rounded-bl-3xl pointer-events-none opacity-60"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Compliance · Australian Taxation Office</span>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>DSP connected</span>
+      </div>
+      <h1 class="font-display text-[40px] leading-[1.05] font-medium">Australian compliance</h1>
+      <p class="mt-2 ink-2 text-sm max-w-2xl">
+        BAS, GST, PAYG, STP Phase 2, Super, TPAR, FBT, IAWO — every AU lodgement and threshold in one place.
+        Designed to make your accountant nod, not sigh.
+      </p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i>Invite your accountant</button>
+      <a href="#" class="btn-primary"><i data-lucide="zap" class="w-4 h-4"></i>Start BAS draft</a>
+    </div>
+  </div>
+  <div class="drafting mt-7"></div>
+</div>
+
+<!-- BAS countdown ring + GST threshold meter — signature row -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-9">
+
+  <!-- BAS countdown -->
+  <div class="card p-6 relative overflow-hidden lg:col-span-1">
+    <div class="absolute -right-4 -bottom-4 reg-mark opacity-30"></div>
+    <p class="text-[11px] uppercase tracking-wider ink-3 mb-2">Next BAS lodgement</p>
+    <div class="flex items-center gap-5 mt-3">
+      <svg viewBox="0 0 42 42" class="w-28 h-28 -rotate-90 shrink-0">
+        <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f1ecdf" stroke-width="4"/>
+        <!-- 47/77 = ~61% of quarter elapsed -->
+        <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#194291" stroke-width="4"
+                stroke-linecap="round"
+                stroke-dasharray="61 39" stroke-dashoffset="0"/>
+        <text x="21" y="22.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6" font-weight="600" transform="rotate(90 21 21)" fill="#14171c">30</text>
+        <text x="21" y="27" text-anchor="middle" font-family="Inter" font-size="3" transform="rotate(90 21 21)" fill="#8a8f97">DAYS LEFT</text>
+      </svg>
+      <div>
+        <p class="font-display text-[28px] num">A$2,145</p>
+        <p class="text-xs ink-2 mt-0.5">Net GST · Q4 FY26 (Apr–Jun)</p>
+        <p class="text-[11px] font-mono ink-3 mt-2">Lodgement due <span class="ink-2 font-medium">28 Jul 2026</span></p>
+        <p class="text-[11px] font-mono ink-3">Payment due <span class="ink-2 font-medium">28 Jul 2026</span></p>
+      </div>
+    </div>
+    <div class="drafting my-5"></div>
+    <div class="flex items-center justify-between text-xs">
+      <a href="/preview/compliance/bas-prep" class="sae font-medium flex items-center gap-1">Prep &amp; lodge BAS <i data-lucide="arrow-right" class="w-3 h-3"></i></a>
+      <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Cash basis · Quarterly</span>
+    </div>
+  </div>
+
+  <!-- GST $75K threshold meter -->
+  <div class="card p-6 lg:col-span-2">
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <p class="text-[11px] uppercase tracking-wider ink-3">GST registration threshold</p>
+        <p class="text-xs ink-2 mt-0.5">Rolling 12-month turnover · Australian Taxation Office</p>
+      </div>
+      <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Registered</span>
+    </div>
+    <div class="flex items-baseline gap-3 mt-2">
+      <p class="font-display text-[36px] num">A$132,840</p>
+      <p class="text-xs ink-3">of <span class="num">A$75,000</span> threshold</p>
+    </div>
+    <div class="mt-4 h-3 rounded-full bg-[color:var(--paper-2)] overflow-hidden relative">
+      <div class="absolute inset-y-0 left-0" style="width:100%; background: linear-gradient(to right, var(--pos) 0%, var(--warm) 56%, var(--neg) 100%); opacity: .25;"></div>
+      <div class="absolute inset-y-0 left-0 rounded-full" style="width:100%; background: var(--ink); opacity: .85;"></div>
+      <!-- $75K marker at 56% relative to $132K = capped at 100% since over threshold -->
+      <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2" style="left: 56%;">
+        <div class="w-px h-7 bg-white -mt-2"></div>
+      </div>
+    </div>
+    <div class="flex items-center justify-between text-[10px] font-mono ink-3 mt-1.5">
+      <span>$0</span>
+      <span style="margin-left: 50%;">$75K threshold</span>
+      <span>$150K</span>
+    </div>
+    <div class="drafting my-5"></div>
+    <div class="grid grid-cols-3 gap-4 text-xs">
+      <div>
+        <p class="ink-3">Sales (incl GST)</p>
+        <p class="num font-medium mt-1">A$132,840.00</p>
+      </div>
+      <div>
+        <p class="ink-3">GST collected (1A)</p>
+        <p class="num font-medium mt-1">A$12,076.36</p>
+      </div>
+      <div>
+        <p class="ink-3">Trailing 12mo period</p>
+        <p class="num font-medium mt-1 font-mono">Jun 25 – May 26</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BAS worksheet -->
+<section class="mb-9">
+  <div class="flex items-end justify-between mb-3">
+    <h2 class="text-[15px] font-semibold tracking-tight">BAS worksheet · Q4 FY26 (cash basis)</h2>
+    <span class="text-xs ink-3 font-mono">Live · updates as you reconcile</span>
+  </div>
+
+  <div class="card overflow-hidden">
+    <table class="sae-table">
+      <thead>
+        <tr><th>Label</th><th>Section</th><th class="text-right">Amount</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% set bas = [
+          {'lbl': 'G1',  'sec': 'Total sales (incl GST)',                  'amt': '23,540.00', 'status': 'ok'},
+          {'lbl': 'G2',  'sec': 'Export sales',                            'amt': '0.00',      'status': 'na'},
+          {'lbl': 'G3',  'sec': 'Other GST-free sales',                    'amt': '0.00',      'status': 'na'},
+          {'lbl': '1A',  'sec': 'GST on sales (collected)',                'amt': '2,140.00',  'status': 'ok'},
+          {'lbl': '1B',  'sec': 'GST on purchases (input tax credits)',    'amt': '−405.00',   'status': 'ok'},
+          {'lbl': 'W1',  'sec': 'Total wages',                             'amt': '14,420.00', 'status': 'ok'},
+          {'lbl': 'W2',  'sec': 'PAYG withheld',                           'amt': '3,608.00',  'status': 'ok'},
+          {'lbl': '5A',  'sec': 'PAYG income-tax instalment',              'amt': '1,182.00',  'status': 'ok'},
+          {'lbl': '7A',  'sec': 'Deferred GST instalment',                 'amt': '0.00',      'status': 'na'},
+        ] %}
+        {% for r in bas %}
+        <tr>
+          <td class="font-mono text-[12px] font-medium ink">{{ r.lbl }}</td>
+          <td class="ink-2">{{ r.sec }}</td>
+          <td class="text-right num font-medium">A${{ r.amt }}</td>
+          <td>
+            {% if r.status == 'ok' %}<span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Reconciled</span>
+            {% else %}<span class="badge badge-ink"><span class="dot" style="background: var(--ink-3);"></span>N/A</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        <tr style="background: var(--paper-2);">
+          <td class="font-mono text-[12px] font-bold ink"></td>
+          <td class="font-medium ink">Net amount payable to ATO</td>
+          <td class="text-right num font-bold ink">A$2,145.00</td>
+          <td><span class="badge badge-sae"><span class="dot" style="background: var(--sae);"></span>Draft</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Compliance grid -->
+<section class="mb-9">
+  <h2 class="text-[15px] font-semibold tracking-tight mb-3">Compliance modules</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+    <!-- STP Phase 2 -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(15,41,64,.08); color: var(--brand);"><i data-lucide="briefcase" class="w-5 h-5"></i></span>
+          <div>
+            <p class="font-medium">STP Phase 2</p>
+            <p class="text-[11px] ink-3 font-mono">Single Touch Payroll</p>
+          </div>
+        </div>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Active</span>
+      </div>
+      <p class="text-xs ink-2 mb-3">Last submission: <span class="num font-medium ink">2 May 2026</span> · 3 employees · A$8,420 gross</p>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between"><span class="ink-2">Country code reporting</span><i data-lucide="check" class="w-4 h-4 pos"></i></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Disaggregation of gross</span><i data-lucide="check" class="w-4 h-4 pos"></i></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Employment basis &amp; tax treatment</span><i data-lucide="check" class="w-4 h-4 pos"></i></div>
+      </div>
+      <a href="/preview/payroll/pay-run" class="block mt-4 text-xs sae hover:underline">View STP report →</a>
+    </div>
+
+    <!-- Payday Super (research callout) -->
+    <div class="card card-hover p-5 relative overflow-hidden" style="border-color: var(--sae);">
+      <div class="absolute -right-3 -top-3 reg-mark opacity-50"></div>
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: var(--sae-tint); color: var(--sae-2);"><i data-lucide="piggy-bank" class="w-5 h-5"></i></span>
+          <div>
+            <p class="font-medium">Payday Super</p>
+            <p class="text-[11px] ink-3 font-mono">Effective 1 Jul 2026</p>
+          </div>
+        </div>
+        <span class="badge badge-sae"><span class="dot" style="background: var(--sae);"></span>Ready</span>
+      </div>
+      <p class="text-xs ink-2 mb-3">Super must be paid with wages from 1 July 2026, not quarterly. SAE Books is configured.</p>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between"><span class="ink-2">SuperStream batches</span><i data-lucide="check" class="w-4 h-4 pos"></i></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Payday-aligned schedule</span><i data-lucide="check" class="w-4 h-4 pos"></i></div>
+        <div class="flex items-center justify-between"><span class="ink-2">ATO clearing-house</span><i data-lucide="check" class="w-4 h-4 pos"></i></div>
+      </div>
+      <p class="text-[11px] font-mono ink-3 mt-3">51 days to switchover</p>
+      <a href="/preview/super" class="block mt-1 text-xs sae hover:underline">Open SuperStream control →</a>
+    </div>
+
+    <!-- PAYG instalments -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(26,78,139,.12); color: var(--brand-2);"><i data-lucide="calendar-clock" class="w-5 h-5"></i></span>
+          <div>
+            <p class="font-medium">PAYG instalments</p>
+            <p class="text-[11px] ink-3 font-mono">Income-tax instalments</p>
+          </div>
+        </div>
+        <span class="badge badge-warm">Q4 due</span>
+      </div>
+      <p class="text-xs ink-2 mb-3">Quarterly PAYG instalment <span class="font-medium ink num">A$1,182</span> based on FY25 notional tax.</p>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between"><span class="ink-2">Method</span><span class="num">Instalment amount (T7)</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">FY26 paid YTD</span><span class="num">A$3,546</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Next due</span><span class="num">28 Jul 2026</span></div>
+      </div>
+      <a href="#" class="block mt-4 text-xs sae hover:underline">Adjust instalment →</a>
+    </div>
+
+    <!-- SuperStream -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(62,122,78,.14); color: var(--pos);"><i data-lucide="repeat" class="w-5 h-5"></i></span>
+          <div>
+            <p class="font-medium">SuperStream</p>
+            <p class="text-[11px] ink-3 font-mono">Super clearing-house</p>
+          </div>
+        </div>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Connected</span>
+      </div>
+      <p class="text-xs ink-2 mb-3">SG liability for FY26 so far: <span class="font-medium ink num">A$948.42</span> · 3 funds.</p>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between"><span class="ink-2">AustralianSuper</span><span class="num">A$612.40</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">REST Super</span><span class="num">A$214.00</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Cbus Super</span><span class="num">A$122.02</span></div>
+      </div>
+      <a href="/preview/super" class="block mt-4 text-xs sae hover:underline">Queue SuperStream batch →</a>
+    </div>
+
+    <!-- TPAR -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(124,92,139,.12); color: #7C5C8B;"><i data-lucide="hard-hat" class="w-5 h-5"></i></span>
+          <div>
+            <p class="font-medium">TPAR · Taxable payments</p>
+            <p class="text-[11px] ink-3 font-mono">Annual report · 28 Aug</p>
+          </div>
+        </div>
+        <span class="badge badge-ink">FY26</span>
+      </div>
+      <p class="text-xs ink-2 mb-3">6 subcontractors flagged · <span class="font-medium ink num">A$57,610.00</span> reportable.</p>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between"><span class="ink-2">Dale Maxwell Electrical</span><span class="num">A$24,120</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Bracco Welding</span><span class="num">A$18,840</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">4 others</span><span class="num">A$14,650</span></div>
+      </div>
+      <a href="/preview/compliance/tpar" class="block mt-4 text-xs sae hover:underline">View TPAR draft →</a>
+    </div>
+
+    <!-- IAWO / Asset register -->
+    <div class="card card-hover p-5">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(139,111,74,.14); color: #8B6F4A;"><i data-lucide="package" class="w-5 h-5"></i></span>
+          <div>
+            <p class="font-medium">Instant Asset Write-Off</p>
+            <p class="text-[11px] ink-3 font-mono">Threshold A$20,000 · FY26</p>
+          </div>
+        </div>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>3 claimed</span>
+      </div>
+      <p class="text-xs ink-2 mb-3">Asset purchases under threshold are immediately deductible.</p>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between"><span class="ink-2">Ute (Hilux 4x4)</span><span class="num">A$12,840 ✓</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Plasma cutter</span><span class="num">A$4,210 ✓</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">MIG welder</span><span class="num">A$2,640 ✓</span></div>
+      </div>
+      <a href="#" class="block mt-4 text-xs sae hover:underline">Asset register →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- Lodgement history -->
+<section class="mb-9">
+  <h2 class="text-[15px] font-semibold tracking-tight mb-3">Recent lodgements</h2>
+  <div class="card p-0 overflow-hidden">
+    <table class="sae-table">
+      <thead>
+        <tr><th>Date</th><th>Form</th><th>Period</th><th class="text-right">Amount</th><th>Reference</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="font-mono text-[12px] ink-2">28 Apr 2026</td>
+          <td>BAS</td>
+          <td class="ink-2">Q3 FY26 (Jan–Mar)</td>
+          <td class="text-right num font-medium">A$1,840.00</td>
+          <td class="font-mono text-[12px] ink-2">ATO-BAS-44182</td>
+          <td><span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Lodged</span></td>
+        </tr>
+        <tr>
+          <td class="font-mono text-[12px] ink-2">15 Apr 2026</td>
+          <td>STP finalisation</td>
+          <td class="ink-2">FY25</td>
+          <td class="text-right num ink-3">—</td>
+          <td class="font-mono text-[12px] ink-2">STP-FY25-2009</td>
+          <td><span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Accepted</span></td>
+        </tr>
+        <tr>
+          <td class="font-mono text-[12px] ink-2">28 Jan 2026</td>
+          <td>BAS</td>
+          <td class="ink-2">Q2 FY26 (Oct–Dec)</td>
+          <td class="text-right num font-medium">A$2,420.00</td>
+          <td class="font-mono text-[12px] ink-2">ATO-BAS-43912</td>
+          <td><span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Lodged</span></td>
+        </tr>
+        <tr>
+          <td class="font-mono text-[12px] ink-2">28 Aug 2025</td>
+          <td>TPAR</td>
+          <td class="ink-2">FY25 annual</td>
+          <td class="text-right num font-medium">A$48,920.00</td>
+          <td class="font-mono text-[12px] ink-2">ATO-TPAR-FY25-9201</td>
+          <td><span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Lodged</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ATO connection footer -->
+<div class="card p-5 flex items-center gap-6 mb-2">
+  <span class="w-12 h-12 rounded-lg flex items-center justify-center" style="background: var(--sae-tint); color: var(--sae-2);"><i data-lucide="landmark" class="w-6 h-6"></i></span>
+  <div class="flex-1">
+    <p class="font-medium">SAE Books is an ATO-approved Digital Service Provider</p>
+    <p class="text-xs ink-2 mt-0.5">Connected via MyGovID + Relationship Authorisation Manager (RAM). All lodgements use Standard Business Reporting (SBR).</p>
+  </div>
+  <div class="text-right">
+    <p class="text-[10px] uppercase tracking-wider ink-3 font-mono">SBR provider ID</p>
+    <p class="text-xs font-mono num">DSP-SAE-Books · v2026.05</p>
+  </div>
+</div>
+
+{% endblock %}

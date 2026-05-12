@@ -1,0 +1,386 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'settings' %}
+{% block page_title %}Bank feed rules · Settings · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-1.5">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Settings · Cashbook · Auto-categorisation</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-[1.05] font-medium">
+        Bank feed rules <span class="italic" style="color: var(--sae);">— 96.4% auto-coded</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">42 rules over 4 connected feeds · CDR-licensed direct feeds via SAE Books Bank Feeds (CBA, NAB) and Basiq (ANZ trust) · trained on 18,420 labelled transactions FY26</p>
+      <div class="mt-2 flex items-center gap-2">
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>42 active · 3 paused</span>
+        <span class="badge"><i data-lucide="brain-cog" class="w-3 h-3"></i>Model v3.2 · 04 May 2026</span>
+        <span class="badge"><i data-lucide="alert-circle" class="w-3 h-3" style="color: var(--warm);"></i>24 untrained</span>
+        <span class="badge"><i data-lucide="shield-check" class="w-3 h-3"></i>CDR consent · 04 Oct 2026</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/settings" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Settings</a>
+      <button class="chip"><i data-lucide="play" class="w-3.5 h-3.5"></i>Re-run on history</button>
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export rules</button>
+      <button class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i>New rule</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Auto-coded FY26</p>
+    <p class="font-display text-[24px] mt-1 num">1,284<span class="text-[14px] ink-3">/1,332</span></p>
+    <p class="text-[11px] mt-1" style="color: var(--pos);">96.4% · 24 manual</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Avg confidence</p>
+    <p class="font-display text-[24px] mt-1 num">91%</p>
+    <p class="text-[11px] ink-3 mt-1">Threshold 85% · 12 below</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Untrained queue</p>
+    <p class="font-display text-[24px] mt-1 num" style="color: var(--warm);">24</p>
+    <p class="text-[11px] ink-3 mt-1">Oldest 9 days</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Time saved / wk</p>
+    <p class="font-display text-[24px] mt-1 num">~2.4 h</p>
+    <p class="text-[11px] ink-3 mt-1">vs manual coding</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">GST treatments</p>
+    <p class="font-display text-[24px] mt-1 num">5</p>
+    <p class="text-[11px] ink-3 mt-1">GST · FRE · INP · N-T · EXP</p>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card p-4 mb-4">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="text-[11px] uppercase ink-3 mr-1">Feed</span>
+    <span class="chip-active">All</span>
+    <span class="chip">CBA Smart Access ••2841</span>
+    <span class="chip">CBA BizCat Visa ••8407</span>
+    <span class="chip">ANZ Trust ••0921</span>
+    <span class="chip">NAB Suncorp loan</span>
+    <span class="mx-2 ink-3">·</span>
+    <span class="text-[11px] uppercase ink-3 mr-1">Type</span>
+    <span class="chip">Description</span>
+    <span class="chip">Reference</span>
+    <span class="chip">Amount</span>
+    <span class="chip">ML suggested</span>
+    <span class="mx-2 ink-3">·</span>
+    <span class="text-[11px] uppercase ink-3 mr-1">Status</span>
+    <span class="chip">Active</span>
+    <span class="chip">Paused</span>
+    <span class="chip">Draft</span>
+    <div class="ml-auto flex items-center gap-2">
+      <div class="relative">
+        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 ink-3"></i>
+        <input class="pl-7 pr-3 py-1.5 text-[12px] rounded-md border" style="border-color: var(--line);" placeholder="Search rules">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rules table + ML rail -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+  <div class="lg:col-span-2 card p-0 overflow-hidden">
+    <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--line);">
+      <div>
+        <h2 class="font-display text-[18px]">Active rules</h2>
+        <p class="text-[12px] ink-3">Priority top-down · first match wins · ties broken by confidence</p>
+      </div>
+      <span class="text-[11px] font-mono ink-3">42 rules · drag to reorder</span>
+    </div>
+    <table class="w-full text-[12.5px]">
+      <thead style="background: var(--paper-2);">
+        <tr class="text-left text-[11px] uppercase tracking-wider ink-3">
+          <th class="px-4 py-2 w-6">#</th>
+          <th class="py-2">Rule · pattern</th>
+          <th class="py-2">→ Account</th>
+          <th class="py-2">GST</th>
+          <th class="py-2 text-right pr-3">Hits</th>
+          <th class="py-2 text-right pr-3">Conf.</th>
+          <th class="py-2 pr-4">Last hit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set rules = [
+          (1, 'BlueScope steel', 'DESC contains BLUESCOPE', 'job-required', '5-110', 'Materials', 'GST', 12, 100, 'Today', '#3E7A4E'),
+          (2, 'OneSteel / Liberty', 'DESC contains ONESTEEL or LIBERTY', 'job-required', '5-110', 'Materials', 'GST', 9, 100, 'Yesterday', '#3E7A4E'),
+          (3, 'Sydney Tools', 'DESC contains SYDNEY TOOLS', '', '6-145', 'Hardware & consumables', 'GST', 8, 99, '03 May', '#3E7A4E'),
+          (4, 'Bunnings consumables', 'DESC contains BUNNINGS', '', '6-145', 'Hardware & consumables', 'GST', 142, 99, '04 May', '#3E7A4E'),
+          (5, 'Ampol / Caltex fuel', 'DESC contains (AMPOL|CALTEX|7-ELEVEN)', 'job-from-week', '6-180', 'Fuel & oil', 'GST', 68, 97, 'Today', '#3E7A4E'),
+          (6, 'Officeworks', 'DESC contains OFFICEWORKS', '', '6-220', 'Office supplies', 'GST', 34, 100, '02 May', '#3E7A4E'),
+          (7, 'Telstra mobile', 'DESC contains TELSTRA · monthly DD', 'recurring', '6-310', 'Telecommunications', 'GST', 11, 100, '28 Apr', '#3E7A4E'),
+          (8, 'AGL electricity', 'DESC contains AGL', 'recurring', '6-300', 'Utilities', 'GST', 4, 100, '20 Apr', '#3E7A4E'),
+          (9, 'Toyota HiLux lease', 'DD reference TFA-2841', 'recurring · A$1,284.62', '6-140', 'Motor vehicle lease', 'GST', 4, 100, '01 May', '#3E7A4E'),
+          (10, 'ATO BAS payment', 'DESC contains ATO PAYMNT · split 1A/1B/W1', '', '2-130', 'GST & PAYG W clearing', 'N-T', 4, 100, '28 Apr', '#1A4E8B'),
+          (11, 'AustralianSuper SG', 'REF STA0100AU', 'split-into-batch', '2-135', 'Super clearing house', 'N-T', 4, 100, '28 Apr', '#1A4E8B'),
+          (12, 'ASIC annual review', 'DESC contains ASIC LODGEMENT', '', '6-410', 'Compliance fees', 'FRE', 1, 100, '14 Mar', '#1A4E8B'),
+          (13, 'WorkCover QLD', 'DESC contains WORKCOVER QLD', '', '6-420', 'Workers compensation', 'FRE', 1, 100, '12 Sep', '#1A4E8B'),
+          (14, 'CBA monthly fee', 'DESC contains MONTHLY ACCOUNT FEE', '', '6-510', 'Bank charges', 'INP', 12, 100, '01 May', '#C89B3C'),
+          (15, 'Stripe payouts AU', 'DESC contains STRIPE PAYOUTS', '', '2-165', 'Stripe clearing', 'N-T', 24, 99, '03 May', '#1A4E8B'),
+          (16, 'PayPal settlements', 'DESC contains PAYPAL DD', '', '2-160', 'PayPal clearing', 'N-T', 8, 95, '01 May', '#1A4E8B'),
+          (17, 'Square AU settlements', 'DESC contains SQUARE PAY', '', '2-167', 'Square clearing', 'N-T', 6, 98, '02 May', '#1A4E8B'),
+          (18, 'BECS payroll out', 'AMOUNT in payroll-batch, ref starts AB', '', '2-200', 'Wages clearing', 'N-T', 16, 100, '02 May', '#1A4E8B'),
+          (19, 'BAS refund credit', 'CREDIT and DESC contains ATO REFUND', '', '2-130', 'GST clearing (reversal)', 'N-T', 2, 100, '03 Feb', '#1A4E8B'),
+          (20, 'RACQ business insurance', 'DESC contains RACQ INSURANCE', 'recurring', '6-420', 'Insurance', 'GST', 4, 100, '11 Apr', '#3E7A4E'),
+          (21, 'Engineers Australia', 'DESC contains ENGINEERS AUSTRALIA', 'annual', '6-410', 'Compliance fees', 'GST', 1, 95, '03 May (queue)', '#C89B3C'),
+          (22, 'Bowen Crane Hire — receipt', 'CREDIT and DESC contains BOWEN', '', '1-110', 'Trade debtors clearing', 'N-T', 6, 99, '02 May', '#1A4E8B'),
+        ] %}
+        {% for n, name, pattern, tag, acc_code, acc_name, gst, hits, conf, last_hit, conf_col in rules %}
+        <tr class="border-t hover:bg-[var(--paper-2)]" style="border-color: var(--line);">
+          <td class="px-4 py-2 font-mono ink-3">{{ n }}</td>
+          <td class="py-2 pr-3">
+            <div class="font-medium">{{ name }}</div>
+            <div class="text-[11px] ink-3 font-mono">{{ pattern }}</div>
+            {% if tag %}<span class="text-[10px] mt-0.5 inline-block px-1.5 py-0.5 rounded-sm" style="background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--line);">{{ tag }}</span>{% endif %}
+          </td>
+          <td class="py-2 pr-3">
+            <span class="font-mono text-[11px] ink-3">{{ acc_code }}</span>
+            <span class="ml-1">{{ acc_name }}</span>
+          </td>
+          <td class="py-2"><span class="badge" style="font-size: 10px;">{{ gst }}</span></td>
+          <td class="py-2 text-right pr-3 num">{{ hits }}</td>
+          <td class="py-2 text-right pr-3">
+            <span class="font-mono text-[11px] inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full" style="background: {{ conf_col }};"></span>{{ conf }}%
+            </span>
+          </td>
+          <td class="py-2 pr-4 ink-3 text-[11px]">{{ last_hit }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="px-4 py-2.5 border-t text-[11px] ink-3 flex items-center justify-between" style="border-color: var(--line); background: var(--paper-2);">
+      <span>Showing 22 of 42 · sorted by priority</span>
+      <span class="font-mono">Avg latency 18 ms · rules engine v4.1</span>
+    </div>
+  </div>
+
+  <!-- ML training rail -->
+  <aside class="space-y-4">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-display text-[16px]">Model · v3.2</h3>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>fresh</span>
+      </div>
+      <dl class="text-[12px] space-y-1.5">
+        <div class="flex justify-between"><dt class="ink-3">Architecture</dt><dd class="font-mono">char-tfidf + linear SVC</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Trained</dt><dd>04 May 2026 04:00 UTC</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Labelled txns</dt><dd class="num">18,420</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Holdout accuracy</dt><dd class="num" style="color: var(--pos);">96.4%</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Threshold</dt><dd class="font-mono">0.85</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Drift score</dt><dd class="font-mono">0.04 (low)</dd></div>
+      </dl>
+      <div class="mt-3 pt-3 border-t" style="border-color: var(--line);">
+        <p class="text-[11px] ink-3 mb-1">Confidence threshold</p>
+        <div class="h-1.5 rounded-full" style="background: var(--paper-2);">
+          <div class="h-1.5 rounded-full" style="width: 85%; background: var(--sae);"></div>
+        </div>
+        <div class="flex justify-between text-[10px] ink-3 mt-1 font-mono"><span>0.50</span><span style="color: var(--ink-2);">0.85 ▲</span><span>1.00</span></div>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <h3 class="font-display text-[16px] mb-2">Suggested rules <span class="ink-3 text-[12px] font-mono">3</span></h3>
+      <ul class="text-[12px] space-y-2">
+        <li class="border-l-2 pl-2.5" style="border-color: var(--warm);">
+          <div class="font-medium">"RACV TRADE"</div>
+          <div class="ink-3">3 hits this month → 6-420 Insurance · GST · 96%</div>
+          <div class="mt-1 flex gap-1.5"><button class="chip-mini-pos">Accept</button><button class="chip-mini">Edit</button><button class="chip-mini">Reject</button></div>
+        </li>
+        <li class="border-l-2 pl-2.5" style="border-color: var(--warm);">
+          <div class="font-medium">"AWS CLOUD"</div>
+          <div class="ink-3">2 hits → 6-330 Software · EXP · 92%</div>
+          <div class="mt-1 flex gap-1.5"><button class="chip-mini-pos">Accept</button><button class="chip-mini">Edit</button><button class="chip-mini">Reject</button></div>
+        </li>
+        <li class="border-l-2 pl-2.5" style="border-color: var(--warm);">
+          <div class="font-medium">"BOC GAS · ACETYLENE"</div>
+          <div class="ink-3">4 hits → 5-115 Welding gas · GST · 94%</div>
+          <div class="mt-1 flex gap-1.5"><button class="chip-mini-pos">Accept</button><button class="chip-mini">Edit</button><button class="chip-mini">Reject</button></div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card p-4">
+      <h3 class="font-display text-[16px] mb-2">Recent corrections</h3>
+      <ul class="text-[12px] space-y-1.5 ink-2">
+        <li>R. Sauer recoded BLUESCOPE-MELB as 5-110 → +1 sample, rule unchanged</li>
+        <li>S. Wong split BAS 28 Apr into 1A A$24,824 + W1 A$22,420 + 1B −A$17,402</li>
+        <li>ML auto-tightened "Bunnings" regex to exclude credit-card refunds (12 Apr)</li>
+        <li>R. Sauer paused rule "Generic Transfer" — too broad (02 Apr)</li>
+        <li>Bowen receipts: rule promoted from "draft" to "active" after 5/5 confirms</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<!-- Manual queue -->
+<div class="card p-0 overflow-hidden mb-6">
+  <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--line);">
+    <div>
+      <h2 class="font-display text-[18px]">Manual review queue <span class="ink-3 text-[13px] font-mono">24</span></h2>
+      <p class="text-[12px] ink-3">Txns below the 85% threshold or with no rule match · approve to train</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="chip"><i data-lucide="check-check" class="w-3.5 h-3.5"></i>Approve high-confidence (8)</button>
+      <button class="chip"><i data-lucide="filter" class="w-3.5 h-3.5"></i>Filter</button>
+    </div>
+  </div>
+  <table class="w-full text-[12.5px]">
+    <thead style="background: var(--paper-2);">
+      <tr class="text-left text-[11px] uppercase tracking-wider ink-3">
+        <th class="px-4 py-2">Date</th>
+        <th class="py-2">Description (raw)</th>
+        <th class="py-2 text-right">Amount</th>
+        <th class="py-2">Suggested account</th>
+        <th class="py-2">GST</th>
+        <th class="py-2 text-right pr-3">Conf.</th>
+        <th class="py-2 pr-4">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set queue = [
+        ('04 May','RACV TRADE BUS INSURANCE QLD 4870',-184.20,'6-420 Insurance','GST',96,'high'),
+        ('04 May','BOC GAS CAIRNS - 14JG ACETYLENE',-284.40,'5-115 Welding gas','GST',94,'high'),
+        ('03 May','AUSPOST EXPRESS PARCEL BRISBANE',-42.00,'6-230 Postage & courier','GST',92,'mid'),
+        ('03 May','ENGINEERS AUSTRALIA MEMBERSHIP',-1200.00,'6-410 Compliance fees','GST',95,'high'),
+        ('03 May','AWS CLOUD SERVICES SYDNEY',-184.20,'6-330 Software','EXP',92,'mid'),
+        ('02 May','UBER * EATS BRISBANE',-48.20,'6-470 Staff amenities','GST',78,'low'),
+        ('02 May','SBS-BOWEN CRANE 2680.00 INV0017',2680.00,'1-110 Trade debtors clearing','N-T',99,'high'),
+        ('01 May','CASH DEPOSIT TFR FROM ANZ',5400.00,'1-105 Owner loan account','N-T',74,'low'),
+        ('30 Apr','QSUPER MEMBER 4477 SAL SAC',-100.00,'2-135 Super clearing','N-T',88,'mid'),
+        ('29 Apr','TPG INTERNET BUS 100/40',-89.00,'6-310 Telecommunications','GST',88,'mid'),
+        ('29 Apr','MACQUARIE EQUIPMENT FINANCE',-1842.00,'2-220 Equipment loan','N-T',82,'low'),
+      ] %}
+      {% for d, desc, amt, acc, gst, conf, tier in queue %}
+      <tr class="border-t hover:bg-[var(--paper-2)]" style="border-color: var(--line);">
+        <td class="px-4 py-2 font-mono text-[11px] ink-3">{{ d }}</td>
+        <td class="py-2 font-mono text-[11px]">{{ desc }}</td>
+        <td class="py-2 text-right num {% if amt > 0 %}text-[color:var(--pos)]{% endif %}">{% if amt > 0 %}+{% endif %}{{ '{:,.2f}'.format(amt) }}</td>
+        <td class="py-2">{{ acc }}</td>
+        <td class="py-2"><span class="badge" style="font-size: 10px;">{{ gst }}</span></td>
+        <td class="py-2 text-right pr-3">
+          <span class="font-mono text-[11px] inline-flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full" style="background: {% if tier == 'high' %}var(--pos){% elif tier == 'mid' %}var(--warm){% else %}var(--neg){% endif %};"></span>{{ conf }}%
+          </span>
+        </td>
+        <td class="py-2 pr-4">
+          <span class="inline-flex gap-1"><button class="chip-mini-pos">Approve</button><button class="chip-mini">Edit</button></span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- GST treatment + flow + audit -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="card p-4">
+    <h3 class="font-display text-[16px] mb-2">GST treatment coverage</h3>
+    <p class="text-[12px] ink-3 mb-3">Of 42 active rules</p>
+    <ul class="text-[12px] space-y-1.5">
+      <li class="flex items-center justify-between"><span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background: var(--pos);"></span>GST (10%)</span><span class="num font-mono">28</span></li>
+      <li class="flex items-center justify-between"><span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background: var(--brand-2);"></span>N-T (no GST)</span><span class="num font-mono">6</span></li>
+      <li class="flex items-center justify-between"><span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background: var(--warm);"></span>FRE (GST-free)</span><span class="num font-mono">4</span></li>
+      <li class="flex items-center justify-between"><span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background: var(--ink-3);"></span>INP (input-taxed)</span><span class="num font-mono">2</span></li>
+      <li class="flex items-center justify-between"><span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background: var(--neg);"></span>EXP (export GST-free)</span><span class="num font-mono">2</span></li>
+    </ul>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">All rules <a href="/preview/settings/chart-of-accounts" class="underline">map to a CoA account</a> with a default treatment · rules may override per-txn for mixed-supply purchases.</p>
+  </div>
+
+  <div class="card p-4">
+    <h3 class="font-display text-[16px] mb-2">How a feed line flows</h3>
+    <ol class="text-[12px] space-y-2">
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white" style="background: var(--ink);">1</span><span><span class="font-medium">CDR pull</span> — direct feed from CBA Open Banking (BSB+account → DataRecipient endpoint, signed JWT). Refresh window 24 h, max-age 25 h.</span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white" style="background: var(--ink);">2</span><span><span class="font-medium">Dedupe</span> — by (date, amount, normalised description hash). MTD posts collapse to single row.</span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white" style="background: var(--ink);">3</span><span><span class="font-medium">Rule pass</span> — first match by priority. If matched and conf ≥ 0.85, auto-post to draft journal.</span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white" style="background: var(--ink);">4</span><span><span class="font-medium">ML pass</span> — for unmatched, predict CoA. If ≥ 0.85, post with ml=true; else queue for review.</span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white" style="background: var(--ink);">5</span><span><span class="font-medium">Reconciliation</span> — match against open invoices/bills via reference, amount tolerance ±A$0.05, date window ±5 d.</span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white" style="background: var(--ink);">6</span><span><span class="font-medium">User confirm</span> — every accept trains the model + suggests new rule after 3 matches.</span></li>
+    </ol>
+  </div>
+
+  <div class="card p-4">
+    <h3 class="font-display text-[16px] mb-2">Audit trail (s.286)</h3>
+    <ul class="text-[12px] space-y-2 ink-2">
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-12 shrink-0">04 May</span><span>Model v3.2 trained on 18,420 samples (auto, 04:00 UTC)</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-12 shrink-0">03 May</span><span>Sarah W. approved 5 RACQ txns → rule suggested</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-12 shrink-0">02 May</span><span>R. Sauer reordered rules 1→3 (BlueScope before Bunnings) — fixes mis-route of BLUESCOPE BLDG to consumables</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-12 shrink-0">28 Apr</span><span>BAS payment split logic updated to honour 1B credit (W4 carry)</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-12 shrink-0">18 Apr</span><span>S. Wong added "Sydney Tools" rule</span></li>
+      <li class="flex gap-2"><span class="font-mono text-[11px] ink-3 w-12 shrink-0">04 Oct 2025</span><span>CDR consent granted by R. Sauer — expires 04 Oct 2026 · re-consent reminder set</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- Bottom rail -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+  <div class="card p-4">
+    <h3 class="font-display text-[16px] mb-2">Connected feeds</h3>
+    <ul class="text-[12.5px] divide-y" style="--tw-divide-opacity: 1;">
+      <li class="flex items-center justify-between py-2">
+        <div>
+          <a href="/preview/settings/banking/cba" class="font-medium hover:underline">CBA Smart Access ••2841</a>
+          <p class="text-[11px] ink-3 font-mono">BSB 062-001 · CDR direct · last sync 04 May 09:14</p>
+        </div>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>live</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-t" style="border-color: var(--line);">
+        <div>
+          <p class="font-medium">CBA BizCat Visa ••8407</p>
+          <p class="text-[11px] ink-3 font-mono">CDR direct · last sync 04 May 09:14</p>
+        </div>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>live</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-t" style="border-color: var(--line);">
+        <div>
+          <p class="font-medium">ANZ Trust ••0921</p>
+          <p class="text-[11px] ink-3 font-mono">Basiq aggregator · last sync 04 May 06:00</p>
+        </div>
+        <span class="badge"><span class="dot" style="background: var(--warm);"></span>aggregated</span>
+      </li>
+      <li class="flex items-center justify-between py-2 border-t" style="border-color: var(--line);">
+        <div>
+          <p class="font-medium">NAB Suncorp Equipment Loan</p>
+          <p class="text-[11px] ink-3 font-mono">Statement upload (.OFX) · last 02 May</p>
+        </div>
+        <span class="badge"><span class="dot" style="background: var(--ink-3);"></span>manual</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card p-4">
+    <h3 class="font-display text-[16px] mb-2">Related</h3>
+    <ul class="text-[13px] space-y-1.5">
+      <li><a href="/preview/cashbook" class="hover:underline">Cashbook — current month</a></li>
+      <li><a href="/preview/cashbook/capture" class="hover:underline">Cashbook · capture (paste / receipt OCR)</a></li>
+      <li><a href="/preview/reconcile" class="hover:underline">Reconciliation queue</a></li>
+      <li><a href="/preview/settings/chart-of-accounts" class="hover:underline">Chart of accounts</a></li>
+      <li><a href="/preview/settings/banking/cba" class="hover:underline">CBA Smart Access ••2841</a></li>
+      <li><a href="/preview/compliance/bas-prep" class="hover:underline">BAS preparation · Q4 FY26</a></li>
+    </ul>
+  </div>
+</div>
+
+<style>
+  .chip-mini { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 10px; border: 1px solid var(--line); border-radius: 4px; background: white; cursor: pointer; }
+  .chip-mini:hover { background: var(--paper-2); }
+  .chip-mini-pos { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 10px; border: 1px solid var(--pos); border-radius: 4px; background: rgba(62,122,78,0.08); color: var(--pos); cursor: pointer; }
+  .chip-mini-pos:hover { background: rgba(62,122,78,0.16); }
+  .chip-active { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 11px; border: 1px solid var(--ink); border-radius: 999px; background: var(--ink); color: white; }
+</style>
+
+{% endblock %}

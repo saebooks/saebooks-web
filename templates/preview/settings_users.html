@@ -1,0 +1,307 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'settings' %}
+{% block page_title %}Users &amp; roles · Settings · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-1.5">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Settings · Access · ATO RAM</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-[1.05] font-medium">
+        Users &amp; roles <span class="italic" style="color: var(--sae);">— Sauer Pty Ltd</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">6 users · 4 internal roles · 1 BAS Agent invited · 1 Tax Agent linked via Karbon SAML · MyGovID + RAM tied to ABN 47 168 502 343 for ATO lodgement</p>
+      <div class="mt-2 flex items-center gap-2 flex-wrap">
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>2FA enforced · 100% coverage</span>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>MyGovID Strong (face)</span>
+        <span class="badge"><i data-lucide="landmark" class="w-3 h-3"></i>RAM principal · R. Sauer</span>
+        <span class="badge"><i data-lucide="mail" class="w-3 h-3"></i>1 pending invite</span>
+        <span class="badge"><i data-lucide="key-round" class="w-3 h-3"></i>2 passkeys enrolled</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/settings" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Settings</a>
+      <button class="chip"><i data-lucide="briefcase" class="w-3.5 h-3.5"></i>Invite advisor</button>
+      <button class="btn-primary"><i data-lucide="user-plus" class="w-4 h-4"></i>Invite user</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">Active users</p><p class="font-display text-[24px] mt-1 num">6</p><p class="text-[11px] ink-3 mt-1">+1 invited</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">Roles defined</p><p class="font-display text-[24px] mt-1 num">6</p><p class="text-[11px] ink-3 mt-1">4 internal · 2 advisor</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">2FA coverage</p><p class="font-display text-[24px] mt-1 num" style="color: var(--pos);">100%</p><p class="text-[11px] ink-3 mt-1">TOTP / passkey enforced</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">ATO lodgement perms</p><p class="font-display text-[24px] mt-1 num">2</p><p class="text-[11px] ink-3 mt-1">via RAM</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">Active sessions</p><p class="font-display text-[24px] mt-1 num">7</p><p class="text-[11px] ink-3 mt-1">across 5 devices</p></div>
+</div>
+
+<!-- Users table -->
+<div class="card p-0 overflow-hidden mb-6">
+  <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--line);">
+    <div>
+      <h2 class="font-display text-[18px]">Users</h2>
+      <p class="text-[12px] ink-3">Internal team + invited advisors · advisor seats don't count to your subscription</p>
+    </div>
+    <span class="text-[11px] font-mono ink-3">6 of 25 internal seats used</span>
+  </div>
+  <table class="w-full text-[12.5px]">
+    <thead style="background: var(--paper-2);">
+      <tr class="text-left text-[11px] uppercase tracking-wider ink-3">
+        <th class="px-4 py-2">User</th>
+        <th class="py-2">Email</th>
+        <th class="py-2">Role</th>
+        <th class="py-2">2FA</th>
+        <th class="py-2">ATO link</th>
+        <th class="py-2">Last seen</th>
+        <th class="py-2 pr-4"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set users = [
+        ('RS','#194291','Richard Sauer',     'admin@saee.com.au',           'Owner',              'Passkey + TOTP', 'MyGovID · RAM principal', 'now',          '#3E7A4E', 'live'),
+        ('SW','#7C5C8B','Sarah Wong',        'sarah@saee.com.au',           'Admin · BAS',        'Passkey + TOTP', 'RAM authorised rep',      '14 min ago',   '#3E7A4E', 'live'),
+        ('MC','#3E7A4E','Mia Chen',          'mia@saee.com.au',             'Employee (limited)', 'TOTP',           '—',                       '2 h ago',      '#3E7A4E', 'live'),
+        ('LP','#1A4E8B','Liam Patel',        'liam@saee.com.au',            'Employee (limited)', 'TOTP',           '—',                       'yesterday',    '#3E7A4E', 'live'),
+        ('KD','#5C7A8B','Karen Davies',      'karen@saebooks-bookkeeping.com.au','Bookkeeper · external','TOTP',     'BAS Agent reg 11829471',  '02 May',       '#3E7A4E', 'live'),
+        ('JS','#888',   'Jaspreet Singh',    'jsingh@bas-agents.com.au',    'BAS Agent · invited','—',              'pending acceptance',      '—',            '#C89B3C', 'invited'),
+        ('TP','#0F2940','Theresa Pham',      'tpham@karbon.example',        'Tax Agent · read-only','Karbon SAML SSO','Karbon → tax-agent portal','11 Apr',     '#1A4E8B', 'sso'),
+      ] %}
+      {% for init, col, name, email, role, twofa, ato, seen, dotcol, state in users %}
+      <tr class="border-t hover:bg-[var(--paper-2)] {% if state == 'invited' %}bg-[rgba(200,155,60,.05)]{% endif %}" style="border-color: var(--line);">
+        <td class="px-4 py-2">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-medium" style="background: {{ col }};">{{ init }}</span>
+            <span class="font-medium">{{ name }}</span>
+          </div>
+        </td>
+        <td class="py-2 font-mono text-[11px]">{{ email }}</td>
+        <td class="py-2">{{ role }}</td>
+        <td class="py-2 text-[11px]"><span class="inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full" style="background: {{ dotcol }};"></span>{{ twofa }}</span></td>
+        <td class="py-2 text-[11px] ink-2">{{ ato }}</td>
+        <td class="py-2 text-[11px] ink-3">{{ seen }}</td>
+        <td class="py-2 pr-4 text-right"><button class="ink-3 hover:text-[color:var(--ink)]"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Role matrix + MyGovID/RAM panel -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+  <div class="lg:col-span-2 card p-0 overflow-hidden">
+    <div class="px-4 py-3 border-b" style="border-color: var(--line);">
+      <h3 class="font-display text-[18px]">Role permission matrix</h3>
+      <p class="text-[12px] ink-3">Cells: <span style="color: var(--pos);">✓</span> allowed · <span class="ink-3">·</span> denied · <span style="color: var(--warm);">2-step</span> requires second approver · <span class="font-mono">RAM</span> requires ATO RAM authorisation</p>
+    </div>
+    <table class="w-full text-[12px]">
+      <thead style="background: var(--paper-2);">
+        <tr class="text-[10px] uppercase ink-3">
+          <th class="text-left px-4 py-2">Permission</th>
+          <th class="px-2 py-2">Owner</th>
+          <th class="px-2 py-2">Admin · BAS</th>
+          <th class="px-2 py-2">Bookkeeper (ext)</th>
+          <th class="px-2 py-2">Employee</th>
+          <th class="px-2 py-2">BAS Agent</th>
+          <th class="px-2 py-2">Tax Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set perms = [
+          ('Invoice — create / edit / send', '✓','✓','✓','·','view','view'),
+          ('Bill — create / approve ≤ A$3k',  '✓','✓','✓','·','✓','view'),
+          ('Bill — approve &gt; A$3k',         '✓','2-step','2-step','·','✓','view'),
+          ('Bank feed reconcile',             '✓','✓','✓','·','✓','view'),
+          ('Bank feed rules — edit',          '✓','✓','✓','·','·','view'),
+          ('Payroll — pay run',               '✓','✓','·','·','·','view'),
+          ('STP submit (Phase 2)',            'RAM','RAM','·','·','RAM','·'),
+          ('SuperStream submit',              '✓','✓','·','·','·','view'),
+          ('BAS lodgement',                   'RAM','RAM','·','·','RAM','·'),
+          ('TPAR lodgement',                  'RAM','RAM','·','·','RAM','·'),
+          ('Year-end lock',                   '✓','2-step','·','·','·','·'),
+          ('Settings — chart of accounts',    '✓','✓','·','·','·','view'),
+          ('Settings — users / roles',        '✓','·','·','·','·','·'),
+          ('Audit log — read',                '✓','✓','view','·','✓','✓'),
+          ('Export — full GL',                '✓','✓','·','·','✓','✓'),
+          ('Self-service · leave / super',    '✓','✓','·','✓','·','·'),
+        ] %}
+        {% for label, owner, admin, bk, emp, basa, taxa in perms %}
+        <tr class="border-t" style="border-color: var(--line);">
+          <td class="px-4 py-1.5">{{ label|safe }}</td>
+          {% for cell in [owner, admin, bk, emp, basa, taxa] %}
+            <td class="px-2 py-1.5 text-center text-[11px]
+              {% if cell == '✓' %}font-medium text-[color:var(--pos)]
+              {% elif cell == '·' %}ink-3
+              {% elif cell == '2-step' %}font-mono text-[10px]
+              {% elif cell == 'RAM' %}font-mono text-[10px]
+              {% elif cell == 'view' %}font-mono text-[10px] ink-3
+              {% endif %}">{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <aside class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">MyGovID · RAM · 2FA</h3>
+    <p class="text-[11px] ink-3 mb-3">Identity strength for ATO lodgement and access to disclosable data</p>
+    <ul class="text-[12.5px] space-y-2.5">
+      <li class="flex items-start gap-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">MyGovID — Strong</div>
+          <div class="ink-3 text-[11px] font-mono">R. Sauer · face verification + Australian passport + Medicare card</div>
+        </div>
+      </li>
+      <li class="flex items-start gap-2">
+        <i data-lucide="badge-check" class="w-4 h-4 mt-0.5" style="color: var(--pos);"></i>
+        <div>
+          <div class="font-medium">RAM authorisation</div>
+          <div class="ink-3 text-[11px] font-mono">Sauer Pty Ltd · ABN 47 168 502 343 · principal authority R. Sauer · authorised rep Sarah Wong (BAS lodgement)</div>
+        </div>
+      </li>
+      <li class="flex items-start gap-2">
+        <i data-lucide="key-round" class="w-4 h-4 mt-0.5" style="color: var(--brand-2);"></i>
+        <div>
+          <div class="font-medium">Passkeys (WebAuthn)</div>
+          <div class="ink-3 text-[11px] font-mono">2 enrolled · R. Sauer iPhone (Secure Enclave) · Sarah W. M3 MBP (T2)</div>
+        </div>
+      </li>
+      <li class="flex items-start gap-2">
+        <i data-lucide="key-round" class="w-4 h-4 mt-0.5" style="color: var(--brand-2);"></i>
+        <div>
+          <div class="font-medium">TOTP enforced</div>
+          <div class="ink-3 text-[11px] font-mono">RFC 6238 · 30 s · 6 digits · backup codes generated 04 Apr 2026 (8 of 10 unused)</div>
+        </div>
+      </li>
+      <li class="flex items-start gap-2">
+        <i data-lucide="shield" class="w-4 h-4 mt-0.5" style="color: var(--ink-3);"></i>
+        <div>
+          <div class="font-medium">Session policy</div>
+          <div class="ink-3 text-[11px] font-mono">8 h idle · 14 d absolute · re-auth on settings &amp; lodgement</div>
+        </div>
+      </li>
+    </ul>
+  </aside>
+</div>
+
+<!-- Pending invites + Karbon SSO + Sessions + Audit -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Pending invitations</h3>
+    <ul class="text-[12px] space-y-3">
+      <li class="border-l-2 pl-2.5" style="border-color: var(--warm);">
+        <div class="flex items-center justify-between">
+          <span class="font-medium">Jaspreet Singh — BAS Agent</span>
+          <span class="font-mono text-[10px] ink-3">8 d left</span>
+        </div>
+        <div class="ink-3 text-[11px]">jsingh@bas-agents.com.au · TPB reg 25-431-289</div>
+        <div class="text-[11px] ink-3 mt-1">Sent 28 Apr · expires 12 May 2026 · scope: BAS preparation read-only, BAS lodgement via RAM</div>
+        <div class="mt-1.5 flex gap-1.5">
+          <button class="chip-mini">Resend</button>
+          <button class="chip-mini">Revoke</button>
+          <button class="chip-mini">Edit scope</button>
+        </div>
+      </li>
+    </ul>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">
+      BAS Agents are TPB-registered. SAE Books verifies registration via TPB public register before granting BAS Agent role.
+    </p>
+  </div>
+
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Advisor SSO — Karbon</h3>
+    <p class="text-[11px] ink-3 mb-3">Tax agent firms can log in via their Karbon workspace — read-only, time-bounded, fully audit-logged.</p>
+    <dl class="text-[12.5px] space-y-2">
+      <div class="flex justify-between"><dt class="ink-3">SAML IdP</dt><dd class="font-mono text-[11px]">karbon.example/sso/saml2</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">EntityID</dt><dd class="font-mono text-[11px]">karbon-prod-pham</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Mapped role</dt><dd>Tax Agent · read-only</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Period</dt><dd>11 Apr 2026 → 30 Sep 2026</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Scope</dt><dd>FY26 GL · BAS · TPAR · STP</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Workpapers sync</dt><dd>off (request only)</dd></div>
+    </dl>
+    <a href="#audit" class="mt-3 inline-flex items-center gap-1 text-[12px] sae hover:underline"><i data-lucide="external-link" class="w-3 h-3"></i>View Karbon session log →</a>
+  </div>
+
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Active sessions · 7</h3>
+    <ul class="text-[12px] space-y-2">
+      {% set sessions = [
+        ('R. Sauer','iPhone 15 Pro · Safari','Tighes Hill NSW','now','passkey'),
+        ('R. Sauer','MBP M3 · Safari','Tighes Hill NSW','3 m','passkey'),
+        ('Sarah Wong','MBP M3 · Chrome','Tighes Hill NSW','14 m','passkey'),
+        ('Mia Chen','iPhone 14 · Safari','Newcastle NSW','2 h','totp'),
+        ('Liam Patel','Pixel 8 · Chrome','Newcastle NSW','yesterday','totp'),
+        ('Karen Davies','Win 11 · Edge','Buderim QLD','02 May','totp'),
+        ('T. Pham (Karbon)','MBP · Karbon webview','Sydney NSW','11 Apr','sso'),
+      ] %}
+      {% for who, device, geo, when, kind in sessions %}
+      <li class="flex items-center justify-between">
+        <div>
+          <span class="font-medium">{{ who }}</span> <span class="ink-3 text-[11px]">· {{ device }}</span>
+          <div class="ink-3 text-[10px] font-mono">{{ geo }} · {{ kind }}</div>
+        </div>
+        <span class="ink-3 text-[11px] font-mono">{{ when }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <button class="mt-3 chip text-[11px] w-full justify-center"><i data-lucide="log-out" class="w-3 h-3"></i>Sign out all except this device</button>
+  </div>
+</div>
+
+<!-- Permission change audit -->
+<div class="card p-5 mb-10" id="audit">
+  <h3 class="font-display text-[16px] mb-2">Permission &amp; access audit · last 60 days</h3>
+  <p class="text-[11px] ink-3 mb-3">Retained 7 years per Corporations Act s.286 · every privilege change is captured · exported to Karbon workpaper on close-of-year</p>
+  <ul class="text-[12px] space-y-2">
+    {% set events = [
+      ('04 May 17:02','R. Sauer','Revoked stale OAuth token for legacy Xero migration tool','warn'),
+      ('03 May 09:14','Sarah Wong','Approved K. Davies "Bank feed rules — edit" expansion','info'),
+      ('28 Apr 11:40','R. Sauer','Invited Jaspreet Singh (TPB 25-431-289) as BAS Agent · 21-day expiry','info'),
+      ('22 Apr 14:18','R. Sauer','Enabled passkey enforcement (downgrade-to-TOTP allowed for legacy)','info'),
+      ('11 Apr 09:00','R. Sauer','Linked Karbon SAML IdP · T. Pham mapped to Tax Agent read-only','info'),
+      ('08 Apr 16:42','Sarah Wong','Submitted BAS Q3 FY26 via MyGovID · receipt R-2026-0428','info'),
+      ('04 Apr 08:11','R. Sauer','Generated new TOTP recovery codes · 10 issued · 0 used','info'),
+      ('02 Apr 09:30','R. Sauer','Created Mia Chen + Liam Patel · Employee (limited) role · self-service portal access','info'),
+      ('14 Mar 11:00','Sarah Wong','Updated authorised rep on ATO RAM for BAS-only lodgement (was full)','warn'),
+      ('11 Mar 10:15','R. Sauer','MyGovID re-verified to Strong after passport renewal','info'),
+    ] %}
+    {% for ts, who, what, kind in events %}
+    <li class="flex gap-2">
+      <span class="font-mono text-[11px] ink-3 w-28 shrink-0">{{ ts }}</span>
+      <span class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style="background: {% if kind == 'warn' %}var(--warm){% else %}var(--brand-2){% endif %};"></span>
+      <span><span class="font-medium">{{ who }}</span> · {{ what|safe }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Related -->
+<div class="card p-4 mb-10">
+  <h3 class="font-display text-[16px] mb-2">Related</h3>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1.5 text-[12.5px]">
+    <a href="/preview/settings/integrations/ato" class="hover:underline">ATO lodgement (DSP)</a>
+    <a href="/preview/compliance/bas-prep" class="hover:underline">BAS prep Q4 FY26</a>
+    <a href="/preview/compliance/tpar" class="hover:underline">TPAR FY26 draft</a>
+    <a href="/preview/payroll/pay-run" class="hover:underline">Pay run — STP submit</a>
+    <a href="/preview/settings/bank-feed-rules" class="hover:underline">Bank feed rules</a>
+    <a href="/preview/settings/chart-of-accounts" class="hover:underline">Chart of accounts</a>
+    <a href="/preview/activity" class="hover:underline">Activity log</a>
+    <a href="/preview/settings" class="hover:underline">All settings</a>
+  </div>
+</div>
+
+<style>
+  .chip-mini { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 10px; border: 1px solid var(--line); border-radius: 4px; background: white; cursor: pointer; }
+  .chip-mini:hover { background: var(--paper-2); }
+</style>
+
+{% endblock %}

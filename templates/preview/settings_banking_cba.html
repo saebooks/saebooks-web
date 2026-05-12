@@ -1,0 +1,279 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'settings' %}
+{% block page_title %}CBA Smart Access · Settings · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="flex items-center gap-2 text-[11px] font-mono ink-3 mb-3">
+  <a href="/preview/settings" class="hover:text-[color:var(--sae)]">Settings</a>
+  <i data-lucide="chevron-right" class="w-3 h-3"></i>
+  <a href="/preview/settings#banking" class="hover:text-[color:var(--sae)]">Bank accounts &amp; feeds</a>
+  <i data-lucide="chevron-right" class="w-3 h-3"></i>
+  <span>CBA Smart Access</span>
+</div>
+
+<!-- Hero -->
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-tr-2xl rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-medium" style="background:#FECC09; color:#000;"><span class="font-display text-[20px]">C</span></div>
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <span class="reg-mark"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Bank feed · CDR open-banking</span>
+          <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full" style="background:rgba(62,122,78,.12);color:var(--pos);">Live</span>
+        </div>
+        <h1 class="font-display text-[34px] leading-[1.05] font-medium">CBA Smart Access <span class="text-[color:var(--sae)] italic">****8421</span></h1>
+        <p class="mt-1.5 ink-2 text-sm">Direct Consumer Data Right feed from Commonwealth Bank · BSB 062-000 · Account 1234 8421 · GL <span class="font-mono">1-100 · Cash at bank</span></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>Sync now</button>
+      <a href="/preview/settings/bank-feed-rules" class="chip"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i>Edit rules</a>
+      <a href="/preview/reconcile" class="btn-primary"><i data-lucide="check-check" class="w-4 h-4"></i>Open reconcile</a>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-7">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Balance (now)</p>
+    <p class="font-display text-[24px] mt-1 num">A$4,820.40</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">Synced 4 min ago</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Cleared YTD</p>
+    <p class="font-display text-[24px] mt-1 num">A$284,140</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">1,184 transactions</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Auto-coded</p>
+    <p class="font-display text-[24px] mt-1 num pos">94<span class="text-[14px] ink-3">%</span></p>
+    <p class="text-[10px] pos mt-0.5 font-mono">↑ from 78% Jan</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Awaiting review</p>
+    <p class="font-display text-[24px] mt-1 num warm">12</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">Last 30 days</p>
+  </div>
+  <div class="card p-4 relative overflow-hidden" style="border-color: var(--sae); border-width: 1.5px;">
+    <span class="reg-mark absolute right-3 top-3"></span>
+    <p class="text-[11px] uppercase tracking-wider ink-3">Consent expires</p>
+    <p class="font-display text-[24px] mt-1 num">142d</p>
+    <p class="text-[10px] sae mt-0.5 font-mono">Renew before 30 Sep 2026</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+  <!-- LEFT main -->
+  <div class="lg:col-span-8 space-y-6">
+
+    <!-- Consent + connection card -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-display text-[18px]">CDR consent &amp; data scope</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Granted under Consumer Data Right (Treasury Laws Amendment 2019) · 12-month maximum window</p>
+        </div>
+        <a href="#" class="text-[11px] sae hover:underline">View on CommBiz →</a>
+      </div>
+      <div class="drafting mb-4"></div>
+      <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-[12.5px]">
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Data Recipient</dt><dd class="mt-0.5">SAE Books Pty Ltd <span class="font-mono ink-3">· CDR-DH 9182</span></dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Data Holder</dt><dd class="mt-0.5">Commonwealth Bank of Australia <span class="font-mono ink-3">· ADR-DH 0001</span></dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Consent granted</dt><dd class="mt-0.5 num">30 Sep 2025 · 14:22 AEST</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Consent expires</dt><dd class="mt-0.5 num">30 Sep 2026 <span class="sae">(142 days)</span></dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Scopes</dt><dd class="mt-0.5">Account details, Transactions (24-mo back), Direct debits, Payees</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Sharing duration</dt><dd class="mt-0.5">Ongoing · auto-renew prompt at d-30</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Authoriser</dt><dd class="mt-0.5">R. Sauer · Principal authority on ABN 47 168 502 343</dd></div>
+        <div><dt class="ink-3 text-[10px] font-mono uppercase tracking-wider">Audit trail</dt><dd class="mt-0.5"><a href="/preview/activity" class="sae hover:underline">View consent events →</a></dd></div>
+      </dl>
+      <div class="mt-4 flex items-center gap-2">
+        <button class="chip text-[12px]"><i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>Re-authorise early</button>
+        <button class="chip text-[12px]"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export consent receipt</button>
+        <button class="chip text-[12px] neg"><i data-lucide="unplug" class="w-3.5 h-3.5"></i>Revoke</button>
+      </div>
+    </div>
+
+    <!-- Feed health timeline (sparkline-ish) -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-display text-[18px]">Feed health · 30 days</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Sync interval, lag, and missing-data flags</p>
+        </div>
+        <span class="text-[10px] font-mono ink-3 px-2 py-0.5 rounded-full" style="background: var(--paper-2);">99.8% uptime · zero gaps</span>
+      </div>
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Avg sync interval</p>
+          <p class="font-display text-[18px] num mt-0.5">14<span class="text-[12px] ink-3"> min</span></p>
+          <p class="text-[10px] ink-3 mt-0.5 font-mono">CBA pushes on settlement</p>
+        </div>
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Avg lag (post → seen)</p>
+          <p class="font-display text-[18px] num mt-0.5">3<span class="text-[12px] ink-3">.2 min</span></p>
+          <p class="text-[10px] ink-3 mt-0.5 font-mono">p95 8.4 min</p>
+        </div>
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Last reconciliation</p>
+          <p class="font-display text-[18px] num mt-0.5">11 May 09:08</p>
+          <p class="text-[10px] pos mt-0.5 font-mono">Balanced to cent</p>
+        </div>
+      </div>
+      <div class="drafting mb-3"></div>
+      <div class="flex items-end gap-[2px] h-16">
+        {% set heights = [22,28,34,30,40,38,44,52,48,55,60,58,62,68,64,72,70,76,72,80,82,78,85,88,84,90,92,86,94,96] %}
+        {% for h in heights %}
+        <div class="flex-1 rounded-sm" style="height: {{ h }}%; background: linear-gradient(180deg, var(--sae), rgba(200,99,31,.35));"></div>
+        {% endfor %}
+      </div>
+      <div class="flex items-center justify-between mt-2 text-[10px] font-mono ink-3">
+        <span>11 Apr</span><span>25 Apr</span><span>11 May</span>
+      </div>
+    </div>
+
+    <!-- Recent feed entries -->
+    <div class="card overflow-hidden">
+      <div class="px-5 pt-5 pb-2 flex items-center justify-between">
+        <h3 class="font-display text-[18px]">Last 24 hours · 18 transactions</h3>
+        <div class="flex items-center gap-2">
+          <button class="chip text-[11px]"><i data-lucide="filter" class="w-3 h-3"></i>Type</button>
+          <a href="/preview/reconcile" class="text-[11px] sae hover:underline">Open reconcile →</a>
+        </div>
+      </div>
+      <div class="drafting mx-5 mb-1"></div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Posted</th><th>Description</th><th>Rule matched</th><th class="text-right">Amount</th><th>State</th></tr>
+        </thead>
+        <tbody>
+          {% set txns = [
+            {'t':'11 May 08:42','d':'Acme Pty Ltd ref INV-0028',         'rule':'Auto-match invoice','amt':'+14,179.00','st':'matched'},
+            {'t':'11 May 06:12','d':'Caltex StarCard ****1108',           'rule':'Fuel → 6-220 · Vehicle expense','amt':'−218.40','st':'coded'},
+            {'t':'10 May 18:24','d':'Coles Beerwah 7891',                 'rule':'Manual · cafe filtered out','amt':'−42.80','st':'review'},
+            {'t':'10 May 14:51','d':'Coast Industrial Electrical INV4421','rule':'Match BILL-1835','amt':'−2,460.00','st':'matched'},
+            {'t':'10 May 11:08','d':'BPay biller 78912 ref 0028 110524',  'rule':'BPay payee · ATO PAYG W','amt':'−1,840.00','st':'coded'},
+            {'t':'10 May 09:03','d':'Square AU settlement 1188',          'rule':'Match clearing 1-105','amt':'+982.50','st':'matched'},
+            {'t':'09 May 16:42','d':'AustralianSuper batch SSP-0014',     'rule':'Match SuperStream Q4 batch','amt':'−1,430.40','st':'matched'},
+            {'t':'09 May 12:18','d':'Bunnings Trade #4128',               'rule':'Need job code','amt':'−742.30','st':'review'},
+          ] %}
+          {% for tx in txns %}
+          <tr>
+            <td class="text-[11px] ink-3 font-mono whitespace-nowrap">{{ tx.t }}</td>
+            <td class="text-[12.5px]">{{ tx.d }}</td>
+            <td class="text-[11px] ink-3">{{ tx.rule }}</td>
+            <td class="text-right num text-[13px] {% if tx.amt.startswith('+') %}pos{% else %}{% endif %}">A${{ tx.amt[1:] }}</td>
+            <td>
+              {% if tx.st == 'matched' %}
+                <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">matched</span>
+              {% elif tx.st == 'coded' %}
+                <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.08);color:var(--pos);">coded</span>
+              {% else %}
+                <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(200,99,31,.12);color:var(--sae);">review</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Rule library -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-display text-[18px]">Auto-code rules · 14 active</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Rules apply to this feed only · <a href="/preview/settings/bank-feed-rules" class="underline hover:text-[color:var(--sae)]">manage all 42 rules →</a></p>
+        </div>
+        <a href="/preview/settings/bank-feed-rules" class="chip text-[11px]"><i data-lucide="plus" class="w-3 h-3"></i>New rule</a>
+      </div>
+      <div class="space-y-2 text-[12.5px]">
+        {% set rules = [
+          {'n':'Acme Pty Ltd → match open invoices', 'hits':'248','last':'today','col':'#1A4E8B','i':'file-text','tag':'Match'},
+          {'n':'BPay biller 78912 → ATO PAYG W (2-410)', 'hits':'12','last':'today','col':'#3E7A4E','i':'landmark','tag':'Code'},
+          {'n':'Caltex / Shell / BP → Fuel (6-220) + GST 10%','hits':'186','last':'today','col':'#194291','i':'fuel','tag':'Code'},
+          {'n':'Square settlement → clearing 1-105','hits':'92','last':'today','col':'#7C5C8B','i':'square','tag':'Match'},
+          {'n':'AustralianSuper batch → SuperStream clearing','hits':'4','last':'2 days','col':'#5C7A8B','i':'wallet','tag':'Match'},
+          {'n':'Telstra → Telephone (6-310) + GST 10%','hits':'4','last':'8 days','col':'#0F2940','i':'phone','tag':'Code'},
+        ] %}
+        {% for r in rules %}
+        <div class="flex items-center gap-3 p-3 border hairline rounded-lg">
+          <span class="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0" style="background:{{ r.col }};"><i data-lucide="{{ r.i }}" class="w-3.5 h-3.5"></i></span>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium truncate">{{ r.n }}</p>
+            <p class="text-[10px] font-mono ink-3 mt-0.5">{{ r.hits }} hits FY26 · last fired {{ r.last }}</p>
+          </div>
+          <span class="badge {% if r.tag == 'Match' %}badge-pos{% else %}badge-sae{% endif %} text-[10px]">{{ r.tag }}</span>
+          <button class="ink-3 hover:text-[color:var(--ink)]"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT rail -->
+  <div class="lg:col-span-4 space-y-6">
+
+    <!-- Account details -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Account details</h3>
+      <dl class="text-[12.5px] space-y-1.5">
+        <div class="flex justify-between"><dt class="ink-3">BSB</dt><dd class="num">062-000</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Account #</dt><dd class="num">1234 8421</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Account name</dt><dd>Sauer Pty Ltd</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Type</dt><dd>Business transaction</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">GL mapping</dt><dd class="font-mono">1-100</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Default tax</dt><dd>GST 10% (input)</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">ABA payments</dt><dd class="pos">Enabled · APCA 484831</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">PayID for invoices</dt><dd class="font-mono">accounts@saee.com.au</dd></div>
+      </dl>
+    </div>
+
+    <!-- Renewal nudge -->
+    <div class="card p-5 relative overflow-hidden" style="border: 1.5px dashed var(--sae);">
+      <span class="reg-mark absolute right-3 top-3"></span>
+      <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">CDR renewal</p>
+      <h3 class="font-display text-[17px] mt-1 mb-2">Renew consent in <span class="italic sae">142 days</span></h3>
+      <p class="text-[12.5px] ink-2 leading-relaxed">CBA enforces the <span class="num">12-month</span> CDR maximum. SAE Books will prompt you at <span class="num">d-30</span> with a one-click re-authorise that bounces you to CommBiz and back — no data gap. Set the calendar nudge below if you want a reminder earlier.</p>
+      <div class="flex items-center gap-2 mt-3">
+        <button class="chip text-[11px]"><i data-lucide="calendar-clock" class="w-3 h-3"></i>Remind d-60</button>
+        <a href="#" class="chip text-[11px]"><i data-lucide="book-open" class="w-3 h-3"></i>About CDR</a>
+      </div>
+    </div>
+
+    <!-- Statement download -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-display text-[16px]">Statements</h3>
+        <button class="chip text-[10px]"><i data-lucide="download" class="w-3 h-3"></i>Download CSV</button>
+      </div>
+      <div class="drafting mb-3"></div>
+      <ul class="text-[12.5px] space-y-1.5">
+        <li class="flex justify-between"><span>Apr 2026</span><a href="#" class="sae hover:underline">PDF · 184 KB</a></li>
+        <li class="flex justify-between"><span>Mar 2026</span><a href="#" class="sae hover:underline">PDF · 192 KB</a></li>
+        <li class="flex justify-between"><span>Feb 2026</span><a href="#" class="sae hover:underline">PDF · 168 KB</a></li>
+        <li class="flex justify-between"><span>Jan 2026</span><a href="#" class="sae hover:underline">PDF · 178 KB</a></li>
+      </ul>
+    </div>
+
+    <!-- Cross-links -->
+    <div class="card p-5" style="background: var(--paper-2);">
+      <h3 class="font-display text-[16px] mb-3">Related</h3>
+      <ul class="text-[12.5px] space-y-2">
+        <li><a href="/preview/reconcile" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="check-check" class="w-3.5 h-3.5 ink-3"></i>Open reconcile workspace</a></li>
+        <li><a href="/preview/cashbook" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="book-open" class="w-3.5 h-3.5 ink-3"></i>Cashbook entries</a></li>
+        <li><a href="/preview/reports/cash-flow" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="trending-up" class="w-3.5 h-3.5 ink-3"></i>13-week forecast</a></li>
+        <li><a href="/preview/activity" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="history" class="w-3.5 h-3.5 ink-3"></i>Audit log</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}<script>if (window.lucide) window.lucide.createIcons();</script>{% endblock %}
