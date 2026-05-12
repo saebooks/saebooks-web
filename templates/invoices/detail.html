@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+
+{% import "_partials/breadcrumb.html" as crumb %}
 {% import "_icons.html" as icons %}
 
 {% block title %}
@@ -24,9 +26,7 @@
 
 {% if invoice %}
 
-<div class="mb-4">
-  <a href="/invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← invoices</a>
-</div>
+{{ crumb.trail([("Sales", "/invoices"), ("Invoices", "/invoices"), (invoice.number or invoice.id|string, none)]) }}
 
 {# ── Header ── #}
 <header class="mb-6 relative">

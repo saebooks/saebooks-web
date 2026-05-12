@@ -23,12 +23,15 @@
         <span class="nav-section-label">Directory</span>
         <span class="reg-mark"></span>
       </div>
-      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">Contacts</h1>
+      <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3" style="font-variation-settings:'opsz' 72;">
+        <i data-lucide="users" class="w-7 h-7 ink-3" aria-hidden="true"></i>
+        <span>Contacts</span>
+      </h1>
       {% if not error %}
       <p class="text-xs ink-3 font-mono mt-2">{{ total }} contact{{ "s" if total != 1 else "" }}</p>
       {% endif %}
     </div>
-    <a href="/contacts/new" class="btn-primary text-sm">+ New contact</a>
+    <a href="/contacts/new" class="btn-primary text-sm"><i data-lucide="user-plus" class="w-4 h-4" aria-hidden="true"></i><span>New contact</span></a>
   </div>
   <div class="drafting mt-4"></div>
 </header>

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
+{% import "_partials/breadcrumb.html" as crumb %}
+
 {% block title %}Reports — SAE Books{% endblock %}
 
 {% block content %}
 
-<div class="mb-4">
-  <a href="/" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← home</a>
-</div>
+{{ crumb.trail([("Reports", none)]) }}
 
 <header class="mb-8 relative">
   <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
@@ -16,7 +16,10 @@
         <span class="nav-section-label">Library</span>
         <span class="reg-mark"></span>
       </div>
-      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">Reports</h1>
+      <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3" style="font-variation-settings:'opsz' 72;">
+        <i data-lucide="bar-chart-3" class="w-7 h-7 ink-3" aria-hidden="true"></i>
+        <span>Reports</span>
+      </h1>
       <p class="text-xs ink-3 font-mono mt-2">Financial statements and analysis</p>
     </div>
   </div>
