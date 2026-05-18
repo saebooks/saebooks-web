@@ -379,8 +379,10 @@ async def bill_add_line(request: Request, index: int = 0) -> HTMLResponse | Redi
 
 _EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "supplier_reference", "currency")
 
-# Statuses that block editing — only DRAFT bills are mutable.
-_LOCKED_STATUSES = {"POSTED", "VOIDED"}
+# Statuses that block editing. POSTED bills are mutable — the backend
+# regenerates the journal entry in place when lines change (per Richard's
+# admin-discretion policy). VOIDED bills are not editable.
+_LOCKED_STATUSES = {"VOIDED"}
 
 
 async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict], list[dict]]:

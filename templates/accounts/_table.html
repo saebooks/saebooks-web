@@ -18,6 +18,7 @@
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Type</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Tax default</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Balance</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Header</th>
       </tr>
     </thead>
@@ -44,6 +45,15 @@
             </span>
           </td>
           <td class="px-4 py-3 text-gray-600">{{ a.tax_code_default or "—" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums {% if a.balance is not none and (a.balance|float) < 0 %}text-red-600{% else %}text-gray-900{% endif %}">
+            {% if a.is_header %}
+              <span class="text-gray-400">—</span>
+            {% elif a.balance is none or (a.balance|float) == 0 %}
+              <span class="text-gray-400">—</span>
+            {% else %}
+              {{ "%.2f"|format(a.balance|float) }}
+            {% endif %}
+          </td>
           <td class="px-4 py-3 text-gray-400 text-xs">
             {% if a.is_header %}
               <span class="inline-block rounded-full px-2 py-0.5 bg-gray-100 text-gray-500 text-xs">Header</span>
@@ -53,7 +63,7 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="6" class="px-4 py-8 text-center text-gray-400">
             No accounts found.
           </td>
         </tr>

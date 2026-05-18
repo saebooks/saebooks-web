@@ -350,8 +350,10 @@ async def invoice_add_line(request: Request, index: int = 0) -> HTMLResponse | R
 
 _EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "payment_terms")
 
-# Statuses that block editing — only DRAFT invoices are mutable.
-_LOCKED_STATUSES = {"POSTED", "VOIDED"}
+# Statuses that block editing. POSTED invoices are mutable — the backend
+# regenerates the journal entry in place when lines change (per Richard's
+# admin-discretion policy). VOIDED invoices are not editable.
+_LOCKED_STATUSES = {"VOIDED"}
 
 
 async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict], list[dict]]:

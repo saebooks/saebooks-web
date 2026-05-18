@@ -47,8 +47,10 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
-      {% if bill.status == 'DRAFT' %}
+      {% if bill.status != 'VOIDED' %}
       <a href="/bills/{{ bill.id }}/edit" class="btn-secondary text-sm">Edit</a>
+      {% endif %}
+      {% if bill.status == 'DRAFT' %}
       <form method="post" action="/bills/{{ bill.id }}/post"
             onsubmit="return confirm('Post this bill? This cannot be undone easily.');" class="inline">
         {{ csrf_input(request)|safe }}
