@@ -14,7 +14,12 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Contacts</h1>
+    <h1 class="text-2xl font-semibold text-gray-900">
+      Contacts
+      {% if show == 'one-off' %}<span class="text-base font-normal text-gray-500">— one-off</span>
+      {% elif show == 'all' %}<span class="text-base font-normal text-gray-500">— all (incl. one-off)</span>
+      {% endif %}
+    </h1>
     {% if not error %}
     <p class="text-sm text-gray-500 mt-1">{{ total }} contact{{ "s" if total != 1 else "" }}</p>
     {% endif %}
@@ -28,6 +33,23 @@
     + New contact
   </a>
 </div>
+
+{# View toggle: main / one-off / all #}
+<div class="mb-4 inline-flex rounded-md border border-gray-300 bg-white text-sm overflow-hidden">
+  <a href="/contacts"
+     class="px-3 py-1.5 {% if not show or show not in ('one-off','all') %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">Main</a>
+  <a href="/contacts?show=one-off"
+     class="px-3 py-1.5 border-l border-gray-300 {% if show == 'one-off' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">One-off</a>
+  <a href="/contacts?show=all"
+     class="px-3 py-1.5 border-l border-gray-300 {% if show == 'all' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">All</a>
+</div>
+
+{% if candidate_count and candidate_count > 0 and show != 'one-off' %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-4 flex items-center justify-between">
+  <span>{{ candidate_count }} contact{{ 's' if candidate_count != 1 else '' }} look like one-offs (single posted txn, quiet 90+ days).</span>
+  <a href="/contacts/cleanup" class="rounded-md bg-amber-600 px-3 py-1.5 text-white hover:bg-amber-700">Review &amp; tag →</a>
+</div>
+{% endif %}
 
 {% if error %}
 <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">

@@ -45,11 +45,15 @@ def _require_auth(request: Request) -> str | None:
 
 
 @router.get("/contacts", response_class=HTMLResponse, response_model=None)
-async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
+async def contacts_list(
+    request: Request,
+    show: str | None = None,
+) -> HTMLResponse | RedirectResponse:
     """Render the contacts list page.
 
-    Fetches the first 100 contacts from the API and renders them in a table.
-    Redirects to /login if the session has no token.
+    By default, one-off contacts (``is_one_off=true``) are hidden.
+    ``?show=one-off`` lists ONLY the one-offs; ``?show=all`` lists
+    everything. Anything else (or unset) renders the main pool.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -58,8 +62,14 @@ async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
     contacts: list[dict] = []
     total: int = 0
 
+    params: dict[str, object] = {"limit": 100, "offset": 0}
+    if show == "one-off":
+        params["one_off_only"] = "true"
+    elif show == "all":
+        params["include_one_off"] = "true"
+
     async with api_client(request) as client:
-        resp = await client.get("/api/v1/contacts", params={"limit": 100, "offset": 0})
+        resp = await client.get("/api/v1/contacts", params=params)
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
@@ -69,6 +79,18 @@ async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
             total = payload.get("total", len(contacts))
         else:
             error = f"API error: HTTP {resp.status_code}"
+
+    # Also pull the one-off candidate count so we can render a nudge
+    # banner on the main view ("8 contacts look like one-offs — review")
+    candidate_count = 0
+    if show != "one-off":
+        try:
+            async with api_client(request) as client:
+                cr = await client.get("/api/v1/contacts/one-off-candidates")
+                if cr.is_success:
+                    candidate_count = cr.json().get("total", 0)
+        except Exception:
+            pass
 
     # Consume and clear any flash message (e.g. from a successful archive).
     flash = request.session.pop("flash", None)
@@ -81,8 +103,73 @@ async def contacts_list(request: Request) -> HTMLResponse | RedirectResponse:
             "total": total,
             "error": error,
             "flash": flash,
+            "show": show or "",
+            "candidate_count": candidate_count,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# One-off cleanup — review screen + bulk-tag POST
+# ---------------------------------------------------------------------------
+
+
+@router.get("/contacts/cleanup", response_class=HTMLResponse, response_model=None)
+async def contacts_cleanup_review(
+    request: Request,
+) -> HTMLResponse | RedirectResponse:
+    """Render the one-off-contact review screen.
+
+    Lists contacts that look like one-offs (one POSTED transaction, no
+    drafts, quiet for >=90 days) with checkboxes pre-ticked. Submitting
+    POSTs to the API's bulk-tag-one-off endpoint and flips them.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    candidates: list[dict] = []
+    error: str | None = None
+    async with api_client(request) as client:
+        cr = await client.get("/api/v1/contacts/one-off-candidates")
+        if cr.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if cr.is_success:
+            candidates = cr.json().get("items", [])
+        else:
+            error = f"API error: HTTP {cr.status_code}"
+
+    flash = request.session.pop("flash", None)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "contacts/cleanup.html",
+        {"candidates": candidates, "error": error, "flash": flash},
+    )
+
+
+@router.post("/contacts/cleanup", response_class=HTMLResponse, response_model=None)
+async def contacts_cleanup_apply(request: Request) -> RedirectResponse:
+    """Apply the selected one-off tags via /api/v1/contacts/bulk-tag-one-off."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form = await request.form()
+    selected = [v for k, v in form.multi_items() if k == "contact_id"]
+    if not selected:
+        request.session["flash"] = "No contacts selected — nothing changed."
+        return RedirectResponse(url="/contacts/cleanup", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            "/api/v1/contacts/bulk-tag-one-off",
+            json={"contact_ids": selected},
+        )
+    if resp.is_success:
+        flipped = resp.json().get("flipped", 0)
+        request.session["flash"] = f"Marked {flipped} contact{'s' if flipped != 1 else ''} as one-off."
+    else:
+        request.session["flash"] = f"Bulk tag failed: HTTP {resp.status_code}"
+    return RedirectResponse(url="/contacts", status_code=303)
 
 
 # ---------------------------------------------------------------------------
@@ -178,6 +265,8 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
+
+    payload["is_one_off"] = form.get("is_one_off") == "on"
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -357,6 +446,10 @@ async def contact_update(
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
+
+    # is_one_off is a checkbox — POST it on every edit (no "leave alone"
+    # semantics; the edit form is the source of truth for the flag).
+    payload["is_one_off"] = form.get("is_one_off") == "on"
 
     async with api_client(request) as client:
         resp = await client.patch(

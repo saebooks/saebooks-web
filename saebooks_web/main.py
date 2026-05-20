@@ -97,6 +97,7 @@ from saebooks_web.routes.contact import router as contact_router
 from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
 from saebooks_web.routes.attachments import router as attachments_router  # Phase 1.5
 from saebooks_web.routes.cashbook import router as cashbook_router
+from saebooks_web.routes.overviews import router as overviews_router  # /sales /expenses /inventory /gst overview dashboards
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -260,6 +261,8 @@ app.include_router(integrations_router)
 app.include_router(attachments_router)
 # Cashbook UI — single-entry bookkeeping surfaces.
 app.include_router(cashbook_router)
+# Section overview dashboards — /sales/overview /expenses-overview /inventory/overview /gst/overview
+app.include_router(overviews_router)
 
 
 # ---------------------------------------------------------------------------

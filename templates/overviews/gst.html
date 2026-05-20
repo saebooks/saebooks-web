@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}GST overview — SAE Books{% endblock %}
+
+{% block content %}
+<header class="mb-8">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">GST</span>
+      </div>
+      <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
+          style="font-variation-settings: 'opsz' 96;">
+        GST &amp; BAS overview
+      </h1>
+      <p class="mt-2 text-sm ink-3">
+        {{ q_label }} · {{ q_start }} <span class="ink-4">→</span> {{ q_end }}
+        · BAS due <span class="num">{{ bas_due }}</span>
+        {% if days_to_bas >= 0 %}
+          <span class="ink-3">({{ days_to_bas }} day{{ '' if days_to_bas == 1 else 's' }} remaining)</span>
+        {% else %}
+          <span style="color:var(--neg);">({{ -days_to_bas }} day{{ '' if days_to_bas == -1 else 's' }} overdue)</span>
+        {% endif %}
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="/reports/bas" class="btn btn-primary">
+        <i data-lucide="file-check" class="w-4 h-4"></i> BAS worksheet
+      </a>
+      <a href="/admin/ato-sbr" class="btn btn-secondary">
+        <i data-lucide="landmark" class="w-4 h-4"></i> ATO SBR
+      </a>
+      <a href="/tax-codes" class="btn btn-secondary">
+        <i data-lucide="percent" class="w-4 h-4"></i> Tax codes
+      </a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</header>
+
+{# GST threshold banner #}
+{% if threshold_crossed %}
+<div class="rounded-md p-4 mb-6"
+     style="background: rgba(239,68,68,0.08); border: 1px solid var(--neg);">
+  <p class="text-sm" style="color:var(--neg);">
+    <strong>GST turnover threshold crossed.</strong>
+    You're over $75,000 YTD. ATO requires registration within 21 days.
+    <a href="/admin/ato-sbr" class="underline">Manage ABN/GST registration →</a>
+  </p>
+</div>
+{% elif threshold_approaching %}
+<div class="rounded-md p-4 mb-6"
+     style="background: rgba(234,179,8,0.08); border: 1px solid var(--warm);">
+  <p class="text-sm" style="color:var(--warm);">
+    <strong>Approaching GST threshold</strong> — {{ "%.0f"|format(pct) }}% of $75,000 reached.
+  </p>
+</div>
+{% endif %}
+
+{# ── KPI strip ── #}
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
+  <div class="card bg-paper p-5 rounded-none">
+    <p class="nav-section-label mb-2">Turnover · YTD</p>
+    <p class="num-display text-2xl"
+       style="color: {% if threshold_crossed %}var(--neg){% elif threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
+      ${{ "{:,.0f}".format(ytd_turnover|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">of ${{ "{:,.0f}".format(threshold|float) }} · {{ "%.0f"|format(pct) }}%</p>
+  </div>
+  <div class="card bg-paper p-5 rounded-none">
+    <p class="nav-section-label mb-2">GST collected · {{ q_label }}</p>
+    <p class="num-display text-2xl" style="color:var(--pos);">
+      ${{ "{:,.2f}".format(gst_out|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">on ${{ "{:,.0f}".format(sales_excl|float) }} sales</p>
+  </div>
+  <div class="card bg-paper p-5 rounded-none">
+    <p class="nav-section-label mb-2">GST paid · {{ q_label }}</p>
+    <p class="num-display text-2xl" style="color:var(--sae-2);">
+      ${{ "{:,.2f}".format(gst_in|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">on ${{ "{:,.0f}".format(purchases_excl|float) }} purchases</p>
+  </div>
+  <div class="card bg-paper p-5 rounded-none">
+    <p class="nav-section-label mb-2">Net GST · {{ q_label }}</p>
+    <p class="num-display text-2xl"
+       style="color: {% if net_gst >= 0 %}var(--neg){% else %}var(--pos){% endif %};">
+      {% if net_gst < 0 %}−{% endif %}${{ "{:,.2f}".format(net_gst|abs|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">
+      {% if net_gst >= 0 %}owed to ATO{% else %}refund expected{% endif %}
+    </p>
+  </div>
+</section>
+
+{# Turnover progress bar #}
+<section class="card p-6 mb-8">
+  <div class="flex items-start justify-between mb-3">
+    <p class="nav-section-label">GST registration threshold</p>
+    <span class="text-xs font-mono ink-3">{{ fy_from }} → {{ fy_to }}</span>
+  </div>
+  <div class="relative w-full" style="height: 22px; background: var(--paper-2); border-radius: 6px; overflow: hidden;">
+    <div style="position:absolute; top:0; left:0; bottom:0;
+                width: {{ pct }}%;
+                background: {% if threshold_crossed %}var(--neg){% elif threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
+    </div>
+  </div>
+  <div class="flex items-center justify-between mt-2 text-xs ink-3 font-mono">
+    <span>$0</span>
+    <span>${{ "{:,.0f}".format(threshold|float) }}</span>
+  </div>
+</section>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <section class="card p-6">
+    <div class="flex items-start justify-between mb-4">
+      <p class="nav-section-label">BAS quarter · {{ q_label }}</p>
+      <a href="/reports/bas" class="text-xs sae hover:underline font-mono uppercase tracking-wider">worksheet →</a>
+    </div>
+    <ul class="space-y-3 text-sm">
+      <li class="flex justify-between hairline-t pt-3">
+        <span class="ink-3">Sales (excl. GST)</span>
+        <span class="num-display">${{ "{:,.2f}".format(sales_excl|float) }}</span>
+      </li>
+      <li class="flex justify-between hairline-t pt-3">
+        <span class="ink-3">GST on sales (1A)</span>
+        <span class="num-display" style="color:var(--pos);">${{ "{:,.2f}".format(gst_out|float) }}</span>
+      </li>
+      <li class="flex justify-between hairline-t pt-3">
+        <span class="ink-3">Purchases (excl. GST)</span>
+        <span class="num-display">${{ "{:,.2f}".format(purchases_excl|float) }}</span>
+      </li>
+      <li class="flex justify-between hairline-t pt-3">
+        <span class="ink-3">GST on purchases (1B)</span>
+        <span class="num-display" style="color:var(--sae-2);">${{ "{:,.2f}".format(gst_in|float) }}</span>
+      </li>
+      <li class="flex justify-between hairline-t pt-3 font-semibold">
+        <span>Net GST (1A − 1B)</span>
+        <span class="num-display" style="color: {% if net_gst >= 0 %}var(--neg){% else %}var(--pos){% endif %};">
+          {% if net_gst < 0 %}−{% endif %}${{ "{:,.2f}".format(net_gst|abs|float) }}
+        </span>
+      </li>
+    </ul>
+    <p class="text-[11px] ink-3 mt-4 font-mono">
+      Computed from POSTED invoices &amp; bills in the quarter. See BAS worksheet for the authoritative ATO figures.
+    </p>
+  </section>
+
+  <section class="card p-6">
+    <div class="flex items-start justify-between mb-4">
+      <p class="nav-section-label">Tax codes</p>
+      <a href="/tax-codes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">manage →</a>
+    </div>
+    {% if tax_codes %}
+      <table class="w-full text-sm">
+        <thead class="text-[11px] font-mono uppercase ink-3">
+          <tr>
+            <th class="text-left py-1">Code</th>
+            <th class="text-left py-1">Name</th>
+            <th class="text-right py-1">Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tc in tax_codes %}
+          <tr class="hairline-t">
+            <td class="py-2 font-mono sae">{{ tc.code }}</td>
+            <td class="py-2">{{ tc.name }}</td>
+            <td class="py-2 text-right num-display">{{ "%.1f"|format((tc.rate or 0)|float * 100) }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-sm ink-3 py-6 text-center font-mono">— no tax codes —</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
