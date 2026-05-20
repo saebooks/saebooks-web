@@ -26,20 +26,29 @@
 <fieldset class="space-y-4">
   <legend class="text-sm font-semibold text-gray-900 mb-2">Bill details</legend>
 
-  {# Supplier #}
-  <div>
-    <label for="contact_id" class="block text-sm font-medium text-gray-700 mb-1">
-      Supplier <span class="text-red-500">*</span>
-    </label>
+  {# Supplier — picker OR one-off inline name #}
+  <div data-supplier-picker>
+    <div class="flex items-center justify-between mb-1">
+      <label for="contact_id" class="block text-sm font-medium text-gray-700">
+        Supplier <span class="text-red-500">*</span>
+      </label>
+      <label class="inline-flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+        <input type="checkbox" id="one_off_toggle" name="one_off_toggle" value="on"
+               {% if form.get("one_off_toggle") in ("on", True, "true", "True") or form.get("one_off_name") %}checked{% endif %}
+               class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+        One-off supplier
+      </label>
+    </div>
+    {# Picker — visible when toggle off #}
     <select
       id="contact_id"
       name="contact_id"
-      required
+      data-supplier-select
       class="block w-full rounded-md border {% if errors.get('contact_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
              px-3 py-2 text-sm text-gray-900
              focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
     >
-      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>Select supplier…</option>
+      <option value="" {% if not form.get("contact_id") %}selected{% endif %}>Select supplier…</option>
       {% for contact in contacts %}
       <option value="{{ contact.id }}"
         {% if form.get("contact_id") == contact.id %}selected{% endif %}>
@@ -47,10 +56,57 @@
       </option>
       {% endfor %}
     </select>
+    {# Inline one-off name — visible when toggle on #}
+    <input
+      type="text"
+      id="one_off_name"
+      name="one_off_name"
+      value="{{ form.get('one_off_name', '') }}"
+      placeholder="One-off supplier name (e.g. Cash purchase, Bunnings counter sale)"
+      data-supplier-oneoff
+      class="hidden block w-full rounded-md border border-amber-300 bg-amber-50
+             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
+             focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+    >
+    <p data-supplier-oneoff-hint class="hidden mt-1 text-xs text-amber-700">
+      A new <em>one-off</em> contact will be created and hidden from your main /contacts list.
+    </p>
     {% if errors.get("contact_id") %}
     <p class="mt-1 text-xs text-red-600">{{ errors["contact_id"] }}</p>
     {% endif %}
+    {% if errors.get("one_off_name") %}
+    <p class="mt-1 text-xs text-red-600">{{ errors["one_off_name"] }}</p>
+    {% endif %}
   </div>
+  <script>
+    (function () {
+      var root = document.querySelector('[data-supplier-picker]');
+      if (!root) return;
+      var toggle = root.querySelector('#one_off_toggle');
+      var picker = root.querySelector('[data-supplier-select]');
+      var oneoff = root.querySelector('[data-supplier-oneoff]');
+      var hint   = root.querySelector('[data-supplier-oneoff-hint]');
+      function sync() {
+        if (toggle.checked) {
+          picker.classList.add('hidden');
+          picker.removeAttribute('required');
+          picker.value = '';
+          oneoff.classList.remove('hidden');
+          hint.classList.remove('hidden');
+          oneoff.setAttribute('required', 'required');
+        } else {
+          oneoff.classList.add('hidden');
+          hint.classList.add('hidden');
+          oneoff.removeAttribute('required');
+          oneoff.value = '';
+          picker.classList.remove('hidden');
+          picker.setAttribute('required', 'required');
+        }
+      }
+      toggle.addEventListener('change', sync);
+      sync();
+    })();
+  </script>
 
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
     {# Bill number (optional — API auto-numbers) #}

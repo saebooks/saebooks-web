@@ -277,6 +277,43 @@ async def bill_create(request: Request) -> HTMLResponse | RedirectResponse:
         if val:
             payload[field] = val
 
+    # One-off supplier path: if the form has a one_off_name, create a one-off
+    # SUPPLIER contact first and use its id. Failed creation -> re-render with
+    # field-level error rather than 500.
+    one_off_name = form.get("one_off_name", "").strip()
+    if one_off_name and not payload.get("contact_id"):
+        async with api_client(request) as _client:
+            c_resp = await _client.post(
+                "/api/v1/contacts",
+                json={
+                    "name": one_off_name,
+                    "contact_type": "SUPPLIER",
+                    "is_one_off": True,
+                },
+            )
+        if c_resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if c_resp.status_code == 201:
+            payload["contact_id"] = c_resp.json()["id"]
+        else:
+            # Bubble up a friendly error and re-render
+            errors = {"one_off_name": f"Could not create one-off contact (HTTP {c_resp.status_code})."}
+            contacts, accounts, tax_codes, projects = [], [], [], []
+            async with api_client(request) as client:
+                c2 = await client.get("/api/v1/contacts",
+                                      params={"contact_type": "SUPPLIER", "limit": 500, "offset": 0})
+                if c2.is_success:
+                    contacts = c2.json().get("items", [])
+            return _TEMPLATES.TemplateResponse(
+                request, "bills/new.html",
+                {"form": form, "errors": errors, "contacts": contacts,
+                 "accounts": accounts, "tax_codes": tax_codes,
+                 "projects": projects, "idempotency_key": idempotency_key,
+                 "lines": [], "line_count": 0},
+                status_code=400,
+            )
+
     currency = form.get("currency", "").strip().upper() or "AUD"
     payload["currency"] = currency
     fx_rate_raw = form.get("fx_rate", "").strip()
