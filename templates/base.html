@@ -386,7 +386,8 @@
                               or path.startswith('/invoices')
                               or path.startswith('/credit-notes')
                               or path.startswith('/recurring-invoices')
-                              or path.startswith('/quotes') %}
+                              or path.startswith('/quotes')
+                              or path.startswith('/customer-hub') %}
       <details class="group" data-section="customers" {% if customers_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>Sales &amp; Get Paid</span>
@@ -407,6 +408,9 @@
           </a>
           <a href="/recurring-invoices" class="nav-item is-sub {% if path.startswith('/recurring-invoices') %}active{% endif %}">
             <i data-lucide="repeat" class="nav-ico"></i>Recurring
+          </a>
+          <a href="/customer-hub/overview" class="nav-item is-sub {% if path.startswith('/customer-hub') %}active{% endif %}">
+            <i data-lucide="users" class="nav-ico"></i>Customer Hub
           </a>
         </div>
       </details>

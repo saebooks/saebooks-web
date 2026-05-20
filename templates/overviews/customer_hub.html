@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% from "_funnel_macros.html" import funnel %}
+
+{% block title %}Customer Hub — SAE Books{% endblock %}
+
+{% block content %}
+<header class="mb-8">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Customer Hub</span>
+        <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
+          As of {{ today_iso }}
+        </span>
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono uppercase"
+              style="background: rgba(99,102,241,0.08); color: var(--sae);">
+          <i data-lucide="flask-conical" class="w-3 h-3"></i> beta
+        </span>
+      </div>
+      <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
+          style="font-variation-settings: 'opsz' 96;">
+        Customer Hub
+      </h1>
+      <p class="mt-2 text-sm ink-3 max-w-2xl">
+        Customers at a glance — quotes, projects, and unpaid invoices in one
+        view. CRM features (leads, opportunities, reviews) are deferred for v1.
+      </p>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</header>
+
+{# ── Quick actions ── #}
+<section class="card p-5 mb-6">
+  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Quick actions</p>
+  <div class="flex flex-wrap items-center gap-2">
+    <a href="/contacts/new?type=CUSTOMER" class="btn btn-primary">
+      <i data-lucide="user-plus" class="w-4 h-4"></i> New customer
+    </a>
+    <a href="/quotes/new" class="btn btn-secondary">
+      <i data-lucide="file-pen-line" class="w-4 h-4"></i> New quote
+    </a>
+    <a href="/invoices/new" class="btn btn-secondary">
+      <i data-lucide="plus" class="w-4 h-4"></i> New invoice
+    </a>
+    <a href="/projects/new" class="btn btn-secondary">
+      <i data-lucide="folder-kanban" class="w-4 h-4"></i> New project
+    </a>
+    <a href="/admin/imports" class="btn btn-secondary">
+      <i data-lucide="upload" class="w-4 h-4"></i> Import customers
+    </a>
+  </div>
+</section>
+
+{# ── Customers funnel ── #}
+<div class="mb-6">
+  {{ funnel(customers_funnel, title="Customers funnel", as_of=today_iso) }}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  {# Open quotes — useful #}
+  <section class="card p-6">
+    <div class="flex items-start justify-between mb-4">
+      <p class="nav-section-label">Open quotes</p>
+      <a href="/quotes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+    </div>
+    {% if quotes_open %}
+      <table class="w-full text-sm">
+        <thead class="text-[11px] font-mono uppercase ink-3">
+          <tr>
+            <th class="text-left py-1">#</th>
+            <th class="text-left py-1">Customer</th>
+            <th class="text-right py-1">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for q in quotes_open %}
+          {% set _c = contacts_by_id.get(q.contact_id) %}
+          <tr class="hairline-t">
+            <td class="py-2 font-mono">
+              <a href="/quotes/{{ q.id }}" class="sae hover:underline">{{ q.number or q.id[:8] }}</a>
+            </td>
+            <td class="py-2">{{ _c or '—' }}</td>
+            <td class="py-2 text-right num-display">${{ "{:,.2f}".format(q.total|float) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="hairline-t">
+            <td colspan="2" class="py-2 text-[11px] font-mono uppercase ink-3">Total</td>
+            <td class="py-2 text-right num-display sae">${{ "{:,.2f}".format(quotes_open_total|float) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    {% else %}
+      <p class="text-sm ink-3 py-6 text-center font-mono">— no open quotes —</p>
+      <div class="text-center mt-2">
+        <a href="/quotes/new" class="text-xs sae hover:underline">Create one →</a>
+      </div>
+    {% endif %}
+  </section>
+
+  {# Overdue invoices — useful #}
+  <section class="card p-6">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <p class="nav-section-label">Overdue invoices</p>
+        <p class="num-display text-2xl mt-1" style="color: var(--neg);">
+          ${{ "{:,.2f}".format(overdue_total|float) }}
+        </p>
+        <p class="text-xs ink-3 mt-0.5">{{ overdue_count }} overdue</p>
+      </div>
+      <a href="/invoices?status=POSTED" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+    </div>
+    {% if overdue_top %}
+      <table class="w-full text-sm">
+        <thead class="text-[11px] font-mono uppercase ink-3">
+          <tr>
+            <th class="text-left py-1">Customer</th>
+            <th class="text-left py-1">Due</th>
+            <th class="text-right py-1">Owed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in overdue_top %}
+          {% set _c = contacts_by_id.get(inv.contact_id) %}
+          {% set owed = (inv.total|float) - (inv.amount_paid|default(0)|float) %}
+          <tr class="hairline-t">
+            <td class="py-2 truncate" style="max-width: 220px;">
+              <a href="/invoices/{{ inv.id }}" class="sae hover:underline">{{ _c or '—' }}</a>
+            </td>
+            <td class="py-2 font-mono ink-3">{{ inv.due_date }}</td>
+            <td class="py-2 text-right num-display" style="color: var(--neg);">
+              ${{ "{:,.2f}".format(owed) }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-sm ink-3 py-6 text-center font-mono">— nothing overdue —</p>
+    {% endif %}
+  </section>
+</div>
+
+{# Deferred features notice #}
+<section class="card p-6 mb-8" style="background: rgba(99,102,241,0.04); border: 1px dashed var(--sae);">
+  <div class="flex items-start gap-3">
+    <i data-lucide="flask-conical" class="w-5 h-5 sae"></i>
+    <div>
+      <p class="text-sm font-semibold sae">CRM features — deferred</p>
+      <p class="text-xs ink-3 mt-1 max-w-xl">
+        Leads, opportunities, contracts, appointments, reviews and referrals are
+        deferred for SAE Books v1. The data shown here is derived from existing
+        invoicing + projects state — no separate CRM is needed.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

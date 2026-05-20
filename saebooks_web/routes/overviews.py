@@ -577,6 +577,115 @@ async def inventory_overview(request: Request) -> HTMLResponse | RedirectRespons
 # ─────────────────────────────────────────────────────────────────────────
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# /customer-hub/overview
+# ─────────────────────────────────────────────────────────────────────────
+
+
+@router.get("/customer-hub/overview", response_class=HTMLResponse, response_model=None)
+async def customer_hub_overview(request: Request) -> HTMLResponse | RedirectResponse:
+    """Minimal Customer Hub overview — Customers Funnel + Overdue Invoices +
+    Open Quotes + Quick actions. Skipping referrals / reviews / work-requests
+    because they're zero-state for 95% of orgs (per saebooks-qbo-nav-reference)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    today = date.today()
+    fy_from, fy_to = _au_fy_range()
+
+    async with api_client(request) as client:
+        (
+            quotes_raw,
+            open_invoices,
+            contacts_raw,
+            projects_raw,
+        ) = await asyncio.gather(
+            _fetch_items(client, "/api/v1/quotes", {"page": 1, "page_size": 100}),
+            _fetch_items(client, "/api/v1/invoices",
+                         {"status": "POSTED", "page": 1, "page_size": 500}),
+            _fetch_items(client, "/api/v1/contacts",
+                         {"page": 1, "page_size": 500}),
+            _fetch_items(client, "/api/v1/projects", {"page": 1, "page_size": 100}),
+        )
+
+    cmap = _name_map(contacts_raw)
+
+    # Customers funnel — Open quotes → In-progress projects → Unpaid invoices → Overdue
+    quotes_open = [
+        q for q in quotes_raw
+        if (q.get("status") or "").upper() not in ("ACCEPTED", "DECLINED", "EXPIRED", "VOIDED")
+    ]
+    quotes_open_total = sum(_to_decimal(q.get("total", 0)) for q in quotes_open)
+
+    quotes_accepted = [
+        q for q in quotes_raw
+        if (q.get("status") or "").upper() == "ACCEPTED"
+    ]
+
+    projects_open = [
+        p for p in projects_raw
+        if (p.get("status") or "").upper() in ("ACTIVE", "IN_PROGRESS", "OPEN")
+    ]
+
+    outstanding = [
+        i for i in open_invoices
+        if _to_decimal(i.get("amount_paid", 0)) < _to_decimal(i.get("total", 0))
+    ]
+    outstanding_total = sum(
+        _to_decimal(i.get("total", 0)) - _to_decimal(i.get("amount_paid", 0))
+        for i in outstanding
+    )
+    overdue = [
+        i for i in outstanding
+        if i.get("due_date") and date.fromisoformat(str(i["due_date"])) < today
+    ]
+    overdue_total = sum(
+        _to_decimal(i.get("total", 0)) - _to_decimal(i.get("amount_paid", 0))
+        for i in overdue
+    )
+
+    customers_funnel = [
+        {"label": "Open quotes",   "count": len(quotes_open),
+         "total": quotes_open_total, "tone": "neutral",
+         "href": "/quotes", "icon": "file-pen-line"},
+        {"label": "Quotes accepted","count": len(quotes_accepted),
+         "total": sum(_to_decimal(q.get("total", 0)) for q in quotes_accepted),
+         "tone": "warm", "href": "/quotes", "icon": "check"},
+        {"label": "Projects",      "count": len(projects_open),
+         "total": Decimal("0"), "tone": "sae",
+         "href": "/projects", "icon": "folder-kanban"},
+        {"label": "Unpaid",        "count": len(outstanding),
+         "total": outstanding_total, "tone": "warm",
+         "href": "/invoices?status=POSTED", "icon": "clock"},
+        {"label": "Overdue",       "count": len(overdue),
+         "total": overdue_total, "tone": "neg",
+         "href": "/invoices?status=POSTED", "icon": "alert-triangle"},
+    ]
+
+    # Top 5 overdue invoices for the right-side overdue card
+    overdue_sorted = sorted(
+        overdue,
+        key=lambda i: _to_decimal(i.get("total", 0)) - _to_decimal(i.get("amount_paid", 0)),
+        reverse=True,
+    )[:5]
+
+    ctx = {
+        "request": request,
+        "today_iso": today.isoformat(),
+        "fy_from": fy_from,
+        "fy_to": fy_to,
+        "customers_funnel": customers_funnel,
+        "quotes_open": quotes_open[:5],
+        "quotes_open_total": quotes_open_total,
+        "overdue_count": len(overdue),
+        "overdue_total": overdue_total,
+        "overdue_top": overdue_sorted,
+        "outstanding_total": outstanding_total,
+        "contacts_by_id": cmap,
+    }
+    return _TEMPLATES.TemplateResponse(request, "overviews/customer_hub.html", ctx)
+
+
 @router.get("/gst/overview", response_class=HTMLResponse, response_model=None)
 async def gst_overview(request: Request) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
