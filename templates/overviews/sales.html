@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_status_macros.html" import payment_status_badge %}
+{% from "_funnel_macros.html" import funnel, invoices_two_pane %}
 
 {% block title %}Sales overview — SAE Books{% endblock %}
 
@@ -9,6 +10,9 @@
     <div>
       <div class="flex items-center gap-2 mb-1">
         <span class="nav-section-label">Sales &amp; Get Paid</span>
+        <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
+          As of {{ today_iso }}
+        </span>
       </div>
       <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
           style="font-variation-settings: 'opsz' 96;">
@@ -18,20 +22,44 @@
         FY {{ fy_from }} <span class="ink-4">→</span> {{ fy_to }}
       </p>
     </div>
-    <div class="flex flex-wrap items-center gap-2">
-      <a href="/invoices/new" class="btn btn-primary">
-        <i data-lucide="plus" class="w-4 h-4"></i> New invoice
-      </a>
-      <a href="/quotes/new" class="btn btn-secondary">
-        <i data-lucide="file-pen-line" class="w-4 h-4"></i> New quote
-      </a>
-      <a href="/payments/new?direction=IN" class="btn btn-secondary">
-        <i data-lucide="banknote-arrow-up" class="w-4 h-4"></i> Receive payment
-      </a>
-    </div>
   </div>
   <div class="drafting mt-5"></div>
 </header>
+
+{# ── Money in — quick actions band ── #}
+<section class="card p-5 mb-6">
+  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Money in</p>
+  <div class="flex flex-wrap items-center gap-2">
+    <a href="/invoices/new" class="btn btn-primary">
+      <i data-lucide="plus" class="w-4 h-4"></i> New invoice
+    </a>
+    <a href="/quotes/new" class="btn btn-secondary">
+      <i data-lucide="file-pen-line" class="w-4 h-4"></i> New quote
+    </a>
+    <a href="/payments/new?direction=IN" class="btn btn-secondary">
+      <i data-lucide="banknote-arrow-up" class="w-4 h-4"></i> Receive payment
+    </a>
+    <a href="/credit-notes/new" class="btn btn-secondary">
+      <i data-lucide="file-minus" class="w-4 h-4"></i> Credit note
+    </a>
+    <a href="/recurring-invoices/new" class="btn btn-secondary">
+      <i data-lucide="repeat" class="w-4 h-4"></i> Recurring invoice
+    </a>
+    <a href="/contacts/new?type=CUSTOMER" class="btn btn-secondary">
+      <i data-lucide="user-plus" class="w-4 h-4"></i> Add customer
+    </a>
+  </div>
+</section>
+
+{# ── Sales funnel ── #}
+<div class="mb-6">
+  {{ funnel(sales_funnel, title="Sales funnel", as_of=today_iso) }}
+</div>
+
+{# ── AR two-pane (Unpaid | Paid) ── #}
+<div class="mb-6">
+  {{ invoices_two_pane(invoices_pane, title="Invoices", as_of=today_iso) }}
+</div>
 
 {# ── KPI strip ── #}
 <section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">

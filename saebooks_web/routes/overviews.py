@@ -176,6 +176,54 @@ async def sales_overview(request: Request) -> HTMLResponse | RedirectResponse:
         for p in recent_payments_in
         if month_start <= str(p.get("payment_date", "")) <= month_end
     )
+    # Receipts 30-day (rolling window matching the spark chart)
+    receipts_30d = sum(
+        _to_decimal(p.get("amount", 0))
+        for p in recent_payments_in
+        if win_start <= str(p.get("payment_date", "")) <= win_end
+    )
+
+    # Sales funnel stages — Quotes → Drafts → Unpaid (overdue) → Unpaid (current) → Paid
+    # "Quotes open" counts recent quotes that aren't accepted/declined.
+    quotes_open = [
+        q for q in recent_quotes
+        if (q.get("status") or "").upper() not in ("ACCEPTED", "DECLINED", "EXPIRED", "VOIDED")
+    ]
+    quotes_open_total = sum(_to_decimal(q.get("total", 0)) for q in quotes_open)
+
+    overdue_total_dec = overdue_total or Decimal("0")
+    current_unpaid_total = outstanding_total - overdue_total_dec
+
+    sales_funnel = [
+        {"label": "Quotes",   "count": len(quotes_open),
+         "total": quotes_open_total, "tone": "neutral",
+         "href": "/quotes", "icon": "file-pen-line"},
+        {"label": "Drafts",   "count": len(draft_invoices),
+         "total": draft_total, "tone": "warm",
+         "href": "/invoices?status=DRAFT", "icon": "file-text"},
+        {"label": "Overdue",  "count": len(overdue),
+         "total": overdue_total_dec, "tone": "neg",
+         "href": "/invoices?status=POSTED", "icon": "alert-triangle"},
+        {"label": "Unpaid",   "count": max(0, len(outstanding) - len(overdue)),
+         "total": current_unpaid_total, "tone": "sae",
+         "href": "/invoices?status=POSTED", "icon": "clock"},
+        {"label": "Paid · 30d","count": None,
+         "total": receipts_30d, "tone": "pos",
+         "href": "/payments?direction=INCOMING", "icon": "check-circle-2"},
+    ]
+
+    # AR two-pane (Unpaid | Paid) widget data — stacked bar values
+    not_due = max(Decimal("0"), outstanding_total - overdue_total_dec)
+    unpaid_total = outstanding_total
+    paid_30d_total = receipts_30d  # treat all incoming as "deposited" approximation
+    invoices_pane = {
+        "unpaid_total": unpaid_total,
+        "overdue_total": overdue_total_dec,
+        "not_due_total": not_due,
+        "overdue_pct": float(overdue_total_dec / unpaid_total * 100) if unpaid_total else 0.0,
+        "not_due_pct": float(not_due / unpaid_total * 100) if unpaid_total else 0.0,
+        "paid_total": paid_30d_total,
+    }
 
     # Top customers — from FY revenue report
     top_customers = (top_customers_data.get("rows") or [])[:5]
@@ -223,6 +271,7 @@ async def sales_overview(request: Request) -> HTMLResponse | RedirectResponse:
         "sales_mtd": sales_mtd,
         "sales_ytd": sales_ytd,
         "receipts_mtd": receipts_mtd,
+        "receipts_30d": receipts_30d,
         "daily_sales": daily_sales,
         "daily_dates": dates,
         "top_customers": top_customers,
@@ -232,6 +281,8 @@ async def sales_overview(request: Request) -> HTMLResponse | RedirectResponse:
         "recent_payments_in": recent_payments_in[:10],
         "contacts_by_id": cmap,
         "aging": aging,
+        "sales_funnel": sales_funnel,
+        "invoices_pane": invoices_pane,
     }
     return _TEMPLATES.TemplateResponse(request, "overviews/sales.html", ctx)
 
@@ -346,6 +397,37 @@ async def expenses_overview(request: Request) -> HTMLResponse | RedirectResponse
         for cid, tot in sorted(by_supplier.items(), key=lambda x: x[1], reverse=True)[:5]
     ]
 
+    # Bills Funnel — QBO's "killer widget for AP" (5 stages, no approvals)
+    # For review (Drafts) → Unpaid (current) → Due soon (≤7d) → Overdue → Paid 30d
+    payments_out_30d = sum(
+        _to_decimal(p.get("amount", 0))
+        for p in recent_payments_out
+        if win_start <= str(p.get("payment_date", "")) <= win_end
+    )
+    overdue_total_dec = overdue_total or Decimal("0")
+    due_soon_total_dec = due_soon_total or Decimal("0")
+    unpaid_current_total = max(
+        Decimal("0"),
+        outstanding_total - overdue_total_dec - due_soon_total_dec,
+    )
+    bills_funnel = [
+        {"label": "For review", "count": len(draft_bills),
+         "total": draft_total, "tone": "warm",
+         "href": "/bills?status=DRAFT", "icon": "file-text"},
+        {"label": "Overdue",    "count": len(overdue),
+         "total": overdue_total_dec, "tone": "neg",
+         "href": "/bills?status=POSTED", "icon": "alert-triangle"},
+        {"label": "Due soon",   "count": len(due_soon),
+         "total": due_soon_total_dec, "tone": "warm",
+         "href": "/bills?status=POSTED", "icon": "clock"},
+        {"label": "Unpaid",     "count": max(0, len(outstanding) - len(overdue) - len(due_soon)),
+         "total": unpaid_current_total, "tone": "sae",
+         "href": "/bills?status=POSTED", "icon": "hourglass"},
+        {"label": "Paid · 30d", "count": None,
+         "total": payments_out_30d, "tone": "pos",
+         "href": "/payments?direction=OUTGOING", "icon": "check-circle-2"},
+    ]
+
     # AP aging buckets
     def _bucket_days(b: dict) -> int:
         dd = b.get("due_date")
@@ -398,8 +480,10 @@ async def expenses_overview(request: Request) -> HTMLResponse | RedirectResponse
         "recent_expenses": recent_expenses,
         "recent_pos": recent_pos,
         "recent_payments_out": recent_payments_out[:10],
+        "payments_out_30d": payments_out_30d,
         "contacts_by_id": cmap,
         "aging": aging,
+        "bills_funnel": bills_funnel,
     }
     return _TEMPLATES.TemplateResponse(request, "overviews/expenses.html", ctx)
 

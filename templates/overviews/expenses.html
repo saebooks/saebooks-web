@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_status_macros.html" import payment_status_badge %}
+{% from "_funnel_macros.html" import funnel %}
 
 {% block title %}Expenses overview — SAE Books{% endblock %}
 
@@ -9,6 +10,9 @@
     <div>
       <div class="flex items-center gap-2 mb-1">
         <span class="nav-section-label">Expenses &amp; Bills</span>
+        <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
+          As of {{ today_iso }}
+        </span>
       </div>
       <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
           style="font-variation-settings: 'opsz' 96;">
@@ -18,23 +22,39 @@
         FY {{ fy_from }} <span class="ink-4">→</span> {{ fy_to }}
       </p>
     </div>
-    <div class="flex flex-wrap items-center gap-2">
-      <a href="/bills/new" class="btn btn-primary">
-        <i data-lucide="receipt" class="w-4 h-4"></i> New bill
-      </a>
-      <a href="/expenses/new" class="btn btn-secondary">
-        <i data-lucide="credit-card" class="w-4 h-4"></i> New expense
-      </a>
-      <a href="/purchase_orders/new" class="btn btn-secondary">
-        <i data-lucide="shopping-cart" class="w-4 h-4"></i> Purchase order
-      </a>
-      <a href="/payments/new?direction=OUT" class="btn btn-secondary">
-        <i data-lucide="banknote" class="w-4 h-4"></i> Pay bill
-      </a>
-    </div>
   </div>
   <div class="drafting mt-5"></div>
 </header>
+
+{# ── Money out — quick actions band ── #}
+<section class="card p-5 mb-6">
+  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Money out</p>
+  <div class="flex flex-wrap items-center gap-2">
+    <a href="/bills/new" class="btn btn-primary">
+      <i data-lucide="receipt" class="w-4 h-4"></i> New bill
+    </a>
+    <a href="/expenses/new" class="btn btn-secondary">
+      <i data-lucide="credit-card" class="w-4 h-4"></i> Record expense
+    </a>
+    <a href="/purchase_orders/new" class="btn btn-secondary">
+      <i data-lucide="shopping-cart" class="w-4 h-4"></i> Purchase order
+    </a>
+    <a href="/payments/new?direction=OUT" class="btn btn-secondary">
+      <i data-lucide="banknote" class="w-4 h-4"></i> Pay bill
+    </a>
+    <a href="/pay-run/new" class="btn btn-secondary">
+      <i data-lucide="badge-dollar-sign" class="w-4 h-4"></i> Pay run
+    </a>
+    <a href="/contacts/new?type=SUPPLIER" class="btn btn-secondary">
+      <i data-lucide="user-plus" class="w-4 h-4"></i> Add supplier
+    </a>
+  </div>
+</section>
+
+{# ── Bills funnel ── #}
+<div class="mb-6">
+  {{ funnel(bills_funnel, title="Bills funnel", as_of=today_iso) }}
+</div>
 
 {# ── KPI strip ── #}
 <section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
