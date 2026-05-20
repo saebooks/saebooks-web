@@ -384,18 +384,32 @@ async def expenses_overview(request: Request) -> HTMLResponse | RedirectResponse
             daily_buckets[d] += _to_decimal(b.get("total", 0))
     daily_spend = [float(daily_buckets[d]) for d in dates]
 
-    # Top suppliers — from outstanding + posted-this-FY bill totals
+    # Top suppliers — from outstanding + posted-this-FY bill totals.
+    # Now tracks bill_count + last_date per vendor for Spend Insights widget.
     by_supplier: dict[str, Decimal] = {}
+    by_supplier_count: dict[str, int] = {}
+    by_supplier_last: dict[str, str] = {}
     for b in open_bills:
-        if not (fy_from <= str(b.get("bill_date", "")) <= fy_to):
+        bd = str(b.get("bill_date", ""))
+        if not (fy_from <= bd <= fy_to):
             continue
         cid = b.get("contact_id") or ""
         if cid:
             by_supplier[cid] = by_supplier.get(cid, Decimal("0")) + _to_decimal(b.get("total", 0))
+            by_supplier_count[cid] = by_supplier_count.get(cid, 0) + 1
+            if bd > by_supplier_last.get(cid, ""):
+                by_supplier_last[cid] = bd
     top_suppliers = [
-        {"contact_id": cid, "name": cmap.get(cid, "—"), "total": tot}
-        for cid, tot in sorted(by_supplier.items(), key=lambda x: x[1], reverse=True)[:5]
+        {
+            "contact_id": cid,
+            "name": cmap.get(cid, "—"),
+            "total": tot,
+            "count": by_supplier_count.get(cid, 0),
+            "last_date": by_supplier_last.get(cid, ""),
+        }
+        for cid, tot in sorted(by_supplier.items(), key=lambda x: x[1], reverse=True)[:10]
     ]
+    top_suppliers_total = sum(s["total"] for s in top_suppliers)
 
     # Bills Funnel — QBO's "killer widget for AP" (5 stages, no approvals)
     # For review (Drafts) → Unpaid (current) → Due soon (≤7d) → Overdue → Paid 30d
@@ -476,6 +490,7 @@ async def expenses_overview(request: Request) -> HTMLResponse | RedirectResponse
         "daily_spend": daily_spend,
         "daily_dates": dates,
         "top_suppliers": top_suppliers,
+        "top_suppliers_total": top_suppliers_total,
         "recent_bills": recent_bills,
         "recent_expenses": recent_expenses,
         "recent_pos": recent_pos,
