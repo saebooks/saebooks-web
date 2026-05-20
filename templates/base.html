@@ -442,7 +442,8 @@
 
       {% set accounting_open = path.startswith('/journal-entries')
                                or path.startswith('/journal-templates')
-                               or path.startswith('/accounts') %}
+                               or path.startswith('/accounts')
+                               or path == '/recurring' %}
       <details class="group" data-section="accounting" {% if accounting_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>Accounting</span>
@@ -454,6 +455,9 @@
           </a>
           <a href="/journal-templates" class="nav-item is-sub {% if path.startswith('/journal-templates') %}active{% endif %}">
             <i data-lucide="file-stack" class="nav-ico"></i>Templates
+          </a>
+          <a href="/recurring" class="nav-item is-sub {% if path == '/recurring' %}active{% endif %}">
+            <i data-lucide="repeat" class="nav-ico"></i>Recurring
           </a>
           <a href="/accounts" class="nav-item is-sub {% if path.startswith('/accounts') %}active{% endif %}">
             <i data-lucide="list-tree" class="nav-ico"></i>Accounts
