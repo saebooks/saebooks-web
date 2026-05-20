@@ -37,7 +37,7 @@
         {{ po.status | capitalize }}
       </span>
     </div>
-    <p class="text-sm text-gray-500 mt-1">Supplier: {{ po.contact_id }}</p>
+    <p class="text-sm text-gray-500 mt-1">Supplier: {% if contact_name %}<a href="/contacts/{{ po.contact_id }}" class="text-indigo-600 hover:underline">{{ contact_name }}</a>{% else %}—{% endif %}</p>
   </div>
   <div class="flex items-center gap-3 flex-wrap justify-end">
     {% if po.status == 'DRAFT' %}
@@ -45,7 +45,7 @@
       onsubmit="return confirm('Send this PO? It will be assigned a number and locked from edits.');">
       {{ csrf_input(request)|safe }}
       <button type="submit"
-        class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700">
+        class="rounded-md bg-[#194291] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
         Send
       </button>
     </form>
@@ -89,7 +89,7 @@
     </form>
     {% endif %}
 
-    <a href="/purchase_orders" class="text-sm text-indigo-600 hover:underline">← Back</a>
+    <a href="/purchase_orders" class="text-sm text-[#194291] hover:underline">← Back</a>
   </div>
 </div>
 
@@ -176,7 +176,7 @@
                 max="{{ outstanding }}"
                 placeholder="{{ "%.3f"|format(outstanding) }}"
                 class="w-24 rounded-md border border-gray-300 text-sm px-2 py-1 text-right
-                       focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                       focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
               >
             </td>
             {% endif %}

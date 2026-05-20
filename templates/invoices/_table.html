@@ -2,6 +2,10 @@
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
 #}
+{% import "_sort_macros.html" as srt %}
+{% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
+                  'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'limit': limit, 'offset': offset} %}
 <div id="invoices-table">
 
 {% if error %}
@@ -14,12 +18,12 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Number</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Due</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Contact</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link('number',     'Number',  sort, direction, filters) }}</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link('issue_date', 'Date',    sort, direction, filters) }}</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link('due_date',   'Due',     sort, direction, filters) }}</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link('contact_id', 'Contact', sort, direction, filters) }}</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link('total',      'Total',   sort, direction, filters) }}</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link('status',     'Status',  sort, direction, filters) }}</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -36,9 +40,12 @@
           </td>
           <td class="px-4 py-3 text-gray-600">{{ inv.issue_date }}</td>
           <td class="px-4 py-3 text-gray-600">{{ inv.due_date }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ inv.contact_id }}</td>
+          <td class="px-4 py-3 text-gray-600">
+            {% set _c = contacts_by_id.get(inv.contact_id) if contacts_by_id else None %}
+            {% if _c %}<a href="/contacts/{{ _c.id }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
+          </td>
           <td class="px-4 py-3 text-right text-gray-900 font-medium tabular-nums">
-            {{ inv.currency }} {{ "%.2f"|format(inv.total|float) }}
+            ${{ "%.2f"|format(inv.total|float) }}
           </td>
           <td class="px-4 py-3">
             <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
@@ -67,35 +74,12 @@
   </table>
 </div>
 
-{# Pagination #}
-{% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
-  <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
-  </div>
-  <div class="flex gap-3">
-    {% if prev_offset is not none %}
-    <a
-      href="/invoices?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/invoices?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#invoices-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Previous</a>
-    {% endif %}
-    {% if next_offset is not none %}
-    <a
-      href="/invoices?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/invoices?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#invoices-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Next</a>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+{# Pagination — uses _pagination_macros.html for page-number selection.
+   Filter state preserved through the URL via the ``filters`` dict. #}
+{% import "_pagination_macros.html" as pg %}
+{% set pg_filters = {'status': filter_status, 'contact_id': filter_contact_id,
+                     'date_from': filter_date_from, 'date_to': filter_date_to,
+                     'sort': sort, 'direction': direction} %}
+{{ pg.page_numbers('/invoices', total, limit, offset, pg_filters, target='#invoices-table') }}
 
 </div>{# end #invoices-table #}

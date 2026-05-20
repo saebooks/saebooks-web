@@ -43,7 +43,7 @@
     <a
       href="/recurring-invoices/{{ ri.id }}/edit"
       class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700
-             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
     >
       Edit
     </a>
@@ -90,8 +90,8 @@
       <input type="hidden" name="idempotency_key" value="{{ generate_idempotency_key }}">
       <button
         type="submit"
-        class="rounded-md border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700
-               hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        class="rounded-md border border-[#194291]/30 bg-[#eaf0fa] px-3 py-1.5 text-sm font-medium text-[#133372]
+               hover:bg-[#eaf0fa] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
       >
         Generate invoice now
       </button>
@@ -115,7 +115,7 @@
     </form>
     {% endif %}
 
-    <a href="/recurring-invoices" class="text-sm text-indigo-600 hover:underline">← Back to recurring invoices</a>
+    <a href="/recurring-invoices" class="text-sm text-[#194291] hover:underline">← Back to recurring invoices</a>
   </div>
 </div>
 
@@ -147,7 +147,9 @@
       <tbody class="divide-y divide-gray-100">
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500 w-48">Contact</td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ ri.contact_id }}</td>
+          <td class="px-4 py-3 text-gray-900">
+            {% if contact_name %}<a href="/contacts/{{ ri.contact_id }}" class="text-indigo-600 hover:underline">{{ contact_name }}</a>{% else %}—{% endif %}
+          </td>
         </tr>
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500">Anchor day</td>

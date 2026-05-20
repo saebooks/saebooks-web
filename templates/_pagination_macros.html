@@ -1,0 +1,91 @@
+{#
+  Shared pagination macros — page-number selector that preserves filter
+  state through the URL.
+
+  Usage in a list template:
+    {% import "_pagination_macros.html" as pg %}
+    {% set filters = {'status': filter_status, ...} %}
+    {{ pg.page_numbers('/bills', total, limit, offset, filters, target='#bills-table') }}
+
+  ``filters`` is a dict of query params to preserve across page clicks.
+  Keys with empty/None values are dropped. ``target`` is the HTMX swap
+  target — if omitted, links degrade gracefully to plain anchors.
+#}
+
+{%- macro _qs(filters) -%}
+  {%- for k, v in (filters or {}).items() if v -%}
+    &amp;{{ k }}={{ v }}
+  {%- endfor -%}
+{%- endmacro -%}
+
+{%- macro _page_url(base_path, page_offset, limit, filters) -%}
+  {{ base_path }}?offset={{ page_offset }}&amp;limit={{ limit }}{{ _qs(filters) }}
+{%- endmacro -%}
+
+{% macro _page_btn(label, page_offset, base_path, limit, filters, target, active=False, disabled=False, label_class='') -%}
+  {% set url = _page_url(base_path, page_offset, limit, filters) %}
+  {% if disabled %}
+    <span class="rounded-md border border-gray-200 px-3 py-1.5 text-gray-300 cursor-not-allowed {{ label_class }}">{{ label | safe }}</span>
+  {% elif active %}
+    <span class="rounded-md border border-indigo-600 bg-indigo-600 px-3 py-1.5 text-white font-medium tabular-nums {{ label_class }}">{{ label | safe }}</span>
+  {% else %}
+    <a href="{{ url }}"
+      {% if target %} hx-get="{{ url }}" hx-target="{{ target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50 tabular-nums {{ label_class }}">{{ label | safe }}</a>
+  {% endif %}
+{%- endmacro %}
+
+{#
+  Build the list of page numbers to show. With ≤ 7 pages, show all. With
+  more, always show first + last + current ± 2, with ellipses between
+  gaps.
+
+  Returns a list where each entry is either an int (page number) or the
+  string '…' (ellipsis spacer).
+#}
+{%- macro _page_window(current, total_pages) -%}
+  {%- if total_pages <= 7 -%}
+    {%- for p in range(1, total_pages + 1) -%}{{ p }}{% if not loop.last %},{% endif %}{%- endfor -%}
+  {%- else -%}
+    {%- set ns = namespace(out=[]) -%}
+    {%- set _ = ns.out.append(1) -%}
+    {%- if current - 2 > 2 -%}{%- set _ = ns.out.append('…') -%}{%- endif -%}
+    {%- for p in range([current - 2, 2]|max, [current + 2, total_pages - 1]|min + 1) -%}
+      {%- set _ = ns.out.append(p) -%}
+    {%- endfor -%}
+    {%- if current + 2 < total_pages - 1 -%}{%- set _ = ns.out.append('…') -%}{%- endif -%}
+    {%- set _ = ns.out.append(total_pages) -%}
+    {%- for p in ns.out -%}{{ p }}{% if not loop.last %},{% endif %}{%- endfor -%}
+  {%- endif -%}
+{%- endmacro -%}
+
+{% macro page_numbers(base_path, total, limit, offset, filters=None, target=None) -%}
+  {% if total and limit and total > 0 %}
+    {% set total_pages = ((total + limit - 1) // limit) %}
+    {% set current_page = (offset // limit) + 1 if limit > 0 else 1 %}
+    {% set prev_offset = (current_page - 2) * limit if current_page > 1 else None %}
+    {% set next_offset = current_page * limit if current_page < total_pages else None %}
+    {% set window = _page_window(current_page, total_pages) | trim %}
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+      <div>
+        Showing <span class="tabular-nums">{{ offset + 1 }}–{{ [offset + limit, total] | min }}</span> of <span class="tabular-nums">{{ total }}</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-1">
+        {{ _page_btn('« First', 0, base_path, limit, filters, target, disabled=(current_page == 1)) }}
+        {{ _page_btn('‹ Prev', prev_offset or 0, base_path, limit, filters, target, disabled=(current_page == 1)) }}
+
+        {% for token in window.split(',') %}
+          {% if token == '…' %}
+            <span class="px-2 text-gray-400 select-none">…</span>
+          {% else %}
+            {% set p = token | int %}
+            {{ _page_btn(p|string, (p - 1) * limit, base_path, limit, filters, target, active=(p == current_page)) }}
+          {% endif %}
+        {% endfor %}
+
+        {{ _page_btn('Next ›', next_offset or 0, base_path, limit, filters, target, disabled=(current_page == total_pages)) }}
+        {{ _page_btn('Last »', (total_pages - 1) * limit, base_path, limit, filters, target, disabled=(current_page == total_pages)) }}
+      </div>
+    </div>
+  {% endif %}
+{%- endmacro %}

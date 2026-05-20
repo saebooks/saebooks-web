@@ -68,6 +68,7 @@ from saebooks_web.routes.bank_accounts import router as bank_accounts_router
 from saebooks_web.routes.bank_rules import router as bank_rules_router
 from saebooks_web.routes.bank_statement_lines import router as bank_statement_lines_router
 from saebooks_web.routes.bills import router as bills_router
+from saebooks_web.routes.expenses import router as expenses_router
 from saebooks_web.routes.budgets import router as budgets_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
@@ -224,6 +225,7 @@ app.include_router(ai_extraction_router)
 app.include_router(invoices_router)
 app.include_router(quotes_router)
 app.include_router(bills_router)
+app.include_router(expenses_router)
 app.include_router(purchase_orders_router)
 app.include_router(proration_router)
 app.include_router(payments_router)

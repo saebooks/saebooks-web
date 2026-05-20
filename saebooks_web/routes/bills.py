@@ -40,6 +40,18 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+_BILL_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
+
+
+def _bill_sort_key(b: dict, key: str) -> object:
+    if key == "total":
+        try:
+            return float(b.get("total") or 0)
+        except (TypeError, ValueError):
+            return 0.0
+    return str(b.get(key) or "")
+
+
 @router.get("/bills", response_class=HTMLResponse, response_model=None)
 async def bills_list(
     request: Request,
@@ -47,6 +59,8 @@ async def bills_list(
     contact_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    sort: str = "issue_date",
+    direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
@@ -58,6 +72,9 @@ async def bills_list(
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    sort = sort if sort in _BILL_SORT_KEYS else "issue_date"
+    direction = "asc" if direction == "asc" else "desc"
 
     # The API uses page/page_size rather than limit/offset.
     page_size = limit
@@ -76,6 +93,7 @@ async def bills_list(
     error: str | None = None
     bills: list[dict] = []
     total: int = 0
+    contacts_by_id: dict[str, dict] = {}
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/bills", params=params)
@@ -89,6 +107,21 @@ async def bills_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+        # Fetch suppliers so the template can show contact NAME, not the
+        # raw UUID. Keep the page-size at 500 — covers all but the largest
+        # CoAs, and the list page only renders 50 rows at a time anyway.
+        c_resp = await client.get(
+            "/api/v1/contacts",
+            params={"contact_type": "SUPPLIER", "limit": 500, "offset": 0},
+        )
+        if c_resp.is_success:
+            for c in c_resp.json().get("items", []):
+                contacts_by_id[c["id"]] = c
+
+    # Page-level sort. Sorts the current page of results; for global sort
+    # across all pages, narrow with filters first.
+    bills.sort(key=lambda b: _bill_sort_key(b, sort), reverse=(direction == "desc"))
+
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -101,11 +134,14 @@ async def bills_list(
         "total": total,
         "error": error,
         "flash": flash,
+        "contacts_by_id": contacts_by_id,
         # Filter values echoed back to the form.
         "filter_status": status or "",
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "sort": sort,
+        "direction": direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,

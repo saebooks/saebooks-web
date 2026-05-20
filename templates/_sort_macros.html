@@ -1,0 +1,29 @@
+{#
+  Sort-toggle column-header helpers used across list tables.
+
+  Usage in a list template:
+    {% import "_sort_macros.html" as srt %}
+    <th>{{ srt.sort_link('issue_date', 'Date', sort, direction, filters) }}</th>
+
+  ``filters`` is a dict of currently-applied query params (status, contact_id,
+  date_from, etc) that the macro re-emits in the link so toggling sort
+  doesn't clear the filter state. Keys with empty/None values are skipped.
+#}
+
+{% macro sort_arrow(col, current_sort, current_dir) -%}
+  {% if col == current_sort %}{% if current_dir == 'asc' %} ↑{% else %} ↓{% endif %}{% endif %}
+{%- endmacro %}
+
+{% macro _filter_qs(filters) -%}
+  {%- for k, v in (filters or {}).items() -%}
+    {%- if v %}&amp;{{ k }}={{ v }}{% endif -%}
+  {%- endfor -%}
+{%- endmacro %}
+
+{% macro sort_link(col, label, current_sort, current_dir, filters=None) -%}
+  {% set next_dir = 'asc' if (col == current_sort and current_dir == 'desc') else ('desc' if col == current_sort else 'asc') %}
+  <a href="?sort={{ col }}&amp;direction={{ next_dir }}{{ _filter_qs(filters) }}"
+     class="inline-flex items-center gap-1 hover:text-indigo-600">
+    {{ label }}{{ sort_arrow(col, current_sort, current_dir) }}
+  </a>
+{%- endmacro %}

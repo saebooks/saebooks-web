@@ -166,10 +166,118 @@
 </div>
 {% endif %}
 
-{# ── Recent activity stub ── #}
-<div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-400">
-  Recent invoices / bills — TODO (future cycle)
+{# ── Transaction history ── #}
+{% macro sort_arrow(col, current_sort, current_dir) -%}
+  {% if col == current_sort %}{% if current_dir == 'asc' %} ↑{% else %} ↓{% endif %}{% endif %}
+{%- endmacro %}
+
+{% macro sort_link(col, label, current_sort, current_dir) -%}
+  {% set next_dir = 'asc' if (col == current_sort and current_dir == 'desc') else ('desc' if col == current_sort else 'asc') %}
+  <a href="?sort={{ col }}&direction={{ next_dir }}{% if txn_type %}&txn_type={{ txn_type }}{% endif %}{% if txn_status %}&txn_status={{ txn_status }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+     class="inline-flex items-center gap-1 hover:text-indigo-600">
+    {{ label }}{{ sort_arrow(col, current_sort, current_dir) }}
+  </a>
+{%- endmacro %}
+
+<div class="mb-2 flex items-baseline justify-between">
+  <h2 class="text-base font-semibold text-gray-900">Transaction history</h2>
+  <span class="text-sm text-gray-500 tabular-nums">{{ transactions|length }} record{{ "s" if transactions|length != 1 else "" }}</span>
 </div>
+
+<form method="get" class="mb-3 flex flex-wrap gap-3 items-end bg-white border border-gray-200 rounded-xl px-4 py-3">
+  <div>
+    <label for="txn_type" class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+    <select id="txn_type" name="txn_type"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5">
+      <option value="">All</option>
+      {% for opt in ['Invoice','Bill','Payment','Credit Note','Expense'] %}
+      <option value="{{ opt }}" {% if txn_type == opt %}selected{% endif %}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="txn_status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+    <select id="txn_status" name="txn_status"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5">
+      <option value="">All</option>
+      <option value="DRAFT"  {% if txn_status == "DRAFT"  %}selected{% endif %}>Draft</option>
+      <option value="POSTED" {% if txn_status == "POSTED" %}selected{% endif %}>Posted</option>
+      <option value="VOIDED" {% if txn_status == "VOIDED" %}selected{% endif %}>Voided</option>
+    </select>
+  </div>
+  <div>
+    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">From</label>
+    <input type="date" id="date_from" name="date_from" value="{{ date_from }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5">
+  </div>
+  <div>
+    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">To</label>
+    <input type="date" id="date_to" name="date_to" value="{{ date_to }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5">
+  </div>
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="direction" value="{{ direction }}">
+  <button type="submit"
+    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700">
+    Apply
+  </button>
+  {% if txn_type or txn_status or date_from or date_to %}
+  <a href="?" class="text-sm text-gray-500 hover:underline">Clear filters</a>
+  {% endif %}
+</form>
+
+{% if transactions %}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-3 py-2 text-left font-medium text-gray-600">{{ sort_link('date',   'Date',   sort, direction) }}</th>
+        <th class="px-3 py-2 text-left font-medium text-gray-600">{{ sort_link('type',   'Type',   sort, direction) }}</th>
+        <th class="px-3 py-2 text-left font-medium text-gray-600">{{ sort_link('number', 'Number', sort, direction) }}</th>
+        <th class="px-3 py-2 text-left font-medium text-gray-600">Reference</th>
+        <th class="px-3 py-2 text-right font-medium text-gray-600">{{ sort_link('amount', 'Amount', sort, direction) }}</th>
+        <th class="px-3 py-2 text-left font-medium text-gray-600">{{ sort_link('status', 'Status', sort, direction) }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 bg-white">
+      {% for t in transactions %}
+      <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='{{ t.url }}'">
+        <td class="px-3 py-2 text-gray-700 tabular-nums">{{ t.date }}</td>
+        <td class="px-3 py-2">
+          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+            {% if t.type == 'Invoice' %}bg-indigo-100 text-indigo-700
+            {% elif t.type == 'Bill' %}bg-amber-100 text-amber-700
+            {% elif t.type == 'Payment' %}bg-green-100 text-green-700
+            {% elif t.type == 'Credit Note' %}bg-purple-100 text-purple-700
+            {% elif t.type == 'Expense' %}bg-orange-100 text-orange-700
+            {% else %}bg-gray-100 text-gray-700{% endif %}">
+            {{ t.type }}
+          </span>
+        </td>
+        <td class="px-3 py-2"><a href="{{ t.url }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ t.number }}</a></td>
+        <td class="px-3 py-2 text-gray-500">{{ t.ref or "—" }}</td>
+        <td class="px-3 py-2 text-right text-gray-900 font-semibold tabular-nums">${{ "%.2f"|format(t.amount|float) }}</td>
+        <td class="px-3 py-2">
+          {% if t.status == "POSTED" %}
+            <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Posted</span>
+          {% elif t.status == "VOIDED" %}
+            <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">Voided</span>
+          {% elif t.status == "DRAFT" %}
+            <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Draft</span>
+          {% else %}
+            <span class="text-xs text-gray-500">{{ t.status or "—" }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-500">
+  No transactions match the current filters.
+</div>
+{% endif %}
 
 {% endif %}{# end if contact #}
 

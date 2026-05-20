@@ -105,6 +105,7 @@ async def purchase_orders_list(
     error: str | None = None
     pos: list[dict] = []
     total: int = 0
+    contacts_by_id: dict[str, dict] = {}
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/purchase_orders", params=params)
@@ -118,6 +119,16 @@ async def purchase_orders_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+        # Resolve supplier names — POs are AP-side.
+        for ctype in ("SUPPLIER", "BOTH"):
+            c_resp = await client.get(
+                "/api/v1/contacts",
+                params={"contact_type": ctype, "limit": 500, "offset": 0},
+            )
+            if c_resp.is_success:
+                for c in c_resp.json().get("items", []):
+                    contacts_by_id[c["id"]] = c
+
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
     flash = request.session.pop("flash", None)
@@ -127,6 +138,7 @@ async def purchase_orders_list(
         "total": total,
         "error": error,
         "flash": flash,
+        "contacts_by_id": contacts_by_id,
         "filter_status": status or "",
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
@@ -311,32 +323,38 @@ async def po_detail(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    contact_name: str = ""
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/purchase_orders/{po_id}")
-    if resp.status_code == 401:
-        request.session.clear()
-        return RedirectResponse(url="/login", status_code=303)
-    if resp.status_code == 404:
-        return _TEMPLATES.TemplateResponse(
-            request,
-            "purchase_orders/detail.html",
-            {"po": None, "error": "Purchase order not found"},
-            status_code=404,
-        )
-    if not resp.is_success:
-        return _TEMPLATES.TemplateResponse(
-            request,
-            "purchase_orders/detail.html",
-            {"po": None, "error": f"API error: HTTP {resp.status_code}"},
-            status_code=resp.status_code,
-        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.status_code == 404:
+            return _TEMPLATES.TemplateResponse(
+                request,
+                "purchase_orders/detail.html",
+                {"po": None, "error": "Purchase order not found"},
+                status_code=404,
+            )
+        if not resp.is_success:
+            return _TEMPLATES.TemplateResponse(
+                request,
+                "purchase_orders/detail.html",
+                {"po": None, "error": f"API error: HTTP {resp.status_code}"},
+                status_code=resp.status_code,
+            )
 
-    po = resp.json()
+        po = resp.json()
+        if po.get("contact_id"):
+            c_resp = await client.get(f"/api/v1/contacts/{po['contact_id']}")
+            if c_resp.is_success:
+                contact_name = c_resp.json().get("name", "")
+
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "purchase_orders/detail.html",
-        {"po": po, "error": None, "flash": flash},
+        {"po": po, "error": None, "flash": flash, "contact_name": contact_name},
     )
 
 

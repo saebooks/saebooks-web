@@ -488,14 +488,42 @@ async def contact_archive(
 # ---------------------------------------------------------------------------
 
 
+_TXN_SORT_KEYS = {"date", "type", "number", "amount", "status"}
+
+
+def _txn_sort_key(t: dict, key: str) -> object:
+    """Return a comparable value for sorting transactions on ``key``."""
+    if key == "amount":
+        try:
+            return float(t.get("amount") or 0)
+        except (TypeError, ValueError):
+            return 0.0
+    return str(t.get(key) or "")
+
+
 @router.get("/contacts/{contact_id}", response_class=HTMLResponse, response_model=None)
 async def contact_detail(
     request: Request,
     contact_id: str,
+    txn_type: str | None = None,
+    txn_status: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    sort: str = "date",
+    direction: str = "desc",
 ) -> HTMLResponse | RedirectResponse:
-    """Render a single contact detail page."""
+    """Render a single contact detail page with their transaction history.
+
+    Fans out to /api/v1/{invoices,bills,payments,credit_notes,expenses}
+    filtered by ``contact_id``, merges results into one chronological list,
+    and applies the requested filter + sort. Each transaction row carries
+    enough metadata to deep-link back to its underlying detail page.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    sort = sort if sort in _TXN_SORT_KEYS else "date"
+    direction = "asc" if direction == "asc" else "desc"
 
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/contacts/{contact_id}")
@@ -506,22 +534,127 @@ async def contact_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "contacts/detail.html",
-                {"contact": None, "error": "Contact not found", "flash": None},
+                {"contact": None, "error": "Contact not found", "flash": None,
+                 "transactions": [], "txn_type": "", "txn_status": "",
+                 "date_from": "", "date_to": "", "sort": sort, "direction": direction},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "contacts/detail.html",
-                {"contact": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
+                {"contact": None, "error": f"API error: HTTP {resp.status_code}", "flash": None,
+                 "transactions": [], "txn_type": "", "txn_status": "",
+                 "date_from": "", "date_to": "", "sort": sort, "direction": direction},
                 status_code=resp.status_code,
             )
 
-    contact = resp.json()
-    # Consume and clear any flash message from session.
+        contact = resp.json()
+
+        params: dict[str, object] = {
+            "contact_id": contact_id,
+            "page": 1,
+            "page_size": 500,
+        }
+        if date_from:
+            params["date_from"] = date_from
+        if date_to:
+            params["date_to"] = date_to
+
+        async def _safe_list(path: str, key: str = "items") -> list[dict]:
+            try:
+                r = await client.get(path, params=params)
+                if r.is_success:
+                    return r.json().get(key, []) or []
+            except Exception:
+                pass
+            return []
+
+        invoices = await _safe_list("/api/v1/invoices")
+        bills = await _safe_list("/api/v1/bills")
+        payments = await _safe_list("/api/v1/payments")
+        credit_notes = await _safe_list("/api/v1/credit_notes")
+        expenses = await _safe_list("/api/v1/expenses")
+
+    # Normalise each source into one shape:
+    #   {type, date, number, ref, amount, status, url, id}
+    transactions: list[dict] = []
+    for inv in invoices:
+        transactions.append({
+            "type": "Invoice",
+            "date": inv.get("issue_date") or "",
+            "number": inv.get("number") or "(draft)",
+            "ref": inv.get("reference") or "",
+            "amount": inv.get("total") or "0",
+            "status": inv.get("status") or "",
+            "url": f"/invoices/{inv['id']}",
+            "id": inv["id"],
+        })
+    for bill in bills:
+        transactions.append({
+            "type": "Bill",
+            "date": bill.get("issue_date") or "",
+            "number": bill.get("number") or "(draft)",
+            "ref": bill.get("supplier_reference") or "",
+            "amount": bill.get("total") or "0",
+            "status": bill.get("status") or "",
+            "url": f"/bills/{bill['id']}",
+            "id": bill["id"],
+        })
+    for pay in payments:
+        transactions.append({
+            "type": "Payment",
+            "date": pay.get("payment_date") or pay.get("date") or "",
+            "number": pay.get("number") or pay.get("reference") or "",
+            "ref": pay.get("reference") or "",
+            "amount": pay.get("amount") or "0",
+            "status": pay.get("status") or "",
+            "url": f"/payments/{pay['id']}",
+            "id": pay["id"],
+        })
+    for cn in credit_notes:
+        transactions.append({
+            "type": "Credit Note",
+            "date": cn.get("issue_date") or "",
+            "number": cn.get("number") or "(draft)",
+            "ref": cn.get("reference") or "",
+            "amount": cn.get("total") or "0",
+            "status": cn.get("status") or "",
+            "url": f"/credit_notes/{cn['id']}",
+            "id": cn["id"],
+        })
+    for exp in expenses:
+        transactions.append({
+            "type": "Expense",
+            "date": exp.get("expense_date") or "",
+            "number": exp.get("number") or "(draft)",
+            "ref": exp.get("reference") or "",
+            "amount": exp.get("total") or "0",
+            "status": exp.get("status") or "",
+            "url": f"/expenses/{exp['id']}",
+            "id": exp["id"],
+        })
+
+    if txn_type:
+        transactions = [t for t in transactions if t["type"].lower() == txn_type.lower()]
+    if txn_status:
+        transactions = [t for t in transactions if t["status"].upper() == txn_status.upper()]
+
+    transactions.sort(
+        key=lambda t: _txn_sort_key(t, sort),
+        reverse=(direction == "desc"),
+    )
+
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "contacts/detail.html",
-        {"contact": contact, "error": None, "flash": flash},
+        {"contact": contact, "error": None, "flash": flash,
+         "transactions": transactions,
+         "txn_type": txn_type or "",
+         "txn_status": txn_status or "",
+         "date_from": date_from or "",
+         "date_to": date_to or "",
+         "sort": sort,
+         "direction": direction},
     )

@@ -38,7 +38,7 @@
     <p class="text-sm text-gray-500 mt-1">ID: {{ line.id }}</p>
   </div>
   <div class="flex items-center gap-3">
-    <a href="/bank-statement-lines" class="text-sm text-indigo-600 hover:underline">← Back to bank statement lines</a>
+    <a href="/bank-statement-lines" class="text-sm text-[#194291] hover:underline">← Back to bank statement lines</a>
   </div>
 </div>
 
@@ -89,8 +89,10 @@
         </tr>
         {% if line.contact_id %}
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Contact ID</td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ line.contact_id }}</td>
+          <td class="px-4 py-3 font-medium text-gray-500">Contact</td>
+          <td class="px-4 py-3 text-gray-900">
+            {% if contact_name %}<a href="/contacts/{{ line.contact_id }}" class="text-indigo-600 hover:underline">{{ contact_name }}</a>{% else %}—{% endif %}
+          </td>
         </tr>
         {% endif %}
         {% if line.matched_entry_id %}
@@ -181,7 +183,7 @@
           id="matched_to_type"
           name="matched_to_type"
           required
-          class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-56"
+          class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] w-56"
         >
           <option value="" {% if not match_form or not match_form.matched_to_type %}selected{% endif %} disabled>Select type…</option>
           <option value="PAYMENT" {% if match_form and match_form.matched_to_type == 'PAYMENT' %}selected{% endif %}>Payment</option>
@@ -200,14 +202,14 @@
           value="{{ match_form.matched_to_id if match_form else '' }}"
           placeholder="Enter payment or JE ID"
           required
-          class="rounded-md border border-gray-300 text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full max-w-md font-mono"
+          class="rounded-md border border-gray-300 text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] w-full max-w-md font-mono"
         >
       </div>
 
       <div>
         <button
           type="submit"
-          class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291]"
         >
           Match
         </button>

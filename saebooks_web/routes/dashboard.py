@@ -227,27 +227,66 @@ def _ap_tile(
 
 
 def _cash_tile(payments: list[dict]) -> dict:
-    """Compute cash-movement totals for the current month from payments list."""
+    """Compute cash-movement totals for the current month + 30-day daily series.
+
+    Returns month totals plus per-day arrays the dashboard sparkline can plot
+    directly (no client-side synthesis of fake data). Days with no payment
+    contribute zero amounts so the series is always 30 elements long.
+    """
+    from datetime import date as _date, timedelta as _td
+
     month_start, month_end = _this_month_range()
+    today = _date.today()
+    window_start = today - _td(days=29)
+
+    daily_in: dict[str, Decimal] = {}
+    daily_out: dict[str, Decimal] = {}
+    dates: list[str] = []
+    for i in range(30):
+        d = (window_start + _td(days=i)).isoformat()
+        dates.append(d)
+        daily_in[d] = Decimal("0")
+        daily_out[d] = Decimal("0")
 
     in_total = Decimal("0")
     out_total = Decimal("0")
 
     for pmt in payments:
         pmt_date = pmt.get("payment_date", "")
-        if not (pmt_date and month_start <= str(pmt_date) <= month_end):
+        if not pmt_date:
             continue
+        pmt_date_str = str(pmt_date)
         amount = _to_decimal(pmt.get("amount", 0))
         direction = pmt.get("direction", "")
-        if direction == "INCOMING":
-            in_total += amount
-        elif direction == "OUTGOING":
-            out_total += amount
+
+        if month_start <= pmt_date_str <= month_end:
+            if direction == "INCOMING":
+                in_total += amount
+            elif direction == "OUTGOING":
+                out_total += amount
+
+        if pmt_date_str in daily_in:
+            if direction == "INCOMING":
+                daily_in[pmt_date_str] += amount
+            elif direction == "OUTGOING":
+                daily_out[pmt_date_str] += amount
+
+    series_in = [float(daily_in[d]) for d in dates]
+    series_out = [float(daily_out[d]) for d in dates]
+    cum_net: list[float] = []
+    running = 0.0
+    for i in range(len(dates)):
+        running += series_in[i] - series_out[i]
+        cum_net.append(running)
 
     return {
         "in_total": in_total,
         "out_total": out_total,
         "net": in_total - out_total,
+        "daily_in": series_in,
+        "daily_out": series_out,
+        "daily_net": cum_net,
+        "daily_dates": dates,
     }
 
 
@@ -325,27 +364,44 @@ def _recent_activity(
     """Merge first-page items from each entity, sort by created_at DESC, return top 5."""
     tagged: list[dict] = []
 
+    # Build a contact lookup so invoice/bill/payment rows can show the
+    # counterparty name alongside the document number.
+    cmap: dict[str, str] = {c.get("id"): c.get("name") or "" for c in contacts if c.get("id")}
+
+    def _with_contact(number: str, cid: str | None) -> str:
+        name = cmap.get(cid or "") or ""
+        if number and name:
+            return f"{number} — {name}"
+        return number or name or ""
+
     for item in invoices:
         tagged.append({"entity_type": "Invoice", "item": item,
-                        "label": item.get("number") or item.get("id", ""),
+                        "label": _with_contact(item.get("number", ""), item.get("contact_id")) or item.get("id", ""),
                         "url": f"/invoices/{item.get('id', '')}",
                         "created_at": item.get("created_at", "")})
 
     for item in bills:
         tagged.append({"entity_type": "Bill", "item": item,
-                        "label": item.get("number") or item.get("id", ""),
+                        "label": _with_contact(item.get("number", ""), item.get("contact_id")) or item.get("id", ""),
                         "url": f"/bills/{item.get('id', '')}",
                         "created_at": item.get("created_at", "")})
 
     for item in payments:
+        num = item.get("number") or item.get("reference") or ""
         tagged.append({"entity_type": "Payment", "item": item,
-                        "label": item.get("number") or item.get("reference") or item.get("id", ""),
+                        "label": _with_contact(num, item.get("contact_id")) or item.get("id", ""),
                         "url": f"/payments/{item.get('id', '')}",
                         "created_at": item.get("created_at", "")})
 
     for item in journal_entries:
+        # JEs use `ref` (e.g. FIX-20260519-001, QT3194) — not `number`.
+        ref = item.get("ref") or item.get("number") or ""
+        desc = (item.get("description") or "").strip()
+        label = ref
+        if desc:
+            label = f"{ref} — {desc[:60]}" if ref else desc[:80]
         tagged.append({"entity_type": "Journal Entry", "item": item,
-                        "label": item.get("number") or item.get("id", ""),
+                        "label": label or item.get("id", ""),
                         "url": f"/journal-entries/{item.get('id', '')}",
                         "created_at": item.get("created_at", "")})
 
@@ -419,7 +475,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             _fetch_items(client, "/api/v1/payments",
                          {"page": 1, "page_size": 10}),
             _fetch_items(client, "/api/v1/journal_entries",
-                         {"page": 1, "page_size": 10}),
+                         {"page": 1, "page_size": 500}),
             _fetch_items(client, "/api/v1/contacts",
                          {"page": 1, "page_size": 10}),
             # GST turnover tile

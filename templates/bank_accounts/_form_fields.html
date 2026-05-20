@@ -22,7 +22,7 @@
     {% if required %}required{% endif %}
     class="block w-full rounded-md border {% if errors.get(name) %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
            px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-           focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+           focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
   >
   {% if errors.get(name) %}
   <p class="mt-1 text-xs text-red-600">{{ errors[name] }}</p>
@@ -43,16 +43,45 @@
 
   {{ text_input("code", "Account code", required=true, placeholder="BNKCBA001") }}
   {{ text_input("name", "Display name", required=true, placeholder="CBA Business Cheque") }}
+
+  {# Kind selector — drives the rest of the form and the bank-feed mapping #}
+  <div>
+    <label for="account_kind" class="block text-sm font-medium text-gray-700 mb-1">
+      Account kind <span class="text-red-500">*</span>
+    </label>
+    <select
+      id="account_kind"
+      name="account_kind"
+      required
+      class="block w-full rounded-md border {% if errors.get('account_kind') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
+             px-3 py-2 text-sm text-gray-900
+             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+    >
+      {% set _kind = form.get('account_kind', 'BANK_CHECKING') %}
+      <option value="BANK_CHECKING" {% if _kind == 'BANK_CHECKING' %}selected{% endif %}>Bank — Checking</option>
+      <option value="BANK_SAVINGS"  {% if _kind == 'BANK_SAVINGS'  %}selected{% endif %}>Bank — Savings</option>
+      <option value="CREDIT_CARD"   {% if _kind == 'CREDIT_CARD'   %}selected{% endif %}>Credit Card</option>
+      <option value="BANK_LOAN"     {% if _kind == 'BANK_LOAN'     %}selected{% endif %}>Bank Loan</option>
+      <option value="CASH"          {% if _kind == 'CASH'          %}selected{% endif %}>Cash / Petty Cash</option>
+      <option value="OTHER"         {% if _kind == 'OTHER'         %}selected{% endif %}>Other</option>
+    </select>
+    <p class="mt-1 text-xs text-gray-500">Drives which fields are needed below + the SISS feed type when bank feeds are wired up.</p>
+    {% if errors.get('account_kind') %}<p class="mt-1 text-xs text-red-600">{{ errors['account_kind'] }}</p>{% endif %}
+  </div>
 </fieldset>
 
 {# ── Banking details ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Banking details</legend>
+  <legend class="text-sm font-semibold text-gray-900 mb-2">Account details</legend>
 
-  {{ text_input("bsb", "BSB", required=true, placeholder="062-000") }}
-  {{ text_input("bank_account_number", "Account number", placeholder="123456789") }}
-  {{ text_input("bank_account_title", "Account title", placeholder="SAE Engineering Pty Ltd") }}
-  {{ text_input("bank_abbreviation", "Bank abbreviation", placeholder="CBA") }}
+  {# BSB is only required for AU bank accounts (BANK_CHECKING / BANK_SAVINGS).
+     Credit cards, loans, and cash don't carry a BSB — leave blank for those. #}
+  {{ text_input("bsb", "BSB (bank accounts only)", placeholder="062-000") }}
+  {{ text_input("bank_account_number", "Account / card / loan reference",
+                placeholder="123456789 or **** **** **** 1234") }}
+  {{ text_input("bank_account_title", "Account title (bank accounts)",
+                placeholder="SAE Engineering Pty Ltd") }}
+  {{ text_input("bank_abbreviation", "Bank abbreviation", placeholder="CBA / ANZ / NAB / WBC") }}
 </fieldset>
 
 {# ── Direct debit ── #}
@@ -74,7 +103,7 @@
         name="is_trust_account"
         value="on"
         {% if form.get("is_trust_account") == "on" %}checked{% endif %}
-        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+        class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]"
       >
     </div>
     <div>

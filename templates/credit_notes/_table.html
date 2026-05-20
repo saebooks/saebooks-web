@@ -29,18 +29,21 @@
           class="hover:bg-gray-50 cursor-pointer"
           onclick="window.location='/credit-notes/{{ cn.id }}'"
         >
-          <td class="px-4 py-3 font-medium text-indigo-600">
+          <td class="px-4 py-3 font-medium text-[#194291]">
             <a href="/credit-notes/{{ cn.id }}" class="hover:underline">
               {{ cn.number or "—" }}
             </a>
           </td>
           <td class="px-4 py-3 text-gray-600">{{ cn.issue_date }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ cn.contact_id }}</td>
+          <td class="px-4 py-3 text-gray-600">
+            {% set _c = contacts_by_id.get(cn.contact_id) if contacts_by_id else None %}
+            {% if _c %}<a href="/contacts/{{ _c.id }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
+          </td>
           <td class="px-4 py-3 text-gray-600">
             {% if cn.original_invoice_id %}
             <a
               href="/invoices/{{ cn.original_invoice_id }}"
-              class="text-indigo-600 hover:underline"
+              class="text-[#194291] hover:underline"
               onclick="event.stopPropagation()"
             >INV {{ cn.original_invoice_id[:8] }}…</a>
             {% else %}

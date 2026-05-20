@@ -1,0 +1,35 @@
+{# One expense line row. ``index`` indexes the field set
+   (lines[N]_<field>); the form_helpers parser turns flat form keys back
+   into a list of line dicts. #}
+<tr class="expense-line-row">
+  <td class="px-2 py-1">
+    <input type="text" name="lines[{{ index }}]_description" value="{{ line.description or '' }}" required
+      class="w-full rounded-md border border-gray-300 px-2 py-1 text-base focus:outline-none focus:ring-1 focus:ring-indigo-500">
+  </td>
+  <td class="px-2 py-1">
+    <select name="lines[{{ index }}]_account_id" required
+      class="w-full rounded-md border border-gray-300 px-2 py-1 text-base bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+      <option value="">— expense account —</option>
+      {% for a in accounts %}
+      <option value="{{ a.id }}" {% if line.account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
+      {% endfor %}
+    </select>
+  </td>
+  <td class="px-2 py-1">
+    <select name="lines[{{ index }}]_tax_code_id"
+      class="w-full rounded-md border border-gray-300 px-2 py-1 text-base bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+      <option value="">none</option>
+      {% for t in tax_codes %}
+      <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>
+      {% endfor %}
+    </select>
+  </td>
+  <td class="px-2 py-1">
+    <input type="number" name="lines[{{ index }}]_quantity" value="{{ line.quantity or '1' }}" step="0.0001" min="0"
+      class="w-24 rounded-md border border-gray-300 px-2 py-1 text-base text-right focus:outline-none focus:ring-1 focus:ring-indigo-500">
+  </td>
+  <td class="px-2 py-1">
+    <input type="number" name="lines[{{ index }}]_unit_price" value="{{ line.unit_price or '0' }}" step="0.0001" min="0"
+      class="w-32 rounded-md border border-gray-300 px-2 py-1 text-base text-right focus:outline-none focus:ring-1 focus:ring-indigo-500">
+  </td>
+</tr>

@@ -37,6 +37,18 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+_INVOICE_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
+
+
+def _invoice_sort_key(i: dict, key: str) -> object:
+    if key == "total":
+        try:
+            return float(i.get("total") or 0)
+        except (TypeError, ValueError):
+            return 0.0
+    return str(i.get(key) or "")
+
+
 @router.get("/invoices", response_class=HTMLResponse, response_model=None)
 async def invoices_list(
     request: Request,
@@ -44,6 +56,8 @@ async def invoices_list(
     contact_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    sort: str = "issue_date",
+    direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
@@ -55,6 +69,9 @@ async def invoices_list(
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    sort = sort if sort in _INVOICE_SORT_KEYS else "issue_date"
+    direction = "asc" if direction == "asc" else "desc"
 
     # The API uses page/page_size rather than limit/offset.
     page_size = limit
@@ -73,6 +90,7 @@ async def invoices_list(
     error: str | None = None
     invoices: list[dict] = []
     total: int = 0
+    contacts_by_id: dict[str, dict] = {}
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/invoices", params=params)
@@ -86,6 +104,21 @@ async def invoices_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+        # Fetch customers so the template can show contact NAME, not the
+        # raw UUID. CUSTOMER contact_type covers AR; BOTH lands in either
+        # query, so a second pass picks them up.
+        for ctype in ("CUSTOMER", "BOTH"):
+            c_resp = await client.get(
+                "/api/v1/contacts",
+                params={"contact_type": ctype, "limit": 500, "offset": 0},
+            )
+            if c_resp.is_success:
+                for c in c_resp.json().get("items", []):
+                    contacts_by_id[c["id"]] = c
+
+    # Page-level sort.
+    invoices.sort(key=lambda i: _invoice_sort_key(i, sort), reverse=(direction == "desc"))
+
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -98,11 +131,14 @@ async def invoices_list(
         "total": total,
         "error": error,
         "flash": flash,
+        "contacts_by_id": contacts_by_id,
         # Filter values echoed back to the form.
         "filter_status": status or "",
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "sort": sort,
+        "direction": direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,
