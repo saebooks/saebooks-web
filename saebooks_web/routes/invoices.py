@@ -37,6 +37,8 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+from datetime import date as _date, timedelta as _td
+
 _INVOICE_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
 
 
@@ -126,12 +128,17 @@ async def invoices_list(
     # Consume and clear any flash message (e.g. from a successful archive).
     flash = request.session.pop("flash", None)
 
+    _today_iso = _date.today().isoformat()
+    _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
+
     ctx = {
         "invoices": invoices,
         "total": total,
         "error": error,
         "flash": flash,
         "contacts_by_id": contacts_by_id,
+        "today": _today_iso,
+        "due_soon_cutoff": _due_soon_iso,
         # Filter values echoed back to the form.
         "filter_status": status or "",
         "filter_contact_id": contact_id or "",

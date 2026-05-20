@@ -1,0 +1,66 @@
+{#
+  Shared status-badge macros.
+
+  `payment_status_badge(item, today, due_soon_cutoff)` — derives the visible
+  badge for any bill / invoice / credit-note-like row that has:
+    .status        (DRAFT | POSTED | VOIDED)
+    .amount_paid   (Decimal/number)
+    .total         (Decimal/number)
+    .due_date      (ISO 8601 date string or null)
+
+  Routes pass `today` and `due_soon_cutoff` (today + 7 days) as ISO strings;
+  YYYY-MM-DD compares lexically so we can avoid date parsing in Jinja.
+
+  Mapping:
+    VOIDED                                     → grey  "Voided"
+    DRAFT                                      → amber "Draft"
+    POSTED + amount_paid >= total              → green "Paid"
+    POSTED + amount_paid > 0                   → blue  "Partial"
+    POSTED + due_date < today                  → red   "Overdue"
+    POSTED + due_date <= today + 7d            → amber "Due soon"
+    POSTED + everything else                   → indigo "Open"
+#}
+
+{%- macro payment_status_badge(item, today=None, due_soon_cutoff=None) -%}
+  {%- set s = (item.status or '')|upper -%}
+  {%- if s == 'VOIDED' -%}
+    <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">Voided</span>
+  {%- elif s == 'DRAFT' -%}
+    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Draft</span>
+  {%- elif s == 'POSTED' -%}
+    {%- set total = (item.total or 0)|float -%}
+    {%- set paid  = (item.amount_paid or 0)|float -%}
+    {%- if total > 0 and paid >= total -%}
+      <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Paid</span>
+    {%- elif paid > 0 -%}
+      <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
+        Partial · ${{ "%.2f"|format(paid) }} / ${{ "%.2f"|format(total) }}
+      </span>
+    {%- elif today and item.due_date and item.due_date < today -%}
+      <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">Overdue</span>
+    {%- elif due_soon_cutoff and item.due_date and item.due_date <= due_soon_cutoff -%}
+      <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Due soon</span>
+    {%- else -%}
+      <span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Open</span>
+    {%- endif -%}
+  {%- else -%}
+    <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ s|capitalize }}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{#
+  `simple_status_badge(item)` — for entities with no payment state
+  (credit notes, expenses, quotes). Just maps DRAFT/POSTED/VOIDED to colour.
+#}
+{%- macro simple_status_badge(item) -%}
+  {%- set s = (item.status or '')|upper -%}
+  {%- if s == 'POSTED' -%}
+    <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Posted</span>
+  {%- elif s == 'VOIDED' -%}
+    <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">Voided</span>
+  {%- elif s == 'DRAFT' -%}
+    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Draft</span>
+  {%- else -%}
+    <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ s|capitalize }}</span>
+  {%- endif -%}
+{%- endmacro %}

@@ -3,6 +3,7 @@
    the initial full-page load.
 #}
 {% import "_sort_macros.html" as srt %}
+{% import "_status_macros.html" as sb %}
 {% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
                   'date_from': filter_date_from, 'date_to': filter_date_to,
                   'limit': limit, 'offset': offset} %}
@@ -48,13 +49,7 @@
             ${{ "%.2f"|format(inv.total|float) }}
           </td>
           <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if inv.status == 'POSTED' %}bg-green-100 text-green-700
-              {% elif inv.status == 'DRAFT' %}bg-gray-100 text-gray-600
-              {% elif inv.status == 'VOIDED' %}bg-red-100 text-red-600
-              {% else %}bg-gray-100 text-gray-500{% endif %}">
-              {{ inv.status | capitalize }}
-            </span>
+            {{ sb.payment_status_badge(inv, today, due_soon_cutoff) }}
           </td>
         </tr>
         {% endfor %}
