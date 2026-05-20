@@ -164,6 +164,14 @@
     #create-menu > summary { list-style: none; }
     #create-menu > summary::-webkit-details-marker { display: none; }
     #create-menu[open] > summary i[data-lucide="chevron-down"] { transform: rotate(180deg); }
+    /* Mobile: long tables scroll horizontally inside their card rather than
+       blowing out the layout. Wraps any table that's wider than its container. */
+    @media (max-width: 768px) {
+      .card { overflow-x: auto; }
+      .card table { min-width: max-content; }
+      /* Header action rows wrap nicely on mobile */
+      header .flex-wrap { row-gap: 0.5rem; }
+    }
     .create-link {
       display: flex; align-items: center; gap: .5rem;
       padding: .375rem .5rem; border-radius: 6px;
@@ -829,6 +837,18 @@
     if (sidebar) sidebar.classList.add('-translate-x-full');
     if (overlay) overlay.classList.add('hidden');
   }
+  // Auto-close the mobile sidebar drawer after navigation taps so the drawer
+  // doesn't stay open over the destination page on small screens.
+  (function () {
+    var sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    sidebar.addEventListener('click', function (e) {
+      var t = e.target.closest('a.nav-item');
+      if (!t) return;
+      // Only auto-close at <sm; the desktop sidebar is sticky.
+      if (window.innerWidth < 640) closeSidebar();
+    });
+  })();
 
   // Cmd-K palette
   const CMDK_ITEMS = [
