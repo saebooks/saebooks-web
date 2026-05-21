@@ -1,0 +1,302 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Payday Super readiness · 1-Jul-2026 switchover — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks">
+  <div class="max-w-[1240px] mx-auto px-6 py-8">
+
+    <!-- MASTHEAD -->
+    <header class="mb-8 pb-6 border-b border-[var(--line)]">
+      <div class="flex items-start justify-between gap-6">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">
+            <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>
+            <span>ATO · Super Guarantee</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>SG(A) Act 1992 s.23A (proposed)</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Treasury Laws Amendment (Payday Superannuation) Bill 2025</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Workpaper PDS-26</span>
+          </div>
+          <h1 class="font-display text-[40px] leading-[1.05] tracking-[-0.02em] text-[var(--ink)]">
+            Payday Super readiness
+            <span class="text-[var(--ink-3)]"> · 51 days to switchover</span>
+          </h1>
+          <p class="mt-3 text-[14px] text-[var(--ink-3)] max-w-[820px] leading-relaxed">
+            From <strong>1-Jul-2026</strong> the Super Guarantee is no longer quarterly — employers must remit SG to each fund such that contributions are <em>received</em> by the fund within <strong>7 calendar days</strong> of qualifying earnings (QE) day. SG charge becomes near-immediate; quarterly SGC reconciliation is replaced by a per-payday liability with stronger penalty arithmetic. SAE Books rebases the payroll cycle around the SuperStream message round-trip and surfaces clearing-house lag as a first-class signal.
+          </p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Status</div>
+          <div class="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[color:rgb(212_154_61_/_0.12)] border border-[color:rgb(212_154_61_/_0.4)]">
+            <span class="led warn"></span>
+            <span class="text-[12px] font-medium text-[var(--warm)]">Readiness 84% · 3 blockers</span>
+          </div>
+          <div class="mt-2 text-[11px] text-[var(--ink-3)]"><span class="num">PDS-184260-26</span> · prepared 2026-05-11</div>
+          <div class="mt-1 text-[11px] text-[var(--ink-3)]">Switchover <span class="num font-medium">2026-07-01</span> · countdown <span class="num">51d 02h 14m</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ACT 1 · COUNTDOWN + KEY DATES -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 01</div>
+        <h2 class="font-display text-[22px] tracking-tight">Key dates · readiness gauge</h2>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Switchover</div>
+          <div class="num font-display text-[24px] leading-none mt-1">01-Jul-2026</div>
+          <div class="text-[11px] text-[var(--ink-3)] mt-0.5">SG rate 12.0% (final step)</div>
+        </div>
+        <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Last quarterly due</div>
+          <div class="num font-display text-[24px] leading-none mt-1">28-Jul-2026</div>
+          <div class="text-[11px] text-[var(--ink-3)] mt-0.5">Q4 FY26 (1-Apr to 30-Jun)</div>
+        </div>
+        <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">First payday SG due</div>
+          <div class="num font-display text-[24px] leading-none mt-1">14-Jul-2026</div>
+          <div class="text-[11px] text-[var(--ink-3)] mt-0.5">QE 07-Jul (Wed cycle) + 7d</div>
+        </div>
+        <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">SG rate (no change)</div>
+          <div class="num font-display text-[24px] leading-none mt-1">12.0%</div>
+          <div class="text-[11px] text-[var(--ink-3)] mt-0.5">Final step under s.19(2)</div>
+        </div>
+        <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">MSCB FY26</div>
+          <div class="num font-display text-[24px] leading-none mt-1">A$67,260/q</div>
+          <div class="text-[11px] text-[var(--ink-3)] mt-0.5">Max super contribution base</div>
+        </div>
+      </div>
+
+      <div class="mt-4 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)]">
+        <div class="flex items-baseline justify-between mb-3">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Group readiness</div>
+          <div class="num text-[12px]">84% · 21 of 25 controls green</div>
+        </div>
+        <div class="h-3 rounded-full bg-[var(--line)] overflow-hidden">
+          <div class="h-full bg-[var(--warm)]" style="width:84%"></div>
+        </div>
+        <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px]">
+          <div class="flex items-center gap-2"><span class="led on"></span><span>Payroll engine ready</span></div>
+          <div class="flex items-center gap-2"><span class="led on"></span><span>Clearing-house contracted</span></div>
+          <div class="flex items-center gap-2"><span class="led on"></span><span>SuperStream v2.1 schema</span></div>
+          <div class="flex items-center gap-2"><span class="led warn"></span><span>STP2 / SG cross-tie</span></div>
+          <div class="flex items-center gap-2"><span class="led on"></span><span>Stapled-fund lookup</span></div>
+          <div class="flex items-center gap-2"><span class="led warn"></span><span>Returned-contrib handler</span></div>
+          <div class="flex items-center gap-2"><span class="led on"></span><span>Employee USI/SPIN map</span></div>
+          <div class="flex items-center gap-2"><span class="led off"></span><span>Cash-flow pre-fund alert</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 2 · QE → SG TIMELINE -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 02</div>
+        <h2 class="font-display text-[22px] tracking-tight">QE day → SG receipt · 7-day arithmetic</h2>
+      </div>
+      <div class="border border-[var(--line)] rounded-lg overflow-hidden">
+        <table class="w-full text-[12px]">
+          <thead class="bg-[var(--paper-2)] border-b border-[var(--line)]">
+            <tr class="text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 px-3">Day</th>
+              <th class="py-2 px-3">Event</th>
+              <th class="py-2 px-3">Trigger</th>
+              <th class="py-2 px-3">Authority</th>
+            </tr>
+          </thead>
+          <tbody class="num divide-y divide-[var(--line)]">
+            <tr><td class="py-2 px-3">D + 0</td><td class="px-3 not-num">QE day · OTE paid to employee bank</td><td class="px-3 not-num">Payroll DD initiated</td><td class="px-3 not-num">s.6(1) OTE · proposed s.23A(1)</td></tr>
+            <tr><td class="py-2 px-3">D + 0</td><td class="px-3 not-num">Payroll engine writes SG liability row</td><td class="px-3 not-num">SAE Books · STP2 lodgement event</td><td class="px-3 not-num">TAA Sch.1 Pt 3-10</td></tr>
+            <tr><td class="py-2 px-3">D + 1</td><td class="px-3 not-num">SuperStream MIG message → clearing house</td><td class="px-3 not-num">Schema PAYEVNT.0006 + SAFF v3</td><td class="px-3 not-num">SG(A) Reg 2018 r.32</td></tr>
+            <tr><td class="py-2 px-3">D + 2</td><td class="px-3 not-num">Clearing house disbursement to USI/SPIN</td><td class="px-3 not-num">Auto · NPP rails preferred</td><td class="px-3 not-num">proposed s.23A(3)</td></tr>
+            <tr><td class="py-2 px-3">D + 3 – D + 5</td><td class="px-3 not-num">Fund posts to member account</td><td class="px-3 not-num">Fund receipts message back</td><td class="px-3 not-num">SG(A) Reg r.43</td></tr>
+            <tr><td class="py-2 px-3">D + 7</td><td class="px-3 not-num">Hard deadline · contribution must be <em>received</em> by fund</td><td class="px-3 not-num">SAE Books status check</td><td class="px-3 not-num">proposed s.23A(2)</td></tr>
+            <tr class="bg-[color:rgb(212_154_61_/_0.06)]"><td class="py-2 px-3">D + 8</td><td class="px-3 not-num text-[var(--warm)]">SG shortfall arises · SGC clock starts</td><td class="px-3 not-num">Auto-create SGC liability</td><td class="px-3 not-num">s.16 SGAA</td></tr>
+            <tr class="bg-[color:rgb(184_64_64_/_0.06)]"><td class="py-2 px-3">D + 8 → D + 21</td><td class="px-3 not-num text-[var(--neg)]">Notional earnings clock + admin component A$20/emp/q</td><td class="px-3 not-num">Catch-up window</td><td class="px-3 not-num">s.31 / s.49 SGAA</td></tr>
+            <tr class="bg-[color:rgb(184_64_64_/_0.06)]"><td class="py-2 px-3">D + 28</td><td class="px-3 not-num text-[var(--neg)]">SGC statement due · 1 month after end of payday</td><td class="px-3 not-num">Form NAT 9599</td><td class="px-3 not-num">s.33 SGAA</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ACT 3 · WORKING SCENARIO -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 03</div>
+        <h2 class="font-display text-[22px] tracking-tight">Worked scenario · pay run PR-2026-0728</h2>
+        <span class="text-[11px] text-[var(--ink-3)]">Wednesday 08-Jul-2026 · 14 employees · A$98,420 OTE</span>
+      </div>
+      <div class="border border-[var(--line)] rounded-lg overflow-hidden">
+        <table class="w-full text-[12px]">
+          <thead class="bg-[var(--paper-2)] border-b border-[var(--line)]">
+            <tr class="text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 px-3">Employee</th>
+              <th class="py-2 px-3 text-right">OTE</th>
+              <th class="py-2 px-3 text-right">SG @ 12%</th>
+              <th class="py-2 px-3">Fund</th>
+              <th class="py-2 px-3">USI</th>
+              <th class="py-2 px-3">Stapled</th>
+              <th class="py-2 px-3">D+7 receipt</th>
+            </tr>
+          </thead>
+          <tbody class="num divide-y divide-[var(--line)]">
+            <tr><td class="py-2 px-3 not-num">EMP-001 · R. Sauer</td><td class="px-3 text-right">8,420.00</td><td class="px-3 text-right">1,010.40</td><td class="px-3 not-num">ART SMSF</td><td class="px-3">SMSF-657219</td><td class="px-3 not-num text-[var(--ink-3)]">n/a · SMSF</td><td class="px-3 text-[var(--pos)]">15-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-002 · M. Sauer</td><td class="px-3 text-right">5,840.00</td><td class="px-3 text-right">700.80</td><td class="px-3 not-num">ART SMSF</td><td class="px-3">SMSF-657219</td><td class="px-3 not-num text-[var(--ink-3)]">n/a · SMSF</td><td class="px-3 text-[var(--pos)]">15-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-003 · J. Holloway</td><td class="px-3 text-right">9,840.00</td><td class="px-3 text-right">1,180.80</td><td class="px-3 not-num">AustralianSuper</td><td class="px-3">STA0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">14-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-004 · A. Nakamura</td><td class="px-3 text-right">7,200.00</td><td class="px-3 text-right">864.00</td><td class="px-3 not-num">Hostplus</td><td class="px-3">HOS0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">14-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-005 · K. Singh</td><td class="px-3 text-right">6,420.00</td><td class="px-3 text-right">770.40</td><td class="px-3 not-num">Rest</td><td class="px-3">RES0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">15-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-006 · L. Brown</td><td class="px-3 text-right">5,820.00</td><td class="px-3 text-right">698.40</td><td class="px-3 not-num">HESTA</td><td class="px-3">HES0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">14-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-007 · T. Allen</td><td class="px-3 text-right">8,180.00</td><td class="px-3 text-right">981.60</td><td class="px-3 not-num">AustralianSuper</td><td class="px-3">STA0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">14-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-008 · D. Wu</td><td class="px-3 text-right">6,840.00</td><td class="px-3 text-right">820.80</td><td class="px-3 not-num">Aware Super</td><td class="px-3">FSS0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">15-Jul ✓</td></tr>
+            <tr class="bg-[color:rgb(212_154_61_/_0.06)]"><td class="py-2 px-3 not-num">EMP-009 · P. Costa</td><td class="px-3 text-right">5,840.00</td><td class="px-3 text-right">700.80</td><td class="px-3 not-num">Mercer Smart Pension</td><td class="px-3">MMA0100AU</td><td class="px-3 text-[var(--warm)]">choice form</td><td class="px-3 text-[var(--warm)]">16-Jul ⚠ NPP delay</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-010 · V. Reyes</td><td class="px-3 text-right">5,640.00</td><td class="px-3 text-right">676.80</td><td class="px-3 not-num">Cbus</td><td class="px-3">CBU0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">14-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-011 · H. Ng</td><td class="px-3 text-right">6,200.00</td><td class="px-3 text-right">744.00</td><td class="px-3 not-num">AustralianSuper</td><td class="px-3">STA0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">14-Jul ✓</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-012 · S. Petrov</td><td class="px-3 text-right">7,420.00</td><td class="px-3 text-right">890.40</td><td class="px-3 not-num">Hostplus</td><td class="px-3">HOS0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">14-Jul ✓</td></tr>
+            <tr class="bg-[color:rgb(184_64_64_/_0.06)]"><td class="py-2 px-3 not-num">EMP-013 · F. Okafor</td><td class="px-3 text-right">5,420.00</td><td class="px-3 text-right">650.40</td><td class="px-3 not-num text-[var(--neg)]">— no fund mapped —</td><td class="px-3 text-[var(--neg)]">missing</td><td class="px-3 text-[var(--neg)]">lookup pending</td><td class="px-3 text-[var(--neg)]">at risk</td></tr>
+            <tr><td class="py-2 px-3 not-num">EMP-014 · J. Pereira</td><td class="px-3 text-right">9,318.00</td><td class="px-3 text-right">1,118.16</td><td class="px-3 not-num">UniSuper</td><td class="px-3">SLA0100AU</td><td class="px-3 text-[var(--pos)]">stapled</td><td class="px-3 text-[var(--pos)]">14-Jul ✓</td></tr>
+            <tr class="bg-[var(--paper-2)] font-medium"><td class="py-2 px-3 not-num">Totals</td><td class="px-3 text-right">98,420.00</td><td class="px-3 text-right">11,810.40</td><td class="px-3 not-num text-[var(--ink-3)]">9 funds</td><td class="px-3 not-num"></td><td class="px-3 not-num text-[var(--ink-3)]">12 stapled · 1 choice · 1 missing</td><td class="px-3 not-num text-[var(--warm)]">13 on-time · 1 at risk</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3 grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">SGC exposure if EMP-013 misses D+7</div>
+          <ul class="text-[12px] space-y-1.5 leading-relaxed">
+            <li>• Shortfall component: <span class="num">A$650.40</span> (SG @ 12%)</li>
+            <li>• <em>Plus</em> notional earnings (10% pa, simple) from QE day: <span class="num">A$1.78</span>/day</li>
+            <li>• <em>Plus</em> admin component: <span class="num">A$20.00</span> per employee per quarter (s.31)</li>
+            <li>• <em>Plus</em> Part 7 penalty: up to <span class="num">200%</span> of SGC for repeated failure (s.59)</li>
+            <li>• <em>And</em>: SGC is <strong>not deductible</strong> under ITAA 1997 s.26-95 — so the cash outlay is grossed up by 25-30% on after-tax basis</li>
+          </ul>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-4 border border-[var(--line)] rounded-lg bg-[var(--paper-2)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">SAE Books auto-actions for EMP-013</div>
+          <ol class="text-[12px] space-y-1.5 list-decimal pl-4 marker:text-[var(--sae)]">
+            <li>D-1 banner: missing fund → block payroll dispatch</li>
+            <li>Auto-call ATO Stapled Super API (TFN + DOB) → SPIN result</li>
+            <li>If still nothing: alternate fund (employer default UniSuper) used + employee notified</li>
+            <li>Choice form auto-emailed; 28-day window opens</li>
+            <li>Audit-row written: control breach `PDS-STAP-013`</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 4 · CASH FLOW IMPACT -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 04</div>
+        <h2 class="font-display text-[22px] tracking-tight">Cash-flow impact · quarterly → fortnightly</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-8 border border-[var(--line)] rounded-lg overflow-hidden">
+          <table class="w-full text-[12px]">
+            <thead class="bg-[var(--paper-2)] border-b border-[var(--line)]">
+              <tr class="text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 px-3">Window</th>
+                <th class="py-2 px-3 text-right">SG outflow events / yr</th>
+                <th class="py-2 px-3 text-right">Avg cash per event</th>
+                <th class="py-2 px-3 text-right">Peak-to-trough swing</th>
+                <th class="py-2 px-3 text-right">Working-cap req'd</th>
+              </tr>
+            </thead>
+            <tbody class="num divide-y divide-[var(--line)]">
+              <tr><td class="py-2 px-3 not-num">Old · quarterly (FY25)</td><td class="px-3 text-right">4</td><td class="px-3 text-right">A$76,768</td><td class="px-3 text-right">A$76,768</td><td class="px-3 text-right">A$76,768 lump</td></tr>
+              <tr><td class="py-2 px-3 not-num">Bridge · monthly H1-FY27</td><td class="px-3 text-right">12</td><td class="px-3 text-right">A$25,589</td><td class="px-3 text-right">A$25,589</td><td class="px-3 text-right">A$25,589</td></tr>
+              <tr class="bg-[color:rgb(34_139_84_/_0.05)] font-medium"><td class="py-2 px-3 not-num">New · payday (FY27+)</td><td class="px-3 text-right">26</td><td class="px-3 text-right">A$11,810</td><td class="px-3 text-right">A$11,810</td><td class="px-3 text-right text-[var(--pos)]">A$11,810 only</td></tr>
+            </tbody>
+          </table>
+          <div class="p-3 text-[11px] text-[var(--ink-3)] italic">Smoother cash profile under payday is the upside — but bank-balance dip arrives within 7 days of payroll instead of 28-90, so cash-flow forecast must be tighter. SAE Books exposes a `super_pending` ledger row from the moment payroll lodges, so the BSB pre-fund alert fires <em>before</em> the SG window even opens.</div>
+        </div>
+        <div class="col-span-12 lg:col-span-4 p-4 border border-[var(--line)] rounded-lg bg-[var(--paper-2)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Annual SG (Saueesti group)</div>
+          <div class="num font-display text-[28px] leading-none mt-1">A$307,070</div>
+          <div class="text-[11px] text-[var(--ink-3)] mt-0.5">26 paydays × A$11,810 avg · A$2,558,920 OTE @ 12%</div>
+          <hr class="my-3 border-[var(--line)]"/>
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Working-cap saved vs quarterly</div>
+          <div class="num font-display text-[28px] leading-none text-[var(--pos)]">A$64,958</div>
+          <div class="text-[11px] text-[var(--ink-3)] mt-0.5">peak swing reduction A$76,768 → A$11,810</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 5 · BLOCKERS -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 05</div>
+        <h2 class="font-display text-[22px] tracking-tight">Open blockers · 51 days to go</h2>
+      </div>
+      <div class="space-y-3">
+        <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)] flex items-start gap-4">
+          <div class="num-stamp shrink-0">B-01</div>
+          <div class="flex-1">
+            <div class="flex items-baseline justify-between gap-3">
+              <div><span class="font-medium">STP2 ↔ SG cross-tie</span> · payroll engine v2.4 needed</div>
+              <span class="text-[11px] text-[var(--warm)] num">due 30-May-2026</span>
+            </div>
+            <p class="text-[12px] text-[var(--ink-3)] mt-1">Payroll engine writes the SG liability into the GL same-event as STP2 lodgement; current code path is async. Owner: payroll module · MR open #482. Risk if missed: SG liability under-stated for 24h, audit row breaks reconciliation.</p>
+          </div>
+        </div>
+        <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)] flex items-start gap-4">
+          <div class="num-stamp shrink-0">B-02</div>
+          <div class="flex-1">
+            <div class="flex items-baseline justify-between gap-3">
+              <div><span class="font-medium">Returned-contribution handler</span> · SuperStream MIG ROC response</div>
+              <span class="text-[11px] text-[var(--warm)] num">due 20-Jun-2026</span>
+            </div>
+            <p class="text-[12px] text-[var(--ink-3)] mt-1">When a fund rejects a contribution (closed account, member mismatch), the 7-day clock keeps running. SAE Books needs to auto-rebook to the stapled-fund or default within 48h. Currently manual. Owner: clearing-house integration.</p>
+          </div>
+        </div>
+        <div class="p-4 border border-[var(--line)] rounded-lg bg-[var(--paper)] flex items-start gap-4">
+          <div class="num-stamp shrink-0">B-03</div>
+          <div class="flex-1">
+            <div class="flex items-baseline justify-between gap-3">
+              <div><span class="font-medium">Cash-flow pre-fund alert</span> · BSB balance check D-1</div>
+              <span class="text-[11px] text-[var(--neg)] num">not started</span>
+            </div>
+            <p class="text-[12px] text-[var(--ink-3)] mt-1">If operating BSB has &lt; SG amount the night before payday, banner + Telegram alert to controller. Requires basiq/yodlee feed already in place — only the rule engine is missing. Effort: 1 day. Owner: cash-flow module.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 6 · MARKET COMPARISON -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 06</div>
+        <h2 class="font-display text-[22px] tracking-tight">Australian market gap</h2>
+      </div>
+      <div class="border border-[var(--line)] rounded-lg overflow-hidden">
+        <table class="w-full text-[12px]">
+          <thead class="bg-[var(--paper-2)] border-b border-[var(--line)]">
+            <tr class="text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 px-3">Capability</th><th class="py-2 px-3">Xero Payroll AU</th><th class="py-2 px-3">MYOB Payroll</th><th class="py-2 px-3">Reckon Payroll Premier</th><th class="py-2 px-3">SAE Books</th>
+            </tr>
+          </thead>
+          <tbody class="num divide-y divide-[var(--line)]">
+            <tr><td class="py-2 px-3 not-num">7-day D+7 receipt monitor</td><td class="px-3 text-[var(--warm)]">roadmap Q3'26</td><td class="px-3 text-[var(--warm)]">roadmap Q3'26</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--pos)]">live</td></tr>
+            <tr><td class="py-2 px-3 not-num">Per-payday SGC exposure</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--warm)]">basic</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--pos)]">notional earnings clock</td></tr>
+            <tr><td class="py-2 px-3 not-num">Returned-contribution auto-rebook</td><td class="px-3 text-[var(--neg)]">manual</td><td class="px-3 text-[var(--neg)]">manual</td><td class="px-3 text-[var(--neg)]">manual</td><td class="px-3 text-[var(--warm)]">in-flight (B-02)</td></tr>
+            <tr><td class="py-2 px-3 not-num">Stapled-fund auto-lookup on payroll</td><td class="px-3 text-[var(--pos)]">yes</td><td class="px-3 text-[var(--pos)]">yes</td><td class="px-3 text-[var(--warm)]">partial</td><td class="px-3 text-[var(--pos)]">yes · cached 14d</td></tr>
+            <tr><td class="py-2 px-3 not-num">Cash-flow pre-fund alert</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--warm)]">in-flight (B-03)</td></tr>
+            <tr><td class="py-2 px-3 not-num">MSCB quarter watermark per emp.</td><td class="px-3 text-[var(--warm)]">basic</td><td class="px-3 text-[var(--pos)]">yes</td><td class="px-3 text-[var(--warm)]">basic</td><td class="px-3 text-[var(--pos)]">yes · per-pay</td></tr>
+            <tr><td class="py-2 px-3 not-num">Part 7 penalty exposure roll-up</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--neg)]">no</td><td class="px-3 text-[var(--pos)]">yes · 200% cap</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="pt-6 mt-10 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)] flex flex-wrap gap-x-6 gap-y-2 justify-between">
+      <div><span class="font-medium not-num">SAE Books · Payday Super readiness</span> · workpaper <span class="num">PDS-184260-26</span> · prepared <span class="num">2026-05-11</span></div>
+      <div>Authority: <span class="num">SGAA 1992 s.16, 19, 23A (proposed), 31, 33, 49, 59 · SG(A) Reg 2018 r.32, 43 · Treasury Laws Amendment (Payday Superannuation) Bill 2025 · ITAA 1997 s.26-95</span></div>
+    </footer>
+
+  </div>
+</div>
+{% endblock %}

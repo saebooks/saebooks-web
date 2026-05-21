@@ -1,0 +1,375 @@
+{% extends "preview/_layout.html" %}
+{% block title %}TPAR FY26 · taxable payments annual report — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>ATO · Taxable Payments Annual Report</span><span>·</span>
+      <span>TAA 1953 Sched 1 Div 405</span><span>·</span>
+      <span class="text-[var(--sae)]">TPAR-26-184260</span><span>·</span>
+      <span>FY26 · due 28 Aug 2026</span><span>·</span>
+      <span>Industry · Building &amp; Construction services</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">TPAR · FY26 contractor payments annual report</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          Reporting threshold s.405-15 · &gt; 10% of total revenue from building/construction services — TEST PASS (62.4%) ·
+          Other reportable services (courier 8.1%, IT 0.4%, cleaning 0.0%, security 0.0%, road-freight 4.2%) · combined 75.1% &gt; aggregated trigger ·
+          Contractor data ABR + DGR cross-check · TFN/ABN withholding s.12-190 ·
+          GovReports SBR2 channel ATO-INT-TPAR-2025-A
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FY26 reportable total</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$748,260.42</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">31 contractors · GST A$67,840 · 1 ABN missing · 0 TFN withhold events</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI rail -->
+  <section class="grid grid-cols-6 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Reportable payments</div>
+      <div class="num font-display text-2xl mt-1">A$748,260.42</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">gross-of-GST per s.405-15</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Contractors</div>
+      <div class="num font-display text-2xl mt-1">31</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">unique ABN entities</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">GST in payments</div>
+      <div class="num font-display text-2xl mt-1">A$67,840.04</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">9.93% effective · GST-free 1 ctr</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">No-ABN events</div>
+      <div class="num font-display text-2xl text-[var(--warn)] mt-1">1</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">A$184.20 · withheld 47% s.12-190</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Industry test</div>
+      <div class="num font-display text-2xl text-[var(--pos)] mt-1">62.4%</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">B&amp;C revenue / total · &gt; 10% trigger</div>
+    </div>
+    <div class="px-6 py-4">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">SBR2 channel</div>
+      <div class="num font-display text-2xl text-[var(--pos)] mt-1">READY</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">test lodgement 09 May 2026 PASS</div>
+    </div>
+  </section>
+
+  <!-- Industry test buildup -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Reportable-industry trigger · s.405-15 — single test or combined</div>
+        <div class="font-display text-2xl">Industry-test cascade</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Reportable industry</th><th class="text-left">ANZSIC trigger</th><th class="text-right">FY26 revenue</th><th class="text-right">% of total</th><th class="text-left">Trigger</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Building &amp; construction services</td><td class="text-xs">Div E · 3211, 3212, 3231, 3242</td><td class="num text-right">A$5,184,260</td><td class="num text-right">62.4%</td><td class="text-xs text-[var(--pos)]">PASS · &gt; 10%</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Courier / road-freight</td><td class="text-xs">5101, 5102</td><td class="num text-right">A$346,420</td><td class="num text-right">4.2%</td><td class="text-xs text-[var(--warn)]">combined-only</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Cleaning services</td><td class="text-xs">7311</td><td class="num text-right text-[var(--ink-3)]">A$0</td><td class="num text-right text-[var(--ink-3)]">0.0%</td><td class="text-xs text-[var(--ink-3)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">IT services</td><td class="text-xs">7000</td><td class="num text-right">A$32,840</td><td class="num text-right">0.4%</td><td class="text-xs text-[var(--warn)]">combined-only</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Investigation &amp; security</td><td class="text-xs">7712</td><td class="num text-right text-[var(--ink-3)]">A$0</td><td class="num text-right text-[var(--ink-3)]">0.0%</td><td class="text-xs text-[var(--ink-3)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)] font-medium"><td class="py-1.5">Total reportable-industry rev</td><td class="text-xs">Σ qualifying</td><td class="num text-right">A$5,563,520</td><td class="num text-right">66.9%</td><td class="text-xs text-[var(--pos)]">B&amp;C single &gt; 10% → REPORT</td></tr>
+            <tr class="text-[var(--ink-3)] text-xs"><td class="py-1">Total business revenue FY26</td><td colspan="3" class="text-right">A$8,309,260 (TR1 income tax + ex-GST sales)</td><td></td></tr>
+          </tbody>
+        </table>
+        <div class="text-[10px] text-[var(--ink-3)] mt-2">
+          Trigger met on building &amp; construction alone (62.4% &gt; 10%) per s.405-15(1). Combined-industry trigger 75.1% would also satisfy if B&amp;C were marginal.
+          Required to report all contractors providing reportable services regardless of contract size — no de-minimis threshold.
+        </div>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">"What is a payment?" decision tree</div>
+        <div class="font-display text-2xl">Reportable payment scope</div>
+      </div>
+      <div class="px-8 pb-6 space-y-2 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">Include</div>
+          <ul class="text-xs list-disc pl-4 space-y-1">
+            <li>Labour invoices from contractors &amp; subcontractors</li>
+            <li>Materials supplied <em>with</em> labour by same contractor (composite)</li>
+            <li>Tool hire from a contractor providing labour</li>
+            <li>Subcontracted plant + operator (e.g. crane + driver)</li>
+            <li>Travel/accommodation pass-through on contractor invoice</li>
+          </ul>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">Exclude</div>
+          <ul class="text-xs list-disc pl-4 space-y-1">
+            <li>Pure materials suppliers (steel mill, fastener wholesaler)</li>
+            <li>Employees (already on STP)</li>
+            <li>Foreign contractors performing entirely overseas</li>
+            <li>Payments under PAYG-W instalment arrangements</li>
+            <li>Government / statutory bodies (council, state utilities)</li>
+            <li>Reimbursements to employees (excluded by definition)</li>
+          </ul>
+        </div>
+        <div class="rounded border border-[var(--line)] p-3 bg-[var(--paper-2)] text-xs">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">Edge-case audit · FY26</div>
+          12 supplier records were re-classified out (steel mill purchase orders) · 5 supplier records previously excluded were added back (CON-1908 Brand fab — pure subcontract labour was being miscoded as materials).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contractor register -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-12">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Contractor register · 31 reportable entities · ABN-validated against ABR</div>
+        <div class="font-display text-2xl">FY26 contractor detail · per-row TPAR line</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Supplier</th><th class="text-left">ABN</th><th class="text-left">Service</th><th class="text-right">Gross</th><th class="text-right">GST</th><th class="text-right">Net</th><th class="text-left">TFN wh</th><th class="text-left">ABR status</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1842 Apex Hoist Pty Ltd</td><td class="num text-xs">85 184 260 184</td><td class="text-xs">Crane hire + operator</td><td class="num text-right">A$53,262.20</td><td class="num text-right">A$4,842.02</td><td class="num text-right">A$48,420.18</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active · GST reg</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1857 GalvSolutions Pty Ltd</td><td class="num text-xs">42 184 260 442</td><td class="text-xs">Hot-dip galv composite service</td><td class="num text-right">A$80,124.44</td><td class="num text-right">A$7,284.04</td><td class="num text-right">A$72,840.40</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active · GST reg</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1864 BlastPro Pty Ltd</td><td class="num text-xs">67 184 260 612</td><td class="text-xs">Surface prep + paint</td><td class="num text-right">A$31,262.20</td><td class="num text-right">A$2,842.02</td><td class="num text-right">A$28,420.18</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1872 NDT Inspect Australia</td><td class="num text-xs">28 184 260 184</td><td class="text-xs">UT/MPI inspection</td><td class="num text-right">A$12,562.44</td><td class="num text-right">A$1,142.04</td><td class="num text-right">A$11,420.40</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1884 Bayview Engineers</td><td class="num text-xs">75 184 260 758</td><td class="text-xs">Design draughting subbed</td><td class="num text-right">A$92,686.44</td><td class="num text-right">A$8,426.04</td><td class="num text-right">A$84,260.40</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1892 J. Park (sole-trader ABN)</td><td class="num text-xs">81 627 184 891</td><td class="text-xs">FSW R&amp;D consult</td><td class="num text-right">A$13,024.66</td><td class="num text-right">A$1,184.06</td><td class="num text-right">A$11,840.60</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active · GST reg</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1908 W. Brand fabrication</td><td class="num text-xs">63 184 260 632</td><td class="text-xs">Overflow fab subcontract</td><td class="num text-right">A$130,086.46</td><td class="num text-right">A$11,826.04</td><td class="num text-right">A$118,260.42</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active · GST reg</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1924 BlueCom IT Managed</td><td class="num text-xs">94 184 260 947</td><td class="text-xs">IT services bundle</td><td class="num text-right">A$6,424.20</td><td class="num text-right">A$584.02</td><td class="num text-right">A$5,840.18</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1942 PreFab Erection Pty Ltd</td><td class="num text-xs">11 184 260 117</td><td class="text-xs">On-site erection labour</td><td class="num text-right">A$92,686.44</td><td class="num text-right">A$8,426.04</td><td class="num text-right">A$84,260.40</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1958 Reach &amp; Strike Crane</td><td class="num text-xs">82 184 260 824</td><td class="text-xs">Crane hire + dogman</td><td class="num text-right">A$28,386.40</td><td class="num text-right">A$2,580.58</td><td class="num text-right">A$25,805.82</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1974 Hemmant Steel Trucking</td><td class="num text-xs">35 184 260 354</td><td class="text-xs">Road-freight composite</td><td class="num text-right">A$23,260.18</td><td class="num text-right">A$2,114.56</td><td class="num text-right">A$21,145.62</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1988 Mary River Erectors</td><td class="num text-xs">61 184 260 615</td><td class="text-xs">Site install labour</td><td class="num text-right">A$48,686.44</td><td class="num text-right">A$4,426.04</td><td class="num text-right">A$44,260.40</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2014 Sparks &amp; Co Electrical</td><td class="num text-xs">17 184 260 173</td><td class="text-xs">Site electrical</td><td class="num text-right">A$18,260.40</td><td class="num text-right">A$1,660.04</td><td class="num text-right">A$16,600.36</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2031 Ranger Plumbing</td><td class="num text-xs">52 184 260 521</td><td class="text-xs">Site plumbing</td><td class="num text-right">A$8,420.18</td><td class="num text-right">A$765.47</td><td class="num text-right">A$7,654.71</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2048 Wave Couriers</td><td class="num text-xs">79 184 260 795</td><td class="text-xs">Same-day docs</td><td class="num text-right">A$4,820.40</td><td class="num text-right">A$438.22</td><td class="num text-right">A$4,382.18</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2062 Lift &amp; Shift Logistics</td><td class="num text-xs">23 184 260 235</td><td class="text-xs">Heavy haulage</td><td class="num text-right">A$58,260.40</td><td class="num text-right">A$5,296.40</td><td class="num text-right">A$52,964.00</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2089 Tomo Hardchrome</td><td class="num text-xs">48 184 260 486</td><td class="text-xs">Plating subcontract</td><td class="num text-right">A$13,724.40</td><td class="num text-right">A$1,247.67</td><td class="num text-right">A$12,476.73</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2104 Bayside Welding Hire</td><td class="num text-xs">96 184 260 968</td><td class="text-xs">Specialist TIG hire</td><td class="num text-right">A$11,840.40</td><td class="num text-right">A$1,076.40</td><td class="num text-right">A$10,764.00</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2127 Painters R&amp;R</td><td class="num text-xs">14 184 260 145</td><td class="text-xs">Decorative finishing</td><td class="num text-right">A$6,260.18</td><td class="num text-right">A$569.11</td><td class="num text-right">A$5,691.07</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5">CON-2142 K. Mills (cash-in-hand)</td><td class="num text-xs text-[var(--neg)]">— no ABN —</td><td class="text-xs">One-off site clean Apr 2026</td><td class="num text-right">A$184.20</td><td class="num text-right text-[var(--ink-3)]">—</td><td class="num text-right">A$97.63</td><td class="text-xs text-[var(--warn)]">A$86.57 (47%)</td><td class="text-xs text-[var(--warn)]">ABR fail · TFN-W applied</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2160 Diamond Cutting Pty Ltd</td><td class="num text-xs">68 184 260 681</td><td class="text-xs">Concrete cutting</td><td class="num text-right">A$4,260.40</td><td class="num text-right">A$387.31</td><td class="num text-right">A$3,873.09</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2178 Apex Scaffold Hire</td><td class="num text-xs">37 184 260 379</td><td class="text-xs">Scaffold erect + dismantle</td><td class="num text-right">A$21,840.60</td><td class="num text-right">A$1,985.51</td><td class="num text-right">A$19,855.09</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2196 Site Loos Pty Ltd</td><td class="num text-xs">19 184 260 197</td><td class="text-xs">Site amenity hire/service</td><td class="num text-right">A$4,840.20</td><td class="num text-right">A$440.02</td><td class="num text-right">A$4,400.18</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2214 Pinnacle Steel Erection</td><td class="num text-xs">86 184 260 861</td><td class="text-xs">Subcontract erection</td><td class="num text-right">A$42,260.40</td><td class="num text-right">A$3,841.85</td><td class="num text-right">A$38,418.55</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2233 Eaglefarm Trucking</td><td class="num text-xs">59 184 260 591</td><td class="text-xs">Road-freight</td><td class="num text-right">A$11,840.18</td><td class="num text-right">A$1,076.38</td><td class="num text-right">A$10,763.80</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2251 Crane Engineers QLD</td><td class="num text-xs">73 184 260 738</td><td class="text-xs">Crane consult + cert</td><td class="num text-right">A$4,260.18</td><td class="num text-right">A$387.29</td><td class="num text-right">A$3,872.89</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2270 SiteSec Pty Ltd</td><td class="num text-xs">38 184 260 380</td><td class="text-xs">Site security composite</td><td class="num text-right">A$12,840.40</td><td class="num text-right">A$1,167.31</td><td class="num text-right">A$11,673.09</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2289 Boom Forklift Hire</td><td class="num text-xs">81 184 260 819</td><td class="text-xs">Reach forklift + operator</td><td class="num text-right">A$8,260.40</td><td class="num text-right">A$750.95</td><td class="num text-right">A$7,509.45</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2304 Surveyors Goss Mason</td><td class="num text-xs">26 184 260 269</td><td class="text-xs">Set-out surveying composite</td><td class="num text-right">A$7,484.18</td><td class="num text-right">A$680.38</td><td class="num text-right">A$6,803.80</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2322 Riverside Concrete Sub</td><td class="num text-xs">44 184 260 446</td><td class="text-xs">Concrete subcontract</td><td class="num text-right">A$18,260.40</td><td class="num text-right">A$1,660.04</td><td class="num text-right">A$16,600.36</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-2340 Compliance Geo Pty Ltd</td><td class="num text-xs">95 184 260 953</td><td class="text-xs">Geotechnical subcontract</td><td class="num text-right">A$6,840.40</td><td class="num text-right">A$621.86</td><td class="num text-right">A$6,218.54</td><td class="text-xs text-[var(--pos)]">nil</td><td class="text-xs text-[var(--pos)]">ABR active</td></tr>
+            <tr class="font-display text-base"><td class="py-2">31 contractor lines</td><td colspan="2"></td><td class="num text-right">A$748,260.42</td><td class="num text-right">A$67,840.04</td><td class="num text-right">A$680,420.38</td><td class="text-xs">A$86.57 wh</td><td class="text-xs">1 ABR fail</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABR validation + TFN withholding sub -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-6 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">ABR validation · check-digit + status check at payment time</div>
+        <div class="font-display text-2xl">ABN audit · 31 contractor lookups</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Check</th><th class="text-left">Method</th><th class="text-right">Pass</th><th class="text-right">Fail</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">11-digit ABN modulo check</td><td class="text-xs">ATO modulus-89 algorithm</td><td class="num text-right text-[var(--pos)]">30</td><td class="num text-right text-[var(--neg)]">0 (1 missing)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">ABR-Online status: active</td><td class="text-xs">webservice.abr.business.gov.au</td><td class="num text-right text-[var(--pos)]">30</td><td class="num text-right text-[var(--neg)]">0</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">GST registration status</td><td class="text-xs">ABR GST flag</td><td class="num text-right">28</td><td class="num text-right text-[var(--warn)]">2 not reg'd (under A$75k turnover)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Trading name vs supplier-record</td><td class="text-xs">ABR name match (Levenshtein ≥ 0.92)</td><td class="num text-right text-[var(--pos)]">29</td><td class="num text-right text-[var(--warn)]">1 alias (Bayview Engineers ≠ BVENG Engineers Pty Ltd) — pre-approved</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Subbie has employees (R&amp;D s.13C(d) cross-tie)</td><td class="text-xs">PRT s.13B audit</td><td class="num text-right">26</td><td class="num text-right text-[var(--ink-3)]">4 one-person (CON-1892 etc.)</td></tr>
+            <tr class="font-medium"><td class="py-2">FY26 audit outcome</td><td colspan="3" class="text-right text-xs text-[var(--pos)]">All resolved · 1 no-ABN handled by TFN-W</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-span-6">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">No-ABN withholding · TAA Sched 1 s.12-190 — 47% withhold + remit via BAS W4</div>
+        <div class="font-display text-2xl">CON-2142 K. Mills — no-ABN case</div>
+      </div>
+      <div class="px-10 pb-6">
+        <div class="num-stamp p-3 text-sm">
+          <table class="w-full text-sm">
+            <tbody>
+              <tr><td class="py-1">Date</td><td class="text-right">18 Apr 2026</td></tr>
+              <tr><td class="py-1">Supplier</td><td class="text-right">K. Mills (cash)</td></tr>
+              <tr><td class="py-1">Invoice ref</td><td class="text-right">handwritten · no formal invoice</td></tr>
+              <tr><td class="py-1">Service</td><td class="text-right">Site clean Saturday yard sweep</td></tr>
+              <tr><td class="py-1">Gross payable</td><td class="num text-right">A$184.20</td></tr>
+              <tr><td class="py-1">No-ABN trigger</td><td class="text-right text-[var(--warn)]">YES · invoice value &gt; A$75 (or no ABN any)</td></tr>
+              <tr><td class="py-1">Exemption test (Sch.4 of Reg, Form NAT 3346)</td><td class="text-right">none applicable</td></tr>
+              <tr><td class="py-1">Withhold rate</td><td class="text-right">47% s.12-190(1)</td></tr>
+              <tr><td class="py-1">Withheld</td><td class="num text-right">A$86.57</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-1">Net paid</td><td class="num text-right">A$97.63</td></tr>
+              <tr class="border-t border-[var(--line)]"><td class="py-1">BAS Q4 W4 (no-ABN withholding)</td><td class="num text-right">A$86.57</td></tr>
+              <tr><td class="py-1">PAYG payment summary issued (NAT 3283)</td><td class="text-right text-[var(--pos)]">YES · 19 Apr</td></tr>
+              <tr><td class="py-1">TPAR row included</td><td class="text-right text-[var(--pos)]">YES · supplier as "no ABN — K. Mills"</td></tr>
+            </tbody>
+          </table>
+          <div class="text-[10px] text-[var(--ink-3)] mt-2">
+            Future control: payments &gt; A$75 ex-GST without ABN auto-block at AP pre-pay step · K. Mills offered chance to register an ABN before next engagement.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SBR2 lodgement + risk -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">SBR2 lodgement · channel ATO-INT-TPAR-2025-A · schema TPAR.0006.2025</div>
+        <div class="font-display text-2xl">XML payload preview</div>
+      </div>
+      <div class="px-10 pb-6">
+        <pre class="text-[11px] bg-[var(--paper)] border border-[var(--line)] rounded p-3 overflow-x-auto"><code>&lt;tpar:TaxablePaymentsAnnualReport
+  xmlns:tpar="http://sbr.gov.au/ato/tpar/2025"
+  payeeABN="81627184260" payerName="SAE Engineering Pty Ltd"
+  reportingPeriod="2025-07-01/2026-06-30"&gt;
+  &lt;tpar:Header transmissionId="TPAR-26-184260" creationDate="2026-08-21T14:32:00+10:00"/&gt;
+  &lt;tpar:ReportableIndustryTest passingIndustry="BuildingConstruction" percentage="62.4"/&gt;
+  &lt;tpar:ContractorPayments count="31"&gt;
+    &lt;tpar:Contractor sequence="01"&gt;
+      &lt;tpar:ABN&gt;85184260184&lt;/tpar:ABN&gt;
+      &lt;tpar:TradingName&gt;Apex Hoist Pty Ltd&lt;/tpar:TradingName&gt;
+      &lt;tpar:GrossAmount&gt;53262.20&lt;/tpar:GrossAmount&gt;
+      &lt;tpar:GSTAmount&gt;4842.02&lt;/tpar:GSTAmount&gt;
+      &lt;tpar:TaxWithheld&gt;0.00&lt;/tpar:TaxWithheld&gt;
+    &lt;/tpar:Contractor&gt;
+    &lt;tpar:Contractor sequence="20" noABNFlag="true"&gt;
+      &lt;tpar:SupplierName&gt;K. Mills (no ABN)&lt;/tpar:SupplierName&gt;
+      &lt;tpar:GrossAmount&gt;184.20&lt;/tpar:GrossAmount&gt;
+      &lt;tpar:GSTAmount&gt;0.00&lt;/tpar:GSTAmount&gt;
+      &lt;tpar:TaxWithheld&gt;86.57&lt;/tpar:TaxWithheld&gt;
+    &lt;/tpar:Contractor&gt;
+    &lt;!-- 29 further Contractor blocks omitted for brevity --&gt;
+  &lt;/tpar:ContractorPayments&gt;
+  &lt;tpar:Totals grossTotal="748260.42" gstTotal="67840.04"
+               withheldTotal="86.57" contractorCount="31"/&gt;
+  &lt;tpar:Declaration declarantName="R. Sauer" declarantRole="Director"
+                    timestamp="2026-08-21T14:32:00+10:00"/&gt;
+&lt;/tpar:TaxablePaymentsAnnualReport&gt;</code></pre>
+        <div class="text-[10px] text-[var(--ink-3)] mt-2">
+          Schema version TPAR.0006.2025 effective 01 Jul 2025 (added courier rev pct + ABR cross-validation block).
+          Test lodgement 09 May 2026 to ATO TPAR test endpoint · receipt OK · production lodge scheduled 21 Aug 2026 (one-week buffer).
+        </div>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Risk &amp; mitigation</div>
+        <div class="font-display text-2xl">Audit risk register</div>
+      </div>
+      <div class="px-8 pb-6 space-y-2 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">R1 · ATO TPAR data-match program</div>
+          <div class="text-xs">ATO cross-matches TPAR rows against contractor tax returns · contractor under-reporting flags reverse-audit on payer.</div>
+          <div class="text-xs text-[var(--ink-3)] mt-1">Mitigation · ABR active + GST-reg checked weekly · all rows reconcile to bank.</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">R2 · Missed contractor (under-report)</div>
+          <div class="text-xs">Penalty s.286-75 — failure to lodge on time · A$330/period base unit · capped 5× for small entity.</div>
+          <div class="text-xs text-[var(--ink-3)] mt-1">Mitigation · 12-supplier exclusion audit + 5-supplier inclusion audit complete · review pack §3.</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">R3 · No-ABN W4 vs TPAR mismatch</div>
+          <div class="text-xs">BAS Q4 W4 must equal TPAR sum-withheld · ATO auto-flag.</div>
+          <div class="text-xs text-[var(--ink-3)] mt-1">FY26 W4 cumulative A$86.57 matches TPAR · cross-tie clean.</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">R4 · Reportable-industry test mis-classification</div>
+          <div class="text-xs">If B&amp;C revenue mis-counted, payer may be in scope without realising.</div>
+          <div class="text-xs text-[var(--ink-3)] mt-1">SAE 62.4% B&amp;C — comfortably above 10% · revenue source-tag in GL ensures durable evidence.</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">R5 · Materials-only supplier over-included</div>
+          <div class="text-xs">12 records re-classified out — pure materials (e.g. steel mill, fastener wholesaler) not reportable.</div>
+          <div class="text-xs text-[var(--ink-3)] mt-1">Re-classification log retained in evidence pack §4.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8-step pipeline -->
+  <section class="border-b border-[var(--line)]">
+    <div class="px-10 pt-6 pb-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Annual pipeline · AP feed → ABN validate → industry test → exclusion audit → SBR2 lodge</div>
+      <div class="font-display text-2xl">FY26 TPAR pipeline</div>
+    </div>
+    <div class="px-10 pb-6">
+      <ol class="grid grid-cols-8 gap-3 text-xs">
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">1 AP feed</span><div class="text-[var(--ink-3)] mt-1">Bills + payments · supplier-master cross-tie</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">2 ABN audit</span><div class="text-[var(--ink-3)] mt-1">11-digit modulus-89 · ABR weekly status pull</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">3 Industry test</span><div class="text-[var(--ink-3)] mt-1">B&amp;C revenue ÷ total · 62.4% &gt; 10% pass</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">4 Exclusion audit</span><div class="text-[var(--ink-3)] mt-1">12 materials-only re-classified out · 5 added in</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">5 No-ABN</span><div class="text-[var(--ink-3)] mt-1">47% s.12-190 · 1 case CON-2142 · NAT 3283 issued</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">6 Test lodge</span><div class="text-[var(--ink-3)] mt-1">SBR2 test endpoint 09 May · receipt OK</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led warn"></span> <span class="font-medium">7 Prod lodge</span><div class="text-[var(--ink-3)] mt-1">scheduled 21 Aug 2026 (1-wk buffer to 28 Aug)</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led off"></span> <span class="font-medium">8 Audit pack</span><div class="text-[var(--ink-3)] mt-1">7-yr retention · supplier-master snapshot + ABR audit log</div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="border-b border-[var(--line)]">
+    <div class="px-10 pt-6 pb-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">AU-first comparison · TPAR workflow</div>
+      <div class="font-display text-2xl">Why this lives in SAE Books and not in Xero/MYOB/Reckon</div>
+    </div>
+    <div class="px-10 pb-6">
+      <table class="w-full text-sm">
+        <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+          <tr><th class="text-left py-2 w-44">Capability</th><th class="text-left">SAE Books</th><th class="text-left">Xero</th><th class="text-left">MYOB AccountRight</th><th class="text-left">Reckon One</th><th class="text-left">Buildxact</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Industry-test computation (B&amp;C %)</td><td class="text-xs text-[var(--pos)]">YES · revenue-tagged GL</td><td class="text-xs text-[var(--neg)]">No — assumes yes</td><td class="text-xs text-[var(--neg)]">No — assumes yes</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">ABR live validation (weekly)</td><td class="text-xs text-[var(--pos)]">YES · status + GST flag</td><td class="text-xs text-[var(--warn)]">Partial · on save only</td><td class="text-xs text-[var(--warn)]">Partial</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Composite/materials-with-labour rule</td><td class="text-xs text-[var(--pos)]">YES · decision tree</td><td class="text-xs text-[var(--neg)]">Manual</td><td class="text-xs text-[var(--neg)]">Manual</td><td class="text-xs text-[var(--neg)]">Manual</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">No-ABN 47% s.12-190 enforce at AP</td><td class="text-xs text-[var(--pos)]">YES · pre-pay block</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">BAS W4 ↔ TPAR cross-tie</td><td class="text-xs text-[var(--pos)]">YES · automatic</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Exclusion audit (materials/employees/foreign)</td><td class="text-xs text-[var(--pos)]">YES · 12/5 audit log</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">SBR2 direct lodge (ATO-INT-TPAR-2025-A)</td><td class="text-xs text-[var(--pos)]">YES · test+prod</td><td class="text-xs text-[var(--pos)]">YES</td><td class="text-xs text-[var(--pos)]">YES</td><td class="text-xs text-[var(--warn)]">CSV export only</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Contractor PAYG-W summary NAT 3283</td><td class="text-xs text-[var(--pos)]">YES · auto-issue</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+        </tbody>
+      </table>
+      <div class="text-[10px] text-[var(--ink-3)] mt-3">
+        Sources: TAA 1953 Sched 1 Div 405 · ATO TPAR Public Ruling MT 2024/2 · ABR webservices · SBR2 schema TPAR.0006.2025 ·
+        Xero / MYOB / Reckon / Buildxact help docs Apr–May 2026. Xero &amp; MYOB lodge the SBR2 file but rely on user-correct industry classification + ABN — SAE Books fills the validation layer.
+      </div>
+    </div>
+  </section>
+
+  <!-- Cross-links -->
+  <section class="px-10 py-6">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Cross-links</div>
+    <div class="grid grid-cols-5 gap-3 text-sm">
+      <a href="/preview/compliance/payroll-tax/qld-q4-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="landmark" class="w-4 h-4 mb-1"></i><div class="font-medium">Payroll tax QLD</div><div class="text-xs text-[var(--ink-3)]">s.13B contractor test cross-tie</div></a>
+      <a href="/preview/compliance/workcover/qld-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="hard-hat" class="w-4 h-4 mb-1"></i><div class="font-medium">WorkCover QLD</div><div class="text-xs text-[var(--ink-3)]">contractor "worker" by extension</div></a>
+      <a href="/preview/cashbook/april-2026" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="book-marked" class="w-4 h-4 mb-1"></i><div class="font-medium">Cashbook April</div><div class="text-xs text-[var(--ink-3)]">payment ledger source</div></a>
+      <a href="/preview/compliance/rdti/fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="flask-conical" class="w-4 h-4 mb-1"></i><div class="font-medium">RDTI FY26</div><div class="text-xs text-[var(--ink-3)]">RD-26-01 contractor cost cross-tie</div></a>
+      <a href="/preview/quotes/qte-2618" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="file-spreadsheet" class="w-4 h-4 mb-1"></i><div class="font-medium">QTE-2618</div><div class="text-xs text-[var(--ink-3)]">downstream subcontract impact</div></a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

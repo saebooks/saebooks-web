@@ -1,0 +1,489 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Payroll Tax · multi-state harmonised · FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks">
+  <div class="max-w-[1240px] mx-auto px-6 py-8">
+
+    <!-- ============================================ -->
+    <!-- MASTHEAD                                     -->
+    <!-- ============================================ -->
+    <header class="mb-8 pb-6 border-b border-[var(--line)]">
+      <div class="flex items-start justify-between gap-6">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">
+            <i data-lucide="map" class="w-3.5 h-3.5"></i>
+            <span>NSW Revenue &middot; SRO VIC &middot; QRO QLD &middot; RevenueSA &middot; RevenueWA</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Harmonised since 2007 &middot; nexus s.11 &middot; grouping s.71</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Workpaper PRT-26-MS</span>
+          </div>
+          <h1 class="font-display text-[40px] leading-[1.05] tracking-[-0.02em] text-[var(--ink)]">
+            Multi-state payroll tax
+            <span class="text-[var(--ink-3)]"> &middot; FY26 &middot; 5 jurisdictions</span>
+          </h1>
+          <p class="mt-3 text-[14px] text-[var(--ink-3)] max-w-[860px] leading-relaxed">
+            Payroll tax is harmonised in word but not in arithmetic. Each state sets its own threshold, rate, surcharge, and contractor exemption schedule. SAE Group has wages in <strong>NSW, VIC, QLD, SA, WA</strong> for FY26 &mdash; A$8.42m total Australian-wages base, three monthly returns and two quarterly returns running in parallel, one annual reconciliation per jurisdiction by <strong>21 July 2026</strong>. The nexus engine (<em>Payroll Tax Act 2007 s.11</em> harmonised) routes each pay-event line to the correct jurisdiction; grouping under s.71 collapses related entities into one threshold per state.
+          </p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Status</div>
+          <div class="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[color:rgb(34_139_84_/_0.10)] border border-[color:rgb(34_139_84_/_0.35)]">
+            <span class="led on"></span>
+            <span class="text-[12px] font-medium text-[var(--pos)]">5 states green &middot; threshold breached: NSW, VIC, QLD</span>
+          </div>
+          <div class="mt-2 text-[11px] text-[var(--ink-3)]"><span class="num">PRT-184260-26-MS</span> &middot; prepared 2026-05-11</div>
+          <div class="mt-1 text-[11px] text-[var(--ink-3)]">Annual recon due <span class="num">2026-07-21</span> all jurisdictions</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- ACT 1 · WHY THIS LIVES IN THE BOOKS           -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 01</div>
+        <h2 class="font-display text-[22px] tracking-tight">The harmonisation lie &mdash; and what SAE Books surfaces</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Australian-market gap analysis</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Surface</th>
+                <th class="py-2 pr-2">Xero</th>
+                <th class="py-2 pr-2">MYOB</th>
+                <th class="py-2 pr-2">Reckon</th>
+                <th class="py-2">SAE Books</th>
+              </tr>
+            </thead>
+            <tbody class="text-[12px]">
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Per-employee nexus routing</td><td class="text-[var(--ink-3)]">manual flag</td><td class="text-[var(--ink-3)]">manual flag</td><td class="text-[var(--ink-3)]">manual flag</td><td class="text-[var(--pos)] font-medium">s.11 cascade auto</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Grouping s.71 register</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">designated group employer</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Contractor deeming (s.32)</td><td class="text-[var(--ink-3)]">flag only</td><td class="text-[var(--ink-3)]">flag only</td><td class="text-[var(--ink-3)]">flag only</td><td class="text-[var(--pos)] font-medium">9-exemption matrix per pay</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Apprentice/trainee rebate</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">QLD 50% rebate + VIC exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">QLD Mental Health Levy</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">0.25%/0.5% bracket auto</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">VIC regional discount</td><td class="text-[var(--ink-3)]">manual</td><td class="text-[var(--ink-3)]">manual</td><td class="text-[var(--ink-3)]">manual</td><td class="text-[var(--pos)] font-medium">postcode regional flag</td></tr>
+              <tr><td class="py-2 pr-2">Annual recon by jurisdiction</td><td class="text-[var(--ink-3)]">data extract</td><td class="text-[var(--ink-3)]">data extract</td><td class="text-[var(--ink-3)]">data extract</td><td class="text-[var(--pos)] font-medium">5-state lodgement pack</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)] leading-relaxed">Harmonised legislation gives one statute number across jurisdictions but each Office of State Revenue sets thresholds, rates, surcharges, contractor exemptions, and rebates independently. The nexus engine (where wages are <em>taxable</em>) is the same; the bill is not. Xero/MYOB/Reckon let you flag an employee&rsquo;s state; SAE Books computes the nexus per pay event, applies grouping under s.71, and resolves rebates and surcharges per jurisdiction.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Designated Group Employer (DGE)</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)] w-1/3">DGE</td><td>SAE Engineering Pty Ltd</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Group members</td><td><span class="num">4</span> entities (s.71)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Grouping basis</td><td>common control s.72 + employees-in-common s.74</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Total AU wages</td><td class="num text-right">A$8,420,180</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Apprentices</td><td class="num text-right">3 (A$182,400)</td></tr>
+              <tr><td class="py-1.5 text-[var(--ink-3)]">Exempt wages (s.50)</td><td class="num text-right">A$24,180 (parental leave)</td></tr>
+            </tbody>
+          </table>
+          <div class="mt-3 pt-3 border-t border-[var(--line)] text-[11px]">
+            <div class="uppercase tracking-[0.18em] text-[9px] text-[var(--ink-3)] mb-1">Group members</div>
+            <ul class="text-[11px] space-y-0.5">
+              <li>SAE Engineering Pty Ltd &mdash; ACN 184 260 521 (DGE)</li>
+              <li>Sauerland Pty Ltd &mdash; ACN 184 260 538</li>
+              <li>SAE Services Pty Ltd &mdash; ACN 184 260 612</li>
+              <li>Saueesti Trust (trading) &mdash; ABN 82 184 260 487</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 2 · JURISDICTION MATRIX                   -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 02</div>
+        <h2 class="font-display text-[22px] tracking-tight">5-jurisdiction matrix &middot; FY26 thresholds, rates, surcharges</h2>
+      </div>
+      <div class="p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)] overflow-x-auto">
+        <table class="w-full text-[12px]">
+          <thead>
+            <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 pr-2">State</th>
+              <th class="py-2 pr-2">Statute</th>
+              <th class="py-2 pr-2 text-right">Threshold</th>
+              <th class="py-2 pr-2 text-right">Rate</th>
+              <th class="py-2 pr-2">Surcharge</th>
+              <th class="py-2 pr-2 text-right">FY26 wages</th>
+              <th class="py-2 pr-2 text-right">Allocated TF</th>
+              <th class="py-2 pr-2 text-right">Tax</th>
+              <th class="py-2">OSR</th>
+            </tr>
+          </thead>
+          <tbody class="text-[12px]">
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 font-medium">NSW</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">Payroll Tax Act 2007 (NSW)</td>
+              <td class="py-2 pr-2 num text-right">A$1,200,000</td>
+              <td class="py-2 pr-2 num text-right">5.45%</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">&mdash;</td>
+              <td class="py-2 pr-2 num text-right">A$3,184,260</td>
+              <td class="py-2 pr-2 num text-right">A$453,608</td>
+              <td class="py-2 pr-2 num text-right font-medium">A$148,920.43</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">RPT-NSW</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 font-medium">VIC</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">Payroll Tax Act 2007 (Vic)</td>
+              <td class="py-2 pr-2 num text-right">A$900,000</td>
+              <td class="py-2 pr-2 num text-right">4.85% / 1.2125% reg</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">MH&amp;WB 0.5% + 0.5% &gt; A$10m</td>
+              <td class="py-2 pr-2 num text-right">A$2,212,840</td>
+              <td class="py-2 pr-2 num text-right">A$236,420</td>
+              <td class="py-2 pr-2 num text-right font-medium">A$96,008.39</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">SRO</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 font-medium">QLD</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">Payroll Tax Act 1971 (Qld)</td>
+              <td class="py-2 pr-2 num text-right">A$1,300,000</td>
+              <td class="py-2 pr-2 num text-right">4.75% (4.95% &gt; A$6.5m)</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">MHL 0.25% &gt; A$10m</td>
+              <td class="py-2 pr-2 num text-right">A$2,484,920</td>
+              <td class="py-2 pr-2 num text-right">A$491,420</td>
+              <td class="py-2 pr-2 num text-right font-medium">A$94,716.75</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">QRO</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 font-medium">SA</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">Payroll Tax Act 2009 (SA)</td>
+              <td class="py-2 pr-2 num text-right">A$1,500,000</td>
+              <td class="py-2 pr-2 num text-right">4.95% (tapered &lt; A$1.7m)</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">&mdash;</td>
+              <td class="py-2 pr-2 num text-right">A$348,420</td>
+              <td class="py-2 pr-2 num text-right">A$66,180</td>
+              <td class="py-2 pr-2 num text-right text-[var(--ink-3)]">A$0 (below threshold)</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">RevenueSA</span></td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-2 font-medium">WA</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">Pay-roll Tax Assess Act 2002 (WA)</td>
+              <td class="py-2 pr-2 num text-right">A$1,000,000</td>
+              <td class="py-2 pr-2 num text-right">5.5% (graduated &gt; A$100m)</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">&mdash;</td>
+              <td class="py-2 pr-2 num text-right">A$189,740</td>
+              <td class="py-2 pr-2 num text-right">A$36,820</td>
+              <td class="py-2 pr-2 num text-right text-[var(--ink-3)]">A$0 (below threshold)</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">RevenueWA</span></td>
+            </tr>
+            <tr class="border-t-2 border-[var(--line)] bg-[var(--paper-2)]">
+              <td class="py-2 pr-2 font-medium" colspan="5">TOTAL FY26 across 5 jurisdictions</td>
+              <td class="py-2 pr-2 num text-right font-medium">A$8,420,180</td>
+              <td class="py-2 pr-2 num text-right font-medium">A$1,284,448</td>
+              <td class="py-2 pr-2 num text-right font-medium">A$339,645.57</td>
+              <td>3 paying &middot; 2 below</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="mt-3 text-[11px] text-[var(--ink-3)] leading-relaxed">
+          <strong>Allocated tax-free threshold</strong> &mdash; with multi-state wages, each jurisdiction&rsquo;s threshold is reduced by the proportion of AU-total wages paid <em>outside</em> that jurisdiction. Formula: <code>Allocated TF = Threshold &times; (state wages &divide; total AU wages)</code> per harmonised schedules. NSW Sched 2 cl 11, VIC Sched 1 cl 12, QLD s.13C.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 3 · NEXUS ENGINE                          -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 03</div>
+        <h2 class="font-display text-[22px] tracking-tight">Nexus cascade &middot; s.11 harmonised &middot; which state taxes which dollar</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">5-step nexus cascade per pay event</div>
+          <ol class="text-[12px] space-y-2 leading-relaxed">
+            <li><span class="num">1</span> &mdash; <strong>Services wholly in one AU jurisdiction</strong> in the month? Tax there. <span class="text-[var(--ink-3)]">s.11(1)(a)</span></li>
+            <li><span class="num">2</span> &mdash; <strong>Services in &gt;1 AU jurisdiction</strong> in the month, employee&rsquo;s <em>principal place of residence</em> is in an AU jurisdiction? Tax there. <span class="text-[var(--ink-3)]">s.11(2)(a)</span></li>
+            <li><span class="num">3</span> &mdash; Otherwise, <strong>employer&rsquo;s ABN address</strong> in AU? Tax there. <span class="text-[var(--ink-3)]">s.11(2)(b)</span></li>
+            <li><span class="num">4</span> &mdash; Otherwise, <strong>wages paid in AU jurisdiction</strong>? Tax where paid. <span class="text-[var(--ink-3)]">s.11(2)(c)</span></li>
+            <li><span class="num">5</span> &mdash; Otherwise, <strong>services wholly outside AU</strong> for &le;6 mth? Tax at employee&rsquo;s last AU residence. <em>&gt; 6 mth = exempt.</em> <span class="text-[var(--ink-3)]">s.11(3) &middot; s.11(4)</span></li>
+          </ol>
+          <div class="mt-4 pt-3 border-t border-[var(--line)]">
+            <div class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] mb-2">Worked example &middot; EMP-008 site engineer</div>
+            <table class="w-full text-[11px]">
+              <tbody>
+                <tr class="border-b border-[var(--line)]"><td class="py-1">Pay period</td><td class="num text-right">Apr 2026</td></tr>
+                <tr class="border-b border-[var(--line)]"><td class="py-1">Hours by location</td><td class="text-right">QLD 92h &middot; NSW 41h &middot; VIC 27h</td></tr>
+                <tr class="border-b border-[var(--line)]"><td class="py-1">Step 1 result</td><td class="text-right text-[var(--ink-3)]">multi-state &rarr; fail</td></tr>
+                <tr class="border-b border-[var(--line)]"><td class="py-1">Step 2 result</td><td class="text-right text-[var(--pos)]">PPR Wynnum QLD &rarr; QLD</td></tr>
+                <tr class="border-b border-[var(--line)]"><td class="py-1">OTE this period</td><td class="num text-right">A$8,420.00</td></tr>
+                <tr><td class="py-1">Allocated</td><td class="text-right text-[var(--pos)]">100% to QLD</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Wage component map &middot; AU harmonised s.13</div>
+          <table class="w-full text-[12px]">
+            <thead><tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]"><th class="py-2 pr-2">Component</th><th class="py-2">Taxable?</th></tr></thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Salary &amp; wages</td><td class="text-[var(--pos)]">yes</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Allowances (most)</td><td class="text-[var(--pos)]">yes</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Motor-vehicle allowance &gt; ATO rate</td><td class="text-[var(--warm)]">excess only</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Accommodation allowance &gt; ATO rate</td><td class="text-[var(--warm)]">excess only</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Employer super (s.13(2))</td><td class="text-[var(--pos)]">yes</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Fringe benefits (Type 1+2 grossed-up)</td><td class="text-[var(--pos)]">yes</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Termination payments ETP (s.27A)</td><td class="text-[var(--pos)]">yes</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Parental leave (s.50)</td><td class="text-[var(--neg)]">exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Workers comp top-up</td><td class="text-[var(--neg)]">exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Apprentice/trainee wages (QLD)</td><td class="text-[var(--warm)]">50% rebate</td></tr>
+              <tr><td class="py-1.5">Apprentice wages (VIC)</td><td class="text-[var(--neg)]">exempt</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 4 · CONTRACTOR DEEMING                    -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 04</div>
+        <h2 class="font-display text-[22px] tracking-tight">Contractor deeming &middot; s.32 cascade &middot; 9 exemptions</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Contractor register &middot; FY26 &middot; 11 engagements</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">#</th>
+                <th class="py-2 pr-2">Contractor</th>
+                <th class="py-2 pr-2 text-right">Fees</th>
+                <th class="py-2 pr-2 text-right">Materials</th>
+                <th class="py-2 pr-2 text-right">Labour</th>
+                <th class="py-2 pr-2">Exemption claimed</th>
+                <th class="py-2 pr-2">Authority</th>
+                <th class="py-2">State</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C1</td><td>Holloway Eng</td><td class="num text-right">A$184,260</td><td class="num text-right">A$68,420</td><td class="num text-right">A$115,840</td><td>(b) services &le; 90d</td><td class="text-[var(--ink-3)]">s.32(2)(b)</td><td><span class="led on"></span> exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C2</td><td>Nakamura Welding</td><td class="num text-right">A$92,180</td><td class="num text-right">A$42,180</td><td class="num text-right">A$50,000</td><td>(c) labour ancillary</td><td class="text-[var(--ink-3)]">s.32(2)(c)</td><td><span class="led on"></span> exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C3</td><td>Singh Software</td><td class="num text-right">A$148,420</td><td class="num text-right">&mdash;</td><td class="num text-right">A$148,420</td><td>(d) public servs offered</td><td class="text-[var(--ink-3)]">s.32(2)(d)</td><td><span class="led on"></span> exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C4</td><td>O&rsquo;Brien Logistics</td><td class="num text-right">A$68,420</td><td class="num text-right">A$18,000</td><td class="num text-right">A$50,420</td><td>(i) own employees &ge; 2</td><td class="text-[var(--ink-3)]">s.32(2)(i)</td><td><span class="led on"></span> exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C5</td><td>Patel Drafting</td><td class="num text-right">A$48,420</td><td class="num text-right">&mdash;</td><td class="num text-right">A$48,420</td><td class="text-[var(--warm)]">none &mdash; <strong>deemed</strong></td><td class="text-[var(--ink-3)]">s.32(1)</td><td><span class="led warn"></span> taxable</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C6</td><td>Kowalski Inspections</td><td class="num text-right">A$24,840</td><td class="num text-right">A$2,180</td><td class="num text-right">A$22,660</td><td>(b) services &le; 90d</td><td class="text-[var(--ink-3)]">s.32(2)(b)</td><td><span class="led on"></span> exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C7</td><td>Tan Electrical</td><td class="num text-right">A$118,420</td><td class="num text-right">A$48,420</td><td class="num text-right">A$70,000</td><td>(a) materials &amp; labour</td><td class="text-[var(--ink-3)]">s.32(2)(a)</td><td><span class="led on"></span> exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C8</td><td>Lefevre Cleaning</td><td class="num text-right">A$36,180</td><td class="num text-right">A$1,840</td><td class="num text-right">A$34,340</td><td class="text-[var(--warm)]">none &mdash; <strong>deemed</strong></td><td class="text-[var(--ink-3)]">s.32(1)</td><td><span class="led warn"></span> taxable</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C9</td><td>Chen Surveying</td><td class="num text-right">A$72,420</td><td class="num text-right">&mdash;</td><td class="num text-right">A$72,420</td><td>(d) public servs offered</td><td class="text-[var(--ink-3)]">s.32(2)(d)</td><td><span class="led on"></span> exempt</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 num">C10</td><td>Williams Crane Hire</td><td class="num text-right">A$92,180</td><td class="num text-right">A$72,180</td><td class="num text-right">A$20,000</td><td>(a) materials &amp; labour</td><td class="text-[var(--ink-3)]">s.32(2)(a)</td><td><span class="led on"></span> exempt</td></tr>
+              <tr><td class="py-1.5 num">C11</td><td>Ahmed IT Sec</td><td class="num text-right">A$48,260</td><td class="num text-right">&mdash;</td><td class="num text-right">A$48,260</td><td>(d) public servs offered</td><td class="text-[var(--ink-3)]">s.32(2)(d)</td><td><span class="led on"></span> exempt</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">9 of 11 contractors exempt under s.32(2) sub-paragraphs (a)&ndash;(i). Two engagements (<strong>C5 Patel, C8 Lefevre</strong>) fail all 9 tests &mdash; their labour component is <em>deemed wages</em> and adds A$82,760 to the taxable-wages base.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">9 exemptions &middot; s.32(2) harmonised</div>
+          <ol class="text-[11px] space-y-1.5 leading-relaxed">
+            <li><strong>(a)</strong> services involving supply of <em>both</em> materials and labour, materials substantial</li>
+            <li><strong>(b)</strong> services performed by contractor &le; <strong>90 days in financial year</strong> for principal</li>
+            <li><strong>(c)</strong> services where labour is <em>ancillary</em> to the supply of goods/equipment</li>
+            <li><strong>(d)</strong> contractor ordinarily provides services <strong>to public generally</strong></li>
+            <li><strong>(e)</strong> services performed by contractor <strong>incidental</strong> to other services</li>
+            <li><strong>(f)</strong> Commissioner-approved exemption</li>
+            <li><strong>(g)</strong> contractor provides services for &le; 180 days <em>and</em> the Commissioner is satisfied</li>
+            <li><strong>(h)</strong> services performed by contractor who has employed others to perform them</li>
+            <li><strong>(i)</strong> contractor engages <strong>two or more own employees</strong> who perform the services</li>
+          </ol>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">If <em>any</em> of (a)&ndash;(i) is satisfied, the contractor payment is excluded from deemed wages. If none, the labour component (or 90% if no split provided per Rulings PTA014/PTA018) is taxable.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 5 · SURCHARGES & REBATES                  -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 05</div>
+        <h2 class="font-display text-[22px] tracking-tight">Surcharges, rebates, and concessions &middot; per jurisdiction</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">QLD Mental Health Levy &middot; s.14B PRT Act 1971</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Group AU wages</td><td class="num text-right">A$8,420,180</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">QLD wages</td><td class="num text-right">A$2,484,920</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">MHL threshold (group AU wages)</td><td class="num text-right">A$10,000,000</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Status</td><td class="text-right text-[var(--pos)]">below threshold</td></tr>
+              <tr><td class="py-1.5">MHL payable</td><td class="num text-right text-[var(--ink-3)]">A$0</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)]">QLD MHL is computed on <em>group AU wages</em>, not QLD wages. SAE Group A$8.42m is under the A$10m primary threshold. If next FY pushes &gt; A$10m, 0.25% applies to QLD wages above the QLD-share of A$10m; &gt; A$100m adds a further 0.5%.</p>
+
+          <div class="mt-4 pt-3 border-t border-[var(--line)]">
+            <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">QLD apprentice/trainee rebate &middot; s.14A</div>
+            <table class="w-full text-[12px]">
+              <tbody>
+                <tr class="border-b border-[var(--line)]"><td class="py-1.5">Apprentice wages (QLD)</td><td class="num text-right">A$112,420</td></tr>
+                <tr class="border-b border-[var(--line)]"><td class="py-1.5">Tax @ 4.75%</td><td class="num text-right">A$5,339.95</td></tr>
+                <tr class="border-b border-[var(--line)]"><td class="py-1.5">Rebate @ 50%</td><td class="num text-right text-[var(--pos)]">&minus;A$2,669.98</td></tr>
+                <tr><td class="py-1.5">Net tax on apprentice wages</td><td class="num text-right">A$2,669.97</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">VIC Mental Health &amp; Wellbeing Surcharge &middot; s.81 PRT Act 2007 (Vic)</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Group AU wages</td><td class="num text-right">A$8,420,180</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">VIC wages</td><td class="num text-right">A$2,212,840</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">MH&amp;WB threshold (group AU)</td><td class="num text-right">A$10,000,000</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Status</td><td class="text-right text-[var(--pos)]">below threshold</td></tr>
+              <tr><td class="py-1.5">MH&amp;WB payable</td><td class="num text-right text-[var(--ink-3)]">A$0</td></tr>
+            </tbody>
+          </table>
+
+          <div class="mt-4 pt-3 border-t border-[var(--line)]">
+            <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">VIC regional employer discount</div>
+            <table class="w-full text-[12px]">
+              <tbody>
+                <tr class="border-b border-[var(--line)]"><td class="py-1.5">Regional VIC wages (postcode test)</td><td class="num text-right">A$0</td></tr>
+                <tr class="border-b border-[var(--line)]"><td class="py-1.5">Regional rate available</td><td class="num text-right text-[var(--ink-3)]">1.2125%</td></tr>
+                <tr><td class="py-1.5">Saving forgone</td><td class="num text-right text-[var(--ink-3)]">n/a</td></tr>
+              </tbody>
+            </table>
+            <p class="mt-2 text-[11px] text-[var(--ink-3)]">SAE has no employees with PPR in regional VIC postcodes. SRO publishes the postcode list each FY; SAE Books checks each employee&rsquo;s PPR against it monthly.</p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-[var(--line)]">
+            <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">VIC apprentice exemption &middot; s.13E</div>
+            <p class="mt-1 text-[11px]">Apprentice/trainee wages in VIC are <strong>exempt</strong> (not rebated). FY26 saving on A$70,000 VIC apprentice wages: <span class="num text-[var(--pos)]">A$3,395.00</span>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 6 · MONTHLY + ANNUAL CALENDAR             -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 06</div>
+        <h2 class="font-display text-[22px] tracking-tight">Lodgement calendar &middot; FY26 &middot; per-jurisdiction</h2>
+      </div>
+      <div class="p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+        <table class="w-full text-[12px]">
+          <thead>
+            <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 pr-2">Jurisdiction</th>
+              <th class="py-2 pr-2">Frequency</th>
+              <th class="py-2 pr-2">Return due (monthly)</th>
+              <th class="py-2 pr-2">Annual recon</th>
+              <th class="py-2 pr-2">Channel</th>
+              <th class="py-2">Threshold trigger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 font-medium">NSW</td><td>monthly</td><td>7th of following month</td><td class="num">2026-07-28</td><td class="text-[var(--ink-3)]">RPT Online (revenue.nsw)</td><td>est wages &gt; A$1.2m</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 font-medium">VIC</td><td>monthly</td><td>7th of following month</td><td class="num">2026-07-21</td><td class="text-[var(--ink-3)]">PTX Express (sro.vic)</td><td>est wages &gt; A$900k</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 font-medium">QLD</td><td>monthly</td><td>7th of following month</td><td class="num">2026-07-21</td><td class="text-[var(--ink-3)]">OSR Online (qro.qld)</td><td>est wages &gt; A$1.3m</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5 font-medium">SA</td><td>annual</td><td>n/a (below threshold)</td><td class="num">2026-07-21</td><td class="text-[var(--ink-3)]">RevenueSA Online</td><td>est wages &gt; A$1.5m</td></tr>
+            <tr><td class="py-1.5 font-medium">WA</td><td>annual</td><td>n/a (below threshold)</td><td class="num">2026-07-21</td><td class="text-[var(--ink-3)]">RevenueWA Online</td><td>est wages &gt; A$1m</td></tr>
+          </tbody>
+        </table>
+        <p class="mt-3 text-[11px] text-[var(--ink-3)]">For NSW/VIC/QLD, SAE files <strong>11 monthly returns + 1 annual recon</strong> per jurisdiction. The June return is replaced by the annual reconciliation. Monthly returns use the allocated TF based on estimated annual wages; the recon trues up.</p>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 7 · MARKET COMPARISON                     -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 07</div>
+        <h2 class="font-display text-[22px] tracking-tight">Market read &middot; where multi-state payroll tax lives elsewhere</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Xero / MYOB / Reckon</div>
+          <ul class="text-[12px] space-y-2 leading-relaxed">
+            <li><strong>Xero</strong> &mdash; payroll-tax module produces a <em>per-state</em> summary report only after the user flags each employee&rsquo;s state in the employee record. No nexus engine, no contractor s.32 cascade, no MHL/MH&amp;WB calc, no apprentice rebate, no postcode regional flag. The annual recon is a CSV export the user re-keys into the OSR portal.</li>
+            <li><strong>MYOB AE/AO + MYOB Greentree</strong> &mdash; better contractor and grouping handling, but the practice still maintains a separate Excel master for s.32 exemption evidence and a manual MHL/MH&amp;WB sidecar.</li>
+            <li><strong>Reckon Accounts / One</strong> &mdash; payroll tax handled as a periodic JE; the recon is essentially done by hand against pay-runs filtered by state.</li>
+            <li><strong>BGL Simple Fund / CCH iFirm</strong> &mdash; practice-side compliance modules, not on the client&rsquo;s books.</li>
+          </ul>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">SAE Books &middot; native</div>
+          <ul class="text-[12px] space-y-2 leading-relaxed">
+            <li>Per-pay-event nexus engine resolves s.11 cascade against PPR, work location, ABN address, paid-from bank account &mdash; no per-employee state flag, no Excel master.</li>
+            <li>Designated Group Employer (DGE) lives in the entity-graph; s.71 grouping pulls related corps and employees-in-common automatically and surfaces threshold-allocation arithmetic on the workpaper.</li>
+            <li>Contractor 9-exemption matrix runs as the contractor is paid; if no exemption holds, the labour component lands in deemed wages with PTA014/PTA018 90% default.</li>
+            <li>Mental Health Levy (QLD) and MH&amp;WB Surcharge (VIC) bracket-aware; postcode regional flag for VIC; apprentice rebate (QLD) and apprentice exemption (VIC) auto-applied.</li>
+            <li>5-state lodgement pack at 30 June: per-OSR XML / JSON exports plus a reconciliation memo against the monthly returns, ready for the practice to review.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- FOOTER · AUTHORITY PACK                       -->
+    <!-- ============================================ -->
+    <footer class="mt-10 pt-6 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)] leading-relaxed">
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Primary law &middot; harmonised</div>
+          <ul class="space-y-0.5">
+            <li>Payroll Tax Act 2007 (NSW) s.11 nexus &middot; s.13 wages &middot; s.32 contractor</li>
+            <li>Payroll Tax Act 2007 (Vic) s.81 MH&amp;WB &middot; s.13E apprentice</li>
+            <li>Payroll Tax Act 1971 (Qld) s.13C alloc TF &middot; s.14A rebate &middot; s.14B MHL</li>
+            <li>Payroll Tax Act 2009 (SA) s.18 grouping</li>
+            <li>Pay-roll Tax Assessment Act 2002 (WA) s.21A graduated</li>
+            <li>Harmonised grouping s.71&ndash;s.75 (common control, related corps, employees-in-common)</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Public rulings &middot; harmonised</div>
+          <ul class="space-y-0.5">
+            <li>PTA001 &mdash; allowances</li>
+            <li>PTA005 &mdash; superannuation</li>
+            <li>PTA014 &mdash; contractor 90% default</li>
+            <li>PTA018 &mdash; materials &amp; labour split</li>
+            <li>PTA019 &mdash; contractor exemption (i) &mdash; 2+ employees</li>
+            <li>PTA020 &mdash; contractor exemption (b) &mdash; 90-day rule</li>
+            <li>PTA021 &mdash; employment agents</li>
+            <li>PTA037 &mdash; paid parental leave</li>
+            <li>PTA038 &mdash; jobkeeper top-ups (historical)</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Cases &amp; adjacent</div>
+          <ul class="space-y-0.5">
+            <li>Optical Superstore [2019] HCA &mdash; medical-centre service-fee deeming</li>
+            <li>Thomas &amp; Naaz [2023] NSWCA &mdash; payments to entities deemed</li>
+            <li>Loan Market [2022] VSCA &mdash; mortgage brokers grouped</li>
+            <li>Tasty Chicks v Chief Comm [2011] HCA &mdash; grouping</li>
+            <li>UNSW Global v Chief Comm [2016] NSWSC &mdash; employment agents</li>
+            <li>RevenueRulings &middot; SRO PTA-VIC sidecar</li>
+            <li>STP Phase 2 &middot; payroll-tax data alignment</li>
+            <li>National Tax Equivalents Regime (state-owned)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-5 pt-4 border-t border-[var(--line)] flex flex-wrap items-center gap-3">
+        <span class="num-stamp">PRT-184260-26-MS</span>
+        <span>Workpaper hash <span class="num">f1c2&hellip;9a48</span></span>
+        <span>&middot; nexus engine v2 &middot; PTA014 default 90% applied to 2 deemed</span>
+        <span>&middot; prepared by SAE Books &middot; review by R Sauer (director)</span>
+        <span class="ml-auto">Harmonised lines, unharmonised bills.</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+{% endblock %}

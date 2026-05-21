@@ -1,0 +1,420 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Stage 3 brackets & MTR cascade — FY26 · SAE Books{% endblock %}
+{% block body %}
+<main class="reg-marks dot-grid-soft min-h-screen px-6 pb-24 pt-8">
+  <!-- ============ MASTHEAD ============ -->
+  <header class="mx-auto max-w-[1480px]">
+    <div class="flex items-start justify-between gap-8">
+      <div>
+        <div class="flex items-center gap-3 text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">
+          <span class="rounded-sm border border-[var(--line)] bg-[var(--paper-2)] px-2 py-[3px]">DOC · STG3-184260-26</span>
+          <span>Compliance · Income tax · Stage 3 brackets &amp; MTR cascade</span>
+          <span class="text-[var(--ink-3)]">·</span>
+          <span>FY26 individual returns · prepared 2026-05-11 23:11</span>
+          <span class="text-[var(--ink-3)]">·</span>
+          <span class="text-[var(--pos)]">First full FY post-revision</span>
+        </div>
+        <h1 class="font-display mt-3 text-[40px] leading-[1.04] tracking-[-0.018em]">
+          Revised Stage 3 hit the books FY25 — FY26 is the first clean full-year compare.
+        </h1>
+        <p class="mt-2 max-w-[920px] text-[13.5px] leading-[1.55] text-[var(--ink-3)]">
+          The Albanese-revised Stage 3 cut (<span class="text-[var(--ink)]">Treasury Laws Amendment (Cost of Living Tax
+          Cuts) Act 2024</span>) took effect from 1 July 2024. FY26 is the first complete year free of transitional
+          comparisons. Across the Sauerland / Saueesti party-graph, 4 individuals receive assessable income (R Sauer,
+          M Sauer, J Chen sub-contract, L Bishop apprentice). SAE Books re-computes each individual's marginal-rate
+          cascade automatically — including the <span class="text-[var(--ink)]">Medicare Levy</span> (2%), the
+          <span class="text-[var(--ink)]">Medicare Levy Surcharge</span> (1.0%–1.5%), the
+          <span class="text-[var(--ink)]">Low-Income Tax Offset (LITO)</span> reach, <span class="text-[var(--ink)]">HELP/HECS</span>
+          repayment thresholds, and the <span class="text-[var(--ink)]">Stage 3 vs old-law</span> delta which the political
+          conversation no longer foregrounds.
+        </p>
+      </div>
+      <div class="shrink-0 text-right">
+        <div class="num-stamp text-[11px] uppercase tracking-[0.18em]">
+          <div class="text-[var(--ink-3)]">FY26 delta vs old-Stage-3 · group</div>
+          <div class="font-display text-[26px] tracking-[-0.01em] text-[var(--pos)]">+A$12,847</div>
+          <div class="text-[var(--ink-3)]">net cut · 4 individuals</div>
+        </div>
+        <div class="mt-2 flex items-center justify-end gap-3 text-[11px] text-[var(--ink-3)]">
+          <span class="led on"></span><span>STP withholding aligned</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ BRACKETS · OLD-LAW · STAGE 3 ORIGINAL · ALBANESE REVISED ============ -->
+  <section class="mx-auto mt-8 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Bracket schedule — three regimes side-by-side</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">FY24 (old-law) vs Original Stage 3 vs Revised Stage 3 (current)</div>
+    </div>
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-3">Taxable income band (A$)</div>
+        <div class="col-span-3 text-right">FY24 old-law rate</div>
+        <div class="col-span-3 text-right">Original Stage 3 (legislated 2018, repealed)</div>
+        <div class="col-span-3 text-right">Revised Stage 3 (FY25+ · current)</div>
+      </div>
+      {% set brackets = [
+        ('0 → 18,200','0%','0%','0%'),
+        ('18,201 → 45,000','19% · LITO','19% · LITO','16% · LITO'),
+        ('45,001 → 120,000','32.5%','30% · (45k → 200k)','30% · (45k → 135k)'),
+        ('120,001 → 135,000','37%','30%','30%'),
+        ('135,001 → 180,000','37%','30%','37%'),
+        ('180,001 → 190,000','45%','30%','37%'),
+        ('190,001 → 200,000','45%','30%','45%'),
+        ('200,001+','45%','45%','45%')
+      ] %}
+      {% for b in brackets %}
+      <div class="grid grid-cols-12 items-center px-4 py-[6px] text-[12.5px] border-t border-[var(--line)]">
+        <div class="col-span-3 num">{{ b[0] }}</div>
+        <div class="col-span-3 num text-right">{{ b[1] }}</div>
+        <div class="col-span-3 num text-right text-[var(--ink-3)]">{{ b[2] }}</div>
+        <div class="col-span-3 num text-right font-medium">{{ b[3] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="mt-3 grid grid-cols-3 gap-4 text-[12px] text-[var(--ink-3)]">
+      <div class="rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-3">
+        <span class="text-[var(--ink)]">Lower-bracket cut.</span> Revised cut 19% → 16% from A$18.2k to A$45k saves
+        A$804 fully at A$45k taxable.
+      </div>
+      <div class="rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-3">
+        <span class="text-[var(--ink)]">Middle pull-down.</span> 32.5% → 30% from A$45k to A$135k saves up to A$2,250 at
+        the top of the band.
+      </div>
+      <div class="rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-3">
+        <span class="text-[var(--ink)]">Top-band tighten.</span> Threshold for 45% drops from A$200k (original) back to
+        A$190k (revised). Net effect at A$200k+: still positive (A$4,529) but smaller than original promise.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INDIVIDUAL MTR CASCADE ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Per-individual MTR cascade — FY26</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Stage 3 + ML 2% + MLS + LITO + HELP repayment</div>
+    </div>
+
+    <!-- R SAUER -->
+    <div class="mt-4 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">R Sauer · TFN masked · age 53 · PHI yes (Bupa H-1140)</div>
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Taxable income components &amp; cascade</div>
+      </div>
+      <div class="mt-3 grid grid-cols-12 gap-4 text-[12.5px]">
+        <div class="col-span-7">
+          <table class="num w-full">
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Salary · Sauerland Pty Ltd (Fire 62 arm's-length)</td><td class="text-right">A$210,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Trust distribution · Saueesti (Fire 55 · 25%)</td><td class="text-right">A$104,565</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Franked distributions (Sauerland · Sauer Holdings)</td><td class="text-right">A$8,420</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Franking credit gross-up</td><td class="text-right">A$3,609</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Interest · BNZ (NZ-source · FITO)</td><td class="text-right">A$239</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Capital gain · Telstra disposal (Fire 61 · discounted)</td><td class="text-right">A$5,229</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 font-medium">Assessable income</td><td class="text-right font-medium">A$332,062</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: work-related deductions</td><td class="text-right">(A$3,840)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: cost of managing tax affairs</td><td class="text-right">(A$1,260)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: deductible super (concessional · CC cap A$30k)</td><td class="text-right">(A$10,500)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 font-medium">Taxable income</td><td class="text-right font-medium">A$316,462</td></tr>
+            <tr><td class="py-1 text-[var(--ink-3)]">Effective MTR at top of band</td><td class="text-right">45% + 2% ML = 47%</td></tr>
+          </table>
+        </div>
+        <div class="col-span-5">
+          <table class="num w-full text-[12.5px]">
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Income tax (Stage 3)</td><td class="text-right">A$108,478</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Medicare Levy 2%</td><td class="text-right">A$6,329</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">MLS (PHI · exempt)</td><td class="text-right">A$0</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: franking credit refund</td><td class="text-right text-[var(--pos)]">(A$3,609)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: FITO</td><td class="text-right text-[var(--pos)]">(A$42)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: PAYG withholding (STP · L Bishop... R Sauer)</td><td class="text-right text-[var(--pos)]">(A$72,560)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: PAYG instalments paid Q1-Q4</td><td class="text-right text-[var(--pos)]">(A$31,000)</td></tr>
+            <tr><td class="py-1 font-medium">Net payable / (refund)</td><td class="text-right font-medium text-[var(--pos)]">A$7,596 payable</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--ink-3)] pt-3">Old-law (FY24 brackets) counterfactual</td><td class="text-right text-[var(--ink-3)]">A$117,124</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--ink-3)]">FY26 actual income tax</td><td class="text-right text-[var(--ink-3)]">A$108,478</td></tr>
+            <tr><td class="py-1 text-[var(--pos)] font-medium">Stage 3 saving for R Sauer FY26</td><td class="text-right text-[var(--pos)] font-medium">A$8,646</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- M SAUER -->
+    <div class="mt-5 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">M Sauer · TFN masked · age 51 · PHI yes (Bupa H-1140)</div>
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Cascade</div>
+      </div>
+      <div class="mt-3 grid grid-cols-12 gap-4 text-[12.5px]">
+        <div class="col-span-7">
+          <table class="num w-full">
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Trust distribution · Saueesti (Fire 55 · 60% post-correction)</td><td class="text-right">A$250,956</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Director's fee · Sauerland (trustee role)</td><td class="text-right">A$8,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Franked div · Sauerland</td><td class="text-right">A$2,892</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Franking credit gross-up</td><td class="text-right">A$1,240</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 font-medium">Assessable income</td><td class="text-right font-medium">A$263,088</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: deductions (managing affairs · PHI)</td><td class="text-right">(A$2,180)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: concessional super (CC cap)</td><td class="text-right">(A$24,000)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 font-medium">Taxable income</td><td class="text-right font-medium">A$236,908</td></tr>
+            <tr><td class="py-1 text-[var(--ink-3)]">Effective MTR at top of band</td><td class="text-right">45% + 2% ML = 47%</td></tr>
+          </table>
+        </div>
+        <div class="col-span-5">
+          <table class="num w-full text-[12.5px]">
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Income tax (Stage 3)</td><td class="text-right">A$72,539</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Medicare Levy 2%</td><td class="text-right">A$4,738</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: franking credit</td><td class="text-right text-[var(--pos)]">(A$1,240)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">Less: PAYG inst paid (per ATO ICA)</td><td class="text-right text-[var(--pos)]">(A$73,200)</td></tr>
+            <tr><td class="py-1 font-medium">Net payable / (refund)</td><td class="text-right font-medium text-[var(--pos)]">A$2,837 payable</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--ink-3)] pt-3">Old-law counterfactual</td><td class="text-right text-[var(--ink-3)]">A$76,840</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1 text-[var(--ink-3)]">FY26 actual</td><td class="text-right text-[var(--ink-3)]">A$72,539</td></tr>
+            <tr><td class="py-1 text-[var(--pos)] font-medium">Stage 3 saving for M Sauer FY26</td><td class="text-right text-[var(--pos)] font-medium">A$4,301</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- J CHEN + L BISHOP combined -->
+    <div class="mt-5 grid grid-cols-12 gap-5">
+      <div class="col-span-6 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">J Chen · subcontractor (Fire 62 employment test)</div>
+        <table class="num mt-3 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Engineering fees (Sauerland)</td><td class="text-right">A$58,420</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Sole-trader other</td><td class="text-right">A$24,640</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Total · taxable A$83,060</td><td class="text-right">A$83,060</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Income tax (Stage 3 · 30% band)</td><td class="text-right">A$15,710</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Medicare Levy 2%</td><td class="text-right">A$1,661</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">FY24 counterfactual</td><td class="text-right text-[var(--ink-3)]">A$17,710</td></tr>
+          <tr><td class="py-1 text-[var(--pos)] font-medium">Stage 3 saving for J Chen</td><td class="text-right text-[var(--pos)] font-medium">A$2,000</td></tr>
+        </table>
+      </div>
+      <div class="col-span-6 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+        <div class="text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">L Bishop · apprentice · HELP debt holder</div>
+        <table class="num mt-3 w-full text-[12.5px]">
+          <tr class="border-b border-[var(--line)]"><td class="py-1">PAYG salary (Fire 59 · STP final)</td><td class="text-right">A$62,180</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Income tax (Stage 3)</td><td class="text-right">A$9,604</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">Medicare Levy 2%</td><td class="text-right">A$1,244</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">HELP repayment · 2.5% × A$62,180</td><td class="text-right">A$1,555</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">PAYG withholding (employer)</td><td class="text-right text-[var(--pos)]">(A$12,720)</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1">FY24 counterfactual (full year)</td><td class="text-right text-[var(--ink-3)]">A$11,504</td></tr>
+          <tr><td class="py-1 text-[var(--pos)] font-medium">Stage 3 saving for L Bishop</td><td class="text-right text-[var(--pos)] font-medium">A$1,900</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-5 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="grid grid-cols-12 items-center text-[12.5px]">
+        <div class="col-span-6 font-medium">Group total Stage 3 saving · 4 individuals · FY26</div>
+        <div class="col-span-6 text-right font-display text-[26px] tracking-[-0.01em] text-[var(--pos)]">+A$16,847</div>
+      </div>
+      <div class="text-[11px] text-[var(--ink-3)]">vs counterfactual where FY24 brackets had been retained. Original (2018-legislated) Stage 3 would have delivered higher savings to R Sauer (≈A$11,400 standalone) but reduced savings to L Bishop (A$0) — the political compromise rebalanced toward the mid-band.</div>
+    </div>
+  </section>
+
+  <!-- ============ THRESHOLD WALK ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Threshold walk — every relevant FY26 cliff</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Per ATO PAYGW tables (NAT 1004) · ML/MLS reg · HELP repayment table</div>
+    </div>
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-5">Threshold</div>
+        <div class="col-span-3 text-right">FY26 figure</div>
+        <div class="col-span-2 text-right">FY25</div>
+        <div class="col-span-2 text-right">Δ %</div>
+      </div>
+      {% set ts = [
+        ('Tax-free threshold (s.4-15)','A$18,200','A$18,200','0%'),
+        ('Stage 3 16% band ceiling','A$45,000','A$45,000','0%'),
+        ('Stage 3 30% band ceiling','A$135,000','A$135,000','0%'),
+        ('Stage 3 37% band ceiling','A$190,000','A$190,000','0%'),
+        ('Medicare Levy threshold · single','A$26,000','A$25,000','+4%'),
+        ('Medicare Levy threshold · family','A$43,846','A$42,167','+4%'),
+        ('Medicare Levy Surcharge Tier 1 (1.0%) · single','A$97,000','A$93,000','+4.3%'),
+        ('Medicare Levy Surcharge Tier 1 · family','A$194,000','A$186,000','+4.3%'),
+        ('MLS Tier 2 (1.25%) · single','A$113,000','A$108,000','+4.6%'),
+        ('MLS Tier 3 (1.5%) · single','A$151,000','A$144,000','+4.9%'),
+        ('LITO max offset','A$700','A$700','0%'),
+        ('LITO taper-out','A$45,001–A$66,667','same','0%'),
+        ('HELP repayment min threshold (1.0%)','A$56,156','A$54,435','+3.2%'),
+        ('HELP repayment max (10%)','A$159,664','A$154,816','+3.1%'),
+        ('Concessional super cap','A$30,000','A$30,000','0%'),
+        ('Non-concessional cap','A$120,000','A$120,000','0%'),
+        ('Bring-forward (under 75)','A$360,000','A$360,000','0%'),
+        ('Transfer balance cap (general)','A$2,000,000','A$1,900,000','+5.3%'),
+        ('CGT discount threshold for individuals','50% (s.115-100)','same','0%'),
+        ('Small business CGT concession threshold','A$2m / NTV A$6m','same','0%')
+      ] %}
+      {% for t in ts %}
+      <div class="grid grid-cols-12 items-center px-4 py-[5px] text-[12px] border-t border-[var(--line)]">
+        <div class="col-span-5">{{ t[0] }}</div>
+        <div class="col-span-3 num text-right">{{ t[1] }}</div>
+        <div class="col-span-2 num text-right text-[var(--ink-3)]">{{ t[2] }}</div>
+        <div class="col-span-2 num text-right text-[var(--ink-3)]">{{ t[3] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ============ TBC INTERACTION (CROSS-REF FIRE 60) ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px] grid grid-cols-12 gap-6">
+    <div class="col-span-7 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Transfer balance cap · A$1.9m → A$2.0m for FY26</div>
+      <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">Indexation triggers fresh A$100k pension room for R Sauer (Fire 60 cross-ref)</div>
+      <p class="mt-3 text-[12.5px] text-[var(--ink-3)]">
+        TBC indexed in <span class="text-[var(--ink)]">A$100k</span> increments by reference to AWOTE / CPI (greater of).
+        2025-12 CPI release crossed the threshold; legislative effect 1-Jul-2026. R Sauer's personal TBC indexed
+        proportionately to <span class="text-[var(--ink)]">A$1.94m</span> (his FY24 retirement-phase start was at
+        A$1.6m TBC, used A$1.62m, headroom 87.5%). Headroom now A$359,740 → optionality for a further commutation +
+        recontribution recycle while caps support it.
+      </p>
+    </div>
+    <div class="col-span-5 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Concessional cap · carry-forward</div>
+      <table class="num mt-3 w-full text-[12.5px]">
+        <tr class="border-b border-[var(--line)]"><td class="py-1">FY22 unused</td><td class="text-right">A$4,200</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">FY23 unused</td><td class="text-right">A$2,800</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">FY24 unused</td><td class="text-right">A$6,500</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">FY25 unused</td><td class="text-right">A$1,200</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Carry-forward room available</td><td class="text-right">A$14,700</td></tr>
+        <tr><td class="py-1 text-[var(--ink-3)]">TSB &lt;A$500k? · YES (M Sauer)</td><td class="text-right text-[var(--pos)]">eligible · use 1-Jul-2026</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ STAGE 3 vs ORIGINAL ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Revised Stage 3 vs Original Stage 3 — who won / who lost</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Per-taxable-income compare · FY26 figures</div>
+    </div>
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-2 text-right">Taxable income</div>
+        <div class="col-span-2 text-right">FY24 old-law</div>
+        <div class="col-span-2 text-right">Original Stage 3</div>
+        <div class="col-span-2 text-right">Revised Stage 3</div>
+        <div class="col-span-2 text-right">Rev vs Orig Δ</div>
+        <div class="col-span-2 text-right">Rev vs Old Δ</div>
+      </div>
+      {% set cmp = [
+        ('A$30,000','A$2,242','A$2,242','A$1,888','+A$354','+A$354'),
+        ('A$45,000','A$5,092','A$5,092','A$4,288','+A$804','+A$804'),
+        ('A$60,000','A$9,967','A$9,592','A$7,888','+A$1,704','+A$2,079'),
+        ('A$80,000','A$16,467','A$15,592','A$13,888','+A$1,704','+A$2,579'),
+        ('A$100,000','A$22,967','A$21,592','A$19,888','+A$1,704','+A$3,079'),
+        ('A$135,000','A$34,417','A$32,092','A$30,388','+A$1,704','+A$4,029'),
+        ('A$150,000','A$39,967','A$36,592','A$35,938','+A$654','+A$4,029'),
+        ('A$180,000','A$51,667','A$45,592','A$47,038','−A$1,446','+A$4,629'),
+        ('A$190,000','A$56,167','A$48,592','A$50,738','−A$2,146','+A$5,429'),
+        ('A$200,000','A$60,667','A$51,592','A$55,238','−A$3,646','+A$5,429')
+      ] %}
+      {% for c in cmp %}
+      <div class="grid grid-cols-12 items-center px-4 py-[6px] text-[12.5px] border-t border-[var(--line)]">
+        <div class="col-span-2 num text-right font-medium">{{ c[0] }}</div>
+        <div class="col-span-2 num text-right text-[var(--ink-3)]">{{ c[1] }}</div>
+        <div class="col-span-2 num text-right text-[var(--ink-3)]">{{ c[2] }}</div>
+        <div class="col-span-2 num text-right">{{ c[3] }}</div>
+        <div class="col-span-2 num text-right {% if '−' in c[4] %}text-[var(--neg)]{% else %}text-[var(--pos)]{% endif %}">{{ c[4] }}</div>
+        <div class="col-span-2 num text-right text-[var(--pos)]">{{ c[5] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="mt-3 text-[11.5px] text-[var(--ink-3)]">
+      Everyone wins vs FY24 old-law. Vs original (2018-legislated) Stage 3 · sub-A$150k earners win meaningfully more,
+      A$180k+ earners get less than promised. R Sauer at A$316k taxable lost A$3,646 vs the original promise, but is
+      still A$5,429 ahead of old-law and A$8,646 ahead of FY24 actual brackets including ML.
+    </div>
+  </section>
+
+  <!-- ============ MARKET READ ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Market read · bracket tooling</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Xero / MYOB / Reckon</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-4 text-[12.5px]">
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Xero</div>
+        <div class="mt-2 text-[var(--ink)]">PAYGW tables auto-update; no individual-return modelling.</div>
+        <div class="mt-2 text-[var(--ink-3)]">STP withholding correct as of 1-Jul-2024 update. Year-end tax planning for
+          individuals lives in Xero Tax (separate product); cascading deltas across the trust + co + indiv graph still
+          manual.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">MYOB AE</div>
+        <div class="mt-2 text-[var(--ink)]">Individual return module with cascade.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Strong individual return prep · Stage 3 brackets correct. Doesn't render
+          the "vs original Stage 3" comparison or what-if planning for cap usage automatically.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Reckon APS</div>
+        <div class="mt-2 text-[var(--ink)]">Same as MYOB · solid tax-return module.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Strong on lodgement; light on planning visualisations during the year.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">SAE Books · this surface</div>
+        <div class="mt-2 text-[var(--ink)]">Year-round MTR cascade per individual.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Recomputes the cascade each time a flow lands in the GL — distribution
+          resolution, salary review, super contribution, share disposal. Surfaces the "carry-forward concessional cap"
+          opportunity to M Sauer at the moment her FY26 income locks in.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AUTHORITIES ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Authority pack</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Statute · rulings · forms</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-6 text-[12px] leading-[1.55]">
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Statute</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li>ITAA 1997 <span class="text-[var(--ink)]">s.4-15</span> · taxable income</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">Sch 7 cl 1</span> · resident rates</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">s.61-220</span> · Beneficiary Tax Offset</li>
+          <li>ITAA 1936 <span class="text-[var(--ink)]">s.159N</span> · LITO</li>
+          <li>Medicare Levy Act 1986 <span class="text-[var(--ink)]">s.7</span></li>
+          <li>A New Tax System (Medicare Levy Surcharge — Fringe Benefits) Act 1999</li>
+          <li>HEFRA 1988 · HELP repayment</li>
+          <li><span class="text-[var(--ink)]">Treasury Laws Amendment (Cost of Living Tax Cuts) Act 2024</span> · Sch 1</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">Div 290</span> · concessional super</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">Div 294</span> · TBC</li>
+        </ul>
+      </div>
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">ATO guidance</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li><span class="text-[var(--ink)]">NAT 1004</span> · PAYGW · weekly/fortnightly/monthly tables</li>
+          <li><span class="text-[var(--ink)]">NAT 2173</span> · medicare levy</li>
+          <li><span class="text-[var(--ink)]">QC 16385</span> · MLS thresholds</li>
+          <li><span class="text-[var(--ink)]">QC 16601</span> · HELP repayment</li>
+          <li><span class="text-[var(--ink)]">TR 92/3</span> · "incurred"</li>
+          <li><span class="text-[var(--ink)]">TR 2024/D2</span> · individual residency</li>
+          <li><span class="text-[var(--ink)]">TD 2024/3</span> · car expense cents/km</li>
+          <li><span class="text-[var(--ink)]">PCG 2021/4</span> · prof firm profits</li>
+        </ul>
+      </div>
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Cases</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li><span class="text-[var(--ink)]">FCT v Pike</span> [2020] FCAFC 158 · residency</li>
+          <li><span class="text-[var(--ink)]">Harding v FCT</span> [2019] FCAFC 29 · perm place</li>
+          <li><span class="text-[var(--ink)]">FCT v Addy</span> [2021] HCA 34 · BPF discrimination</li>
+          <li><span class="text-[var(--ink)]">FCT v Walker</span> [2023] AATA 1116 · WRD</li>
+          <li><span class="text-[var(--ink)]">Re Yu v FCT</span> [2024] AATA 4321 · MTR cascade</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mx-auto mt-14 max-w-[1480px] border-t border-[var(--line)] pt-4 text-[11px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
+    <div class="flex justify-between">
+      <div>STG3-184260-26 · 4 individuals · group saving A$16,847 · TBC indexed A$1.94m · CF cap A$14,700 · prepared 2026-05-11 23:11</div>
+      <div>SAE BOOKS · /preview/compliance/stage3-brackets/fy26</div>
+    </div>
+  </footer>
+</main>
+{% endblock %}

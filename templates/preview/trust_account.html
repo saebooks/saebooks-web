@@ -1,0 +1,378 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}Project Trust Account · J-2603 — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .row-cell td { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .row-cell:first-child td { border-top: 0; }
+  .num-stamp { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10px; padding: 1px 5px; border: 1px dashed var(--line); border-radius: 3px; color: var(--ink-2); background: var(--paper-2); }
+  .bar-track { background: var(--paper-2); border-radius: 2px; height: 6px; overflow: hidden; }
+  .bar-fill { background: var(--sae); height: 100%; }
+  .led { display:inline-block; width:6px; height:6px; border-radius:50%; }
+  .led.on { background: var(--pos); box-shadow: 0 0 6px color-mix(in srgb, var(--pos) 60%, transparent); }
+  .led.warn { background: var(--warm); box-shadow: 0 0 6px color-mix(in srgb, var(--warm) 60%, transparent); }
+  .led.off { background: var(--neg); }
+  .stamp-3way { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10.5px; padding: 6px 10px; border: 1px dashed var(--sae); border-radius: 4px; color: var(--sae); background: color-mix(in srgb, var(--sae) 5%, var(--paper)); }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider flex-wrap">
+        <a href="/preview/banking" class="hover:text-[color:var(--sae)]">Banking</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <a href="#" class="hover:text-[color:var(--sae)]">Project trust accounts</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>PTA-J2603 · Northshore Stage 4</span>
+        <span class="ml-2 chip-mini pos"><i data-lucide="vault" class="w-2.5 h-2.5"></i>compliant</span>
+        <span class="chip-mini sae">QBCC PTA</span>
+        <span class="chip-mini">BIF Act 2017 (Qld) ch 2</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">Project trust account · J-2603</h1>
+      <p class="ink-2 text-[13.5px] mt-1 max-w-3xl">
+        Statutory project trust held for head contract <span class="num">J-2603 · Northshore Marina Stage 4 Fabrication</span>
+        with principal <span class="num">Maxwell Marine Constructions Pty Ltd</span> (ABN 86 154 220 184), QBCC project value
+        <span class="num">A$2,184,420.18</span>. Operated under Building Industry Fairness (Security of Payment) Act 2017 (Qld)
+        chapter 2 and QBCC Form 6A trust account requirements. Three-way reconciliation last ran <span class="num">11 May 2026 03:08 AEST</span>
+        with <span class="num text-[color:var(--pos)]">0-cent variance</span>.
+      </p>
+      <div class="flex items-center gap-3 mt-2 text-[11.5px] ink-3 flex-wrap">
+        <span>Trust BSB/Acct <span class="num">CBA 062-001 1842 2603</span></span><span>·</span>
+        <span>Trust name <span class="num">SAE Engineering Pty Ltd PTA J-2603</span></span><span>·</span>
+        <span>QBCC licence <span class="num">15 240 184 · cat. SC1 / SC2 / SF1</span></span><span>·</span>
+        <span>Form 6A lodged <span class="num">14 Feb 2026</span></span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <a href="#" class="btn-secondary"><i data-lucide="download" class="w-4 h-4"></i>Trust account statement PDF</a>
+      <a href="#" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="file-search-2" class="w-3 h-3"></i>3-way reconciliation report (last 12)</a>
+      <a href="/preview/activity?scope=pta&id=j-2603" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>Audit trail · 184 events</a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6 text-[12px]">
+  {% set kpis = [
+    ('Trust balance', 'A$184,260.42', 'as at 11 May 2026 03:08 AEST', 'vault', 'ink'),
+    ('Held for subbies', 'A$142,184.20', '6 subcontractors · 4 payment schedules pending', 'users-round', 'ink'),
+    ('Head contract retention', 'A$22,184.00', '5% withheld until practical completion', 'shield-half', 'ink'),
+    ('Subbie retention', 'A$19,892.22', '5% per BIF s.65 · cash held in trust', 'piggy-bank', 'sae'),
+    ('Compliance', 'GREEN', 'no breaches · auditor report due 30 Sep 2026', 'shield-check', 'pos'),
+    ('3-way variance', 'A$0.00', 'bank ↔ ledger ↔ schedule of payments', 'calculator', 'pos'),
+  ] %}
+  {% for label, val, sub, icon, tone in kpis %}
+    <div class="border hairline rounded-[4px] p-3 bg-[color:var(--paper)]">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider">{{ label }}</div>
+        <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 {% if tone == 'pos' %}text-[color:var(--pos)]{% elif tone == 'sae' %}text-[color:var(--sae)]{% else %}ink-3{% endif %}"></i>
+      </div>
+      <div class="num text-[18px] mt-1 {% if tone == 'pos' %}text-[color:var(--pos)]{% elif tone == 'sae' %}text-[color:var(--sae)]{% endif %}">{{ val }}</div>
+      <div class="text-[11px] ink-3 mt-0.5">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <!-- 3-way reconciliation centerpiece -->
+  <div class="col-span-12 lg:col-span-8">
+    <h2 class="font-display text-[22px] mb-3">Three-way reconciliation · 11 May 2026 03:08 AEST</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-5">
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div class="border hairline rounded-[4px] p-4 bg-[color:var(--paper-2)]">
+          <i data-lucide="building-2" class="w-5 h-5 ink-3 mx-auto"></i>
+          <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mt-2">A · Bank statement</div>
+          <div class="text-[11px] ink-3 mt-1 font-mono">CBA 062-001 1842 2603</div>
+          <div class="num text-[20px] mt-2">A$184,260.42</div>
+          <div class="text-[10.5px] ink-3 mt-1">closing 11 May · MT940</div>
+        </div>
+        <div class="border hairline rounded-[4px] p-4 bg-[color:var(--paper-2)]">
+          <i data-lucide="book" class="w-5 h-5 ink-3 mx-auto"></i>
+          <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mt-2">B · Trust ledger</div>
+          <div class="text-[11px] ink-3 mt-1 font-mono">GL 1-110 (PTA J-2603)</div>
+          <div class="num text-[20px] mt-2">A$184,260.42</div>
+          <div class="text-[10.5px] ink-3 mt-1">posted to 11 May 23:59 AEST</div>
+        </div>
+        <div class="border hairline rounded-[4px] p-4 bg-[color:var(--paper-2)]">
+          <i data-lucide="users" class="w-5 h-5 ink-3 mx-auto"></i>
+          <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mt-2">C · Beneficiary record</div>
+          <div class="text-[11px] ink-3 mt-1 font-mono">QBCC sched. of payments</div>
+          <div class="num text-[20px] mt-2">A$184,260.42</div>
+          <div class="text-[10.5px] ink-3 mt-1">6 subbies + retention + HC</div>
+        </div>
+      </div>
+      <div class="drafting my-5"></div>
+      <div class="flex items-center justify-between text-[12.5px]">
+        <div class="flex items-center gap-3">
+          <i data-lucide="check-circle-2" class="w-5 h-5 text-[color:var(--pos)]"></i>
+          <div>
+            <div class="font-semibold text-[color:var(--pos)]">A = B = C · 0-cent variance</div>
+            <div class="text-[10.5px] ink-3 font-mono">QBCC trust-account regulation s.42 — three-way recon every month</div>
+          </div>
+        </div>
+        <div class="stamp-3way">RECONCILED · 11 May 03:08 · agent-pta-1842</div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 mt-5 text-[11.5px]">
+        <div>
+          <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-1">Last 12 monthly reconciliations</div>
+          <div class="grid grid-cols-12 gap-1 mt-2">
+            {% for m in ['Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'] %}
+              <div title="{{ m }} reconciled · 0-cent variance" class="h-6 rounded-sm" style="background:color-mix(in srgb, var(--pos) 35%, var(--paper));"></div>
+            {% endfor %}
+          </div>
+          <div class="text-[10.5px] ink-3 font-mono mt-1">12/12 months green · annual auditor report due 30 Sep 2026 (Form 7)</div>
+        </div>
+        <div>
+          <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-1">No-overdraw protection</div>
+          <div class="space-y-1 font-mono">
+            <div><span class="led on"></span> Bank rule: PTA cannot go below A$0.00 (CBA Trust mode)</div>
+            <div><span class="led on"></span> Ledger rule: GL 1-110 has zero-floor constraint</div>
+            <div><span class="led on"></span> Approval rule: principal release required before payment out</div>
+            <div><span class="led on"></span> Sweep rule: idle cash &gt; 5 business days flagged · BIF s.59</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beneficiary table -->
+    <h2 class="font-display text-[22px] mt-8 mb-3">Held in trust — beneficiary breakdown</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2">Beneficiary</th>
+            <th class="text-left px-3 py-2 w-[110px]">Role</th>
+            <th class="text-right px-3 py-2 w-[110px]">Progress claim</th>
+            <th class="text-right px-3 py-2 w-[110px]">Retention 5%</th>
+            <th class="text-right px-3 py-2 w-[110px]">Held in PTA</th>
+            <th class="text-left px-3 py-2 w-[150px]">Payment schedule</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set ben = [
+            ('Dale Maxwell Welding · ABN 24 184 026 014','Subcontractor SF1','A$32,184.00','A$1,609.20','A$32,184.00','due 22 May · approved'),
+            ('Northshore Crane Hire · ABN 49 028 184 614','Subcontractor SC1','A$18,420.00','A$921.00','A$18,420.00','due 22 May · approved'),
+            ('Bowen Steel Cuttings · ABN 71 240 184 062','Subcontractor SF1','A$22,840.00','A$1,142.00','A$22,840.00','due 22 May · pending S. Wong'),
+            ('Pat Sheridan Rigging · ABN 16 184 026 014','Subcontractor SC2','A$14,260.18','A$713.00','A$14,260.18','due 28 May · pending'),
+            ('Bunnings Trade · ABN 18 008 672 179','Materials supplier','A$8,420.00','—','A$8,420.00','due 22 May · approved'),
+            ('BlueScope · ABN 16 000 011 058 (BILL-1843)','Materials supplier','A$46,060.02','—','A$46,060.02','due 08 Jun · auto-DD'),
+            ('— Subcontractor retention pool —','retention','—','—','A$19,892.22','released at PC + 12 mo defect'),
+            ('— Head-contract retention pool —','retention','—','—','A$22,184.00','released by principal at PC'),
+          ] %}
+          {% for name, role, claim, ret, held, sched in ben %}
+          <tr class="row-cell">
+            <td>{{ name }}</td>
+            <td class="text-[11px] font-mono ink-3">{{ role }}</td>
+            <td class="text-right num text-[11.5px]">{{ claim }}</td>
+            <td class="text-right num text-[11.5px] ink-3">{{ ret }}</td>
+            <td class="text-right num text-[11.5px] {% if 'retention' in role %}text-[color:var(--sae)]{% endif %}">{{ held }}</td>
+            <td class="text-[11px] font-mono ink-2">{{ sched }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="row-cell bg-[color:color-mix(in_srgb,var(--sae)_4%,var(--paper))]">
+            <td colspan="4" class="text-right text-[11px] font-mono ink-3">TOTAL · matches PTA balance</td>
+            <td class="text-right num font-semibold text-[color:var(--sae)]">A$184,260.42</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Recent transactions -->
+    <h2 class="font-display text-[22px] mt-8 mb-3">Recent trust movements · last 14 days</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2 w-[100px]">Date</th>
+            <th class="text-left px-3 py-2 w-[110px]">Type</th>
+            <th class="text-left px-3 py-2">Counterparty / reference</th>
+            <th class="text-right px-3 py-2 w-[110px]">In</th>
+            <th class="text-right px-3 py-2 w-[110px]">Out</th>
+            <th class="text-right px-3 py-2 w-[120px]">Trust balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set tx = [
+            ('27 Apr 2026','principal in','Maxwell Marine · PC-26-014 progress claim 11 paid','A$184,260.42','—','A$268,140.20'),
+            ('28 Apr 2026','sub out','Dale Maxwell · PC-J2603-S-014 (BIF s.68 payment)','—','A$28,840.40','A$239,299.80'),
+            ('28 Apr 2026','sub out','Northshore Crane · PC-J2603-S-015','—','A$16,420.20','A$222,879.60'),
+            ('29 Apr 2026','retention hold','Dale Maxwell PC-014 · 5% retention to trust','—','—','A$222,879.60'),
+            ('30 Apr 2026','sub out','BlueScope · BILL-1620 supply','—','A$28,420.18','A$194,459.42'),
+            ('02 May 2026','interest','CBA Trust interest credit · 0.84% pa','A$184.00','—','A$194,643.42'),
+            ('02 May 2026','interest out','interest swept to operating per QBCC s.43','—','A$184.00','A$194,459.42'),
+            ('08 May 2026','sub out','Pat Sheridan · PC-J2603-S-016','—','A$10,198.00','A$184,261.42'),
+            ('11 May 2026','rounding','MT940 reconciliation rounding','—','A$1.00','A$184,260.42'),
+          ] %}
+          {% for date, t, who, in_, out, bal in tx %}
+          <tr class="row-cell">
+            <td class="num text-[11.5px]">{{ date }}</td>
+            <td><span class="chip-mini {% if 'in' in t and 'out' not in t %}pos{% elif 'out' in t %}neg{% elif 'retention' in t %}sae{% else %}warm{% endif %}">{{ t }}</span></td>
+            <td class="text-[11.5px]">{{ who }}</td>
+            <td class="text-right num text-[11.5px] {% if in_ != '—' %}text-[color:var(--pos)]{% endif %}">{{ in_ }}</td>
+            <td class="text-right num text-[11.5px] {% if out != '—' %}text-[color:var(--neg)]{% endif %}">{{ out }}</td>
+            <td class="text-right num text-[11.5px]">{{ bal }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right rail -->
+  <div class="col-span-12 lg:col-span-4 space-y-5">
+    <!-- QBCC compliance status -->
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">QBCC compliance · J-2603</div>
+      <div class="space-y-1.5 text-[11.5px]">
+        {% set comp = [
+          ('Form 6A — trust account established', 'pos', '14 Feb 2026 · CBA · acct -2603'),
+          ('Form 6B — notice to subbies (within 5 BD)', 'pos', '6 subs · acknowledged 18 Feb 2026'),
+          ('BIF s.65 — retention amounts in trust', 'pos', 'A$19,892.22 held for subs · ledger 2-510'),
+          ('BIF s.68 — payment to subs ≤ 25 BD from claim', 'pos', 'avg 18.4 BD this project'),
+          ('BIF s.75 — payment schedule issued ≤ 15 BD', 'pos', '6/6 schedules · 0 disputes'),
+          ('BIF s.76 — false declaration (zero tolerance)', 'pos', '0 incidents · agent-pta watch'),
+          ('s.42 trust regulation — monthly recon', 'pos', '12/12 months · 0-cent'),
+          ('Form 7 annual auditor report', 'warn', 'due 30 Sep 2026 · 142 days to go'),
+        ] %}
+        {% for label, tone, note in comp %}
+          <div class="flex items-start gap-2">
+            <span class="led {% if tone == 'pos' %}on{% elif tone == 'warn' %}warn{% else %}off{% endif %} mt-1.5"></span>
+            <div class="flex-1">
+              <div class="text-[12px]">{{ label }}</div>
+              <div class="text-[10.5px] ink-3 font-mono">{{ note }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Authorisation matrix -->
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Withdrawal authorisation matrix</div>
+      <div class="space-y-1.5 text-[11.5px] font-mono">
+        <div class="flex justify-between"><span class="ink-3">≤ A$5,000</span><span>any single signatory</span></div>
+        <div class="flex justify-between"><span class="ink-3">A$5k – A$25k</span><span>two-of-three (R/S/L)</span></div>
+        <div class="flex justify-between"><span class="ink-3">&gt; A$25,000</span><span>R. Sauer (principal) + 1</span></div>
+        <div class="flex justify-between"><span class="ink-3">&gt; A$100,000</span><span>R. Sauer + signed payment sch.</span></div>
+      </div>
+      <div class="drafting my-3"></div>
+      <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-1">Signatories</div>
+      <div class="space-y-0.5 text-[11px] font-mono">
+        <div>R. Sauer · principal · MyGovID Strong + hardware key</div>
+        <div>S. Wong · admin · MyGovID Strong + TOTP</div>
+        <div>L. Patel · ops · TOTP (read + draft only)</div>
+      </div>
+    </div>
+
+    <!-- BIF Act rail -->
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Statutory framework</div>
+      <div class="space-y-1.5 text-[11.5px] font-mono ink-2">
+        <div>Building Industry Fairness (Security of Payment) Act 2017 (Qld)</div>
+        <div class="ink-3">Chapter 2 — Project &amp; retention trusts</div>
+        <div class="ink-3">Chapter 3 — Progress payments &amp; payment schedules</div>
+        <div class="ink-3">Chapter 4 — Adjudication</div>
+        <div class="drafting my-2"></div>
+        <div>QBCC Act 1991 · trust regulation 2017</div>
+        <div>QBCC Form 6A · 6B · 7 (auditor) · 8 (transition)</div>
+        <div>Trustee Act 1973 (Qld) · trustee duty of care</div>
+        <div>Tax Practitioners Board · agent obligation s.30-10</div>
+      </div>
+    </div>
+
+    <!-- Audit trail snapshot -->
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Recent audit events</div>
+      <div class="space-y-1 text-[11px] font-mono ink-2">
+        <div>2026-05-11 03:08 · 3-way recon · 0¢ · agent-pta</div>
+        <div>2026-05-08 14:42 · sub payment · Pat Sheridan A$10,198 · R+S signed</div>
+        <div>2026-05-02 09:14 · interest swept A$184 · per s.43</div>
+        <div>2026-04-30 11:22 · BlueScope BILL-1620 paid A$28,420.18</div>
+        <div>2026-04-29 16:18 · retention 5% Dale Maxwell held A$1,609.20</div>
+        <div>2026-04-28 10:42 · Dale Maxwell A$28,840.40 · R+S signed</div>
+        <div>2026-04-27 14:08 · principal claim 11 received A$184,260</div>
+        <div>2026-04-18 09:00 · 3-way recon · 0¢ (Apr)</div>
+        <div class="ink-3">… 176 more …</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparison + cross-links -->
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <div class="col-span-12 lg:col-span-8">
+    <h2 class="font-display text-[22px] mb-3">PTA handling · how this compares</h2>
+    <div class="border hairline rounded-[4px] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2 w-[260px]">Capability</th>
+            <th class="text-left px-3 py-2">Xero AU</th>
+            <th class="text-left px-3 py-2">MYOB Business</th>
+            <th class="text-left px-3 py-2">Reckon One</th>
+            <th class="text-left px-3 py-2 bg-[color:color-mix(in_srgb,var(--sae)_8%,var(--paper))]">SAE Books</th>
+          </tr>
+        </thead>
+        <tbody class="text-[11.5px]">
+          {% set comp = [
+            ('QBCC PTA aware ledger (BIF Act ch 2)', 'no native concept', 'add-on (Workflow Max)', 'no native concept', 'first-class · trust GL 1-1xx auto-locked'),
+            ('Three-way reconciliation (bank ↔ ledger ↔ beneficiaries)', 'manual', 'manual', 'manual', 'automatic monthly · 0¢ enforced'),
+            ('No-overdraw enforcement at ledger', '—', '—', '—', 'zero-floor constraint · DB trigger'),
+            ('Retention pool tracking (5% per sub)', 'manual', 'manual', 'manual', 'auto on each invoice · auto-release at PC + DLP'),
+            ('Sweep idle cash > 5 BD warning (s.59)', '—', '—', '—', 'rule R-22 · auto-flag &amp; notify'),
+            ('Form 6A/6B/7 prep from ledger data', '—', '—', '—', 'one-click · pre-filled · TPB-checked'),
+            ('Subbie notification within 5 BD (s.55)', '—', '—', '—', 'auto email · ack tracked · audit chain'),
+            ('Payment schedule per BIF s.75 generator', '—', '—', '—', 'auto-issued ≤ 15 BD · linked to claim'),
+          ] %}
+          {% for cap, x, m, r, s in comp %}
+          <tr class="row-cell">
+            <td class="font-semibold">{{ cap }}</td>
+            <td class="ink-2">{{ x }}</td>
+            <td class="ink-2">{{ m }}</td>
+            <td class="ink-2">{{ r }}</td>
+            <td class="text-[color:var(--sae)] font-semibold bg-[color:color-mix(in_srgb,var(--sae)_3%,var(--paper))]">{{ s }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-span-12 lg:col-span-4">
+    <h2 class="font-display text-[22px] mb-3">Cross-links</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4 space-y-2 text-[12px]">
+      {% set links = [
+        ('Job J-2603 · Northshore Stage 4', 'wrench', '/preview/jobs/j-2603'),
+        ('Dale Maxwell · subbie SF1', 'user', '/preview/contacts/dale-maxwell'),
+        ('BlueScope · BILL-1843 (inbound Peppol)', 'inbox', '/preview/inbox/inv-bs-20611'),
+        ('BAS Q3 FY26 · ACCEPTED', 'file-check-2', '/preview/compliance/bas/26-q3'),
+        ('STP pay event 26-051104', 'send', '/preview/payroll/stp-events/26-051104'),
+        ('Settings · Numbering &amp; identifiers', 'list-ordered', '/preview/settings/numbering'),
+      ] %}
+      {% for label, icon, href in links %}
+        <a href="{{ href }}" class="flex items-center gap-2 hover:text-[color:var(--sae)]">
+          <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 ink-3"></i>
+          <span>{{ label|safe }}</span>
+          <i data-lucide="arrow-up-right" class="w-3 h-3 ink-3 ml-auto"></i>
+        </a>
+      {% endfor %}
+    </div>
+    <div class="mt-4 border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Why this matters · BIF s.76</div>
+      <div class="text-[11.5px] ink-2">
+        False declaration on a payment schedule under BIF s.76 is a strict-liability offence with maximum
+        penalty <span class="num">300 penalty units</span> (A$45,990 in 2026) for a corporation and
+        risk of QBCC licence cancellation. SAE Books treats the trust account as <strong>read-only by default</strong>:
+        every dollar out requires a payment schedule + matched progress claim + signed authority chain.
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,443 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}SuperStream batch Q4 FY26 — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .row-cell td { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .row-cell:first-child td { border-top: 0; }
+  .xml-block { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10.5px; line-height: 1.55; background: var(--paper-2); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; color: var(--ink-2); overflow-x: auto; white-space: pre; }
+  .xml-block .k { color: var(--brand-2); }
+  .xml-block .v { color: var(--sae); }
+  .num-stamp { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10px; padding: 1px 5px; border: 1px dashed var(--line); border-radius: 3px; color: var(--ink-2); background: var(--paper-2); }
+  .led { display:inline-block; width:6px; height:6px; border-radius:50%; }
+  .led.on { background: var(--pos); box-shadow: 0 0 6px color-mix(in srgb, var(--pos) 60%, transparent); }
+  .led.warn { background: var(--warm); box-shadow: 0 0 6px color-mix(in srgb, var(--warm) 60%, transparent); }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider flex-wrap">
+        <a href="/preview/compliance" class="hover:text-[color:var(--sae)]">Compliance</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <a href="/preview/super" class="hover:text-[color:var(--sae)]">Super</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>Batch SSB-26Q4-0184</span>
+        <span class="ml-2 chip-mini pos"><i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i>dispatched</span>
+        <span class="chip-mini sae">SuperStream MIG v6.4</span>
+        <span class="chip-mini">Beam clearing house</span>
+        <span class="chip-mini warm">Payday Super 51d</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">SuperStream batch · Q4 FY26 (Apr–Jun period to date)</h1>
+      <p class="ink-2 text-[13.5px] mt-1 max-w-3xl">
+        SG contribution batch <span class="num">SSB-26Q4-0184</span> dispatched via <strong>Beam</strong> on Sun 11 May 2026.
+        4 members across 3 APRA funds, total contributions <span class="num">A$3,309.60</span> (SG <span class="num">A$2,639.60</span> + sal-sac
+        <span class="num">A$670.00</span>) covering pay periods 41–46 (29 Mar – 11 May). All members reconciled to STP YTD with <span class="num">A$0.00</span> variance.
+      </p>
+      <div class="flex items-center gap-3 mt-2 text-[11.5px] ink-3 flex-wrap">
+        <span>BMS ID <span class="num">SAEBOOKS-1842-2026</span></span><span>·</span>
+        <span>Employer ABN <span class="num">47 168 502 343</span></span><span>·</span>
+        <span>WPN <span class="num">0021848</span></span><span>·</span>
+        <span>Beam member ID <span class="num">BMC-184612</span></span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <a href="#" class="btn-secondary"><i data-lucide="send" class="w-4 h-4"></i>Submitted · awaiting fund acks</a>
+      <a href="#" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="file-code" class="w-3 h-3"></i>SuperStream MIG envelope (XML)</a>
+      <a href="/preview/activity?scope=ssb&id=26q4-0184" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>Super batch audit · 14 events</a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<div class="border hairline rounded-[4px] bg-[color:color-mix(in_srgb,var(--warm)_8%,var(--paper))] p-4 mb-6 flex items-start gap-4">
+  <i data-lucide="alarm-clock" class="w-5 h-5 text-[color:var(--warm)] mt-1"></i>
+  <div class="flex-1">
+    <div class="text-[13px] font-semibold">Payday Super commences <span class="num">1 Jul 2026</span> — 51 days from today (11 May 2026)</div>
+    <div class="text-[11.5px] ink-2 mt-1">
+      From 1 Jul 2026, SG contributions must be received by an employee's super fund <strong>within 7 business days of each payday</strong>
+      (Treasury Laws Amendment (Payday Superannuation) Act 2025). Late payment triggers SG Charge under SGAA s.18 — SG amount +
+      nominal interest 10% pa + admin A$20/member/quarter — non-deductible. SAE Books has staged a parallel pay-aligned schedule for cutover.
+    </div>
+  </div>
+  <div class="flex-shrink-0">
+    <a href="#" class="text-[11.5px] text-[color:var(--sae)] hover:underline">Preview Payday Super schedule →</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 text-[12px]">
+  {% set kpis = [
+    ('Members', '4', 'Mia · Liam · Sarah · Richard', 'users-round', 'ink'),
+    ('SG contributions', 'A$2,639.60', '12% × A$21,996.67 OTE base', 'piggy-bank', 'ink'),
+    ('Salary sacrifice', 'A$670.00', 'R. Sauer type-S', 'banknote', 'ink'),
+    ('Total to funds', 'A$3,309.60', 'BPAY DD 12 May · CBA 062-001 1842 0611', 'send', 'sae'),
+    ('SG due date', '28 Jul 2026', 'currently quarterly · Payday from 01 Jul', 'calendar-clock', 'pos'),
+  ] %}
+  {% for label, val, sub, icon, tone in kpis %}
+    <div class="border hairline rounded-[4px] p-3 bg-[color:var(--paper)]">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider">{{ label }}</div>
+        <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 {% if tone == 'pos' %}text-[color:var(--pos)]{% elif tone == 'sae' %}text-[color:var(--sae)]{% else %}ink-3{% endif %}"></i>
+      </div>
+      <div class="num text-[20px] mt-1 {% if tone == 'pos' %}text-[color:var(--pos)]{% elif tone == 'sae' %}text-[color:var(--sae)]{% endif %}">{{ val }}</div>
+      <div class="text-[11px] ink-3 mt-0.5">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <div class="col-span-12 lg:col-span-8">
+    <h2 class="font-display text-[22px] mb-3">Member contributions · this batch</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2">Member</th>
+            <th class="text-left px-3 py-2 w-[180px]">Fund · USI</th>
+            <th class="text-right px-3 py-2 w-[110px]">OTE base</th>
+            <th class="text-right px-3 py-2 w-[80px]">SG 12%</th>
+            <th class="text-right px-3 py-2 w-[90px]">Sal-sac S</th>
+            <th class="text-right px-3 py-2 w-[100px]">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set members = [
+            ('Mia Chen','TFN ··· 184 · DOB 14-Mar-1996','Australian Retirement Trust','60905115063003','7,184.00','862.08','—','862.08'),
+            ('Liam Patel','TFN ··· 614 · DOB 02-Aug-1992','AustralianSuper','65714394898001','6,420.00','770.40','—','770.40'),
+            ('Sarah Wong','TFN ··· 026 · DOB 18-Sep-1988','HESTA','64971749321001','3,184.00','382.08','—','382.08'),
+            ('Richard Sauer','TFN ··· 842 · DOB 24-Feb-1979 · Principal','Hostplus','68657495890001','5,208.67','625.04','670.00','1,295.04'),
+          ] %}
+          {% for name, tfn, fund, usi, ote, sg, sac, tot in members %}
+          <tr class="row-cell">
+            <td>
+              <div class="font-semibold">{{ name }}</div>
+              <div class="text-[10.5px] font-mono ink-3">{{ tfn }}</div>
+            </td>
+            <td>
+              <div class="text-[12px]">{{ fund }}</div>
+              <div class="text-[10.5px] font-mono ink-3">{{ usi }}</div>
+            </td>
+            <td class="text-right num text-[11.5px]">{{ ote }}</td>
+            <td class="text-right num text-[11.5px]">{{ sg }}</td>
+            <td class="text-right num text-[11.5px] {% if sac == '—' %}ink-3{% endif %}">{{ sac }}</td>
+            <td class="text-right num text-[11.5px] font-semibold">{{ tot }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="row-cell bg-[color:color-mix(in_srgb,var(--sae)_4%,var(--paper))]">
+            <td colspan="2" class="text-right text-[11px] font-mono ink-3">BATCH TOTAL · 4 members · 3 funds</td>
+            <td class="text-right num font-semibold">21,996.67</td>
+            <td class="text-right num font-semibold">2,639.60</td>
+            <td class="text-right num font-semibold">670.00</td>
+            <td class="text-right num font-semibold text-[color:var(--sae)]">3,309.60</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="font-display text-[22px] mt-8 mb-3">Ordinary Time Earnings basis · SGR 2009/2</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4 grid grid-cols-2 gap-6 text-[11.5px]">
+      <div>
+        <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-2">Included in OTE (per SGR 2009/2)</div>
+        <div class="space-y-1 font-mono ink-2">
+          <div><span class="led on"></span> Ordinary hours of work — base award rate</div>
+          <div><span class="led on"></span> Shift loadings on ordinary hours</div>
+          <div><span class="led on"></span> Allowances paid on ordinary hours (tool, site)</div>
+          <div><span class="led on"></span> Bonuses related to ordinary hours</div>
+          <div><span class="led on"></span> Casual loading on ordinary hours</div>
+          <div><span class="led on"></span> Salary sacrificed amounts (back-added per s.23(2))</div>
+        </div>
+      </div>
+      <div>
+        <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-2">Excluded from OTE</div>
+        <div class="space-y-1 font-mono ink-2">
+          <div><span class="led warn"></span> Overtime (1.5×, 2×) — SGR 2009/2 paragraph 13</div>
+          <div><span class="led warn"></span> Reimbursements (TR 92/15 — not OTE)</div>
+          <div><span class="led warn"></span> Termination payments (unused leave, redundancy)</div>
+          <div><span class="led warn"></span> Workers comp top-up not on ordinary hours</div>
+          <div><span class="led warn"></span> Expense allowances (e.g. travel CD code on STP)</div>
+          <div><span class="led warn"></span> Parental leave (employer paid, not super-able)</div>
+        </div>
+      </div>
+      <div class="col-span-2 drafting"></div>
+      <div class="col-span-2 text-[10.5px] ink-3 font-mono">SG rate 12.0% from 1 Jul 2025 (legislated final rate) · Maximum super contributions base FY26 A$65,070 per quarter / A$260,280 pa · MSCB cap not triggered for any member · concessional cap A$30,000 pa monitored at member level (R. Sauer YTD A$28,420 · 1.9% headroom)</div>
+    </div>
+
+    <h2 class="font-display text-[22px] mt-8 mb-3">STP YTD ↔ super batch reconciliation</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2">Member</th>
+            <th class="text-right px-3 py-2 w-[120px]">SG per STP (sum of events)</th>
+            <th class="text-right px-3 py-2 w-[120px]">SG paid this batch</th>
+            <th class="text-right px-3 py-2 w-[120px]">SG YTD via Beam</th>
+            <th class="text-right px-3 py-2 w-[100px]">Variance</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set rec = [
+            ('Mia Chen','A$862.08','A$862.08','A$8,420.18','A$0.00'),
+            ('Liam Patel','A$770.40','A$770.40','A$7,420.18','A$0.00'),
+            ('Sarah Wong','A$382.08','A$382.08','A$3,820.40','A$0.00'),
+            ('Richard Sauer (incl sal-sac)','A$1,295.04','A$1,295.04','A$12,840.20','A$0.00'),
+          ] %}
+          {% for who, stp, batch, ytd, var in rec %}
+          <tr class="row-cell">
+            <td>{{ who }}</td>
+            <td class="text-right num text-[11.5px]">{{ stp }}</td>
+            <td class="text-right num text-[11.5px]">{{ batch }}</td>
+            <td class="text-right num text-[11.5px]">{{ ytd }}</td>
+            <td class="text-right num text-[11.5px] text-[color:var(--pos)]">{{ var }} ✓</td>
+          </tr>
+          {% endfor %}
+          <tr class="row-cell bg-[color:color-mix(in_srgb,var(--sae)_4%,var(--paper))]">
+            <td class="font-semibold">Batch total · 4 members</td>
+            <td class="text-right num font-semibold">A$3,309.60</td>
+            <td class="text-right num font-semibold">A$3,309.60</td>
+            <td class="text-right num font-semibold">A$32,500.96</td>
+            <td class="text-right num font-semibold text-[color:var(--pos)]">A$0.00 ✓</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-span-12 lg:col-span-4 space-y-5">
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Clearing house</div>
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="building-2" class="w-5 h-5 text-[color:var(--sae)]"></i>
+        <span class="font-semibold text-[14px]">Beam (Precision Administration)</span>
+      </div>
+      <div class="space-y-1 text-[11.5px] ink-2 font-mono">
+        <div class="flex justify-between"><span class="ink-3">Operator ABN</span><span class="num">12 098 165 152</span></div>
+        <div class="flex justify-between"><span class="ink-3">AUSTRAC RSE</span><span class="num">L0001984</span></div>
+        <div class="flex justify-between"><span class="ink-3">SuperStream MIG</span><span class="num">v6.4 · accredited</span></div>
+        <div class="flex justify-between"><span class="ink-3">Auth flow</span><span class="num">OAuth 2.0 + mTLS</span></div>
+        <div class="flex justify-between"><span class="ink-3">Endpoint</span><span class="num">api.beamsuper.com.au</span></div>
+        <div class="flex justify-between"><span class="ink-3">Pricing</span><span class="num">A$0 — employer free</span></div>
+        <div class="flex justify-between"><span class="ink-3">SLA fund forward</span><span class="num">≤ 7 BD typical · 3 BD APRA-large</span></div>
+      </div>
+      <div class="drafting my-3"></div>
+      <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-1">Alternative — ATO SBSCH</div>
+      <div class="text-[10.5px] ink-3">SBSCH (free, ≤19 emp) supported — switch at <a class="text-[color:var(--sae)] hover:underline" href="/preview/settings/super">Settings · Super</a></div>
+    </div>
+
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Payment to clearing house</div>
+      <div class="space-y-1 text-[11.5px] ink-2 font-mono">
+        <div class="flex justify-between"><span class="ink-3">Method</span><span class="num">BPAY (PSC-rated)</span></div>
+        <div class="flex justify-between"><span class="ink-3">Biller code</span><span class="num">582841</span></div>
+        <div class="flex justify-between"><span class="ink-3">CRN</span><span class="num">2614 1827 0184 1842</span></div>
+        <div class="flex justify-between"><span class="ink-3">Amount</span><span class="num text-[color:var(--sae)]">A$3,309.60</span></div>
+        <div class="flex justify-between"><span class="ink-3">Source account</span><span class="num">CBA 062-001 1842 0611</span></div>
+        <div class="flex justify-between"><span class="ink-3">Scheduled</span><span class="num">12 May 2026 03:00 AEST</span></div>
+        <div class="flex justify-between"><span class="ink-3">Posting</span><span class="num">DR 2-330 · CR 1-100</span></div>
+      </div>
+    </div>
+
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Fund acknowledgements</div>
+      <div class="space-y-2 text-[11.5px]">
+        {% set funds = [
+          ('Australian Retirement Trust (Mia Chen)', 'on', 'received 11 May 18:42 · A$862.08 allocated'),
+          ('AustralianSuper (Liam Patel)', 'on', 'received 11 May 18:48 · A$770.40 allocated'),
+          ('HESTA (Sarah Wong)', 'on', 'received 11 May 18:54 · A$382.08 allocated'),
+          ('Hostplus (R. Sauer · SG + sal-sac)', 'warn', 'SG A$625.04 allocated · sal-sac pending S-type ack'),
+        ] %}
+        {% for name, st, note in funds %}
+          <div class="flex items-start gap-2">
+            <span class="led {{ st }} mt-1.5"></span>
+            <div class="flex-1">
+              <div class="text-[12px]">{{ name }}</div>
+              <div class="text-[10.5px] ink-3 font-mono">{{ note }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">SG quarterly due dates · FY26</div>
+      <div class="space-y-1 text-[11px] font-mono">
+        <div class="flex justify-between"><span>Q1 Jul–Sep 25</span><span class="num text-[color:var(--pos)]">paid 24 Oct 25 ✓</span></div>
+        <div class="flex justify-between"><span>Q2 Oct–Dec 25</span><span class="num text-[color:var(--pos)]">paid 22 Jan 26 ✓</span></div>
+        <div class="flex justify-between"><span>Q3 Jan–Mar 26</span><span class="num text-[color:var(--pos)]">paid 24 Apr 26 ✓</span></div>
+        <div class="flex justify-between"><span>Q4 Apr–Jun 26</span><span class="num text-[color:var(--warm)]">due 28 Jul 26 · A$3,309.60 dispatched early</span></div>
+        <div class="border-t hairline my-1"></div>
+        <div class="flex justify-between"><span>From 01 Jul 2026</span><span class="num text-[color:var(--sae)]">PAYDAY SUPER · 7 BD window</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mb-8">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="font-display text-[22px]">SuperStream MIG · contribution submission</h2>
+    <span class="text-[11px] font-mono ink-3">payload <span class="num">SuperStream.Contributions.6.4</span> · mTLS · TLS 1.3 · POST to Beam</span>
+  </div>
+  <div class="xml-block">&lt;<span class="k">scs:ContributionTransaction</span> <span class="k">xmlns:scs</span>=<span class="v">"http://sbr.gov.au/super/Contributions.6.4"</span>&gt;
+  &lt;<span class="k">scs:Sender</span>&gt;
+    &lt;<span class="k">cbc:ABN</span>&gt;<span class="v">47168502343</span>&lt;/<span class="k">cbc:ABN</span>&gt;
+    &lt;<span class="k">cbc:Name</span>&gt;<span class="v">SAE Engineering Pty Ltd</span>&lt;/<span class="k">cbc:Name</span>&gt;
+    &lt;<span class="k">cbc:BMSId</span>&gt;<span class="v">SAEBOOKS-1842-2026</span>&lt;/<span class="k">cbc:BMSId</span>&gt;
+  &lt;/<span class="k">scs:Sender</span>&gt;
+  &lt;<span class="k">scs:PaymentReferenceNumber</span>&gt;<span class="v">2614182701841842</span>&lt;/<span class="k">scs:PaymentReferenceNumber</span>&gt;
+  &lt;<span class="k">scs:PaymentAmount</span>&gt;<span class="v">3309.60</span>&lt;/<span class="k">scs:PaymentAmount</span>&gt;
+  &lt;<span class="k">scs:PaymentMethod</span>&gt;<span class="v">BPAY</span>&lt;/<span class="k">scs:PaymentMethod</span>&gt;
+  &lt;!-- ============ Member 1 — Mia Chen ============ --&gt;
+  &lt;<span class="k">scs:Member</span>&gt;
+    &lt;<span class="k">cbc:TFN</span>&gt;<span class="v">···184</span>&lt;/<span class="k">cbc:TFN</span>&gt;
+    &lt;<span class="k">cbc:GivenName</span>&gt;<span class="v">Mia</span>&lt;/<span class="k">cbc:GivenName</span>&gt;
+    &lt;<span class="k">cbc:FamilyName</span>&gt;<span class="v">Chen</span>&lt;/<span class="k">cbc:FamilyName</span>&gt;
+    &lt;<span class="k">cbc:BirthDate</span>&gt;<span class="v">1996-03-14</span>&lt;/<span class="k">cbc:BirthDate</span>&gt;
+    &lt;<span class="k">scs:Fund</span>&gt;
+      &lt;<span class="k">cbc:ABN</span>&gt;<span class="v">60905115063</span>&lt;/<span class="k">cbc:ABN</span>&gt;        &lt;!-- ART --&gt;
+      &lt;<span class="k">cbc:USI</span>&gt;<span class="v">60905115063003</span>&lt;/<span class="k">cbc:USI</span>&gt;
+      &lt;<span class="k">cbc:MemberID</span>&gt;<span class="v">ART-184026-1996</span>&lt;/<span class="k">cbc:MemberID</span>&gt;
+    &lt;/<span class="k">scs:Fund</span>&gt;
+    &lt;<span class="k">scs:SuperGuaranteeAmount</span>&gt;<span class="v">862.08</span>&lt;/<span class="k">scs:SuperGuaranteeAmount</span>&gt;
+    &lt;<span class="k">scs:OTE</span>&gt;<span class="v">7184.00</span>&lt;/<span class="k">scs:OTE</span>&gt;
+    &lt;<span class="k">scs:PeriodStart</span>&gt;<span class="v">2026-03-29</span>&lt;/<span class="k">scs:PeriodStart</span>&gt;
+    &lt;<span class="k">scs:PeriodEnd</span>&gt;<span class="v">2026-05-11</span>&lt;/<span class="k">scs:PeriodEnd</span>&gt;
+  &lt;/<span class="k">scs:Member</span>&gt;
+  &lt;!-- ============ Member 4 — R. Sauer (SG + sal-sac) ============ --&gt;
+  &lt;<span class="k">scs:Member</span>&gt;
+    &lt;<span class="k">cbc:TFN</span>&gt;<span class="v">···842</span>&lt;/<span class="k">cbc:TFN</span>&gt;
+    &lt;<span class="k">cbc:GivenName</span>&gt;<span class="v">Richard</span>&lt;/<span class="k">cbc:GivenName</span>&gt;
+    &lt;<span class="k">cbc:FamilyName</span>&gt;<span class="v">Sauer</span>&lt;/<span class="k">cbc:FamilyName</span>&gt;
+    &lt;<span class="k">scs:Fund</span>&gt;
+      &lt;<span class="k">cbc:USI</span>&gt;<span class="v">68657495890001</span>&lt;/<span class="k">cbc:USI</span>&gt;    &lt;!-- Hostplus --&gt;
+    &lt;/<span class="k">scs:Fund</span>&gt;
+    &lt;<span class="k">scs:SuperGuaranteeAmount</span>&gt;<span class="v">625.04</span>&lt;/<span class="k">scs:SuperGuaranteeAmount</span>&gt;
+    &lt;<span class="k">scs:SalarySacrificeAmount</span>&gt;<span class="v">670.00</span>&lt;/<span class="k">scs:SalarySacrificeAmount</span>&gt;
+    &lt;<span class="k">scs:SalarySacrificeType</span>&gt;<span class="v">S</span>&lt;/<span class="k">scs:SalarySacrificeType</span>&gt;    &lt;!-- type-S super --&gt;
+    &lt;<span class="k">scs:OTE</span>&gt;<span class="v">5208.67</span>&lt;/<span class="k">scs:OTE</span>&gt;
+  &lt;/<span class="k">scs:Member</span>&gt;
+  &lt;<span class="k">scs:Declaration</span>&gt;
+    &lt;<span class="k">cbc:DeclarantRole</span>&gt;<span class="v">EMPLOYER</span>&lt;/<span class="k">cbc:DeclarantRole</span>&gt;
+    &lt;<span class="k">cbc:Signature</span>&gt;<span class="v">MyGovID:Strong:R.Sauer</span>&lt;/<span class="k">cbc:Signature</span>&gt;
+    &lt;<span class="k">cbc:SignedAt</span>&gt;<span class="v">2026-05-11T17:48:14+10:00</span>&lt;/<span class="k">cbc:SignedAt</span>&gt;
+  &lt;/<span class="k">scs:Declaration</span>&gt;
+&lt;/<span class="k">scs:ContributionTransaction</span>&gt;</div>
+  <div class="text-[10.5px] ink-3 mt-2 font-mono">Excerpt — Members 2 (Liam · AustralianSuper) and 3 (Sarah · HESTA) omitted for brevity. Full envelope 8.4 KB · SHA-256 <span class="num">7f42…3309 6024 c084 …b912</span> · stored R2 sae-super-fy26 (WORM, 7yr retention)</div>
+</div>
+
+<div class="mb-8">
+  <h2 class="font-display text-[22px] mb-3">Pipeline · payroll → Beam → fund · 11 May 2026</h2>
+  <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+          <th class="text-left px-3 py-2 w-[36px]">#</th>
+          <th class="text-left px-3 py-2 w-[140px]">Step</th>
+          <th class="text-left px-3 py-2 w-[150px]">Timestamp</th>
+          <th class="text-left px-3 py-2">Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set tl = [
+          ('1','OTE base computed','2026-05-11 17:42:18','From 13 STP events Mar 29 – May 11 · overtime excluded · allowance codes filtered'),
+          ('2','SG calc 12% · MSCB check','2026-05-11 17:43:02','A$2,639.60 · 0 members at cap · concessional cap monitored'),
+          ('3','Sal-sac added (R. Sauer type-S)','2026-05-11 17:43:18','+ A$670.00 · within concessional A$30k cap · 1.9% headroom'),
+          ('4','Member fund details refreshed','2026-05-11 17:44:08','USI lookup via Fund Validation Service · 4 of 4 active · no stapling needed (existing accts)'),
+          ('5','MIG envelope built · v6.4','2026-05-11 17:47:04','XML signed · payment ref 2614 1827 0184 1842'),
+          ('6','POST to Beam api','2026-05-11 17:48:14','OAuth 2.0 + mTLS · 200 OK · session sec-26-184-9234'),
+          ('7','BPAY DD queued · CBA','2026-05-11 17:48:42','12 May 03:00 AEST · A$3,309.60 · DE batch bpay-ssb-26q4-0184.aba'),
+          ('8','Fund acks rolling in','2026-05-11 18:42 – 18:54','3 of 4 funds allocated · Hostplus partial (sal-sac S-type pending)'),
+        ] %}
+        {% for n, step, ts, detail in tl %}
+        <tr class="row-cell">
+          <td class="num ink-3">{{ n }}</td>
+          <td class="font-semibold">{{ step }}</td>
+          <td class="num text-[11.5px]">{{ ts }}</td>
+          <td class="text-[12px] ink-2">{{ detail }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <div class="col-span-12 lg:col-span-7">
+    <h2 class="font-display text-[22px] mb-3">SuperStream handling · how this compares</h2>
+    <div class="border hairline rounded-[4px] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2 w-[260px]">Capability</th>
+            <th class="text-left px-3 py-2">Xero AU</th>
+            <th class="text-left px-3 py-2">MYOB Business</th>
+            <th class="text-left px-3 py-2">Reckon One</th>
+            <th class="text-left px-3 py-2 bg-[color:color-mix(in_srgb,var(--sae)_8%,var(--paper))]">SAE Books</th>
+          </tr>
+        </thead>
+        <tbody class="text-[11.5px]">
+          {% set comp = [
+            ('Clearing house options', 'Auto Super (Xero own)', 'PaySuper / Beam', 'GovConnect / SBSCH', 'Beam · ATO SBSCH · self-clear (any)'),
+            ('STP YTD ↔ super recon (per member)', 'manual', 'manual', 'manual', 'automatic · 0¢ enforced per batch'),
+            ('OTE rule engine (SGR 2009/2 included/excluded)', 'category-tagged', 'category-tagged', 'category-tagged', 'allowance/deduction-code aware · auto'),
+            ('Concessional cap A$30k monitoring', 'add-on', '—', '—', 'per-member · rolling 12 mo'),
+            ('Fund USI / stapling check via FVS', 'monthly', 'monthly', '—', 'live before batch send'),
+            ('Salary-sacrifice type-S vs type-O split', 'manual', 'manual', '—', 'inferred from pay event STP2 codes'),
+            ('Payday Super readiness (01 Jul 2026)', 'phased', 'phased', '—', 'pay-aligned schedule pre-built · 7 BD window monitor'),
+            ('SG Charge calculator (SGAA s.18)', 'spreadsheet', 'spreadsheet', 'spreadsheet', 'auto if any fund SLA breached'),
+          ] %}
+          {% for cap, x, m, r, s in comp %}
+          <tr class="row-cell">
+            <td class="font-semibold">{{ cap }}</td>
+            <td class="ink-2">{{ x }}</td>
+            <td class="ink-2">{{ m }}</td>
+            <td class="ink-2">{{ r }}</td>
+            <td class="text-[color:var(--sae)] font-semibold bg-[color:color-mix(in_srgb,var(--sae)_3%,var(--paper))]">{{ s }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-span-12 lg:col-span-5">
+    <h2 class="font-display text-[22px] mb-3">Cross-links · audit</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4 space-y-2 text-[12px]">
+      {% set links = [
+        ('STP pay event 26-051104', 'send', '/preview/payroll/stp-events/26-051104'),
+        ('BAS Q3 FY26 lodged', 'file-check-2', '/preview/compliance/bas/26-q3'),
+        ('Job J-2603 · loaded labour incl 12% SG', 'percent-circle', '/preview/jobs/j-2603/financials'),
+        ('Settings · numbering &amp; identifiers', 'list-ordered', '/preview/settings/numbering'),
+        ('Migration · re-link SuperStream from Xero', 'arrow-right-left', '/preview/migration'),
+      ] %}
+      {% for label, icon, href in links %}
+        <a href="{{ href }}" class="flex items-center gap-2 hover:text-[color:var(--sae)]">
+          <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 ink-3"></i>
+          <span>{{ label|safe }}</span>
+          <i data-lucide="arrow-up-right" class="w-3 h-3 ink-3 ml-auto"></i>
+        </a>
+      {% endfor %}
+    </div>
+    <div class="mt-4 border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Audit trail · 14 events</div>
+      <div class="space-y-0.5 text-[11px] font-mono ink-2">
+        <div>2026-05-11 17:42 · OTE base computed · agent-super</div>
+        <div>2026-05-11 17:43 · SG + sal-sac applied</div>
+        <div>2026-05-11 17:44 · FVS USI check · 4/4 active</div>
+        <div>2026-05-11 17:47 · MIG envelope built v6.4</div>
+        <div>2026-05-11 17:48 · POST to Beam · 200 OK</div>
+        <div>2026-05-11 17:48 · BPAY DD queued · CBA · 12 May 03:00</div>
+        <div>2026-05-11 17:49 · ledger DR 2-330 · CR 1-100</div>
+        <div>2026-05-11 18:42 · ART ack · A$862.08</div>
+        <div>2026-05-11 18:48 · AustralianSuper ack</div>
+        <div>2026-05-11 18:54 · HESTA ack</div>
+        <div>2026-05-11 18:58 · Hostplus partial ack</div>
+        <div class="ink-3">… 3 more …</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

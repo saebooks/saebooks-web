@@ -5,96 +5,58 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Payments</h1>
-    {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ total }} payment{{ "s" if total != 1 else "" }}</p>
-    {% endif %}
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Cash</span>
+        <span class="reg-mark"></span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">Payments</h1>
+      {% if not error %}
+      <p class="text-xs ink-3 font-mono mt-2">{{ total }} payment{{ "s" if total != 1 else "" }}</p>
+      {% endif %}
+    </div>
+    <a href="/payments/new" class="btn-primary text-sm">+ New payment</a>
   </div>
+  <div class="drafting mt-4"></div>
+</header>
 
-  <a
-    href="/payments/new"
-    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
-           hover:bg-indigo-700"
-  >
-    + New payment
-  </a>
-</div>
-
-{# Filter form — HTMX-powered, swaps only the table on submit #}
-<form
-  hx-get="/payments"
-  hx-target="#payments-table"
-  hx-swap="outerHTML"
-  hx-push-url="true"
-  class="mb-4 flex flex-wrap gap-3 items-end"
->
+<form hx-get="/payments" hx-target="#payments-table" hx-swap="outerHTML" hx-push-url="true"
+      class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
   <div>
-    <label for="direction" class="block text-xs font-medium text-gray-500 mb-1">Direction</label>
-    <select
-      id="direction"
-      name="direction"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    >
+    <label for="direction" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Direction</label>
+    <select id="direction" name="direction" class="saebooks-input text-sm py-1.5">
       <option value="" {% if not filter_direction %}selected{% endif %}>All</option>
       <option value="INCOMING" {% if filter_direction == 'INCOMING' %}selected{% endif %}>Incoming</option>
       <option value="OUTGOING" {% if filter_direction == 'OUTGOING' %}selected{% endif %}>Outgoing</option>
     </select>
   </div>
-
   <div>
-    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">Date from</label>
-    <input
-      type="date"
-      id="date_from"
-      name="date_from"
-      value="{{ filter_date_from }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    >
+    <label for="date_from" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Date from</label>
+    <input type="date" id="date_from" name="date_from" value="{{ filter_date_from }}" class="saebooks-input num text-sm py-1.5">
   </div>
-
   <div>
-    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">Date to</label>
-    <input
-      type="date"
-      id="date_to"
-      name="date_to"
-      value="{{ filter_date_to }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    >
+    <label for="date_to" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Date to</label>
+    <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}" class="saebooks-input num text-sm py-1.5">
   </div>
-
   <div>
-    <label for="contact_id" class="block text-xs font-medium text-gray-500 mb-1">Contact UUID</label>
-    <input
-      type="text"
-      id="contact_id"
-      name="contact_id"
-      value="{{ filter_contact_id }}"
-      placeholder="optional"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
-    >
+    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Contact UUID</label>
+    <input type="text" id="contact_id" name="contact_id" value="{{ filter_contact_id }}" placeholder="optional"
+           class="saebooks-input text-sm py-1.5 w-64">
   </div>
-
-  {# carry pagination limit; reset offset to 0 on new filter #}
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
-
-  <button
-    type="submit"
-    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-  >
-    Filter
-  </button>
+  <button type="submit" class="btn-primary text-sm">Filter</button>
 </form>
 
-{# Table fragment — HTMX replaces this div on filter/pagination #}
 {% include "payments/_table.html" %}
 
 {% endblock %}

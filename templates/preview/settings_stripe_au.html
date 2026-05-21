@@ -1,0 +1,300 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'settings' %}
+{% block page_title %}Stripe Australia · Integrations · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-1.5">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Settings · Integrations · Payments</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-[1.05] font-medium flex items-center gap-3">
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-md text-white font-bold text-[18px]" style="background: #635BFF;">S</span>
+        Stripe <span class="italic" style="color: var(--sae);">Australia</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">Stripe Payments Australia Pty Ltd · ABN 73 161 925 047 · Sydney clearing · merchant id acct_1RxYZ8K2BLpQwV9A · settles AUD/USD/NZD/SGD into CBA Smart Access ••2841 T+2 business days</p>
+      <div class="mt-2 flex items-center gap-2">
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Connected · scopes ok</span>
+        <span class="badge"><i data-lucide="calendar-clock" class="w-3 h-3"></i>Daily payouts · Mon–Fri</span>
+        <span class="badge"><i data-lucide="shield-check" class="w-3 h-3"></i>Card-not-present 3-DS2 on</span>
+        <span class="badge"><i data-lucide="alert-triangle" class="w-3 h-3" style="color: var(--warm);"></i>1 dispute open</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/settings" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Settings</a>
+      <button class="chip"><i data-lucide="external-link" class="w-3.5 h-3.5"></i>Stripe dashboard</button>
+      <button class="chip"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>Re-sync 30 d</button>
+      <button class="btn-primary"><i data-lucide="settings-2" class="w-4 h-4"></i>Manage scopes</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">FY26 processed</p>
+    <p class="font-display text-[24px] mt-1 num">A$284,420</p>
+    <p class="text-[11px] ink-3 mt-1">184 charges · 1 refunded</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Effective fee</p>
+    <p class="font-display text-[24px] mt-1 num">1.84%</p>
+    <p class="text-[11px] ink-3 mt-1">A$5,234 incl. GST</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Surcharge collected</p>
+    <p class="font-display text-[24px] mt-1 num" style="color: var(--pos);">A$3,820</p>
+    <p class="text-[11px] ink-3 mt-1">RBA-compliant · cost-recovery</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Last payout</p>
+    <p class="font-display text-[24px] mt-1 num">A$8,420.18</p>
+    <p class="text-[11px] ink-3 mt-1">po_1RxbA · 03 May · T+2</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Disputes FY26</p>
+    <p class="font-display text-[24px] mt-1 num">3</p>
+    <p class="text-[11px] mt-1"><span style="color: var(--pos);">2 won</span> · <span style="color: var(--warm);">1 pending</span> · 0 lost</p>
+  </div>
+</div>
+
+<!-- Payment methods + AU compliance row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+  <div class="lg:col-span-2 card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h2 class="font-display text-[18px]">Payment methods · AU</h2>
+        <p class="text-[12px] ink-3">Capabilities active on this account · surcharge in line with RBA Standard No 3 · cost-recovery only</p>
+      </div>
+      <span class="text-[11px] font-mono ink-3">7 enabled · 2 disabled</span>
+    </div>
+    <table class="w-full text-[12.5px]">
+      <thead style="background: var(--paper-2);">
+        <tr class="text-left text-[11px] uppercase tracking-wider ink-3">
+          <th class="px-3 py-2">Method</th>
+          <th class="py-2">Network / scheme</th>
+          <th class="py-2">Stripe fee (AU)</th>
+          <th class="py-2 text-right pr-3">Surcharge</th>
+          <th class="py-2">Settles</th>
+          <th class="py-2 pr-3">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set methods = [
+          ('Visa / Mastercard',    'Domestic AU card',           '1.7% + A$0.30', '1.50%', 'T+2 CBA',    'on',  '#3E7A4E'),
+          ('Visa / Mastercard',    'International card',         '3.5% + A$0.30', '3.50%', 'T+2 CBA',    'on',  '#3E7A4E'),
+          ('American Express',     'Stripe-routed',              '3.5% + A$0.30', '2.90%', 'T+2 CBA',    'on',  '#3E7A4E'),
+          ('Apple Pay',            'Tokenised network',          'as underlying card',   'as underlying',     'T+2 CBA',    'on',  '#3E7A4E'),
+          ('Google Pay',           'Tokenised network',          'as underlying card',   'as underlying',     'T+2 CBA',    'on',  '#3E7A4E'),
+          ('BECS Direct Debit',    'APCA BECS · DDR mandate',    '1.0% capped A$3.50',   '—',                 'T+3 CBA',    'on',  '#3E7A4E'),
+          ('PayID · NPP',          'OSKO real-time',             'A$0.60 flat',          '—',                 'instant CBA','on',  '#3E7A4E'),
+          ('Afterpay (BNPL)',      'Block Inc · AU',             '4.17% + A$0.30',       '—',                 'T+2 CBA',    'off', '#A14333'),
+          ('Zip (BNPL)',           'Zip Co · AU',                'merchant-specific',    '—',                 'T+2 CBA',    'off', '#A14333'),
+        ] %}
+        {% for name, network, fee, sc, settle, st, col in methods %}
+        <tr class="border-t" style="border-color: var(--line);">
+          <td class="px-3 py-2 font-medium">{{ name }}</td>
+          <td class="py-2 ink-2">{{ network }}</td>
+          <td class="py-2 font-mono text-[11px] ink-2">{{ fee }}</td>
+          <td class="py-2 text-right pr-3 font-mono text-[11px]">{{ sc }}</td>
+          <td class="py-2 ink-2">{{ settle }}</td>
+          <td class="py-2 pr-3">
+            <span class="inline-flex items-center gap-1.5 text-[11px]">
+              <span class="w-1.5 h-1.5 rounded-full" style="background: {{ col }};"></span>{{ st }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">
+      Surcharge calculation: Stripe blended cost of acceptance from last 12 months (1.84% effective) → rounded down to nearest 0.5% per scheme per RBA cost-recovery rule. ACCC reviews at 12-month rolling avg. <a href="/preview/settings/chart-of-accounts" class="underline">Maps to 4-105 Surcharge passthrough (GST)</a>.
+    </p>
+  </div>
+
+  <aside class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">AU compliance</h3>
+    <dl class="text-[12.5px] space-y-2">
+      <div>
+        <dt class="text-[11px] uppercase ink-3">GST on Stripe fees</dt>
+        <dd>10% GST charged by Stripe Payments AU Pty Ltd since 01 Jul 2024 (ATO ruling LCR 2024/2). Auto-codes <span class="font-mono">6-510 Bank/merchant fees · GST</span>.</dd>
+      </div>
+      <div>
+        <dt class="text-[11px] uppercase ink-3">RBA standard 3</dt>
+        <dd>Surcharge capped at <span class="font-mono">cost of acceptance</span>. Current blended cost 1.84% · current surcharge 1.50% · headroom 0.34 pp · review 30 Jun 2026.</dd>
+      </div>
+      <div>
+        <dt class="text-[11px] uppercase ink-3">3-DS2 (SCA)</dt>
+        <dd>Forced for international cards &gt; A$30 and any AU CNP &gt; A$1,000. Stripe Radar Standard · liability shift on auth.</dd>
+      </div>
+      <div>
+        <dt class="text-[11px] uppercase ink-3">AUSTRAC / KYC</dt>
+        <dd>Beneficial owner B. Sauer verified ABR-linked · ABN check 47 168 502 343 last refreshed 01 Apr 2026.</dd>
+      </div>
+      <div>
+        <dt class="text-[11px] uppercase ink-3">ePayments code</dt>
+        <dd>Disputes handled per ePayments Code part 5 · 21-day investigation window enforced by Stripe.</dd>
+      </div>
+    </dl>
+  </aside>
+</div>
+
+<!-- Payouts -->
+<div class="card p-0 overflow-hidden mb-6">
+  <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: var(--line);">
+    <div>
+      <h2 class="font-display text-[18px]">Recent payouts</h2>
+      <p class="text-[12px] ink-3">Settle into CBA ••2841 · auto-reconciled by rule "Stripe payouts AU" → <span class="font-mono">2-165 Stripe clearing</span></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="/preview/settings/bank-feed-rules" class="chip text-[11px]"><i data-lucide="wand-sparkles" class="w-3 h-3"></i>Open feed rule</a>
+      <button class="chip text-[11px]"><i data-lucide="download" class="w-3 h-3"></i>Export CSV</button>
+    </div>
+  </div>
+  <table class="w-full text-[12.5px]">
+    <thead style="background: var(--paper-2);">
+      <tr class="text-left text-[11px] uppercase tracking-wider ink-3">
+        <th class="px-4 py-2">Date</th>
+        <th class="py-2">Payout ID</th>
+        <th class="py-2 text-right">Charges (cnt)</th>
+        <th class="py-2 text-right">Gross</th>
+        <th class="py-2 text-right">Fees + GST</th>
+        <th class="py-2 text-right">Refunds</th>
+        <th class="py-2 text-right pr-3">Net to CBA</th>
+        <th class="py-2 pr-4">Reconciled</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set payouts = [
+        ('03 May 2026','po_1RxbA9xK2','12','8,684.20','-264.02','0.00','8,420.18','matched · INV mix',  '#3E7A4E'),
+        ('02 May 2026','po_1RxaQ4xK2','14','9,420.40','-289.18','0.00','9,131.22','matched',             '#3E7A4E'),
+        ('01 May 2026','po_1RxZf2xK2','9', '5,684.00','-188.42','-184.20','5,311.38','matched · 1 refund','#3E7A4E'),
+        ('30 Apr 2026','po_1RxYz8xK2','11','7,124.10','-228.46','0.00','6,895.64','matched',             '#3E7A4E'),
+        ('29 Apr 2026','po_1RxYC1xK2','8', '4,820.00','-160.18','0.00','4,659.82','matched',             '#3E7A4E'),
+        ('28 Apr 2026','po_1RxXp4xK2','15','11,420.40','-348.62','0.00','11,071.78','matched',           '#3E7A4E'),
+        ('05 May 2026','po_1RxcK7xK2','—', 'in transit', '—', '—',  '6,420.10','queued · arrives 06 May','#C89B3C'),
+      ] %}
+      {% for d, pid, cnt, gross, fees, refunds, net, rec, col in payouts %}
+      <tr class="border-t hover:bg-[var(--paper-2)]" style="border-color: var(--line);">
+        <td class="px-4 py-2 font-mono text-[11px] ink-3">{{ d }}</td>
+        <td class="py-2 font-mono text-[11px]">{{ pid }}</td>
+        <td class="py-2 text-right num">{{ cnt }}</td>
+        <td class="py-2 text-right num">{{ gross }}</td>
+        <td class="py-2 text-right num" style="color: var(--neg);">{{ fees }}</td>
+        <td class="py-2 text-right num ink-3">{{ refunds }}</td>
+        <td class="py-2 text-right pr-3 num font-medium">{{ net }}</td>
+        <td class="py-2 pr-4 text-[11px]"><span class="inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full" style="background: {{ col }};"></span>{{ rec }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="px-4 py-2.5 border-t text-[11px] ink-3 flex items-center justify-between" style="border-color: var(--line); background: var(--paper-2);">
+    <span>FY26 to date · 184 payouts · 1 dispute hold</span>
+    <span class="font-mono">Avg payout A$5,184 · variance ±A$2,420</span>
+  </div>
+</div>
+
+<!-- Flow + disputes + webhooks -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Charge → cashbook flow</h3>
+    <ol class="text-[12px] space-y-2 ink-2">
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white shrink-0" style="background: var(--ink);">1</span><span><span class="font-medium">Invoice paid</span> via Stripe Checkout or PaymentLink → <span class="font-mono">payment_intent.succeeded</span></span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white shrink-0" style="background: var(--ink);">2</span><span>SAE Books posts AR clearing: <span class="font-mono">DR 2-165 Stripe / CR 1-110 Trade debtors</span></span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white shrink-0" style="background: var(--ink);">3</span><span>Stripe holds funds T+2, deducts fee (+10% GST). SAE Books posts <span class="font-mono">DR 6-510 fees / CR 2-165 Stripe · GST</span></span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white shrink-0" style="background: var(--ink);">4</span><span><span class="font-mono">payout.paid</span> → CBA feed shows credit → rule auto-matches: <span class="font-mono">DR 1-100 CBA / CR 2-165 Stripe</span></span></li>
+      <li class="flex gap-2"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono text-white shrink-0" style="background: var(--ink);">5</span><span>Surcharge passthrough hits <span class="font-mono">4-105 Surcharge income · GST</span> · BAS G1 line picks it up</span></li>
+    </ol>
+  </div>
+
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Disputes</h3>
+    <p class="text-[11px] ink-3 mb-2">ePayments Code part 5 · evidence due in 7 business days</p>
+    <ul class="text-[12.5px] space-y-2.5">
+      <li class="border-l-2 pl-2.5" style="border-color: var(--warm);">
+        <div class="flex justify-between"><span class="font-medium">DSP-0042 · pending</span><span class="font-mono text-[11px]">A$420.00</span></div>
+        <div class="text-[11px] ink-3">Cardholder claim "service not rendered" · INV-0011 Coles Express Bowen · evidence by <span style="color: var(--warm);">14 May (3 d)</span></div>
+        <div class="mt-1 flex gap-1"><button class="chip-mini-pos">Submit evidence</button><button class="chip-mini">Accept loss</button></div>
+      </li>
+      <li class="border-l-2 pl-2.5" style="border-color: var(--pos);">
+        <div class="flex justify-between"><span class="font-medium">DSP-0038 · won</span><span class="font-mono text-[11px]">A$1,840.00</span></div>
+        <div class="text-[11px] ink-3">"Duplicate" claim · INV-0007 · evidence: signed timesheet + delivery receipt · 18 Mar 2026</div>
+      </li>
+      <li class="border-l-2 pl-2.5" style="border-color: var(--pos);">
+        <div class="flex justify-between"><span class="font-medium">DSP-0024 · won</span><span class="font-mono text-[11px]">A$680.00</span></div>
+        <div class="text-[11px] ink-3">"Fraudulent" claim · later confirmed cardholder forgot · 04 Feb 2026</div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card p-5">
+    <h3 class="font-display text-[16px] mb-2">Webhooks · 7 active</h3>
+    <p class="text-[11px] ink-3 mb-2">Endpoint <span class="font-mono">https://app.saebooks.com.au/webhooks/stripe</span> · signing secret rotated 11 Apr 2026</p>
+    <ul class="text-[12px] space-y-1.5">
+      <li class="flex items-center justify-between"><span><span class="font-mono">payment_intent.succeeded</span></span><span class="badge badge-pos" style="font-size: 10px;">184/184</span></li>
+      <li class="flex items-center justify-between"><span><span class="font-mono">payment_intent.payment_failed</span></span><span class="badge" style="font-size: 10px;">12/12</span></li>
+      <li class="flex items-center justify-between"><span><span class="font-mono">charge.refunded</span></span><span class="badge" style="font-size: 10px;">1/1</span></li>
+      <li class="flex items-center justify-between"><span><span class="font-mono">charge.dispute.created</span></span><span class="badge" style="font-size: 10px;">3/3</span></li>
+      <li class="flex items-center justify-between"><span><span class="font-mono">charge.dispute.closed</span></span><span class="badge" style="font-size: 10px;">2/2</span></li>
+      <li class="flex items-center justify-between"><span><span class="font-mono">payout.paid</span></span><span class="badge badge-pos" style="font-size: 10px;">184/184</span></li>
+      <li class="flex items-center justify-between"><span><span class="font-mono">payout.failed</span></span><span class="badge" style="font-size: 10px;">0/0</span></li>
+    </ul>
+    <p class="text-[11px] ink-3 mt-3 pt-3 border-t" style="border-color: var(--line);">Last delivery 04 May 18:42 · 200 OK · 142 ms · all signed with whsec_• &nbsp;rotated 11 Apr</p>
+  </div>
+</div>
+
+<!-- Bottom: connection + scopes + audit + related -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+  <div class="card p-4">
+    <h3 class="font-display text-[16px] mb-2">Connection</h3>
+    <dl class="text-[12px] space-y-1.5">
+      <div class="flex justify-between"><dt class="ink-3">Stripe account</dt><dd class="font-mono">acct_1RxYZ8K2BLpQwV9A</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Country</dt><dd>AU</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Default currency</dt><dd class="font-mono">AUD</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Currencies</dt><dd>AUD · USD · NZD · SGD</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Payout schedule</dt><dd>Daily standard · T+2</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">Statement descriptor</dt><dd class="font-mono">SAE ENG SVC</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">OAuth granted</dt><dd>04 Oct 2024 · R. Sauer</dd></div>
+      <div class="flex justify-between"><dt class="ink-3">API version</dt><dd class="font-mono">2026-03-15</dd></div>
+    </dl>
+  </div>
+
+  <div class="card p-4">
+    <h3 class="font-display text-[16px] mb-2">Audit trail (s.286)</h3>
+    <ul class="text-[12px] space-y-1.5 ink-2">
+      <li><span class="font-mono text-[11px] ink-3 w-14 inline-block">04 May</span>Webhook delivered <span class="font-mono">payout.paid</span> · A$8,420.18</li>
+      <li><span class="font-mono text-[11px] ink-3 w-14 inline-block">28 Apr</span>S. Wong adjusted surcharge: 1.4% → 1.5% (after 12-mo blended cost review)</li>
+      <li><span class="font-mono text-[11px] ink-3 w-14 inline-block">11 Apr</span>Webhook signing secret rotated · prior secret revoked 18 Apr</li>
+      <li><span class="font-mono text-[11px] ink-3 w-14 inline-block">14 Mar</span>R. Sauer enabled BECS Direct Debit · DDR mandate template approved</li>
+      <li><span class="font-mono text-[11px] ink-3 w-14 inline-block">01 Jul 2024</span>Auto-applied 10% GST on Stripe fees per LCR 2024/2</li>
+      <li><span class="font-mono text-[11px] ink-3 w-14 inline-block">04 Oct 2024</span>Stripe Connect OAuth granted · scopes: read_write, balance, payouts</li>
+    </ul>
+  </div>
+
+  <div class="card p-4">
+    <h3 class="font-display text-[16px] mb-2">Related</h3>
+    <ul class="text-[13px] space-y-1.5">
+      <li><a href="/preview/settings/bank-feed-rules" class="hover:underline">Bank feed rule · Stripe payouts AU</a></li>
+      <li><a href="/preview/settings/banking/cba" class="hover:underline">CBA Smart Access ••2841</a></li>
+      <li><a href="/preview/settings/chart-of-accounts" class="hover:underline">CoA · 2-165 Stripe clearing · 6-510 Fees</a></li>
+      <li><a href="/preview/compliance/bas-prep" class="hover:underline">BAS prep · G1 surcharge passthrough · fees credit</a></li>
+      <li><a href="/preview/invoices" class="hover:underline">Invoices accepting Stripe</a></li>
+      <li><a href="/preview/reconcile" class="hover:underline">Reconciliation queue</a></li>
+    </ul>
+  </div>
+</div>
+
+<style>
+  .chip-mini { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 10px; border: 1px solid var(--line); border-radius: 4px; background: white; cursor: pointer; }
+  .chip-mini:hover { background: var(--paper-2); }
+  .chip-mini-pos { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 10px; border: 1px solid var(--pos); border-radius: 4px; background: rgba(62,122,78,0.08); color: var(--pos); cursor: pointer; }
+  .chip-mini-pos:hover { background: rgba(62,122,78,0.16); }
+</style>
+
+{% endblock %}

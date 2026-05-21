@@ -1,0 +1,99 @@
+{# HTMX partial — journal entries table body + pagination.
+   Rendered standalone for HX-Request fragments; embedded by list.html for
+   the initial full-page load.
+#}
+<div id="journal-entries-table">
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">JE #</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total Debit</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% if journal_entries %}
+        {% for je in journal_entries %}
+        <tr
+          class="hover:bg-gray-50 cursor-pointer"
+          onclick="window.location='/journal-entries/{{ je.id }}'"
+        >
+          <td class="px-4 py-3 font-medium text-[#194291]">
+            <a href="/journal-entries/{{ je.id }}" class="hover:underline">
+              {{ je.ref or "—" }}
+            </a>
+          </td>
+          <td class="px-4 py-3 text-gray-600">{{ je.entry_date }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ je.description or "—" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-gray-900 font-medium">
+            {# Sum debit column from lines for list display #}
+            {% set total_dr = namespace(v=0.0) %}
+            {% for line in je.lines %}
+              {% set total_dr.v = total_dr.v + (line.debit | float) %}
+            {% endfor %}
+            {{ "%.2f"|format(total_dr.v) }}
+          </td>
+          <td class="px-4 py-3">
+            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
+              {% if je.status == 'POSTED' %}bg-green-100 text-green-700
+              {% elif je.status == 'DRAFT' %}bg-gray-100 text-gray-600
+              {% elif je.status == 'REVERSED' %}bg-yellow-100 text-yellow-700
+              {% else %}bg-gray-100 text-gray-500{% endif %}">
+              {{ je.status | capitalize }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+            No journal entries found.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination #}
+{% if prev_offset is not none or next_offset is not none %}
+<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+  <div>
+    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+  </div>
+  <div class="flex gap-3">
+    {% if prev_offset is not none %}
+    <a
+      href="/journal-entries?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-get="/journal-entries?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-target="#journal-entries-table"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+    >Previous</a>
+    {% endif %}
+    {% if next_offset is not none %}
+    <a
+      href="/journal-entries?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-get="/journal-entries?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-target="#journal-entries-table"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+    >Next</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+</div>{# end #journal-entries-table #}

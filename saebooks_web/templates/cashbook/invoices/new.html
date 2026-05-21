@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}New invoice — Cashbook{% endblock %}
+{% block content %}
+
+{% if errors and errors.__all__ %}
+<div class="mb-4 rounded-md bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">{{ errors.__all__ }}</div>
+{% endif %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">New invoice</h1>
+  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Customer + amount. That's it.</p>
+</div>
+
+<div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-6 max-w-xl">
+  <form method="post" action="/cashbook/invoices/new">
+    {{ csrf_input(request) | safe }}
+    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+    <div class="space-y-4">
+      <div>
+        <label for="customer_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer</label>
+        <input type="text" id="customer_name" name="customer_name" required
+               value="{{ form.customer_name }}" placeholder="e.g. Acme Pty Ltd"
+               class="w-full rounded-md border {% if errors.customer_name %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+        {% if errors.customer_name %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ errors.customer_name }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label for="customer_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email <span class="text-xs text-gray-400">optional</span></label>
+        <input type="email" id="customer_email" name="customer_email"
+               value="{{ form.customer_email }}" placeholder="finance@acme.com.au"
+               class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+      </div>
+
+      <div>
+        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">What for</label>
+        <input type="text" id="description" name="description"
+               value="{{ form.description }}"
+               class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+      </div>
+
+      <div>
+        <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-base pointer-events-none">$</span>
+          <input type="number" id="amount" name="amount" inputmode="decimal" min="0.01" step="0.01" required
+                 value="{{ form.amount }}" placeholder="0.00"
+                 class="w-full rounded-md border {% if errors.amount %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pl-8 pr-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+        </div>
+        {% if errors.amount %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ errors.amount }}</p>{% endif %}
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total amount including GST if charging it.</p>
+      </div>
+
+      <label class="flex items-center gap-3 select-none cursor-pointer">
+        <input type="checkbox" name="gst" {% if form.gst == 'on' %}checked{% endif %}
+               class="h-5 w-5 rounded border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]">
+        <span class="text-sm text-gray-700 dark:text-gray-300">Charging GST (10%)</span>
+      </label>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="issue_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
+          <input type="date" id="issue_date" name="issue_date" value="{{ form.issue_date }}"
+                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+        </div>
+        <div>
+          <label for="due_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due</label>
+          <input type="date" id="due_date" name="due_date" value="{{ form.due_date }}"
+                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#194291]">
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 flex items-center gap-3">
+      <button type="submit"
+              class="flex-1 rounded-md bg-[#194291] hover:bg-[#133372] text-white px-4 py-3 text-base font-medium">
+        Save draft
+      </button>
+      <a href="/cashbook/invoices"
+         class="rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

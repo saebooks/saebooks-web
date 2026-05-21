@@ -49,7 +49,7 @@ from saebooks_web.config import settings
 
 _log = logging.getLogger("saebooks_web.trusted_header")
 
-_SKIP_PREFIXES = ("/static/", "/healthz", "/favicon.ico", "/logout")
+_SKIP_PREFIXES = ("/static/", "/healthz", "/favicon.ico", "/logout", "/sw.js", "/manifest.webmanifest", "/manifest.json")
 
 
 def _enabled() -> bool:

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Revenue by Customer — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Revenue by Customer</h1>
+    {% if report %}
+    <p class="text-sm text-gray-500 mt-1">
+      {{ report.get("from_date", from_date) }} to {{ report.get("to_date", to_date) }}
+      — invoiced revenue (ex-GST) per customer
+    </p>
+    {% endif %}
+  </div>
+  <div>
+    <button
+      type="button"
+      onclick="window.print()"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+    >Print</button>
+  </div>
+</div>
+
+{# Filter form — HTMX swaps #report-content on submit #}
+<form
+  hx-get="/reports/revenue-by-customer"
+  hx-target="#report-content"
+  hx-swap="innerHTML"
+  hx-indicator="#report-spinner"
+  class="mb-6 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="from_date" class="block text-xs font-medium text-gray-500 mb-1">From date</label>
+    <input
+      id="from_date"
+      type="date"
+      name="from_date"
+      value="{{ from_date }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+  </div>
+  <div>
+    <label for="to_date" class="block text-xs font-medium text-gray-500 mb-1">To date</label>
+    <input
+      id="to_date"
+      type="date"
+      name="to_date"
+      value="{{ to_date }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+  </div>
+  <button
+    type="submit"
+    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
+  >Refresh</button>
+</form>
+
+{% include "reports/_revenue_by_customer_table.html" %}
+
+{% endblock %}

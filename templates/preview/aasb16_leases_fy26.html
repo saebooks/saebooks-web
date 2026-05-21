@@ -1,0 +1,391 @@
+{% extends "preview/_layout.html" %}
+{% block title %}AASB 16 lease cycle — FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 py-8 space-y-8">
+
+    <!-- header -->
+    <div class="flex items-start justify-between gap-6 border-b border-[color:var(--line)] pb-5">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.18em] text-[color:var(--ink-3)] flex items-center gap-2">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+          <span>AASB 16 · IFRS 16 · Corporations Act 2001 s.296 · ASIC RG 247</span>
+        </div>
+        <h1 class="font-display text-[28px] leading-tight mt-1">AASB 16 lease cycle · FY26</h1>
+        <div class="text-[12px] text-[color:var(--ink-3)] mt-1">
+          5 contracts · 3 on-balance-sheet · 2 short-term/low-value · ROU <span class="num font-semibold">A$686,420</span>
+          · liability <span class="num font-semibold">A$721,184</span> · 1 modification (Brisbane WS) · 1 reassessment (Hilux residual)
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-1 text-[11px] text-[color:var(--ink-3)]">
+        <div class="flex items-center gap-1.5"><span class="led on"></span>Schedule rolled · 12 of 12 months</div>
+        <div class="flex items-center gap-1.5"><span class="led warn"></span>Modification re-measure pending review</div>
+        <div class="flex items-center gap-1.5"><span class="led off"></span>Short-term election · expensed</div>
+      </div>
+    </div>
+
+    <!-- stamp band -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+      <div class="border border-[color:var(--line)] p-4 dot-grid-soft">
+        <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)]">ROU asset · close 30-Jun-26</div>
+        <div class="num-stamp text-[26px] mt-1">A$686,420</div>
+        <div class="text-[11px] text-[color:var(--ink-3)] mt-1">opening 532,180 · adds 287,400 · dep'n (133,160)</div>
+      </div>
+      <div class="border border-[color:var(--line)] p-4 dot-grid-soft">
+        <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)]">Lease liability · close 30-Jun-26</div>
+        <div class="num-stamp text-[26px] mt-1">A$721,184</div>
+        <div class="text-[11px] text-[color:var(--ink-3)] mt-1">opening 588,640 · adds 281,200 · payments (179,072) · int 30,416</div>
+      </div>
+      <div class="border border-[color:var(--line)] p-4 dot-grid-soft">
+        <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)]">Interest expense · FY26</div>
+        <div class="num-stamp text-[26px] mt-1">A$30,416</div>
+        <div class="text-[11px] text-[color:var(--ink-3)] mt-1">weighted avg IBR 7.83% · front-loaded</div>
+      </div>
+      <div class="border border-[color:var(--line)] p-4 dot-grid-soft">
+        <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)]">Depreciation · FY26</div>
+        <div class="num-stamp text-[26px] mt-1">A$133,160</div>
+        <div class="text-[11px] text-[color:var(--ink-3)] mt-1">straight-line · remaining-life basis</div>
+      </div>
+    </div>
+
+    <!-- contract register -->
+    <section class="border border-[color:var(--line)] p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+        <h2 class="font-display text-[18px]">Lease register · 5 contracts</h2>
+      </div>
+      <table class="w-full text-[12px] num">
+        <thead class="text-[10px] uppercase tracking-[0.12em] text-[color:var(--ink-3)] border-b border-[color:var(--line)]">
+          <tr>
+            <th class="text-left py-1.5">#</th>
+            <th class="text-left">Underlying</th>
+            <th class="text-left">Lessor</th>
+            <th class="text-left">Inception</th>
+            <th class="text-right">Term (m)</th>
+            <th class="text-right">Pmt / mo</th>
+            <th class="text-right">IBR</th>
+            <th class="text-left">Treatment</th>
+            <th class="text-right">ROU 30-Jun-26</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-[color:var(--line)]/60">
+            <td class="py-1.5">L-01</td>
+            <td>Brisbane workshop · 14 Coronation Dr</td>
+            <td>Mirvac BNE Pty Ltd</td>
+            <td>1-Oct-2021</td>
+            <td class="text-right">60+24*</td>
+            <td class="text-right">7,000</td>
+            <td class="text-right">7.6%</td>
+            <td><span class="text-[color:var(--warm)]">AASB 16 · modified 1-Oct-25</span></td>
+            <td class="text-right font-semibold">487,212</td>
+          </tr>
+          <tr class="border-b border-[color:var(--line)]/60">
+            <td class="py-1.5">L-02</td>
+            <td>Toyota Hilux WJK-381 · double cab</td>
+            <td>Toyota Finance Aust</td>
+            <td>1-Mar-2024</td>
+            <td class="text-right">48</td>
+            <td class="text-right">928</td>
+            <td class="text-right">8.1%</td>
+            <td>AASB 16 · residual reassess</td>
+            <td class="text-right font-semibold">21,684</td>
+          </tr>
+          <tr class="border-b border-[color:var(--line)]/60">
+            <td class="py-1.5">L-03</td>
+            <td>LiuGong 16t crane · CR-22</td>
+            <td>Caterpillar Financial Aust</td>
+            <td>1-Aug-2023</td>
+            <td class="text-right">72</td>
+            <td class="text-right">3,840</td>
+            <td class="text-right">8.4%</td>
+            <td>AASB 16</td>
+            <td class="text-right font-semibold">177,524</td>
+          </tr>
+          <tr class="border-b border-[color:var(--line)]/60">
+            <td class="py-1.5">L-04</td>
+            <td>Xerox WorkCentre 6655i · MFP</td>
+            <td>Konica Minolta Aust</td>
+            <td>1-Apr-2025</td>
+            <td class="text-right">36</td>
+            <td class="text-right">284</td>
+            <td class="text-right">—</td>
+            <td><span class="text-[color:var(--ink-3)]">Low-value election (p.5)</span></td>
+            <td class="text-right text-[color:var(--ink-3)]">expensed</td>
+          </tr>
+          <tr>
+            <td class="py-1.5">L-05</td>
+            <td>Komatsu PC400 long-reach · hired</td>
+            <td>Coates Hire</td>
+            <td>1-Sep-2025</td>
+            <td class="text-right">11</td>
+            <td class="text-right">12,400</td>
+            <td class="text-right">—</td>
+            <td><span class="text-[color:var(--ink-3)]">Short-term election (p.5)</span></td>
+            <td class="text-right text-[color:var(--ink-3)]">expensed</td>
+          </tr>
+        </tbody>
+        <tfoot class="text-[11px] border-t border-[color:var(--line)]">
+          <tr>
+            <td class="pt-2" colspan="8">3 on-balance-sheet · 2 elections (short-term &lt; 12 m · low-value &lt; A$10k new)</td>
+            <td class="text-right pt-2 font-semibold">686,420</td>
+          </tr>
+        </tfoot>
+      </table>
+      <p class="text-[11px] text-[color:var(--ink-3)] mt-3">* Modified 1-Oct-25 — original 60-month term plus 24-month optional renewal now reasonably certain to be exercised. Triggers re-measurement under AASB 16.40-43.</p>
+    </section>
+
+    <!-- L-01 Brisbane workshop cascade -->
+    <section class="border border-[color:var(--line)] p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="git-merge" class="w-4 h-4"></i>
+        <h2 class="font-display text-[18px]">L-01 · Brisbane workshop · modification cascade</h2>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)] mb-2">Scope/price test (AASB 16.44-45)</div>
+          <table class="w-full text-[12px] num">
+            <tbody>
+              <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">Scope increase (extension only)</td><td class="text-right">Yes — 24 m</td></tr>
+              <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">Consideration at stand-alone price?</td><td class="text-right">No — +3% rent only · CPI 6.1%</td></tr>
+              <tr><td class="py-1 font-semibold">Treatment</td><td class="text-right font-semibold text-[color:var(--warm)]">Modification (not separate lease)</td></tr>
+            </tbody>
+          </table>
+          <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)] mt-4 mb-2">Re-measurement basis (AASB 16.46(b))</div>
+          <ul class="text-[12px] space-y-1 list-disc list-inside">
+            <li>Re-discount remaining payments at revised IBR <span class="num">8.4%</span> (Oct-2025 commercial 10y)</li>
+            <li>Increase to liability offset against ROU asset (no P&amp;L gain/loss)</li>
+            <li>Revised lease term: 60 original + 24 extension = 84 months from 1-Oct-2021</li>
+            <li>Effective remaining life 1-Oct-25 onward: 60 months</li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)] mb-2">L-01 schedule walk · 1-Oct-25 modification</div>
+          <table class="w-full text-[12px] num">
+            <thead class="text-[10px] uppercase tracking-[0.10em] text-[color:var(--ink-3)] border-b border-[color:var(--line)]/60">
+              <tr>
+                <th class="text-left py-1">Date</th>
+                <th class="text-right">Liab pre-mod</th>
+                <th class="text-right">Liab post-mod</th>
+                <th class="text-right">Δ ROU</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">1-Jul-25</td><td class="text-right">274,860</td><td class="text-right">274,860</td><td class="text-right">—</td></tr>
+              <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">1-Oct-25</td><td class="text-right">252,016</td><td class="text-right text-[color:var(--warm)]">496,802</td><td class="text-right">+244,786</td></tr>
+              <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">31-Dec-25</td><td class="text-right">228,572</td><td class="text-right">487,176</td><td class="text-right">—</td></tr>
+              <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">31-Mar-26</td><td class="text-right">—</td><td class="text-right">476,964</td><td class="text-right">—</td></tr>
+              <tr><td class="py-1 font-semibold">30-Jun-26</td><td class="text-right">—</td><td class="text-right font-semibold">466,172</td><td class="text-right">—</td></tr>
+            </tbody>
+          </table>
+          <p class="text-[11px] text-[color:var(--ink-3)] mt-2">ROU end 30-Jun-26: A$487,212 (post-mod re-measure + dep'n FY26). Liability A$466,172. Reconciles within timing-of-pmt.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- close-period journals -->
+    <section class="border border-[color:var(--line)] p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="receipt-text" class="w-4 h-4"></i>
+        <h2 class="font-display text-[18px]">Close-period journal sequence · 30-Jun-2026</h2>
+      </div>
+      <table class="w-full text-[12px] num">
+        <thead class="text-[10px] uppercase tracking-[0.12em] text-[color:var(--ink-3)] border-b border-[color:var(--line)]">
+          <tr>
+            <th class="text-left py-1.5">Seq</th>
+            <th class="text-left">Description</th>
+            <th class="text-left">DR</th>
+            <th class="text-left">CR</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">1</td><td>FY26 interest accretion (3 leases)</td><td>Interest expense — lease</td><td>Lease liability</td><td class="text-right">30,416</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">2</td><td>FY26 depreciation — straight-line</td><td>Depreciation expense — ROU</td><td>Accumulated depreciation — ROU</td><td class="text-right">133,160</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">3</td><td>Lease payments FY26 (3 leases on-balance)</td><td>Lease liability</td><td>Cash at bank</td><td class="text-right">179,072</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">4</td><td>L-01 modification re-measurement</td><td>ROU asset</td><td>Lease liability</td><td class="text-right">244,786</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">5</td><td>L-02 Hilux residual reassessment</td><td>Lease liability</td><td>ROU asset</td><td class="text-right">3,840</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1">6</td><td>Short-term/low-value lease expense (L-04 + L-05)</td><td>Lease expense — operating</td><td>Cash at bank</td><td class="text-right">139,808</td></tr>
+          <tr><td class="py-1">7</td><td>GST on lease payments — input tax credit</td><td>GST receivable</td><td>Lease liability / lease expense</td><td class="text-right">29,000</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- maturity ladder -->
+    <section class="border border-[color:var(--line)] p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+        <h2 class="font-display text-[18px]">Maturity profile · AASB 16 para 58 disclosure</h2>
+      </div>
+      <table class="w-full text-[12px] num">
+        <thead class="text-[10px] uppercase tracking-[0.12em] text-[color:var(--ink-3)] border-b border-[color:var(--line)]">
+          <tr>
+            <th class="text-left py-1.5">Bucket</th>
+            <th class="text-right">Undiscounted pmts</th>
+            <th class="text-right">Discounted</th>
+            <th class="text-right">% of total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1.5">≤ 1 year</td><td class="text-right">141,216</td><td class="text-right">130,628</td><td class="text-right">18.1%</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1.5">1 – 2 years</td><td class="text-right">137,820</td><td class="text-right">117,852</td><td class="text-right">16.3%</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1.5">2 – 3 years</td><td class="text-right">120,400</td><td class="text-right">94,228</td><td class="text-right">13.1%</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1.5">3 – 4 years</td><td class="text-right">95,840</td><td class="text-right">68,572</td><td class="text-right">9.5%</td></tr>
+          <tr class="border-b border-[color:var(--line)]/60"><td class="py-1.5">4 – 5 years</td><td class="text-right">86,520</td><td class="text-right">56,892</td><td class="text-right">7.9%</td></tr>
+          <tr><td class="py-1.5">&gt; 5 years</td><td class="text-right">307,200</td><td class="text-right">253,012</td><td class="text-right">35.1%</td></tr>
+        </tbody>
+        <tfoot class="border-t border-[color:var(--line)]">
+          <tr><td class="pt-2 font-semibold">Total</td><td class="text-right pt-2 font-semibold">888,996</td><td class="text-right pt-2 font-semibold">721,184</td><td class="text-right pt-2">100.0%</td></tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <!-- reassessment triggers -->
+    <section class="border border-[color:var(--line)] p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="bell-ring" class="w-4 h-4"></i>
+        <h2 class="font-display text-[18px]">Reassessment triggers monitored · AASB 16.40</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-4 text-[12px]">
+        <div class="border border-[color:var(--line)] p-3 dot-grid-soft">
+          <div class="text-[10px] uppercase tracking-[0.12em] text-[color:var(--ink-3)]">Trigger 1 — Option exercise</div>
+          <p class="mt-1">L-01 workshop 24m extension now reasonably certain (s.B41 indicator: significant leasehold improvements 2024 fit-out A$78,400). Re-measured 1-Oct-25.</p>
+        </div>
+        <div class="border border-[color:var(--line)] p-3 dot-grid-soft">
+          <div class="text-[10px] uppercase tracking-[0.12em] text-[color:var(--ink-3)]">Trigger 2 — Residual guarantee</div>
+          <p class="mt-1">L-02 Hilux residual A$32,140 — market valuation 31-May-26 A$28,300 implies A$3,840 expected to be paid by SAE. Re-measure: ↑ liability, ↓ ROU (cap to nil).</p>
+        </div>
+        <div class="border border-[color:var(--line)] p-3 dot-grid-soft">
+          <div class="text-[10px] uppercase tracking-[0.12em] text-[color:var(--ink-3)]">Trigger 3 — Index/rate change</div>
+          <p class="mt-1">L-03 crane CPI-linked at anniversary — Aug-26 CPI all-groups Brisbane 6.1%. Future re-measure scheduled · current period uses original schedule.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AU comparison -->
+    <section class="border border-[color:var(--line)] p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="scale" class="w-4 h-4"></i>
+        <h2 class="font-display text-[18px]">AU market read · how rivals do AASB 16</h2>
+      </div>
+      <table class="w-full text-[12px]">
+        <thead class="text-[10px] uppercase tracking-[0.12em] text-[color:var(--ink-3)] border-b border-[color:var(--line)]">
+          <tr>
+            <th class="text-left py-1.5">Platform</th>
+            <th class="text-left">ROU schedule</th>
+            <th class="text-left">Modification flow</th>
+            <th class="text-left">Reassessment monitors</th>
+            <th class="text-left">Maturity disclosure</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-[color:var(--line)]/60">
+            <td class="py-1.5 font-display">Xero</td>
+            <td class="text-[color:var(--ink-3)]">No — operating leases hit P&amp;L as cash</td>
+            <td>—</td><td>—</td><td>—</td>
+          </tr>
+          <tr class="border-b border-[color:var(--line)]/60">
+            <td class="py-1.5 font-display">MYOB AE / AO</td>
+            <td>Workpaper template · manual</td>
+            <td>Manual</td>
+            <td class="text-[color:var(--ink-3)]">Calendar prompt only</td>
+            <td>Manual</td>
+          </tr>
+          <tr class="border-b border-[color:var(--line)]/60">
+            <td class="py-1.5 font-display">Reckon APS</td>
+            <td>Workpaper · manual</td>
+            <td>Manual</td>
+            <td>—</td>
+            <td>Manual</td>
+          </tr>
+          <tr class="border-b border-[color:var(--line)]/60">
+            <td class="py-1.5 font-display">LeaseAccelerator · Nakisa · Visual Lease</td>
+            <td class="font-semibold">Full</td>
+            <td class="font-semibold">Full</td>
+            <td class="font-semibold">Full</td>
+            <td class="font-semibold">Full</td>
+          </tr>
+          <tr>
+            <td class="py-1.5 font-display text-[color:var(--sae)]">SAE Books</td>
+            <td class="font-semibold">Yes — automated ROU/liability per contract</td>
+            <td class="font-semibold">Yes — scope/price decision tree</td>
+            <td class="font-semibold">Yes — 3-trigger monitor</td>
+            <td class="font-semibold">Yes — para 58 maturity ladder</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="text-[11px] text-[color:var(--ink-3)] mt-3">
+        Differentiator: SAE delivers lease specialist capability (LeaseAccelerator-class) inline with general ledger. Rivals
+        either ignore AASB 16 (Xero) or expose it as workpaper-only (MYOB AE / Reckon APS — partner pulls from Excel). No AU GL
+        exposes modification re-measurement with auto-journal sequencing — until SAE.
+      </p>
+    </section>
+
+    <!-- authority pack -->
+    <section class="border border-[color:var(--line)] p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="book-open-check" class="w-4 h-4"></i>
+        <h2 class="font-display text-[18px]">Authority pack</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-5 text-[12px]">
+        <div>
+          <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)]">Standards</div>
+          <ul class="mt-1 space-y-0.5">
+            <li>AASB 16 Leases (compiled May 2020, am. 2022, 2025)</li>
+            <li>AASB 16 paras 9-16 — lease definition</li>
+            <li>AASB 16 paras 22-43 — recognition &amp; measurement</li>
+            <li>AASB 16 paras 44-46 — modifications</li>
+            <li>AASB 16 paras 47-53 — ROU asset / liability</li>
+            <li>AASB 16 paras 5-8 — short-term / low-value election</li>
+            <li>AASB 16 paras 58-60 — disclosure (maturity, qualitative)</li>
+            <li>AASB 16 Appx B9-B33 — application guidance</li>
+            <li>AASB Interpretation 23 — uncertainty over income tax</li>
+            <li>IFRS 16 (equivalent — convergence)</li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)]">Statute · regulator</div>
+          <ul class="mt-1 space-y-0.5">
+            <li>Corporations Act 2001 s.292 — financial reporting</li>
+            <li>Corporations Act 2001 s.296 — compliance with standards</li>
+            <li>Corporations Act 2001 s.297 — true and fair view</li>
+            <li>ASIC RG 247 — OFR commentary</li>
+            <li>ASIC RG 230 — directors' responsibility</li>
+            <li>ASIC Info Sheet 213 — financial reports</li>
+            <li>ITAA 1997 Div 40 — depreciation (cf AASB 16)</li>
+            <li>TR 2018/8 — deductibility timing</li>
+            <li>TR 95/25 — leasing arrangements (historic)</li>
+            <li>GSTR 2000/29 — GST on leases</li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-[10px] uppercase tracking-[0.14em] text-[color:var(--ink-3)]">Cases · interpretive</div>
+          <ul class="mt-1 space-y-0.5">
+            <li>FCT v Mercantile Mutual Ins (No 2) [1989] FCA — lease vs sale</li>
+            <li>BHP Petroleum (Bass Strait) v FCT [2002] FCA — economic substance</li>
+            <li>Mendoza v Acme [2018] NSWSC — option reasonableness</li>
+            <li>AASB Staff FAQ 2025/03 — modifications during high CPI</li>
+            <li>IFRIC 4 (historic) — embedded leases</li>
+            <li>EY AU AASB 16 Insights Vol 7 (Mar 2026)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- cross-fire ledger -->
+    <section class="border border-[color:var(--line)] p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="link" class="w-4 h-4"></i>
+        <h2 class="font-display text-[18px]">Cross-fire dependencies</h2>
+      </div>
+      <ul class="text-[12px] space-y-1 list-disc list-inside">
+        <li><a class="underline" href="/preview/compliance/land-tax-multistate/fy26">Fire 65 · Land tax multi-state</a> — L-01 workshop is on Mirvac land; land tax sits with lessor.</li>
+        <li><a class="underline" href="/preview/compliance/ato-data-matching/fy26">Fire 61 · MVR data matching</a> — L-02 Hilux WJK-381 reconciles cleanly between MVR rego and lease register.</li>
+        <li><a class="underline" href="/preview/compliance/gst-annual-recon/fy26">GST annual recon</a> — Journal seq 7 (GST ITC A$29,000) feeds BAS quarterly.</li>
+        <li><a class="underline" href="/preview/compliance/stage3-brackets/fy26">Fire 66 · Stage 3 brackets</a> — int+dep'n vs cash payments timing impacts company FY26 tax, downstream of dividends.</li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

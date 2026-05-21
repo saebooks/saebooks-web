@@ -4,44 +4,33 @@
 
 {% block content %}
 
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Balance Sheet</h1>
-    {% if report %}
-    <p class="text-sm text-gray-500 mt-1">As at {{ report.get("as_of_date", as_of_date) }}</p>
-    {% endif %}
-  </div>
-  <div>
-    <button
-      type="button"
-      onclick="window.print()"
-      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-    >Print</button>
-  </div>
+<div class="mb-4">
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← reports</a>
 </div>
 
-{# Date filter form — HTMX swaps #report-content on submit #}
-<form
-  hx-get="/reports/balance-sheet"
-  hx-target="#report-content"
-  hx-swap="innerHTML"
-  hx-indicator="#report-spinner"
-  class="mb-6 flex flex-wrap gap-3 items-end"
->
-  <div>
-    <label for="as_of_date" class="block text-xs font-medium text-gray-500 mb-1">As of date</label>
-    <input
-      id="as_of_date"
-      type="date"
-      name="as_of_date"
-      value="{{ as_of_date }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    >
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Statement</span>
+        <span class="reg-mark"></span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">Balance Sheet</h1>
+      {% if report %}<p class="text-xs ink-3 font-mono mt-2">As at {{ report.get("as_of_date", as_of_date) }}</p>{% endif %}
+    </div>
+    <button type="button" onclick="window.print()" class="btn-secondary text-sm">Print</button>
   </div>
-  <button
-    type="submit"
-    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-  >Refresh</button>
+  <div class="drafting mt-4"></div>
+</header>
+
+<form hx-get="/reports/balance-sheet" hx-target="#report-content" hx-swap="innerHTML" hx-indicator="#report-spinner"
+      class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
+  <div>
+    <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">As of date</label>
+    <input id="as_of_date" type="date" name="as_of_date" value="{{ as_of_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <button type="submit" class="btn-primary text-sm">Refresh</button>
 </form>
 
 {% include "reports/_balance_sheet_table.html" %}

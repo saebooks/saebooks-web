@@ -1,0 +1,328 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'reports' %}
+{% block page_title %}Sales — Engineering services · P&amp;L · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="flex items-center gap-2 text-[11px] font-mono ink-3 mb-3">
+  <a href="/preview/reports" class="hover:text-[color:var(--sae)]">Reports</a>
+  <i data-lucide="chevron-right" class="w-3 h-3"></i>
+  <a href="/preview/reports/profit-loss" class="hover:text-[color:var(--sae)]">Profit &amp; Loss</a>
+  <i data-lucide="chevron-right" class="w-3 h-3"></i>
+  <span>Sales — Engineering services</span>
+</div>
+
+<!-- Hero -->
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-tr-2xl rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white" style="background:#1A4E8B;"><i data-lucide="hammer" class="w-5 h-5"></i></div>
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <span class="reg-mark"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">P&amp;L line · Revenue · GL <span class="num">4-100</span></span>
+        </div>
+        <h1 class="font-display text-[34px] leading-[1.05] font-medium">Sales — <span class="text-[color:var(--sae)] italic">Engineering services</span></h1>
+        <p class="mt-1.5 ink-2 text-sm">FY26 YTD · 1 Jul 2025 – 11 May 2026 · Cash basis · Tracking: department=Workshop, region=AU-QLD</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>CSV</button>
+      <button class="chip"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
+      <a href="/preview/reports/profit-loss" class="btn-primary"><i data-lucide="arrow-up-from-line" class="w-4 h-4"></i>Back to P&amp;L</a>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-7">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">FY26 YTD</p>
+    <p class="font-display text-[24px] mt-1 num">A$348,240</p>
+    <p class="text-[10px] pos mt-0.5 font-mono">+32.5% vs FY25</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Invoices</p>
+    <p class="font-display text-[24px] mt-1 num">62</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">Avg A$5,617</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Customers</p>
+    <p class="font-display text-[24px] mt-1 num">14</p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">Top 3 = 58%</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">% of revenue</p>
+    <p class="font-display text-[24px] mt-1 num">71.6<span class="text-[14px] ink-3">%</span></p>
+    <p class="text-[10px] ink-3 mt-0.5 font-mono">of A$486,420 total</p>
+  </div>
+  <div class="card p-4 relative overflow-hidden" style="border-color: var(--sae); border-width: 1.5px;">
+    <span class="reg-mark absolute right-3 top-3"></span>
+    <p class="text-[11px] uppercase tracking-wider ink-3">GST collected</p>
+    <p class="font-display text-[24px] mt-1 num">A$34,824</p>
+    <p class="text-[10px] sae mt-0.5 font-mono">→ BAS G1/1A</p>
+  </div>
+</div>
+
+<!-- Monthly trend chart -->
+<div class="card p-5 mb-7">
+  <div class="flex items-end justify-between mb-3">
+    <div>
+      <h3 class="font-display text-[18px]">Monthly trend</h3>
+      <p class="text-[11px] ink-3 font-mono">FY26 vs FY25 vs budget</p>
+    </div>
+    <div class="flex items-center gap-3 text-[11px]">
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--sae);"></span>FY26 actual</span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--ink-3);"></span>FY25</span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background: var(--brand-2);"></span>Budget</span>
+    </div>
+  </div>
+  <div class="relative" style="height: 220px;">
+    <canvas id="catChart"></canvas>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+  <!-- LEFT main -->
+  <div class="lg:col-span-8 space-y-6">
+
+    <!-- By customer -->
+    <div class="card overflow-hidden">
+      <div class="px-5 pt-5 pb-2 flex items-center justify-between">
+        <div>
+          <h3 class="font-display text-[18px]">By customer</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Top 8 contributors · click to drill into contact</p>
+        </div>
+        <button class="chip text-[11px]"><i data-lucide="filter" class="w-3 h-3"></i>FY26</button>
+      </div>
+      <div class="drafting mx-5 mb-1"></div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Customer</th><th class="text-right">FY26</th><th class="text-right">FY25</th><th class="text-right">Δ</th><th class="text-right">Share</th></tr>
+        </thead>
+        <tbody>
+          {% set custs = [
+            {'n':'Acme Pty Ltd',          'href':'/preview/contacts/acme','c26':84120,'c25':52140,'sh':24.2,'col':'#1A4E8B','i':'A'},
+            {'n':'Northshore Marine',     'href':'#',                      'c26':68420,'c25':48260,'sh':19.6,'col':'#3E7A4E','i':'N'},
+            {'n':'Coastal Builders',      'href':'#',                      'c26':50360,'c25':42180,'sh':14.4,'col':'#194291','i':'C'},
+            {'n':'Sigma Hydraulics',      'href':'#',                      'c26':32140,'c25':18420,'sh':9.2,'col':'#7C5C8B','i':'S'},
+            {'n':'Bowen Crane Hire',      'href':'#',                      'c26':28860,'c25':24180,'sh':8.3,'col':'#0F2940','i':'B'},
+            {'n':'Russell Lifting',       'href':'#',                      'c26':22140,'c25':19420,'sh':6.4,'col':'#5C7A8B','i':'R'},
+            {'n':'Riverside Cool Co',     'href':'#',                      'c26':18420,'c25':14860,'sh':5.3,'col':'#8a4f8b','i':'R'},
+            {'n':'Other (7 customers)',   'href':'#',                      'c26':43780,'c25':43380,'sh':12.6,'col':'#8a8f97','i':'…'},
+          ] %}
+          {% for c in custs %}
+            {% set delta = (c.c26 - c.c25) / c.c25 * 100 %}
+            <tr>
+              <td>
+                <a href="{{ c.href }}" class="flex items-center gap-2 hover:text-[color:var(--sae)]">
+                  <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px]" style="background:{{ c.col }};">{{ c.i }}</span>
+                  <span class="text-[13px] font-medium">{{ c.n }}</span>
+                </a>
+              </td>
+              <td class="text-right num">A${{ '{:,.0f}'.format(c.c26) }}</td>
+              <td class="text-right num ink-3">A${{ '{:,.0f}'.format(c.c25) }}</td>
+              <td class="text-right num text-[11px] {% if delta >= 0 %}pos{% else %}neg{% endif %}">{% if delta >= 0 %}+{% endif %}{{ '{:.1f}'.format(delta) }}%</td>
+              <td>
+                <div class="flex items-center justify-end gap-2">
+                  <span class="num text-[11px] ink-3">{{ c.sh }}%</span>
+                  <div class="w-20 h-1.5 rounded-full bg-[color:var(--paper-2)] overflow-hidden">
+                    <div class="h-full rounded-full" style="width:{{ c.sh * 4 }}%; background: var(--sae);"></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="background: var(--paper-2);">
+            <td class="font-medium">Total</td>
+            <td class="text-right num font-medium">A$348,240</td>
+            <td class="text-right num ink-3">A$262,840</td>
+            <td class="text-right num text-[11px] pos">+32.5%</td>
+            <td class="text-right num text-[11px] ink-3">100%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- By job -->
+    <div class="card overflow-hidden">
+      <div class="px-5 pt-5 pb-2 flex items-center justify-between">
+        <div>
+          <h3 class="font-display text-[18px]">By job · revenue recognised</h3>
+          <p class="text-[11px] ink-3 mt-0.5">Progress claims and milestone invoicing</p>
+        </div>
+        <a href="/preview/projects" class="text-[11px] sae hover:underline">All jobs →</a>
+      </div>
+      <div class="drafting mx-5 mb-1"></div>
+      <table class="data-table">
+        <thead><tr><th>Job</th><th>Customer</th><th class="text-right">Quoted</th><th class="text-right">Invoiced FY26</th><th class="text-right">Margin</th></tr></thead>
+        <tbody>
+          {% set jobs = [
+            {'ref':'J-2603','href':'/preview/projects/j-2603','n':'Conveyor retrofit — drive line 2','c':'Acme Pty Ltd','q':34320,'i':12860,'m':'38%','mk':'pos'},
+            {'ref':'J-2602','href':'/preview/projects','n':'Hardstand drainage','c':'Northshore Marine','q':28640,'i':28640,'m':'34%','mk':'pos'},
+            {'ref':'J-2601','href':'/preview/projects','n':'Oven motor rewind','c':'Bob\'s Bakery','q':12840,'i':12840,'m':'26%','mk':'neg'},
+            {'ref':'J-2598','href':'/preview/projects','n':'Compliance audit','c':'Sigma Hydraulics','q':18420,'i':18420,'m':'42%','mk':'pos'},
+            {'ref':'J-2594','href':'/preview/projects','n':'Coolroom refurb','c':'Riverside Cool Co','q':14860,'i':10240,'m':'11%','mk':'neg'},
+            {'ref':'J-2592','href':'/preview/projects','n':'Service contract (recurring)','c':'Acme Pty Ltd','q':14420,'i':14420,'m':'52%','mk':'pos'},
+          ] %}
+          {% for j in jobs %}
+          <tr>
+            <td><a href="{{ j.href }}" class="font-mono text-[11px] sae hover:underline">{{ j.ref }}</a><span class="block text-[11px] ink-3">{{ j.n }}</span></td>
+            <td class="text-[12.5px]">{{ j.c }}</td>
+            <td class="text-right num text-[12.5px]">A${{ '{:,.0f}'.format(j.q) }}</td>
+            <td class="text-right num text-[12.5px]">A${{ '{:,.0f}'.format(j.i) }}</td>
+            <td class="text-right num text-[12.5px] {{ j.mk }}">{{ j.m }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Invoices in this account -->
+    <div class="card overflow-hidden">
+      <div class="px-5 pt-5 pb-2 flex items-center justify-between">
+        <h3 class="font-display text-[18px]">Recent invoices · 4-100</h3>
+        <span class="text-[10px] font-mono ink-3">62 invoices FY26 · showing 6</span>
+      </div>
+      <div class="drafting mx-5 mb-1"></div>
+      <table class="data-table">
+        <thead><tr><th>Ref</th><th>Date</th><th>Customer</th><th>Job</th><th class="text-right">Net</th><th class="text-right">GST</th><th>State</th></tr></thead>
+        <tbody>
+          {% set invs = [
+            {'r':'INV-0028','d':'02 May','c':'Acme Pty Ltd','j':'J-2603','n':'12,890.00','g':'1,289.00','s':'paid'},
+            {'r':'INV-0027','d':'01 May','c':'Northshore Marine','j':'J-2602','n':'8,420.00','g':'842.00','s':'sent'},
+            {'r':'INV-0026','d':'28 Apr','c':'Coastal Builders','j':'J-2601','n':'4,860.00','g':'486.00','s':'paid'},
+            {'r':'INV-0024','d':'24 Apr','c':'Acme Pty Ltd','j':'J-2603','n':'4,250.00','g':'425.00','s':'paid'},
+            {'r':'INV-0022','d':'22 Apr','c':'Sigma Hydraulics','j':'J-2598','n':'7,820.00','g':'782.00','s':'paid'},
+            {'r':'INV-0019','d':'12 Apr','c':'Acme Pty Ltd','j':'J-2603','n':'8,610.00','g':'861.00','s':'paid'},
+          ] %}
+          {% for v in invs %}
+          <tr>
+            <td><a href="/preview/invoices/inv-0028" class="font-mono text-[11px] sae hover:underline">{{ v.r }}</a></td>
+            <td class="text-[11px] ink-3 font-mono">{{ v.d }}</td>
+            <td class="text-[12px]">{{ v.c }}</td>
+            <td class="font-mono text-[11px] ink-3">{{ v.j }}</td>
+            <td class="text-right num text-[12.5px]">A${{ v.n }}</td>
+            <td class="text-right num text-[11px] ink-3">A${{ v.g }}</td>
+            <td>
+              {% if v.s == 'paid' %}
+                <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(62,122,78,.12);color:var(--pos);">paid</span>
+              {% else %}
+                <span class="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style="background:rgba(26,78,139,.12);color:var(--brand-2);">sent</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="px-5 py-3 border-t hairline flex items-center justify-between text-[11px]">
+        <span class="ink-3">All invoices in this account are tagged GST 10% supply · maps to BAS G1 (and G2 for export, currently none)</span>
+        <a href="/preview/invoices" class="sae hover:underline">All invoices →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT rail -->
+  <div class="lg:col-span-4 space-y-6">
+
+    <!-- Account info -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Account · 4-100</h3>
+      <dl class="text-[12.5px] space-y-1.5">
+        <div class="flex justify-between"><dt class="ink-3">Code</dt><dd class="num font-mono">4-100</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Type</dt><dd>Income</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Tax type</dt><dd>GST on income (10%)</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">BAS map</dt><dd>G1 (sales) · 1A (GST collected)</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">SBR taxonomy</dt><dd class="font-mono text-[11px]">au.icr.GeneralPurposeOperatingRevenue</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Tracking</dt><dd>department · region</dd></div>
+        <div class="flex justify-between"><dt class="ink-3">Default item</dt><dd>SVC-001 · Workshop hour</dd></div>
+      </dl>
+    </div>
+
+    <!-- Top movements -->
+    <div class="card p-5">
+      <h3 class="font-display text-[16px] mb-3">Biggest swings vs FY25</h3>
+      <ul class="text-[12.5px] space-y-2.5">
+        <li class="flex items-start gap-2">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5 pos mt-0.5"></i>
+          <div class="flex-1">
+            <p class="font-medium">Acme service contract</p>
+            <p class="text-[11px] ink-3">+A$32,000 · new monthly retainer signed Aug 2025</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-2">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5 pos mt-0.5"></i>
+          <div class="flex-1">
+            <p class="font-medium">Sigma Hydraulics</p>
+            <p class="text-[11px] ink-3">+A$13,720 · compliance audit + spare parts run</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-2">
+          <i data-lucide="trending-down" class="w-3.5 h-3.5 neg mt-0.5"></i>
+          <div class="flex-1">
+            <p class="font-medium">Greenline Trailers</p>
+            <p class="text-[11px] ink-3">−A$8,400 · customer paused work Feb 2026</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Auto insight -->
+    <div class="card p-5 relative overflow-hidden" style="border: 1.5px dashed var(--sae);">
+      <span class="reg-mark absolute right-3 top-3"></span>
+      <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Auto insight</p>
+      <h3 class="font-display text-[17px] mt-1 mb-2">Concentration risk · <span class="italic sae">Acme = 24%</span></h3>
+      <p class="text-[12.5px] ink-2 leading-relaxed">Acme Pty Ltd is your largest customer at <span class="num">24.2%</span> of engineering revenue, up from <span class="num">19.8%</span> last year. Industry rule of thumb is to keep any single customer under <span class="num">30%</span> — you're inside the limit but trending up.</p>
+      <div class="flex items-center gap-2 mt-3">
+        <a href="/preview/contacts/acme" class="chip text-[11px]"><i data-lucide="user" class="w-3 h-3"></i>Open Acme</a>
+        <a href="/preview/reports/aged-receivables" class="chip text-[11px]"><i data-lucide="alarm-clock" class="w-3 h-3"></i>Aged AR</a>
+      </div>
+    </div>
+
+    <!-- Cross-links -->
+    <div class="card p-5" style="background: var(--paper-2);">
+      <h3 class="font-display text-[16px] mb-3">Related</h3>
+      <ul class="text-[12.5px] space-y-2">
+        <li><a href="/preview/reports/profit-loss" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="line-chart" class="w-3.5 h-3.5 ink-3"></i>Full P&amp;L statement</a></li>
+        <li><a href="/preview/compliance/bas-prep" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="landmark" class="w-3.5 h-3.5 ink-3"></i>BAS prep · G1 reconcile</a></li>
+        <li><a href="/preview/reports/aged-receivables" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="alarm-clock" class="w-3.5 h-3.5 ink-3"></i>Aged Receivables</a></li>
+        <li><a href="/preview/invoices" class="flex items-center gap-2 hover:text-[color:var(--sae)]"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i>All sales invoices</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const ctx = document.getElementById('catChart').getContext('2d');
+  const months = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'FY26 actual', data: [27420, 30180, 28620, 32420, 36420, 30260, 33820, 36180, 38120, 31480, 23320], backgroundColor: 'rgba(200,99,31,0.85)', borderRadius: 4, barThickness: 16 },
+        { label: 'FY25', data: [22420, 24180, 22620, 25420, 28420, 23260, 25820, 27180, 28120, 23480, 12000], backgroundColor: 'rgba(138,143,151,0.35)', borderRadius: 4, barThickness: 16 },
+        { label: 'Budget', type: 'line', data: [28000, 30000, 30000, 32000, 34000, 30000, 33000, 35000, 36000, 32000, 24000], borderColor: '#1A4E8B', borderWidth: 2, borderDash: [5,4], pointRadius: 0, tension: 0.3 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#14171c', padding: 10, titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'Inter', size: 12 }, callbacks: { label: c => c.dataset.label + ': A$' + c.parsed.y.toLocaleString() } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#8a8f97' } },
+        y: { grid: { color: 'rgba(20,23,28,0.06)' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#8a8f97', callback: v => 'A$' + (v/1000).toFixed(0) + 'k' } }
+      }
+    }
+  });
+  if (window.lucide) window.lucide.createIcons();
+</script>
+{% endblock %}

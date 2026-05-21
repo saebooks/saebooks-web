@@ -5,125 +5,145 @@
 {% block content %}
 
 <div class="max-w-xl">
-  <div class="mb-6 flex items-center gap-3">
-    <a href="/cashbook/entries"
-       class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">&larr; Back to entries</a>
-    <span class="text-gray-300 dark:text-gray-600">/</span>
-    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Edit entry</h1>
+  <div class="mb-5 flex items-center gap-3">
+    <a href="/cashbook/entries" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← back</a>
+    <span class="ink-4">/</span>
+    <h1 class="font-display text-xl ink-1" style="font-variation-settings:'opsz' 36;">Edit entry</h1>
   </div>
 
   {% if errors.__all__ %}
-  <div class="mb-4 rounded-md bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">
-    {{ errors.__all__ }}
+  <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+    <span class="dot" style="background:var(--neg);"></span>
+    <span class="text-sm" style="color:var(--neg);">{{ errors.__all__ }}</span>
   </div>
   {% endif %}
 
   {% if conflict %}
-  <div class="mb-4 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-300 dark:border-amber-700 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-    This entry was modified elsewhere. The form below shows the latest server version. Review and resubmit.
+  <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+    <span class="dot" style="background:var(--warm);"></span>
+    <span class="text-sm" style="color:var(--warm);">
+      Modified elsewhere. Latest server version shown — review and resubmit.
+    </span>
   </div>
   {% endif %}
 
-  <div class="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+  <div class="card p-6">
     <form method="post" action="/cashbook/entries/{{ entry.id }}/edit">
       {{ csrf_input(request) | safe }}
       <input type="hidden" name="version" value="{{ entry.version }}">
 
       {# Direction #}
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Direction</label>
-        <div class="flex gap-2">
-          <label class="flex-1 flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium cursor-pointer
-                        {% if (form.direction or entry.direction) == 'income' %}bg-green-600 text-white border-green-600{% else %}bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600{% endif %}">
+      <div class="mb-5">
+        <p class="cb-label-inline">Direction</p>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cb-dir-btn cb-dir-in {% if (form.direction or entry.direction) == 'income' %}active{% endif %}">
             <input type="radio" name="direction" value="income"
                    {% if (form.direction or entry.direction) == 'income' %}checked{% endif %}
                    class="sr-only" onchange="updateCategoryFilter()">
-            Cash in
+            <span class="text-xl leading-none">↓</span>
+            <span>Cash in</span>
           </label>
-          <label class="flex-1 flex items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium cursor-pointer
-                        {% if (form.direction or entry.direction) == 'expense' %}bg-red-600 text-white border-red-600{% else %}bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600{% endif %}">
+          <label class="cb-dir-btn cb-dir-out {% if (form.direction or entry.direction) == 'expense' %}active{% endif %}">
             <input type="radio" name="direction" value="expense"
                    {% if (form.direction or entry.direction) == 'expense' %}checked{% endif %}
                    class="sr-only" onchange="updateCategoryFilter()">
-            Cash out
+            <span class="text-xl leading-none">↑</span>
+            <span>Cash out</span>
           </label>
         </div>
       </div>
 
-      {# Date #}
-      <div class="mb-4">
-        <label for="entry_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date</label>
-        <input type="date" id="entry_date" name="entry_date"
-               value="{{ form.entry_date or entry.entry_date }}"
-               class="w-full rounded-md border {% if errors.entry_date %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        {% if errors.entry_date %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ errors.entry_date }}</p>{% endif %}
-      </div>
-
-      {# Amount #}
-      <div class="mb-4">
-        <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 dark:text-gray-500 text-sm pointer-events-none">$</span>
-          <input type="number" id="amount" name="amount" min="0.01" step="0.01"
-                 value="{{ form.amount or entry.amount }}"
-                 oninput="updateGstHint()"
-                 class="w-full rounded-md border {% if errors.amount %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="entry_date" class="cb-label-inline">Date</label>
+          <input type="date" id="entry_date" name="entry_date"
+                 value="{{ form.entry_date or entry.entry_date }}"
+                 class="saebooks-input num"
+                 {% if errors.entry_date %}style="border-color:var(--neg);"{% endif %}>
+          {% if errors.entry_date %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.entry_date }}</p>{% endif %}
         </div>
-        {% if errors.amount %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ errors.amount }}</p>{% endif %}
+
+        <div>
+          <label for="amount" class="cb-label-inline">Amount</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center ink-3 num pointer-events-none">$</span>
+            <input type="number" id="amount" name="amount" min="0.01" step="0.01"
+                   value="{{ form.amount or entry.amount }}"
+                   oninput="updateGstHint()"
+                   class="saebooks-input num-display pl-7"
+                   {% if errors.amount %}style="border-color:var(--neg);"{% endif %}>
+          </div>
+          {% if errors.amount %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.amount }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label for="category_code" class="cb-label-inline">Category</label>
+          <select id="category_code" name="category_code" class="saebooks-input"
+                  {% if errors.category_code %}style="border-color:var(--neg);"{% endif %}>
+            <option value="">— Select category —</option>
+            {% for cat in categories %}
+            <option value="{{ cat.code }}"
+                    data-direction="{{ cat.direction }}"
+                    {% if (form.category_code or entry.category_code) == cat.code %}selected{% endif %}>
+              {{ cat.label }}
+            </option>
+            {% endfor %}
+          </select>
+          {% if errors.category_code %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.category_code }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label for="description" class="cb-label-inline">
+            Description <span class="ink-4 font-normal">(optional)</span>
+          </label>
+          <input type="text" id="description" name="description" maxlength="500"
+                 value="{{ form.description or entry.description or '' }}"
+                 class="saebooks-input">
+        </div>
       </div>
 
-      {# Category #}
-      <div class="mb-4">
-        <label for="category_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
-        <select id="category_code" name="category_code"
-                class="w-full rounded-md border {% if errors.category_code %}border-red-400{% else %}border-gray-300 dark:border-gray-600{% endif %} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="">— Select category —</option>
-          {% for cat in categories %}
-          <option value="{{ cat.code }}"
-                  data-direction="{{ cat.direction }}"
-                  {% if (form.category_code or entry.category_code) == cat.code %}selected{% endif %}>
-            {{ cat.label }}
-          </option>
-          {% endfor %}
-        </select>
-        {% if errors.category_code %}<p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ errors.category_code }}</p>{% endif %}
-      </div>
-
-      {# Description #}
-      <div class="mb-4">
-        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Description <span class="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
-        </label>
-        <input type="text" id="description" name="description" maxlength="500"
-               value="{{ form.description or entry.description or '' }}"
-               class="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-
-      {# GST #}
-      <div class="mb-6 flex items-center gap-3">
+      <label class="mt-5 flex items-center gap-3 cursor-pointer select-none">
         <input type="checkbox" id="include_gst" name="include_gst" value="on"
                {% if entry.gst_amount and entry.gst_amount|float > 0 %}checked{% endif %}
                onchange="updateGstHint()"
-               class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
-        <label for="include_gst" class="text-sm text-gray-700 dark:text-gray-300">
+               class="h-4 w-4 accent-[#194291]" style="border-color:var(--line);">
+        <span class="text-sm ink-2">
           Includes GST
-          <span id="gst-hint" class="text-gray-400 dark:text-gray-500 text-xs ml-1 hidden"></span>
-        </label>
-      </div>
+          <span id="gst-hint" class="num text-xs ink-3 ml-1 hidden"></span>
+        </span>
+      </label>
 
-      <div class="flex gap-3">
-        <button type="submit"
-                class="rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-          Save changes
-        </button>
-        <a href="/cashbook/entries"
-           class="rounded-md border border-gray-300 dark:border-gray-600 px-6 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-          Cancel
-        </a>
+      <div class="mt-6 hairline pt-5 flex gap-3">
+        <button type="submit" class="btn-primary">Save changes</button>
+        <a href="/cashbook/entries" class="btn-secondary">Cancel</a>
       </div>
     </form>
   </div>
 </div>
+
+<style>
+  .cb-label-inline {
+    display:block; margin-bottom:.35rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing:.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .cb-dir-btn {
+    display:flex; align-items:center; justify-content:center; gap:.5rem;
+    padding: .75rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: .5rem;
+    background: var(--paper);
+    color: var(--ink-2);
+    font-size: .95rem; font-weight: 500;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .cb-dir-btn:hover { background: var(--paper-2); }
+  .cb-dir-in.active  { background: var(--pos); color:#fff; border-color:var(--pos); }
+  .cb-dir-out.active { background: var(--neg); color:#fff; border-color:var(--neg); }
+</style>
 
 <script>
 function updateGstHint() {
@@ -132,7 +152,7 @@ function updateGstHint() {
   var hint = document.getElementById('gst-hint');
   if (chk && chk.checked && !isNaN(amt) && amt > 0) {
     var gst = Math.round((amt / 11) * 100) / 100;
-    hint.textContent = '— Includes $' + gst.toFixed(2) + ' GST';
+    hint.textContent = '— includes $' + gst.toFixed(2) + ' GST';
     hint.classList.remove('hidden');
   } else {
     hint.classList.add('hidden');
@@ -143,6 +163,11 @@ function updateCategoryFilter() {
   var radios = document.querySelectorAll('input[name="direction"]');
   var dir = '';
   radios.forEach(function(r) { if (r.checked) dir = r.value; });
+  // Also update the label .active classes
+  document.querySelectorAll('label.cb-dir-btn').forEach(function(lbl) {
+    var inp = lbl.querySelector('input[type=radio]');
+    if (inp) lbl.classList.toggle('active', inp.checked);
+  });
   var sel = document.getElementById('category_code');
   if (!sel) return;
   Array.from(sel.options).forEach(function(opt) {

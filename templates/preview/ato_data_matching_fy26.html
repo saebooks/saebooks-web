@@ -1,0 +1,456 @@
+{% extends "preview/_layout.html" %}
+{% block title %}ATO Data-Matching Pre-Check — FY26 · SAE Books{% endblock %}
+{% block body %}
+<main class="reg-marks dot-grid-soft min-h-screen px-6 pb-24 pt-8">
+  <!-- ============ MASTHEAD ============ -->
+  <header class="mx-auto max-w-[1480px]">
+    <div class="flex items-start justify-between gap-8">
+      <div>
+        <div class="flex items-center gap-3 text-[10.5px] uppercase tracking-[0.22em] text-[var(--ink-3)]">
+          <span class="rounded-sm border border-[var(--line)] bg-[var(--paper-2)] px-2 py-[3px]">DOC · DM-184260-26</span>
+          <span>Compliance · ATO data-matching pre-check</span>
+          <span class="text-[var(--ink-3)]">·</span>
+          <span>FY26 Q4 pass · prepared 2026-05-11 22:31</span>
+          <span class="text-[var(--ink-3)]">·</span>
+          <span class="text-[var(--pos)]">28 of 31 programs · clean</span>
+        </div>
+        <h1 class="font-display mt-3 text-[40px] leading-[1.04] tracking-[-0.018em]">
+          ATO data-matching — pre-match before they do.
+        </h1>
+        <p class="mt-2 max-w-[820px] text-[13.5px] leading-[1.55] text-[var(--ink-3)]">
+          The ATO operates <span class="text-[var(--ink)]">31 active data-matching programs</span> for FY26 against
+          third-party records — banks, AUSTRAC, state revenue offices, motor registries, designated-service-provider
+          crypto exchanges, online platforms (eBay/Airbnb/Uber), CRS foreign-income reports, CHESS share disposals,
+          Home Affairs visa holders, Services Australia, Medicare Levy Surcharge data. SAE Books cross-matches each
+          program against the party-graph and flags potential discrepancies <span class="text-[var(--ink)]">before</span>
+          the data-matching letter arrives. Xero/MYOB/Reckon do not expose this surface — they leave it to the tax
+          agent at lodgement.
+        </p>
+      </div>
+      <div class="shrink-0 text-right">
+        <div class="num-stamp text-[11px] uppercase tracking-[0.18em]">
+          <div class="text-[var(--ink-3)]">31 programs</div>
+          <div class="font-display text-[26px] tracking-[-0.01em] text-[var(--ink)]">28 / 31</div>
+          <div class="text-[var(--ink-3)]">2 amber · 1 red</div>
+        </div>
+        <div class="mt-2 flex items-center justify-end gap-3 text-[11px] text-[var(--ink-3)]">
+          <span class="led on"></span><span>Live ATO program registry</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ SUMMARY STRIP ============ -->
+  <section class="mx-auto mt-8 max-w-[1480px] grid grid-cols-12 gap-5">
+    <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Entities in scope</div>
+      <div class="font-display mt-1 text-[28px] tracking-[-0.01em]">7</div>
+      <div class="mt-2 text-[12px] leading-[1.5] text-[var(--ink-3)]">
+        Sauerland Pty Ltd · Saueesti Trust · ART SMSF · R Sauer (indiv) · M Sauer (indiv) ·
+        Sauer Holdings Pty Ltd · Sauer Bare Trust
+      </div>
+    </div>
+    <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Records cross-matched</div>
+      <div class="font-display mt-1 text-[28px] tracking-[-0.01em]">8,742</div>
+      <div class="mt-2 text-[12px] leading-[1.5] text-[var(--ink-3)]">
+        Bank interest 14 · TPAR 6 · CHESS 3 · MVR 2 · AUSTRAC 1 · STP 14 ·
+        beneficiary 6 · sharing-economy 2 · CRS 1 · crypto 0 (none held)
+      </div>
+    </div>
+    <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Discrepancy register</div>
+      <div class="font-display mt-1 text-[28px] tracking-[-0.01em] text-[var(--warm)]">3</div>
+      <div class="mt-2 text-[12px] leading-[1.5] text-[var(--ink-3)]">
+        1 red · TBR mismatch · M Sauer 60% vs declared 50%<br>
+        1 amber · MVR · Hilux WJK-381 not in fleet register<br>
+        1 amber · CHESS · Telstra parcel cost-base undocumented
+      </div>
+    </div>
+    <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+      <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Estimated exposure</div>
+      <div class="font-display mt-1 text-[28px] tracking-[-0.01em] text-[var(--neg)]">A$11,840</div>
+      <div class="mt-2 text-[12px] leading-[1.5] text-[var(--ink-3)]">
+        TBR cascade A$7,326 · CGT A$3,114 · MVR private-use FBT A$1,400 ·
+        if uncorrected and ATO match issues letter
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROGRAM REGISTRY ============ -->
+  <section class="mx-auto mt-10 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">ATO data-matching program registry — FY26 (31 active)</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Source · ATO Gazette notices · CRS schedule · TPAR Bulletin</div>
+    </div>
+
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-1">#</div>
+        <div class="col-span-4">Program</div>
+        <div class="col-span-2">Third-party source</div>
+        <div class="col-span-2">Match cadence</div>
+        <div class="col-span-2">Our scope</div>
+        <div class="col-span-1 text-right">Status</div>
+      </div>
+      {% set rows = [
+        ('01','Bank account interest','Westpac · CBA · ANZ · NAB','Annual (Aug)','3 acct · 14 rec','clean'),
+        ('02','TPAR — contractor payments','SAE-issued TPAR','Annual (28-Aug)','6 subs · A$57,610','clean'),
+        ('03','Ride-sourcing — Uber / DiDi / Ola','Platforms','Quarterly','Not engaged','n/a'),
+        ('04','Sharing economy — Airbnb / Stayz / Booking','Platforms','Quarterly','2 stays Jan-Apr · A$3,420','clean'),
+        ('05','Designated-service-provider crypto','Independent Reserve · Btc Markets · CoinSpot · Swyftx','Quarterly','None held · attested','n/a'),
+        ('06','Motor vehicle registry — purchases ≥A$10k','TMR QLD · Service NSW · VicRoads','Annual (Mar)','Hilux WJK-381 A$78,450 · Q3','AMBER'),
+        ('07','Property transactions — state revenue','OSR QLD · Revenue NSW · SRO VIC','Quarterly','Lot 47 disposal · A$420k margin · Fire 58','clean'),
+        ('08','Lifestyle assets ≥A$65k','Insurers · ANZIIF schedule','Annual (Jul)','None insured · attested','n/a'),
+        ('09','AUSTRAC — TTR / IFTI','AUSTRAC','Real-time','1 TTR · 18-Mar A$11,400 cash','clean'),
+        ('10','CHESS share disposals','ASX CHESS · share registries','Annual (Sep)','3 sales · TLS / BHP / WBC','AMBER'),
+        ('11','Online marketplaces — eBay / Amazon / Etsy','Platforms (≥A$12k threshold)','Annual','Below threshold · attested','n/a'),
+        ('12','Health insurance — MLS','Private health insurers','Annual','R+M Sauer · Bupa H-1140','clean'),
+        ('13','HELP / HECS — employer STP','STP feed (Fire 59)','Annual (Aug)','1 payee · L Bishop A$1,840','clean'),
+        ('14','Foreign income — CRS','OECD · 119 jurisdictions','Annual (Sep)','NZ savings A$240 interest','clean'),
+        ('15','Government grants — JobKeeper / DPN','Services Australia · ATO','Annual','Nil received FY26','n/a'),
+        ('16','STP recon vs employee return','ATO STP gateway','Per finalisation','14 payees · Fire 59 stamped','clean'),
+        ('17','Home Affairs — visa holders','DHA','Real-time','2 payees on subclass 482','clean'),
+        ('18','Trust Beneficiary Reporting (TBR)','SBR2 TBR feed','Annual (after distribution)','6 beneficiaries · Fire 55','RED'),
+        ('19','PCG 2021/4 — allocation prof firm profits','Self-declared','Annual','R Sauer engineering split · zone green','clean'),
+        ('20','PCG 2021/D2 — service fee medical practices','Self-declared','Annual','Out of scope','n/a'),
+        ('21','PAYG instalment — variation vs lodged','ATO ICA','Per quarter','Q1-Q4 variations within ±15%','clean'),
+        ('22','FBT — employee contribution','Employer FBT return','Annual (May)','R Sauer ECM Hilux · Fire 53','clean'),
+        ('23','Super guarantee — SuperStream gateway','Funds (STAR / CXP)','Per pay','SG paid 22 days early avg','clean'),
+        ('24','Div 7A — loans / payments','Self-declared (loan ledger)','Annual','3 loans · all compliant Fire 52','clean'),
+        ('25','Section 100A — reimbursement agreements','TR 2022/4 self-attestation','Annual','Saueesti FTE flagged green · Fire 55','clean'),
+        ('26','Share Buy-Back / capital return','Listed-co notices','Annual','Nil this year','n/a'),
+        ('27','Insurance compensation receipts','Insurers ITP','Annual','A$2,140 windscreen · accountable','clean'),
+        ('28','Dividend franking — RWT','Share registries · CHESS','Annual (Sep)','A$4,820 franking credits · 14 div','clean'),
+        ('29','Royalty / IP payments','Self-declared','Annual','Nil','n/a'),
+        ('30','Foreign hybrid mismatch — Div 832','Self-declared','Annual','Out of scope','n/a'),
+        ('31','Cryptocurrency wallet → fiat','Exchanges + AUSTRAC IFTI','Quarterly','None held · attested','n/a')
+      ] %}
+      {% for r in rows %}
+      <div class="grid grid-cols-12 items-center px-4 py-[6px] text-[12.5px] border-t border-[var(--line)] {% if r[5]=='RED' %}bg-[rgba(180,40,40,0.06)]{% elif r[5]=='AMBER' %}bg-[rgba(200,99,31,0.05)]{% endif %}">
+        <div class="col-span-1 num text-[var(--ink-3)]">{{ r[0] }}</div>
+        <div class="col-span-4">{{ r[1] }}</div>
+        <div class="col-span-2 text-[var(--ink-3)]">{{ r[2] }}</div>
+        <div class="col-span-2 text-[var(--ink-3)]">{{ r[3] }}</div>
+        <div class="col-span-2 num text-[12px]">{{ r[4] }}</div>
+        <div class="col-span-1 text-right">
+          {% if r[5]=='clean' %}<span class="led on"></span><span class="ml-1 text-[10.5px] uppercase tracking-[0.16em] text-[var(--pos)]">clean</span>
+          {% elif r[5]=='AMBER' %}<span class="led warn"></span><span class="ml-1 text-[10.5px] uppercase tracking-[0.16em] text-[var(--warm)]">amber</span>
+          {% elif r[5]=='RED' %}<span class="led off"></span><span class="ml-1 text-[10.5px] uppercase tracking-[0.16em] text-[var(--neg)]">red</span>
+          {% else %}<span class="text-[10.5px] uppercase tracking-[0.16em] text-[var(--ink-3)]">n/a</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ============ DISCREPANCY DEEP-DIVE ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px] grid grid-cols-12 gap-6">
+    <!-- RED — TBR mismatch -->
+    <div class="col-span-12 rounded-md border border-[rgba(180,40,40,0.4)] bg-[rgba(180,40,40,0.04)] p-5">
+      <div class="flex items-center gap-3">
+        <span class="led off"></span>
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--neg)]">Red · Program 18 · TBR mismatch</div>
+      </div>
+      <div class="mt-2 font-display text-[20px] tracking-[-0.01em]">
+        Saueesti Trust beneficiary distribution — M Sauer share declared at 50%; trust resolution carries 60% (Fire 55).
+      </div>
+      <div class="mt-3 grid grid-cols-12 gap-4 text-[12.5px]">
+        <div class="col-span-4">
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Per trust resolution (Fire 55)</div>
+          <table class="num mt-1 w-full text-[12.5px]">
+            <tr><td>M Sauer</td><td class="text-right">60.00%</td><td class="text-right">A$250,956</td></tr>
+            <tr><td>R Sauer</td><td class="text-right">25.00%</td><td class="text-right">A$104,565</td></tr>
+            <tr><td>ART SMSF</td><td class="text-right">10.00%</td><td class="text-right">A$41,826</td></tr>
+            <tr><td>Sauer Bare Trust</td><td class="text-right">5.00%</td><td class="text-right">A$20,913</td></tr>
+          </table>
+        </div>
+        <div class="col-span-4">
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Per M Sauer draft return (provided 2026-04-30)</div>
+          <table class="num mt-1 w-full text-[12.5px]">
+            <tr><td>Trust income</td><td class="text-right">A$209,130</td></tr>
+            <tr><td>Implied %</td><td class="text-right">50.00%</td></tr>
+            <tr><td class="text-[var(--neg)]">Variance</td><td class="text-right text-[var(--neg)]">−A$41,826</td></tr>
+          </table>
+        </div>
+        <div class="col-span-4">
+          <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Exposure if unresolved</div>
+          <table class="num mt-1 w-full text-[12.5px]">
+            <tr><td>Top-up tax @ 39%</td><td class="text-right">A$16,312</td></tr>
+            <tr><td>SIC ≈ 7.36% pa · 6mo</td><td class="text-right">A$600</td></tr>
+            <tr><td>Pen 25% s.284-75</td><td class="text-right">A$4,078</td></tr>
+            <tr><td>(Net new to client)</td><td class="text-right text-[var(--neg)]">A$7,326</td></tr>
+          </table>
+          <div class="mt-1 text-[11px] text-[var(--ink-3)]">(Client owes the income tax regardless; the new $$ is SIC + penalty after correction)</div>
+        </div>
+      </div>
+      <div class="mt-3 text-[12px] text-[var(--ink-3)]">
+        <span class="text-[var(--ink)]">Action · </span>
+        Reissue M Sauer's draft return with 60% share before lodgement.
+        Notify M Sauer's tax agent (Bensons Lambert · agent #18742). Trustee resolution is unambiguous — Fire 55 §3.
+        Authorities · <span class="text-[var(--ink)]">ITAA 1936 s.97</span> · <span class="text-[var(--ink)]">TR 2012/D1</span> ·
+        <span class="text-[var(--ink)]">TR 2022/4</span> · <span class="text-[var(--ink)]">Bamford</span> [2010] HCA 10.
+      </div>
+    </div>
+
+    <!-- AMBER — MVR -->
+    <div class="col-span-6 rounded-md border border-[rgba(200,99,31,0.45)] bg-[rgba(200,99,31,0.04)] p-5">
+      <div class="flex items-center gap-3">
+        <span class="led warn"></span>
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--warm)]">Amber · Program 06 · Motor vehicle registry</div>
+      </div>
+      <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">
+        Hilux WJK-381 · A$78,450 acquired 2025-09-18 — TMR QLD records show registered to Sauerland Pty Ltd; fleet register
+        in SAE Books lists 2 vehicles (Ford Ranger DJP-118, Toyota Corolla MNK-244). Hilux not yet posted.
+      </div>
+      <table class="num mt-3 w-full text-[12.5px]">
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-1">Date of acquisition (TMR)</td>
+          <td class="text-right py-1">2025-09-18</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-1">Stamp duty paid (TMR)</td>
+          <td class="text-right py-1">A$2,610</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-1">Cost on books</td>
+          <td class="text-right py-1">—</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-1">FBT private-use exposure if undeclared</td>
+          <td class="text-right py-1 text-[var(--neg)]">A$1,400</td>
+        </tr>
+        <tr>
+          <td class="py-1">Action</td>
+          <td class="text-right py-1">Capitalise · Div 40 · FBT declaration</td>
+        </tr>
+      </table>
+      <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">
+        Authorities · <span class="text-[var(--ink)]">FBTAA s.7 · s.10A operating-cost</span> ·
+        <span class="text-[var(--ink)]">ITAA 1997 Div 40</span> · car-limit A$69,674 FY26.
+      </div>
+    </div>
+
+    <!-- AMBER — CHESS -->
+    <div class="col-span-6 rounded-md border border-[rgba(200,99,31,0.45)] bg-[rgba(200,99,31,0.04)] p-5">
+      <div class="flex items-center gap-3">
+        <span class="led warn"></span>
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--warm)]">Amber · Program 10 · CHESS share disposals</div>
+      </div>
+      <div class="mt-2 font-display text-[18px] tracking-[-0.01em]">
+        Telstra parcel — 4,200 sh disposed 2026-02-04 @ A$3.91 — proceeds A$16,422.
+        ATO CHESS feed shows disposal; cost-base in CGT register undocumented (parcel inherited 2018-03 — no DRP/SPP record).
+      </div>
+      <table class="num mt-3 w-full text-[12.5px]">
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Proceeds</td><td class="text-right py-1">A$16,422</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Cost-base · TR 2004/D25 default</td><td class="text-right py-1">A$5,964</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Discounted gain · s.115-25</td><td class="text-right py-1">A$5,229</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">If cost-base disallowed (no records)</td><td class="text-right py-1 text-[var(--neg)]">+A$3,114</td></tr>
+        <tr><td class="py-1">Action</td><td class="text-right py-1">Pull Computershare HIN · X0014872</td></tr>
+      </table>
+      <div class="mt-2 text-[11.5px] text-[var(--ink-3)]">
+        Authorities · <span class="text-[var(--ink)]">ITAA 1997 Div 100 · 110 · 115</span> ·
+        <span class="text-[var(--ink)]">s.262A TAA</span> 5-yr records ·
+        <span class="text-[var(--ink)]">TD 2018/12</span> deceased estate inheritance cost-base ·
+        <span class="text-[var(--ink)]">FCT v Bell</span> [2013] FCAFC 32 onus on taxpayer.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TBR DEEP-DIVE: SBR2 TBR FEED ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">SBR2 TBR feed — trust beneficiary cross-match</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Schema TBR.0003.2024 · field-level · per-beneficiary</div>
+    </div>
+
+    <div class="mt-4 rounded-md border border-[var(--line)] overflow-hidden">
+      <div class="grid grid-cols-12 bg-[var(--paper-2)] px-4 py-2 text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+        <div class="col-span-3">Beneficiary</div>
+        <div class="col-span-1">TFN/ABN</div>
+        <div class="col-span-1 text-right">% (resolution)</div>
+        <div class="col-span-2 text-right">Net income</div>
+        <div class="col-span-2 text-right">Franking credits</div>
+        <div class="col-span-1 text-right">CGT discounted</div>
+        <div class="col-span-2 text-right">Status</div>
+      </div>
+      {% set bens = [
+        ('M Sauer',            'masked',      '60%',  'A$250,956','A$2,892','A$3,138', 'red'),
+        ('R Sauer',            'masked',      '25%',  'A$104,565','A$1,205','A$1,308', 'green'),
+        ('ART SMSF (Saueesti)','93 184 260 487','10%','A$41,826', 'A$482',  'A$523',  'green'),
+        ('Sauer Bare Trust',   '54 192 084 220','5%', 'A$20,913', 'A$241',  'A$261',  'green'),
+        ('Sauer Holdings P/L (capped)','55 612 481 119','0%','A$0','A$0','A$0','green'),
+        ('Default beneficiary (R Sauer)','—','—','A$0','A$0','A$0','green')
+      ] %}
+      {% for b in bens %}
+      <div class="grid grid-cols-12 items-center px-4 py-[6px] text-[12.5px] border-t border-[var(--line)] {% if b[6]=='red' %}bg-[rgba(180,40,40,0.05)]{% endif %}">
+        <div class="col-span-3">{{ b[0] }}</div>
+        <div class="col-span-1 num text-[11.5px] text-[var(--ink-3)]">{{ b[1] }}</div>
+        <div class="col-span-1 num text-right">{{ b[2] }}</div>
+        <div class="col-span-2 num text-right">{{ b[3] }}</div>
+        <div class="col-span-2 num text-right">{{ b[4] }}</div>
+        <div class="col-span-1 num text-right">{{ b[5] }}</div>
+        <div class="col-span-2 text-right">
+          {% if b[6]=='green' %}<span class="led on"></span><span class="ml-1 text-[10.5px] uppercase tracking-[0.16em] text-[var(--pos)]">match</span>
+          {% else %}<span class="led off"></span><span class="ml-1 text-[10.5px] uppercase tracking-[0.16em] text-[var(--neg)]">resolution &gt; declared</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-3 text-[11.5px] text-[var(--ink-3)]">
+      TBR lodged via SBR2 within <span class="text-[var(--ink)]">90 days</span> of trustee resolution
+      (<span class="text-[var(--ink)]">PS LA 2010/4</span>) carries no penalty if filed on time and accurate. SAE Books
+      submits the TBR feed and cross-matches against each beneficiary's draft return where the beneficiary's agent has
+      granted advisor share. M Sauer's agent has not yet uploaded the corrected return — notify before 2026-06-30.
+    </div>
+  </section>
+
+  <!-- ============ AUSTRAC TTR / IFTI ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px] grid grid-cols-12 gap-6">
+    <div class="col-span-7 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Program 09 · AUSTRAC threshold transaction reports</div>
+      <div class="mt-2 font-display text-[19px] tracking-[-0.01em]">
+        1 TTR cross-matched · A$11,400 cash drop deposit 2026-03-18 · Westpac BSB 034-002 acct 184260.
+      </div>
+      <table class="num mt-3 w-full text-[12.5px]">
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Cash receipt source</td><td class="text-right">RPS Drilling Pty Ltd · INV-7188</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Invoice amount</td><td class="text-right">A$11,400.00</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Method of receipt</td><td class="text-right">Bank cheque + bank-counter cash A$3,400</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">AUSTRAC reporting entity</td><td class="text-right">Westpac (REE# 02814)</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">TTR cross-match status</td><td class="text-right text-[var(--pos)]">Receipt posted · GST taxable · GST A$1,036.36</td></tr>
+        <tr><td class="py-1">Authority</td><td class="text-right">AML/CTF Act 2006 s.43 · Rules ch.18</td></tr>
+      </table>
+    </div>
+    <div class="col-span-5 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-5">
+      <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Program 14 · CRS foreign income</div>
+      <div class="mt-2 font-display text-[19px] tracking-[-0.01em]">NZ savings account · BNZ 12-3148-0184260-00.</div>
+      <table class="num mt-3 w-full text-[12.5px]">
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Account holder</td><td class="text-right">R Sauer (individual)</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">FY26 interest reported (CRS)</td><td class="text-right">NZD 260.40 · A$239.50</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">NZ RWT withheld @ 17.5%</td><td class="text-right">NZD 45.57 · A$41.91</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Foreign income tax offset (FITO)</td><td class="text-right">A$41.91</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-1">Cross-match status</td><td class="text-right text-[var(--pos)]">declared · IDS Sec K</td></tr>
+        <tr><td class="py-1">Authority</td><td class="text-right">ITAA 1997 Div 770 · DTA AUS-NZ</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ PROGRAM CASCADE / RISK SCORE ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Letter-risk score — when ATO is likely to write</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Model · ATO 2024 program intensity weighting</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-4">
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">If corrected before lodgement</div>
+        <div class="font-display mt-1 text-[28px] tracking-[-0.01em] text-[var(--pos)]">Low</div>
+        <div class="mt-1 text-[12px] text-[var(--ink-3)]">~3% expected match-letter probability</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">If lodged with current variance (M Sauer 50%)</div>
+        <div class="font-display mt-1 text-[28px] tracking-[-0.01em] text-[var(--warm)]">High</div>
+        <div class="mt-1 text-[12px] text-[var(--ink-3)]">~71% — TBR data-match runs Sep 2026</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Time-to-letter — TBR program</div>
+        <div class="font-display mt-1 text-[28px] tracking-[-0.01em]">12–16 wk</div>
+        <div class="mt-1 text-[12px] text-[var(--ink-3)]">From lodgement of beneficiary return</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">SAE Books pre-correction credit</div>
+        <div class="font-display mt-1 text-[28px] tracking-[-0.01em] text-[var(--pos)]">A$11,840</div>
+        <div class="mt-1 text-[12px] text-[var(--ink-3)]">SIC + penalty avoided if pre-empted</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MARKET READ ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Market read · why SAE Books exposes this surface</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Xero / MYOB / Reckon · ATO data-matching</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-4 text-[12.5px]">
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Xero (Practice Manager)</div>
+        <div class="mt-2 text-[var(--ink)]">Pre-fill from ATO Tax Agent Portal at lodgement time.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Receives pre-fill <span class="text-[var(--ink)]">after</span> beneficiaries file —
+          mismatch is detected post-hoc. No active scanning of bank/CRS/CHESS feeds against the GL.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">MYOB (AE / AO)</div>
+        <div class="mt-2 text-[var(--ink)]">Portal pre-fill + manual review checklist.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Tax-agent driven. No automatic TBR cross-match against trust resolution.
+          AUSTRAC, MVR, lifestyle assets — all left to the agent to remember to check.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">Reckon APS</div>
+        <div class="mt-2 text-[var(--ink)]">APS Tax pre-fill + workflow.</div>
+        <div class="mt-2 text-[var(--ink-3)]">Mid-tier agent suite. Data-matching detection is by exception only — no
+          per-program registry, no risk-score panel.</div>
+      </div>
+      <div class="col-span-3 rounded-md border border-[var(--line)] bg-[var(--paper-2)] p-4">
+        <div class="text-[10.5px] uppercase tracking-[0.2em] text-[var(--ink-3)]">SAE Books · this surface</div>
+        <div class="mt-2 text-[var(--ink)]">Pre-match before lodgement; weekly intensity sweep.</div>
+        <div class="mt-2 text-[var(--ink-3)]">31-program registry kept current with ATO gazette feed. Party-graph
+          (<a href="/preview/parties" class="underline">/preview/parties</a>) is one record per entity, so a discrepancy in
+          one program (TBR · Saueesti) propagates into M Sauer's pre-lodgement file automatically.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AUTHORITIES ============ -->
+  <section class="mx-auto mt-12 max-w-[1480px]">
+    <div class="flex items-end justify-between border-b border-[var(--line)] pb-2">
+      <h2 class="font-display text-[22px] tracking-[-0.012em]">Authority pack</h2>
+      <div class="text-[11px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Statute · cases · ATO rulings · gazettes</div>
+    </div>
+    <div class="mt-4 grid grid-cols-12 gap-6 text-[12px] leading-[1.55]">
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Statute</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li>TAA Sched 1 <span class="text-[var(--ink)]">Div 396</span> common reporting standard (CRS)</li>
+          <li>TAA <span class="text-[var(--ink)]">s.262A</span> · 5-year records · cost-base substantiation</li>
+          <li>ITAA 1936 <span class="text-[var(--ink)]">s.97 · s.99B · s.100A</span> · trust beneficiary &amp; reimbursement</li>
+          <li>ITAA 1997 <span class="text-[var(--ink)]">Div 100 · 110 · 115 · 770</span> · CGT &amp; FITO</li>
+          <li>AML/CTF Act 2006 <span class="text-[var(--ink)]">s.43</span> &amp; Rules ch.18 (TTR/IFTI)</li>
+          <li>FBTAA <span class="text-[var(--ink)]">s.7 · s.10A</span> · cars &amp; operating cost</li>
+        </ul>
+      </div>
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">ATO guidance</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li><span class="text-[var(--ink)]">PS LA 2010/4</span> · TBR lodgement window 90 days</li>
+          <li><span class="text-[var(--ink)]">TR 2012/D1 · TR 2022/4</span> · trust beneficiary &amp; s.100A</li>
+          <li><span class="text-[var(--ink)]">TR 2004/D25 · TD 2018/12</span> · inherited shares cost-base</li>
+          <li><span class="text-[var(--ink)]">PCG 2021/4 · PCG 2021/D2</span> · professional/medical attribution</li>
+          <li><span class="text-[var(--ink)]">ATO Gazette Notice C2025G00184</span> · MVR program FY26</li>
+          <li><span class="text-[var(--ink)]">ATO Gazette Notice C2025G00091</span> · lifestyle assets ≥A$65k</li>
+          <li><span class="text-[var(--ink)]">CRS Reportable Jurisdictions list 2026</span> · 119 partners</li>
+        </ul>
+      </div>
+      <div class="col-span-4">
+        <div class="text-[10.5px] uppercase tracking-[0.18em] text-[var(--ink-3)]">Cases &amp; standards</div>
+        <ul class="mt-1 list-disc pl-4 space-y-1 text-[var(--ink-3)]">
+          <li><span class="text-[var(--ink)]">FCT v Bamford</span> [2010] HCA 10 · trust net income</li>
+          <li><span class="text-[var(--ink)]">FCT v Bell</span> [2013] FCAFC 32 · onus on taxpayer</li>
+          <li><span class="text-[var(--ink)]">FCT v Carter</span> [2022] HCA 10 · disclaimer post-30-Jun</li>
+          <li><span class="text-[var(--ink)]">FCT v Guardian AIT</span> [2023] FCAFC 3 · s.100A &amp; capital</li>
+          <li><span class="text-[var(--ink)]">SBR2 TBR.0003.2024</span> · trust beneficiary feed schema</li>
+          <li><span class="text-[var(--ink)]">SBR2 CRS.0002.2024</span> · CRS feed schema</li>
+          <li><span class="text-[var(--ink)]">AUSTRAC Compliance Guide 2024-04</span> · TTR &amp; IFTI</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mx-auto mt-14 max-w-[1480px] border-t border-[var(--line)] pt-4 text-[11px] uppercase tracking-[0.2em] text-[var(--ink-3)]">
+    <div class="flex justify-between">
+      <div>DM-184260-26 · 31 programs · 28 clean / 2 amber / 1 red · party-graph cross-match · prepared 2026-05-11 22:31</div>
+      <div>SAE BOOKS · /preview/compliance/ato-data-matching/fy26</div>
+    </div>
+  </footer>
+</main>
+{% endblock %}

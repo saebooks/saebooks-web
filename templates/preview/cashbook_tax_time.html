@@ -1,0 +1,176 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'cashbook' %}
+{% block page_title %}Tax time · Cashbook · SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-32 dot-grid rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <a href="/preview/cashbook" class="text-[11px] font-mono ink-3 hover:underline">← Cashbook</a>
+        <span class="text-[11px] font-mono ink-3">/</span>
+        <span class="text-[11px] font-mono">Tax time FY26</span>
+      </div>
+      <h1 class="font-display text-[40px] leading-[1.05] font-medium max-w-2xl">
+        Tax time, <span class="italic" style="color: var(--sae);">finished in 6 minutes.</span>
+      </h1>
+      <p class="mt-2 ink-2 text-[14px] max-w-xl">All FY26 income &amp; expenses summed, categorised, and pre-filled into the labels your accountant — or myTax — actually needs.</p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>PDF summary</button>
+      <button class="chip"><i data-lucide="table" class="w-3.5 h-3.5"></i>CSV export</button>
+      <button class="btn-primary"><i data-lucide="user-plus" class="w-4 h-4"></i>Send to accountant</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- Top number -->
+<div class="card p-7 mb-6 relative overflow-hidden" style="border: 1px solid var(--sae);">
+  <div class="absolute -right-6 -top-6 reg-mark opacity-30"></div>
+  <div class="grid grid-cols-3 gap-6">
+    <div>
+      <p class="text-[11px] uppercase tracking-wider ink-3">Net business income · FY26</p>
+      <p class="font-display text-[44px] font-medium mt-1 num">A$38,420<span class="text-[18px] ink-3">.71</span></p>
+      <p class="text-[12px] ink-2 mt-1">This is the taxable amount that flows into your individual return (Item 15 / business and professional items).</p>
+    </div>
+    <div>
+      <p class="text-[11px] uppercase tracking-wider ink-3">Estimated tax on this</p>
+      <p class="font-display text-[28px] mt-1 num">A$5,840<span class="text-[14px] ink-3">.30</span></p>
+      <p class="text-[12px] ink-2 mt-1">Includes Medicare levy. Assumes you've already paid <span class="num font-medium">A$3,546</span> via PAYG instalments.</p>
+      <p class="text-[12px] pos mt-2 font-medium"><i data-lucide="arrow-up" class="w-3 h-3 inline"></i> Likely small refund</p>
+    </div>
+    <div>
+      <p class="text-[11px] uppercase tracking-wider ink-3">Lodgement options</p>
+      <ul class="text-[12px] space-y-2 mt-2">
+        <li class="flex items-center gap-2"><i data-lucide="user-plus" class="w-3.5 h-3.5 sae"></i><span>Send to your accountant — usually due 31 Mar 2027</span></li>
+        <li class="flex items-center gap-2"><i data-lucide="zap" class="w-3.5 h-3.5 sae"></i><span>Self-lodge via myTax — due 31 Oct 2026</span></li>
+        <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 sae"></i><span>Save the working papers for 5 years (ATO retention)</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- The summary -->
+<div class="grid grid-cols-12 gap-5">
+  <!-- LEFT: income/expenses breakdown -->
+  <div class="col-span-8 space-y-5">
+
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 border-b hairline bg-[color:var(--paper)] flex items-center justify-between">
+        <h3 class="font-medium text-sm">Business income · FY26</h3>
+        <span class="text-[11px] ink-3 font-mono">From bank feed · 96 receipts</span>
+      </div>
+      <table class="sae-table">
+        <thead><tr><th>Account</th><th>Description</th><th class="text-right">FY26</th><th class="text-right">FY25</th><th class="text-right">Δ</th></tr></thead>
+        <tbody>
+          <tr><td class="font-mono text-[12px]">4-100</td><td>Trade services revenue</td><td class="text-right num font-medium">62,420.00</td><td class="text-right num ink-2">48,210.00</td><td class="text-right num pos">+29%</td></tr>
+          <tr><td class="font-mono text-[12px]">4-200</td><td>Reimbursable expenses on-charged</td><td class="text-right num font-medium">2,840.00</td><td class="text-right num ink-2">1,920.00</td><td class="text-right num pos">+48%</td></tr>
+          <tr><td class="font-mono text-[12px]">4-300</td><td>Other (interest, prompt-pay)</td><td class="text-right num font-medium">140.00</td><td class="text-right num ink-2">86.00</td><td class="text-right num pos">+63%</td></tr>
+          <tr style="border-top: 2px solid var(--ink-3); font-weight: 600;"><td colspan="2">Gross income</td><td class="text-right num">A$65,400.00</td><td class="text-right num">A$50,216.00</td><td class="text-right num pos">+30%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 border-b hairline bg-[color:var(--paper)] flex items-center justify-between">
+        <h3 class="font-medium text-sm">Business expenses · FY26</h3>
+        <span class="text-[11px] ink-3 font-mono">From bank feed + 412 receipts</span>
+      </div>
+      <table class="sae-table">
+        <thead><tr><th>Account</th><th>Description</th><th class="text-right">FY26</th><th class="text-right">FY25</th><th class="text-right">% income</th></tr></thead>
+        <tbody>
+          <tr><td class="font-mono text-[12px]">5-310</td><td>Materials &amp; consumables</td><td class="text-right num font-medium">14,820.00</td><td class="text-right num ink-2">11,210.00</td><td class="text-right num ink-2">22.7%</td></tr>
+          <tr><td class="font-mono text-[12px]">5-300</td><td>Subcontractors (TPAR-tracked)</td><td class="text-right num font-medium">8,640.00</td><td class="text-right num ink-2">6,420.00</td><td class="text-right num ink-2">13.2%</td></tr>
+          <tr><td class="font-mono text-[12px]">6-200</td><td>Motor vehicle (logbook method, 64%)</td><td class="text-right num font-medium">1,420.00</td><td class="text-right num ink-2">1,120.00</td><td class="text-right num ink-2">2.2%</td></tr>
+          <tr><td class="font-mono text-[12px]">6-300</td><td>Phone &amp; internet (70% business)</td><td class="text-right num font-medium">982.00</td><td class="text-right num ink-2">920.00</td><td class="text-right num ink-2">1.5%</td></tr>
+          <tr><td class="font-mono text-[12px]">6-400</td><td>Tools (immediate write-off &lt; A$300)</td><td class="text-right num font-medium">620.00</td><td class="text-right num ink-2">340.00</td><td class="text-right num ink-2">0.9%</td></tr>
+          <tr><td class="font-mono text-[12px]">6-410</td><td>Capital tools (IAWO eligible)</td><td class="text-right num font-medium" style="color: var(--sae);">498.00 <span class="text-[11px] ink-3">+IAWO badge</span></td><td class="text-right num ink-2">0.00</td><td class="text-right num ink-2">0.8%</td></tr>
+          <tr style="background: var(--paper);"><td class="font-mono text-[12px]">5-998</td><td class="ink-3 italic">Personal portion (auto-excluded)</td><td class="text-right num ink-3">−420.00</td><td class="text-right num ink-3">−320.00</td><td class="text-right num ink-3">—</td></tr>
+          <tr style="border-top: 2px solid var(--ink-3); font-weight: 600;"><td colspan="2">Total deductible expenses</td><td class="text-right num">A$26,560.00</td><td class="text-right num">A$19,690.00</td><td class="text-right num">40.6%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Auto-insight: write-offs found -->
+    <div class="card p-5" style="border: 1px dashed var(--sae);">
+      <div class="flex items-start gap-3">
+        <i data-lucide="search" class="w-5 h-5 mt-0.5" style="color: var(--sae);"></i>
+        <div>
+          <p class="font-medium" style="color: var(--sae);">Deductions you might have missed</p>
+          <p class="text-[13px] ink-2 mt-1">We scanned your bank feed and unmatched receipts and flagged <strong>4 likely business expenses</strong> worth reviewing before lodgement. None are auto-claimed — you decide.</p>
+          <ul class="text-[12px] mt-3 space-y-2">
+            <li class="flex items-center justify-between p-2 rounded border hairline bg-white">
+              <span><span class="font-mono">12 Mar</span> · Toolworks Cairns · A$148.20 · <span class="ink-3">looks like 5-310 Materials</span></span>
+              <span class="flex gap-1"><button class="chip text-[11px]">Add</button><button class="chip text-[11px]">Skip</button></span>
+            </li>
+            <li class="flex items-center justify-between p-2 rounded border hairline bg-white">
+              <span><span class="font-mono">8 Mar</span> · Officeworks · A$84.50 · <span class="ink-3">stationery — claimable</span></span>
+              <span class="flex gap-1"><button class="chip text-[11px]">Add</button><button class="chip text-[11px]">Skip</button></span>
+            </li>
+            <li class="flex items-center justify-between p-2 rounded border hairline bg-white">
+              <span><span class="font-mono">22 Feb</span> · BP Trinity Beach · A$92.40 · <span class="ink-3">fuel — apply 64% logbook</span></span>
+              <span class="flex gap-1"><button class="chip text-[11px]">Add</button><button class="chip text-[11px]">Skip</button></span>
+            </li>
+            <li class="flex items-center justify-between p-2 rounded border hairline bg-white">
+              <span><span class="font-mono">15 Jan</span> · Microsoft 365 · A$11.00 · <span class="ink-3">software subscription</span></span>
+              <span class="flex gap-1"><button class="chip text-[11px]">Add</button><button class="chip text-[11px]">Skip</button></span>
+            </li>
+          </ul>
+          <p class="text-[11px] ink-3 mt-3 font-mono">Total potential extra: A$336.10 · approx A$58 less tax</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: rail -->
+  <aside class="col-span-4 space-y-4">
+    <div class="card p-4">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Pre-fill targets</p>
+      <p class="text-[12px] ink-2 mt-1 mb-3">These are the boxes on the ATO individual tax return (NAT 2541) that we've pre-filled for you.</p>
+      <ul class="text-[12px] space-y-2 font-mono">
+        <li class="flex items-center justify-between"><span class="ink-2">P1 · Net income (loss)</span><span class="font-medium">38,420.71</span></li>
+        <li class="flex items-center justify-between"><span class="ink-2">P8 · Business expenses</span><span class="font-medium">26,560.00</span></li>
+        <li class="flex items-center justify-between"><span class="ink-2">P9 · COGS</span><span class="font-medium">14,820.00</span></li>
+        <li class="flex items-center justify-between"><span class="ink-2">D2 · Work-related travel</span><span class="font-medium">340.00</span></li>
+        <li class="flex items-center justify-between"><span class="ink-2">D5 · Other work-related</span><span class="font-medium">620.00</span></li>
+      </ul>
+    </div>
+
+    <div class="card p-4">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Send to your accountant</p>
+      <p class="text-[12px] ink-2 mt-1">One-click invite. They get read-only access to your books + the working papers, expires when they lodge.</p>
+      <div class="mt-3 flex flex-col gap-2">
+        <input type="email" placeholder="accountant@example.com.au" class="text-sm px-3 py-2 bg-[color:var(--paper)] border hairline rounded-md ring-focus">
+        <button class="btn-primary justify-center"><i data-lucide="send" class="w-4 h-4"></i>Send invite</button>
+      </div>
+      <div class="mt-3 flex items-center gap-2 text-[11px] ink-3">
+        <i data-lucide="shield-check" class="w-3 h-3"></i>
+        <span>Audit log records every export and download</span>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Or lodge yourself via myTax</p>
+      <p class="text-[12px] ink-2 mt-1">SAE Books can prefill your business schedule into myTax via the ATO DSP channel. You still sign the return.</p>
+      <button class="chip mt-3"><i data-lucide="external-link" class="w-3 h-3"></i>Open in myTax</button>
+      <p class="text-[11px] ink-3 mt-2">Requires MyGovID + linked ATO account</p>
+    </div>
+
+    <div class="card p-4">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Working papers</p>
+      <ul class="text-[12px] space-y-1.5 mt-2">
+        <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i><a href="#" class="sae hover:underline">FY26 Income summary.pdf</a></li>
+        <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i><a href="#" class="sae hover:underline">FY26 Expense summary.pdf</a></li>
+        <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i><a href="#" class="sae hover:underline">FY26 Bank feed reconciled.csv</a></li>
+        <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i><a href="#" class="sae hover:underline">412 receipt images.zip</a></li>
+        <li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i><a href="#" class="sae hover:underline">Motor vehicle logbook.pdf</a></li>
+      </ul>
+      <p class="text-[11px] ink-3 mt-3">Retained for 5 years per ATO requirements.</p>
+    </div>
+  </aside>
+</div>
+
+{% endblock %}

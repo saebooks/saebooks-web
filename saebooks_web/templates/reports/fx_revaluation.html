@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}FX Revaluation — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">FX Revaluation</h1>
+    {% if report %}
+    <p class="text-sm text-gray-500 mt-1">
+      As at {{ report.get("as_of_date", as_of_date) }}
+      &mdash; Base currency: <span class="font-semibold">{{ report.get("base_currency", "AUD") }}</span>
+    </p>
+    {% endif %}
+  </div>
+  <div>
+    <button
+      type="button"
+      onclick="window.print()"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+    >Print</button>
+  </div>
+</div>
+
+{# Filter form — HTMX swaps #report-content on submit #}
+<form
+  hx-get="/reports/fx-revaluation"
+  hx-target="#report-content"
+  hx-swap="innerHTML"
+  hx-indicator="#report-spinner"
+  class="mb-6 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="as_of_date" class="block text-xs font-medium text-gray-500 mb-1">As at date</label>
+    <input
+      id="as_of_date"
+      type="date"
+      name="as_of_date"
+      value="{{ as_of_date }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+  </div>
+  <button
+    type="submit"
+    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
+  >Refresh</button>
+</form>
+
+{% include "reports/_fx_revaluation_table.html" %}
+
+{% endblock %}

@@ -4,57 +4,39 @@
 
 {% block content %}
 
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Trial Balance</h1>
-    {% if report %}
-    <p class="text-sm text-gray-500 mt-1">
-      As of {{ report.get("as_of_date", as_of_date) }}
-    </p>
-    {% endif %}
-  </div>
-  <div>
-    <button
-      type="button"
-      onclick="window.print()"
-      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-    >Print</button>
-  </div>
+<div class="mb-4">
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← reports</a>
 </div>
 
-{# Filter form — HTMX swaps #report-content on submit #}
-<form
-  hx-get="/reports/trial-balance"
-  hx-target="#report-content"
-  hx-swap="innerHTML"
-  hx-indicator="#report-spinner"
-  class="mb-6 flex flex-wrap gap-3 items-end"
->
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Ledger</span>
+        <span class="reg-mark"></span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">Trial Balance</h1>
+      {% if report %}<p class="text-xs ink-3 font-mono mt-2">As of {{ report.get("as_of_date", as_of_date) }}</p>{% endif %}
+    </div>
+    <button type="button" onclick="window.print()" class="btn-secondary text-sm">Print</button>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+
+<form hx-get="/reports/trial-balance" hx-target="#report-content" hx-swap="innerHTML" hx-indicator="#report-spinner"
+      class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
   <div>
-    <label for="as_of_date" class="block text-xs font-medium text-gray-500 mb-1">As of date</label>
-    <input
-      id="as_of_date"
-      type="date"
-      name="as_of_date"
-      value="{{ as_of_date }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    >
+    <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">As of date</label>
+    <input id="as_of_date" type="date" name="as_of_date" value="{{ as_of_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div class="flex items-center gap-2 pb-1">
-    <input
-      id="include_zero_balance"
-      type="checkbox"
-      name="include_zero_balance"
-      value="true"
-      {% if include_zero_balance %}checked{% endif %}
-      class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-    >
-    <label for="include_zero_balance" class="text-sm text-gray-600">Include zero-balance accounts</label>
+    <input id="include_zero_balance" type="checkbox" name="include_zero_balance" value="true"
+           {% if include_zero_balance %}checked{% endif %}
+           class="rounded border-gray-300" style="color:var(--sae);">
+    <label for="include_zero_balance" class="text-xs font-mono ink-3">Include zero-balance accounts</label>
   </div>
-  <button
-    type="submit"
-    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-  >Refresh</button>
+  <button type="submit" class="btn-primary text-sm">Refresh</button>
 </form>
 
 {% include "reports/_trial_balance_table.html" %}

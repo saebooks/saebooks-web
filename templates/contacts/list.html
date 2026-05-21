@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+
+{% import "_partials/empty_state.html" as empty %}
 {% import "_icons.html" as icons %}
 
 {% block title %}Contacts — SAE Books{% endblock %}
@@ -7,32 +9,34 @@
 {% set is_admin = (request.session.get("user_role") == "admin") %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-900">
-      Contacts
-      {% if show == 'one-off' %}<span class="text-base font-normal text-gray-500">— one-off</span>
-      {% elif show == 'all' %}<span class="text-base font-normal text-gray-500">— all (incl. one-off)</span>
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Directory</span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3" style="font-variation-settings:'opsz' 72;">
+        <i data-lucide="users" class="w-7 h-7 ink-3" aria-hidden="true"></i>
+        <span>Contacts</span>
+        {% if show == 'one-off' %}<span class="text-base font-normal ink-3">— one-off</span>
+        {% elif show == 'all' %}<span class="text-base font-normal ink-3">— all (incl. one-off)</span>
+        {% endif %}
+      </h1>
+      {% if not error %}
+      <p class="text-xs ink-3 font-mono mt-2">{{ total }} contact{{ "s" if total != 1 else "" }}</p>
       {% endif %}
-    </h1>
-    {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ total }} contact{{ "s" if total != 1 else "" }}</p>
-    {% endif %}
+    </div>
+    <a href="/contacts/new" class="btn-primary text-sm"><i data-lucide="user-plus" class="w-4 h-4" aria-hidden="true"></i><span>New contact</span></a>
   </div>
-
-  <a
-    href="/contacts/new"
-    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white
-           hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-  >
-    + New contact
-  </a>
-</div>
+  <div class="drafting mt-4"></div>
+</header>
 
 {# View toggle: main / one-off / all #}
 <div class="mb-4 inline-flex rounded-md border border-gray-300 bg-white text-sm overflow-hidden">
@@ -52,42 +56,40 @@
 {% endif %}
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm" id="contacts-table">
-    <thead class="bg-gray-50">
+<div class="card overflow-x-auto">
+  <table class="sae-table w-full" id="contacts-table">
+    <thead>
       <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Type</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Email</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Phone</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">City</th>
-        <th class="px-4 py-3"></th>
+        <th class="text-left">Name</th>
+        <th class="text-left">Type</th>
+        <th class="text-left">Email</th>
+        <th class="text-left">Phone</th>
+        <th class="text-left">City</th>
+        <th></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100" id="contacts-tbody">
+    <tbody id="contacts-tbody">
       {% if contacts %}
         {% for c in contacts %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 font-medium text-gray-900">
-            <a href="/contacts/{{ c.id }}" class="text-indigo-600 hover:underline">{{ c.name }}</a>
+        <tr>
+          <td><a href="/contacts/{{ c.id }}" class="sae hover:underline font-medium">{{ c.name }}</a></td>
+          <td>
+            {% set _ct = c.contact_type|lower %}
+            {% if _ct == 'customer' %}<span class="badge-paid">Customer</span>
+            {% elif _ct == 'supplier' %}<span class="badge-pending">Supplier</span>
+            {% elif _ct == 'both' %}<span class="badge-open">Both</span>
+            {% else %}<span class="badge-draft">{{ c.contact_type|capitalize }}</span>{% endif %}
           </td>
-          <td class="px-4 py-3 text-gray-600">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if c.contact_type == 'customer' %}bg-blue-100 text-blue-700
-              {% elif c.contact_type == 'supplier' %}bg-amber-100 text-amber-700
-              {% else %}bg-gray-100 text-gray-600{% endif %}">
-              {{ c.contact_type | capitalize }}
-            </span>
-          </td>
-          <td class="px-4 py-3 text-gray-600">{{ c.email or "—" }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ c.phone or "—" }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ c.city or "—" }}</td>
-          <td class="px-4 py-3 text-right">
+          <td class="ink-2">{{ c.email or "—" }}</td>
+          <td class="ink-2 num">{{ c.phone or "—" }}</td>
+          <td class="ink-2">{{ c.city or "—" }}</td>
+          <td class="text-right">
             <div class="flex items-center justify-end gap-1">
               {{ icons.view("/contacts/" ~ c.id) }}
               {{ icons.edit("/contacts/" ~ c.id ~ "/edit") }}
@@ -103,16 +105,12 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="6" class="px-4 py-12 text-center">
-            <p class="text-gray-400 text-sm mb-2">No contacts yet.</p>
-            <a href="/contacts/new" class="text-sm text-indigo-600 hover:underline">Add your first contact →</a>
-          </td>
-        </tr>
+        {{ empty.row(6, "users", "No contacts yet",
+                     "Add the customers and suppliers you work with.",
+                     "Add contact", "/contacts/new") }}
       {% endif %}
     </tbody>
   </table>
 </div>
 
-{# TODO: HTMX pagination — hx-get="/contacts?offset=X" hx-target="#contacts-tbody" hx-swap="outerHTML" #}
 {% endblock %}

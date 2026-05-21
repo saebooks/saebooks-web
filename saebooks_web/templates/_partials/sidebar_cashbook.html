@@ -1,0 +1,42 @@
+{# Simplified sidebar nav for companies in cashbook mode. #}
+{% set path = request.url.path %}
+{% set username = request.session.get("username", "") %}
+{% set user_role = request.session.get("user_role", "") %}
+
+<div>
+  <a href="/cashbook"
+     class="flex items-center px-2 py-1.5 rounded-md {% if path == '/cashbook' %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Cashbook
+  </a>
+  <a href="/cashbook/entries"
+     class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/cashbook/entries') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Entries
+  </a>
+  <a href="/cashbook/invoices"
+     class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/cashbook/invoices') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Invoices
+  </a>
+  <a href="/cashbook/quotes"
+     class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/cashbook/quotes') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Quotes
+  </a>
+  <a href="/cashbook/report"
+     class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/cashbook/report') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Report
+  </a>
+</div>
+
+<div class="border-t border-gray-100 dark:border-gray-700 pt-3">
+  <a href="/settings/company"
+     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Settings
+  </a>
+  <a href="/cashbook/about"
+     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/cashbook/about') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    About Cashbook
+  </a>
+  <a href="/cashbook/upgrade"
+     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/cashbook/upgrade') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+    Upgrade plan
+  </a>
+</div>

@@ -1,41 +1,31 @@
 {#
   Partial: invoices/_stripe_payment_link.html
   Target: #stripe-payment-link-area   (outerHTML swap)
-
-  Variables:
-    stripe_payment_link  — str | None (the payment link URL if already generated)
-    stripe_error        — str | None (error message to display)
-    invoice_id          — str
 #}
 
 {% if stripe_error %}
-<div id="stripe-payment-link-area"
-     class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mt-4">
-  {{ stripe_error }}
+<div id="stripe-payment-link-area" class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ stripe_error }}</span>
 </div>
 
 {% elif stripe_payment_link %}
-<div id="stripe-payment-link-area" class="flex items-center gap-3 mt-4">
-  <span class="text-sm text-gray-700 truncate max-w-xs" title="{{ stripe_payment_link }}">
+<div id="stripe-payment-link-area" class="card p-3 flex items-center gap-3">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-2 num truncate max-w-xs flex-1" title="{{ stripe_payment_link }}">
     {{ stripe_payment_link }}
   </span>
-  <button
-    type="button"
-    onclick="navigator.clipboard.writeText('{{ stripe_payment_link }}').then(() => { this.textContent = 'Copied!'; setTimeout(() => { this.textContent = 'Copy Link'; }, 2000); })"
-    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white
-           hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-  >Copy Link</button>
+  <button type="button"
+          onclick="navigator.clipboard.writeText('{{ stripe_payment_link }}').then(() => { this.textContent = 'Copied!'; setTimeout(() => { this.textContent = 'Copy link'; }, 2000); })"
+          class="btn-primary text-sm py-1.5">Copy link</button>
 </div>
 
 {% else %}
-<div id="stripe-payment-link-area" class="mt-4">
-  <button
-    type="button"
-    hx-post="/invoices/{{ invoice_id }}/stripe-payment-link"
-    hx-target="#stripe-payment-link-area"
-    hx-swap="outerHTML"
-    class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white
-           hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-  >Send Payment Link</button>
+<div id="stripe-payment-link-area">
+  <button type="button"
+          hx-post="/invoices/{{ invoice_id }}/stripe-payment-link"
+          hx-target="#stripe-payment-link-area"
+          hx-swap="outerHTML"
+          class="btn-primary text-sm">Send payment link</button>
 </div>
 {% endif %}

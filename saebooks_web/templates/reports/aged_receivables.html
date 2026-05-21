@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Aged Receivables — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Aged Receivables</h1>
+    {% if report %}
+    <p class="text-sm text-gray-500 mt-1">As at {{ report.get("as_of_date", as_of_date) }}</p>
+    {% endif %}
+  </div>
+  <div>
+    <button
+      type="button"
+      onclick="window.print()"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+    >Print</button>
+  </div>
+</div>
+
+{# Date filter form — HTMX swaps #report-content on submit #}
+<form
+  hx-get="/reports/aged-receivables"
+  hx-target="#report-content"
+  hx-swap="innerHTML"
+  hx-indicator="#report-spinner"
+  class="mb-6 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="as_of_date" class="block text-xs font-medium text-gray-500 mb-1">As of date</label>
+    <input
+      id="as_of_date"
+      type="date"
+      name="as_of_date"
+      value="{{ as_of_date }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+  </div>
+  <button
+    type="submit"
+    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
+  >Refresh</button>
+</form>
+
+{% include "reports/_aged_receivables_table.html" %}
+
+{% endblock %}

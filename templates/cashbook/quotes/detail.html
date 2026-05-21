@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quote.number or "Draft" }} — Cashbook — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+  <a href="/cashbook/quotes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
+    ← quotes
+  </a>
+</div>
+
+{% if flash %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="max-w-2xl">
+
+  <header class="mb-6 relative">
+    <div class="dot-grid-soft absolute inset-0 -z-10 opacity-40"></div>
+    <div class="flex items-center justify-between gap-3 mb-1">
+      <div class="flex items-center gap-2">
+        <span class="nav-section-label">Quote</span>
+        <span class="reg-mark"></span>
+      </div>
+      <div>
+        {% if quote.status == 'DRAFT' %}
+          <span class="badge-draft">Draft</span>
+        {% elif quote.status == 'SENT' %}
+          <span class="badge-open">Sent</span>
+        {% elif quote.status == 'ACCEPTED' %}
+          <span class="badge-paid">Accepted</span>
+        {% elif quote.status == 'DECLINED' %}
+          <span class="badge-overdue">Declined</span>
+        {% elif quote.status == 'INVOICED' %}
+          <span class="badge-open">Invoiced</span>
+        {% else %}
+          <span class="badge-draft">{{ quote.status }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <h1 class="font-display text-3xl leading-none tracking-tight num-display" style="font-variation-settings:'opsz' 72;">
+      {{ quote.number or "Draft" }}
+    </h1>
+    <div class="drafting mt-4"></div>
+  </header>
+
+  <div class="card p-6 mb-5">
+    <dl class="space-y-3 text-sm">
+      <div class="flex items-baseline gap-3 hairline-b pb-2">
+        <dt class="w-28 nav-section-label">Customer</dt>
+        <dd class="ink-1 flex-1">{{ contact.name if contact else "—" }}</dd>
+      </div>
+      {% if contact and contact.email %}
+      <div class="flex items-baseline gap-3 hairline-b pb-2">
+        <dt class="w-28 nav-section-label">Email</dt>
+        <dd class="ink-1 flex-1 num">{{ contact.email }}</dd>
+      </div>
+      {% endif %}
+      <div class="flex items-baseline gap-3 hairline-b pb-2">
+        <dt class="w-28 nav-section-label">Issued</dt>
+        <dd class="ink-1 num">{{ quote.issue_date }}</dd>
+      </div>
+      {% if quote.expiry_date %}
+      <div class="flex items-baseline gap-3">
+        <dt class="w-28 nav-section-label">Expires</dt>
+        <dd class="ink-1 num">{{ quote.expiry_date }}</dd>
+      </div>
+      {% endif %}
+    </dl>
+  </div>
+
+  <div class="card overflow-hidden mb-5">
+    <div class="px-6 py-3 hairline-b">
+      <p class="nav-section-label">Lines</p>
+    </div>
+    <table class="sae-table w-full">
+      <tbody>
+        {% for line in quote.lines %}
+        <tr>
+          <td class="ink-1">{{ line.description }}</td>
+          <td class="text-right num-display ink-1">${{ "%.2f"|format(line.line_total|float) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="hairline-t px-6 py-4 space-y-2 text-sm">
+      <div class="flex justify-between">
+        <span class="ink-2">Subtotal</span>
+        <span class="num ink-1">${{ "%.2f"|format(quote.subtotal|float) }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="ink-2">GST</span>
+        <span class="num ink-1">${{ "%.2f"|format(quote.tax_total|float) }}</span>
+      </div>
+      <div class="flex justify-between hairline-t pt-2">
+        <span class="font-semibold ink-1">Total</span>
+        <span class="num-display text-lg ink-1">${{ "%.2f"|format(quote.total|float) }}</span>
+      </div>
+    </div>
+  </div>
+
+  {% if quote.status == 'DRAFT' %}
+  <div class="card p-5 space-y-3">
+    <form method="post" action="/cashbook/quotes/{{ quote.id }}/send">
+      {{ csrf_input(request) | safe }}
+      <input type="hidden" name="version" value="{{ quote.version }}">
+      <button type="submit" class="btn-primary w-full justify-center">Send quote</button>
+    </form>
+    <a href="/cashbook/quotes/{{ quote.id }}/edit" class="btn-secondary w-full justify-center">Edit draft</a>
+  </div>
+  {% elif quote.status == 'SENT' %}
+  <div class="card p-5 space-y-3">
+    <div class="grid grid-cols-2 gap-3">
+      <form method="post" action="/cashbook/quotes/{{ quote.id }}/accept">
+        {{ csrf_input(request) | safe }}
+        <input type="hidden" name="version" value="{{ quote.version }}">
+        <button type="submit" class="btn-primary w-full justify-center" style="background:var(--pos);border-color:var(--pos);">
+          Accepted
+        </button>
+      </form>
+      <form method="post" action="/cashbook/quotes/{{ quote.id }}/decline">
+        {{ csrf_input(request) | safe }}
+        <input type="hidden" name="version" value="{{ quote.version }}">
+        <button type="submit" class="btn-secondary w-full justify-center" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
+          Declined
+        </button>
+      </form>
+    </div>
+    <a href="/cashbook/quotes/{{ quote.id }}/edit" class="btn-secondary w-full justify-center">Edit quote</a>
+  </div>
+  {% elif quote.status == 'ACCEPTED' %}
+  <div class="card p-5">
+    <p class="text-sm ink-2 mb-3">Customer accepted. Ready to bill them?</p>
+    <form method="post" action="/cashbook/quotes/{{ quote.id }}/convert">
+      {{ csrf_input(request) | safe }}
+      <input type="hidden" name="version" value="{{ quote.version }}">
+      <button type="submit" class="btn-primary w-full justify-center">Convert to invoice</button>
+    </form>
+    <p class="text-[11px] ink-3 mt-3 font-mono">
+      Lines, totals, and customer carry across automatically. The invoice opens as a draft so you can edit before sending.
+    </p>
+  </div>
+  {% elif quote.status == 'INVOICED' and quote.invoice_id %}
+  <a href="/cashbook/invoices/{{ quote.invoice_id }}" class="btn-primary w-full justify-center">
+    View invoice
+  </a>
+  {% endif %}
+
+</div>
+
+{% endblock %}

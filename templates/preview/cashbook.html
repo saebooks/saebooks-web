@@ -1,0 +1,489 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'cashbook' %}
+{% block page_title %}Cashbook · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero: cashbook tier positioning -->
+<div class="relative mb-9">
+  <div class="absolute right-0 top-0 w-80 h-40 dot-grid rounded-tr-2xl rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="relative">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="reg-mark"></span>
+      <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">SAE Books · Cashbook tier</span>
+      <span class="badge badge-sae"><span class="dot" style="background: var(--sae);"></span>For sole traders</span>
+    </div>
+    <h1 class="font-display text-[48px] leading-[1.05] font-medium max-w-3xl">
+      A cashbook for tradies who'd <span class="sae italic">rather be</span> on the tools.
+    </h1>
+    <p class="mt-4 ink-2 text-[15px] max-w-2xl leading-relaxed">
+      Connect your bank, swipe to categorise, see your next BAS update live.
+      No quotes, no inventory, no team logins — just the 20% of accounting a sole trader actually needs.
+    </p>
+    <div class="mt-6 flex items-center gap-3">
+      <span class="font-display text-[28px] num">A$12</span>
+      <span class="ink-2 text-sm">/month, inc GST · cancel anytime</span>
+      <span class="badge badge-ink">No FX premium</span>
+    </div>
+    <div class="mt-5 flex items-center gap-2 flex-wrap">
+      <a href="/preview/cashbook/capture" class="chip"><i data-lucide="camera" class="w-3.5 h-3.5"></i>Capture a receipt</a>
+      <a href="/preview/cashbook/tax-time" class="chip"><i data-lucide="calculator" class="w-3.5 h-3.5"></i>Tax time — FY26</a>
+      <a href="/preview/activity" class="chip"><i data-lucide="history" class="w-3.5 h-3.5"></i>Activity log</a>
+    </div>
+    <div class="drafting mt-8"></div>
+    <div class="grid grid-cols-3 gap-x-8 mt-5 text-xs">
+      <div class="flex items-center gap-2 ink-2"><i data-lucide="zap" class="w-4 h-4 sae"></i>Bank-feed reconcile in seconds</div>
+      <div class="flex items-center gap-2 ink-2"><i data-lucide="landmark" class="w-4 h-4 sae"></i>BAS &amp; GST without an accountant</div>
+      <div class="flex items-center gap-2 ink-2"><i data-lucide="user-plus" class="w-4 h-4 sae"></i>Invite your accountant when needed</div>
+    </div>
+  </div>
+</div>
+
+<!-- Live KPI strip -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-7">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Bank balance</p>
+    <p class="font-display text-[28px] mt-1 num">A$4,820<span class="text-[14px] ink-3">.40</span></p>
+    <p class="text-[11px] ink-3 mt-0.5 font-mono">CBA Smart Access · ●●●● 2204</p>
+    <p class="text-[11px] pos mt-3 flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i>Live · 4 min ago</p>
+  </div>
+
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">To categorise</p>
+    <p class="font-display text-[28px] mt-1 num sae">7</p>
+    <p class="text-[11px] ink-3 mt-0.5">New since you last looked</p>
+    <a href="#bank-feed" class="text-[11px] sae mt-3 flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3"></i>Categorise now →</a>
+    <a href="/preview/settings/bank-feed-rules" class="text-[11px] ink-3 mt-1 flex items-center gap-1 hover:text-[color:var(--sae)]"><i data-lucide="wand-sparkles" class="w-3 h-3"></i>Rules · 42 · 96% auto</a>
+  </div>
+
+  <div class="card p-4 relative overflow-hidden" style="border-color: var(--sae);">
+    <div class="absolute -right-3 -bottom-3 reg-mark opacity-30"></div>
+    <p class="text-[11px] uppercase tracking-wider ink-3">Next BAS · live preview</p>
+    <p class="font-display text-[28px] mt-1 num">A$842<span class="text-[14px] ink-3">.50</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Q4 FY26 · cash basis</p>
+    <p class="text-[11px] sae mt-3 flex items-center gap-1 font-mono">Updates as you reconcile</p>
+  </div>
+
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">GST threshold</p>
+    <p class="font-display text-[28px] mt-1 num">A$62K<span class="text-[14px] ink-3"> / 75K</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Rolling 12mo turnover</p>
+    <div class="mt-2 h-1.5 rounded-full bg-[color:var(--paper-2)] overflow-hidden">
+      <div class="h-full rounded-full" style="width:82%; background: linear-gradient(to right, var(--pos), var(--warm) 80%, var(--neg));"></div>
+    </div>
+    <p class="text-[10px] ink-3 mt-1 font-mono">82% · A$13K headroom</p>
+  </div>
+</div>
+
+<!-- The signature surface: bank-feed reconcile -->
+<section class="mb-9" id="bank-feed">
+  <div class="flex items-end justify-between mb-3">
+    <div>
+      <h2 class="text-[15px] font-semibold tracking-tight">Bank feed · 7 to categorise</h2>
+      <p class="text-xs ink-3 mt-0.5 font-mono">CBA Smart Access · imported 4 min ago · auto-match enabled</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="chip"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i>Rules</button>
+      <button class="chip"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>Refresh</button>
+      <a href="/preview/reconcile" class="chip"><i data-lucide="external-link" class="w-3.5 h-3.5"></i>Open full reconcile</a>
+    </div>
+  </div>
+
+  <div class="card overflow-hidden">
+    <!-- Reconcile tab strip -->
+    <div class="flex items-center border-b hairline px-4 py-2 gap-3 text-xs bg-[color:var(--paper-2)]">
+      <button class="px-3 py-1.5 rounded-md bg-white shadow-sm font-medium">All <span class="num ink-3">7</span></button>
+      <button class="px-3 py-1.5 ink-2 hover:bg-white/60 rounded-md">Money in <span class="num ink-3">2</span></button>
+      <button class="px-3 py-1.5 ink-2 hover:bg-white/60 rounded-md">Money out <span class="num ink-3">5</span></button>
+      <div class="flex-1"></div>
+      <span class="ink-3 font-mono">Suggestion engine: <span class="pos">on</span></span>
+    </div>
+
+    <!-- Reconcile rows -->
+    <div class="divide-y" style="border-color: var(--line-soft);">
+
+      <!-- Row 1: auto-suggested match -->
+      <div class="grid grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-[color:var(--paper)]">
+        <div class="col-span-3">
+          <p class="text-[11px] font-mono ink-3">11 May 2026</p>
+          <p class="text-sm font-medium mt-0.5">EFTPOS BUNNINGS TRADE 4218</p>
+          <p class="text-[11px] ink-3 mt-0.5">Card purchase · <a href="/preview/cashbook/capture" class="sae hover:underline">receipt found →</a></p>
+        </div>
+        <div class="col-span-1 text-right">
+          <p class="num font-medium neg">−A$486.20</p>
+          <p class="text-[10px] ink-3 font-mono">GST $44.20</p>
+        </div>
+        <div class="col-span-7">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-medium" style="background: var(--sae-tint); color: var(--sae-2);">SAE</span>
+            <div class="flex-1">
+              <p class="text-sm">
+                <span class="font-medium">Materials</span>
+                <span class="ink-3 text-xs">· G11 capital purchases · GST 10%</span>
+              </p>
+              <p class="text-[11px] ink-3 mt-0.5 flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3 sae"></i>
+                Suggested from rule "Bunnings → Materials"
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-1 flex items-center justify-end gap-1">
+          <button class="btn-primary !px-3 !py-1 !text-[12px]"><i data-lucide="check" class="w-3.5 h-3.5"></i>OK</button>
+        </div>
+      </div>
+
+      <!-- Row 2: invoice match -->
+      <div class="grid grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-[color:var(--paper)]">
+        <div class="col-span-3">
+          <p class="text-[11px] font-mono ink-3">11 May 2026</p>
+          <p class="text-sm font-medium mt-0.5">DIRECT CREDIT ACME P/L</p>
+          <p class="text-[11px] ink-3 mt-0.5">Inbound transfer</p>
+        </div>
+        <div class="col-span-1 text-right">
+          <p class="num font-medium pos">+A$1,210.00</p>
+          <p class="text-[10px] ink-3 font-mono">GST $110.00</p>
+        </div>
+        <div class="col-span-7">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-medium" style="background: var(--pos-tint); color: var(--pos);"><i data-lucide="link" class="w-4 h-4"></i></span>
+            <div class="flex-1">
+              <p class="text-sm">
+                Match payment to <a href="/preview/invoices" class="text-[color:var(--brand-2)] underline">INV-0028</a>
+                <span class="ink-3 text-xs">· Acme Pty Ltd</span>
+              </p>
+              <p class="text-[11px] ink-3 mt-0.5 flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3 sae"></i>
+                Auto-matched on amount + reference
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-1 flex items-center justify-end gap-1">
+          <button class="btn-primary !px-3 !py-1 !text-[12px]"><i data-lucide="check" class="w-3.5 h-3.5"></i>OK</button>
+        </div>
+      </div>
+
+      <!-- Row 3: needs decision -->
+      <div class="grid grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-[color:var(--paper)] bg-[color:var(--warm-tint)]/30" style="background: rgba(247,234,208,.4);">
+        <div class="col-span-3">
+          <p class="text-[11px] font-mono ink-3">10 May 2026</p>
+          <p class="text-sm font-medium mt-0.5">CARD PYMT SHELL COLES EXPRESS</p>
+          <p class="text-[11px] ink-3 mt-0.5">No matching rule</p>
+        </div>
+        <div class="col-span-1 text-right">
+          <p class="num font-medium neg">−A$96.40</p>
+          <p class="text-[10px] ink-3 font-mono">GST?</p>
+        </div>
+        <div class="col-span-7">
+          <div class="flex items-center gap-2">
+            <input type="text" placeholder="Pick a category…" class="text-sm px-3 py-1.5 bg-white border hairline rounded-md flex-1 ring-focus">
+            <button class="chip">Motor vehicle</button>
+            <button class="chip">Fuel &amp; oil</button>
+            <button class="chip">Subsistence</button>
+          </div>
+          <p class="text-[11px] ink-3 mt-1 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i>
+            FBT category required for fuel. Logbook % asked next.
+          </p>
+        </div>
+        <div class="col-span-1 flex items-center justify-end gap-1">
+          <button class="chip"><i data-lucide="more-horizontal" class="w-3.5 h-3.5"></i></button>
+        </div>
+      </div>
+
+      <!-- Row 4: TPAR subcontractor -->
+      <div class="grid grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-[color:var(--paper)]">
+        <div class="col-span-3">
+          <p class="text-[11px] font-mono ink-3">9 May 2026</p>
+          <p class="text-sm font-medium mt-0.5">OSKO DALE MAXWELL ELEC</p>
+          <p class="text-[11px] ink-3 mt-0.5">Outbound transfer</p>
+        </div>
+        <div class="col-span-1 text-right">
+          <p class="num font-medium neg">−A$2,420.00</p>
+          <p class="text-[10px] ink-3 font-mono">GST $220.00</p>
+        </div>
+        <div class="col-span-7">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-medium" style="background: rgba(124,92,139,.12); color: #7C5C8B;">DM</span>
+            <div class="flex-1">
+              <p class="text-sm">
+                <span class="font-medium">Subcontractor labour</span>
+                <span class="ink-3 text-xs">· Dale Maxwell Electrical</span>
+              </p>
+              <p class="text-[11px] sae mt-0.5 flex items-center gap-1">
+                <i data-lucide="hard-hat" class="w-3 h-3"></i>
+                Flagged for TPAR · annual report due 28 Aug
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-1 flex items-center justify-end gap-1">
+          <button class="btn-primary !px-3 !py-1 !text-[12px]"><i data-lucide="check" class="w-3.5 h-3.5"></i>OK</button>
+        </div>
+      </div>
+
+      <!-- Row 5: IAWO asset -->
+      <div class="grid grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-[color:var(--paper)]">
+        <div class="col-span-3">
+          <p class="text-[11px] font-mono ink-3">8 May 2026</p>
+          <p class="text-sm font-medium mt-0.5">CARD PYMT SANDVIK COROMANT</p>
+          <p class="text-[11px] ink-3 mt-0.5">Tools / equipment</p>
+        </div>
+        <div class="col-span-1 text-right">
+          <p class="num font-medium neg">−A$4,210.00</p>
+          <p class="text-[10px] ink-3 font-mono">GST $382.73</p>
+        </div>
+        <div class="col-span-7">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-medium" style="background: rgba(139,111,74,.14); color: #8B6F4A;"><i data-lucide="package" class="w-4 h-4"></i></span>
+            <div class="flex-1">
+              <p class="text-sm">
+                <span class="font-medium">Plasma cutter</span>
+                <span class="ink-3 text-xs">· asset register · IAWO eligible</span>
+              </p>
+              <p class="text-[11px] sae mt-0.5 flex items-center gap-1">
+                <i data-lucide="zap" class="w-3 h-3"></i>
+                Under A$20K threshold · immediately deductible
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-1 flex items-center justify-end gap-1">
+          <button class="btn-primary !px-3 !py-1 !text-[12px]"><i data-lucide="check" class="w-3.5 h-3.5"></i>OK</button>
+        </div>
+      </div>
+
+      <!-- Row 6 -->
+      <div class="grid grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-[color:var(--paper)]">
+        <div class="col-span-3">
+          <p class="text-[11px] font-mono ink-3">7 May 2026</p>
+          <p class="text-sm font-medium mt-0.5">EFT TELSTRA BUSINESS BILL</p>
+          <p class="text-[11px] ink-3 mt-0.5">Direct debit · monthly</p>
+        </div>
+        <div class="col-span-1 text-right">
+          <p class="num font-medium neg">−A$198.00</p>
+          <p class="text-[10px] ink-3 font-mono">GST $18.00</p>
+        </div>
+        <div class="col-span-7">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-medium" style="background: rgba(124,92,139,.12); color: #7C5C8B;">T</span>
+            <div class="flex-1">
+              <p class="text-sm">
+                <span class="font-medium">Phone &amp; data</span>
+                <span class="ink-3 text-xs">· G11 standard purchase · GST 10%</span>
+              </p>
+              <p class="text-[11px] ink-3 mt-0.5 flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3 sae"></i>
+                Suggested from rule "Telstra → Phone &amp; data"
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-1 flex items-center justify-end gap-1">
+          <button class="btn-primary !px-3 !py-1 !text-[12px]"><i data-lucide="check" class="w-3.5 h-3.5"></i>OK</button>
+        </div>
+      </div>
+
+      <!-- Row 7 -->
+      <div class="grid grid-cols-12 gap-4 items-center px-4 py-4 hover:bg-[color:var(--paper)]">
+        <div class="col-span-3">
+          <p class="text-[11px] font-mono ink-3">6 May 2026</p>
+          <p class="text-sm font-medium mt-0.5">OSKO BOB'S BAKERY</p>
+          <p class="text-[11px] ink-3 mt-0.5">Inbound transfer</p>
+        </div>
+        <div class="col-span-1 text-right">
+          <p class="num font-medium pos">+A$880.00</p>
+          <p class="text-[10px] ink-3 font-mono">GST $80.00</p>
+        </div>
+        <div class="col-span-7">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-medium" style="background: var(--pos-tint); color: var(--pos);"><i data-lucide="link" class="w-4 h-4"></i></span>
+            <div class="flex-1">
+              <p class="text-sm">
+                Match payment to <a href="/preview/invoices" class="text-[color:var(--brand-2)] underline">INV-0027</a>
+                <span class="ink-3 text-xs">· Bob's Bakery</span>
+              </p>
+              <p class="text-[11px] ink-3 mt-0.5 flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3 sae"></i>
+                Auto-matched on amount
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-1 flex items-center justify-end gap-1">
+          <button class="btn-primary !px-3 !py-1 !text-[12px]"><i data-lucide="check" class="w-3.5 h-3.5"></i>OK</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bulk footer -->
+    <div class="flex items-center justify-between px-4 py-3 border-t hairline text-xs ink-2 bg-[color:var(--paper)]">
+      <div>6 of 7 have suggested matches</div>
+      <div class="flex items-center gap-2">
+        <button class="chip">Skip all</button>
+        <button class="btn-primary !text-[12px]"><i data-lucide="check-check" class="w-3.5 h-3.5"></i>Accept all suggestions</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Money in / out summary + BAS preview -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-9">
+  <div class="card p-5 lg:col-span-2 relative">
+    <div class="absolute right-4 top-4 reg-mark opacity-40"></div>
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <p class="text-[11px] uppercase tracking-wider ink-3">Money in vs money out</p>
+        <p class="text-xs ink-2 mt-0.5">This quarter · cash basis</p>
+      </div>
+      <div class="inline-flex p-0.5 bg-[color:var(--paper-2)] rounded-md text-xs">
+        <button class="px-2.5 py-1 rounded bg-white shadow-sm font-medium">Quarter</button>
+        <button class="px-2.5 py-1 ink-2">Year</button>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-6 mt-4">
+      <div>
+        <p class="text-xs ink-3 font-mono">MONEY IN</p>
+        <p class="font-display text-[32px] num pos">A$28,420</p>
+        <ul class="mt-3 space-y-1.5 text-xs">
+          <li class="flex items-center justify-between"><span class="ink-2">Customer payments</span><span class="num">A$24,820</span></li>
+          <li class="flex items-center justify-between"><span class="ink-2">Refunds / credits</span><span class="num">A$1,600</span></li>
+          <li class="flex items-center justify-between"><span class="ink-2">Interest</span><span class="num">A$2,000</span></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-xs ink-3 font-mono">MONEY OUT</p>
+        <p class="font-display text-[32px] num neg">A$19,640</p>
+        <ul class="mt-3 space-y-1.5 text-xs">
+          <li class="flex items-center justify-between"><span class="ink-2">Materials</span><span class="num">A$8,210</span></li>
+          <li class="flex items-center justify-between"><span class="ink-2">Subcontractors (TPAR)</span><span class="num">A$5,140</span></li>
+          <li class="flex items-center justify-between"><span class="ink-2">Tools / equipment</span><span class="num">A$3,860</span></li>
+          <li class="flex items-center justify-between"><span class="ink-2">Operating</span><span class="num">A$2,430</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="drafting my-5"></div>
+    <div class="flex items-center justify-between">
+      <p class="text-xs ink-2">Net for Q4 FY26</p>
+      <p class="font-display text-[24px] num pos">+A$8,780</p>
+    </div>
+  </div>
+
+  <!-- BAS preview -->
+  <div class="card p-5 relative overflow-hidden" style="border-color: var(--sae);">
+    <div class="absolute -right-3 -bottom-3 reg-mark opacity-30"></div>
+    <p class="text-[11px] uppercase tracking-wider ink-3">BAS preview · live</p>
+    <p class="text-xs ink-2 mt-0.5">Updates as you reconcile</p>
+
+    <div class="mt-4 space-y-2 text-xs">
+      <div class="flex items-center justify-between">
+        <span class="ink-2">G1 · Total sales</span>
+        <span class="num font-medium">A$28,420</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="ink-2">1A · GST collected</span>
+        <span class="num font-medium pos">A$2,583</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="ink-2">1B · GST on purchases</span>
+        <span class="num font-medium neg">−A$1,740</span>
+      </div>
+      <div class="drafting my-2"></div>
+      <div class="flex items-center justify-between font-medium">
+        <span>Net BAS payable</span>
+        <span class="num font-display text-[18px]">A$842.50</span>
+      </div>
+    </div>
+    <a href="/preview/compliance" class="block mt-4 chip w-full justify-center"><i data-lucide="landmark" class="w-3.5 h-3.5"></i>Full BAS worksheet</a>
+  </div>
+</section>
+
+<!-- The "what's NOT here" — deliberate exclusion as positioning -->
+<section class="mb-9">
+  <div class="card p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div>
+        <p class="text-[11px] uppercase tracking-wider ink-3 mb-2 font-mono">What's in cashbook</p>
+        <h3 class="font-display text-[22px]">Everything a sole trader actually needs.</h3>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>Bank feeds for every AU bank</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>One-tap categorise with rules</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>Simple invoicing with payment-match</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>Receipt OCR (included, not an add-on)</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>Live BAS preview &amp; quarterly worksheet</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>TPAR for subcontractors</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>Instant Asset Write-Off register</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>P&amp;L and printable annual report</li>
+          <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 pos shrink-0"></i>Invite your accountant — free</li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-[11px] uppercase tracking-wider ink-3 mb-2 font-mono">What we deliberately left out</p>
+        <h3 class="font-display text-[22px]">No bloat. Upgrade only when you actually need it.</h3>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li class="flex items-center gap-2 ink-3"><i data-lucide="x" class="w-4 h-4 shrink-0"></i>Quotes &amp; sales orders <span class="text-[11px] ink-3">→ SAE Books Pro</span></li>
+          <li class="flex items-center gap-2 ink-3"><i data-lucide="x" class="w-4 h-4 shrink-0"></i>Inventory tracking</li>
+          <li class="flex items-center gap-2 ink-3"><i data-lucide="x" class="w-4 h-4 shrink-0"></i>Payroll &amp; STP <span class="text-[11px] ink-3">→ add-on</span></li>
+          <li class="flex items-center gap-2 ink-3"><i data-lucide="x" class="w-4 h-4 shrink-0"></i>Purchase orders</li>
+          <li class="flex items-center gap-2 ink-3"><i data-lucide="x" class="w-4 h-4 shrink-0"></i>Multi-currency</li>
+          <li class="flex items-center gap-2 ink-3"><i data-lucide="x" class="w-4 h-4 shrink-0"></i>Project &amp; job costing <span class="text-[11px] ink-3">→ SAE Books Pro</span></li>
+          <li class="flex items-center gap-2 ink-3"><i data-lucide="x" class="w-4 h-4 shrink-0"></i>Multi-entity / consolidations</li>
+          <li class="flex items-center gap-2 ink-3"><i data-lucide="x" class="w-4 h-4 shrink-0"></i>Team logins / approvals</li>
+        </ul>
+        <p class="mt-5 text-xs ink-2 italic">"We took out the 80% you'll never use."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing card row -->
+<section class="mb-9">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="card p-6 relative overflow-hidden" style="border-color: var(--sae); box-shadow: 0 0 0 1px var(--sae);">
+      <div class="absolute top-3 right-3"><span class="badge badge-sae">You're here</span></div>
+      <p class="font-display text-[14px] font-medium ink-2">SAE Books · Cashbook</p>
+      <p class="font-display text-[44px] num mt-2">A$12<span class="text-[16px] ink-3">/mo</span></p>
+      <p class="text-xs ink-3 mt-1">For sole traders under A$5M turnover</p>
+      <div class="drafting my-5"></div>
+      <ul class="text-sm space-y-2 ink-2">
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Bank feeds &amp; categorisation</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Live BAS / GST tracking</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Invoices &amp; payment matching</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>TPAR + IAWO + receipt OCR</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Invite your accountant — free</li>
+      </ul>
+    </div>
+
+    <div class="card p-6">
+      <p class="font-display text-[14px] font-medium ink-2">SAE Books · Pro</p>
+      <p class="font-display text-[44px] num mt-2">A$48<span class="text-[16px] ink-3">/mo</span></p>
+      <p class="text-xs ink-3 mt-1">Small business with employees &amp; jobs</p>
+      <div class="drafting my-5"></div>
+      <ul class="text-sm space-y-2 ink-2">
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Everything in cashbook</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Quotes, POs, inventory</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Payroll &amp; STP Phase 2 / Payday Super</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Job costing with stage tracking</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Unlimited team logins</li>
+      </ul>
+    </div>
+
+    <div class="card p-6 relative overflow-hidden dot-grid-soft">
+      <p class="font-display text-[14px] font-medium ink-2">For your accountant</p>
+      <p class="font-display text-[44px] num mt-2">A$0</p>
+      <p class="text-xs ink-3 mt-1">Always free. Always.</p>
+      <div class="drafting my-5"></div>
+      <ul class="text-sm space-y-2 ink-2">
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Read-only or full access</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Annual reports + working papers</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Lodge BAS / TPAR / STP directly</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 pos mt-0.5 shrink-0"></i>Audit log per change</li>
+      </ul>
+      <a href="#" class="block mt-5 chip w-full justify-center"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i>Invite your accountant</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

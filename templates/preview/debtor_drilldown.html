@@ -1,0 +1,319 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'reports' %}
+{% block page_title %}Bowen Crane Hire · Debtor · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex items-start gap-4">
+      <span class="w-14 h-14 rounded-md flex items-center justify-center text-white font-display text-[20px]" style="background: #A14333;">BC</span>
+      <div>
+        <div class="flex items-center gap-3 mb-1.5">
+          <span class="reg-mark"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Aged receivables · debtor file</span>
+        </div>
+        <h1 class="font-display text-[34px] leading-[1.05] font-medium">
+          Bowen Crane Hire <span class="italic" style="color: var(--sae);">— 112 days overdue</span>
+        </h1>
+        <p class="mt-1.5 ink-2 text-sm">ABN <span class="font-mono">53 419 822 660</span> · ACN <span class="font-mono">419 822 660</span> · trading since 2003 · sole director <span class="font-mono">B. Mackay</span></p>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <span class="badge badge-neg"><span class="dot" style="background: var(--neg);"></span>Phone-call escalation</span>
+          <span class="badge"><i data-lucide="phone" class="w-3 h-3"></i>Last contact 27 days ago</span>
+          <span class="badge"><i data-lucide="shield" class="w-3 h-3"></i>Director PG on file</span>
+          <span class="badge"><i data-lucide="briefcase" class="w-3 h-3"></i>Trade-insured (NCI)</span>
+          <span class="badge"><i data-lucide="alert-triangle" class="w-3 h-3" style="color: var(--warm);"></i>ATO disclosable debt</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/reports/aged-receivables" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Aged receivables</a>
+      <button class="chip"><i data-lucide="mail" class="w-3.5 h-3.5"></i>Statement</button>
+      <button class="chip"><i data-lucide="phone-call" class="w-3.5 h-3.5"></i>Log call</button>
+      <button class="btn-primary" style="background: var(--neg); border-color: var(--neg);"><i data-lucide="file-warning" class="w-4 h-4"></i>Letter of demand</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4" style="border-color: var(--neg);">
+    <p class="text-[11px] uppercase tracking-wider" style="color: var(--neg);">Overdue balance</p>
+    <p class="font-display text-[24px] mt-1 num">A$2,680<span class="text-[13px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">1 invoice · 112 days · 90+ bucket</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">FY26 sales</p>
+    <p class="font-display text-[24px] mt-1 num">A$14,820<span class="text-[13px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">5 invoices · 1 still open</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Avg days to pay</p>
+    <p class="font-display text-[24px] mt-1 num">68<span class="text-[13px] ink-3"> d</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Terms 14 d · 54 d late on avg</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Credit limit</p>
+    <p class="font-display text-[24px] mt-1 num">A$5,000<span class="text-[13px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Hold · auto-suspended 03 May 2026</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Expected recovery</p>
+    <p class="font-display text-[24px] mt-1 num warm">A$2,140<span class="text-[13px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">80% via NCI · A$540 write-off risk</p>
+  </div>
+</div>
+
+<!-- 8/4 split -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+  <div class="lg:col-span-8 space-y-5">
+
+    <!-- Statement of account -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Statement of account · FY26 to date</h3>
+        <span class="text-[11px] font-mono ink-3">Opening 01 Jul 2025 · A$0.00</span>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Date</th><th>Ref</th><th>Description</th><th class="text-right">Charges</th><th class="text-right">Payments</th><th class="text-right">Balance</th></tr>
+        </thead>
+        <tbody>
+          {% set stmt = [
+            ('14 Aug 2025','INV-0008','Crane hire 25T · 4 days — Coalstoun job', 4180.00, 0, 4180.00, 'cleared'),
+            ('30 Aug 2025','RCT-0042','Bank receipt · BSB 062-019 ••8821',          0,       4180.00, 0.00,    'cleared'),
+            ('12 Oct 2025','INV-0014','Crane hire 50T · spreader bar — Mt Isa',     5640.00, 0, 5640.00, 'cleared'),
+            ('07 Nov 2025','RCT-0058','Bank receipt · part',                       0,       3000.00, 2640.00, 'cleared'),
+            ('21 Nov 2025','RCT-0064','Bank receipt · part',                       0,       2640.00, 0.00,    'cleared'),
+            ('22 Dec 2025','INV-0017','Crane hire 25T · 3 days — workshop relocation', 2680.00, 0, 2680.00, 'open'),
+            ('05 Jan 2026','—',       'Reminder #1 dispatched',                    0,       0,       2680.00, 'note'),
+            ('19 Jan 2026','—',       'Reminder #2 dispatched',                    0,       0,       2680.00, 'note'),
+            ('02 Feb 2026','—',       'Reminder #3 + statement',                   0,       0,       2680.00, 'note'),
+            ('14 Apr 2026','—',       'Manual call · B. Mackay · "next week"',     0,       0,       2680.00, 'note'),
+          ] %}
+          {% for d, ref, desc, ch, pmt, bal, kind in stmt %}
+          <tr {% if kind == 'note' %}style="background: var(--paper);"{% endif %}>
+            <td class="font-mono text-[12px]">{{ d }}</td>
+            <td class="font-mono text-[12px]">{% if ref != '—' %}<a href="#" class="hover:text-[color:var(--sae)]">{{ ref }}</a>{% else %}<span class="ink-3">—</span>{% endif %}</td>
+            <td class="{% if kind == 'note' %}ink-2 italic text-[12px]{% endif %}">{{ desc }}</td>
+            <td class="text-right num">{% if ch %}A${{ '{:,.2f}'.format(ch) }}{% else %}<span class="ink-3">—</span>{% endif %}</td>
+            <td class="text-right num pos">{% if pmt %}({{ '{:,.2f}'.format(pmt) }}){% else %}<span class="ink-3">—</span>{% endif %}</td>
+            <td class="text-right num font-medium {% if bal > 0 and kind != 'note' %}neg{% endif %}">A${{ '{:,.2f}'.format(bal) }}</td>
+          </tr>
+          {% endfor %}
+          <tr style="border-top: 2px solid var(--ink-3);">
+            <td colspan="3" class="font-medium">Closing balance · 11 May 2026</td>
+            <td colspan="2"></td>
+            <td class="text-right font-display text-[16px] num neg">A$2,680.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Dunning timeline -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Dunning &amp; contact log</h3>
+        <span class="badge"><span class="dot" style="background: var(--sae);"></span>5 touches</span>
+      </div>
+      <div class="space-y-3">
+        {% set dun = [
+          ('05 Jan 2026','Email','Reminder #1 — courtesy','sent · opened 06 Jan','#3E7A4E'),
+          ('19 Jan 2026','Email','Reminder #2 — 28d overdue, fee waiver offered','sent · opened 19 Jan','#3E7A4E'),
+          ('02 Feb 2026','Email + post','Reminder #3 + formal statement (AusPost)','delivered 04 Feb','#194291'),
+          ('14 Apr 2026','Phone','Outbound to B. Mackay (0418 ••• 770)','answered · "settle next week" · no follow-up','#C89B3C'),
+          ('Today',     'Action',  'Final notice · 7-day demand drafted',  'pending review',   '#A14333'),
+        ] %}
+        {% for d, kind, desc, status, col in dun %}
+        <div class="flex gap-3">
+          <div class="w-1 rounded-full" style="background: {{ col }};"></div>
+          <div class="flex-1">
+            <div class="flex items-baseline justify-between">
+              <p><span class="text-[11px] font-mono ink-3 uppercase">{{ kind }}</span> <span class="font-medium ml-1">{{ desc }}</span></p>
+              <span class="font-mono text-[11px] ink-3 whitespace-nowrap">{{ d }}</span>
+            </div>
+            <p class="text-[12px] ink-2 mt-0.5">{{ status }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="hairline my-4"></div>
+      <div class="grid grid-cols-3 gap-3 text-[12px]">
+        <div class="rounded-md p-3" style="background: var(--paper-2);">
+          <p class="text-[10px] uppercase tracking-wider ink-3">Next reminder</p>
+          <p class="font-medium mt-0.5">7-day Letter of Demand</p>
+          <p class="ink-3">Will reference s 459E if ignored</p>
+        </div>
+        <div class="rounded-md p-3" style="background: var(--paper-2);">
+          <p class="text-[10px] uppercase tracking-wider ink-3">Escalation path</p>
+          <p class="font-medium mt-0.5">QCAT minor debt</p>
+          <p class="ink-3">≤A$25k · filing A$132.40</p>
+        </div>
+        <div class="rounded-md p-3" style="background: var(--paper-2);">
+          <p class="text-[10px] uppercase tracking-wider ink-3">Trade insurance</p>
+          <p class="font-medium mt-0.5">NCI claim trigger</p>
+          <p class="ink-3">@ 180 days · 28 days away</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment behaviour chart -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Payment behaviour</h3>
+        <span class="text-[11px] font-mono ink-3">5 invoices · FY24 → FY26</span>
+      </div>
+      <div style="height: 220px;">
+        <canvas id="bcPay"></canvas>
+      </div>
+      <p class="mt-3 text-[12px] ink-2">DSO has trended up from 38 → 112 days across the last 12 months. The Dec-25 invoice (INV-0017) is the first to breach 90 days and the first not part-paid within 60 days.</p>
+    </div>
+
+    <!-- Credit risk -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Credit risk file</h3>
+        <a href="#" class="text-[11px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1">Re-pull illion + ASIC<i data-lucide="refresh-ccw" class="w-3 h-3"></i></a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-[13px]">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between"><span class="ink-3">illion (Dun &amp; Bradstreet AU)</span><span class="font-mono">42 / 100 · elevated</span></div>
+          <div class="flex items-center justify-between"><span class="ink-3">illion DSO percentile</span><span class="font-mono">88th · slower than 88% of industry</span></div>
+          <div class="flex items-center justify-between"><span class="ink-3">ABR status</span><span class="font-mono pos">Active GST · since 2003</span></div>
+          <div class="flex items-center justify-between"><span class="ink-3">ASIC current extract</span><span class="font-mono">Solvent · no admin · 11 Mar 2026</span></div>
+          <div class="flex items-center justify-between"><span class="ink-3">PPSR registered interests</span><span class="font-mono">3 · CBA · Toyota Finance · Komatsu</span></div>
+        </div>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between"><span class="ink-3">ATO disclosable debt</span><span class="font-mono warm">Yes · A$78,420 · 90d+</span></div>
+          <div class="flex items-center justify-between"><span class="ink-3">Court records (AustLII)</span><span class="font-mono">2 · QLD Mag · both 2024 · settled</span></div>
+          <div class="flex items-center justify-between"><span class="ink-3">Cross-directorships</span><span class="font-mono">B. Mackay · 1 dormant pty</span></div>
+          <div class="flex items-center justify-between"><span class="ink-3">Trade refs (CCR · positive)</span><span class="font-mono">3 paid · 1 slow · 1 default</span></div>
+          <div class="flex items-center justify-between"><span class="ink-3">Last credit review</span><span class="font-mono">03 Feb 2026 · limit unchanged</span></div>
+        </div>
+      </div>
+      <div class="mt-4 rounded-md p-3 text-[12px]" style="background: rgba(220,138,0,0.07); border: 1px solid rgba(220,138,0,0.2);">
+        <p class="flex items-center gap-1.5 font-medium"><i data-lucide="alert-triangle" class="w-3.5 h-3.5" style="color: var(--warm);"></i>ATO disclosable debt of A$78,420 was reported by the ATO to credit bureaux on 14 Apr 2026.</p>
+        <p class="mt-1 ink-2">Companies with a reported ATO debt typically resolve outstanding accounts within 30 days. Recommend phone-first, written demand only if no contact within 14 days.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right rail -->
+  <div class="lg:col-span-4 space-y-5">
+
+    <!-- Open invoices -->
+    <div class="card p-5" style="border: 1px solid var(--neg);">
+      <h4 class="font-medium mb-3 flex items-center gap-2" style="color: var(--neg);"><i data-lucide="file-warning" class="w-4 h-4"></i>Open invoices</h4>
+      <a href="/preview/invoices/inv-0028" class="block rounded-md p-3" style="background: var(--paper); border: 1px solid var(--line);">
+        <div class="flex items-center justify-between text-[12px]">
+          <span class="font-mono font-medium">INV-0017</span>
+          <span class="font-mono neg">112 days</span>
+        </div>
+        <p class="font-display text-[20px] num mt-1.5">A$2,680.00</p>
+        <p class="text-[11px] ink-2 mt-1">Crane hire 25T · 3 days · workshop relocation Bowen → Townsville</p>
+        <div class="hairline my-2"></div>
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <div><span class="ink-3">Net</span> <span class="font-mono">A$2,436.36</span></div>
+          <div><span class="ink-3">GST</span> <span class="font-mono">A$243.64</span></div>
+          <div><span class="ink-3">Due</span> <span class="font-mono">19 Jan 2026</span></div>
+          <div><span class="ink-3">Terms</span> <span class="font-mono">Net 28</span></div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Contact -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Contacts</h4>
+      <div class="space-y-3 text-[12px]">
+        <div>
+          <p class="font-medium">Bill Mackay <span class="font-normal ink-3">· Director</span></p>
+          <p class="ink-2 mt-0.5 font-mono">+61 0418 ••• 770</p>
+          <p class="ink-2 font-mono">bill@bowencrane.com.au</p>
+        </div>
+        <div class="hairline"></div>
+        <div>
+          <p class="font-medium">Karen Lo <span class="font-normal ink-3">· Bookkeeper</span></p>
+          <p class="ink-2 mt-0.5 font-mono">+61 07 4786 ••• 41</p>
+          <p class="ink-2 font-mono">accounts@bowencrane.com.au</p>
+        </div>
+        <div class="hairline"></div>
+        <p class="ink-3 text-[11px]">PO Box 442 BOWEN QLD 4805</p>
+      </div>
+    </div>
+
+    <!-- Pre-payment intel (CDR) -->
+    <div class="card p-5" style="background: var(--paper-2);">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="radar" class="w-4 h-4" style="color: var(--brand-2);"></i>
+        <h4 class="font-medium">Pre-payment intel</h4>
+      </div>
+      <p class="text-[11px] ink-3 mb-3">Open-banking signal from <span class="font-mono">B. Mackay</span>'s consent (one-way · view only · 90 d window)</p>
+      <div class="space-y-2 text-[12px]">
+        <div class="flex items-center justify-between"><span class="ink-2">Receivables balance</span><span class="font-mono warm">A$184k · trend ▲</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Cash on hand (est.)</span><span class="font-mono">A$22k</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Largest recent inflow</span><span class="font-mono">A$48k · 02 May</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">BAS-paid signal</span><span class="font-mono pos">Q3 paid 28 Apr</span></div>
+      </div>
+      <p class="mt-3 text-[11px] ink-3 italic">Inflow on 02 May suggests current capacity to settle; reinforce on call.</p>
+    </div>
+
+    <!-- Proposed payment plan -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3 flex items-center gap-2"><i data-lucide="handshake" class="w-4 h-4 sae"></i>Proposed payment plan</h4>
+      <div class="space-y-1.5 text-[12px]">
+        <div class="flex items-center justify-between"><span>Today</span><span class="font-mono">A$680.00</span></div>
+        <div class="flex items-center justify-between"><span>+14 d</span><span class="font-mono">A$1,000.00</span></div>
+        <div class="flex items-center justify-between"><span>+28 d</span><span class="font-mono">A$1,000.00</span></div>
+        <div class="hairline my-1.5"></div>
+        <div class="flex items-center justify-between font-medium"><span>Settled by</span><span class="font-mono">08 Jun 2026</span></div>
+      </div>
+      <button class="btn-primary w-full mt-3 justify-center"><i data-lucide="send" class="w-3.5 h-3.5"></i>Send plan + DirectDebit auth</button>
+      <p class="mt-2 text-[11px] ink-3">DirectDebit via APCA · BECS · no fee · cancellable.</p>
+    </div>
+
+    <!-- Related -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Related</h4>
+      <div class="space-y-2 text-[13px]">
+        <a href="/preview/reports/aged-receivables" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Aged receivables</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/contacts" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Contact card</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/invoices" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Invoices</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/reports/cash-flow" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Cash-flow forecast</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function(){
+  var ctx = document.getElementById('bcPay');
+  if (!ctx || !window.Chart) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['INV-0001\nMar 24','INV-0004\nJul 24','INV-0008\nAug 25','INV-0014\nOct 25','INV-0017\nDec 25'],
+      datasets: [
+        { label: 'Days to pay', data: [42, 38, 16, 40, 112], backgroundColor: function(c){ return c.raw > 90 ? '#A14333' : c.raw > 60 ? '#C89B3C' : 'rgba(200,99,31,0.85)'; } },
+        { label: 'Net terms', type: 'line', data: [14, 14, 14, 14, 28], borderColor: '#1A4E8B', borderDash:[5,4], pointRadius: 3, fill: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Days', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.06)' } },
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

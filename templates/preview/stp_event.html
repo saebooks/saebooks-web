@@ -1,0 +1,388 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}STP2 pay event 26-051104 — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .row-cell td { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .row-cell:first-child td { border-top: 0; }
+  .xml-block { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10.5px; line-height: 1.55; background: var(--paper-2); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; color: var(--ink-2); overflow-x: auto; white-space: pre; }
+  .xml-block .k { color: var(--brand-2); }
+  .xml-block .v { color: var(--sae); }
+  .ttc-grid { font-family: var(--font-mono, 'JetBrains Mono'); }
+  .num-stamp { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10px; padding: 1px 5px; border: 1px dashed var(--line); border-radius: 3px; color: var(--ink-2); background: var(--paper-2); }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider">
+        <a href="/preview/compliance" class="hover:text-[color:var(--sae)]">Compliance</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <a href="/preview/payroll/pay-run" class="hover:text-[color:var(--sae)]">Pay run</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>STP2 pay event 26-051104</span>
+        <span class="ml-2 chip-mini pos"><i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i>accepted by ATO</span>
+        <span class="chip-mini sae">STP Phase 2</span>
+        <span class="chip-mini">SBR2 v2024.07</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">Pay event 26-051104 · week ending 11 May 2026</h1>
+      <p class="ink-2 text-[13.5px] mt-1 max-w-3xl">
+        Single Touch Payroll Phase 2 submission for the week ending Sun 11 May 2026 (period 46 of FY26). Lodged via SBR2 / ebMS3 with
+        MyGovID + RAM. ATO returned <span class="num">Receipt 26-J7Q-184820</span> with status <span class="num">ACCEPTED</span> in 1.84s.
+      </p>
+      <div class="flex items-center gap-3 mt-2 text-[11.5px] ink-3 flex-wrap">
+        <span>Employer BMS ID <span class="num">SAEBOOKS-1842-2026</span></span><span>·</span>
+        <span>ABN <span class="num">47 168 502 343</span></span><span>·</span>
+        <span>WPN <span class="num">0021848</span></span><span>·</span>
+        <span>Software ID <span class="num">2614 1827 0184</span></span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <a href="#" class="btn-secondary"><i data-lucide="download" class="w-4 h-4"></i>Download SBR2 XML</a>
+      <a href="/preview/activity?scope=stp&id=26-051104" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>STP lodgement audit · 14 events</a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 text-[12px]">
+  {% set kpis = [
+    ('Employees', '4', 'Mia · Liam · Sarah · Richard', 'users-round', 'ink'),
+    ('Gross YTD', 'A$184,420', '46 of 52 pay periods', 'banknote', 'ink'),
+    ('PAYG-W YTD', 'A$34,820', 'W1 base · W2 cumulative', 'percent', 'ink'),
+    ('SG YTD', 'A$22,084', '12% of OTE · payday-due', 'piggy-bank', 'sae'),
+    ('Status', 'ACCEPTED', 'Receipt 26-J7Q-184820 · 14:08 AEST', 'shield-check', 'pos'),
+  ] %}
+  {% for label, val, sub, icon, tone in kpis %}
+    <div class="card p-3.5">
+      <div class="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider ink-3"><i data-lucide="{{ icon }}" class="w-3 h-3"></i>{{ label }}</div>
+      <div class="num text-[17.5px] mt-1 {% if tone == 'pos' %}pos{% elif tone == 'sae' %}sae{% endif %}">{{ val }}</div>
+      <div class="text-[10.5px] ink-3 mt-0.5">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- LEFT 7/12 -->
+  <div class="lg:col-span-7 space-y-6">
+
+    <!-- Per-employee STP2 detail -->
+    <section class="card">
+      <header class="px-5 py-3.5 border-b hairline flex items-baseline justify-between">
+        <div>
+          <h2 class="font-display text-[18px]">Per-employee STP2 disaggregation</h2>
+          <p class="text-[11.5px] ink-3">Phase 2 requires gross income to be split into <span class="num">Income Type · Country · Allowance type · Lump sum · Deduction · Salary sacrifice</span>. Cumulative YTD reported every pay event.</p>
+        </div>
+        <span class="chip-mini sae">CDEP/SAW · INB · WHM disaggregated</span>
+      </header>
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10px] font-mono uppercase tracking-wider ink-3 text-left">
+            <th class="px-3 py-2 border-b hairline">Employee</th>
+            <th class="px-3 py-2 border-b hairline">TTC</th>
+            <th class="px-3 py-2 border-b hairline">Income</th>
+            <th class="px-3 py-2 border-b hairline">Gross</th>
+            <th class="px-3 py-2 border-b hairline">PAYG-W</th>
+            <th class="px-3 py-2 border-b hairline">Allow.</th>
+            <th class="px-3 py-2 border-b hairline">Sal sac</th>
+            <th class="px-3 py-2 border-b hairline">SG</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set emps = [
+            ('Mia Chen',     'mia-chen',     'RTSXXX', 'SAW · AU',     '1,640.00', '320.00', 'AD A$48 · KN A$0',  'S A$50',  '196.80'),
+            ('Liam Patel',   'liam-patel',   'RTSXXX', 'SAW · AU',     '1,420.00', '264.00', 'AD A$24',          '—',       '170.40'),
+            ('Sarah Wong',   'sarah-wong',   'RDSXXX', 'SAW · AU',     '2,840.00', '684.00', '—',                'S A$200', '316.80'),
+            ('Richard Sauer','richard-sauer','RTSXXX', 'CHP · AU · WK','2,184.00', '420.00', '—',                'S A$420', '211.68'),
+          ] %}
+          {% for name, slug, ttc, inc, gross, paygw, allow, ss, sg in emps %}
+          <tr class="row-cell hover:bg-[color:var(--paper-2)]">
+            <td><a href="/preview/payroll/employees/{{ slug }}" class="font-medium hover:text-[color:var(--sae)]">{{ name }}</a></td>
+            <td><span class="num-stamp">{{ ttc }}</span></td>
+            <td class="text-[11.5px] ink-2 num">{{ inc }}</td>
+            <td class="num text-[12px] tabular-nums">A${{ gross }}</td>
+            <td class="num text-[11.5px] tabular-nums ink-2">A${{ paygw }}</td>
+            <td class="text-[11px] ink-2 num">{{ allow }}</td>
+            <td class="num text-[11px] ink-2">{{ ss }}</td>
+            <td class="num text-[11.5px] tabular-nums">A${{ sg }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="row-cell" style="border-top: 2px solid var(--ink); background: var(--paper-2);">
+            <td class="text-[12px] font-medium" colspan="3">Pay event totals · period 46</td>
+            <td class="num text-[12.5px] tabular-nums font-medium">A$8,084.00</td>
+            <td class="num text-[12.5px] tabular-nums font-medium">A$1,688.00</td>
+            <td class="num text-[11px] ink-2">A$72.00</td>
+            <td class="num text-[11px] ink-2">A$670.00</td>
+            <td class="num text-[12.5px] tabular-nums font-medium">A$895.68</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="px-5 py-2.5 border-t hairline text-[10.5px] ink-3 flex flex-wrap gap-x-4 gap-y-1 num">
+        <span><strong>TTC</strong> = Tax treatment code</span>
+        <span><strong>RTSXXX</strong> = Regular · Tax-free threshold · STSL · no flags</span>
+        <span><strong>RDSXXX</strong> = Regular · No tax-free threshold · STSL</span>
+        <span><strong>SAW</strong> = Salary &amp; wages</span>
+        <span><strong>CHP</strong> = Closely-held payee</span>
+        <span><strong>WK</strong> = Working holiday maker · N/A here, but flag is supported</span>
+      </div>
+    </section>
+
+    <!-- Allowance / deduction breakout -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">Allowance &amp; deduction itemisation</h2>
+        <span class="chip-mini sae">STP2 mandatory · 8 allowance types · 4 deduction types</span>
+      </div>
+      <p class="text-[12px] ink-2 mb-4">
+        Phase 2 disaggregates the old single "Allowance" amount into 8 ATO-defined buckets. Same for deductions (was a single field, now four). Each line below maps to a discrete tag in the SBR2 XML.
+      </p>
+      <div class="grid grid-cols-2 gap-5">
+        <div>
+          <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-2">Allowance types (this pay event)</div>
+          <ul class="text-[12px] space-y-1.5">
+            {% set allow = [
+              ('CD', 'Cents/km motor vehicle',     '—',       'A$72.00 YTD · M. Chen'),
+              ('AD', 'Award transport',            'A$72.00', 'M. Chen A$48 + L. Patel A$24 — Bowen run'),
+              ('LD', 'Laundry (uniform)',          '—',       'A$184 YTD · all field staff'),
+              ('OD', 'Other (must specify)',       '—',       'not used FY26'),
+              ('RD', 'Domestic / overseas travel', '—',       'A$240 YTD · S. Wong client trip'),
+              ('TD', 'Tool allowance',             '—',       'A$520 YTD · L. Patel — MA000010 C8'),
+              ('QN', 'Qualifications',             '—',       'A$0 — eligible 01 Jul 2026'),
+              ('H1', 'Task-specific',              '—',       'not used'),
+              ('KN', 'Non-deductible',             '—',       'rolled into gross since 01 Jul 2024'),
+            ] %}
+            {% for code, label, val, note in allow %}
+              <li class="flex items-start gap-2 py-1 border-b hairline last:border-b-0">
+                <span class="num-stamp">{{ code }}</span>
+                <div class="flex-1">
+                  <div class="ink">{{ label }}</div>
+                  <div class="text-[10.5px] ink-3">{{ note }}</div>
+                </div>
+                <div class="num text-[11px] {% if val == '—' %}ink-3{% endif %}">{{ val }}</div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div>
+          <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-2">Deduction types (this pay event)</div>
+          <ul class="text-[12px] space-y-1.5">
+            {% set ded = [
+              ('DF', 'Workplace giving',  '—',       'A$0 FY26'),
+              ('DG', 'Union / prof body', '—',       'A$420 YTD · R. Sauer — Engineers Australia'),
+              ('W',  'Child support garnishee', '—', 'A$0'),
+              ('F',  'Child support deduction','—', 'A$0'),
+            ] %}
+            {% for code, label, val, note in ded %}
+              <li class="flex items-start gap-2 py-1 border-b hairline last:border-b-0">
+                <span class="num-stamp">{{ code }}</span>
+                <div class="flex-1">
+                  <div class="ink">{{ label }}</div>
+                  <div class="text-[10.5px] ink-3">{{ note }}</div>
+                </div>
+                <div class="num text-[11px] {% if val == '—' %}ink-3{% endif %}">{{ val }}</div>
+              </li>
+            {% endfor %}
+          </ul>
+
+          <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mt-5 mb-2">Salary sacrifice (STP2 split)</div>
+          <ul class="text-[12px] space-y-1.5">
+            <li class="flex items-start gap-2 py-1 border-b hairline">
+              <span class="num-stamp">S</span>
+              <div class="flex-1">
+                <div class="ink">Sal sac · super (Type-S)</div>
+                <div class="text-[10.5px] ink-3">M. Chen A$50 · S. Wong A$200 · R. Sauer A$420</div>
+              </div>
+              <div class="num text-[11px]">A$670.00</div>
+            </li>
+            <li class="flex items-start gap-2 py-1">
+              <span class="num-stamp">O</span>
+              <div class="flex-1">
+                <div class="ink">Sal sac · other (Type-O)</div>
+                <div class="text-[10.5px] ink-3">A$0 FY26</div>
+              </div>
+              <div class="num text-[11px] ink-3">—</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tax treatment code decoder -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">Tax treatment code — RTSXXX decoded</h2>
+        <span class="chip-mini sae">STP2 mandatory · 6 chars</span>
+      </div>
+      <p class="text-[12px] ink-2 mb-3">Every payee carries a 6-character TTC that tells the ATO exactly how withholding was calculated. Replaces the old single-field "tax scale".</p>
+      <div class="grid grid-cols-6 gap-2 text-center ttc-grid">
+        {% set ttc = [
+          ('R', 'Regular',          'M. Chen, L. Patel, S. Wong, R. Sauer'),
+          ('T', 'Tax-free threshold','claimed'),
+          ('S', 'STSL (HECS/HELP)',  'M. Chen has HELP balance A$18,420'),
+          ('X', 'No medicare adjust','default'),
+          ('X', 'No MLS variation',  'default'),
+          ('X', 'No FA / TFN flag',  'default'),
+        ] %}
+        {% for char, lbl, note in ttc %}
+          <div class="border hairline rounded-md p-2.5">
+            <div class="font-display text-[24px]">{{ char }}</div>
+            <div class="text-[10px] ink-2 mt-1 num">{{ lbl }}</div>
+            <div class="text-[10px] ink-3 mt-1">{{ note }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="mt-4 text-[11.5px] ink-3">
+        <i data-lucide="info" class="w-3 h-3 inline align-middle"></i>
+        Sarah's <span class="num">RDSXXX</span> swaps T → D (no tax-free threshold) because she claims it at her primary employer (Karbon contract).
+      </div>
+    </section>
+
+    <!-- SBR2 XML envelope -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[18px]">SBR2 envelope · what we sent</h2>
+        <a href="#" class="text-[11px] sae hover:underline">View full XML (84 KB) →</a>
+      </div>
+      <p class="text-[12px] ink-2 mb-3">SBR2 over ebMS3 to <span class="num">payevntemp.lodge.ato.gov.au</span> · MyGovID + RAM Strong identity.</p>
+      <div class="xml-block"><span class="k">&lt;PayEvnt:PayEvntEmp xmlns:ato="</span><span class="v">http://sbr.gov.au/ato/payevntemp.v2024.07</span><span class="k">"&gt;</span>
+  <span class="k">&lt;BMS&gt;</span><span class="v">SAEBOOKS-1842-2026</span><span class="k">&lt;/BMS&gt;</span>
+  <span class="k">&lt;PayEvntId&gt;</span><span class="v">26-051104</span><span class="k">&lt;/PayEvntId&gt;</span>
+  <span class="k">&lt;PayrPdEndDt&gt;</span><span class="v">2026-05-11</span><span class="k">&lt;/PayrPdEndDt&gt;</span>
+  <span class="k">&lt;Payee&gt;</span>
+    <span class="k">&lt;TFN&gt;</span><span class="v">123 456 789</span><span class="k">&lt;/TFN&gt;</span>
+    <span class="k">&lt;IncomeStreamCollection&gt;</span>
+      <span class="k">&lt;IncomeStreamType&gt;</span><span class="v">SAW</span><span class="k">&lt;/IncomeStreamType&gt;</span>
+      <span class="k">&lt;CountryCode&gt;</span><span class="v">au</span><span class="k">&lt;/CountryCode&gt;</span>
+      <span class="k">&lt;TaxTreatmentCd&gt;</span><span class="v">RTSXXX</span><span class="k">&lt;/TaxTreatmentCd&gt;</span>
+    <span class="k">&lt;/IncomeStreamCollection&gt;</span>
+    <span class="k">&lt;Gross&gt;</span><span class="v">1640.00</span><span class="k">&lt;/Gross&gt;</span>
+    <span class="k">&lt;PaygWthldg&gt;</span><span class="v">320.00</span><span class="k">&lt;/PaygWthldg&gt;</span>
+    <span class="k">&lt;Allowance code="AD"&gt;</span><span class="v">48.00</span><span class="k">&lt;/Allowance&gt;</span>
+    <span class="k">&lt;SalarySac type="S"&gt;</span><span class="v">50.00</span><span class="k">&lt;/SalarySac&gt;</span>
+    <span class="k">&lt;Super Type="SG"&gt;</span><span class="v">196.80</span><span class="k">&lt;/Super&gt;</span>
+  <span class="k">&lt;/Payee&gt;</span>
+  <span class="k">&lt;!-- 3 more payees omitted --&gt;</span>
+<span class="k">&lt;/PayEvnt:PayEvntEmp&gt;</span></div>
+    </section>
+
+    <!-- Lodgement trail -->
+    <section class="card">
+      <header class="px-5 py-3.5 border-b hairline">
+        <h2 class="font-display text-[18px]">Lodgement timeline · 1.84s end-to-end</h2>
+      </header>
+      <table class="w-full">
+        <tbody>
+          {% set steps = [
+            ('14:08:11.412', 'pay run finalised',    'R. Sauer clicked "Lodge to ATO"',           'pos'),
+            ('14:08:11.481', 'SBR2 v2024.07 built',  '84 KB · 4 payees · UTF-8 · schema validated','pos'),
+            ('14:08:11.502', 'MyGovID auth',         'Strong · principal R. Sauer · RAM authority','pos'),
+            ('14:08:11.842', 'ebMS3 message sent',   'payevntemp.lodge.ato.gov.au · MessageId 51c8…','pos'),
+            ('14:08:13.214', 'ATO ack received',     'Receipt 26-J7Q-184820 · status ACCEPTED',   'pos'),
+            ('14:08:13.241', 'YTD figures rolled',   'period 46 · employee balances updated',     'pos'),
+          ] %}
+          {% for ts, what, detail, status in steps %}
+          <tr class="row-cell">
+            <td class="num text-[10.5px] ink-3" style="width: 110px;">{{ ts }}</td>
+            <td class="text-[12px] ink"><strong class="ink">{{ what }}</strong> · <span class="ink-2">{{ detail }}</span></td>
+            <td style="width: 70px;">{% if status == 'pos' %}<span class="chip-mini pos">ok</span>{% else %}<span class="chip-mini neg">err</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+
+  <!-- RIGHT 5/12 -->
+  <div class="lg:col-span-5 space-y-6">
+    <!-- Receipt card -->
+    <section class="card p-5 reg-marks">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="font-display text-[16.5px]">ATO receipt</h2>
+        <span class="chip-mini pos"><i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i>ACCEPTED</span>
+      </div>
+      <div class="text-[12px] space-y-1.5">
+        <div class="flex items-center justify-between"><span class="ink-3">Receipt ID</span><span class="num">26-J7Q-184820</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Channel</span><span class="num">SBR2 / ebMS3</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Schema</span><span class="num">payevntemp.v2024.07</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Lodged</span><span class="num">11 May 2026 14:08:13 AEST</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Round trip</span><span class="num">1.84 s</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Identity</span><span class="num">MyGovID Strong</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">RAM principal</span><span>R. Sauer</span></div>
+      </div>
+      <div class="drafting my-3"></div>
+      <div class="text-[11px] ink-3">
+        <i data-lucide="info" class="w-3 h-3 inline align-middle"></i>
+        ATO retains pay events for 7 years. SAE Books retains lodgement payload + receipt for the same period under <span class="num">s.286</span>.
+      </div>
+    </section>
+
+    <!-- Payday super -->
+    <section class="card p-5">
+      <div class="flex items-baseline justify-between mb-2">
+        <h2 class="font-display text-[16.5px]">Payday super — switchover</h2>
+        <span class="chip-mini warm">51 days</span>
+      </div>
+      <p class="text-[11.5px] ink-3 mb-3">From <span class="num">01 Jul 2026</span> SG must be received by the fund within 7 days of payday — replacing the current quarterly window. This pay event prepares the new flow.</p>
+      <div class="text-[12px] space-y-1.5">
+        <div class="flex items-center justify-between"><span class="ink-3">SG this pay event</span><span class="num">A$895.68</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Due to fund by</span><span class="num warm">18 May 2026</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">SuperStream batch</span><a href="/preview/super/batches/ssp-0014" class="num sae hover:underline">SSP-0015 (queued)</a></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Funds</span><span class="num">AustralianSuper · Hostplus · ART</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">SBR2 ChoiceForm OK</span><span class="chip-mini pos">4 of 4 valid</span></div>
+      </div>
+    </section>
+
+    <!-- Errors / warnings -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-2">Schema validation</h2>
+      <ul class="text-[11.5px] space-y-2">
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">XSD pass</span> · all 84 fields valid against payevntemp.v2024.07</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">TFN check</span> · 4 of 4 verified against ATO TFN service</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">YTD continuity</span> · all running totals match prior pay event 26-050404</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">Country code</span> · au on all SAW streams · WHM/WK not present</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">TTC</span> · 6-char codes valid for all 4 payees</div></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos mt-0.5"></i><div><span class="ink">Allowance disagg.</span> · AD only (others zero) · matches award MA000010 C8</div></li>
+      </ul>
+    </section>
+
+    <!-- ABA + ledger posting -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-2">ABA file + ledger</h2>
+      <div class="text-[12px] space-y-1.5">
+        <div class="flex items-center justify-between"><span class="ink-3">ABA filename</span><span class="num">aba-26-051104.aba</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Net pay total</span><span class="num">A$6,396.00</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Records</span><span class="num">4 credits + 1 self-balancing debit</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Uploaded to CBA</span><span class="num">11 May 14:14 AEST</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Settle</span><span class="num pos">11 May same-day NPP</span></div>
+      </div>
+      <div class="mt-3 pt-3 border-t hairline text-[11px] ink-2 space-y-1">
+        <div><span class="ink-3 font-mono">DR 6-200</span> Wages &amp; salaries · A$8,084.00 → P&amp;L</div>
+        <div><span class="ink-3 font-mono">DR 6-210</span> SG expense · A$895.68 → P&amp;L</div>
+        <div><span class="ink-3 font-mono">CR 2-310</span> Net pay payable · A$6,396.00</div>
+        <div><span class="ink-3 font-mono">CR 2-320</span> PAYG-W payable · A$1,688.00 → W2 BAS Q4</div>
+        <div><span class="ink-3 font-mono">CR 2-330</span> SG payable · A$895.68 → SSP-0015</div>
+        <div><span class="ink-3 font-mono">CR 2-340</span> Salary sac super · A$670.00 → SSP-0015</div>
+      </div>
+    </section>
+
+    <!-- Related -->
+    <section class="card p-5">
+      <h2 class="font-display text-[16.5px] mb-3">Related</h2>
+      <ul class="space-y-1.5 text-[12.5px]">
+        <li><a href="/preview/payroll/pay-run" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="calendar-days" class="w-3.5 h-3.5 ink-3"></i>Pay run · current</a></li>
+        <li><a href="/preview/super/batches/ssp-0014" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="piggy-bank" class="w-3.5 h-3.5 ink-3"></i>SuperStream batch SSP-0014</a></li>
+        <li><a href="/preview/super" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="calendar-clock" class="w-3.5 h-3.5 ink-3"></i>Payday Super switchover</a></li>
+        <li><a href="/preview/payroll/employees/mia-chen" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="user" class="w-3.5 h-3.5 ink-3"></i>Mia Chen — employee detail</a></li>
+        <li><a href="/preview/settings/integrations/ato" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="landmark" class="w-3.5 h-3.5 ink-3"></i>ATO integration · SBR2</a></li>
+        <li><a href="/preview/compliance/bas-prep" class="hover:text-[color:var(--sae)] flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 ink-3"></i>BAS W1 / W2 sources</a></li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

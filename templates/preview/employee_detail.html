@@ -1,0 +1,378 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'compliance' %}
+{% block page_title %}Mia Chen · Employee · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex items-start gap-4">
+      <span class="w-16 h-16 rounded-full flex items-center justify-center text-white font-display text-[20px]" style="background: #3E7A4E;">MC</span>
+      <div>
+        <div class="flex items-center gap-3 mb-1.5">
+          <span class="reg-mark"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Payroll · Employee · STP Phase 2</span>
+        </div>
+        <h1 class="font-display text-[34px] leading-[1.05] font-medium">
+          Mia Chen <span class="italic" style="color: var(--sae);">— C8 fitter / welder</span>
+        </h1>
+        <p class="mt-1.5 ink-2 text-sm">Employee ID <span class="font-mono">EMP-0114</span> · Started <span class="font-mono">14 Aug 2022</span> · Full-time · MA000010 Manufacturing &amp; Associated Industries Award</p>
+        <div class="mt-2 flex items-center gap-2">
+          <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Active</span>
+          <span class="badge"><i data-lucide="hard-hat" class="w-3 h-3"></i>Workshop</span>
+          <span class="badge"><i data-lucide="shield-check" class="w-3 h-3"></i>WHS card current</span>
+          <span class="badge"><i data-lucide="award" class="w-3 h-3"></i>White card</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/payroll/pay-run" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>Pay run</a>
+      <button class="chip"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>Payslip history</button>
+      <button class="chip"><i data-lucide="mail" class="w-3.5 h-3.5"></i>Email summary</button>
+      <button class="btn-primary"><i data-lucide="edit-3" class="w-4 h-4"></i>Edit</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip · YTD -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">YTD gross</p>
+    <p class="font-display text-[24px] mt-1 num">A$148,420<span class="text-[13px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">42 pay events · FY26</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">YTD PAYG W</p>
+    <p class="font-display text-[24px] mt-1 num">A$32,420<span class="text-[13px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Tax treatment <span class="font-mono">RTSXXX</span></p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">YTD super (SG)</p>
+    <p class="font-display text-[24px] mt-1 num">A$17,810<span class="text-[13px] ink-3">.40</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">SG 12% · Payday Super effective Jul 2026</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Leave balance</p>
+    <p class="font-display text-[24px] mt-1 num">132.4<span class="text-[13px] ink-3"> h</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">A/L 88.2h · P/L 44.2h</p>
+  </div>
+  <div class="card p-4" style="border: 1px solid var(--sae);">
+    <p class="text-[11px] uppercase tracking-wider" style="color: var(--sae);">Last pay (Wk 19)</p>
+    <p class="font-display text-[24px] mt-1 num">A$2,672<span class="text-[13px] ink-3">.00</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Net EFT · paid 12 May 2026</p>
+  </div>
+</div>
+
+<!-- Two-column main -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+  <!-- LEFT 8 -->
+  <div class="lg:col-span-8 space-y-5">
+
+    <!-- Tax + Identity card -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Tax &amp; identity</h3>
+        <span class="text-[11px] font-mono ink-3">TFN declaration on file · 14 Aug 2022</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-[13px]">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">TFN</p>
+          <p class="font-mono mt-0.5">123 ••• 901 <span class="text-[10px] ink-3 ml-1">(masked)</span></p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Income type</p>
+          <p class="font-mono mt-0.5">SAW <span class="ink-3">— Salary &amp; wages</span></p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Country code</p>
+          <p class="font-mono mt-0.5">AU</p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Tax treatment code</p>
+          <p class="font-mono mt-0.5">RTSXXX</p>
+          <p class="text-[11px] ink-3 mt-0.5">Regular · TFN supplied · No HELP · No SFSS · Tax-free threshold claimed</p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Residency</p>
+          <p class="mt-0.5">Australian resident for tax</p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Date of birth</p>
+          <p class="mt-0.5 font-mono">04 Mar 1994</p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">HELP / STSL</p>
+          <p class="mt-0.5">No outstanding debt declared</p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Medicare levy variation</p>
+          <p class="mt-0.5">None</p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3">Working holiday</p>
+          <p class="mt-0.5">N/A</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pay structure card -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Pay structure · MA000010 C8</h3>
+        <a href="https://library.fairwork.gov.au/award/?awardId=MA000010" class="text-[11px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1">Fair Work award<i data-lucide="external-link" class="w-3 h-3"></i></a>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Component</th><th>Code</th><th class="text-right">Rate</th><th class="text-right">Hours / qty</th><th class="text-right">This pay</th><th class="text-right">YTD</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Ordinary hours</td><td class="font-mono text-[12px]">OTE</td><td class="text-right num">A$90.00 /h</td><td class="text-right num">38.0</td><td class="text-right num">3,420.00</td><td class="text-right num">142,560.00</td></tr>
+          <tr><td>Overtime 1.5×</td><td class="font-mono text-[12px]">OT15</td><td class="text-right num">A$135.00 /h</td><td class="text-right num">0.0</td><td class="text-right num ink-3">—</td><td class="text-right num">3,240.00</td></tr>
+          <tr><td>Overtime 2.0×</td><td class="font-mono text-[12px]">OT20</td><td class="text-right num">A$180.00 /h</td><td class="text-right num">0.0</td><td class="text-right num ink-3">—</td><td class="text-right num">720.00</td></tr>
+          <tr><td>Allowance · tools</td><td class="font-mono text-[12px]">AD · ND</td><td class="text-right num">A$24.36 /wk</td><td class="text-right num">—</td><td class="text-right num ink-3">included in next run</td><td class="text-right num">1,094.20</td></tr>
+          <tr><td>Allowance · first aid</td><td class="font-mono text-[12px]">AD · ND</td><td class="text-right num">A$15.42 /wk</td><td class="text-right num">—</td><td class="text-right num ink-3">—</td><td class="text-right num">692.10</td></tr>
+          <tr><td>RDO accrual</td><td class="font-mono text-[12px]">— </td><td class="text-right num">0.4 h /wk</td><td class="text-right num">0.4</td><td class="text-right num ink-3">accrual only</td><td class="text-right num">17.2 h banked</td></tr>
+          <tr style="border-top: 2px solid var(--ink-3); font-weight: 600;">
+            <td colspan="4">Pay-event totals</td>
+            <td class="text-right num">3,420.00</td>
+            <td class="text-right num">148,306.30</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="mt-3 text-[11px] ink-3 font-mono">Disaggregated allowance categories per STP2 schema · AD/ND = Non-deductible (taxable) directors / tools.</p>
+    </div>
+
+    <!-- Super card -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Superannuation</h3>
+        <span class="badge"><span class="dot" style="background: var(--brand-2);"></span>SuperStream Gateway</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-[13px]">
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3 mb-1">Chosen fund</p>
+          <p class="font-medium">HostPlus Industry Super</p>
+          <p class="ink-2 text-[12px] mt-0.5">ABN 68 657 495 890 · USI <span class="font-mono">HOS0100AU</span></p>
+          <p class="ink-2 text-[12px]">Member # <span class="font-mono">8821-04471</span></p>
+          <p class="text-[11px] ink-3 mt-2">Choice form lodged 14 Aug 2022 · standing instruction · no stapled-fund lookup required</p>
+        </div>
+        <div>
+          <p class="text-[11px] uppercase tracking-wider ink-3 mb-1">Contributions FY26</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between"><span>SG 12%</span><span class="font-mono">A$17,810.40</span></div>
+            <div class="flex items-center justify-between"><span>Salary sacrifice (RESC)</span><span class="font-mono ink-3">A$0.00</span></div>
+            <div class="flex items-center justify-between"><span>Non-concessional after-tax</span><span class="font-mono ink-3">A$0.00</span></div>
+            <div class="flex items-center justify-between" style="border-top: 1px dashed var(--line); padding-top: 6px;"><span class="font-medium">Total FY26 contributions</span><span class="font-mono font-medium">A$17,810.40</span></div>
+            <div class="flex items-center justify-between text-[11px] ink-3"><span>Concessional cap remaining</span><span class="font-mono">A$12,189.60 / A$30,000</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-[12px]">
+        <div class="rounded-md p-3" style="background: var(--paper-2); border: 1px solid var(--line);">
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">SG rate FY26</p>
+          <p class="font-display text-[18px] mt-1 num">12.00%</p>
+          <p class="text-[10px] ink-3 mt-0.5">Statutory · final step</p>
+        </div>
+        <div class="rounded-md p-3" style="background: var(--paper-2); border: 1px solid var(--line);">
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Payday Super</p>
+          <p class="font-display text-[18px] mt-1 num">1 Jul 2026</p>
+          <p class="text-[10px] ink-3 mt-0.5">Contribution due per pay event · 7-day allowance</p>
+        </div>
+        <div class="rounded-md p-3" style="background: var(--paper-2); border: 1px solid var(--line);">
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Quarterly cycle</p>
+          <p class="font-display text-[18px] mt-1 num">28 Jul 2026</p>
+          <p class="text-[10px] ink-3 mt-0.5">Last quarterly SG due date (Q4 FY26)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leave card -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Leave accruals</h3>
+        <button class="chip"><i data-lucide="plus" class="w-3 h-3"></i>Record leave</button>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Leave type</th><th class="text-right">Opening</th><th class="text-right">Accrued</th><th class="text-right">Taken</th><th class="text-right">Balance</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Annual leave</td><td class="text-right num">76.4 h</td><td class="text-right num">147.2 h</td><td class="text-right num">135.4 h</td><td class="text-right num" style="color: var(--pos);">88.2 h</td><td class="ink-2 text-[12px]">17.5% loading on take · NES 4 wks /yr</td></tr>
+          <tr><td>Personal / carer's</td><td class="text-right num">28.0 h</td><td class="text-right num">76.0 h</td><td class="text-right num">59.8 h</td><td class="text-right num" style="color: var(--pos);">44.2 h</td><td class="ink-2 text-[12px]">NES 10 days /yr</td></tr>
+          <tr><td>Long service</td><td class="text-right num">0.0 h</td><td class="text-right num">68.4 h</td><td class="text-right num">0.0 h</td><td class="text-right num">68.4 h</td><td class="ink-2 text-[12px]">QLD LSL Act · accrues from yr 5</td></tr>
+          <tr><td>RDO bank</td><td class="text-right num">9.4 h</td><td class="text-right num">16.8 h</td><td class="text-right num">9.0 h</td><td class="text-right num">17.2 h</td><td class="ink-2 text-[12px]">Banked at 0.4 h /wk</td></tr>
+          <tr><td>Community service</td><td class="text-right num">—</td><td class="text-right num">—</td><td class="text-right num">—</td><td class="text-right num ink-3">unpaid · on req</td><td class="ink-2 text-[12px]">NES unlimited (jury, ES volunteer)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Recent pay events -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Recent pay events</h3>
+        <a href="#" class="text-[11px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1">All 42 events · FY26<i data-lucide="chevron-right" class="w-3 h-3"></i></a>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Pay date</th><th>Period</th><th>Hours</th><th class="text-right">Gross</th><th class="text-right">PAYG</th><th class="text-right">Super</th><th class="text-right">Net</th><th>STP receipt</th></tr>
+        </thead>
+        <tbody>
+          {% set pays = [
+            {'d':'12 May 2026','p':'04 May – 10 May','h':'38.0','g':'3,420.00','t':'748.00','s':'410.40','n':'2,672.00','r':'SBR-2026-2845812','st':'queued'},
+            {'d':'05 May 2026','p':'27 Apr – 03 May','h':'38.0','g':'3,420.00','t':'748.00','s':'410.40','n':'2,672.00','r':'SBR-2026-2845010','st':'lodged'},
+            {'d':'28 Apr 2026','p':'20 Apr – 26 Apr','h':'40.0 (2 OT)','g':'3,690.00','t':'820.00','s':'442.80','n':'2,870.00','r':'SBR-2026-2844218','st':'lodged'},
+            {'d':'21 Apr 2026','p':'13 Apr – 19 Apr','h':'30.4 (7.6 A/L)','g':'3,420.00','t':'748.00','s':'410.40','n':'2,672.00','r':'SBR-2026-2843426','st':'lodged'},
+            {'d':'14 Apr 2026','p':'06 Apr – 12 Apr','h':'38.0','g':'3,420.00','t':'748.00','s':'410.40','n':'2,672.00','r':'SBR-2026-2842634','st':'lodged'},
+            {'d':'07 Apr 2026','p':'30 Mar – 05 Apr','h':'38.0','g':'3,420.00','t':'748.00','s':'410.40','n':'2,672.00','r':'SBR-2026-2841842','st':'lodged'},
+          ] %}
+          {% for r in pays %}
+          <tr>
+            <td class="font-mono text-[12px]">{{ r.d }}</td>
+            <td class="ink-2 text-[12px]">{{ r.p }}</td>
+            <td class="ink-2 text-[12px]">{{ r.h }}</td>
+            <td class="text-right num">{{ r.g }}</td>
+            <td class="text-right num">{{ r.t }}</td>
+            <td class="text-right num">{{ r.s }}</td>
+            <td class="text-right num font-medium" style="color: var(--pos);">{{ r.n }}</td>
+            <td class="font-mono text-[11px]">
+              {% if r.st == 'queued' %}<span class="badge"><span class="dot" style="background: var(--warm);"></span>queued</span>
+              {% else %}<a href="#" class="hover:text-[color:var(--sae)]">{{ r.r }}</a>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Audit trail -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">Audit trail · Fair Work record-keeping</h3>
+        <span class="text-[11px] font-mono ink-3">FW Act s.535 · 7-year retention</span>
+      </div>
+      <div class="space-y-3 text-[12px]">
+        {% set events = [
+          {'d':'12 May 2026 09:14','who':'Sarah Wong','what':'Pay run · Week 19 approved · STP queued','col':'#3E7A4E'},
+          {'d':'01 Jul 2025 00:00','who':'System','what':'SG rate stepped 11.5% → 12.0% (legislated final step)','col':'#1A4E8B'},
+          {'d':'04 Mar 2026 10:22','who':'R. Sauer','what':'Pay rate review · C8 base A$87.40 → A$90.00 /h (CPI +3.0%)','col':'#194291'},
+          {'d':'18 Jan 2026 14:08','who':'Mia Chen','what':'Self-service · bank account updated · BSB 062-001 acc ••2841','col':'#7C5C8B'},
+          {'d':'02 Nov 2025 11:30','who':'R. Sauer','what':'Annual leave applied · 7.6 h · 17 Apr 2026','col':'#3E7A4E'},
+          {'d':'14 Aug 2022 09:00','who':'R. Sauer','what':'Employee onboarded · TFN dec lodged · HostPlus choice form lodged','col':'#1A4E8B'},
+        ] %}
+        {% for e in events %}
+        <div class="flex gap-3">
+          <div class="w-1 rounded-full" style="background: {{ e.col }};"></div>
+          <div class="flex-1 flex items-baseline justify-between">
+            <div>
+              <span class="font-medium">{{ e.who }}</span> · <span class="ink-2">{{ e.what }}</span>
+            </div>
+            <span class="font-mono text-[11px] ink-3 whitespace-nowrap">{{ e.d }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT 4 -->
+  <div class="lg:col-span-4 space-y-5">
+
+    <!-- Contact -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Contact &amp; payment</h4>
+      <div class="space-y-2.5 text-[13px]">
+        <div class="flex items-start gap-2"><i data-lucide="mail" class="w-3.5 h-3.5 mt-0.5 ink-3"></i><span>mia.chen@example.com.au</span></div>
+        <div class="flex items-start gap-2"><i data-lucide="phone" class="w-3.5 h-3.5 mt-0.5 ink-3"></i><span class="font-mono">+61 0414 821 220</span></div>
+        <div class="flex items-start gap-2"><i data-lucide="map-pin" class="w-3.5 h-3.5 mt-0.5 ink-3"></i><span>14 Riverside Dr, Albany Creek QLD 4035</span></div>
+        <div class="flex items-start gap-2"><i data-lucide="user" class="w-3.5 h-3.5 mt-0.5 ink-3"></i><span>Emergency: Sam Chen <span class="font-mono ink-3">+61 0408 220 117</span></span></div>
+      </div>
+      <div class="my-3 hairline"></div>
+      <div class="space-y-2 text-[12px]">
+        <div class="flex items-center justify-between"><span class="ink-3">Bank</span><span class="font-mono">CBA · BSB 062-001 · ••2841</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">EFT split</span><span class="font-mono">100%</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Payslip delivery</span><span>Email · encrypted PDF</span></div>
+      </div>
+    </div>
+
+    <!-- Award classification -->
+    <div class="card p-5" style="background: var(--paper-2);">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="scale" class="w-4 h-4 sae"></i>
+        <h4 class="font-medium">Award classification</h4>
+      </div>
+      <p class="text-[13px] ink-2 mb-3">Modern Award <span class="font-mono">MA000010</span> — Manufacturing &amp; Associated Industries and Occupations Award 2020</p>
+      <div class="space-y-1.5 text-[12px]">
+        <div class="flex items-center justify-between"><span class="ink-3">Classification</span><span class="font-mono">C8 — Engineering / Mfg Tradesperson II</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Min weekly rate</span><span class="font-mono">A$1,127.10</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">SAE actual</span><span class="font-mono pos">A$3,420.00 /wk · 203%</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Spread of hours</span><span class="font-mono">06:00 – 18:00</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Casual loading</span><span class="font-mono ink-3">n/a · permanent</span></div>
+      </div>
+      <p class="mt-3 text-[11px] ink-3">Last BOOT (better off overall) check: 04 Mar 2026 · pass</p>
+    </div>
+
+    <!-- Compliance -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3 flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 pos"></i>Compliance status</h4>
+      <div class="space-y-2.5 text-[12px]">
+        {% set comp = [
+          ('TFN declaration','filed 14 Aug 2022','#3E7A4E'),
+          ('Super choice form','HostPlus lodged 14 Aug 2022','#3E7A4E'),
+          ('Bank details','self-service · 18 Jan 2026','#3E7A4E'),
+          ('Workers comp','WorkCover QLD WCC-0091421 · current','#3E7A4E'),
+          ('WHS general construction','exp 22 Aug 2027','#3E7A4E'),
+          ('White card (CPCWHS1001)','exp 11 Apr 2028','#3E7A4E'),
+          ('Welding ticket (AS/NZS 1554)','exp 09 Sep 2026','#194291'),
+          ('Forklift LF','exp 14 Mar 2030','#3E7A4E'),
+        ] %}
+        {% for item, note, col in comp %}
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full" style="background: {{ col }};"></span>{{ item }}</span>
+          <span class="ink-3 text-[11px]">{{ note }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-3 rounded-md p-2.5 text-[11px]" style="background: var(--warm-bg, rgba(220,138,0,0.08)); border: 1px solid rgba(220,138,0,0.2);">
+        <p class="flex items-center gap-1.5"><i data-lucide="alert-triangle" class="w-3 h-3" style="color: var(--warm);"></i><span class="font-medium">Welding ticket renews in 121 days.</span></p>
+        <p class="mt-0.5 ink-2">Auto-reminder set for 30 days out · 11 Aug 2026.</p>
+      </div>
+    </div>
+
+    <!-- Job allocations -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3 flex items-center gap-2"><i data-lucide="hammer" class="w-4 h-4 sae"></i>Recent job hours</h4>
+      <div class="space-y-2.5 text-[12px]">
+        <a href="/preview/projects/j-2603" class="flex items-center justify-between hover:text-[color:var(--sae)]">
+          <span>J-2603 Conveyor retrofit · Acme</span>
+          <span class="font-mono">62.4 h</span>
+        </a>
+        <div class="flex items-center justify-between"><span class="ink-2">J-2598 Pump skid · Northshore</span><span class="font-mono">38.0 h</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">J-2587 Tank fab · Coastal</span><span class="font-mono">22.5 h</span></div>
+        <div class="flex items-center justify-between"><span class="ink-2">Workshop · indirect</span><span class="font-mono ink-3">19.6 h</span></div>
+        <div class="hairline my-2"></div>
+        <div class="flex items-center justify-between font-medium"><span>Last 30 days</span><span class="font-mono">142.5 h</span></div>
+      </div>
+    </div>
+
+    <!-- Cross-links -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Related</h4>
+      <div class="space-y-2 text-[13px]">
+        <a href="/preview/payroll/pay-run" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Current pay run · Week 19</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/super" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>SuperStream dashboard</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/compliance" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Compliance hub · STP/BAS/TPAR</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/settings/integrations/ato" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>ATO &amp; DSP integration</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/projects/j-2603" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Allocated job · J-2603</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

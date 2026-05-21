@@ -1,18 +1,15 @@
-{# HTMX partial — FX revaluation table.
-   Rendered standalone for HX-Request fragments; embedded by fx_revaluation.html
-   for the initial full-page load.
-#}
+{# HTMX partial — FX revaluation table. #}
 <div id="report-content">
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-{# Loading indicator shown while HTMX is fetching #}
-<div id="report-spinner" class="htmx-indicator flex items-center gap-2 text-sm text-gray-500 mb-4">
-  <svg class="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+<div id="report-spinner" class="htmx-indicator flex items-center gap-2 text-sm ink-3 font-mono mb-4">
+  <svg class="animate-spin h-4 w-4" style="color:var(--sae);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
@@ -25,44 +22,45 @@
 {% set report_note = report.get("note", "") %}
 
 {% if report_note %}
-<div class="rounded-md bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700 mb-4">
-  {{ report_note }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ report_note }}</span>
 </div>
 {% endif %}
 
 <div id="fx-revaluation-table">
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-100 text-sm">
-      <thead class="bg-gray-50">
+  <div class="card overflow-hidden">
+    <table class="sae-table w-full">
+      <thead>
         <tr>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 text-xs uppercase tracking-wide">Type</th>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 text-xs uppercase tracking-wide">Reference</th>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 text-xs uppercase tracking-wide">Contact</th>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 text-xs uppercase tracking-wide">Currency</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 text-xs uppercase tracking-wide">Original Amount</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 text-xs uppercase tracking-wide">Amount Paid</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 text-xs uppercase tracking-wide">Outstanding (Foreign)</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 text-xs uppercase tracking-wide">Outstanding ({{ base_currency }})</th>
+          <th class="text-left">Type</th>
+          <th class="text-left">Reference</th>
+          <th class="text-left">Contact</th>
+          <th class="text-left">Currency</th>
+          <th class="text-right">Original Amount</th>
+          <th class="text-right">Amount Paid</th>
+          <th class="text-right">Outstanding (Foreign)</th>
+          <th class="text-right">Outstanding ({{ base_currency }})</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-50">
+      <tbody>
         {% if items %}
           {% for item in items %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-4 py-2">
+          <tr>
+            <td>
               {% if item.get("entity_type") == "INVOICE" %}
-              <span class="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium bg-blue-50 text-blue-700">INV</span>
+              <span class="badge-open">INV</span>
               {% else %}
-              <span class="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium bg-orange-50 text-orange-700">BILL</span>
+              <span class="badge-pending">BILL</span>
               {% endif %}
             </td>
-            <td class="px-4 py-2 font-mono text-xs text-gray-700">{{ item.get("entity_ref") or "—" }}</td>
-            <td class="px-4 py-2 text-gray-900">{{ item.get("contact_name") or "—" }}</td>
-            <td class="px-4 py-2 font-semibold text-gray-700">{{ item.get("currency", "—") }}</td>
-            <td class="px-4 py-2 text-right tabular-nums text-gray-900">{{ "%.2f"|format(item.get("original_amount", 0) | float) }}</td>
-            <td class="px-4 py-2 text-right tabular-nums text-gray-700">{{ "%.2f"|format(item.get("amount_paid", 0) | float) }}</td>
-            <td class="px-4 py-2 text-right tabular-nums text-gray-900">{{ "%.2f"|format(item.get("outstanding_foreign", 0) | float) }}</td>
-            <td class="px-4 py-2 text-right tabular-nums text-gray-400">
+            <td class="num ink-2 text-xs">{{ item.get("entity_ref") or "—" }}</td>
+            <td class="ink-1">{{ item.get("contact_name") or "—" }}</td>
+            <td class="font-semibold ink-1">{{ item.get("currency", "—") }}</td>
+            <td class="text-right num ink-1">{{ "%.2f"|format(item.get("original_amount", 0) | float) }}</td>
+            <td class="text-right num ink-2">{{ "%.2f"|format(item.get("amount_paid", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ "%.2f"|format(item.get("outstanding_foreign", 0) | float) }}</td>
+            <td class="text-right num ink-3">
               {% if item.get("outstanding_base") is not none %}
               {{ "%.2f"|format(item.get("outstanding_base") | float) }}
               {% else %}
@@ -73,28 +71,28 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="8" class="px-4 py-6 text-center text-gray-400">No foreign-currency documents found for this date.</td>
+            <td colspan="8" class="text-center ink-3 font-mono text-sm py-6">— no foreign-currency documents found for this date —</td>
           </tr>
         {% endif %}
       </tbody>
       <tfoot>
-        <tr class="bg-gray-100 font-semibold border-t-2 border-gray-300">
-          <td colspan="7" class="px-4 py-3 text-gray-800">
+        <tr>
+          <td colspan="7" class="font-semibold ink-1">
             Total Revaluation Gain / Loss ({{ base_currency }})
           </td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-400">
+          <td class="text-right num-display font-semibold">
             {% set total_gl = report.get("total_revaluation_gain_loss") %}
             {% if total_gl is not none %}
-            <span class="{% if total_gl | float >= 0 %}text-green-700{% else %}text-red-700{% endif %}">
+            <span style="color:{% if total_gl | float >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
               {{ "%.2f"|format(total_gl | float) }}
             </span>
             {% else %}
-            &mdash;
+            <span class="ink-3">&mdash;</span>
             {% endif %}
           </td>
         </tr>
-        <tr class="bg-gray-50 text-xs text-gray-500">
-          <td colspan="8" class="px-4 py-2">
+        <tr class="bg-paper-2">
+          <td colspan="8" class="text-xs ink-3 font-mono py-2">
             {{ report.get("total_items", 0) }} document(s) with foreign currency exposure as at {{ report.get("as_of_date", as_of_date) }}
           </td>
         </tr>
@@ -103,7 +101,7 @@
   </div>
 </div>
 {% elif not error %}
-<p class="text-sm text-gray-400">No data returned.</p>
+<p class="text-sm ink-3 font-mono">— no data —</p>
 {% endif %}
 
-</div>{# end #report-content #}
+</div>

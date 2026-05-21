@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Cannot Edit Invoice — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold text-gray-900">Cannot Edit Invoice</h1>
+  {% if invoice %}
+  <a href="/invoices/{{ invoice.id }}" class="text-sm text-[#194291] hover:underline">← Back to invoice</a>
+  {% else %}
+  <a href="/invoices" class="text-sm text-[#194291] hover:underline">← Back to invoices</a>
+  {% endif %}
+</div>
+
+<div class="rounded-md bg-amber-50 border border-amber-300 px-6 py-5 text-sm text-amber-800 max-w-xl">
+  <p class="font-semibold mb-2">
+    This invoice is {{ invoice.status | capitalize }} and cannot be edited.
+  </p>
+  <p>
+    Void and recreate if changes are needed.
+  </p>
+</div>
+
+{% endblock %}

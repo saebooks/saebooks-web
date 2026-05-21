@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block page_title %}SAE Books{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    // Pre-paint theme so dark users don't get a flash of light.
+    (function(){
+      try {
+        var saved = localStorage.getItem('saebooks_theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+      } catch (e) {}
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --ink:        #14171c;
+      --ink-2:      #4a4f57;
+      --ink-3:      #8a8f97;
+      --ink-4:      #b4b9c1;
+      --paper:      #faf8f4;
+      --paper-2:    #f3efe7;
+      --line:       #e9e3d6;
+      --line-soft:  #f1ecdf;
+      --brand:      #0f2856;
+      --brand-2:    #194291;
+      /* SAE signature — primary cobalt #194291 + shades/hues */
+      --sae:        #194291;
+      --sae-2:      #102e6b;
+      --sae-3:      #0a1f4d;
+      --sae-tint:   #e7ecf7;
+      --sae-tint-2: #c9d4ec;
+      --pos:        #3e7a4e;
+      --pos-tint:   #e2efe1;
+      --neg:        #a14333;
+      --neg-tint:   #f4dfd8;
+      --warm:       #c89b3c;
+      --warm-tint:  #f7ead0;
+      --surface:    #ffffff;
+      --surface-2:  #fafaf8;
+    }
+    /* Dark theme — navy paper with bright cobalt accent */
+    [data-theme="dark"] {
+      --ink:        #f0ece4;
+      --ink-2:      #b8b3a8;
+      --ink-3:      #767b86;
+      --ink-4:      #565b67;
+      --paper:      #0e1a2a;
+      --paper-2:    #142339;
+      --line:       #25344f;
+      --line-soft:  #1d2c46;
+      --brand:      #0b1828;
+      --brand-2:    #2c6cb8;
+      --sae:        #5c89e0;
+      --sae-2:      #3661b8;
+      --sae-3:      #2c4a91;
+      --sae-tint:   #15264a;
+      --sae-tint-2: #1d3361;
+      --pos:        #5fa872;
+      --pos-tint:   #1a2e1f;
+      --neg:        #d56757;
+      --neg-tint:   #361816;
+      --warm:       #d4a854;
+      --warm-tint:  #2e2510;
+      --surface:    #1a2840;
+      --surface-2:  #21304b;
+    }
+    [data-theme="dark"] .card { background: var(--surface); }
+    [data-theme="dark"] .chip { background: var(--surface); color: var(--ink-2); }
+    [data-theme="dark"] .chip:hover { background: var(--paper-2); }
+    [data-theme="dark"] .chip-active { background: var(--ink); color: var(--paper); }
+    [data-theme="dark"] .btn-secondary { background: var(--surface); }
+    [data-theme="dark"] .pill-nav { background: var(--surface); }
+    [data-theme="dark"] .pop { background: var(--surface); box-shadow: 0 24px 48px rgba(0,0,0,.4); }
+    [data-theme="dark"] .cmdk { background: var(--surface); }
+    [data-theme="dark"] .cmdk-input-row { background: var(--surface); }
+    [data-theme="dark"] .cmdk-item:hover, [data-theme="dark"] .cmdk-item.cmdk-selected { background: var(--paper-2); }
+    [data-theme="dark"] .cmdk-item .cmdk-icon { background: var(--paper-2); }
+    [data-theme="dark"] .cmdk-footer { background: var(--paper-2); }
+    [data-theme="dark"] .cmdk-footer .kbd { background: var(--surface); }
+    [data-theme="dark"] .bg-white { background-color: var(--surface) !important; }
+    [data-theme="dark"] table.sae-table thead { background: var(--paper-2); }
+    [data-theme="dark"] table.sae-table tbody tr:hover { background: rgba(255,255,255,.03); }
+    [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+      background: var(--paper-2); color: var(--ink); border-color: var(--line);
+    }
+    [data-theme="dark"] input::placeholder { color: var(--ink-3); }
+    [data-theme="dark"] .preview-banner { background: var(--brand); }
+    [data-theme="dark"] .grad-fade-r::after { background: linear-gradient(to right, transparent, var(--paper)); }
+    [data-theme="dark"] .reg-mark { border-color: var(--sae); }
+    [data-theme="dark"] .reg-mark::before, [data-theme="dark"] .reg-mark::after { background: var(--sae); }
+    [data-theme="dark"] .dot-grid, [data-theme="dark"] .dot-grid-soft {
+      background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px);
+    }
+    [data-theme="dark"] .drafting { border-top-color: var(--line); border-bottom-color: var(--line); }
+
+    html, body { background: var(--paper); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; transition: background-color .2s ease, color .2s ease; }
+    .font-display { font-family: 'Fraunces', 'Times New Roman', serif; letter-spacing: -0.02em; }
+    .font-mono    { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .num          { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .num-display  { font-family: 'Fraunces', serif; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgba(20,23,28,.04), 0 4px 12px rgba(20,23,28,.03); }
+    .card-hover { transition: box-shadow .15s ease, transform .15s ease; }
+    .card-hover:hover { box-shadow: 0 2px 4px rgba(20,23,28,.06), 0 8px 24px rgba(20,23,28,.07); transform: translateY(-1px); }
+    .hairline { border-color: var(--line); }
+    .ink-2 { color: var(--ink-2); }
+    .ink-3 { color: var(--ink-3); }
+    .ink-4 { color: var(--ink-4); }
+    .pos { color: var(--pos); }
+    .neg { color: var(--neg); }
+    .sae { color: var(--sae); }
+    .bg-sae { background: var(--sae); }
+    .bg-sae-tint { background: var(--sae-tint); }
+
+    /* SAE drafting line — thin double line for section dividers */
+    .drafting { position: relative; height: 5px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+
+    /* SAE blueprint dot grid — used in hero corners and empty states */
+    .dot-grid {
+      background-image: radial-gradient(rgba(20,23,28,.10) 1px, transparent 1px);
+      background-size: 14px 14px;
+      background-position: 0 0;
+    }
+    .dot-grid-soft {
+      background-image: radial-gradient(rgba(20,23,28,.06) 1px, transparent 1px);
+      background-size: 14px 14px;
+    }
+
+    /* Registration mark for engineering / blueprint feel */
+    .reg-mark { width: 16px; height: 16px; border: 1px solid var(--sae); border-radius: 50%; position: relative; }
+    .reg-mark::before, .reg-mark::after { content: ''; position: absolute; background: var(--sae); }
+    .reg-mark::before { left: 50%; top: -3px; bottom: -3px; width: 1px; transform: translateX(-50%); }
+    .reg-mark::after  { top: 50%; left: -3px; right: -3px; height: 1px; transform: translateY(-50%); }
+
+    .chip { display: inline-flex; align-items: center; gap: .375rem; padding: .375rem .75rem; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: .8125rem; color: var(--ink-2); transition: background .12s ease, color .12s ease, border-color .12s ease; cursor: pointer; }
+    .chip:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink-4); }
+    .chip-active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .chip-active:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+    .btn-primary { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: 10px; background: var(--sae); color: #fff; font-size: .875rem; font-weight: 500; transition: background .12s ease, box-shadow .12s ease, transform .08s ease; cursor: pointer; box-shadow: 0 1px 0 rgba(166,78,21,.4) inset, 0 2px 6px rgba(200,99,31,.25); }
+    .btn-primary:hover { background: var(--sae-2); }
+    .btn-primary:active { transform: translateY(1px); }
+
+    .btn-secondary { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: 10px; background: #fff; color: var(--ink); font-size: .875rem; font-weight: 500; border: 1px solid var(--line); transition: background .12s ease, border-color .12s ease; cursor: pointer; }
+    .btn-secondary:hover { background: var(--paper-2); border-color: var(--ink-4); }
+
+    .pill-nav { display: inline-flex; align-items: center; gap: .625rem; padding: .375rem .875rem .375rem .375rem; border-radius: 999px; background: #fff; border: 1px solid var(--line); transition: border-color .12s ease, box-shadow .12s ease; }
+    .pill-nav:hover { border-color: var(--ink-4); box-shadow: 0 1px 2px rgba(20,23,28,.05); }
+    .pill-ico { width: 30px; height: 30px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+
+    /* Left rail */
+    .rail-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: .125rem; padding: .25rem 0; width: 100%; }
+    .rail-btn { width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-2); transition: background .12s ease, color .12s ease; }
+    .rail-btn:hover { background: var(--paper-2); color: var(--ink); }
+    .rail-item.active .rail-btn { background: var(--ink); color: #fff; }
+    .rail-item.active::before { content: ''; position: absolute; left: -1px; top: 8px; bottom: 8px; width: 2px; background: var(--sae); border-radius: 1px; }
+    .rail-label { font-size: 9.5px; color: var(--ink-3); letter-spacing: 0.02em; }
+    .rail-item.active .rail-label { color: var(--ink); font-weight: 500; }
+
+    .donut-leg { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+    .scroll-x::-webkit-scrollbar { height: 6px; }
+    .scroll-x::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+    .grad-fade-r { -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%); mask-image: linear-gradient(to right, black 92%, transparent 100%); }
+    .ring-focus:focus { outline: none; box-shadow: 0 0 0 3px rgba(200,99,31,.18); border-color: var(--sae); }
+
+    .pop { position: absolute; z-index: 30; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 24px 48px rgba(20,23,28,.16), 0 4px 12px rgba(20,23,28,.06); display: none; }
+    .pop.open { display: block; }
+
+    .preview-banner { background: linear-gradient(135deg, #0a1f4d 0%, #194291 60%, #2c5cb0 140%); }
+
+    .badge { display: inline-flex; align-items: center; gap: .25rem; padding: .125rem .5rem; border-radius: 999px; font-size: 11px; font-weight: 500; line-height: 1.5; }
+    .badge-pos  { background: var(--pos-tint);  color: var(--pos); }
+    .badge-neg  { background: var(--neg-tint);  color: var(--neg); }
+    .badge-warm { background: var(--warm-tint); color: #8a6a1c; }
+    .badge-sae  { background: var(--sae-tint);  color: var(--sae-2); }
+    .badge-ink  { background: rgba(20,23,28,.06); color: var(--ink-2); }
+
+    /* Status dot */
+    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+    /* Status strip on rail bottom */
+    .status-strip { font-family: 'JetBrains Mono', monospace; font-size: 9px; line-height: 1.4; color: var(--ink-3); text-align: center; }
+
+    table.sae-table { width: 100%; border-collapse: collapse; }
+    table.sae-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); font-weight: 500; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+    table.sae-table tbody td { padding: 14px 16px; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
+    table.sae-table tbody tr { transition: background .1s ease; }
+    table.sae-table tbody tr:hover { background: rgba(243,239,231,.5); cursor: pointer; }
+    table.sae-table tbody tr:last-child td { border-bottom: 0; }
+
+    /* Cmd-K command palette */
+    .cmdk-backdrop { position: fixed; inset: 0; background: rgba(15,41,64,.30); backdrop-filter: blur(4px); z-index: 90; display: none; align-items: flex-start; justify-content: center; padding-top: 12vh; }
+    .cmdk-backdrop.open { display: flex; }
+    .cmdk { width: min(640px, 92vw); background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 50px rgba(15,41,64,.25), 0 4px 12px rgba(15,41,64,.1); overflow: hidden; }
+    .cmdk-input-row { display: flex; align-items: center; gap: .625rem; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+    .cmdk-input { flex: 1; border: 0; outline: none; font-size: 15px; background: transparent; color: var(--ink); }
+    .cmdk-input::placeholder { color: var(--ink-3); }
+    .cmdk-list { max-height: 52vh; overflow-y: auto; padding: 6px 0; }
+    .cmdk-group { padding: 8px 18px 4px; font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-3); }
+    .cmdk-item { display: flex; align-items: center; gap: 12px; padding: 9px 18px; cursor: pointer; transition: background .08s; font-size: 13.5px; }
+    .cmdk-item:hover, .cmdk-item.cmdk-selected { background: var(--paper-2); }
+    .cmdk-item .cmdk-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--paper); border: 1px solid var(--line); color: var(--ink-2); }
+    .cmdk-item.cmdk-selected .cmdk-icon { border-color: var(--sae); color: var(--sae); background: var(--sae-tint); }
+    .cmdk-item .cmdk-sub { color: var(--ink-3); font-size: 11.5px; }
+    .cmdk-item .cmdk-kbd { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-3); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; background: var(--paper); }
+    .cmdk-footer { display: flex; align-items: center; gap: 14px; padding: 10px 18px; border-top: 1px solid var(--line); background: var(--paper); font-size: 11px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; }
+    .cmdk-footer .kbd { border: 1px solid var(--line); background: #fff; padding: 1px 5px; border-radius: 3px; margin-right: 4px; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen">
+
+<!-- Preview banner -->
+<div class="preview-banner text-white text-xs px-5 py-2 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/15">
+      <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+      Design Preview
+    </span>
+    <span class="opacity-80">Pass B chrome — SAE Books · static mock, no data wiring yet</span>
+  </div>
+  <div class="flex items-center gap-3 opacity-90">
+    <a href="/invoices" class="hover:underline">↩ Back to live app</a>
+  </div>
+</div>
+
+<!-- App bar -->
+<header class="bg-white border-b hairline">
+  <div class="flex items-center h-14 px-4 gap-4">
+    <!-- Brand: custom SAE monogram + wordmark -->
+    <a href="/preview/home" class="flex items-center gap-2.5 pr-3 mr-1 border-r hairline h-8 group">
+      <svg viewBox="0 0 36 36" class="w-7 h-7" aria-label="SAE">
+        <rect x="1" y="1" width="34" height="34" rx="8" fill="#0A1F4D"/>
+        <!-- Stylised SAE monogram in cobalt -->
+        <g fill="none" stroke="#7D9DD3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <!-- S -->
+          <path d="M11 12 Q8 12 8 15 Q8 17.5 11 17.5 Q14 17.5 14 20 Q14 23 11 23"/>
+          <!-- A -->
+          <path d="M16 23 L19 12 L22 23 M17.2 19 L20.8 19"/>
+          <!-- E -->
+          <path d="M28 12 L24 12 L24 23 L28 23 M24 17.5 L27 17.5"/>
+        </g>
+        <!-- Corner registration mark -->
+        <circle cx="32" cy="4" r="1.3" fill="#194291"/>
+      </svg>
+      <div class="leading-none">
+        <div class="font-display text-[15px] font-semibold tracking-tight">SAE Books</div>
+        <div class="text-[9.5px] font-mono ink-3 mt-0.5">v2026.05</div>
+      </div>
+    </a>
+
+    <!-- Tenant switcher -->
+    <button class="flex items-center gap-1.5 text-sm font-medium hover:bg-[color:var(--paper-2)] px-2 py-1.5 rounded-md">
+      <span class="w-5 h-5 rounded flex items-center justify-center text-[10px] text-white font-medium" style="background:var(--brand-2);">S</span>
+      <span>SAE Engineering</span>
+      <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 ink-3"></i>
+    </button>
+
+    <!-- Search -->
+    <div class="flex-1 max-w-2xl mx-auto">
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 ink-3 absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input
+          type="text"
+          placeholder="Search transactions, contacts, reports…"
+          data-cmdk-trigger
+          readonly
+          class="w-full pl-9 pr-12 py-2 text-sm bg-[color:var(--paper)] border hairline rounded-lg ring-focus placeholder:ink-3 cursor-pointer"
+        >
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 ink-3 text-[10px] font-mono px-1.5 py-0.5 rounded border hairline bg-white">⌘K</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-1">
+      <a href="/preview/inbox" class="rail-btn !w-9 !h-9" title="Inbox">
+        <i data-lucide="bell" class="w-4 h-4"></i>
+        <span class="absolute -mt-3 ml-3 w-1.5 h-1.5 rounded-full" style="background: var(--sae);"></span>
+      </a>
+      <button class="rail-btn !w-9 !h-9" title="Help">
+        <i data-lucide="circle-help" class="w-4 h-4"></i>
+      </button>
+      <button id="themeBtn" onclick="toggleTheme()" class="rail-btn !w-9 !h-9" title="Toggle theme (⌘⇧L)">
+        <i data-lucide="moon" class="w-4 h-4" data-theme-icon="light"></i>
+        <i data-lucide="sun" class="w-4 h-4 hidden" data-theme-icon="dark"></i>
+      </button>
+      <div class="relative">
+        <button id="cogBtn" onclick="togglePop('cogPop')" class="rail-btn !w-9 !h-9" title="Settings">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+        <div id="cogPop" class="pop right-0 mt-2 w-[min(640px,calc(100vw-2rem))] p-6">
+          <div class="grid grid-cols-4 gap-x-8 gap-y-1 text-sm">
+            <div>
+              <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Your Company</h4>
+              <ul class="space-y-2 ink-2">
+                <li><a href="/preview/settings" class="hover:text-[color:var(--sae)]">Account &amp; settings</a></li>
+                <li><a href="/preview/settings#users" class="hover:text-[color:var(--sae)]">Manage users</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Custom form styles</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Chart of accounts</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Tax codes</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Bank rules</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Lists</h4>
+              <ul class="space-y-2 ink-2">
+                <li><a href="/preview/contacts" class="hover:text-[color:var(--sae)]">Contacts</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Products &amp; services</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Recurring transactions</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Attachments</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Fixed assets</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Tools</h4>
+              <ul class="space-y-2 ink-2">
+                <li><a href="/preview/reconcile" class="hover:text-[color:var(--sae)]">Reconcile</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Import data</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Export data</a></li>
+                <li><a href="/preview/activity" class="hover:text-[color:var(--sae)]">Audit log</a></li>
+                <li><a href="/preview/compliance" class="hover:text-[color:var(--sae)]">Australian compliance</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Profile</h4>
+              <ul class="space-y-2 ink-2">
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Subscriptions &amp; billing</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">What's new</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Feedback</a></li>
+                <li><a href="#" class="hover:text-[color:var(--sae)]">Privacy</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="ml-1 w-8 h-8 rounded-full flex items-center justify-center text-white text-[13px] font-medium" style="background: var(--brand);" title="Richard">R</button>
+    </div>
+  </div>
+</header>
+
+<div class="flex">
+  <!-- Left rail -->
+  <aside class="w-[72px] shrink-0 sticky top-0 h-[calc(100vh-2.5rem)] border-r hairline bg-white flex flex-col items-center py-3 gap-0.5">
+
+    <!-- Create -->
+    <div class="relative rail-item">
+      <button id="createBtn" onclick="togglePop('createPop')" class="rail-btn !w-11 !h-11 !rounded-xl text-white" style="background: var(--sae); box-shadow: 0 2px 6px rgba(200,99,31,.3);">
+        <i data-lucide="plus" class="w-5 h-5"></i>
+      </button>
+      <span class="rail-label">Create</span>
+      <div id="createPop" class="pop left-full ml-3 top-0 w-[min(760px,calc(100vw-6rem))] p-6">
+        <div class="grid grid-cols-5 gap-x-8 gap-y-1 text-sm">
+          <div>
+            <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Customers</h4>
+            <ul class="space-y-2 ink-2">
+              <li><a href="/preview/invoices" class="hover:text-[color:var(--sae)]">Invoice</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Receive payment</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Statement</a></li>
+              <li><a href="/preview/quotes" class="hover:text-[color:var(--sae)]">Quote</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Sales order</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Adjustment note</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Sales receipt</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Refund receipt</a></li>
+              <li><a href="/preview/contacts" class="hover:text-[color:var(--sae)]">Add customer</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Suppliers</h4>
+            <ul class="space-y-2 ink-2">
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Expense</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Cheque</a></li>
+              <li><a href="/preview/bills" class="hover:text-[color:var(--sae)]">Bill</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Pay bills</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Purchase order</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Supplier credit</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Credit card credit</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Add supplier</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Team</h4>
+            <ul class="space-y-2 ink-2">
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Single time activity</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Weekly timesheet</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Add team member</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Projects</h4>
+            <ul class="space-y-2 ink-2">
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Project</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Other</h4>
+            <ul class="space-y-2 ink-2">
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Task</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Bank deposit</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Transfer</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Journal entry</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Inventory adjustment</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Batch transactions</a></li>
+              <li><a href="#" class="hover:text-[color:var(--sae)]">Add product/service</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-2"></div>
+
+    {% set nav = nav_active|default('home') %}
+    <a href="#" class="rail-item">
+      <span class="rail-btn"><i data-lucide="bookmark" class="w-5 h-5"></i></span>
+      <span class="rail-label">Marks</span>
+    </a>
+    <a href="/preview/home" class="rail-item {% if nav == 'home' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="home" class="w-5 h-5"></i></span>
+      <span class="rail-label">Home</span>
+    </a>
+    <a href="/preview/inbox" class="rail-item {% if nav_active == 'inbox' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="inbox" class="w-5 h-5"></i></span>
+      <span class="rail-label">Inbox</span>
+    </a>
+    <a href="/preview/reports" class="rail-item {% if nav == 'reports' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="line-chart" class="w-5 h-5"></i></span>
+      <span class="rail-label">Reports</span>
+    </a>
+    <a href="#" class="rail-item">
+      <span class="rail-btn"><i data-lucide="grid-3x3" class="w-5 h-5"></i></span>
+      <span class="rail-label">Apps</span>
+    </a>
+
+    <!-- Pinned section -->
+    <div class="w-full px-3 mt-3 mb-1">
+      <div class="drafting"></div>
+      <div class="text-[10px] font-mono uppercase tracking-wider ink-3 text-center mt-2">Pinned</div>
+    </div>
+
+    <a href="/preview/invoices" class="rail-item {% if nav == 'invoices' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="file-text" class="w-5 h-5"></i></span>
+      <span class="rail-label">Invoices</span>
+    </a>
+    <a href="/preview/bills" class="rail-item {% if nav == 'bills' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="receipt" class="w-5 h-5"></i></span>
+      <span class="rail-label">Bills</span>
+    </a>
+    <a href="/preview/quotes" class="rail-item {% if nav == 'quotes' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="file-pen-line" class="w-5 h-5"></i></span>
+      <span class="rail-label">Quotes</span>
+    </a>
+    <a href="/preview/contacts" class="rail-item {% if nav == 'contacts' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="users" class="w-5 h-5"></i></span>
+      <span class="rail-label">Contacts</span>
+    </a>
+    <a href="/preview/projects" class="rail-item {% if nav == 'projects' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="hammer" class="w-5 h-5"></i></span>
+      <span class="rail-label">Jobs</span>
+    </a>
+    <a href="/preview/compliance" class="rail-item {% if nav == 'compliance' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="landmark" class="w-5 h-5"></i></span>
+      <span class="rail-label">ATO</span>
+    </a>
+    <a href="/preview/cashbook" class="rail-item {% if nav == 'cashbook' %}active{% endif %}">
+      <span class="rail-btn"><i data-lucide="book-open" class="w-5 h-5"></i></span>
+      <span class="rail-label">Cashbook</span>
+    </a>
+
+    <div class="flex-1"></div>
+
+    <!-- SAE engineering status strip -->
+    <div class="w-full px-2 pb-1">
+      <div class="drafting mb-2"></div>
+      <div class="status-strip space-y-1">
+        <div class="flex items-center justify-center gap-1"><span class="dot" style="background: var(--pos);"></span> ATO · live</div>
+        <div class="flex items-center justify-center gap-1"><span class="dot" style="background: var(--pos);"></span> ANZ · synced</div>
+        <div class="flex items-center justify-center gap-1 ink-3">2m ago</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 min-w-0">
+    <div class="max-w-[1400px] mx-auto px-8 pt-10 pb-16">
+      {% block content %}{% endblock %}
+      <p class="text-center mt-12 text-[11px] font-mono ink-3">
+        SAE Books · static design preview · no data wiring yet ·
+        <a href="#" class="text-[color:var(--sae)] hover:underline">Send feedback</a>
+      </p>
+    </div>
+  </main>
+</div>
+
+<!-- Cmd-K command palette -->
+<div id="cmdkBackdrop" class="cmdk-backdrop" onclick="if(event.target===this)closeCmdK()">
+  <div class="cmdk" onclick="event.stopPropagation()">
+    <div class="cmdk-input-row">
+      <i data-lucide="search" class="w-4 h-4 ink-3"></i>
+      <input id="cmdkInput" class="cmdk-input" placeholder="Type a command, page, or contact… (try 'invoice', 'BAS', 'Bunnings')" autocomplete="off">
+      <span class="cmdk-kbd">esc</span>
+    </div>
+    <div id="cmdkList" class="cmdk-list"></div>
+    <div class="cmdk-footer">
+      <span><span class="kbd">↑↓</span> navigate</span>
+      <span><span class="kbd">⏎</span> select</span>
+      <span><span class="kbd">esc</span> close</span>
+      <span style="margin-left:auto;color:var(--sae);">SAE Books · ⌘K</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+  function togglePop(id) {
+    document.querySelectorAll('.pop.open').forEach(p => { if (p.id !== id) p.classList.remove('open'); });
+    document.getElementById(id)?.classList.toggle('open');
+  }
+  document.addEventListener('click', e => {
+    if (e.target.closest('.pop')) return;
+    if (e.target.closest('#createBtn') || e.target.closest('#cogBtn')) return;
+    document.querySelectorAll('.pop.open').forEach(p => p.classList.remove('open'));
+  });
+
+  // Cmd-K command palette
+  const CMDK_ITEMS = [
+    { g: 'Create', i: 'file-text',   t: 'New invoice',              s: 'Bill a customer',        k: 'C I', href: '/preview/invoices/new' },
+    { g: 'Create', i: 'file-pen-line', t: 'New quote',              s: 'Send a quote',           k: 'C Q', href: '#' },
+    { g: 'Create', i: 'receipt',     t: 'New bill',                  s: 'Record a supplier bill', k: 'C B', href: '#' },
+    { g: 'Create', i: 'user-plus',   t: 'New contact',              s: 'Customer or supplier',   k: 'C N', href: '#' },
+    { g: 'Create', i: 'hammer',     t: 'New job',                  s: 'Project / job costing',  k: 'C J', href: '/preview/projects' },
+    { g: 'Go to',  i: 'home',        t: 'Home',                     s: 'Dashboard',              href: '/preview/home' },
+    { g: 'Go to',  i: 'inbox',       t: 'Inbox',                    s: 'ATO · Peppol · bills · replies', k: 'G I', href: '/preview/inbox' },
+    { g: 'Go to',  i: 'file-text',   t: 'Invoices',                 s: 'Sales · receivables',    href: '/preview/invoices' },
+    { g: 'Go to',  i: 'receipt',     t: 'Bills',                    s: 'Purchases · payables',   href: '/preview/bills' },
+    { g: 'Go to',  i: 'file-pen-line', t: 'Quotes',                 s: 'Pending and accepted',   href: '/preview/quotes' },
+    { g: 'Go to',  i: 'users',       t: 'Contacts',                 s: 'Customers and suppliers', href: '/preview/contacts' },
+    { g: 'Go to',  i: 'hammer',     t: 'Jobs',                     s: 'Project / job costing',  href: '/preview/projects' },
+    { g: 'Go to',  i: 'line-chart',  t: 'Reports',                  s: 'Financial and operational', href: '/preview/reports' },
+    { g: 'Go to',  i: 'landmark',    t: 'Australian compliance',    s: 'BAS · GST · STP · TPAR', href: '/preview/compliance' },
+    { g: 'Go to',  i: 'book-open',   t: 'Cashbook',                 s: 'Solo cashbook demo',     href: '/preview/cashbook' },
+    { g: 'Go to',  i: 'banknote',    t: 'Bank reconcile',           s: 'CBA Smart Access · 7 pending', href: '/preview/reconcile' },
+    { g: 'Go to',  i: 'camera',      t: 'Capture receipt',          s: 'Phone · email · drag-drop',    k: 'C R', href: '/preview/cashbook/capture' },
+    { g: 'Go to',  i: 'calculator',  t: 'Tax time — FY26',          s: 'Sole-trader summary · likely refund', k: 'G T', href: '/preview/cashbook/tax-time' },
+    { g: 'Go to',  i: 'history',     t: 'Activity log',             s: '486 events · chain verified',  k: 'G A', href: '/preview/activity' },
+    { g: 'Recent', i: 'file-text',   t: 'INV-0028 — Acme Pty Ltd',  s: 'A$14,179 paid · J-2603', href: '/preview/invoices/inv-0028' },
+    { g: 'Recent', i: 'receipt',     t: 'BILL-0142 — Dale Maxwell', s: 'A$6,912.40 · awaiting approval', href: '/preview/bills/bill-1842' },
+    { g: 'Recent', i: 'hammer',      t: 'J-2603 Conveyor retrofit', s: 'A$34,320 quoted · 38% margin', href: '/preview/projects/j-2603' },
+    { g: 'ATO',    i: 'landmark',    t: 'BAS worksheet — Q4 FY26', s: '30 days to lodge · A$2,145', href: '/preview/compliance' },
+    { g: 'ATO',    i: 'wand-sparkles', t: 'Prep & lodge BAS — Q4 FY26', s: '7-step wizard · 1 query open', k: 'B A', href: '/preview/compliance/bas-prep' },
+    { g: 'ATO',    i: 'shield-check',t: 'STP Phase 2 — last pay run', s: 'Lodged 3 May · 4 employees', href: '/preview/payroll/pay-run' },
+    { g: 'ATO',    i: 'users',       t: 'Pay run — Week 19',         s: 'Apr–May · A$9,430 net · STP ready', k: 'P R', href: '/preview/payroll/pay-run' },
+    { g: 'People', i: 'user-circle', t: 'Mia Chen — C8 fitter/welder', s: 'EMP-0114 · A$148,420 YTD · HostPlus', href: '/preview/payroll/employees/mia-chen' },
+    { g: 'Debtors',i: 'file-warning', t: 'Bowen Crane Hire — debtor file', s: 'A$2,680 · 112 d overdue · phone-call escalation', href: '/preview/reports/aged-receivables/bowen-crane-hire' },
+    { g: 'Settings',i: 'list-tree',   t: 'Chart of accounts',           s: '68 accounts · SBR2 v2024.07 · BAS-mapped', href: '/preview/settings/chart-of-accounts' },
+    { g: 'ATO',    i: 'server',       t: 'SuperStream batch SSP-0014',  s: 'Q3 FY26 · A$1,430.40 · 3/4 confirmed · AS4 / ebMS3', href: '/preview/super/batches/ssp-0014' },
+    { g: 'Cashbook',i: 'wand-sparkles', t: 'Bank feed rules',           s: '42 rules · 96.4% auto-coded · ML v3.2 · CDR-fed', href: '/preview/settings/bank-feed-rules' },
+    { g: 'Payments',i: 'credit-card',  t: 'Stripe Australia',           s: 'A$284k FY26 · 1.84% blended · T+2 CBA · 7 methods', href: '/preview/settings/integrations/stripe-au' },
+    { g: 'Subbies', i: 'hard-hat',     t: 'Dale Maxwell Electrical',    s: 'EC-184593 · A$18,420 FY26 · TPAR-reportable · 8 bills', href: '/preview/contacts/dale-maxwell' },
+    { g: 'Settings',i: 'users-round',  t: 'Users & roles',              s: '6 users · MyGovID + RAM · 2FA enforced · BAS Agent invited', href: '/preview/settings/users' },
+    { g: 'Settings',i: 'percent',      t: 'Tax rates — AU FY26',        s: 'GST 10% · WET 29% · LCT · fuel tax credits · SBR2 v2024.07', href: '/preview/settings/tax-rates' },
+    { g: 'Settings',i: 'list-ordered', t: 'Numbering & identifiers',     s: '8 streams · 2,420 docs FY26 · 0 gaps · s.29-70 tax invoice', href: '/preview/settings/numbering' },
+    { g: 'Cashbook',i: 'scan-line',    t: 'RCT-00184 · Bunnings · A$184.20', s: 'OCR 98.4% · auto-coded to J-2603 · CBA pmt-2014 · TR 97/24', href: '/preview/cashbook/receipts/rct-00184' },
+    { g: 'Payments',i: 'square',       t: 'Square Australia',            s: 'A$84k FY26 · 1.72% blended · T+1 CBA · 4 devices · Tap-to-Pay', href: '/preview/settings/integrations/square-au' },
+    { g: 'ATO',     i: 'send',         t: 'STP2 pay event 26-051104',    s: '4 payees · A$8,084 gross · ACCEPTED 1.84s · Receipt 26-J7Q-184820', href: '/preview/payroll/stp-events/26-051104' },
+    { g: 'Inbox',   i: 'inbox',        t: 'BlueScope · INV-BS-20611',    s: 'Peppol PINT-AU · A$4,820.40 · 14 lines · 2-step approval pending', href: '/preview/inbox/inv-bs-20611' },
+    { g: 'Settings',i: 'arrow-right-left', t: 'Migrate from Xero · MYOB · Reckon', s: 'OAuth + CSV · 8 FY · 4–12 min · trial balance cent-match · free', href: '/preview/migration' },
+    { g: 'ATO',     i: 'file-check-2',  t: 'BAS Q3 FY26 · ACCEPTED',     s: 'Net A$14,260.18 · 1A 24,610 · 1B 10,184 · 7D 842 · DD 26 May', href: '/preview/compliance/bas/26-q3' },
+    { g: 'Banking', i: 'vault',         t: 'Project Trust · J-2603',     s: 'QBCC PTA · A$184,260 · 6 subs · 3-way 0¢ · BIF Act 2017 (Qld)', href: '/preview/banking/trust/j-2603' },
+    { g: 'Jobs',    i: 'percent-circle', t: 'J-2603 financials · WIP',    s: 'POC 62.4% · earned A$1,363,242 · forecast GM 18.4% · AASB 15', href: '/preview/jobs/j-2603/financials' },
+    { g: 'ATO',     i: 'piggy-bank',    t: 'SuperStream batch Q4 FY26',  s: 'Beam · 4 members · A$3,309.60 · MIG v6.4 · Payday Super 51d', href: '/preview/super/batch/26q4-0184' },
+    { g: 'Bills',   i: 'receipt-text',  t: 'BILL-1843 · BlueScope',      s: 'A$4,820.40 · 14 lines auto · 3-way 0¢ · DD 08 Jun · J-2603', href: '/preview/bills/bill-1843' },
+    { g: 'BIF',     i: 'scale',         t: 'Payment schedule PS-09 · J-2603', s: 'BIF s.75 · A$184,420 scheduled · 1.29% withheld · pay 25 May', href: '/preview/contracts/j-2603/payment-schedule-09' },
+    { g: 'ATO',     i: 'car',           t: 'FBT FY26 workpaper · form W',  s: 'A$8,420 payable · cars / 50-50 ent / LAFHA · due 21 May / 25 Jun', href: '/preview/compliance/fbt/fy26' },
+    { g: 'ATO',     i: 'landmark',      t: 'Div 7A loan LN-2603 · R. Sauer', s: 'A$58,420 bal · MYR met · 9.07% · post-Bendel UPE · 4 yrs left', href: '/preview/compliance/div7a/ln-2603' },
+    { g: 'Payroll', i: 'badge-dollar-sign', t: 'STP-2 pay event PE-26W19',   s: '5 emp · gross A$14,461 · PAYG A$3,124 · SBR2 queued 14 May', href: '/preview/payroll/pay-event/26w19' },
+    { g: 'Cashbook', i: 'book-marked',      t: 'Cashbook · April 2026',       s: 'Cash basis · receipts A$184,620 · payments A$118,420 · 39/39 reconciled', href: '/preview/cashbook/april-2026' },
+    { g: 'ATO',      i: 'package',           t: 'SBE pool · Subdiv 328-D · FY26', s: 'A$117,598 ded · IAWO 5×A$20k + pool A$151k closing · low-pool not triggered', href: '/preview/compliance/depreciation/sbe-pool-fy26' },
+    { g: 'ATO',      i: 'fuel',              t: 'Fuel tax credits · Q4 FY26',     s: '6,184 L · A$3,184 BAS 7D · off-road 50.8c/L · on-road 19.4c/L · post-1 Feb index', href: '/preview/compliance/ftc/q4-fy26' },
+    { g: 'ATO',      i: 'trending-up',       t: 'PAYG instalment · Q4 FY26',      s: 'T7 A$425,640 · T9 5.84% var · 5A A$24,857 · 85% safe-harbour PASS', href: '/preview/compliance/payg-i/q4-fy26' },
+    { g: 'Sales',    i: 'file-spreadsheet',  t: 'QTE-2618 · Maxwell staircase tower', s: 'A$184,260 ex · 14.3t fab · 21.8% GM · 68% win prob · 5 milestone schedule', href: '/preview/quotes/qte-2618' },
+    { g: 'ATO',      i: 'flask-conical',     t: 'R&D Tax Incentive · FY26',       s: 'A$134,298 notional · 43.5% offset · A$24,845 cash refund · IISA reg due 30 Apr 2027', href: '/preview/compliance/rdti/fy26' },
+    { g: 'QRO',      i: 'landmark',          t: 'Payroll tax (QLD) · Q4 FY26',     s: 'A$2.84m liable · A$72,840 net · 4.75% + s.27D rebate · annual due 21 Jul', href: '/preview/compliance/payroll-tax/qld-q4-fy26' },
+    { g: 'WorkCover',i: 'hard-hat',          t: 'WorkCover QLD · FY26 declaration',s: 'WIC 28210 · A$2.9m wages · EBR 0.84 · A$78,420 premium · due 31 Aug', href: '/preview/compliance/workcover/qld-fy26' },
+    { g: 'ATO',      i: 'gem',               t: 'CGT Subdiv 152 · lot 47 disposal', s: 'A$1.42m raw gain · 50%+50%+retirement · A$0 taxable · A$354,937 to super', href: '/preview/compliance/cgt/sbc-fy26' },
+    { g: 'QRO',      i: 'map-pin',           t: 'Land tax (QLD) · FY26',           s: '2 parcels · UV A$2.18m · A$38,260 · UV reval +12% · ASOR due 31 Oct', href: '/preview/compliance/land-tax/qld-fy26' },
+    { g: 'ATO',      i: 'users',             t: 'TPAR · FY26 contractor report',   s: '31 contractors · A$748,260 gross · 1 no-ABN 47% wh · SBR2 ready · due 28 Aug', href: '/preview/compliance/tpar/fy26' },
+    { g: 'ABRS',     i: 'badge-check',       t: 'Director ID (DIN) register · FY26',s: '4 directors · 11 directorships · A$0 exposure · 28d clock auto · Corp Act s.1272C', href: '/preview/compliance/director-id/fy26' },
+    { g: 'ATO',      i: 'receipt',           t: 'FBT FY26 · NAT 1067 lodge',       s: 'A$28,402 net · 14 items · EV s.8A cascade · PHEV sunset · SBR2 due 25 Jun', href: '/preview/compliance/fbt/fy26' },
+    { g: 'ATO',      i: 'calendar-clock',    t: 'Payday Super · readiness FY26',   s: '84% ready · 3 blockers · QE+7d cycle · 1-Jul-2026 switchover · A$307k SG/yr', href: '/preview/compliance/payday-super/fy26' },
+    { g: 'ATO',      i: 'banknote-arrow-up', t: 'Div 7A loan register · FY26',     s: '6 loans · A$284k bal · MYR A$48,261 · benchmark 8.77% · all complying · s.109N', href: '/preview/compliance/div7a/fy26' },
+    { g: 'ATO',      i: 'shield-check',      t: 'SMSF audit prep · ART · FY26',    s: 'A$2.84m NA · 18 controls green · IHA 0.94% · TBAR clean · Div 296 shadow ledger', href: '/preview/compliance/smsf-audit/fy26' },
+    { g: 'ATO',      i: 'git-branch',        t: 'FTE & trust distribution · Saueesti FY26', s: 'A$418k income · 5-bene matrix · streaming FC+CG · PCG 2022/2 zones · 30-Jun', href: '/preview/compliance/fte-distribution/fy26' },
+    { g: 'ASIC',     i: 'landmark',          t: 'ASIC Annual Review · s.345A · FY26', s: 'D-14 to review · 2 deltas · A$321 fee · solvency res · DPN clean', href: '/preview/compliance/asic-annual-review/fy26' },
+    { g: 'OSR',      i: 'map',               t: 'Payroll tax · multi-state harmonised · FY26', s: 'NSW/VIC/QLD/SA/WA · A$8.42m wages · 5 OSRs · s.32 cascade · MHL/MH&WB', href: '/preview/compliance/payroll-tax-multistate/fy26' },
+    { g: 'ATO',      i: 'receipt',           t: 'GST annual reconciliation · FY26', s: 'G-labels vs GL · Div 129/21/75 · FAT · s.93-5 recovery A$1,354 · Jun BAS', href: '/preview/compliance/gst-annual-recon/fy26' },
+    { g: 'ATO',      i: 'file-check-2',      t: 'STP Phase 2 finalisation · FY26', s: '14 payees · 12 green / 2 warn · RFBA + RESC + closely-held · 14-Jul / 30-Sep', href: '/preview/compliance/stp-finalisation/fy26' },
+    { g: 'ATO',      i: 'calculator',        t: 'ECPI & actuarial cert · ART SMSF FY26', s: 'DSFA triggered · proportionate 63.18% · saved A$17,567 · TBC A$1.94m · TBAR', href: '/preview/compliance/ecpi-actuarial/fy26' },
+    { g: 'ATO',      i: 'radar',             t: 'ATO data-matching pre-check · FY26', s: '31 programs · 28 clean / 2 amber / 1 red · TBR mismatch · exposure A$11,840', href: '/preview/compliance/ato-data-matching/fy26' },
+    { g: 'ATO',      i: 'user-cog',          t: 'PSI attribution & PSB test · FY26', s: '80% gate open · results+unrelated+employment PASS · zone green · saves A$84,094', href: '/preview/compliance/psi-attribution/fy26' },
+    { g: 'ATO',      i: 'trending-down',     t: 'GIC/SIC deductibility cliff · FY26', s: '1-Jul-25 cliff · A$3,330 non-deduct · remission A$2,525 sought · refinance ATO', href: '/preview/compliance/gic-sic-deductibility/fy26' },
+    { g: 'ATO',      i: 'gavel',             t: 'Div 7A UPE post-Bendel · FY26', s: 'HCA 14-Mar-2026 · 6 UPE A$884,260 · MYR A$0 · refund A$13,381 · TD 2022/11 dead', href: '/preview/compliance/div7a-upe-bendel/fy26' },
+    { g: 'OSR',      i: 'map-pin',           t: 'Land tax · multi-state · FY26', s: 'NSW/VIC/QLD/SA/WA · 11 land · A$17.79m UCV · A$152,318 · AO surcharge A$22,400', href: '/preview/compliance/land-tax-multistate/fy26' },
+    { g: 'ATO',      i: 'percent',           t: 'Stage 3 brackets & MTR cascade · FY26', s: '4 indiv · group saving A$16,847 · TBC indexed A$1.94m · CF cap A$14,700', href: '/preview/compliance/stage3-brackets/fy26' },
+    { g: 'ATO',      i: 'piggy-bank',        t: 'Div 296 · TSB>A$3m · FY26', s: 'R Sauer TSB A$4.12m · earnings 27.25% · A$14,530 · election release · 84d window', href: '/preview/compliance/div296-super/fy26' },
+    { g: 'AASB',     i: 'layers',            t: 'AASB 16 lease cycle · FY26', s: '5 contracts · ROU A$686k · liab A$721k · L-01 modified · 3-trigger monitor', href: '/preview/compliance/aasb16-leases/fy26' },
+    { g: 'ATO',    i: 'hard-hat',    t: 'TPAR draft — FY26',         s: '6 subs · A$57,610 · 1 issue', href: '/preview/compliance/tpar' },
+    { g: 'ATO',    i: 'calendar-clock', t: 'Payday Super — switchover', s: '51 days to mandatory', href: '/preview/super' },
+    { g: 'ATO',    i: 'piggy-bank',  t: 'SuperStream batch — Q4 FY26', s: 'A$1,430.40 · 3 funds · ready', k: 'S S', href: '/preview/super' },
+    { g: 'ATO',    i: 'file-output', t: 'TPAR — FY26 draft',        s: '6 subcontractors · A$57,610', href: '/preview/compliance/tpar' },
+    { g: 'Contact', i: 'circle',     t: 'Acme Pty Ltd',             s: 'ABN 12 345 678 901 · A$1,562 open', href: '/preview/contacts/acme' },
+    { g: 'Contact', i: 'circle',     t: "Bob's Bakery",             s: 'Retail · A$4,420 YTD',   href: '/preview/contacts' },
+    { g: 'Contact', i: 'circle',     t: 'Northshore Marine',        s: 'A$4,680.50 open',         href: '/preview/contacts' },
+    { g: 'Contact', i: 'circle',     t: 'Bunnings Trade',           s: 'Supplier · A$486.20 open', href: '/preview/contacts' },
+    { g: 'Contact', i: 'circle',     t: 'Dale Maxwell Electrical',  s: 'TPAR subcontractor',     href: '/preview/contacts' },
+    { g: 'Reports',i: 'line-chart',  t: 'Profit & Loss',            s: 'FY26 to date · A$94,620 net', href: '/preview/reports/profit-loss' },
+    { g: 'Reports',i: 'hammer',      t: 'P&L · Engineering services', s: 'A$348,240 · 71.6% of revenue', href: '/preview/reports/profit-loss/sales-engineering' },
+    { g: 'Reports',i: 'scale',       t: 'Balance Sheet',            s: 'As at today · A$148K assets · 2.8 current ratio', k: 'R B', href: '/preview/reports/balance-sheet' },
+    { g: 'Reports',i: 'waves',       t: 'Cash Flow Forecast',       s: '13-week forward · low point A$1,170', k: 'R C', href: '/preview/reports/cash-flow' },
+    { g: 'Reports',i: 'hourglass',   t: 'Aged Receivables',         s: '14 invoices · A$19,960 open · DSO 38', k: 'R A', href: '/preview/reports/aged-receivables' },
+    { g: 'Reports',i: 'alarm-clock', t: 'Aged Payables',            s: '9 bills · A$11,547 owing · DPO 24', k: 'R P', href: '/preview/reports/aged-payables' },
+    { g: 'Workflow',i: 'file-output', t: 'Convert Q-0032 to invoice', s: 'Acme · A$34,321 · J-2603', href: '/preview/quotes/q-0032/convert' },
+    { g: 'Settings',i: 'cog',        t: 'Workspace settings',       s: 'Org · banking · integrations · plan', href: '/preview/settings' },
+    { g: 'Settings',i: 'banknote',   t: 'CBA Smart Access feed',    s: 'CDR open-banking · 142d to renew', href: '/preview/settings/banking/cba' },
+    { g: 'Settings',i: 'landmark',   t: 'ATO & DSP integration',     s: 'SBR2 · MyGovID · RAM · 17 lodgements FY26', href: '/preview/settings/integrations/ato' },
+    { g: 'Settings',i: 'cable',      t: 'Peppol e-invoicing',        s: 'AU PINT · 60 docs FY26 · federal mandate 1 Jul 2027', href: '/preview/settings/integrations/peppol' },
+    { g: 'Settings',i: 'building-2', t: 'Switch tenant',            s: 'Sauer Pty Ltd · Demo · …', href: '#' },
+    { g: 'Settings',i: 'moon',       t: 'Toggle dark mode',         s: 'Switch between light & dark', k: '⌘⇧L', href: '#theme' },
+  ];
+  let cmdkSel = 0, cmdkFiltered = CMDK_ITEMS;
+  const cmdkBackdrop = document.getElementById('cmdkBackdrop');
+  const cmdkInput = document.getElementById('cmdkInput');
+  const cmdkListEl = document.getElementById('cmdkList');
+  function renderCmdK() {
+    let html = '', lastG = '';
+    cmdkFiltered.forEach((it, idx) => {
+      if (it.g !== lastG) { html += `<div class="cmdk-group">${it.g}</div>`; lastG = it.g; }
+      html += `<div class="cmdk-item ${idx===cmdkSel?'cmdk-selected':''}" data-idx="${idx}" data-href="${it.href}">
+        <span class="cmdk-icon"><i data-lucide="${it.i}" class="w-4 h-4"></i></span>
+        <div><div>${it.t}</div><div class="cmdk-sub">${it.s}</div></div>
+        ${it.k?`<span class="cmdk-kbd">${it.k}</span>`:''}
+      </div>`;
+    });
+    if (!cmdkFiltered.length) html = `<div style="padding:24px 18px;text-align:center;color:var(--ink-3);font-size:13px;">No matches. Press <span style="font-family:'JetBrains Mono',monospace;color:var(--ink-2);">esc</span> to close.</div>`;
+    cmdkListEl.innerHTML = html;
+    lucide.createIcons();
+    cmdkListEl.querySelectorAll('.cmdk-item').forEach(el => {
+      el.addEventListener('click', () => { const href = el.dataset.href; if (href === '#theme') { toggleTheme(); closeCmdK(); } else if (href && href !== '#') location.href = href; else closeCmdK(); });
+      el.addEventListener('mouseenter', () => { cmdkSel = parseInt(el.dataset.idx); updateCmdKSel(); });
+    });
+  }
+  function updateCmdKSel() {
+    cmdkListEl.querySelectorAll('.cmdk-item').forEach((el, i) => el.classList.toggle('cmdk-selected', parseInt(el.dataset.idx) === cmdkSel));
+    const sel = cmdkListEl.querySelector('.cmdk-selected');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+  }
+  function filterCmdK() {
+    const q = cmdkInput.value.toLowerCase().trim();
+    cmdkFiltered = !q ? CMDK_ITEMS : CMDK_ITEMS.filter(it =>
+      it.t.toLowerCase().includes(q) || it.s.toLowerCase().includes(q) || it.g.toLowerCase().includes(q)
+    );
+    cmdkSel = 0; renderCmdK();
+  }
+  function openCmdK() { cmdkBackdrop.classList.add('open'); cmdkInput.value=''; cmdkFiltered=CMDK_ITEMS; cmdkSel=0; renderCmdK(); setTimeout(()=>cmdkInput.focus(), 30); }
+  function closeCmdK() { cmdkBackdrop.classList.remove('open'); }
+  cmdkInput.addEventListener('input', filterCmdK);
+  cmdkInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (cmdkSel < cmdkFiltered.length-1) cmdkSel++; updateCmdKSel(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); if (cmdkSel > 0) cmdkSel--; updateCmdKSel(); }
+    else if (e.key === 'Enter') { const it = cmdkFiltered[cmdkSel]; if (it && it.href === '#theme') { toggleTheme(); closeCmdK(); } else if (it && it.href && it.href !== '#') location.href = it.href; else closeCmdK(); }
+    else if (e.key === 'Escape') { closeCmdK(); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCmdK(); }
+    else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') { e.preventDefault(); toggleTheme(); }
+    else if (e.key === 'Escape' && cmdkBackdrop.classList.contains('open')) closeCmdK();
+  });
+  // Hook up the header search box (⌘K hint)
+  document.querySelectorAll('[data-cmdk-trigger]').forEach(el => el.addEventListener('click', openCmdK));
+
+  // Theme toggle — persisted, also honours system preference on first load.
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('[data-theme-icon]').forEach(el => {
+      el.classList.toggle('hidden', el.dataset.themeIcon !== theme);
+    });
+  }
+  function toggleTheme() {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('saebooks_theme', next); } catch (e) {}
+    applyTheme(next);
+  }
+  (function bootstrapTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem('saebooks_theme'); } catch (e) {}
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+  })();
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

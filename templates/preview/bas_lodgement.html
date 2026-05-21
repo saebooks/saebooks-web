@@ -1,0 +1,531 @@
+{% extends "preview/_layout.html" %}
+{% block page_title %}BAS Q3 FY26 lodgement — SAE Books{% endblock %}
+{% block content %}
+<style>
+  .chip-mini { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border:1px solid var(--line); border-radius:9999px; font-size:10.5px; color:var(--ink-3); background:var(--paper); font-family: var(--font-mono, 'JetBrains Mono'); }
+  .chip-mini.pos { color: var(--pos); border-color: color-mix(in srgb, var(--pos) 30%, transparent); background: color-mix(in srgb, var(--pos) 6%, var(--paper)); }
+  .chip-mini.warm { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 30%, transparent); background: color-mix(in srgb, var(--warm) 6%, var(--paper)); }
+  .chip-mini.sae { color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); background: color-mix(in srgb, var(--sae) 6%, var(--paper)); }
+  .chip-mini.neg { color: var(--neg); border-color: color-mix(in srgb, var(--neg) 30%, transparent); background: color-mix(in srgb, var(--neg) 6%, var(--paper)); }
+  .row-cell td { padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12.5px; vertical-align: top; }
+  .row-cell:first-child td { border-top: 0; }
+  .xml-block { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10.5px; line-height: 1.55; background: var(--paper-2); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; color: var(--ink-2); overflow-x: auto; white-space: pre; }
+  .xml-block .k { color: var(--brand-2); }
+  .xml-block .v { color: var(--sae); }
+  .num-stamp { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10px; padding: 1px 5px; border: 1px dashed var(--line); border-radius: 3px; color: var(--ink-2); background: var(--paper-2); }
+  .label-cell { font-family: var(--font-mono, 'JetBrains Mono'); font-size: 11px; color: var(--ink-3); }
+  .bas-label { display:inline-flex; min-width: 28px; justify-content:center; padding: 1px 6px; border:1px solid var(--line); border-radius: 3px; font-family: var(--font-mono, 'JetBrains Mono'); font-size: 10.5px; background: var(--paper-2); color: var(--ink-2); }
+  .bas-label.summary { background: color-mix(in srgb, var(--sae) 10%, var(--paper)); color: var(--sae); border-color: color-mix(in srgb, var(--sae) 30%, transparent); }
+  .calc-arrow { color: var(--ink-3); font-size: 10.5px; }
+</style>
+
+<div class="reg-marks dot-grid-soft -mx-6 px-6 pt-2 pb-6 mb-6 border-b hairline">
+  <div class="flex items-start justify-between gap-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-2 text-[11px] font-mono ink-3 uppercase tracking-wider flex-wrap">
+        <a href="/preview/compliance" class="hover:text-[color:var(--sae)]">Compliance</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <a href="/preview/compliance" class="hover:text-[color:var(--sae)]">BAS history</a>
+        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+        <span>BAS 26-Q3 · Jan–Mar 2026</span>
+        <span class="ml-2 chip-mini pos"><i data-lucide="check-circle-2" class="w-2.5 h-2.5"></i>accepted by ATO</span>
+        <span class="chip-mini sae">Form F · quarterly</span>
+        <span class="chip-mini">SBR2 v2024.07</span>
+        <span class="chip-mini">GST cash · option 1</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-tight mt-1">BAS Q3 FY26 · 1 Jan – 31 Mar 2026</h1>
+      <p class="ink-2 text-[13.5px] mt-1 max-w-3xl">
+        Business Activity Statement lodged 28 Apr 2026 via SBR2 / ebMS3 with MyGovID Strong + RAM Principal authority.
+        ATO returned <span class="num">Receipt 26-BAS-184261</span> status <span class="num">ACCEPTED</span> in 2.41s, with a
+        net amount payable of <span class="num">A$14,260.18</span> debited via BPAY direct debit on 26 May 2026 (28-day deferral applies — tax agent client).
+      </p>
+      <div class="flex items-center gap-3 mt-2 text-[11.5px] ink-3 flex-wrap">
+        <span>Reporting ID <span class="num">SAEBOOKS-BAS-26Q3</span></span><span>·</span>
+        <span>ABN <span class="num">47 168 502 343</span></span><span>·</span>
+        <span>TFN <span class="num">···· ··· 184</span></span><span>·</span>
+        <span>Software ID <span class="num">2614 1827 0184</span></span><span>·</span>
+        <span>BAS Agent <span class="num">2526 1842 — R. Sauer, TPB reg.</span></span>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2 items-end">
+      <a href="#" class="btn-secondary"><i data-lucide="download" class="w-4 h-4"></i>Download lodged BAS PDF</a>
+      <a href="#" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="file-code" class="w-3 h-3"></i>Download SBR2 envelope (XML)</a>
+      <a href="/preview/activity?scope=bas&id=26-q3" class="text-[11.5px] ink-3 hover:text-[color:var(--sae)] flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>BAS audit trail · 22 events</a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 text-[12px]">
+  {% set kpis = [
+    ('Total sales G1', 'A$284,604', 'incl GST · 184 invoices · 4 export', 'banknote', 'ink'),
+    ('GST on sales 1A', 'A$24,610.36', '10% of taxable supplies', 'percent', 'ink'),
+    ('GST on purchases 1B', 'A$10,184.20', '94 bills + 18 capital', 'percent-circle', 'ink'),
+    ('PAYG-W W2', 'A$8,604.18', 'W1 base A$28,420 · STP-reconciled', 'users-round', 'ink'),
+    ('Net payable', 'A$14,260.18', 'BPAY DD 26 May · 28-day deferred', 'shield-check', 'pos'),
+  ] %}
+  {% for label, val, sub, icon, tone in kpis %}
+    <div class="border hairline rounded-[4px] p-3 bg-[color:var(--paper)]">
+      <div class="flex items-center justify-between">
+        <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider">{{ label }}</div>
+        <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 {% if tone == 'pos' %}text-[color:var(--pos)]{% elif tone == 'sae' %}text-[color:var(--sae)]{% else %}ink-3{% endif %}"></i>
+      </div>
+      <div class="num text-[20px] mt-1 {% if tone == 'pos' %}text-[color:var(--pos)]{% elif tone == 'sae' %}text-[color:var(--sae)]{% endif %}">{{ val }}</div>
+      <div class="text-[11px] ink-3 mt-0.5">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <!-- BAS form, GST section -->
+  <div class="col-span-12 lg:col-span-8">
+    <div class="flex items-baseline justify-between mb-3">
+      <h2 class="font-display text-[22px]">BAS form — exactly as lodged</h2>
+      <span class="text-[11px] font-mono ink-3">Section 1 · GST · A New Tax System (Goods &amp; Services Tax) Act 1999 s.31-5</span>
+    </div>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2 w-[80px]">Label</th>
+            <th class="text-left px-3 py-2">Description</th>
+            <th class="text-right px-3 py-2 w-[130px]">Amount A$</th>
+            <th class="text-left px-3 py-2 w-[180px]">Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set gst_rows = [
+            ('G1','Total sales (incl GST + GST-free + input-taxed)','284,604.00','842 ledger lines · GST + FRE + INP','label'),
+            ('G2','Export sales','12,420.00','4 invoices · GST-free under s.38-185 · INV-26-184/188/192/206','label'),
+            ('G3','Other GST-free sales','840.00','health-services on-charge · s.38-7','label'),
+            ('G10','Capital purchases','18,420.00','HiKOKI plant J-2603 + ute fit-out · GST inc · 7 bills','label'),
+            ('G11','Non-capital purchases','94,224.00','94 supplier bills · GST inc · materials + freight + subs','label'),
+            ('1A','GST on sales (G1 less G2/G3 less input-taxed × 1/11)','24,610.36','calculated · GSTR 2013/1 · cash basis','summary'),
+            ('1B','GST on purchases (G10 + G11) × 1/11','10,184.20','94 bills + 18 capital · only where supplier ABN matches ABR','summary'),
+          ] %}
+          {% for lbl, desc, amt, src, kind in gst_rows %}
+          <tr class="row-cell {% if kind == 'summary' %}bg-[color:color-mix(in_srgb,var(--sae)_3%,var(--paper))]{% endif %}">
+            <td><span class="bas-label {% if kind == 'summary' %}summary{% endif %}">{{ lbl }}</span></td>
+            <td>{{ desc }}</td>
+            <td class="text-right num {% if kind == 'summary' %}text-[color:var(--sae)] font-semibold{% endif %}">{{ amt }}</td>
+            <td class="label-cell">{{ src }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-3 p-3 border hairline rounded-[4px] bg-[color:var(--paper-2)]">
+      <div class="flex items-center justify-between text-[11.5px]">
+        <div class="flex items-center gap-2 ink-2">
+          <i data-lucide="calculator" class="w-4 h-4 text-[color:var(--sae)]"></i>
+          <span class="font-mono">1A A$24,610.36</span>
+          <span class="calc-arrow">minus</span>
+          <span class="font-mono">1B A$10,184.20</span>
+          <span class="calc-arrow">=</span>
+          <span class="font-mono text-[color:var(--sae)]">net GST A$14,426.16 payable</span>
+        </div>
+        <span class="text-[10.5px] ink-3 font-mono">cents-balanced · ATO A$1 tolerance not triggered</span>
+      </div>
+    </div>
+
+    <h2 class="font-display text-[22px] mt-8 mb-3">PAYG withholding (Section 4)</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2 w-[80px]">Label</th>
+            <th class="text-left px-3 py-2">Description</th>
+            <th class="text-right px-3 py-2 w-[130px]">Amount A$</th>
+            <th class="text-left px-3 py-2 w-[180px]">STP reconciliation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set payg_rows = [
+            ('W1','Total salary, wages &amp; other payments','28,420.00','13 STP events · A$28,420 gross · STP YTD parity ✓','label'),
+            ('W2','Amounts withheld from W1','8,604.18','PAYG-W per Sched 15 + STSL · per-event sum · 0 variance','summary'),
+            ('W4','No-ABN withholding (s.12-190 PAYG)','0.00','no triggers this quarter','label'),
+            ('W3','Other withholding (interest, dividends)','0.00','n/a — no investment income','label'),
+          ] %}
+          {% for lbl, desc, amt, stp, kind in payg_rows %}
+          <tr class="row-cell {% if kind == 'summary' %}bg-[color:color-mix(in_srgb,var(--sae)_3%,var(--paper))]{% endif %}">
+            <td><span class="bas-label {% if kind == 'summary' %}summary{% endif %}">{{ lbl }}</span></td>
+            <td>{{ desc|safe }}</td>
+            <td class="text-right num {% if kind == 'summary' %}text-[color:var(--sae)] font-semibold{% endif %}">{{ amt }}</td>
+            <td class="label-cell">{{ stp }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="font-display text-[22px] mt-8 mb-3">PAYG instalments &amp; other (Sections 5–8)</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2 w-[80px]">Label</th>
+            <th class="text-left px-3 py-2">Description</th>
+            <th class="text-right px-3 py-2 w-[130px]">Amount A$</th>
+            <th class="text-left px-3 py-2 w-[180px]">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set other_rows = [
+            ('5A','PAYG instalment income','—','GDP-adjusted method (T7) — instalment T11 below','label'),
+            ('T11','PAYG instalment payable','—','company on annual lodgement — quarterly inst nil','label'),
+            ('7D','Fuel tax credits — off-road heavy diesel','842.20','13,420 L × 0.0627 c/L · FTD 2026/2 rate · FBT-mounted ute + fwd-rec','summary'),
+            ('1H','GST instalment (option 3)','—','not used — option 1 (calculate &amp; report) elected','label'),
+            ('1E/1F','Wine equalisation tax','0.00','no wine taxable dealings','label'),
+            ('1G','Luxury car tax','0.00','no LCT-thresholded vehicles supplied','label'),
+          ] %}
+          {% for lbl, desc, amt, src, kind in other_rows %}
+          <tr class="row-cell {% if kind == 'summary' %}bg-[color:color-mix(in_srgb,var(--sae)_3%,var(--paper))]{% endif %}">
+            <td><span class="bas-label {% if kind == 'summary' %}summary{% endif %}">{{ lbl }}</span></td>
+            <td>{{ desc }}</td>
+            <td class="text-right num {% if kind == 'summary' %}text-[color:var(--pos)] font-semibold{% endif %}">{{ amt }}</td>
+            <td class="label-cell">{{ src }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Net payable summary -->
+    <div class="mt-4 p-4 border hairline rounded-[4px] bg-[color:var(--paper)]">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Summary — Section 9</div>
+      <div class="space-y-1.5 text-[12.5px]">
+        <div class="flex justify-between"><span><span class="bas-label">1A</span> GST on sales</span><span class="num">A$24,610.36</span></div>
+        <div class="flex justify-between"><span><span class="bas-label">4</span> PAYG W2 withheld</span><span class="num">A$8,604.18</span></div>
+        <div class="flex justify-between"><span><span class="bas-label">8A</span> Total amounts owed to ATO</span><span class="num font-semibold">A$33,214.54</span></div>
+        <div class="border-t hairline my-2"></div>
+        <div class="flex justify-between"><span><span class="bas-label">1B</span> GST on purchases</span><span class="num">A$10,184.20</span></div>
+        <div class="flex justify-between"><span><span class="bas-label">7D</span> Fuel tax credit</span><span class="num">A$842.20</span></div>
+        <div class="flex justify-between"><span><span class="bas-label">8B</span> Total amounts ATO owes</span><span class="num font-semibold">A$11,026.40</span></div>
+        <div class="border-t hairline my-2"></div>
+        <div class="flex justify-between text-[14px]">
+          <span class="font-semibold"><span class="bas-label summary">9</span> Net payable (8A − 8B)</span>
+          <span class="num font-semibold text-[color:var(--sae)]">A$22,188.14</span>
+        </div>
+        <div class="text-[10.5px] ink-3 mt-1 font-mono">Rounded to whole A$ on lodgement → <span class="num">A$22,188</span>. After PAYG instalment credit prior-quarter c/f (A$7,927.82) the net amount debited via BPAY DD on 26 May 2026 is <span class="num text-[color:var(--sae)]">A$14,260.18</span>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right rail -->
+  <div class="col-span-12 lg:col-span-4 space-y-5">
+    <!-- ATO receipt card -->
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">ATO acknowledgement</div>
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="badge-check" class="w-5 h-5 text-[color:var(--pos)]"></i>
+        <span class="num text-[18px] text-[color:var(--pos)]">ACCEPTED</span>
+      </div>
+      <div class="space-y-1 text-[11.5px] ink-2">
+        <div class="flex justify-between"><span class="ink-3">Receipt ID</span><span class="num">26-BAS-184261</span></div>
+        <div class="flex justify-between"><span class="ink-3">Lodged at</span><span class="num">2026-04-28 16:18:42 AEST</span></div>
+        <div class="flex justify-between"><span class="ink-3">Acknowledged at</span><span class="num">2026-04-28 16:18:44 AEST</span></div>
+        <div class="flex justify-between"><span class="ink-3">Round-trip</span><span class="num">2.41 s</span></div>
+        <div class="flex justify-between"><span class="ink-3">ATO endpoint</span><span class="num">sbr.gov.au/bas/F</span></div>
+        <div class="flex justify-between"><span class="ink-3">Auth flow</span><span class="num">MyGovID Strong + RAM</span></div>
+        <div class="flex justify-between"><span class="ink-3">Authority</span><span class="num">R. Sauer (Principal)</span></div>
+      </div>
+      <div class="drafting my-3"></div>
+      <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-1">28-day tax agent deferral</div>
+      <div class="text-[11.5px] ink-2">
+        Original due date: <span class="num">28 Apr 2026</span><br>
+        Tax-agent deferred due: <span class="num text-[color:var(--sae)]">26 May 2026</span><br>
+        Payment due: <span class="num text-[color:var(--sae)]">26 May 2026</span> (auto-DD)
+      </div>
+    </div>
+
+    <!-- BAS agent declaration -->
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-[11px] font-mono ink-3 uppercase tracking-wider">BAS Agent declaration · s.32 TASR</div>
+        <span class="chip-mini pos"><i data-lucide="signature" class="w-2.5 h-2.5"></i>signed</span>
+      </div>
+      <div class="text-[11.5px] ink-2 space-y-1 font-mono">
+        <div>Tax Agent Services Regulations 2009 — s.32 declaration</div>
+        <div>Agent: <span class="num">Richard A. Sauer</span></div>
+        <div>TPB Reg.: <span class="num">25 261 842</span> · BAS Agent</div>
+        <div>Code of Conduct: <span class="num">ack. 16 Apr 2026</span></div>
+        <div>PI Insurance: <span class="num">A$2M · current to 30 Jun 2026</span></div>
+        <div>Client verification: <span class="num">in person + 100-pt ID 18 Mar 2025</span></div>
+        <div>Records reviewed: <span class="num">14 Apr 2026, R. Sauer</span></div>
+      </div>
+    </div>
+
+    <!-- Payment plan -->
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Payment — BPAY direct debit</div>
+      <div class="space-y-1 text-[11.5px] ink-2 font-mono">
+        <div class="flex justify-between"><span class="ink-3">Biller code</span><span class="num">75556</span></div>
+        <div class="flex justify-between"><span class="ink-3">Customer ref (CRN)</span><span class="num">4716 8502 3430 26Q3</span></div>
+        <div class="flex justify-between"><span class="ink-3">Amount</span><span class="num text-[color:var(--sae)]">A$14,260.18</span></div>
+        <div class="flex justify-between"><span class="ink-3">Source account</span><span class="num">CBA 062-001 1842 0611</span></div>
+        <div class="flex justify-between"><span class="ink-3">Scheduled</span><span class="num">26 May 2026 03:00 AEST</span></div>
+        <div class="flex justify-between"><span class="ink-3">DE record</span><span class="num">ABA bpay-26q3.aba · queued</span></div>
+        <div class="flex justify-between"><span class="ink-3">Posting</span><span class="num">DR 2-410/2-320 · CR 1-100</span></div>
+      </div>
+    </div>
+
+    <!-- Pre-flight checks -->
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4">
+      <div class="text-[11px] font-mono ink-3 uppercase tracking-wider mb-2">Pre-lodgement integrity checks</div>
+      <div class="space-y-1.5 text-[11.5px]">
+        {% set checks = [
+          ('Trial balance · period locked', 'pos', 'no journals after lock 14 Apr'),
+          ('GST control 2-410 · agrees to 1A−1B', 'pos', 'A$14,426.16 ↔ A$14,426.16'),
+          ('PAYG-W 2-320 · agrees to W2', 'pos', 'A$8,604.18 ↔ A$8,604.18'),
+          ('STP YTD parity (W1 base)', 'pos', '13 STP events sum to A$28,420.00'),
+          ('Supplier ABNs verified vs ABR live', 'pos', '94 of 94 active · GST-registered'),
+          ('No invoices with GST &amp; missing ABN', 'pos', '0 of 184'),
+          ('Capital threshold met (G10)', 'pos', 'A$18,420 &gt; A$1,000 threshold'),
+          ('Form F variant chosen', 'pos', 'turnover &lt; A$20M · cash basis · option 1'),
+        ] %}
+        {% for label, tone, note in checks %}
+        <div class="flex items-start gap-2">
+          <i data-lucide="check" class="w-3.5 h-3.5 text-[color:var(--pos)] mt-0.5"></i>
+          <div class="flex-1">
+            <div class="text-[12px]">{{ label|safe }}</div>
+            <div class="text-[10.5px] ink-3 font-mono">{{ note|safe }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SBR2 envelope -->
+<div class="mb-8">
+  <div class="flex items-baseline justify-between mb-3">
+    <h2 class="font-display text-[22px]">SBR2 envelope — sent to <span class="num text-[color:var(--sae)]">sbr.gov.au/bas/F</span></h2>
+    <span class="text-[11px] font-mono ink-3">payload sched <span class="num">basemp.v2024.07</span> · ebMS3 / AS4 · TLS 1.3 · X.509 cert <span class="num">SAEBOOKS-prod-2026</span></span>
+  </div>
+  <div class="xml-block">&lt;<span class="k">basemp:BusinessActivityStatement</span> <span class="k">xmlns:basemp</span>=<span class="v">"http://sbr.gov.au/bas/F.0007.2024.07"</span>&gt;
+  &lt;<span class="k">basemp:ReportingPartyIdentifier</span>&gt;
+    &lt;<span class="k">cbc:ABN</span>&gt;<span class="v">47168502343</span>&lt;/<span class="k">cbc:ABN</span>&gt;
+    &lt;<span class="k">cbc:DocumentReference</span>&gt;<span class="v">SAEBOOKS-BAS-26Q3</span>&lt;/<span class="k">cbc:DocumentReference</span>&gt;
+    &lt;<span class="k">cbc:SoftwareID</span>&gt;<span class="v">2614 1827 0184</span>&lt;/<span class="k">cbc:SoftwareID</span>&gt;
+  &lt;/<span class="k">basemp:ReportingPartyIdentifier</span>&gt;
+  &lt;<span class="k">basemp:ReportingPeriod</span>&gt;
+    &lt;<span class="k">cbc:Start</span>&gt;<span class="v">2026-01-01</span>&lt;/<span class="k">cbc:Start</span>&gt;
+    &lt;<span class="k">cbc:End</span>&gt;<span class="v">2026-03-31</span>&lt;/<span class="k">cbc:End</span>&gt;
+    &lt;<span class="k">cbc:Frequency</span>&gt;<span class="v">Q</span>&lt;/<span class="k">cbc:Frequency</span>&gt;
+  &lt;/<span class="k">basemp:ReportingPeriod</span>&gt;
+  &lt;<span class="k">basemp:GoodsServicesTax</span> <span class="k">basis</span>=<span class="v">"cash"</span> <span class="k">option</span>=<span class="v">"1"</span>&gt;
+    &lt;<span class="k">basemp:G1</span>&gt;<span class="v">284604.00</span>&lt;/<span class="k">basemp:G1</span>&gt;        &lt;!-- total sales --&gt;
+    &lt;<span class="k">basemp:G2</span>&gt;<span class="v">12420.00</span>&lt;/<span class="k">basemp:G2</span>&gt;         &lt;!-- exports --&gt;
+    &lt;<span class="k">basemp:G3</span>&gt;<span class="v">840.00</span>&lt;/<span class="k">basemp:G3</span>&gt;           &lt;!-- other GST-free --&gt;
+    &lt;<span class="k">basemp:G10</span>&gt;<span class="v">18420.00</span>&lt;/<span class="k">basemp:G10</span>&gt;        &lt;!-- capital purchases --&gt;
+    &lt;<span class="k">basemp:G11</span>&gt;<span class="v">94224.00</span>&lt;/<span class="k">basemp:G11</span>&gt;        &lt;!-- non-cap purchases --&gt;
+    &lt;<span class="k">basemp:Label1A</span>&gt;<span class="v">24610.36</span>&lt;/<span class="k">basemp:Label1A</span>&gt;   &lt;!-- GST on sales --&gt;
+    &lt;<span class="k">basemp:Label1B</span>&gt;<span class="v">10184.20</span>&lt;/<span class="k">basemp:Label1B</span>&gt;   &lt;!-- GST on purchases --&gt;
+  &lt;/<span class="k">basemp:GoodsServicesTax</span>&gt;
+  &lt;<span class="k">basemp:PaygWithholding</span>&gt;
+    &lt;<span class="k">basemp:W1</span>&gt;<span class="v">28420.00</span>&lt;/<span class="k">basemp:W1</span>&gt;
+    &lt;<span class="k">basemp:W2</span>&gt;<span class="v">8604.18</span>&lt;/<span class="k">basemp:W2</span>&gt;
+    &lt;<span class="k">basemp:W3</span>&gt;<span class="v">0.00</span>&lt;/<span class="k">basemp:W3</span>&gt;
+    &lt;<span class="k">basemp:W4</span>&gt;<span class="v">0.00</span>&lt;/<span class="k">basemp:W4</span>&gt;
+  &lt;/<span class="k">basemp:PaygWithholding</span>&gt;
+  &lt;<span class="k">basemp:FuelTaxCredits</span>&gt;
+    &lt;<span class="k">basemp:Label7D</span>&gt;<span class="v">842.20</span>&lt;/<span class="k">basemp:Label7D</span>&gt;
+    &lt;<span class="k">basemp:Litres</span>&gt;<span class="v">13420</span>&lt;/<span class="k">basemp:Litres</span>&gt;
+    &lt;<span class="k">basemp:RatePerLitre</span>&gt;<span class="v">0.0627</span>&lt;/<span class="k">basemp:RatePerLitre</span>&gt;
+  &lt;/<span class="k">basemp:FuelTaxCredits</span>&gt;
+  &lt;<span class="k">basemp:Summary</span>&gt;
+    &lt;<span class="k">basemp:Label8A</span>&gt;<span class="v">33214.54</span>&lt;/<span class="k">basemp:Label8A</span>&gt;
+    &lt;<span class="k">basemp:Label8B</span>&gt;<span class="v">11026.40</span>&lt;/<span class="k">basemp:Label8B</span>&gt;
+    &lt;<span class="k">basemp:Label9</span>&gt;<span class="v">22188.14</span>&lt;/<span class="k">basemp:Label9</span>&gt;
+  &lt;/<span class="k">basemp:Summary</span>&gt;
+  &lt;<span class="k">basemp:Declaration</span>&gt;
+    &lt;<span class="k">cbc:DeclarantRole</span>&gt;<span class="v">BAS_AGENT</span>&lt;/<span class="k">cbc:DeclarantRole</span>&gt;
+    &lt;<span class="k">cbc:TpbRegistration</span>&gt;<span class="v">25261842</span>&lt;/<span class="k">cbc:TpbRegistration</span>&gt;
+    &lt;<span class="k">cbc:Section32Ack</span>&gt;<span class="v">true</span>&lt;/<span class="k">cbc:Section32Ack</span>&gt;
+    &lt;<span class="k">cbc:SignedAt</span>&gt;<span class="v">2026-04-28T16:18:42+10:00</span>&lt;/<span class="k">cbc:SignedAt</span>&gt;
+  &lt;/<span class="k">basemp:Declaration</span>&gt;
+&lt;/<span class="k">basemp:BusinessActivityStatement</span>&gt;</div>
+  <div class="text-[10.5px] ink-3 mt-2 font-mono">SHA-256 of signed envelope: <span class="num">8a4f…2614 1842 c084 …b276</span> · stored to R2 sae-lodge-fy26 (WORM, 7yr retention to 28 Apr 2033 — Corporations Act s.286 / s.262A)</div>
+</div>
+
+<!-- 8-step lodgement timeline -->
+<div class="mb-8">
+  <h2 class="font-display text-[22px] mb-3">Lodgement timeline · 4.42 minutes end-to-end</h2>
+  <div class="border hairline rounded-[4px] bg-[color:var(--paper)] overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+          <th class="text-left px-3 py-2 w-[36px]">#</th>
+          <th class="text-left px-3 py-2 w-[140px]">Step</th>
+          <th class="text-left px-3 py-2 w-[150px]">Started</th>
+          <th class="text-right px-3 py-2 w-[90px]">Elapsed</th>
+          <th class="text-left px-3 py-2">Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set timeline = [
+          ('1','Period lock','2026-04-14 09:02:18','—','Posting locked Jan–Mar 2026 · no further journals · lock author R. Sauer'),
+          ('2','Trial balance freeze','2026-04-14 09:04:42','2m24s','TB snapshot tb-26q3-frozen.csv · A$2,184,602.41 = A$2,184,602.41 · stored R2'),
+          ('3','BAS calculation','2026-04-28 15:42:18','12.8s','GST + PAYG-W + FTC computed from ledger · 1A=24,610.36 · 1B=10,184.20 · 7D=842.20'),
+          ('4','Pre-flight checks','2026-04-28 15:48:04','3.4s','8 integrity checks pass · 94/94 supplier ABNs verified vs ABR live'),
+          ('5','Agent review','2026-04-28 16:14:38','24m12s','R. Sauer reviewed in BAS workpaper · 4 GL drill-downs · 2 invoice clicks · approved'),
+          ('6','Declaration signed','2026-04-28 16:18:18','—','s.32 TASR declaration signed · MyGovID Strong · IP 100.64.0.1'),
+          ('7','SBR2 transmit','2026-04-28 16:18:42','—','POST to sbr.gov.au · TLS 1.3 · X.509 prod cert · AS4 receipt 2.41s'),
+          ('8','ATO acknowledgement','2026-04-28 16:18:44','2.41s','ACCEPTED · receipt 26-BAS-184261 · payment scheduled 26 May 2026'),
+        ] %}
+        {% for n, step, ts, dur, detail in timeline %}
+        <tr class="row-cell">
+          <td class="num ink-3">{{ n }}</td>
+          <td class="font-semibold">{{ step }}</td>
+          <td class="num text-[11.5px]">{{ ts }}</td>
+          <td class="text-right num text-[11.5px] ink-3">{{ dur }}</td>
+          <td class="text-[12px] ink-2">{{ detail }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- GL drill-through and how-we-got-here -->
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <div class="col-span-12 lg:col-span-7">
+    <h2 class="font-display text-[22px] mb-3">How we got G1 · A$284,604.00</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4 text-[12px]">
+      <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-2">G1 ledger composition · cash receipts Jan–Mar 2026</div>
+      <div class="space-y-1.5">
+        <div class="flex justify-between"><span>4-100 Sales — fabrication (GST)</span><span class="num">A$246,840.20</span></div>
+        <div class="flex justify-between"><span>4-105 Sales — site labour (GST)</span><span class="num">A$22,420.00</span></div>
+        <div class="flex justify-between"><span>4-200 Export sales — fabrication (FRE s.38-185)</span><span class="num">A$12,420.00</span></div>
+        <div class="flex justify-between"><span>4-300 Health on-charge (FRE s.38-7)</span><span class="num">A$840.00</span></div>
+        <div class="flex justify-between ink-3 text-[11px]"><span>4-180 Rounding adjustments</span><span class="num">A$2,083.80</span></div>
+        <div class="border-t hairline my-2"></div>
+        <div class="flex justify-between text-[13px]"><span class="font-semibold">G1 total (incl GST)</span><span class="num font-semibold text-[color:var(--sae)]">A$284,604.00</span></div>
+      </div>
+      <div class="drafting my-3"></div>
+      <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-1">1A calc walk-through</div>
+      <div class="space-y-1 text-[11.5px] font-mono ink-2">
+        <div>G1 total                       <span class="num">A$284,604.00</span></div>
+        <div>− G2 exports (FRE)             <span class="num">A$&nbsp;12,420.00</span></div>
+        <div>− G3 other GST-free            <span class="num">A$&nbsp;&nbsp;&nbsp;&nbsp;840.00</span></div>
+        <div>− input-taxed supplies         <span class="num">A$&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.00</span></div>
+        <div>= taxable supplies (incl GST)  <span class="num">A$271,344.00</span></div>
+        <div>× 1/11                         <span class="num text-[color:var(--sae)]">A$&nbsp;24,610.36</span> &nbsp;→ <span class="bas-label summary">1A</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-span-12 lg:col-span-5">
+    <h2 class="font-display text-[22px] mb-3">PAYG-W ↔ STP reconciliation</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4 text-[12px]">
+      <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-2">13 STP events · Jan – Mar 2026</div>
+      <div class="space-y-1 text-[11.5px] font-mono">
+        <div class="flex justify-between"><span class="ink-3">Pay events lodged</span><span class="num">13</span></div>
+        <div class="flex justify-between"><span class="ink-3">Sum of gross (W1 base)</span><span class="num">A$28,420.00</span></div>
+        <div class="flex justify-between"><span class="ink-3">Sum of PAYG-W (W2 base)</span><span class="num">A$8,604.18</span></div>
+        <div class="flex justify-between"><span class="ink-3">Sum of OTE for SG</span><span class="num">A$27,580.00</span></div>
+        <div class="flex justify-between"><span class="ink-3">Total SG (paid via SuperStream)</span><span class="num">A$3,309.60</span></div>
+        <div class="border-t hairline my-2"></div>
+        <div class="flex justify-between"><span class="ink-3">BAS W1</span><span class="num">A$28,420.00</span></div>
+        <div class="flex justify-between"><span class="ink-3">BAS W2</span><span class="num">A$8,604.18</span></div>
+        <div class="flex justify-between"><span>variance</span><span class="num text-[color:var(--pos)]">A$0.00 ✓</span></div>
+      </div>
+      <div class="drafting my-3"></div>
+      <div class="text-[10.5px] ink-3 font-mono">linked pay events: <a class="text-[color:var(--sae)] hover:underline" href="/preview/payroll/stp-events/26-051104">26-051104</a> · 26-050428 · 26-050421 · 26-050414 · 26-050407 · …</div>
+    </div>
+
+    <div class="mt-4 border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-2">Fuel tax credit · 7D detail</div>
+      <div class="space-y-1 text-[11.5px] font-mono">
+        <div class="flex justify-between"><span class="ink-3">Litres off-road diesel</span><span class="num">13,420 L</span></div>
+        <div class="flex justify-between"><span class="ink-3">Rate (FTD 2026/2 · 1 Feb–30 Jun 2026)</span><span class="num">A$0.0627 / L</span></div>
+        <div class="flex justify-between"><span class="ink-3">Credit (rounded)</span><span class="num text-[color:var(--pos)]">A$842.20</span></div>
+        <div class="flex justify-between"><span class="ink-3">Source bills</span><span class="num">22 BP/Caltex invoices</span></div>
+        <div class="flex justify-between"><span class="ink-3">Vehicle log</span><span class="num">UTE-1842 + UTE-2603</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparison rail -->
+<div class="grid grid-cols-12 gap-6 mb-8">
+  <div class="col-span-12 lg:col-span-8">
+    <h2 class="font-display text-[22px] mb-3">SAE Books · how this compares</h2>
+    <div class="border hairline rounded-[4px] overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="text-[10.5px] font-mono ink-3 uppercase tracking-wider bg-[color:var(--paper-2)]">
+            <th class="text-left px-3 py-2 w-[260px]">Capability</th>
+            <th class="text-left px-3 py-2">Xero AU · BAS</th>
+            <th class="text-left px-3 py-2">MYOB Business · BAS</th>
+            <th class="text-left px-3 py-2">Reckon One</th>
+            <th class="text-left px-3 py-2 bg-[color:color-mix(in_srgb,var(--sae)_8%,var(--paper))]">SAE Books</th>
+          </tr>
+        </thead>
+        <tbody class="text-[11.5px]">
+          {% set comp = [
+            ('SBR2 direct lodgement (no portal copy-paste)', '✓', '✓', '✓', '✓ + envelope kept in R2 WORM 7yr'),
+            ('STP ↔ W1/W2 parity check before send', 'manual', 'manual', 'manual', 'automatic · 0-cent variance enforced'),
+            ('Fuel tax credit calc from supplier bills', 'spreadsheet', 'BAS report only', 'spreadsheet', 'auto · litres + FTD rate × bill match'),
+            ('GL drill-through from every BAS label', '✓', '✓', '✓', '✓ + Rule-explainer overlay R-01…R-26'),
+            ('Tax Agent s.32 declaration capture', 'separate PDF', 'separate PDF', 'separate PDF', 'inline · MyGovID-bound · audit-trailed'),
+            ('Cents-balanced ledger ↔ BAS reconciliation', 'eyeball', 'eyeball', 'eyeball', 'control-account auto-match · A$1 tolerance'),
+            ('Replay BAS workpaper from frozen TB', '—', '—', '—', 'TB snapshot stored · re-runs deterministic'),
+            ('AU-only · Brisbane data residency · ap-southeast-2', 'global (USA region)', 'AU', 'AU', 'AU · ap-southeast-2 only'),
+          ] %}
+          {% for cap, x, m, r, s in comp %}
+          <tr class="row-cell">
+            <td class="font-semibold">{{ cap }}</td>
+            <td class="ink-2">{{ x }}</td>
+            <td class="ink-2">{{ m }}</td>
+            <td class="ink-2">{{ r }}</td>
+            <td class="text-[color:var(--sae)] font-semibold bg-[color:color-mix(in_srgb,var(--sae)_3%,var(--paper))]">{{ s }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-span-12 lg:col-span-4">
+    <h2 class="font-display text-[22px] mb-3">Cross-links</h2>
+    <div class="border hairline rounded-[4px] bg-[color:var(--paper)] p-4 space-y-2 text-[12px]">
+      {% set links = [
+        ('STP pay event 26-051104', 'send', '/preview/payroll/stp-events/26-051104'),
+        ('Settings · Tax rates &amp; GST', 'percent', '/preview/settings/tax-rates'),
+        ('Settings · Numbering &amp; identifiers', 'list-ordered', '/preview/settings/numbering'),
+        ('Compliance · TPAR FY26', 'hard-hat', '/preview/compliance/tpar'),
+        ('Compliance · Super (Payday Super 1 Jul 2026)', 'piggy-bank', '/preview/super'),
+        ('Settings · Migrate from Xero/MYOB/Reckon', 'arrow-right-left', '/preview/migration'),
+      ] %}
+      {% for label, icon, href in links %}
+        <a href="{{ href }}" class="flex items-center gap-2 hover:text-[color:var(--sae)]">
+          <i data-lucide="{{ icon }}" class="w-3.5 h-3.5 ink-3"></i>
+          <span>{{ label|safe }}</span>
+          <i data-lucide="arrow-up-right" class="w-3 h-3 ink-3 ml-auto"></i>
+        </a>
+      {% endfor %}
+    </div>
+    <div class="mt-4 border hairline rounded-[4px] bg-[color:var(--paper-2)] p-4">
+      <div class="text-[10.5px] font-mono ink-3 uppercase tracking-wider mb-2">Audit trail · 22 events</div>
+      <div class="space-y-1 text-[11px] font-mono ink-2">
+        <div>2026-04-14 09:02 · period locked · R. Sauer</div>
+        <div>2026-04-14 09:04 · TB frozen · tb-26q3-frozen.csv</div>
+        <div>2026-04-28 15:42 · BAS calc run · agent-bas-2614</div>
+        <div>2026-04-28 15:48 · 8 pre-flight checks pass</div>
+        <div>2026-04-28 16:14 · agent review (S. Wong)</div>
+        <div>2026-04-28 16:18 · s.32 signed · MyGovID Strong</div>
+        <div>2026-04-28 16:18 · SBR2 POST · 2.41s</div>
+        <div>2026-04-28 16:18 · ATO ACCEPTED · 26-BAS-184261</div>
+        <div>2026-04-28 16:19 · BPAY DD queued · 26 May</div>
+        <div>2026-04-28 16:19 · R2 archive WORM · 7yr retention</div>
+        <div class="ink-3">… 12 more …</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

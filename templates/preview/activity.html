@@ -1,0 +1,97 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'home' %}
+{% block page_title %}Activity log · SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-56 h-24 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Workspace · Audit log</span>
+      </div>
+      <h1 class="font-display text-[36px] leading-[1.05] font-medium">Activity</h1>
+      <p class="mt-1.5 ink-2 text-sm">Everything that changed in this workspace, who did it, and where it landed. Immutable · tamper-evident.</p>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export CSV</button>
+      <button class="chip"><i data-lucide="filter" class="w-3.5 h-3.5"></i>Filters</button>
+      <button class="chip"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>Verify chain</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- Filter strip -->
+<div class="card p-3 mb-5">
+  <div class="flex items-center gap-2 flex-wrap text-[12px]">
+    <button class="chip chip-active">All <span class="num ml-1 opacity-70">486</span></button>
+    <button class="chip">By me <span class="num ml-1 opacity-70">214</span></button>
+    <button class="chip">Auto-actions <span class="num ml-1 opacity-70">198</span></button>
+    <button class="chip">ATO lodgements <span class="num ml-1 opacity-70">12</span></button>
+    <button class="chip">Permission changes <span class="num ml-1 opacity-70">3</span></button>
+    <button class="chip">Exports <span class="num ml-1 opacity-70">8</span></button>
+    <div class="flex-1"></div>
+    <select class="text-sm px-3 py-1.5 bg-[color:var(--paper)] border hairline rounded-md">
+      <option>Last 30 days</option>
+      <option>Last 90 days</option>
+      <option>FY26 to date</option>
+      <option>All time</option>
+    </select>
+    <div class="relative">
+      <i data-lucide="search" class="w-3.5 h-3.5 ink-3 absolute left-2.5 top-1/2 -translate-y-1/2"></i>
+      <input type="text" placeholder="Search activity…" class="text-sm pl-7 pr-3 py-1.5 bg-[color:var(--paper)] border hairline rounded-md w-56 ring-focus">
+    </div>
+  </div>
+</div>
+
+<!-- Timeline -->
+<div class="card overflow-hidden">
+  <ul class="divide-y" style="border-color: var(--line);">
+
+    {% set events = [
+      {'time':'10:42 today','actor':'Richard Sauer','icon':'check-circle-2','col':'#3E7A4E','title':'Confirmed Step 02 · BAS Q4 FY26','snip':'GST sales A$12,840.91 (G1, 1A) — locked for submission','tag':'BAS','tag_col':'#1A4E8B'},
+      {'time':'10:38 today','actor':'Richard Sauer','icon':'edit','col':'#1A4E8B','title':'Recoded TXN-9114 from UNKNOWN → GST-INCL','snip':'Bunnings Trade A$112.40 · changed account 5-310 Materials','tag':'Reconcile','tag_col':'#3E7A4E'},
+      {'time':'10:21 today','actor':'ATO · DSP channel','icon':'landmark','col':'#1A4E8B','title':'Activity Statement Q3 FY26 — assessment received','snip':'Net A$1,820.00 payable · PRN 751 234 567 891 · due 28 May','tag':'ATO','tag_col':'#1A4E8B'},
+      {'time':'09:42 today','actor':'Bill OCR · auto','icon':'sparkles','col':'#194291','title':'BILL-0142 created from supplier PDF','snip':'Dale Maxwell Electrical · A$6,912.40 · matched to PO-SAE-1184','tag':'Auto','tag_col':'#194291'},
+      {'time':'09:14 today','actor':'Peppol gateway','icon':'cable','col':'#7C5C8B','title':'Inbound e-invoice from Bunnings Trade','snip':'AU PINT envelope · auto-coded to 5-310 by existing rule','tag':'Peppol','tag_col':'#7C5C8B'},
+      {'time':'09:01 today','actor':'BAS prefill · auto','icon':'wand-sparkles','col':'#194291','title':'BAS prefill ran for Q4 FY26','snip':'173 bills · 96 invoices · 4 payroll runs aggregated → 7 BAS boxes populated','tag':'Auto','tag_col':'#194291'},
+      {'time':'Yesterday 17:21','actor':'Richard Sauer','icon':'send','col':'#194291','title':'Sent INV-0033 to Northshore Marine','snip':'A$4,180.00 · payment terms Net 14 · Stripe link attached','tag':'Invoice','tag_col':'#3E7A4E'},
+      {'time':'Yesterday 14:30','actor':'STP Phase 2 · auto','icon':'shield-check','col':'#1A4E8B','title':'Pay event STP-FY26-W18 lodged','snip':'4 employees · A$11,840.00 gross · ATO receipt 2026-05-10T14:30:18Z','tag':'STP','tag_col':'#1A4E8B'},
+      {'time':'Yesterday 14:28','actor':'Richard Sauer','icon':'banknote','col':'#3E7A4E','title':'Approved pay run · Week 18','snip':'A$9,430 net to 4 employees · ABA file released to CBA','tag':'Payroll','tag_col':'#1A4E8B'},
+      {'time':'Yesterday 11:08','actor':'Sarah (accountant) · invited','icon':'user-plus','col':'#7C5C8B','title':'Accountant access granted',  'snip':'Role: accountant (read + lodge) · expires 2026-07-31','tag':'Permission','tag_col':'#A14333'},
+      {'time':'2 days ago','actor':'CBA Smart Access · CDR','icon':'download-cloud','col':'#3E7A4E','title':'Bank feed sync · 142 new transactions','snip':'Auto-matched 138 to existing rules · 4 in reconcile queue','tag':'Bank','tag_col':'#3E7A4E'},
+      {'time':'2 days ago','actor':'Richard Sauer','icon':'sliders','col':'#1A4E8B','title':'Changed tax code for account 4-200','snip':'Was GST-INCL · now GST-FREE — applies retroactively to 3 invoices','tag':'Settings','tag_col':'#A14333'},
+    ] %}
+
+    {% for e in events %}
+    <li class="flex items-start gap-3 p-4 hover:bg-[color:var(--paper)]">
+      <span class="w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0" style="background: {{ e.col }};">
+        <i data-lucide="{{ e.icon }}" class="w-4 h-4"></i>
+      </span>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-3 mb-1">
+          <p class="text-[12px] ink-2"><span class="font-medium ink">{{ e.actor }}</span></p>
+          <span class="text-[11px] font-mono ink-3 shrink-0">{{ e.time }}</span>
+        </div>
+        <p class="font-medium text-[13px]">{{ e.title }}</p>
+        <p class="text-[12px] ink-2 mt-0.5">{{ e.snip }}</p>
+        <div class="mt-2 flex items-center gap-2 text-[11px]">
+          <span class="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded" style="background: {{ e.tag_col }}1a; color: {{ e.tag_col }};">{{ e.tag }}</span>
+          <span class="font-mono ink-3">SHA-256 · {{ loop.index }}94c…f8e2</span>
+          <a href="#" class="sae hover:underline">View source →</a>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <div class="flex items-center justify-between px-4 py-3 border-t hairline text-xs ink-2 bg-[color:var(--paper)]">
+    <div>Showing <span class="num font-medium">12</span> of <span class="num font-medium">486</span> events · chain verified up to event 486</div>
+    <button class="chip">Load more</button>
+  </div>
+</div>
+
+{% endblock %}

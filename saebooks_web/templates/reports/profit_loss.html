@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Profit & Loss — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">Profit &amp; Loss</h1>
+    {% if report %}
+    <p class="text-sm text-gray-500 mt-1">
+      {{ report.get("from_date", from_date) }} to {{ report.get("to_date", to_date) }}
+    </p>
+    {% endif %}
+  </div>
+  <div>
+    <button
+      type="button"
+      onclick="window.print()"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+    >Print</button>
+  </div>
+</div>
+
+{# Date filter form — HTMX swaps #report-content on submit #}
+<form
+  hx-get="/reports/profit-loss"
+  hx-target="#report-content"
+  hx-swap="innerHTML"
+  hx-indicator="#report-spinner"
+  class="mb-6 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="from_date" class="block text-xs font-medium text-gray-500 mb-1">From date</label>
+    <input
+      id="from_date"
+      type="date"
+      name="from_date"
+      value="{{ from_date }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+  </div>
+  <div>
+    <label for="to_date" class="block text-xs font-medium text-gray-500 mb-1">To date</label>
+    <input
+      id="to_date"
+      type="date"
+      name="to_date"
+      value="{{ to_date }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+  </div>
+  <div class="flex items-center gap-2 pb-1">
+    <input
+      id="include_draft"
+      type="checkbox"
+      name="include_draft"
+      value="true"
+      {% if include_draft %}checked{% endif %}
+      class="rounded border-gray-300 text-[#194291] focus:ring-[#194291]"
+    >
+    <label for="include_draft" class="text-xs font-medium text-gray-500">Include drafts</label>
+  </div>
+  <button
+    type="submit"
+    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
+  >Refresh</button>
+  {# ── GST threshold inline callout ──────────────────────────────────── #}
+  {% if gst and (gst.threshold_crossed or gst.threshold_approaching) %}
+  <div class="ml-auto flex items-center gap-2 rounded-md border px-3 py-1.5
+    {% if gst.threshold_crossed %}border-red-300 bg-red-50{% else %}border-amber-300 bg-amber-50{% endif %}">
+    <span class="text-xs font-medium
+      {% if gst.threshold_crossed %}text-red-800{% else %}text-amber-800{% endif %}">
+      {% if gst.threshold_crossed %}
+        GST threshold crossed — register within 21 days
+      {% else %}
+        Approaching $75k GST threshold ({{ "%.0f"|format(gst.pct) }}%)
+      {% endif %}
+    </span>
+    <span class="text-xs tabular-nums
+      {% if gst.threshold_crossed %}text-red-700{% else %}text-amber-700{% endif %}">
+      AUD {{ "%.2f"|format(gst.ytd_turnover|float) }} YTD
+    </span>
+    <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
+       target="_blank" rel="noopener"
+       class="text-xs underline font-medium
+         {% if gst.threshold_crossed %}text-red-700{% else %}text-amber-700{% endif %}">
+      ATO →
+    </a>
+  </div>
+  {% endif %}
+</form>
+
+{% include "reports/_profit_loss_table.html" %}
+
+{% endblock %}

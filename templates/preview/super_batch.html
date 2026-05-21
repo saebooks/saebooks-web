@@ -1,0 +1,310 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'compliance' %}
+{% block page_title %}Batch SSP-0014 · SuperStream · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-6">
+  <div class="absolute right-0 top-0 w-72 h-28 dot-grid-soft rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="flex items-start justify-between gap-6">
+    <div>
+      <div class="flex items-center gap-3 mb-1.5">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">SuperStream · contributions batch · SAFF v17.1</span>
+      </div>
+      <h1 class="font-display text-[34px] leading-[1.05] font-medium">
+        Batch SSP-0014 <span class="italic" style="color: var(--sae);">— Q3 FY26 SG</span>
+      </h1>
+      <p class="mt-1.5 ink-2 text-sm">Released <span class="font-mono">28 Apr 2026</span> · cycle <span class="font-mono">Jan–Mar 2026</span> · 4 employees · 3 funds · AS4 message <span class="font-mono">ss-ebms3-9482-0014</span></p>
+      <div class="mt-2 flex flex-wrap items-center gap-2">
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>3 funds · CONFIRMED</span>
+        <span class="badge badge-warm"><span class="dot" style="background: var(--warm);"></span>1 fund · awaiting receipt</span>
+        <span class="badge"><i data-lucide="banknote" class="w-3 h-3"></i>CBA DD debited 28 Apr</span>
+        <span class="badge"><i data-lucide="clock" class="w-3 h-3"></i>Q3 due 28 Apr · paid same day</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-2">
+      <a href="/preview/super" class="chip"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>SuperStream</a>
+      <button class="chip"><i data-lucide="file-code-2" class="w-3.5 h-3.5"></i>SAFF XML</button>
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Receipt pack</button>
+      <button class="btn-primary"><i data-lucide="refresh-ccw" class="w-4 h-4"></i>Re-poll gateway</button>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="card p-4" style="border: 1px solid var(--sae);">
+    <p class="text-[11px] uppercase tracking-wider" style="color: var(--sae);">Batch total</p>
+    <p class="font-display text-[24px] mt-1 num">A$1,430<span class="text-[13px] ink-3">.40</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">SG 12% × 4 + sal-sac A$100</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Members</p>
+    <p class="font-display text-[24px] mt-1 num">4</p>
+    <p class="text-[11px] ink-3 mt-0.5">2 · 1 · 1 across funds</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Confirmed</p>
+    <p class="font-display text-[24px] mt-1 num pos">3 / 4</p>
+    <p class="text-[11px] ink-3 mt-0.5">REST Super · awaiting CTR ack</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">CBA DD</p>
+    <p class="font-display text-[24px] mt-1 num pos">Settled</p>
+    <p class="text-[11px] ink-3 mt-0.5">28 Apr 2026 · DE-2384821</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Cycle SLA</p>
+    <p class="font-display text-[24px] mt-1 num">Day 0<span class="text-[13px] ink-3"> / 28</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Paid on the SG due date</p>
+  </div>
+</div>
+
+<!-- 8/4 -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+  <div class="lg:col-span-8 space-y-5">
+
+    <!-- Member contributions -->
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 border-b hairline bg-[color:var(--paper)] flex items-center justify-between">
+        <h3 class="font-medium text-sm">Member contributions · CTR by member</h3>
+        <span class="text-[11px] font-mono ink-3">SuperStream CTR · v3.0 schema</span>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Fund · USI</th>
+            <th>Member #</th>
+            <th class="text-right">OTE</th>
+            <th class="text-right">SG 12%</th>
+            <th class="text-right">Sal-sac</th>
+            <th class="text-right">Total</th>
+            <th>Response · code</th>
+          </tr>
+        </thead>
+        <tbody class="text-[12px]">
+          {% set m = [
+            ('Liam Patel','#1A4E8B','LP','AustralianSuper','STA0100AU','12492-8174', 2640.00, 316.80, 0.00, 'CTR Accepted','100100','#3E7A4E'),
+            ('Sarah Wong','#7C5C8B','SW','AustralianSuper','STA0100AU','12492-8401', 2920.00, 350.40,100.00, 'CTR Accepted','100100','#3E7A4E'),
+            ('Mia Chen', '#3E7A4E','MC','HostPlus','HOS0100AU','8821-04471',         3420.00, 410.40,  0.00, 'CTR Accepted','100100','#3E7A4E'),
+            ('Noah Carter','#194291','NC','REST Super','RES0100AU','2244-90118',     2940.00, 352.80,  0.00, 'Receipt pending','—','#C89B3C'),
+          ] %}
+          {% for name, col, init, fund, usi, mem, ote, sg, ss, resp, code, rcol in m %}
+          {% set ttl = sg + ss %}
+          <tr>
+            <td>
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-medium" style="background: {{ col }};">{{ init }}</span>
+                <span class="font-medium">{{ name }}</span>
+              </div>
+            </td>
+            <td><span class="font-medium">{{ fund }}</span><span class="ink-3 text-[11px] font-mono ml-1">· {{ usi }}</span></td>
+            <td class="font-mono text-[11px]">{{ mem }}</td>
+            <td class="text-right num ink-2">{{ '{:,.2f}'.format(ote) }}</td>
+            <td class="text-right num">{{ '{:,.2f}'.format(sg) }}</td>
+            <td class="text-right num">{% if ss > 0 %}{{ '{:,.2f}'.format(ss) }}{% else %}<span class="ink-3">—</span>{% endif %}</td>
+            <td class="text-right num font-medium">{{ '{:,.2f}'.format(ttl) }}</td>
+            <td>
+              <span class="inline-flex items-center gap-1.5 text-[11px]"><span class="w-1.5 h-1.5 rounded-full" style="background: {{ rcol }};"></span>{{ resp }} <span class="font-mono ink-3 ml-1">{{ code }}</span></span>
+            </td>
+          </tr>
+          {% endfor %}
+          <tr style="border-top: 2px solid var(--ink-3); font-weight: 600;">
+            <td colspan="4">Batch totals</td>
+            <td class="text-right num">1,430.40</td>
+            <td class="text-right num">100.00</td>
+            <td class="text-right num">A$1,530.40</td>
+            <td><span class="text-[11px] font-mono ink-3">CBA DD A$1,430.40 · sal-sac netted</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="px-5 py-3 border-t hairline flex items-center justify-between bg-[color:var(--paper)] text-xs ink-2">
+        <span>Sal-sac is funded by salary reduction, not employer DD — totals reflect cash movement to gateway.</span>
+        <a href="#" class="sae hover:underline">Open SAFF preview →</a>
+      </div>
+    </div>
+
+    <!-- AS4 / ebMS3 message log -->
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-medium">AS4 / ebMS3 message log</h3>
+        <span class="badge"><span class="dot" style="background: var(--brand-2);"></span>11 messages · 1 awaiting</span>
+      </div>
+      <p class="text-[12px] ink-2 mb-4">Each contribution generates a request (employer → gateway → fund) and one or more receipts (fund → gateway → employer). Messages exchange over AS4 with mutual TLS and signed payloads.</p>
+      <div class="space-y-2.5">
+        {% set msgs = [
+          ('28 Apr 09:14:22','CTR · ContributionTransactionRequest','employer → gateway','sent','#3E7A4E','ss-ebms3-9482-0014.001'),
+          ('28 Apr 09:14:24','CTR · accepted by gateway','gateway → employer','ack','#3E7A4E','msg-9482-9921'),
+          ('28 Apr 09:15:18','CTR · routed to AustralianSuper','gateway → fund','sent','#1A4E8B','msg-9482-9925'),
+          ('28 Apr 09:15:21','CTR · routed to HostPlus','gateway → fund','sent','#1A4E8B','msg-9482-9926'),
+          ('28 Apr 09:15:23','CTR · routed to REST Super','gateway → fund','sent','#1A4E8B','msg-9482-9927'),
+          ('28 Apr 09:18:47','CTA · AustralianSuper accepted (2)','fund → gateway','ack','#3E7A4E','msg-9482-9961'),
+          ('28 Apr 09:21:02','CTA · HostPlus accepted (1)','fund → gateway','ack','#3E7A4E','msg-9482-9974'),
+          ('28 Apr 10:42:11','CBA DD settlement confirmation','bank → employer','ack','#3E7A4E','DE-2384821'),
+          ('29 Apr 14:08:03','Member registration · LP existing','fund → employer','info','#1A4E8B','msg-9483-1142'),
+          ('30 Apr 11:22:18','Trustee acknowledgement received (2 funds)','gateway → employer','ack','#3E7A4E','msg-9484-2210'),
+          ('Today 14:00:00','REST Super · CTA awaiting','— · timer','open','#C89B3C','re-poll in 6h'),
+        ] %}
+        {% for ts, what, dir, kind, col, ref in msgs %}
+        <div class="flex items-baseline gap-3 text-[12px]" style="border-left: 2px solid {{ col }}; padding-left: 8px;">
+          <span class="font-mono text-[11px] ink-3 whitespace-nowrap w-[112px] shrink-0">{{ ts }}</span>
+          <div class="flex-1">
+            <p><span class="font-medium">{{ what }}</span> <span class="ink-3 ml-1">· {{ dir }}</span></p>
+            <p class="font-mono text-[11px] ink-3 mt-0.5">{{ ref }}</p>
+          </div>
+          <span class="text-[10px] font-mono uppercase tracking-wider" style="color: {{ col }};">{{ kind }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Payday Super preview -->
+    <div class="card p-5" style="border: 1.5px dashed var(--sae);">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4" style="color: var(--sae);"></i>
+          <h3 class="font-medium" style="color: var(--sae);">Payday Super — what this looks like after 1 Jul 2026</h3>
+        </div>
+        <span class="badge"><i data-lucide="calendar-clock" class="w-3 h-3"></i>51 days to cutover</span>
+      </div>
+      <p class="text-[12px] ink-2 mb-3">From 1 Jul 2026 SG contributions must reach the fund within <span class="font-mono font-medium">7 calendar days</span> of payday. The same SAFF / AS4 plumbing applies — just one batch per pay event rather than one per quarter.</p>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Pay event</th><th>Pay date</th><th>SG due (paid into fund)</th><th class="text-right">Amount</th><th>Status (sim)</th></tr>
+        </thead>
+        <tbody class="text-[12px]">
+          <tr><td>Week 14</td><td class="font-mono">07 Apr 2026</td><td class="font-mono">14 Apr 2026</td><td class="text-right num">A$110.32</td><td><span class="badge"><span class="dot" style="background: var(--ink-3);"></span>simulated</span></td></tr>
+          <tr><td>Week 15</td><td class="font-mono">14 Apr 2026</td><td class="font-mono">21 Apr 2026</td><td class="text-right num">A$110.32</td><td><span class="badge"><span class="dot" style="background: var(--ink-3);"></span>simulated</span></td></tr>
+          <tr><td>Week 16</td><td class="font-mono">21 Apr 2026</td><td class="font-mono">28 Apr 2026</td><td class="text-right num">A$110.32</td><td><span class="badge"><span class="dot" style="background: var(--ink-3);"></span>simulated</span></td></tr>
+          <tr><td>Week 17</td><td class="font-mono">28 Apr 2026</td><td class="font-mono">05 May 2026</td><td class="text-right num">A$118.46</td><td><span class="badge"><span class="dot" style="background: var(--ink-3);"></span>simulated</span></td></tr>
+          <tr><td>Week 18</td><td class="font-mono">05 May 2026</td><td class="font-mono">12 May 2026</td><td class="text-right num">A$110.32</td><td><span class="badge"><span class="dot" style="background: var(--ink-3);"></span>simulated</span></td></tr>
+          <tr style="border-top: 1.5px solid var(--ink-3);"><td colspan="3" class="font-medium">Mia Chen · 5-pay rolling</td><td class="text-right num font-medium">A$559.74</td><td><span class="text-[11px] ink-3">vs A$1,231 Q3 lump · same total over 13 weeks</span></td></tr>
+        </tbody>
+      </table>
+      <div class="hairline my-3"></div>
+      <div class="grid grid-cols-3 gap-3 text-[12px]">
+        <div class="rounded-md p-3" style="background: var(--paper-2);">
+          <p class="text-[10px] uppercase tracking-wider ink-3">Cadence change</p>
+          <p class="font-medium mt-0.5">Q (4/yr) → pay-event (≈52/yr)</p>
+        </div>
+        <div class="rounded-md p-3" style="background: var(--paper-2);">
+          <p class="text-[10px] uppercase tracking-wider ink-3">Cash impact</p>
+          <p class="font-medium mt-0.5">~A$1,420 /pay vs A$5,720 /qtr</p>
+        </div>
+        <div class="rounded-md p-3" style="background: var(--paper-2);">
+          <p class="text-[10px] uppercase tracking-wider ink-3">Penalty regime</p>
+          <p class="font-medium mt-0.5">SG charge applies past 7-day window</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GL reconciliation -->
+    <div class="card p-5">
+      <h3 class="font-medium mb-3">GL reconciliation</h3>
+      <table class="sae-table">
+        <thead>
+          <tr><th>Account</th><th>Code</th><th>Movement</th><th class="text-right">Dr</th><th class="text-right">Cr</th></tr>
+        </thead>
+        <tbody class="text-[12px]">
+          <tr><td><a href="/preview/settings/chart-of-accounts" class="hover:text-[color:var(--sae)]">Superannuation expense</a></td><td class="font-mono">6-110</td><td class="ink-2">Accrued at payroll posting</td><td class="text-right num">1,430.40</td><td class="text-right num ink-3">—</td></tr>
+          <tr><td><a href="/preview/settings/chart-of-accounts" class="hover:text-[color:var(--sae)]">Super payable · clearing</a></td><td class="font-mono">2-130</td><td class="ink-2">Credited at payroll</td><td class="text-right num ink-3">—</td><td class="text-right num">1,430.40</td></tr>
+          <tr><td>Super payable · clearing</td><td class="font-mono">2-130</td><td class="ink-2">Cleared on batch release</td><td class="text-right num">1,430.40</td><td class="text-right num ink-3">—</td></tr>
+          <tr><td><a href="/preview/settings/banking/cba" class="hover:text-[color:var(--sae)]">Cheque · CBA Smart Access</a></td><td class="font-mono">1-100</td><td class="ink-2">DD on release · 28 Apr</td><td class="text-right num ink-3">—</td><td class="text-right num">1,430.40</td></tr>
+          <tr style="border-top: 1.5px solid var(--ink-3);">
+            <td colspan="3" class="font-medium">Net effect on cash</td>
+            <td colspan="2" class="text-right font-medium num">A$1,430.40 out</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="mt-3 text-[11px] ink-3">2-130 starts and ends at zero each cycle — clearing-account discipline keeps the BAS reconciliation clean.</p>
+    </div>
+
+  </div>
+
+  <!-- Right rail -->
+  <div class="lg:col-span-4 space-y-5">
+
+    <!-- Fund directory -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3 flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4 sae"></i>Funds in this batch</h4>
+      <div class="space-y-3 text-[12px]">
+        {% for name, usi, abn, n, amt, ack in [
+          ('AustralianSuper','STA0100AU','65 714 394 898',2,'A$667.20','3 min'),
+          ('HostPlus',       'HOS0100AU','68 657 495 890',1,'A$410.40','5 min'),
+          ('REST Super',     'RES0100AU','62 653 671 394',1,'A$352.80','pending'),
+        ] %}
+        <div>
+          <div class="flex items-center justify-between">
+            <p class="font-medium">{{ name }}</p>
+            <span class="font-mono">{{ amt }}</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] ink-3 font-mono">
+            <span>{{ usi }} · ABN {{ abn }}</span>
+            <span>{{ n }} mbr · ack {{ ack }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Gateway -->
+    <div class="card p-5" style="background: var(--paper-2);">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="server" class="w-4 h-4" style="color: var(--brand-2);"></i>
+        <h4 class="font-medium">Clearing-house gateway</h4>
+      </div>
+      <div class="space-y-1.5 text-[12px]">
+        <div class="flex items-center justify-between"><span class="ink-3">Provider</span><span class="font-mono">SAE Books SuperStream Gateway</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">APRA listed</span><span class="font-mono pos">Yes · ID 21·08</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Protocol</span><span class="font-mono">AS4 · ebMS3 · TLS 1.3</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">File format</span><span class="font-mono">SAFF v17.1</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Avg fund ack</span><span class="font-mono">14 min</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Fees</span><span class="font-mono">Free · employer ≤ 19 mbr</span></div>
+      </div>
+    </div>
+
+    <!-- Response codes -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Response codes · reference</h4>
+      <div class="space-y-1.5 text-[11px] font-mono">
+        <div class="flex items-center justify-between"><span class="ink-3">100100</span><span>CTR accepted by fund</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">100200</span><span>CTR rejected · refund issued</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">100210</span><span>Member not held — request stapled-fund lookup</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">100220</span><span>USI invalid for fund</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">100300</span><span>Member registration required</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">100400</span><span>Partial accept · 1+ contributions returned</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">100900</span><span>Trustee acknowledgement (later)</span></div>
+      </div>
+    </div>
+
+    <!-- Stapled-fund lookup -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Stapled-fund lookup</h4>
+      <p class="text-[12px] ink-2 mb-2">When an employee doesn't make a choice, the ATO returns their stapled fund. Lookup is via ATO Online Services / SBR.</p>
+      <div class="space-y-1.5 text-[12px]">
+        <div class="flex items-center justify-between"><span class="ink-3">Lookups FY26</span><span class="font-mono">0</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Last lookup</span><span class="font-mono">Aug 2022</span></div>
+        <div class="flex items-center justify-between"><span class="ink-3">Default fund</span><span class="font-mono">AustralianSuper</span></div>
+      </div>
+      <a href="/preview/settings/integrations/ato" class="text-[11px] sae mt-3 inline-flex items-center gap-1">ATO integration<i data-lucide="external-link" class="w-3 h-3"></i></a>
+    </div>
+
+    <!-- Related -->
+    <div class="card p-5">
+      <h4 class="font-medium mb-3">Related</h4>
+      <div class="space-y-2 text-[13px]">
+        <a href="/preview/super" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>SuperStream batches</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/payroll/pay-run" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Current pay run</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/payroll/employees/mia-chen" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>Member · Mia Chen</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+        <a href="/preview/settings/banking/cba" class="flex items-center justify-between hover:text-[color:var(--sae)]"><span>CBA DD authority</span><i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

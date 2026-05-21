@@ -1,0 +1,304 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'compliance' %}
+{% block page_title %}SuperStream · Payday Super · SAE Books{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative mb-7">
+  <div class="absolute right-0 top-0 w-64 h-32 dot-grid rounded-bl-3xl pointer-events-none opacity-50"></div>
+  <div class="relative flex items-start justify-between gap-8">
+    <div>
+      <div class="flex items-center gap-3 mb-2">
+        <span class="reg-mark"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3">Compliance · SuperStream &amp; Payday Super</span>
+      </div>
+      <h1 class="font-display text-[36px] leading-[1.05] font-medium max-w-2xl">
+        Super, <span class="sae italic">cleared</span> — every pay run from 1 July.
+      </h1>
+      <p class="mt-2 ink-2 text-sm max-w-2xl">
+        One screen for the SuperStream batch you're lodging today, and the Payday Super switch that lands on <span class="font-medium ink">1 Jul 2026</span>. Same flow, faster cadence.
+      </p>
+    </div>
+    <div class="flex items-center gap-2 pt-2 shrink-0">
+      <button class="chip"><i data-lucide="download" class="w-3.5 h-3.5"></i>Export SAFF</button>
+      <button class="chip"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>Trustee statement</button>
+      <a href="/preview/payroll/pay-run" class="chip chip-active"><i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>Back to pay run</a>
+    </div>
+  </div>
+  <div class="drafting mt-6"></div>
+</div>
+
+<!-- KPI strip -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">SG liability YTD</p>
+    <p class="font-display text-[26px] mt-1 num">A$18,940<span class="text-[13px] ink-3">.20</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">FY26 · 12% of OTE</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Cleared this FY</p>
+    <p class="font-display text-[26px] mt-1 num pos">A$17,510<span class="text-[13px] ink-3">.40</span></p>
+    <p class="text-[11px] pos mt-0.5 font-mono">3 quarters reconciled</p>
+  </div>
+  <div class="card p-4" style="border-color: var(--sae);">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Q4 batch · ready</p>
+    <p class="font-display text-[26px] mt-1 num sae">A$1,430<span class="text-[13px] ink-3">.40</span></p>
+    <p class="text-[11px] ink-3 mt-0.5">Due 28 Jul 2026 · 3 funds</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[11px] uppercase tracking-wider ink-3">Choice fund coverage</p>
+    <p class="font-display text-[26px] mt-1 num">4 / 4</p>
+    <p class="text-[11px] pos mt-0.5 font-mono">No stapled-fund lookups outstanding</p>
+  </div>
+  <div class="card p-4" style="border: 1px dashed var(--sae);">
+    <p class="text-[11px] uppercase tracking-wider ink-3" style="color: var(--sae);">Payday Super</p>
+    <p class="font-display text-[26px] mt-1 num">51d</p>
+    <p class="text-[11px] ink-3 mt-0.5 font-mono">Switchover · 1 Jul 2026</p>
+  </div>
+</div>
+
+<!-- Two-pane: batch + per-employee -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-7">
+
+  <!-- LEFT: SuperStream batch detail -->
+  <div class="lg:col-span-7 space-y-5">
+
+    <div class="card overflow-hidden">
+      <div class="px-5 py-3 border-b hairline bg-[color:var(--paper)]">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-[0.16em] ink-3">SuperStream batch · SBR-EBMS</p>
+            <h2 class="text-[15px] font-semibold tracking-tight">Batch SS-FY26-Q4-002</h2>
+          </div>
+          <span class="badge badge-warm"><span class="dot" style="background: var(--warm);"></span>Awaiting release</span>
+        </div>
+      </div>
+
+      <table class="sae-table">
+        <thead>
+          <tr>
+            <th>Fund (USI · ABN)</th>
+            <th class="text-right">Members</th>
+            <th class="text-right">SG (OTE × 12%)</th>
+            <th class="text-right">Salary sacrifice</th>
+            <th class="text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody class="text-[12px]">
+          <tr>
+            <td>
+              <div class="font-medium">AustralianSuper</div>
+              <div class="text-[10px] font-mono ink-3">STA0100AU · ABN 65 714 394 898</div>
+            </td>
+            <td class="text-right num">2</td>
+            <td class="text-right num">567.20</td>
+            <td class="text-right num">100.00</td>
+            <td class="text-right num font-medium">A$667.20</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="font-medium">HostPlus</div>
+              <div class="text-[10px] font-mono ink-3">HOS0100AU · ABN 68 657 495 890</div>
+            </td>
+            <td class="text-right num">1</td>
+            <td class="text-right num">410.40</td>
+            <td class="text-right num">—</td>
+            <td class="text-right num font-medium">A$410.40</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="font-medium">REST Super</div>
+              <div class="text-[10px] font-mono ink-3">RES0100AU · ABN 62 653 671 394</div>
+            </td>
+            <td class="text-right num">1</td>
+            <td class="text-right num">352.80</td>
+            <td class="text-right num">—</td>
+            <td class="text-right num font-medium">A$352.80</td>
+          </tr>
+          <tr style="border-top: 1.5px solid var(--ink);">
+            <td class="font-medium">Batch total</td>
+            <td class="text-right num">4</td>
+            <td class="text-right num">A$1,330.40</td>
+            <td class="text-right num">A$100.00</td>
+            <td class="text-right num font-display text-[16px]">A$1,430.40</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="px-5 py-4 border-t hairline bg-[color:var(--paper)] text-[11px] ink-2 font-mono space-y-1">
+        <div class="flex items-center justify-between"><span>SuperStream format</span><span class="ink">Alternative File Format (SAFF) v17.1</span></div>
+        <div class="flex items-center justify-between"><span>Clearing house</span><span class="ink">SAE Books SuperStream Gateway (APRA-listed)</span></div>
+        <div class="flex items-center justify-between"><span>Direct debit</span><span class="ink">CBA Smart Access · ●●●● 2204 · auth on release</span></div>
+        <div class="flex items-center justify-between"><span>Trustee acknowledgements</span><span class="ink">3 funds · within 7 business days</span></div>
+      </div>
+
+      <div class="px-5 py-3 border-t hairline flex items-center justify-between bg-[color:var(--paper-2)]">
+        <p class="text-[11px] ink-3">Releasing the batch debits CBA Smart Access and dispatches SAFF + member messages to each fund's gateway.</p>
+        <div class="flex items-center gap-2">
+          <button class="chip"><i data-lucide="eye" class="w-3.5 h-3.5"></i>Preview SAFF</button>
+          <button class="btn-primary"><i data-lucide="send" class="w-3.5 h-3.5"></i>Release batch</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-employee SG -->
+    <div class="card overflow-hidden">
+      <div class="px-5 py-3 border-b hairline">
+        <h3 class="text-[14px] font-semibold tracking-tight">Per-employee SG · pay run W19</h3>
+        <p class="text-[11px] ink-3 mt-0.5">Calculated on Ordinary Time Earnings (OTE) — overtime excluded. SG rate 12.0% (FY26).</p>
+      </div>
+      <table class="sae-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Fund · Member #</th>
+            <th class="text-right">OTE this run</th>
+            <th class="text-right">SG 12%</th>
+            <th class="text-right">SS &amp; RESC</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody class="text-[12px]">
+          {% set rows = [
+            {'name':'Liam Patel','award':'MA000010 C10','fund':'AustralianSuper · M-4002918','ote':2840.00,'sg':340.80,'sacrifice':100.00,'status':'ok'},
+            {'name':'Mia Chen','award':'MA000010 C8','fund':'AustralianSuper · M-7104221','ote':1886.67,'sg':226.40,'sacrifice':0,'status':'ok'},
+            {'name':'Noah Carter','award':'MA000020 CW3','fund':'HostPlus · M-99031882','ote':3420.00,'sg':410.40,'sacrifice':0,'status':'ok'},
+            {'name':'Sarah Wong','award':'PCBU-individual','fund':'REST Super · M-58441207','ote':2940.00,'sg':352.80,'sacrifice':0,'status':'ok'}
+          ] %}
+          {% for r in rows %}
+          <tr>
+            <td>
+              <div class="font-medium">{{ r.name }}</div>
+              <div class="text-[10px] font-mono ink-3">{{ r.award }}</div>
+            </td>
+            <td>
+              <div>{{ r.fund.split(' · ')[0] }}</div>
+              <div class="text-[10px] font-mono ink-3">{{ r.fund.split(' · ')[1] }}</div>
+            </td>
+            <td class="text-right num">A${{ '%.2f'|format(r.ote) }}</td>
+            <td class="text-right num font-medium">A${{ '%.2f'|format(r.sg) }}</td>
+            <td class="text-right num">{% if r.sacrifice %}A${{ '%.2f'|format(r.sacrifice) }}{% else %}<span class="ink-3">—</span>{% endif %}</td>
+            <td><span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Stapled · verified</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT: Payday Super preview + checks -->
+  <div class="lg:col-span-5 space-y-4">
+
+    <!-- Payday Super narrative -->
+    <div class="card p-5 relative overflow-hidden" style="border: 1.5px dashed var(--sae);">
+      <div class="absolute -right-3 -bottom-3 reg-mark opacity-30"></div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-[10px] font-mono uppercase tracking-[0.18em]" style="color: var(--sae);">Payday Super · 1 Jul 2026</span>
+      </div>
+      <h3 class="font-display text-[22px] leading-tight">From quarterly batches to <span class="sae italic">every payday</span>.</h3>
+      <p class="text-[12px] ink-2 mt-2 leading-relaxed">
+        Super contributions must be received by funds within <strong>7 business days</strong> of payday. SAE Books switches your account on 1 Jul automatically — the pay run UI you already use is the same. Each pay run dispatches its own SuperStream message.
+      </p>
+
+      <div class="mt-4 grid grid-cols-2 gap-2 text-[11px]">
+        <div class="p-2.5 rounded-md bg-[color:var(--paper)]">
+          <p class="text-[10px] uppercase tracking-wider ink-3">Today</p>
+          <p class="font-medium mt-0.5">Quarterly batch</p>
+          <p class="ink-3 mt-0.5 font-mono">3-month cadence · A$1,430 / Q</p>
+        </div>
+        <div class="p-2.5 rounded-md" style="background: rgba(200,99,31,0.10);">
+          <p class="text-[10px] uppercase tracking-wider" style="color: var(--sae);">From 1 Jul</p>
+          <p class="font-medium mt-0.5">Per pay run</p>
+          <p class="ink-3 mt-0.5 font-mono">Weekly cadence · A$110 / run</p>
+        </div>
+      </div>
+
+      <div class="mt-4 h-1.5 rounded-full bg-[color:var(--paper-2)] overflow-hidden">
+        <div class="h-full rounded-full" style="width:82%; background: var(--sae);"></div>
+      </div>
+      <p class="text-[10px] ink-3 mt-2 font-mono">82% complete · 51 days · no action required</p>
+
+      <div class="mt-4 grid grid-cols-1 gap-1.5 text-[12px]">
+        <p class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos shrink-0"></i>Bank authority pre-staged for accelerated debits</p>
+        <p class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos shrink-0"></i>Fund USIs validated · all 3 SuperStream-ready</p>
+        <p class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos shrink-0"></i>Per-run SG totals exposed on STP Phase 2 envelopes</p>
+        <p class="flex items-center gap-2"><i data-lucide="circle-dashed" class="w-3.5 h-3.5 ink-3 shrink-0"></i>Cash-flow forecast adjusted: ~A$110 / week (was A$1,430 / Q)</p>
+      </div>
+    </div>
+
+    <!-- Choice / stapled -->
+    <div class="card p-5">
+      <h3 class="font-medium text-sm mb-3">Choice &amp; stapled-fund</h3>
+      <div class="space-y-2 text-[12px] ink-2">
+        <div class="flex items-center justify-between"><span>Choice forms on file</span><span class="font-mono ink">4 / 4</span></div>
+        <div class="flex items-center justify-between"><span>Stapled-fund lookups (12mo)</span><span class="font-mono ink">2 · last 18 Mar 2026</span></div>
+        <div class="flex items-center justify-between"><span>Default fund</span><span class="font-mono ink">AustralianSuper (MySuper)</span></div>
+        <div class="flex items-center justify-between"><span>SuperStream Member Registration</span><span class="font-mono pos">Auto on hire</span></div>
+      </div>
+      <a href="#" class="text-[11px] sae mt-3 inline-flex items-center gap-1">Stapled-fund lookup history →</a>
+    </div>
+
+    <!-- Auto-checks -->
+    <div class="card p-5">
+      <h3 class="font-medium text-sm mb-3">Compliance auto-checks</h3>
+      <ul class="space-y-2 text-[12px] ink-2">
+        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos"></i>SG rate 12% applied — FY26 rate locked</li>
+        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos"></i>OTE calc excludes overtime, leave loading, redundancy</li>
+        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos"></i>Maximum super contribution base honoured (FY26 A$65,070 / Q)</li>
+        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 pos"></i>All members verified — no NCR / wrong-account exceptions</li>
+        <li class="flex items-center gap-2"><i data-lucide="info" class="w-3.5 h-3.5 ink-3"></i>Director super: Richard Sauer manual via personal contribution</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- History timeline -->
+<div class="card overflow-hidden mb-3">
+  <div class="px-5 py-3 border-b hairline">
+    <h3 class="text-[14px] font-semibold tracking-tight">SuperStream history · FY26</h3>
+  </div>
+  <table class="sae-table">
+    <thead>
+      <tr><th>Batch</th><th>Quarter</th><th>Released</th><th class="text-right">Amount</th><th>Funds</th><th>Status</th></tr>
+    </thead>
+    <tbody class="text-[12px]">
+      <tr>
+        <td><span class="font-mono">SS-FY26-Q4-002</span></td>
+        <td>Q4 FY26 (Apr–Jun)</td>
+        <td class="font-mono ink-3">Awaiting release</td>
+        <td class="text-right num">A$1,430.40</td>
+        <td>3</td>
+        <td><span class="badge badge-warm"><span class="dot" style="background: var(--warm);"></span>Ready</span></td>
+      </tr>
+      <tr>
+        <td><a href="/preview/super/batches/ssp-0014" class="font-mono hover:text-[color:var(--sae)]">SS-FY26-Q3-001</a></td>
+        <td>Q3 FY26 (Jan–Mar)</td>
+        <td class="font-mono ink-3">28 Apr 2026</td>
+        <td class="text-right num">A$5,742.10</td>
+        <td>3</td>
+        <td><a href="/preview/super/batches/ssp-0014" class="badge badge-pos hover:opacity-80"><span class="dot" style="background: var(--pos);"></span>Cleared · 3/3 acked</a></td>
+      </tr>
+      <tr>
+        <td><span class="font-mono">SS-FY26-Q2-001</span></td>
+        <td>Q2 FY26 (Oct–Dec)</td>
+        <td class="font-mono ink-3">28 Jan 2026</td>
+        <td class="text-right num">A$6,103.40</td>
+        <td>3</td>
+        <td><span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Cleared</span></td>
+      </tr>
+      <tr>
+        <td><span class="font-mono">SS-FY26-Q1-001</span></td>
+        <td>Q1 FY26 (Jul–Sep)</td>
+        <td class="font-mono ink-3">28 Oct 2025</td>
+        <td class="text-right num">A$5,664.90</td>
+        <td>3</td>
+        <td><span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>Cleared</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p class="text-[10px] font-mono ink-3 text-right">SuperStream is the ATO-mandated electronic standard for super contributions and member messaging. SAE Books acts as your SuperStream Gateway and Authorised Lodgement Channel.</p>
+
+{% endblock %}

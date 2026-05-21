@@ -1,0 +1,536 @@
+{% extends "preview/_layout.html" %}
+{% block title %}ASIC Annual Review · s.345A · SAE Engineering Pty Ltd · FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks">
+  <div class="max-w-[1240px] mx-auto px-6 py-8">
+
+    <!-- ============================================ -->
+    <!-- MASTHEAD                                     -->
+    <!-- ============================================ -->
+    <header class="mb-8 pb-6 border-b border-[var(--line)]">
+      <div class="flex items-start justify-between gap-6">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">
+            <i data-lucide="landmark" class="w-3.5 h-3.5"></i>
+            <span>ASIC · Australian Securities &amp; Investments Commission</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Corporations Act 2001 (Cth) s.345A &middot; s.346A &middot; s.347A &middot; s.347C</span>
+            <span class="text-[var(--line)]">/</span>
+            <span>Workpaper AR-26</span>
+          </div>
+          <h1 class="font-display text-[40px] leading-[1.05] tracking-[-0.02em] text-[var(--ink)]">
+            ASIC Annual Review
+            <span class="text-[var(--ink-3)]"> &middot; FY26</span>
+          </h1>
+          <p class="mt-3 text-[14px] text-[var(--ink-3)] max-w-[860px] leading-relaxed">
+            Every Australian company has a <strong>review date</strong> (s.345A) &mdash; usually the registration anniversary &mdash; on which ASIC issues an annual statement, an invoice for the annual review fee (s.346A), and a request to confirm company details. Directors must <strong>pass a solvency resolution within 2 months</strong> (s.347A) and pay the fee within 2 months or incur late fees (s.348A). Failure to update officeholder, share, or address changes within <strong>28 days</strong> (s.142, s.146, s.205B, s.601CK) triggers Form 484 penalties. SAE Books surfaces this as a continuous workpaper, not a once-a-year email from the registered agent.
+          </p>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Status</div>
+          <div class="mt-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[color:rgb(212_140_56_/_0.10)] border border-[color:rgb(212_140_56_/_0.35)]">
+            <span class="led warn"></span>
+            <span class="text-[12px] font-medium text-[var(--warm)]">Review date in 14 days &middot; 2 amendments pending</span>
+          </div>
+          <div class="mt-2 text-[11px] text-[var(--ink-3)]"><span class="num">AR-184260-26</span> &middot; prepared 2026-05-11</div>
+          <div class="mt-1 text-[11px] text-[var(--ink-3)]">Review date <span class="num">2026-05-25</span> &middot; solvency res due <span class="num">2026-07-25</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- ACT 1 · MARKET GAP                            -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 01</div>
+        <h2 class="font-display text-[22px] tracking-tight">Why this lives in the books, not in an agent&rsquo;s inbox</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Australian-market gap analysis</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Surface</th>
+                <th class="py-2 pr-2">Xero</th>
+                <th class="py-2 pr-2">MYOB AE/AO</th>
+                <th class="py-2 pr-2">Reckon</th>
+                <th class="py-2">SAE Books</th>
+              </tr>
+            </thead>
+            <tbody class="text-[12px]">
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Review-date timer + solvency res</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">via CAS 360 add-on</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">native, ledger-linked</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Officeholder/share register sync</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">CAS 360 / NowInfinity</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">Form 484 generator</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">28-day breach detector</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">change-of-state alerts</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Annual review fee accrual</td><td class="text-[var(--ink-3)]">manual JE</td><td class="text-[var(--ink-3)]">manual JE</td><td class="text-[var(--ink-3)]">manual JE</td><td class="text-[var(--pos)] font-medium">auto-accrue @ review date</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-2 pr-2">Insolvent-trading evidence (s.588G)</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">going-concern memo + ratios</td></tr>
+              <tr><td class="py-2 pr-2">Late-fee exposure modelling</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--pos)] font-medium">A$96 / A$401 ladder</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)] leading-relaxed">In the AU market the Annual Review lives in <em>company-secretarial</em> tools (CAS 360, NowInfinity, BGL CAS) bolted to the accountant&rsquo;s practice, not the client&rsquo;s GL. SAE Books moves it into the books because the fee, the solvency declaration, and the 28-day change clock all touch ledger accounts and director resolutions that are already there.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Entity under review</div>
+          <div class="text-[14px] font-medium text-[var(--ink)] mb-1">SAE Engineering Pty Ltd</div>
+          <div class="text-[11px] text-[var(--ink-3)]">ACN <span class="num">184&nbsp;260&nbsp;521</span> &middot; ABN <span class="num">82&nbsp;184&nbsp;260&nbsp;521</span></div>
+          <div class="text-[11px] text-[var(--ink-3)]">Type APTY &middot; Class PROP &middot; Sub-class LMSH</div>
+          <div class="mt-3 grid grid-cols-2 gap-3 text-[11px]">
+            <div><div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px]">Registered</div><div class="num">2014-05-25</div></div>
+            <div><div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px]">Review date</div><div class="num">2026-05-25</div></div>
+            <div><div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px]">Reg. office</div><div>Wynnum QLD 4178</div></div>
+            <div><div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px]">PPB</div><div>Wynnum QLD 4178</div></div>
+            <div><div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px]">Directors</div><div class="num">3</div></div>
+            <div><div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px]">Secretary</div><div class="num">1</div></div>
+            <div><div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px]">Shareholders</div><div class="num">2</div></div>
+            <div><div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px]">Shares on issue</div><div class="num">100 ORD</div></div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)]">
+            <div>EDGE login &middot; Reg agent: SAE-self &middot; Agent No <span class="num">38421</span></div>
+            <div>Last lodgement: Form 484 &middot; <span class="num">2025-09-14</span> (address change)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 2 · REVIEW-DATE COUNTDOWN                 -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 02</div>
+        <h2 class="font-display text-[22px] tracking-tight">Countdown to review date &middot; s.345A &middot; 25 May 2026</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-8 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="grid grid-cols-5 gap-3 text-[11px]">
+            <div class="p-3 border border-[var(--line)] rounded">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">D&minus;14 &middot; today</div>
+              <div class="num text-[14px] font-medium">2026-05-11</div>
+              <div class="mt-1 text-[var(--ink-3)]">Pre-review snapshot &middot; verify register vs ASIC extract Form 410</div>
+              <div class="mt-2"><span class="led on"></span> <span class="text-[var(--pos)]">on track</span></div>
+            </div>
+            <div class="p-3 border border-[var(--line)] rounded">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">D&minus;7</div>
+              <div class="num text-[14px] font-medium">2026-05-18</div>
+              <div class="mt-1 text-[var(--ink-3)]">File any outstanding Form 484 to land before review date (avoids carryover)</div>
+              <div class="mt-2"><span class="led warn"></span> <span class="text-[var(--warm)]">2 changes queued</span></div>
+            </div>
+            <div class="p-3 border border-[var(--line)] rounded">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">D0 &middot; review</div>
+              <div class="num text-[14px] font-medium">2026-05-25</div>
+              <div class="mt-1 text-[var(--ink-3)]">ASIC issues annual statement &middot; fee invoice &middot; corporate key reset</div>
+              <div class="mt-2"><span class="led off"></span> <span class="text-[var(--ink-3)]">pending</span></div>
+            </div>
+            <div class="p-3 border border-[var(--line)] rounded">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">D+0&hellip;D+28</div>
+              <div class="num text-[14px] font-medium">to 2026-06-22</div>
+              <div class="mt-1 text-[var(--ink-3)]">Window to confirm/amend particulars w/o fee &middot; s.346C</div>
+              <div class="mt-2"><span class="led off"></span> <span class="text-[var(--ink-3)]">pending</span></div>
+            </div>
+            <div class="p-3 border border-[var(--line)] rounded">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">D+61 &middot; solvency</div>
+              <div class="num text-[14px] font-medium">2026-07-25</div>
+              <div class="mt-1 text-[var(--ink-3)]">Solvency res passed by directors &middot; s.347A &middot; fee paid by this date or s.348A</div>
+              <div class="mt-2"><span class="led off"></span> <span class="text-[var(--ink-3)]">pending</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-span-12 lg:col-span-4 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Annual review fee &middot; FY26 indexed</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Proprietary company (APTY)</td><td class="num text-right">A$321</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">SMSF special purpose</td><td class="num text-right">A$65</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Public company (APUB)</td><td class="num text-right">A$1,492</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Late fee &le;1 mth (s.348A)</td><td class="num text-right text-[var(--warm)]">+A$96</td></tr>
+              <tr><td class="py-1.5 text-[var(--ink-3)]">Late fee &gt;1 mth (s.348A)</td><td class="num text-right text-[var(--neg)]">+A$401</td></tr>
+            </tbody>
+          </table>
+          <div class="mt-3 pt-3 border-t border-[var(--line)] text-[11px]">
+            <div class="text-[var(--ink-3)] uppercase tracking-[0.18em] text-[9px] mb-1">Auto-accrual JE @ D0</div>
+            <table class="w-full text-[11px]">
+              <tbody>
+                <tr><td>Dr 7440 ASIC fees</td><td class="num text-right">A$321.00</td></tr>
+                <tr><td>Cr 2210 Accrued ASIC</td><td class="num text-right">A$321.00</td></tr>
+              </tbody>
+            </table>
+            <div class="mt-2 text-[var(--ink-3)]">Indexed annually 1-Jul under <em>Corp (Fees) Regs 2001 reg.3</em>. ASIC publishes FY26 schedule June 2025.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 3 · DELTA REGISTER (28-day breach detector) -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 03</div>
+        <h2 class="font-display text-[22px] tracking-tight">Delta register &middot; ASIC vs GL truth &middot; 28-day clock</h2>
+      </div>
+      <div class="p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)] overflow-x-auto">
+        <table class="w-full text-[12px]">
+          <thead>
+            <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+              <th class="py-2 pr-2">#</th>
+              <th class="py-2 pr-2">Particular</th>
+              <th class="py-2 pr-2">ASIC record</th>
+              <th class="py-2 pr-2">GL / register truth</th>
+              <th class="py-2 pr-2">Change date</th>
+              <th class="py-2 pr-2">Days elapsed</th>
+              <th class="py-2 pr-2">Lodgement</th>
+              <th class="py-2 pr-2">Authority</th>
+              <th class="py-2">State</th>
+            </tr>
+          </thead>
+          <tbody class="text-[12px]">
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D1</td>
+              <td class="py-2 pr-2">Registered office (RA)</td>
+              <td class="py-2 pr-2">Wynnum QLD 4178</td>
+              <td class="py-2 pr-2">Wynnum QLD 4178</td>
+              <td class="py-2 pr-2 num">2025-09-14</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2">Form 484 A1 filed</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.142</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">match</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D2</td>
+              <td class="py-2 pr-2">Principal place of business</td>
+              <td class="py-2 pr-2">Wynnum QLD 4178</td>
+              <td class="py-2 pr-2">Wynnum QLD 4178</td>
+              <td class="py-2 pr-2 num">2025-09-14</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2">Form 484 A2 filed</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.146</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">match</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D3</td>
+              <td class="py-2 pr-2">Director &mdash; R Sauer (resi address)</td>
+              <td class="py-2 pr-2">Old addr (pre-move)</td>
+              <td class="py-2 pr-2 text-[var(--warm)]">New Wynnum addr</td>
+              <td class="py-2 pr-2 num">2026-04-22</td>
+              <td class="py-2 pr-2 num text-[var(--warm)]">19 / 28</td>
+              <td class="py-2 pr-2"><strong>Form 484 B1 due</strong> by 2026-05-20</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.205B</td>
+              <td><span class="led warn"></span> <span class="text-[var(--warm)]">file now</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D4</td>
+              <td class="py-2 pr-2">Director &mdash; M Sauer</td>
+              <td class="py-2 pr-2">Active 2014-05-25</td>
+              <td class="py-2 pr-2">Active 2014-05-25</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2">No change</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.117</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">match</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D5</td>
+              <td class="py-2 pr-2">Director &mdash; A Holloway (alt)</td>
+              <td class="py-2 pr-2">Active 2022-07-01</td>
+              <td class="py-2 pr-2">Active 2022-07-01</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2">No change</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.117 &middot; DIN match</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">match</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D6</td>
+              <td class="py-2 pr-2">Company secretary &mdash; M Sauer</td>
+              <td class="py-2 pr-2">Active 2014-05-25</td>
+              <td class="py-2 pr-2">Active 2014-05-25</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2">No change</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.204A</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">match</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D7</td>
+              <td class="py-2 pr-2">Share &mdash; R Sauer 50 ORD</td>
+              <td class="py-2 pr-2">50 fully paid</td>
+              <td class="py-2 pr-2">50 fully paid</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2">No change</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.169</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">match</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D8</td>
+              <td class="py-2 pr-2">Share &mdash; Saueesti Trust 50 ORD</td>
+              <td class="py-2 pr-2">50 fully paid (RST)</td>
+              <td class="py-2 pr-2">50 fully paid (RST)</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2">No change</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.169 &middot; trust flag</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">match</span></td>
+            </tr>
+            <tr class="border-b border-[var(--line)]">
+              <td class="py-2 pr-2 num">D9</td>
+              <td class="py-2 pr-2">Ultimate holding co</td>
+              <td class="py-2 pr-2">N/A</td>
+              <td class="py-2 pr-2">N/A</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2 num">&mdash;</td>
+              <td class="py-2 pr-2">N/A</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.349A</td>
+              <td><span class="led on"></span> <span class="text-[var(--pos)]">n/a</span></td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-2 num">D10</td>
+              <td class="py-2 pr-2">Share-class details (rights/issue)</td>
+              <td class="py-2 pr-2">ORD &middot; voting &middot; div</td>
+              <td class="py-2 pr-2 text-[var(--warm)]">Proposed new B-class (Sep&rsquo;26)</td>
+              <td class="py-2 pr-2 num">future</td>
+              <td class="py-2 pr-2 num text-[var(--ink-3)]">28 from issue</td>
+              <td class="py-2 pr-2">Form 211 + Form 484 C&nbsp;at issue</td>
+              <td class="py-2 pr-2 text-[var(--ink-3)]">s.246F &middot; s.254X</td>
+              <td><span class="led off"></span> <span class="text-[var(--ink-3)]">planned</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="mt-3 text-[11px] text-[var(--ink-3)]">Two amendments pending pre-review: <strong>D3</strong> R Sauer residential change (file Form 484 B1 by 2026-05-20 to land before D0) and <strong>D10</strong> future B-class issue (out of scope this review). All other particulars reconcile to ASIC extract (Form 410 pulled 2026-05-10 14:22 AEST, snapshot hash <span class="num">a3f2&hellip;c481</span>).</p>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 4 · SOLVENCY RESOLUTION                   -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 04</div>
+        <h2 class="font-display text-[22px] tracking-tight">Solvency resolution &middot; s.347A &middot; 2 months from review date</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Going-concern evidence pack &middot; ratio panel</div>
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Indicator</th>
+                <th class="py-2 pr-2 text-right">FY25</th>
+                <th class="py-2 pr-2 text-right">FY26 YTD</th>
+                <th class="py-2 pr-2">Threshold</th>
+                <th class="py-2">Reading</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Current ratio</td><td class="num text-right">1.84</td><td class="num text-right">2.12</td><td class="text-[var(--ink-3)]">&ge; 1.0</td><td><span class="led on"></span> <span class="text-[var(--pos)]">healthy</span></td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Cash + receivables &divide; payables 30d</td><td class="num text-right">2.20</td><td class="num text-right">2.48</td><td class="text-[var(--ink-3)]">&ge; 1.0</td><td><span class="led on"></span> <span class="text-[var(--pos)]">healthy</span></td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Net assets</td><td class="num text-right">A$842,160</td><td class="num text-right">A$911,420</td><td class="text-[var(--ink-3)]">&gt; 0</td><td><span class="led on"></span> <span class="text-[var(--pos)]">positive</span></td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Trade payables &gt; 90d</td><td class="num text-right">A$0</td><td class="num text-right">A$2,108</td><td class="text-[var(--ink-3)]">trivial</td><td><span class="led on"></span> <span class="text-[var(--pos)]">trivial</span></td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">ATO running balance</td><td class="num text-right">A$0</td><td class="num text-right">+A$4,820 cr</td><td class="text-[var(--ink-3)]">no DPN</td><td><span class="led on"></span> <span class="text-[var(--pos)]">clean</span></td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">SG default exposure</td><td class="num text-right">A$0</td><td class="num text-right">A$0</td><td class="text-[var(--ink-3)]">no DPN</td><td><span class="led on"></span> <span class="text-[var(--pos)]">clean</span></td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Bank covenant headroom</td><td class="num text-right">42%</td><td class="num text-right">51%</td><td class="text-[var(--ink-3)]">&ge; 15%</td><td><span class="led on"></span> <span class="text-[var(--pos)]">comfortable</span></td></tr>
+              <tr><td class="py-1.5">12-month cash forecast min</td><td class="num text-right">A$184k</td><td class="num text-right">A$218k</td><td class="text-[var(--ink-3)]">&gt; 0</td><td><span class="led on"></span> <span class="text-[var(--pos)]">positive</span></td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)] leading-relaxed">Ratio panel is the directors&rsquo; evidentiary footing for the s.347A resolution and the affirmative defence against insolvent-trading exposure under <em>s.588G</em> / <em>s.588GA safe harbour</em>. Snapshot persisted to workpaper at the time of resolution &mdash; reconstructible to GL line item.</p>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Resolution draft &middot; circulating</div>
+          <div class="text-[11px] text-[var(--ink-3)] mb-1">Circulating resolution under <em>s.248A</em> &middot; replaceable rules apply (no constitution override)</div>
+          <div class="p-3 bg-[var(--paper)] border border-[var(--line)] rounded text-[11px] leading-relaxed">
+            <div class="font-medium text-[var(--ink)] mb-1">SAE Engineering Pty Ltd (ACN 184 260 521)</div>
+            <div class="text-[var(--ink-3)] mb-2">Directors&rsquo; resolution &middot; Solvency &middot; s.347A Corporations Act 2001 (Cth)</div>
+            <p class="mb-2">The directors, having considered the company&rsquo;s financial position as at <span class="num">2026-05-25</span>, including current and forecast assets and liabilities, and being aware of their duties under ss.180&ndash;184 and s.588G, resolve that:</p>
+            <p class="mb-2 italic">&ldquo;In the opinion of the directors, there are reasonable grounds to believe that the company will be able to pay its debts as and when they become due and payable.&rdquo;</p>
+            <p class="text-[var(--ink-3)]">Signed by the directors and minuted in the company&rsquo;s minute book (s.251A). Workpaper hash <span class="num">7d04&hellip;b211</span>.</p>
+          </div>
+          <div class="mt-3 text-[11px] text-[var(--ink-3)]">
+            <div>R Sauer &middot; <span class="text-[var(--ink-3)]">awaiting sign</span></div>
+            <div>M Sauer &middot; <span class="text-[var(--ink-3)]">awaiting sign</span></div>
+            <div>A Holloway (alt) &middot; <span class="text-[var(--ink-3)]">not required</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 5 · LATE-FEE LADDER + s.588G EXPOSURE     -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 05</div>
+        <h2 class="font-display text-[22px] tracking-tight">Cost of inaction &middot; late-fee ladder &amp; downstream risk</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <table class="w-full text-[12px]">
+            <thead>
+              <tr class="border-b border-[var(--line)] text-left text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)]">
+                <th class="py-2 pr-2">Scenario</th>
+                <th class="py-2 pr-2">Trigger</th>
+                <th class="py-2 pr-2 text-right">Direct cost</th>
+                <th class="py-2 pr-2 text-right">Downstream</th>
+                <th class="py-2">Authority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">On-time confirmation + fee</td><td>Fee paid by 25-Jul-26</td><td class="num text-right">A$321</td><td class="num text-right">&mdash;</td><td class="text-[var(--ink-3)]">s.346A</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Late &le; 1 month</td><td>Fee paid 26-Jul to 25-Aug</td><td class="num text-right text-[var(--warm)]">A$321 + A$96 = A$417</td><td class="num text-right text-[var(--ink-3)]">&mdash;</td><td class="text-[var(--ink-3)]">s.348A(1)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Late &gt; 1 month</td><td>Fee paid after 25-Aug</td><td class="num text-right text-[var(--neg)]">A$321 + A$401 = A$722</td><td class="num text-right text-[var(--ink-3)]">+ debt rec referral</td><td class="text-[var(--ink-3)]">s.348A(2)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Particulars unupdated &gt; 28d</td><td>Form 484 not filed</td><td class="num text-right text-[var(--neg)]">A$96&ndash;A$401 per item</td><td class="num text-right">strict liability</td><td class="text-[var(--ink-3)]">s.205B &middot; s.601CK</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Solvency res not passed</td><td>No s.347A within 2 mth</td><td class="num text-right text-[var(--neg)]">A$96&ndash;A$401</td><td class="num text-right">director exposure</td><td class="text-[var(--ink-3)]">s.347A &middot; s.180&ndash;184</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">Sustained non-compliance</td><td>&gt; 6 mth overdue</td><td class="num text-right text-[var(--neg)]">deregistration risk</td><td class="num text-right">s.601AB(1)(c)</td><td class="text-[var(--ink-3)]">s.601AB</td></tr>
+              <tr><td class="py-1.5">Insolvent trading</td><td>Debt incurred while insolvent</td><td class="num text-right text-[var(--neg)]">personal liability</td><td class="num text-right">civil + criminal</td><td class="text-[var(--ink-3)]">s.588G &middot; s.588GA</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Director-penalty notice (DPN) cross-check</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">PAYG-W &middot; lodged + paid</td><td class="num text-right text-[var(--pos)]">all current</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">GST &middot; lodged + paid</td><td class="num text-right text-[var(--pos)]">all current</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5">SG &middot; paid by 28th</td><td class="num text-right text-[var(--pos)]">FY26 Q1&ndash;Q3 paid</td></tr>
+              <tr><td class="py-1.5">Lockdown DPN exposure</td><td class="num text-right text-[var(--pos)]">A$0</td></tr>
+            </tbody>
+          </table>
+          <p class="mt-3 text-[11px] text-[var(--ink-3)] leading-relaxed">DPN exposure (TAA Sched 1 Div 269) lives next to the s.347A solvency check because they share evidentiary footing: the director&rsquo;s reasonable-grounds belief that the company can pay its debts depends on PAYG-W/GST/SG being current. A lockdown DPN would torch that belief.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 6 · FORM 484 GENERATOR PREVIEW            -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 06</div>
+        <h2 class="font-display text-[22px] tracking-tight">Form 484 generator &middot; D3 amendment preview</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-7 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Form 484 &middot; Section B1 &middot; change to officeholder details</div>
+          <table class="w-full text-[12px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)] w-1/3">Lodgement form</td><td>Form 484 (Change to company details)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Section</td><td>B1 &mdash; Change of address of officeholder</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Officeholder</td><td>Richard Sauer (director, DIN <span class="num">036 184 260 521</span>)</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">From</td><td>[redacted prior addr] &middot; QLD</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">To</td><td>Wynnum QLD 4178</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Effective</td><td class="num">2026-04-22</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">28-day deadline</td><td class="num">2026-05-20</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Lodgement channel</td><td>EDGE &middot; agent self-lodge &middot; nil fee</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1.5 text-[var(--ink-3)]">Corporate key</td><td class="num">****&nbsp;****&nbsp;6184</td></tr>
+              <tr><td class="py-1.5 text-[var(--ink-3)]">Authority</td><td>s.205B(1) &middot; s.205B(5)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-span-12 lg:col-span-5 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Other section codes &middot; reference</div>
+          <table class="w-full text-[11px]">
+            <tbody>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">A1</td><td>Change reg office</td><td class="text-[var(--ink-3)]">s.142</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">A2</td><td>Change PPB</td><td class="text-[var(--ink-3)]">s.146</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">A3</td><td>Change office hours</td><td class="text-[var(--ink-3)]">s.145</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">A4</td><td>Notify UHC</td><td class="text-[var(--ink-3)]">s.349A</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">B1</td><td>Officeholder addr change</td><td class="text-[var(--ink-3)]">s.205B</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">B2</td><td>Officeholder appoint/cease</td><td class="text-[var(--ink-3)]">s.205B</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">C1</td><td>Member appoint/cease</td><td class="text-[var(--ink-3)]">s.169</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">C2</td><td>Change member name/addr</td><td class="text-[var(--ink-3)]">s.169</td></tr>
+              <tr class="border-b border-[var(--line)]"><td class="py-1">C3</td><td>Share transfer</td><td class="text-[var(--ink-3)]">s.1071B</td></tr>
+              <tr><td class="py-1">C4</td><td>Issue/cancel shares</td><td class="text-[var(--ink-3)]">s.254X / s.258A</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- ACT 7 · MARKET COMPARISON                     -->
+    <!-- ============================================ -->
+    <section class="mb-10">
+      <div class="flex items-baseline gap-3 mb-4">
+        <div class="num-stamp">ACT 07</div>
+        <h2 class="font-display text-[22px] tracking-tight">Market read &middot; where this surface lives elsewhere</h2>
+      </div>
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper)]">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">Xero / MYOB / Reckon</div>
+          <ul class="text-[12px] space-y-2 leading-relaxed">
+            <li><strong>Xero</strong> &mdash; no ASIC module. The Australian product surfaces BAS, STP, super, and reports; the annual review is delegated to the registered agent (CAS 360 integrates via Xero Practice Manager but writes to its own ledger, not the client&rsquo;s GL).</li>
+            <li><strong>MYOB AE/AO</strong> &mdash; corporate compliance handled via <em>MYOB Corporate Compliance</em> (formerly Greatsoft) or third-party CAS 360. Annual review fee accrual is a manual journal.</li>
+            <li><strong>Reckon</strong> &mdash; <em>Reckon Docs</em> serves the registered-agent function but is a separate product from Reckon One / Reckon Accounts; the client never sees the review-date clock from their bookkeeping surface.</li>
+            <li><strong>BGL CAS / NowInfinity / CAS 360</strong> &mdash; the dominant AU practice tools for s.345A. They are excellent at lodgement but are accountant-facing; the client&rsquo;s books and the corporate register are two different systems with no live reconciliation.</li>
+          </ul>
+        </div>
+        <div class="col-span-12 lg:col-span-6 p-5 border border-[var(--line)] rounded-lg bg-[var(--paper-2)] dot-grid-soft">
+          <div class="text-[11px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-2">SAE Books &middot; native</div>
+          <ul class="text-[12px] space-y-2 leading-relaxed">
+            <li>Review-date clock surfaces in the same workpaper rail as BAS, STP, super, and FBT &mdash; one calendar, no second login.</li>
+            <li>Delta register compares ASIC extract (Form 410 pull, hashed) against the GL&rsquo;s share, officeholder, and address tables &mdash; 28-day breaches surface as warm-state alerts before they harden into late fees.</li>
+            <li>Solvency-resolution evidence pack auto-builds from the GL: current ratio, payables aging, ATO running balance, SG default exposure, 12-mth cash forecast min. Directors sign once; the workpaper hash and ratio snapshot are persisted for s.588GA safe-harbour evidence.</li>
+            <li>Annual-review fee accrues on D0 and reverses on payment &mdash; one less manual JE.</li>
+            <li>Form 484 generator emits the lodgement payload; for self-lodgers the corporate key flows from the company profile. For agent-lodged entities the JSON exports to BGL/CAS/NowInfinity.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- FOOTER · AUTHORITY PACK                       -->
+    <!-- ============================================ -->
+    <footer class="mt-10 pt-6 border-t border-[var(--line)] text-[11px] text-[var(--ink-3)] leading-relaxed">
+      <div class="grid grid-cols-12 gap-4">
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Primary law</div>
+          <ul class="space-y-0.5">
+            <li>Corporations Act 2001 (Cth) s.345A &mdash; review date</li>
+            <li>s.346A &mdash; review fee &middot; s.347A &mdash; solvency res</li>
+            <li>s.348A &mdash; late lodgement fee</li>
+            <li>s.142, s.146 &mdash; reg office, PPB</li>
+            <li>s.205B &mdash; officeholder details</li>
+            <li>s.169, s.254X &mdash; member &amp; share registers</li>
+            <li>s.601CK &mdash; foreign-co changes</li>
+            <li>s.588G &middot; s.588GA &mdash; insolvent trading &middot; safe harbour</li>
+            <li>s.180&ndash;184 &mdash; director duties</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Subordinate / forms</div>
+          <ul class="space-y-0.5">
+            <li>Corp (Fees) Regs 2001 reg.3 &mdash; fee indexation</li>
+            <li>Form 484 &mdash; change to company details</li>
+            <li>Form 410 &mdash; current company extract</li>
+            <li>Form 388 &mdash; financial reports (large pty / public)</li>
+            <li>Form 211 &mdash; share-class issue notification</li>
+            <li>Form 506 &mdash; ABRS / DIN sync</li>
+            <li>RG 16 &mdash; external administrators &amp; reviews</li>
+            <li>RG 217 &mdash; duty to prevent insolvent trading</li>
+          </ul>
+        </div>
+        <div class="col-span-12 md:col-span-4">
+          <div class="uppercase tracking-[0.22em] text-[10px] mb-2">Adjacent &amp; cases</div>
+          <ul class="space-y-0.5">
+            <li>TAA 1953 Sched 1 Div 269 &mdash; DPN regime</li>
+            <li>ABRS Privacy Notice 2022 &mdash; DIN</li>
+            <li>ASIC v Plymin (No 1) [2003] VSC 123 &mdash; insolvent-trading factors</li>
+            <li>Hall v Poolman [2007] NSWSC 1330 &mdash; reasonable grounds</li>
+            <li>ASIC v Adler [2002] NSWSC 171 &mdash; director duties</li>
+            <li>ABRS / ASIC EDGE channels</li>
+            <li>SBR2 &mdash; not applicable (Form 484 still PDF/EDGE)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-5 pt-4 border-t border-[var(--line)] flex flex-wrap items-center gap-3">
+        <span class="num-stamp">AR-184260-26</span>
+        <span>Workpaper hash <span class="num">7d04&hellip;b211</span></span>
+        <span>&middot; ASIC extract Form 410 <span class="num">2026-05-10 14:22 AEST</span></span>
+        <span>&middot; prepared by SAE Books &middot; review by R Sauer (director)</span>
+        <span class="ml-auto">Surface lineage &middot; s.345A &middot; Australian first.</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+{% endblock %}

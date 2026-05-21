@@ -1,0 +1,487 @@
+{% extends "preview/_layout.html" %}
+{% block title %}SBE pool · Subdiv 328-D · FY26 workpaper — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>ITAA 1997 · Subdivision 328-D</span><span>·</span>
+      <span>Simplified depreciation — small business entity</span><span>·</span>
+      <span class="text-[var(--sae)]">POOL-FY26</span><span>·</span>
+      <span>Year ended 30 Jun 2026</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">SBE general pool · Subdiv 328-D · FY26</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          SAE Engineering Pty Ltd · ABN 18 184 261 842 · Aggregated turnover <span class="font-mono">A$6.84m</span> &lt; <span class="font-mono">A$10m</span> SBE threshold ·
+          <span class="font-mono">s.328-110</span> eligible · IAWO threshold <span class="font-mono">A$20,000</span> per asset (extended to 30 Jun 2026 by Treasury Laws Amendment (2024 Measures No.1) Act 2024)
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Total FY26 deduction</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$117,598.05</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">IAWO A$58,420.40 · pool A$59,178.05 (15% additions + 30% opening)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Status banner -->
+  <section class="px-10 py-5 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">SBE eligibility</div>
+        <div class="text-sm">s.328-110 met · A$6.84m turnover · prior-year + current-year tests both pass</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">IAWO window</div>
+        <div class="text-sm">5 assets &lt; A$20k · A$58,420.40 immediate · TLA(2024 Measures No.1) extends to 30 Jun 2026</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Pool low-value rule</div>
+        <div class="text-sm">s.328-210 · closing pool A$151,082.13 &gt; A$20,000 · NOT written off</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led warn"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Lock-out (s.328-175)</div>
+        <div class="text-sm">Opted in FY24 · 5-yr lock-in until FY29 · cannot revert to Div 40</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="px-10 py-6 grid grid-cols-6 gap-3 border-b border-[var(--line)]">
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Opening pool</div>
+      <div class="num text-2xl mt-1">A$184,260.18</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">1 Jul 2025 · ex FY25 ret</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Pool additions</div>
+      <div class="num text-2xl mt-1 text-[var(--sae)]">A$26,000.00</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">1 asset ≥ A$20k</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">IAWO claims</div>
+      <div class="num text-2xl mt-1">A$58,420.40</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">5 assets &lt; A$20k</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">15% new-addition deduction</div>
+      <div class="num text-2xl mt-1">A$3,900.00</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">s.328-190(2)</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">30% opening-pool deduction</div>
+      <div class="num text-2xl mt-1">A$55,278.05</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">s.328-190(1)</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Closing pool</div>
+      <div class="num text-2xl mt-1 text-[var(--ink)]">A$151,082.13</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">30 Jun 2026 · s.328-200</div>
+    </div>
+  </section>
+
+  <!-- IAWO assets -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Instant asset write-off · s.328-180</div>
+        <h2 class="font-display text-2xl mt-1">Assets &lt; A$20,000 — full immediate deduction</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Cost threshold tested per asset · GST-exclusive cost · taxable-purpose proportion applied
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-24">Asset ID</th>
+          <th class="text-left">Description</th>
+          <th class="text-left w-32">Supplier</th>
+          <th class="text-left w-28">First use</th>
+          <th class="text-right w-28">GST-ex cost</th>
+          <th class="text-right w-20">TP%</th>
+          <th class="text-right w-32">Deduction</th>
+          <th class="text-left w-24">Bill ref</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-2042</td><td>Lincoln Power MIG 256 welder</td><td>Coregas QLD</td><td>14 Aug 2025</td><td class="text-right">A$4,184.55</td><td class="text-right">100%</td><td class="text-right">A$4,184.55</td><td>BILL-1714</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-2043</td><td>Hitachi DH40MR rotary hammer + bits</td><td>Bunnings Trade</td><td>02 Sep 2025</td><td class="text-right">A$1,840.91</td><td class="text-right">100%</td><td class="text-right">A$1,840.91</td><td>BILL-1738</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-2044</td><td>Bandsaw Cosen MH-460 (semi-auto)</td><td>Industrial Tooling</td><td>18 Nov 2025</td><td class="text-right">A$18,420.18</td><td class="text-right">100%</td><td class="text-right">A$18,420.18</td><td>BILL-1769</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-2045</td><td>Lift table 1.5t hydraulic platform</td><td>Sitecraft</td><td>06 Feb 2026</td><td class="text-right">A$14,260.40</td><td class="text-right">100%</td><td class="text-right">A$14,260.40</td><td>BILL-1808</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-2046</td><td>HP ProBook 460 G11 + dock × 2 (admin)</td><td>Dell DI</td><td>22 Mar 2026</td><td class="text-right">A$19,714.36</td><td class="text-right">100%</td><td class="text-right">A$19,714.36</td><td>BILL-1832</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium">
+          <td class="py-3" colspan="4">5 assets · all under A$20k threshold per asset</td>
+          <td class="text-right">A$58,420.40</td>
+          <td class="text-right">—</td>
+          <td class="text-right text-[var(--sae)]">A$58,420.40</td>
+          <td>IAWO</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      <span class="font-medium text-[var(--ink)]">Threshold mechanics:</span> A$20,000 ceiling is the cost of the asset itself,
+      not the supplier invoice — installation/freight/financing forming part of cost-base under <span class="font-mono">s.40-180</span> are included.
+      Where total cost ≥ A$20k the asset must be allocated to the SBE pool (next section).
+      Without the TLA(2024 Measures No.1) extension the threshold would revert to A$1,000 per asset.
+    </div>
+  </section>
+
+  <!-- Pool movement -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">SBE general pool · s.328-185 / s.328-200</div>
+        <h2 class="font-display text-2xl mt-1">Pool movement — FY26</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        15% first-year rate on additions · 30% diminishing value on opening pool
+      </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2">Movement</th>
+              <th class="text-left w-32">Section</th>
+              <th class="text-right w-32">Amount</th>
+              <th class="text-right w-28">Rate</th>
+              <th class="text-right w-32">Effect</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Opening pool balance 1 Jul 2025</td><td>s.328-200(1)</td><td class="text-right">A$184,260.18</td><td class="text-right">—</td><td class="text-right">A$184,260.18</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">+ FA-2047 Miller Dynasty 280DX TIG (pool addition)</td><td>s.328-185(2)</td><td class="text-right">A$26,000.00</td><td class="text-right">—</td><td class="text-right">A$210,260.18</td></tr>
+            <tr class="border-b border-[var(--line)] text-[var(--neg)]"><td class="py-2 pl-4">− 15% deduction on FY26 additions</td><td>s.328-190(2)</td><td class="text-right">A$26,000.00</td><td class="text-right">15.00%</td><td class="text-right">−A$3,900.00</td></tr>
+            <tr class="border-b border-[var(--line)] text-[var(--neg)]"><td class="py-2 pl-4">− 30% diminishing-value on opening pool</td><td>s.328-190(1)</td><td class="text-right">A$184,260.18</td><td class="text-right">30.00%</td><td class="text-right">−A$55,278.05</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pl-4">Disposals / termination value</td><td>s.328-215</td><td class="text-right">A$0.00</td><td class="text-right">—</td><td class="text-right">A$0.00</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">Closing pool balance 30 Jun 2026</td><td>s.328-200(2)</td><td class="text-right">—</td><td class="text-right">—</td><td class="text-right text-[var(--ink)]">A$151,082.13</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-span-5">
+        <div class="border border-[var(--line)] bg-[var(--paper)] p-5">
+          <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-2">Low-pool test · s.328-210</div>
+          <div class="text-sm leading-relaxed">
+            If the closing pool balance (before depreciation) is &lt; A$20,000,
+            the entire balance is written off in that year.
+          </div>
+          <div class="mt-3 text-xs num bg-[var(--paper-2)] border border-[var(--line)] p-3">
+            <div>Closing-before-depn = Opening + additions</div>
+            <div>= A$184,260.18 + A$26,000.00</div>
+            <div>= <span class="text-[var(--ink)]">A$210,260.18</span></div>
+            <div class="mt-1">A$210,260.18 ≥ A$20,000 → <span class="text-[var(--neg)]">low-pool write-off NOT triggered</span></div>
+          </div>
+          <div class="mt-4 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-2">Pool-addition rationale</div>
+          <div class="text-sm leading-relaxed">
+            FA-2047 (Miller Dynasty 280DX) cost A$26,000 GST-ex → exceeds A$20k IAWO ceiling → mandatorily pooled.
+            All TP=100% (used solely for production welding).
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plant register summary -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Plant &amp; equipment register · roll-forward</div>
+        <h2 class="font-display text-2xl mt-1">Pool-asset register at 30 Jun 2026</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Per-asset cost tracking retained for s.328-215 disposal calcs · LCT/GST treatment shown separately
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-24">Asset ID</th>
+          <th class="text-left">Description</th>
+          <th class="text-left w-28">Acquired</th>
+          <th class="text-right w-32">Cost (GST-ex)</th>
+          <th class="text-right w-24">Years in pool</th>
+          <th class="text-right w-28">Effective WDV</th>
+          <th class="text-left w-28">Location</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1812</td><td>Doosan DNM 5700 CNC mill</td><td>22 Aug 2020</td><td class="text-right">A$184,420.00</td><td class="text-right">6</td><td class="text-right">A$21,684.40</td><td>Shed A · bay 3</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1843</td><td>Mazak QTU-200 CNC lathe</td><td>14 Mar 2022</td><td class="text-right">A$96,420.00</td><td class="text-right">4</td><td class="text-right">A$33,184.42</td><td>Shed A · bay 5</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1874</td><td>Hyster H3.0FT forklift</td><td>06 Jul 2022</td><td class="text-right">A$48,260.00</td><td class="text-right">4</td><td class="text-right">A$16,597.18</td><td>Yard north</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1942</td><td>Plasma cutter Hypertherm 105</td><td>28 Jan 2024</td><td class="text-right">A$28,420.00</td><td class="text-right">3</td><td class="text-right">A$13,720.30</td><td>Shed A · bay 7</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1984</td><td>Air compressor Atlas Copco GA22</td><td>16 May 2024</td><td class="text-right">A$32,840.00</td><td class="text-right">2</td><td class="text-right">A$19,597.36</td><td>Plant room</td></tr>
+        <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-2">FA-2047</td><td>Miller Dynasty 280DX TIG (FY26 add)</td><td>11 Mar 2026</td><td class="text-right">A$26,000.00</td><td class="text-right">1</td><td class="text-right">A$22,100.00</td><td>Shed A · bay 6</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium">
+          <td class="py-3" colspan="3">6 pool assets · individual WDV reconciles to pool balance</td>
+          <td class="text-right">A$416,360.00</td>
+          <td class="text-right">—</td>
+          <td class="text-right">A$151,082.13</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-3 text-[11px] text-[var(--ink-3)]">
+      Per-asset WDV is illustrative only — under SBE simplified depreciation the pool is a single notional asset
+      and individual WDVs are reconstructed from cost × pool-depreciation factor only for disposal/termination value computations.
+    </div>
+  </section>
+
+  <!-- Tax effect + reconciliation -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Tax effect</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">FY26 deduction → company tax</h2>
+
+        <table class="w-full text-sm">
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">FY26 deduction · IAWO (s.328-180)</td><td class="text-right">A$58,420.40</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">FY26 deduction · 15% new additions (s.328-190(2))</td><td class="text-right">A$3,900.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">FY26 deduction · 30% opening pool (s.328-190(1))</td><td class="text-right">A$55,278.05</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">Total Subdiv 328-D deduction</td><td class="text-right text-[var(--sae)]">A$117,598.05</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pt-3 text-[var(--ink-3)]">SBE company rate · base-rate entity</td><td class="text-right text-[var(--ink-3)]">25.00%</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Tax saving · cash-equivalent</td><td class="text-right">A$29,399.51</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">PAYG-I FY27 GDP-adj uplift (4%) effect</td><td class="text-right text-[var(--ink-3)]">−A$1,175.98 per qtr</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Company return label · Item 9 P8 W (depreciation)</td><td class="text-right">A$117,598</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Company return label · Item 6 S (SBE indicator)</td><td class="text-right">YES</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-5">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Book vs tax reconciliation</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Accounting depn ↔ tax depn</h2>
+
+        <table class="w-full text-sm">
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Book depreciation FY26 (straight-line 10yr · GAAP)</td><td class="text-right">A$54,184.20</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Tax depreciation FY26 (Subdiv 328-D)</td><td class="text-right">A$117,598.05</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">Temporary difference · favours tax</td><td class="text-right text-[var(--pos)]">A$63,413.85</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pt-3 text-[var(--ink-3)]">Deferred tax liability movement @ 25%</td><td class="text-right text-[var(--ink-3)]">A$15,853.46</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Cumulative DTL 30 Jun 2026 (carrying)</td><td class="text-right text-[var(--ink-3)]">A$48,260.18</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">AASB 112 disclosure · note 14</td><td class="text-right">queued</td></tr>
+          </tbody>
+        </table>
+
+        <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed">
+          The DTL accumulates because tax claims depreciation faster than book; it reverses
+          as pool WDV declines below the book-net carrying amount and the accounting
+          base catches up with the tax base.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5-yr forward projection -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">5-year forward pool projection · zero new additions</div>
+        <h2 class="font-display text-2xl mt-1">Pool decay · FY26 → FY30</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Modelled at 30% DV with low-pool write-off triggering when balance falls below A$20,000
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-20">Year</th>
+          <th class="text-right w-40">Opening pool</th>
+          <th class="text-right w-32">Additions</th>
+          <th class="text-right w-32">15% on adds</th>
+          <th class="text-right w-32">30% on opening</th>
+          <th class="text-right w-32">Low-pool w/o</th>
+          <th class="text-right w-32">Total deduction</th>
+          <th class="text-right w-40">Closing pool</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FY26</td><td class="text-right">A$184,260.18</td><td class="text-right">A$26,000.00</td><td class="text-right">A$3,900.00</td><td class="text-right">A$55,278.05</td><td class="text-right">—</td><td class="text-right text-[var(--sae)]">A$59,178.05</td><td class="text-right">A$151,082.13</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FY27</td><td class="text-right">A$151,082.13</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td><td class="text-right">A$45,324.64</td><td class="text-right">—</td><td class="text-right">A$45,324.64</td><td class="text-right">A$105,757.49</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FY28</td><td class="text-right">A$105,757.49</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td><td class="text-right">A$31,727.25</td><td class="text-right">—</td><td class="text-right">A$31,727.25</td><td class="text-right">A$74,030.24</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FY29</td><td class="text-right">A$74,030.24</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td><td class="text-right">A$22,209.07</td><td class="text-right">—</td><td class="text-right">A$22,209.07</td><td class="text-right">A$51,821.17</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FY30</td><td class="text-right">A$51,821.17</td><td class="text-right">A$0.00</td><td class="text-right">A$0.00</td><td class="text-right">A$15,546.35</td><td class="text-right">—</td><td class="text-right">A$15,546.35</td><td class="text-right">A$36,274.82</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">Σ 5 years</td><td colspan="5"></td><td class="text-right">A$173,985.36</td><td class="text-right">—</td></tr>
+      </tbody>
+    </table>
+
+    <div class="mt-3 text-[11px] text-[var(--ink-3)]">
+      Note: low-pool write-off (s.328-210) does not trigger in the forward window even with zero additions —
+      pool balance does not fall below A$20k until FY33. Real-world additions reset the projection.
+    </div>
+  </section>
+
+  <!-- Pipeline -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Annual depreciation pipeline · automated</div>
+    <ol class="grid grid-cols-7 gap-2 text-xs">
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">1 · capture</div>
+        <div class="font-medium mt-1">Bill posted</div>
+        <div class="text-[var(--ink-3)] mt-1">Account 1-310 P&amp;E flagged · cost extracted from UBL <span class="font-mono">InvoiceLine/LineExtensionAmount</span></div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">2 · classify</div>
+        <div class="font-medium mt-1">IAWO vs pool</div>
+        <div class="text-[var(--ink-3)] mt-1">Cost &lt; A$20k → IAWO; ≥ A$20k → pool · TP% checkbox</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">3 · register</div>
+        <div class="font-medium mt-1">FA-XXXX assigned</div>
+        <div class="text-[var(--ink-3)] mt-1">Plant register row · serial · location · warranty · service interval</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">4 · year-end calc</div>
+        <div class="font-medium mt-1">Pool roll-forward</div>
+        <div class="text-[var(--ink-3)] mt-1">15% adds + 30% opening · low-pool test · disposals/term value</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">5 · journals</div>
+        <div class="font-medium mt-1">Tax-book delta</div>
+        <div class="text-[var(--ink-3)] mt-1">DR 6-810 · CR 1-315 accum depn · DTL movement to 2-905</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">6 · return</div>
+        <div class="font-medium mt-1">SBR2 company return</div>
+        <div class="text-[var(--ink-3)] mt-1">Items P8 W + Item 6 S · IAWO worksheet attached</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">7 · WORM</div>
+        <div class="font-medium mt-1">7-yr retention</div>
+        <div class="text-[var(--ink-3)] mt-1">R2 bucket immutable · Corp Act s.286 / TAA s.262A · cost evidence kept</div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">AU-market positioning · simplified depreciation surface</div>
+    <h2 class="font-display text-2xl mb-4">SAE Books vs Xero · MYOB · Reckon</h2>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-44">Capability</th>
+          <th class="text-left w-44">Xero (AU)</th>
+          <th class="text-left w-44">MYOB Business Pro</th>
+          <th class="text-left w-44">Reckon One</th>
+          <th class="text-left">SAE Books</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Fixed-asset register</td>
+          <td>Yes · Xero FA module add-on</td>
+          <td>Yes · AssetManager Pro</td>
+          <td>Yes · classic asset module</td>
+          <td>Yes · native · linked to bill lines via R-21 auto-coding</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">IAWO threshold tracking</td>
+          <td>Manual override per asset</td>
+          <td>Manual flag · no extension awareness</td>
+          <td>Manual</td>
+          <td>Cost-against-threshold tested at bill-post · TLA(2024) extension date baked in</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">SBE pool (Subdiv 328-D)</td>
+          <td>No native pool · returns done in Xero Tax</td>
+          <td>No native · MYOB Practice handles</td>
+          <td>No native · Reckon Accounts Pro only</td>
+          <td>Native pool · 15%+30% applied automatically · low-pool test</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Lock-out tracker (s.328-175)</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>5-yr lock-in window surfaced on workpaper</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Book↔tax timing diff</td>
+          <td>Manual journal at year-end</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Auto-computed DTL movement · AASB 112 note 14 hooks</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">5-yr forward projection</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Pool-decay model on workpaper · low-pool trigger forecast</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">SBR2 company-return push</td>
+          <td>Xero Tax (separate product)</td>
+          <td>MYOB Practice (separate)</td>
+          <td>Reckon Elite (separate)</td>
+          <td>Native SBR2 lodgement · P8 W + Item 6 S pre-filled</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Cost-evidence retention</td>
+          <td>Files attached to bill</td>
+          <td>InTray</td>
+          <td>Document store</td>
+          <td>WORM 7-yr · Corp Act s.286 / TAA s.262A · audit log immutable</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      The three Australian incumbents treat SBE simplified depreciation as a year-end accountant problem — the books carry the register, the practice product computes the pool.
+      SAE Books collapses that boundary: the pool is updated as bills are posted, the workpaper is always current, and lodgement is a button-push rather than an export.
+    </div>
+  </section>
+
+  <!-- Cross-link mesh -->
+  <section class="px-10 py-8">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Related</div>
+    <div class="grid grid-cols-5 gap-3">
+      <a href="/preview/bills/bill-1843" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Bill source</div>
+        <div class="font-medium mt-1">BILL-1843 BlueScope</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Bill lines coded 5-205/210/220 — capital line auto-routes to plant register</div>
+      </a>
+      <a href="/preview/compliance/fbt/fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">FBT cross-ref</div>
+        <div class="font-medium mt-1">FBT FY26 workpaper</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">UTE-1842/2603 cost flows to pool · stat-formula base value uses same cost record</div>
+      </a>
+      <a href="/preview/cashbook/april-2026" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Cash impact</div>
+        <div class="font-medium mt-1">Cashbook · April 2026</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Capex BECS DD batches feed period payments side · A$26k pool asset settled 11 Mar</div>
+      </a>
+      <a href="/preview/compliance/div7a/ln-2603" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Distributable surplus</div>
+        <div class="font-medium mt-1">Div 7A loan LN-2603</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Pool WDV reduces net-asset position used in s.109Y distributable-surplus calc</div>
+      </a>
+      <a href="/preview/payroll/pay-event/26w19" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Workforce</div>
+        <div class="font-medium mt-1">STP-2 pay event PE-26W19</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Welders operating FA-2047/1942 · OTE base sets SG cost layered over capex run rate</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,397 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Payroll tax (QLD) · Q4 FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>QRO · Queensland Revenue Office</span><span>·</span>
+      <span>Payroll Tax Act 2008 (Qld) s.13</span><span>·</span>
+      <span class="text-[var(--sae)]">PT-26-Q4</span><span>·</span>
+      <span>Q4 FY26 · Apr–Jun 2026</span><span>·</span>
+      <span>Annual return due 21 Jul 2026</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">Payroll tax · QLD Q4 FY26 annual reconciliation</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          Single-entity employer · QRO client 1184260 · liable wages 12-month rolling test ·
+          A$1.3m annual threshold s.18 · primary rate 4.75% s.20(1)(a) ·
+          deduction phased out A$1.3m→A$6.5m s.19 · mental-health levy 0.25% &gt; A$10m s.21A · not triggered
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Q4 + annual reconciliation</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$18,420.18</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">FY26 total tax A$72,840.36 · Q4 settlement A$18,420.18 · refund nil · top-up nil</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI rail -->
+  <section class="grid grid-cols-6 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">QLD taxable wages</div>
+      <div class="num font-display text-2xl mt-1">A$2,840,260</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">FY26 · gross less exempt</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Threshold reduction</div>
+      <div class="num font-display text-2xl mt-1">A$1,179,948</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">s.19 tapered deduction</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Net taxable</div>
+      <div class="num font-display text-2xl mt-1">A$1,660,312</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">wages − deduction</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Tax @ 4.75%</div>
+      <div class="num font-display text-2xl text-[var(--sae)] mt-1">A$78,864.82</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">s.20(1)(a) primary rate</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Apprentice rebate</div>
+      <div class="num font-display text-2xl text-[var(--pos)] mt-1">−A$6,024.46</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">s.27D · 50% on 4 apprentices</div>
+    </div>
+    <div class="px-6 py-4">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Net liability FY26</div>
+      <div class="num font-display text-2xl mt-1">A$72,840.36</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">already paid A$54,420.18 · top-up A$18,420.18</div>
+    </div>
+  </section>
+
+  <!-- Wage classification + threshold calc -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Liable wages buildup · Payroll Tax Act 2008 (Qld) Pt 2 Div 2</div>
+        <div class="font-display text-2xl">Wage classification — taxable vs exempt</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Component</th><th class="text-left">Statute</th><th class="text-right">Gross</th><th class="text-right">Exempt</th><th class="text-right">Taxable</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Salaries &amp; wages (W1 STP)</td><td class="text-xs text-[var(--ink-3)]">s.13(1)(a)</td><td class="num text-right">A$2,184,260.40</td><td class="num text-right text-[var(--ink-3)]">—</td><td class="num text-right">A$2,184,260.40</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Overtime &amp; allowances</td><td class="text-xs text-[var(--ink-3)]">s.13(1)(b)</td><td class="num text-right">A$248,420.18</td><td class="num text-right text-[var(--ink-3)]">—</td><td class="num text-right">A$248,420.18</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Super contributions (SG + salary sac)</td><td class="text-xs text-[var(--ink-3)]">s.13B</td><td class="num text-right">A$268,420.40</td><td class="num text-right text-[var(--ink-3)]">—</td><td class="num text-right">A$268,420.40</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Fringe benefits (grossed-up FBT)</td><td class="text-xs text-[var(--ink-3)]">s.13D</td><td class="num text-right">A$32,840.18</td><td class="num text-right text-[var(--ink-3)]">—</td><td class="num text-right">A$32,840.18</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Termination payments (taxable portion)</td><td class="text-xs text-[var(--ink-3)]">s.13(1)(c)</td><td class="num text-right">A$18,420.18</td><td class="num text-right text-[var(--ink-3)]">—</td><td class="num text-right">A$18,420.18</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Contractor payments — relevant (s.13B labour test pass)</td><td class="text-xs text-[var(--ink-3)]">s.13B(1)</td><td class="num text-right">A$184,260.40</td><td class="num text-right text-[var(--ink-3)]">—</td><td class="num text-right">A$184,260.40</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Contractor payments — exempt (90-day, materials &gt;50%)</td><td class="text-xs text-[var(--ink-3)]">s.13C(2)(a),(c)</td><td class="num text-right">A$84,260.40</td><td class="num text-right text-[var(--pos)]">−A$84,260.40</td><td class="num text-right text-[var(--ink-3)]">—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Apprentice wages (full exemption)</td><td class="text-xs text-[var(--ink-3)]">s.14(2)(a)</td><td class="num text-right">A$184,260.18</td><td class="num text-right text-[var(--pos)]">−A$184,260.18</td><td class="num text-right text-[var(--ink-3)]">—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Parental leave wages</td><td class="text-xs text-[var(--ink-3)]">s.14B</td><td class="num text-right">A$11,840.60</td><td class="num text-right text-[var(--pos)]">−A$11,840.60</td><td class="num text-right text-[var(--ink-3)]">—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Workers' comp redemption (lump sum)</td><td class="text-xs text-[var(--ink-3)]">s.14(2)(f)</td><td class="num text-right">A$3,840.18</td><td class="num text-right text-[var(--pos)]">−A$3,840.18</td><td class="num text-right text-[var(--ink-3)]">—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Salary sacrifice — exempt benefits</td><td class="text-xs text-[var(--ink-3)]">s.13D(2)</td><td class="num text-right">A$3,820.40</td><td class="num text-right text-[var(--pos)]">−A$3,820.40</td><td class="num text-right text-[var(--ink-3)]">—</td></tr>
+            <tr class="font-medium"><td class="py-2">Total liable QLD wages</td><td></td><td class="num text-right">A$3,224,481.78</td><td class="num text-right text-[var(--ink-3)]">−A$284,221.76</td><td class="num text-right text-[var(--sae)]">A$2,940,260.02</td></tr>
+            <tr class="text-[var(--ink-3)] text-xs"><td class="py-1">Inter-jurisdictional split (NSW services)</td><td>s.11 nexus rules</td><td colspan="2" class="text-right">Nexus test: 28-day rule</td><td class="num text-right">−A$100,000.00</td></tr>
+            <tr class="font-display text-base"><td class="py-2">Net QLD taxable wages</td><td colspan="3"></td><td class="num text-right text-[var(--sae)]">A$2,840,260.02</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Threshold calculation · s.18 + s.19 deduction</div>
+        <div class="font-display text-2xl">Tapered deduction</div>
+      </div>
+      <div class="px-8 pb-6 space-y-3 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Annual threshold</div>
+          <div class="num text-2xl">A$1,300,000.00</div>
+          <div class="text-[10px] text-[var(--ink-3)]">s.18(1) · 365 days · no foreign-wages adjustment</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Phase-out range</div>
+          <div class="num text-base">A$1,300,000 → A$6,500,000</div>
+          <div class="text-[10px] text-[var(--ink-3)]">s.19(2) · deduction reduces $1 per $4 of wages over threshold</div>
+        </div>
+        <div class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">Deduction formula s.19(3)</div>
+          <div class="text-xs">D = max(0, 1,300,000 − (W − 1,300,000) ÷ 4)</div>
+          <div class="text-xs mt-1">D = 1,300,000 − (2,840,260 − 1,300,000) ÷ 4</div>
+          <div class="text-xs">D = 1,300,000 − 385,065 = <span class="num font-medium">A$914,935</span></div>
+          <div class="text-[10px] text-[var(--ink-3)] mt-1">but capped by group threshold rule s.19A → final A$1,179,948 (Q-grade adjusted)</div>
+        </div>
+        <table class="w-full text-sm">
+          <tbody>
+            <tr class="border-t border-[var(--line)]"><td class="py-1.5">QLD taxable wages</td><td class="num text-right">A$2,840,260.02</td></tr>
+            <tr class="border-t border-[var(--line)]"><td class="py-1.5">Threshold deduction</td><td class="num text-right text-[var(--pos)]">−A$1,179,948.00</td></tr>
+            <tr class="border-t border-[var(--line)] font-medium"><td class="py-1.5">Net taxable</td><td class="num text-right">A$1,660,312.02</td></tr>
+            <tr class="border-t border-[var(--line)]"><td class="py-1.5">Primary rate × 4.75%</td><td class="num text-right">A$78,864.82</td></tr>
+            <tr class="border-t border-[var(--line)]"><td class="py-1.5">Mental-health levy 0.25% &gt; A$10m</td><td class="num text-right text-[var(--ink-3)]">A$0.00 · not triggered</td></tr>
+            <tr class="border-t border-[var(--line)]"><td class="py-1.5">Mental-health levy 0.75% &gt; A$100m</td><td class="num text-right text-[var(--ink-3)]">A$0.00 · not triggered</td></tr>
+            <tr class="border-t border-[var(--line)]"><td class="py-1.5">Sub-total</td><td class="num text-right">A$78,864.82</td></tr>
+            <tr class="border-t border-[var(--line)]"><td class="py-1.5">50% apprentice/trainee rebate s.27D</td><td class="num text-right text-[var(--pos)]">−A$6,024.46</td></tr>
+            <tr class="border-t border-[var(--line)] font-display text-base"><td class="py-2">FY26 net payroll tax</td><td class="num text-right text-[var(--sae)]">A$72,840.36</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Monthly lodgement table + nexus test -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-8 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Monthly lodgement history · s.59(1)(a) periodic returns due 7th of following month</div>
+        <div class="font-display text-2xl">FY26 lodgement &amp; payment ledger</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Period</th><th class="text-left">QLD wages</th><th class="text-left">Deduction</th><th class="text-left">Net</th><th class="text-left">Tax</th><th class="text-left">Rebate</th><th class="text-left">Paid</th><th class="text-left">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Jul 2025</td><td class="num">A$238,420.10</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$130,087</td><td class="num">A$6,179.13</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$5,677.09</td><td class="text-xs"><span class="led on"></span> lodged 06 Aug</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Aug 2025</td><td class="num">A$246,184.20</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$137,851</td><td class="num">A$6,547.92</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$6,045.88</td><td class="text-xs"><span class="led on"></span> lodged 05 Sep</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Sep 2025</td><td class="num">A$232,840.18</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$124,507</td><td class="num">A$5,914.08</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$5,412.04</td><td class="text-xs"><span class="led on"></span> lodged 07 Oct</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Oct 2025</td><td class="num">A$240,260.42</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$131,927</td><td class="num">A$6,266.55</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$5,764.51</td><td class="text-xs"><span class="led on"></span> lodged 06 Nov</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Nov 2025</td><td class="num">A$258,420.18</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$150,087</td><td class="num">A$7,129.13</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$6,627.09</td><td class="text-xs"><span class="led on"></span> lodged 05 Dec</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Dec 2025</td><td class="num">A$251,840.40</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$143,507</td><td class="num">A$6,816.58</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$6,314.54</td><td class="text-xs"><span class="led on"></span> lodged 06 Jan</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Jan 2026</td><td class="num">A$224,260.18</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$115,927</td><td class="num">A$5,506.55</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$5,004.51</td><td class="text-xs"><span class="led on"></span> lodged 06 Feb</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Feb 2026</td><td class="num">A$229,840.42</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$121,507</td><td class="num">A$5,771.58</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$5,269.54</td><td class="text-xs"><span class="led on"></span> lodged 05 Mar</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Mar 2026</td><td class="num">A$242,184.40</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$133,851</td><td class="num">A$6,358.92</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$5,856.88</td><td class="text-xs"><span class="led on"></span> lodged 06 Apr</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">Apr 2026 · Q4</td><td class="num">A$248,260.18</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$139,927</td><td class="num">A$6,646.55</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$6,144.51</td><td class="text-xs"><span class="led on"></span> lodged 06 May</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">May 2026 · Q4</td><td class="num">A$251,840.40</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$143,507</td><td class="num">A$6,816.58</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$6,314.54</td><td class="text-xs"><span class="led warn"></span> due 07 Jun</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">Jun 2026 · Q4 + ann</td><td class="num">A$251,387.96</td><td class="num text-[var(--pos)]">−A$108,333</td><td class="num">A$143,055</td><td class="num">A$6,795.13</td><td class="num text-[var(--pos)]">−A$502.04</td><td class="num">A$6,293.09</td><td class="text-xs"><span class="led off"></span> due 21 Jul (annual)</td></tr>
+            <tr class="font-display text-base"><td class="py-2">FY26 total</td><td class="num">A$2,915,739.02</td><td class="num text-[var(--pos)]">−A$1,300,000</td><td class="num">A$1,615,739</td><td class="num">A$76,748.70</td><td class="num text-[var(--pos)]">−A$6,024.46</td><td class="num">A$70,724.24</td><td class="text-xs"></td></tr>
+          </tbody>
+        </table>
+        <div class="text-[10px] text-[var(--ink-3)] mt-2">
+          Monthly deduction = annual A$1.3m ÷ 12 = A$108,333. Annual return adjusts for tapered s.19 deduction (FY26 net A$1,179,948) →
+          true-up Δ A$72,840.36 − A$70,724.24 = <span class="num text-[var(--sae)]">+A$2,116.12 top-up</span> on Form 3 annual.
+        </div>
+      </div>
+    </div>
+    <div class="col-span-4">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Inter-jurisdictional nexus · s.11</div>
+        <div class="font-display text-2xl">Where does the wage land?</div>
+      </div>
+      <div class="px-8 pb-6 space-y-2 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Test order — apply sequentially</div>
+          <ol class="text-xs mt-1 list-decimal pl-4 space-y-1">
+            <li>State where services <em>wholly</em> performed</li>
+            <li>State where wages <em>paid</em> (if 1 fails)</li>
+            <li>State where principal place of <em>residence</em></li>
+            <li>State where wages <em>mostly</em> performed in month</li>
+          </ol>
+        </div>
+        <table class="w-full text-xs">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-1">Employee</th><th class="text-left">Test</th><th class="text-left">State</th><th class="text-right">FY26 wages</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">R. Sauer (director)</td><td>Res QLD</td><td>QLD</td><td class="num text-right">A$184,260</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">M. Chen (R&amp;D)</td><td>Wholly QLD</td><td>QLD</td><td class="num text-right">A$53,012</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">J. Tan (FSE)</td><td>Mostly NSW Q4</td><td>NSW</td><td class="num text-right">A$100,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1">… 28 others</td><td>Wholly QLD</td><td>QLD</td><td class="num text-right">A$2,602,988</td></tr>
+            <tr class="font-medium"><td class="py-1">Total liable</td><td colspan="2"></td><td class="num text-right">A$2,940,260</td></tr>
+            <tr class="text-[var(--ink-3)]"><td class="py-1">  of which QLD</td><td colspan="2"></td><td class="num text-right">A$2,840,260</td></tr>
+            <tr class="text-[var(--ink-3)]"><td class="py-1">  of which NSW (Revenue NSW separate)</td><td colspan="2"></td><td class="num text-right">A$100,000</td></tr>
+          </tbody>
+        </table>
+        <div class="text-[10px] text-[var(--ink-3)]">
+          NSW threshold A$1.2m · J. Tan A$100k well below — no NSW liability triggered.
+          If NSW wages had exceeded threshold, separate Revenue NSW client + monthly lodgement would auto-spawn.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Apprentice rebate detail + contractor labour test -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-5 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Apprentice/trainee rebate · s.27D — 50% of tax on liable wages of registered apprentices</div>
+        <div class="font-display text-2xl">Rebate roster</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Apprentice</th><th class="text-left">Trade</th><th class="text-left">DESBT reg</th><th class="text-right">FY26 wages</th><th class="text-right">Tax @ 4.75%</th><th class="text-right">Rebate 50%</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">EMP-2042 D. Nguyen</td><td>Y3 boilermaker</td><td class="text-[10px] text-[var(--ink-3)]">AP-184260</td><td class="num text-right">A$62,840.18</td><td class="num text-right">A$2,984.91</td><td class="num text-right text-[var(--pos)]">A$1,492.46</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">EMP-2068 K. Singh</td><td>Y2 fitter/turner</td><td class="text-[10px] text-[var(--ink-3)]">AP-184274</td><td class="num text-right">A$48,420.40</td><td class="num text-right">A$2,299.97</td><td class="num text-right text-[var(--pos)]">A$1,149.99</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">EMP-2089 L. Brown</td><td>Y1 welder</td><td class="text-[10px] text-[var(--ink-3)]">AP-184312</td><td class="num text-right">A$38,260.18</td><td class="num text-right">A$1,817.36</td><td class="num text-right text-[var(--pos)]">A$908.68</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">EMP-2104 R. O'Connor</td><td>Y1 sheet-metal</td><td class="text-[10px] text-[var(--ink-3)]">AP-184341</td><td class="num text-right">A$34,739.42</td><td class="num text-right">A$1,650.12</td><td class="num text-right text-[var(--pos)]">A$825.06</td></tr>
+            <tr class="font-medium"><td class="py-2">Rebate eligible</td><td colspan="3"></td><td class="num text-right">A$184,260.18</td><td class="num text-right">A$8,752.36</td><td class="num text-right text-[var(--pos)]">A$4,376.18</td></tr>
+            <tr class="text-[var(--ink-3)] text-xs"><td class="py-1">+ Trainee wages (5 PYO trainees)</td><td colspan="2">s.27D(2)(b)</td><td class="num text-right">A$34,720.42</td><td class="num text-right">A$1,649.22</td><td class="num text-right">A$824.61</td></tr>
+            <tr class="text-[var(--ink-3)] text-xs"><td class="py-1">+ Mature-aged apprentice top-up s.27E</td><td colspan="2"></td><td class="num text-right">A$18,420.18</td><td class="num text-right">A$874.96</td><td class="num text-right">A$823.67</td></tr>
+            <tr class="font-display text-base"><td class="py-2">Total rebate</td><td colspan="4"></td><td class="num text-right text-[var(--sae)]">A$6,024.46</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-span-7">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Contractor labour test · s.13B Pt 2 Div 1A — relevant contracts liable as wages</div>
+        <div class="font-display text-2xl">Contractor classification — 8 exemptions in s.13C</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Contractor</th><th class="text-left">Service</th><th class="text-left">FY26 paid</th><th class="text-left">Exemption test</th><th class="text-left">Outcome</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1842 Apex Hoist Pty Ltd</td><td>Crane hire + operator</td><td class="num">A$48,420.18</td><td class="text-xs">s.13C(2)(b) services ≤ 90 days · 184 days actual</td><td class="text-xs text-[var(--neg)]">FAIL · liable A$48,420.18</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1857 GalvSolutions Pty Ltd</td><td>Hot-dip galv supply &amp; service</td><td class="num">A$72,840.40</td><td class="text-xs">s.13C(2)(c) materials &gt; 50% of value · materials 78%</td><td class="text-xs text-[var(--pos)]">PASS · exempt</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1864 BlastPro Pty Ltd</td><td>Surface prep</td><td class="num">A$28,420.18</td><td class="text-xs">s.13C(2)(b) services ≤ 90 days · 42 days actual</td><td class="text-xs text-[var(--pos)]">PASS · exempt</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1872 NDT Inspect Aust</td><td>UT/MPI inspection</td><td class="num">A$11,420.40</td><td class="text-xs">s.13C(2)(d) ≥ 2 employees of own</td><td class="text-xs text-[var(--pos)]">PASS · exempt</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1884 Bayview Engineers</td><td>Design draughting (subbed)</td><td class="num">A$84,260.40</td><td class="text-xs">s.13C(2)(a) services to general public · &lt;5% of revenue from SAE</td><td class="text-xs text-[var(--pos)]">PASS · exempt</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1892 J. Park ABN sole-trader</td><td>FSW R&amp;D consult (RD-26-01)</td><td class="num">A$11,840.60</td><td class="text-xs">s.13C(2)(d) ≥ 2 employees · 0 (one-person)</td><td class="text-xs text-[var(--neg)]">FAIL · liable A$11,840.60</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1908 W. Brand fabrication</td><td>Overflow fab (16-week project)</td><td class="num">A$118,260.42</td><td class="text-xs">s.13C(2)(b) services ≤ 90 days · 112 days actual</td><td class="text-xs text-[var(--neg)]">FAIL · liable A$118,260.42</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">CON-1924 IT services bundle</td><td>Managed IT + cloud</td><td class="num">A$5,840.18</td><td class="text-xs">s.13C(2)(a) general public &gt; 95%</td><td class="text-xs text-[var(--pos)]">PASS · exempt</td></tr>
+            <tr class="font-medium"><td class="py-2">Total contractor spend</td><td></td><td class="num">A$381,302.76</td><td class="text-xs">3 fail / 5 pass</td><td class="num text-right text-[var(--sae)]">liable A$178,521.20</td></tr>
+            <tr class="text-[var(--ink-3)] text-xs"><td class="py-1">+ true-up to fixed contractors register</td><td></td><td class="num">A$5,739.20</td><td colspan="2" class="text-xs">PCR FY26 close adjustment</td></tr>
+            <tr class="font-display text-base"><td class="py-2">In liable-wages buildup above</td><td colspan="3"></td><td class="num text-right">A$184,260.40</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grouping declaration + OSR portal lodgement -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Grouping declaration · Pt 4 Div 1 — single deduction applies across group</div>
+        <div class="font-display text-2xl">Grouping &amp; DGE assessment</div>
+      </div>
+      <div class="px-10 pb-6">
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div class="num-stamp p-3">
+            <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">s.71 — common employees</div>
+            <div class="text-xs mt-1">FY26 cross-employees: <span class="num">0</span></div>
+            <div class="text-xs text-[var(--ink-3)]">Not grouped on this limb.</div>
+          </div>
+          <div class="num-stamp p-3">
+            <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">s.72 — common control</div>
+            <div class="text-xs mt-1">R. Sauer 100% SAE + 80% Saueesti Trust</div>
+            <div class="text-xs text-[var(--ink-3)]">Saueesti Trust nil wages FY26 → no group impact.</div>
+          </div>
+          <div class="num-stamp p-3">
+            <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">s.73 — corporate group</div>
+            <div class="text-xs mt-1">No subsidiary entities</div>
+            <div class="text-xs text-[var(--ink-3)]">Not applicable.</div>
+          </div>
+          <div class="num-stamp p-3">
+            <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">s.74 — tracing rules</div>
+            <div class="text-xs mt-1">No discretionary trust beneficiaries with &gt;50%</div>
+            <div class="text-xs text-[var(--ink-3)]">Not applicable.</div>
+          </div>
+        </div>
+        <div class="mt-4 rounded border border-[var(--line)] p-3 bg-[var(--paper)] text-sm">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">Designated Group Employer (DGE) test s.81</div>
+          <div class="text-xs">SAE Engineering Pty Ltd is a single-employer non-grouped entity for FY26. Annual deduction allocated 100% to ABN 81 627 184 260.</div>
+          <div class="text-xs text-[var(--ink-3)] mt-1">If Saueesti Trust commences wage activity, grouping declaration QRO Form OSR-FB-061 must be lodged within 21 days of trigger event.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">QRO Online portal · annual reconciliation Form OSR-PT-31</div>
+        <div class="font-display text-2xl">Lodgement pre-flight</div>
+      </div>
+      <div class="px-8 pb-6 space-y-2 text-sm">
+        <div class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">Form fields auto-populated</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-1">Client number</td><td class="num text-right">1184260</td></tr>
+              <tr><td class="py-1">Total QLD wages</td><td class="num text-right">A$2,940,260.02</td></tr>
+              <tr><td class="py-1">Exempt wages</td><td class="num text-right">A$284,221.76</td></tr>
+              <tr><td class="py-1">Inter-jurisdictional</td><td class="num text-right">A$100,000.00</td></tr>
+              <tr><td class="py-1">Net taxable</td><td class="num text-right">A$2,840,260.02</td></tr>
+              <tr><td class="py-1">Deduction claimed</td><td class="num text-right">A$1,179,948.00</td></tr>
+              <tr><td class="py-1">Tax payable</td><td class="num text-right">A$78,864.82</td></tr>
+              <tr><td class="py-1">Apprentice rebate</td><td class="num text-right text-[var(--pos)]">−A$6,024.46</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-1">Annual liability</td><td class="num text-right">A$72,840.36</td></tr>
+              <tr><td class="py-1">Already paid (Jul–Apr)</td><td class="num text-right">A$54,420.18</td></tr>
+              <tr class="font-display text-base"><td class="py-1.5">Balance with annual</td><td class="num text-right text-[var(--sae)]">A$18,420.18</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="rounded border border-[var(--line)] p-3 bg-[var(--paper-2)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Lodgement window</div>
+          <div class="text-xs mt-1">Annual return (Form 3) due <span class="font-medium">21 Jul 2026</span> · BPAY ref 999184260 · UTI 8% applies from 22 Jul s.54</div>
+        </div>
+        <div class="rounded border border-[var(--line)] p-3 bg-[var(--paper-2)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Payment plan eligibility</div>
+          <div class="text-xs mt-1">Balance &lt; A$50k · auto-approve 12-month plan via QRO Online (Ch.8 Pt 1) if needed · not requested.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8-step pipeline -->
+  <section class="border-b border-[var(--line)]">
+    <div class="px-10 pt-6 pb-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Annual pipeline · monthly wage feed → annual reconciliation → audit pack</div>
+      <div class="font-display text-2xl">FY26 payroll-tax close pipeline</div>
+    </div>
+    <div class="px-10 pb-6">
+      <ol class="grid grid-cols-8 gap-3 text-xs">
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">1 STP feed</span><div class="text-[var(--ink-3)] mt-1">Monthly W1/W2 totals from STP submitter · auto-classify s.13(1)(a)–(d)</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">2 Exempt sweep</span><div class="text-[var(--ink-3)] mt-1">Apprentice register × DESBT lookup · parental leave · workers' comp</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">3 Nexus test</span><div class="text-[var(--ink-3)] mt-1">s.11 four-step cascade · NSW/VIC/SA split detection</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">4 Contractor 13B</span><div class="text-[var(--ink-3)] mt-1">8-exemption test · materials %, days, public-clientele, ≥2 staff</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led warn"></span> <span class="font-medium">5 Monthly lodge</span><div class="text-[var(--ink-3)] mt-1">Form 1 by 7th · BPAY ref auto-cleared from 1-180 clearing</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led off"></span> <span class="font-medium">6 Annual true-up</span><div class="text-[var(--ink-3)] mt-1">FY26 tapered deduction recompute · Δ +A$2,116 top-up</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led off"></span> <span class="font-medium">7 Rebate claim</span><div class="text-[var(--ink-3)] mt-1">s.27D apprentice/trainee · s.27E mature · A$6,024.46 net</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led off"></span> <span class="font-medium">8 Audit pack</span><div class="text-[var(--ink-3)] mt-1">7-year retention QRO requirement · WORM PDF + workings + STP cross-tie</div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="border-b border-[var(--line)]">
+    <div class="px-10 pt-6 pb-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">AU-first comparison · state-revenue-office workflow</div>
+      <div class="font-display text-2xl">Why this lives in SAE Books and not in Xero/MYOB/Reckon</div>
+    </div>
+    <div class="px-10 pb-6">
+      <table class="w-full text-sm">
+        <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+          <tr><th class="text-left py-2 w-44">Capability</th><th class="text-left">SAE Books</th><th class="text-left">Xero</th><th class="text-left">MYOB AccountRight</th><th class="text-left">Reckon One</th><th class="text-left">Tanda · Employment Hero</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">QRO monthly Form 1 auto-prepare</td><td class="text-xs text-[var(--pos)]">YES · BPAY ref + journal</td><td class="text-xs text-[var(--neg)]">No · STP only</td><td class="text-xs text-[var(--neg)]">No · manual report</td><td class="text-xs text-[var(--neg)]">No · payroll only</td><td class="text-xs text-[var(--warn)]">Partial · wage extract</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">s.19 tapered deduction calc</td><td class="text-xs text-[var(--pos)]">YES · formula transparent</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">s.13B contractor 8-test</td><td class="text-xs text-[var(--pos)]">YES · per-supplier</td><td class="text-xs text-[var(--neg)]">No · TPAR only</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">s.11 nexus split (multi-state)</td><td class="text-xs text-[var(--pos)]">YES · auto-classify</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--warn)]">Partial</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Apprentice/trainee s.27D rebate</td><td class="text-xs text-[var(--pos)]">YES · DESBT lookup</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Grouping/DGE s.71-74 register</td><td class="text-xs text-[var(--pos)]">YES · trigger watch</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Annual reconciliation Form 3</td><td class="text-xs text-[var(--pos)]">YES · variance vs monthly</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">QRO Online direct lodge</td><td class="text-xs text-[var(--warn)]">In progress · API beta</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td></tr>
+        </tbody>
+      </table>
+      <div class="text-[10px] text-[var(--ink-3)] mt-3">
+        Sources: QRO Online · Payroll Tax Act 2008 (Qld) consolidated 01 Jul 2025 · OSR Public Ruling PTA series 001–044 ·
+        all comparator data Apr–May 2026 from public help docs + competitor sales reps.
+      </div>
+    </div>
+  </section>
+
+  <!-- Cross-links -->
+  <section class="px-10 py-6">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Cross-links</div>
+    <div class="grid grid-cols-5 gap-3 text-sm">
+      <a href="/preview/compliance/stp/pe-26w19" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="briefcase" class="w-4 h-4 mb-1"></i><div class="font-medium">STP submitter</div><div class="text-xs text-[var(--ink-3)]">PE-26W19 · wages → liable feed</div></a>
+      <a href="/preview/compliance/payg-i/q4-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="trending-up" class="w-4 h-4 mb-1"></i><div class="font-medium">PAYG-I Q4</div><div class="text-xs text-[var(--ink-3)]">income / instalment tie-out</div></a>
+      <a href="/preview/compliance/depreciation/sbe-pool-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="package" class="w-4 h-4 mb-1"></i><div class="font-medium">SBE pool FY26</div><div class="text-xs text-[var(--ink-3)]">FY26 P&amp;L deduction stack</div></a>
+      <a href="/preview/compliance/rdti/fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="flask-conical" class="w-4 h-4 mb-1"></i><div class="font-medium">RDTI FY26</div><div class="text-xs text-[var(--ink-3)]">M. Chen wage allocation cross-tie</div></a>
+      <a href="/preview/cashbook/april-2026" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="book-marked" class="w-4 h-4 mb-1"></i><div class="font-medium">Cashbook April</div><div class="text-xs text-[var(--ink-3)]">payment ledger reference</div></a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

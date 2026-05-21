@@ -24,7 +24,10 @@ Environment variables: see config.py / README.md.
 """
 from __future__ import annotations
 
+import base64
+import hmac
 import logging
+import os
 import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -53,9 +56,11 @@ from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bea
     ensure_csrf_global,
 )
 from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware  # noqa: E402
+from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware  # noqa: E402
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.discourse_sso import router as discourse_sso_router
+from saebooks_web.routes.preview import router as preview_router
 from saebooks_web.routes.public_auth import router as public_auth_router
 from saebooks_web.routes.billing import router as billing_router
 from saebooks_web.routes.account_ranges import router as account_ranges_router
@@ -96,9 +101,12 @@ from saebooks_web.routes.tax_codes import router as tax_codes_router
 from saebooks_web.routes.contact import router as contact_router
 from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
 from saebooks_web.routes.attachments import router as attachments_router  # Phase 1.5
+from saebooks_web.routes.pwa import router as pwa_router  # PWA: /sw.js + /manifest.webmanifest
 from saebooks_web.routes.cashbook import router as cashbook_router
 from saebooks_web.routes.overviews import router as overviews_router  # /sales /expenses /inventory /gst overview dashboards
 from saebooks_web.routes.recurring import router as recurring_router  # /recurring aggregator hub
+from saebooks_web.routes.cashbook_invoices import router as cashbook_invoices_router
+from saebooks_web.routes.cashbook_quotes import router as cashbook_quotes_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -164,6 +172,12 @@ app.add_middleware(CSRFMiddleware)
 # before SessionMiddleware (so it runs INSIDE Session and can write to it).
 app.add_middleware(TrustedHeaderAuthMiddleware)
 
+# Demo auto-login: cashbook-demo public-demo only — env-gated. Sits
+# OUTSIDE TrustedHeaderAuth (added later) so it runs first per
+# request, mints a session if creds env vars are set, and lets the
+# rest of the stack proceed as if the user manually logged in.
+app.add_middleware(DemoAutoLoginMiddleware)
+
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.secret_key,
@@ -213,6 +227,52 @@ class _RequestIdMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(_RequestIdMiddleware)
 
+
+# ---------------------------------------------------------------------------
+# Preview-build basic auth gate.
+#
+# Set via env: SAEBOOKS_PREVIEW_BASIC_AUTH="user:password"
+# When set, requires HTTP Basic auth on every request except /healthz.
+# Used on the unpublished UX-rework preview build so the URL isn't browsable
+# by the public while we iterate. Cloudflared tunnel routes around the Caddy
+# layer for this hostname, so the gate has to live at the origin.
+# ---------------------------------------------------------------------------
+
+
+class _PreviewBasicAuthMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app: Any, credential: str) -> None:  # noqa: ANN401
+        super().__init__(app)
+        self._user, _, self._password = credential.partition(":")
+
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        if request.url.path == "/healthz":
+            return await call_next(request)
+        header = request.headers.get("authorization", "")
+        if header.lower().startswith("basic "):
+            try:
+                decoded = base64.b64decode(header.split(None, 1)[1]).decode("utf-8")
+                user, _, password = decoded.partition(":")
+                if hmac.compare_digest(user, self._user) and hmac.compare_digest(
+                    password, self._password
+                ):
+                    return await call_next(request)
+            except Exception:  # noqa: BLE001
+                pass
+        return Response(
+            status_code=401,
+            headers={"WWW-Authenticate": 'Basic realm="preview"'},
+            content="Authentication required",
+        )
+
+
+_PREVIEW_AUTH = os.getenv("SAEBOOKS_PREVIEW_BASIC_AUTH", "").strip()
+if _PREVIEW_AUTH and ":" in _PREVIEW_AUTH:
+    app.add_middleware(_PreviewBasicAuthMiddleware, credential=_PREVIEW_AUTH)
+
 # ---------------------------------------------------------------------------
 # Routers
 # ---------------------------------------------------------------------------
@@ -260,12 +320,19 @@ app.include_router(ato_sbr_router)
 app.include_router(integrations_router)
 # Phase 1.5: attachment panel (upload / delete / download relay).
 app.include_router(attachments_router)
+# PWA endpoints (manifest + service worker at origin root).
+app.include_router(pwa_router)
 # Cashbook UI — single-entry bookkeeping surfaces.
 app.include_router(cashbook_router)
+app.include_router(cashbook_invoices_router)
+app.include_router(cashbook_quotes_router)
 # Section overview dashboards — /sales/overview /expenses-overview /inventory/overview /gst/overview
 app.include_router(overviews_router)
 # Recurring transactions hub — /recurring aggregator over invoices + templates
 app.include_router(recurring_router)
+
+# Pass B preview — static design mocks (no data wiring, no auth).
+app.include_router(preview_router)
 
 
 # ---------------------------------------------------------------------------

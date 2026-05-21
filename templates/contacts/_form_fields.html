@@ -1,90 +1,61 @@
-{#
-  _form_fields.html — shared form fields partial for contact create/edit.
+{# _form_fields.html — shared form fields partial for contact create/edit. #}
 
-  Expected context variables:
-    form     : dict of submitted field values (empty dict for a blank form)
-    errors   : dict mapping field name -> error message string
-               Use "__all__" for non-field errors.
-    accounts : list of account dicts [{id, code, name}, ...] — for default_account_id dropdown.
-               Falls back to a plain text input when empty.
-#}
-
-{# Macro: render one labelled text input #}
 {% macro text_input(name, label, required=false, placeholder="", type="text") %}
 <div>
-  <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">
-    {{ label }}{% if required %} <span class="text-red-500">*</span>{% endif %}
+  <label for="{{ name }}" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+    {{ label }}{% if required %} <span style="color:var(--neg);">*</span>{% endif %}
   </label>
-  <input
-    type="{{ type }}"
-    id="{{ name }}"
-    name="{{ name }}"
-    value="{{ form.get(name, '') }}"
-    {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
-    {% if required %}required{% endif %}
-    class="block w-full rounded-md border {% if errors.get(name) %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-           px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-           focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-  >
-  {% if errors.get(name) %}
-  <p class="mt-1 text-xs text-red-600">{{ errors[name] }}</p>
-  {% endif %}
+  <input type="{{ type }}" id="{{ name }}" name="{{ name }}" value="{{ form.get(name, '') }}"
+         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+         {% if required %}required{% endif %}
+         class="saebooks-input"
+         {% if errors.get(name) %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
+  {% if errors.get(name) %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors[name] }}</p>{% endif %}
 </div>
 {% endmacro %}
 
-{# ── Non-field error banner ── #}
 {% if errors.get("__all__") %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
-  {{ errors["__all__"] }}
+<div class="card p-3 mb-5 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ errors["__all__"] }}</span>
 </div>
 {% endif %}
 
-{# ── Identity ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Identity</legend>
+  <legend class="nav-section-label mb-3">Identity</legend>
 
   {{ text_input("name", "Name", required=true, placeholder="Acme Pty Ltd") }}
 
   <div>
-    <label for="contact_type" class="block text-sm font-medium text-gray-700 mb-1">
-      Type <span class="text-red-500">*</span>
+    <label for="contact_type" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+      Type <span style="color:var(--neg);">*</span>
     </label>
-    <select
-      id="contact_type"
-      name="contact_type"
-      required
-      class="block w-full rounded-md border {% if errors.get('contact_type') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900
-             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-    >
+    <select id="contact_type" name="contact_type" required class="saebooks-input"
+            {% if errors.get('contact_type') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
       <option value="" disabled {% if not form.get("contact_type") %}selected{% endif %}>Select type…</option>
       <option value="CUSTOMER" {% if form.get("contact_type") == "CUSTOMER" %}selected{% endif %}>Customer</option>
       <option value="SUPPLIER" {% if form.get("contact_type") == "SUPPLIER" %}selected{% endif %}>Supplier</option>
       <option value="BOTH"     {% if form.get("contact_type") == "BOTH"     %}selected{% endif %}>Both</option>
     </select>
-    {% if errors.get("contact_type") %}
-    <p class="mt-1 text-xs text-red-600">{{ errors["contact_type"] }}</p>
-    {% endif %}
+    {% if errors.get("contact_type") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["contact_type"] }}</p>{% endif %}
   </div>
 
   {{ text_input("abn", "ABN", placeholder="12 345 678 901") }}
 </fieldset>
 
-{# ── Contact info ── #}
-<fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Contact Info</legend>
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+<fieldset class="space-y-4 mt-7">
+  <legend class="nav-section-label mb-3">Contact info</legend>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     {{ text_input("email", "Email", placeholder="billing@example.com", type="email") }}
     {{ text_input("phone", "Phone", placeholder="+61 400 000 000") }}
   </div>
 </fieldset>
 
-{# ── Address ── #}
-<fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Address</legend>
+<fieldset class="space-y-4 mt-7">
+  <legend class="nav-section-label mb-3">Address</legend>
   {{ text_input("address_line1", "Address line 1") }}
   {{ text_input("address_line2", "Address line 2") }}
-  <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
     {{ text_input("city", "City") }}
     {{ text_input("state", "State") }}
     {{ text_input("postcode", "Postcode") }}
@@ -92,137 +63,87 @@
   </div>
 </fieldset>
 
-{# ── Banking ── #}
-<fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Banking</legend>
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+<fieldset class="space-y-4 mt-7">
+  <legend class="nav-section-label mb-3">Banking</legend>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     {{ text_input("bank_bsb", "BSB", placeholder="062-000") }}
     {{ text_input("bank_account_number", "Account number", placeholder="12345678") }}
   </div>
   {{ text_input("bank_account_title", "Account holder name", placeholder="Acme Pty Ltd") }}
 </fieldset>
 
-{# ── Accounting ── #}
-<fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Accounting</legend>
+<fieldset class="space-y-4 mt-7">
+  <legend class="nav-section-label mb-3">Accounting</legend>
 
-  {# default_tax_code — dropdown when tax_codes list available, plain input as fallback #}
   <div>
-    <label for="default_tax_code" class="block text-sm font-medium text-gray-700 mb-1">
+    <label for="default_tax_code" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
       Default tax code
     </label>
     {% if tax_codes %}
-    <select
-      id="default_tax_code"
-      name="default_tax_code"
-      class="block w-full rounded-md border {% if errors.get('default_tax_code') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900
-             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-    >
+    <select id="default_tax_code" name="default_tax_code" class="saebooks-input"
+            {% if errors.get('default_tax_code') %}style="border-color:var(--neg);"{% endif %}>
       <option value="">— None —</option>
       {% for tc in tax_codes %}
-      <option value="{{ tc.code }}"
-        {% if form.get("default_tax_code") == tc.code %}selected{% endif %}>
+      <option value="{{ tc.code }}" {% if form.get("default_tax_code") == tc.code %}selected{% endif %}>
         {{ tc.code }} — {{ tc.name }}
       </option>
       {% endfor %}
     </select>
     {% else %}
-    <input
-      type="text"
-      id="default_tax_code"
-      name="default_tax_code"
-      value="{{ form.get('default_tax_code', '') }}"
-      placeholder="e.g. GST"
-      class="block w-full rounded-md border {% if errors.get('default_tax_code') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-    >
+    <input type="text" id="default_tax_code" name="default_tax_code"
+           value="{{ form.get('default_tax_code', '') }}" placeholder="e.g. GST"
+           class="saebooks-input"
+           {% if errors.get('default_tax_code') %}style="border-color:var(--neg);"{% endif %}>
     {% endif %}
-    {% if errors.get("default_tax_code") %}
-    <p class="mt-1 text-xs text-red-600">{{ errors["default_tax_code"] }}</p>
-    {% endif %}
+    {% if errors.get("default_tax_code") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["default_tax_code"] }}</p>{% endif %}
   </div>
 
-  {# default_account_id — dropdown when accounts list is available, plain input as fallback #}
   <div>
-    <label for="default_account_id" class="block text-sm font-medium text-gray-700 mb-1">
+    <label for="default_account_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
       Default account
     </label>
     {% if accounts %}
-    <select
-      id="default_account_id"
-      name="default_account_id"
-      class="block w-full rounded-md border {% if errors.get('default_account_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900
-             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-    >
+    <select id="default_account_id" name="default_account_id" class="saebooks-input"
+            {% if errors.get('default_account_id') %}style="border-color:var(--neg);"{% endif %}>
       <option value="">— None —</option>
       {% for acct in accounts %}
-      <option value="{{ acct.id }}"
-        {% if form.get("default_account_id") == acct.id %}selected{% endif %}>
+      <option value="{{ acct.id }}" {% if form.get("default_account_id") == acct.id %}selected{% endif %}>
         {{ acct.code }} — {{ acct.name }}
       </option>
       {% endfor %}
     </select>
     {% else %}
-    <input
-      type="text"
-      id="default_account_id"
-      name="default_account_id"
-      value="{{ form.get('default_account_id', '') }}"
-      placeholder="Account UUID"
-      class="block w-full rounded-md border {% if errors.get('default_account_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-    >
+    <input type="text" id="default_account_id" name="default_account_id"
+           value="{{ form.get('default_account_id', '') }}" placeholder="Account UUID"
+           class="saebooks-input font-mono"
+           {% if errors.get('default_account_id') %}style="border-color:var(--neg);"{% endif %}>
     {% endif %}
-    {% if errors.get("default_account_id") %}
-    <p class="mt-1 text-xs text-red-600">{{ errors["default_account_id"] }}</p>
-    {% endif %}
+    {% if errors.get("default_account_id") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["default_account_id"] }}</p>{% endif %}
   </div>
 </fieldset>
 
-{# ── Billing currency ── #}
-<fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Billing Currency</legend>
+<fieldset class="space-y-4 mt-7">
+  <legend class="nav-section-label mb-3">Billing currency</legend>
   <div>
-    <label for="currency_code" class="block text-sm font-medium text-gray-700 mb-1">
+    <label for="currency_code" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
       Currency code
-      <span class="ml-1 text-xs text-gray-400">(ISO 4217 — leave blank for AUD)</span>
+      <span class="ink-4 font-normal normal-case ml-1">(ISO 4217 — leave blank for AUD)</span>
     </label>
-    <input
-      type="text"
-      id="currency_code"
-      name="currency_code"
-      value="{{ form.get('currency_code', '') }}"
-      placeholder="e.g. JPY, USD, EUR"
-      maxlength="3"
-      class="block w-32 rounded-md border {% if errors.get('currency_code') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-             focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-    >
-    {% if errors.get("currency_code") %}
-    <p class="mt-1 text-xs text-red-600">{{ errors["currency_code"] }}</p>
-    {% endif %}
+    <input type="text" id="currency_code" name="currency_code"
+           value="{{ form.get('currency_code', '') }}"
+           placeholder="e.g. JPY, USD, EUR" maxlength="3"
+           class="saebooks-input num w-32"
+           {% if errors.get('currency_code') %}style="border-color:var(--neg);"{% endif %}>
+    {% if errors.get("currency_code") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["currency_code"] }}</p>{% endif %}
   </div>
 </fieldset>
 
-{# ── Notes ── #}
-<div class="mt-6">
-  <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-  <textarea
-    id="notes"
-    name="notes"
-    rows="3"
-    class="block w-full rounded-md border {% if errors.get('notes') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-           px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-           focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-    placeholder="Optional notes about this contact"
-  >{{ form.get("notes", "") }}</textarea>
-  {% if errors.get("notes") %}
-  <p class="mt-1 text-xs text-red-600">{{ errors["notes"] }}</p>
-  {% endif %}
+<div class="mt-7">
+  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Notes</label>
+  <textarea id="notes" name="notes" rows="3" class="saebooks-input"
+            placeholder="Optional notes about this contact"
+            {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("notes", "") }}</textarea>
+  {% if errors.get("notes") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["notes"] }}</p>{% endif %}
 </div>
 
 {# ── One-off flag ── #}

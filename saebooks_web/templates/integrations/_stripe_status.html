@@ -1,0 +1,16 @@
+{% if stripe_status.get("connected") %}
+<span class="inline-flex items-center gap-1 text-green-700 dark:text-green-400 text-sm font-medium">
+  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+  Connected ({{ stripe_status.get("account_id", "") }})
+</span>
+{% if stripe_status.get("charges_enabled") %}
+  <span class="ml-2 text-xs text-gray-500">Charges enabled</span>
+{% else %}
+  <span class="ml-2 text-xs text-amber-600">Charges not yet enabled — complete onboarding in Stripe</span>
+{% endif %}
+{% else %}
+<span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400 text-sm">
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+  Not connected
+</span>
+{% endif %}

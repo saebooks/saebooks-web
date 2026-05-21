@@ -1,30 +1,63 @@
-{# Simplified sidebar nav for companies in cashbook mode. #}
+{# Simplified cashbook sidebar — matches SAE nav-item styling from base.html. #}
 {% set path = request.url.path %}
-{% set username = request.session.get("username", "") %}
-{% set user_role = request.session.get("user_role", "") %}
 
-<div>
-  <a href="/cashbook"
-     class="flex items-center px-2 py-1.5 rounded-md {% if path == '/cashbook' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    Cashbook
+<div class="space-y-0.5">
+  <a href="/cashbook" class="nav-item {% if path == '/cashbook' %}active{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-80">
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <path d="M3 10h18"/>
+    </svg>
+    <span>Cashbook</span>
   </a>
-  <a href="/cashbook/entries"
-     class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/cashbook/entries') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    Entries
+  <a href="/cashbook/entries" class="nav-item {% if path.startswith('/cashbook/entries') %}active{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-80">
+      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+    </svg>
+    <span>Entries</span>
   </a>
-  <a href="/cashbook/report"
-     class="flex items-center px-2 py-1.5 rounded-md {% if path.startswith('/cashbook/report') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    Report
+  <a href="/cashbook/invoices" class="nav-item {% if path.startswith('/cashbook/invoices') %}active{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-80">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+    </svg>
+    <span>Invoices</span>
+  </a>
+  <a href="/cashbook/quotes" class="nav-item {% if path.startswith('/cashbook/quotes') %}active{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-80">
+      <path d="M3 21v-13a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H7z"/>
+      <path d="M8 11h8M8 15h5"/>
+    </svg>
+    <span>Quotes</span>
+  </a>
+  <a href="/cashbook/report" class="nav-item {% if path.startswith('/cashbook/report') %}active{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-80">
+      <path d="M3 3v18h18"/>
+      <path d="M7 14l4-4 4 4 5-5"/>
+    </svg>
+    <span>Report</span>
   </a>
 </div>
 
-<div class="border-t border-gray-100 dark:border-gray-700 pt-3">
-  <a href="/settings/company"
-     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    Settings
+<div class="mt-6 hairline-t pt-3 space-y-0.5">
+  <p class="nav-section-label px-2 mb-1">Settings</p>
+  <a href="/settings/company" class="nav-item text-xs {% if path == '/settings/company' %}active{% endif %}">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-80">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span>Settings</span>
   </a>
-  <a href="/cashbook/upgrade"
-     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/cashbook/upgrade') %}bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    Upgrade plan
+  <a href="/cashbook/about" class="nav-item text-xs {% if path.startswith('/cashbook/about') %}active{% endif %}">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-80">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 16v-4M12 8h.01"/>
+    </svg>
+    <span>About Cashbook</span>
+  </a>
+  <a href="/cashbook/upgrade" class="nav-item text-xs {% if path.startswith('/cashbook/upgrade') %}active{% endif %}">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-80">
+      <path d="M12 19V5M5 12l7-7 7 7"/>
+    </svg>
+    <span>Upgrade plan</span>
   </a>
 </div>

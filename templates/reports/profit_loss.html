@@ -1,92 +1,62 @@
 {% extends "base.html" %}
 
-{% block title %}Profit & Loss — SAE Books{% endblock %}
+{% block title %}Profit &amp; Loss — SAE Books{% endblock %}
 
 {% block content %}
 
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Profit &amp; Loss</h1>
-    {% if report %}
-    <p class="text-sm text-gray-500 mt-1">
-      {{ report.get("from_date", from_date) }} to {{ report.get("to_date", to_date) }}
-    </p>
-    {% endif %}
-  </div>
-  <div>
-    <button
-      type="button"
-      onclick="window.print()"
-      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-    >Print</button>
-  </div>
+<div class="mb-4">
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← reports</a>
 </div>
 
-{# Date filter form — HTMX swaps #report-content on submit #}
-<form
-  hx-get="/reports/profit-loss"
-  hx-target="#report-content"
-  hx-swap="innerHTML"
-  hx-indicator="#report-spinner"
-  class="mb-6 flex flex-wrap gap-3 items-end"
->
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Statement</span>
+        <span class="reg-mark"></span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">Profit &amp; Loss</h1>
+      {% if report %}<p class="text-xs ink-3 font-mono mt-2">{{ report.get("from_date", from_date) }} → {{ report.get("to_date", to_date) }}</p>{% endif %}
+    </div>
+    <button type="button" onclick="window.print()" class="btn-secondary text-sm">Print</button>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+
+<form hx-get="/reports/profit-loss" hx-target="#report-content" hx-swap="innerHTML" hx-indicator="#report-spinner"
+      class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
   <div>
-    <label for="from_date" class="block text-xs font-medium text-gray-500 mb-1">From date</label>
-    <input
-      id="from_date"
-      type="date"
-      name="from_date"
-      value="{{ from_date }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    >
+    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">From date</label>
+    <input id="from_date" type="date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="to_date" class="block text-xs font-medium text-gray-500 mb-1">To date</label>
-    <input
-      id="to_date"
-      type="date"
-      name="to_date"
-      value="{{ to_date }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    >
+    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">To date</label>
+    <input id="to_date" type="date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div class="flex items-center gap-2 pb-1">
-    <input
-      id="include_draft"
-      type="checkbox"
-      name="include_draft"
-      value="true"
-      {% if include_draft %}checked{% endif %}
-      class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-    >
-    <label for="include_draft" class="text-xs font-medium text-gray-500">Include drafts</label>
+    <input id="include_draft" type="checkbox" name="include_draft" value="true"
+           {% if include_draft %}checked{% endif %}
+           class="rounded border-gray-300" style="color:var(--sae);">
+    <label for="include_draft" class="text-xs font-mono ink-3">Include drafts</label>
   </div>
-  <button
-    type="submit"
-    class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
-  >Refresh</button>
-  {# ── GST threshold inline callout ──────────────────────────────────── #}
+  <button type="submit" class="btn-primary text-sm">Refresh</button>
+  {# ── GST threshold inline callout ── #}
   {% if gst and (gst.threshold_crossed or gst.threshold_approaching) %}
-  <div class="ml-auto flex items-center gap-2 rounded-md border px-3 py-1.5
-    {% if gst.threshold_crossed %}border-red-300 bg-red-50{% else %}border-amber-300 bg-amber-50{% endif %}">
-    <span class="text-xs font-medium
-      {% if gst.threshold_crossed %}text-red-800{% else %}text-amber-800{% endif %}">
+  <div class="ml-auto card p-3 flex items-center gap-2"
+       style="border-color:{% if gst.threshold_crossed %}var(--neg){% else %}var(--warm){% endif %};">
+    <span class="dot" style="background:{% if gst.threshold_crossed %}var(--neg){% else %}var(--warm){% endif %};"></span>
+    <span class="text-xs ink-2">
       {% if gst.threshold_crossed %}
         GST threshold crossed — register within 21 days
       {% else %}
         Approaching $75k GST threshold ({{ "%.0f"|format(gst.pct) }}%)
       {% endif %}
     </span>
-    <span class="text-xs tabular-nums
-      {% if gst.threshold_crossed %}text-red-700{% else %}text-amber-700{% endif %}">
-      AUD {{ "%.2f"|format(gst.ytd_turnover|float) }} YTD
-    </span>
+    <span class="text-xs num ink-3">AUD {{ "%.2f"|format(gst.ytd_turnover|float) }} YTD</span>
     <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
        target="_blank" rel="noopener"
-       class="text-xs underline font-medium
-         {% if gst.threshold_crossed %}text-red-700{% else %}text-amber-700{% endif %}">
-      ATO →
-    </a>
+       class="text-xs sae hover:underline font-mono">ATO →</a>
   </div>
   {% endif %}
 </form>

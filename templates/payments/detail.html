@@ -9,188 +9,149 @@
 {% set is_admin = (request.session.get("user_role") == "admin") %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
 {% if payment %}
 
-{# ── Header ── #}
-<div class="mb-6 flex items-start justify-between">
-  <div>
-    <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-semibold text-gray-900">
-        Payment {{ payment.reference or payment.number or "—" }}
+<div class="mb-4">
+  <a href="/payments" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← payments</a>
+</div>
+
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <span class="nav-section-label">Payment</span>
+        <span class="reg-mark"></span>
+        {% if payment.direction == 'INCOMING' %}<span class="badge-paid">Incoming</span>
+        {% elif payment.direction == 'OUTGOING' %}<span class="badge-pending">Outgoing</span>
+        {% else %}<span class="badge-draft">{{ payment.direction|capitalize }}</span>{% endif %}
+        {% if payment.status == 'POSTED' %}<span class="badge-open">Posted</span>
+        {% elif payment.status == 'DRAFT' %}<span class="badge-draft">Draft</span>
+        {% elif payment.status == 'VOIDED' %}<span class="badge-overdue">Voided</span>
+        {% else %}<span class="badge-draft">{{ payment.status|capitalize }}</span>{% endif %}
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight num-display" style="font-variation-settings:'opsz' 72;">
+        {{ payment.reference or payment.number or "—" }}
       </h1>
-      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
-        {% if payment.direction == 'INCOMING' %}bg-green-100 text-green-700
-        {% elif payment.direction == 'OUTGOING' %}bg-orange-100 text-orange-700
-        {% else %}bg-gray-100 text-gray-500{% endif %}">
-        {{ payment.direction | capitalize }}
-      </span>
-      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
-        {% if payment.status == 'POSTED' %}bg-blue-100 text-blue-700
-        {% elif payment.status == 'DRAFT' %}bg-gray-100 text-gray-600
-        {% elif payment.status == 'VOIDED' %}bg-red-100 text-red-600
-        {% else %}bg-gray-100 text-gray-500{% endif %}">
-        {{ payment.status | capitalize }}
-      </span>
+      <p class="text-xs ink-3 font-mono mt-2">contact · <span class="ink-2">{{ payment.contact_id }}</span></p>
     </div>
-    <p class="text-sm text-gray-500 mt-1">Contact: {{ payment.contact_id }}</p>
-  </div>
-  <div class="flex items-center gap-3">
-    {% if payment.status == 'DRAFT' %}
-    <a
-      href="/payments/{{ payment.id }}/edit"
-      class="rounded-md bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white
-             hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-    >Edit</a>
-    <form
-      method="post"
-      action="/payments/{{ payment.id }}/post"
-      onsubmit="return confirm('Post this payment? This cannot be undone easily.');"
-      class="inline"
-    >
-    {{ csrf_input(request)|safe }}
 
-      <input type="hidden" name="version" value="{{ payment.version }}">
-      <button
-        type="submit"
-        class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white
-               hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-      >Post</button>
-    </form>
-    <form
-      method="post"
-      action="/payments/{{ payment.id }}/archive"
-      onsubmit="return confirm('Archive this payment? This cannot be undone.');"
-      class="inline"
-    >
-    {{ csrf_input(request)|safe }}
+    <div class="flex items-center gap-2 flex-wrap justify-end">
+      {% if payment.status == 'DRAFT' %}
+      <a href="/payments/{{ payment.id }}/edit" class="btn-secondary text-sm">Edit</a>
+      <form method="post" action="/payments/{{ payment.id }}/post"
+            onsubmit="return confirm('Post this payment? This cannot be undone easily.');" class="inline">
+        {{ csrf_input(request)|safe }}
+        <input type="hidden" name="version" value="{{ payment.version }}">
+        <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">Post</button>
+      </form>
+      <form method="post" action="/payments/{{ payment.id }}/archive"
+            onsubmit="return confirm('Archive this payment? This cannot be undone.');" class="inline">
+        {{ csrf_input(request)|safe }}
+        <input type="hidden" name="version" value="{{ payment.version }}">
+        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">Archive</button>
+      </form>
+      {% endif %}
+      {% if payment.status == 'POSTED' %}
+      <form method="post" action="/payments/{{ payment.id }}/void"
+            onsubmit="return confirm('Void this payment?');" class="inline">
+        {{ csrf_input(request)|safe }}
+        <input type="hidden" name="version" value="{{ payment.version }}">
+        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">Void</button>
+      </form>
+      {% endif %}
+      {% if is_admin %}
+      {{ icons.hard_delete(
+           "/api/v1/payments/" ~ payment.id,
+           "payment " ~ (payment.reference|default(payment.number|default(payment.id|string))),
+           "/payments"
+      ) }}
+      {% endif %}
+    </div>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
 
-      <input type="hidden" name="version" value="{{ payment.version }}">
-      <button
-        type="submit"
-        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white
-               hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-      >Archive</button>
-    </form>
-    {% endif %}
-    {% if payment.status == 'POSTED' %}
-    <form
-      method="post"
-      action="/payments/{{ payment.id }}/void"
-      onsubmit="return confirm('Void this payment?');"
-      class="inline"
-    >
-    {{ csrf_input(request)|safe }}
+<section class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-7 hairline">
+  <div class="card bg-paper p-4 rounded-none">
+    <p class="nav-section-label mb-1">Date</p>
+    <p class="num ink-1 text-sm">{{ payment.payment_date }}</p>
+  </div>
+  <div class="card bg-paper p-4 rounded-none">
+    <p class="nav-section-label mb-1">Amount</p>
+    <p class="num-display ink-1 text-lg">{{ payment.currency }} {{ "%.2f"|format(payment.amount|float) }}</p>
+  </div>
+  <div class="card bg-paper p-4 rounded-none">
+    <p class="nav-section-label mb-1">Method</p>
+    <p class="ink-1 text-sm font-mono uppercase tracking-wider">{{ payment.method | upper }}</p>
+  </div>
+  <div class="card bg-paper p-4 rounded-none">
+    <p class="nav-section-label mb-1">Reference</p>
+    <p class="ink-1 text-sm">{{ payment.reference or "—" }}</p>
+  </div>
+</section>
 
-      <input type="hidden" name="version" value="{{ payment.version }}">
-      <button
-        type="submit"
-        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white
-               hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-      >Void</button>
-    </form>
-    {% endif %}
-    {% if is_admin %}
-    {{ icons.hard_delete(
-         "/api/v1/payments/" ~ payment.id,
-         "payment " ~ (payment.reference|default(payment.number|default(payment.id|string))),
-         "/payments"
-    ) }}
-    {% endif %}
-    <a
-      href="/payments"
-      class="text-sm text-indigo-600 hover:underline"
-    >← Back to payments</a>
-  </div>
-</div>
-
-{# ── Summary cards ── #}
-<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Date</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ payment.payment_date }}</p>
-  </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Amount</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
-      {{ payment.currency }} {{ "%.2f"|format(payment.amount|float) }}
-    </p>
-  </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Method</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ payment.method | upper }}</p>
-  </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Reference</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ payment.reference or "—" }}</p>
-  </div>
-</div>
-
-{# ── Allocations ── #}
-<h2 class="text-base font-semibold text-gray-900 mb-3">Allocated against</h2>
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto mb-8">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<section class="card overflow-hidden mb-7">
+  <div class="px-6 py-3 hairline-b"><p class="nav-section-label">Allocated against</p></div>
+  <table class="sae-table w-full">
+    <thead>
       <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Type</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Document ID</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Allocated amount</th>
+        <th class="text-left">Type</th>
+        <th class="text-left">Document</th>
+        <th class="text-right">Allocated amount</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% if payment.allocations %}
         {% for alloc in payment.allocations %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 text-gray-600">
+        <tr>
+          <td class="ink-2">
             {% if alloc.invoice_id %}Invoice
             {% elif alloc.bill_id %}Bill
             {% elif alloc.credit_note_id %}Credit note
             {% else %}—{% endif %}
           </td>
-          <td class="px-4 py-3 font-medium text-indigo-600">
+          <td>
             {% if alloc.invoice_id %}
-              <a href="/invoices/{{ alloc.invoice_id }}" class="hover:underline">{{ alloc.invoice_id }}</a>
+              <a href="/invoices/{{ alloc.invoice_id }}" class="sae hover:underline font-mono text-xs">{{ alloc.invoice_id }}</a>
             {% elif alloc.bill_id %}
-              <a href="/bills/{{ alloc.bill_id }}" class="hover:underline">{{ alloc.bill_id }}</a>
+              <a href="/bills/{{ alloc.bill_id }}" class="sae hover:underline font-mono text-xs">{{ alloc.bill_id }}</a>
             {% elif alloc.credit_note_id %}
-              {{ alloc.credit_note_id }}
+              <span class="ink-3 font-mono text-xs">{{ alloc.credit_note_id }}</span>
             {% else %}—{% endif %}
           </td>
-          <td class="px-4 py-3 text-right tabular-nums font-medium text-gray-900">
-            {{ payment.currency }} {{ "%.2f"|format(alloc.amount|float) }}
-          </td>
+          <td class="text-right num-display ink-1">{{ payment.currency }} {{ "%.2f"|format(alloc.amount|float) }}</td>
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="3" class="px-4 py-6 text-center text-gray-400">No allocations.</td>
-        </tr>
+        <tr><td colspan="3" class="text-center ink-3 font-mono text-sm py-6">— no allocations —</td></tr>
       {% endif %}
     </tbody>
   </table>
-</div>
+</section>
 
-{# ── Notes ── #}
 {% if payment.notes %}
-<div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-2">Notes</h2>
-  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">{{ payment.notes }}</div>
-</div>
+<section class="mb-7">
+  <p class="nav-section-label mb-2">Notes</p>
+  <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap leading-relaxed">{{ payment.notes }}</div>
+</section>
 {% endif %}
 
-{# ── Change log stub ── #}
-<div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-400">
-  Change log view — TODO
+<div class="card p-4 mb-4 text-center ink-3 font-mono text-xs" style="border-style:dashed;">
+  change log · TODO
 </div>
 
 {% endif %}{# end if payment #}

@@ -1,0 +1,211 @@
+{% extends "preview/_layout.html" %}
+{% set nav_active = 'invoices' %}
+{% block page_title %}New invoice · SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-start justify-between mb-5 gap-6">
+  <div>
+    <div class="flex items-center gap-3 mb-2">
+      <a href="/preview/invoices" class="text-[11px] font-mono ink-3 hover:underline">← Invoices</a>
+      <span class="text-[11px] font-mono ink-3">/</span>
+      <span class="text-[11px] font-mono">New</span>
+    </div>
+    <h1 class="font-display text-[32px] leading-[1.05] font-medium">
+      New invoice <span class="italic" style="color: var(--sae);">— INV-0034 (draft)</span>
+    </h1>
+    <p class="mt-1 ink-2 text-sm">Auto-saved · ABN, tax codes and totals validated in real time</p>
+  </div>
+  <div class="flex items-center gap-2 pt-2">
+    <button class="chip"><i data-lucide="eye" class="w-3.5 h-3.5"></i>Preview PDF</button>
+    <button class="chip"><i data-lucide="save" class="w-3.5 h-3.5"></i>Save as draft</button>
+    <button class="btn-secondary"><i data-lucide="send" class="w-4 h-4"></i>Save &amp; email <span class="text-[10px] font-mono opacity-70 ml-1.5">⌘↵</span></button>
+    <button class="btn-primary"><i data-lucide="check" class="w-4 h-4"></i>Approve &amp; send</button>
+  </div>
+</div>
+
+<div class="grid grid-cols-12 gap-5">
+  <!-- LEFT: invoice composer -->
+  <div class="col-span-8 card p-7 bg-white">
+    <!-- Header block: from / to / dates -->
+    <div class="grid grid-cols-3 gap-6 pb-5 border-b hairline mb-5">
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3 mb-2">From</p>
+        <p class="font-display text-[16px]">SAE Engineering Pty Ltd</p>
+        <p class="text-[11px] ink-2 mt-0.5">ABN 53 005 085 952</p>
+        <p class="text-[11px] ink-2">Unit 3, 18 Hartley St, Portsmith QLD</p>
+        <a href="/preview/settings" class="text-[11px] sae hover:underline">Edit branding →</a>
+      </div>
+
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3 mb-2">Bill to <span style="color: var(--neg);">*</span></p>
+        <div class="relative">
+          <input value="Acme Pty Ltd" class="w-full text-sm font-medium px-3 py-2 bg-[color:var(--paper)] border hairline rounded-md ring-focus">
+          <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono ink-3 px-1.5 py-0.5 rounded border hairline bg-white">⌘.</span>
+        </div>
+        <div class="mt-1.5 p-2 rounded border hairline bg-[color:var(--paper)] text-[11px] ink-2">
+          <p class="font-mono">ABN 12 345 678 901 <span class="pos">✓ verified</span></p>
+          <p>L4 / 12 Smith St, Sydney NSW 2000</p>
+          <p>accounts@acme.com.au · Net 14</p>
+        </div>
+        <a href="/preview/contacts/acme" class="text-[11px] sae hover:underline mt-1 inline-block">View contact card →</a>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3 mb-2">Invoice #</p>
+          <input value="INV-0034" class="w-full text-sm font-mono px-3 py-2 bg-[color:var(--paper)] border hairline rounded-md ring-focus">
+        </div>
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3 mb-2">Issued</p>
+          <input value="2026-05-12" class="w-full text-sm font-mono px-3 py-2 bg-[color:var(--paper)] border hairline rounded-md ring-focus">
+        </div>
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3 mb-2">Due</p>
+          <input value="2026-05-26" class="w-full text-sm font-mono px-3 py-2 bg-[color:var(--paper)] border hairline rounded-md ring-focus">
+        </div>
+        <div>
+          <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3 mb-2">Reference</p>
+          <input value="J-2603" class="w-full text-sm font-mono px-3 py-2 bg-[color:var(--paper)] border hairline rounded-md ring-focus">
+        </div>
+      </div>
+    </div>
+
+    <!-- Line items -->
+    <table class="sae-table">
+      <thead>
+        <tr>
+          <th class="w-7"></th>
+          <th>Description</th>
+          <th>Account / item</th>
+          <th class="text-right w-20">Qty</th>
+          <th class="text-right w-28">Unit</th>
+          <th class="w-28">Tax</th>
+          <th class="text-right w-28">Amount</th>
+          <th class="w-7"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="ink-3"><i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i></td>
+          <td>
+            <input value="Conveyor retrofit — Phase 2 progress claim" class="w-full text-sm font-medium px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none">
+            <p class="text-[11px] ink-3 px-2">Stage gate: PG-02 · linked to <a href="/preview/projects/j-2603" class="sae hover:underline">J-2603</a></p>
+          </td>
+          <td><span class="font-mono text-[12px] ink-2">4-100 · Services revenue</span></td>
+          <td class="text-right"><input value="1" class="w-full text-sm num text-right px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none"></td>
+          <td class="text-right"><input value="18,420.00" class="w-full text-sm num text-right px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none"></td>
+          <td><span class="badge badge-pos text-[11px]">GST 10%</span></td>
+          <td class="text-right num font-medium">18,420.00</td>
+          <td><button class="ink-3 hover:text-[color:var(--neg)]"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></td>
+        </tr>
+        <tr>
+          <td class="ink-3"><i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i></td>
+          <td>
+            <input value="Switchboard install — labour + materials" class="w-full text-sm font-medium px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none">
+            <p class="text-[11px] ink-3 px-2">Pass-through · Dale Maxwell Electrical (<a href="/preview/bills/bill-1842" class="sae hover:underline">BILL-0142</a>)</p>
+          </td>
+          <td><span class="font-mono text-[12px] ink-2">4-100 · Services revenue</span></td>
+          <td class="text-right"><input value="1" class="w-full text-sm num text-right px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none"></td>
+          <td class="text-right"><input value="6,912.40" class="w-full text-sm num text-right px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none"></td>
+          <td><span class="badge badge-pos text-[11px]">GST 10%</span></td>
+          <td class="text-right num font-medium">6,912.40</td>
+          <td><button class="ink-3 hover:text-[color:var(--neg)]"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></td>
+        </tr>
+        <tr>
+          <td class="ink-3"><i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i></td>
+          <td>
+            <input value="Travel — Cairns site visits" class="w-full text-sm font-medium px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none">
+            <p class="text-[11px] ink-3 px-2">Reimbursement at km rate · 2 trips</p>
+          </td>
+          <td><span class="font-mono text-[12px] ink-2">4-200 · Reimbursements</span></td>
+          <td class="text-right"><input value="412" class="w-full text-sm num text-right px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none"></td>
+          <td class="text-right"><input value="0.96" class="w-full text-sm num text-right px-2 py-1.5 bg-transparent border-b border-transparent hover:border-[color:var(--line)] focus:border-[color:var(--sae)] focus:outline-none"></td>
+          <td><span class="badge badge-ink text-[11px]">GST-free</span></td>
+          <td class="text-right num font-medium">395.52</td>
+          <td><button class="ink-3 hover:text-[color:var(--neg)]"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></td>
+        </tr>
+        <tr>
+          <td colspan="8" class="!py-2">
+            <div class="flex items-center gap-2 text-[12px]">
+              <button class="chip"><i data-lucide="plus" class="w-3 h-3"></i>Add line</button>
+              <button class="chip"><i data-lucide="hammer" class="w-3 h-3"></i>From job stages</button>
+              <button class="chip"><i data-lucide="repeat" class="w-3 h-3"></i>Make recurring</button>
+              <button class="chip"><i data-lucide="paperclip" class="w-3 h-3"></i>Attach file</button>
+              <span class="flex-1"></span>
+              <span class="text-[11px] font-mono ink-3">⌘⏎ to save</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Totals + notes -->
+    <div class="grid grid-cols-2 gap-6 mt-6 pt-5 border-t hairline">
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-[0.18em] ink-3 mb-2">Customer-facing notes</p>
+        <textarea rows="4" class="w-full text-[13px] px-3 py-2 bg-[color:var(--paper)] border hairline rounded-md ring-focus" placeholder="Payment terms, bank details, thank-you note…">Payment terms: Net 14 from issue date.
+BSB 064-156 · Acc 2841 6612 · Ref INV-0034
+Late fee 2% per month per SAE Terms of Trade.</textarea>
+      </div>
+      <div class="text-[13px]">
+        <div class="flex justify-between py-1.5 ink-2"><span>Subtotal (ex GST)</span><span class="num">25,727.92</span></div>
+        <div class="flex justify-between py-1.5 ink-2"><span>GST 10% (on 25,332.40)</span><span class="num">2,533.24</span></div>
+        <div class="flex justify-between py-1.5 ink-2"><span>GST-free</span><span class="num">395.52</span></div>
+        <div class="flex justify-between py-2 border-t hairline font-medium text-[15px]"><span>Total inc GST</span><span class="num">A$28,261.16</span></div>
+        <div class="flex justify-between py-1.5 text-[12px] ink-2"><span>Already paid</span><span class="num">0.00</span></div>
+        <div class="flex justify-between py-2 border-t hairline font-medium" style="color: var(--sae);"><span>Balance</span><span class="num">A$28,261.16</span></div>
+        <p class="text-[11px] ink-3 mt-2 font-mono">Round-to-cent reconciliation applied · Δ A$0.00</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: validation + assist rail -->
+  <aside class="col-span-4 space-y-4">
+    <div class="card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-[11px] uppercase tracking-wider ink-3">Pre-send checks</h3>
+        <span class="badge badge-pos"><span class="dot" style="background: var(--pos);"></span>All green</span>
+      </div>
+      <ul class="space-y-2 text-[12px]">
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>Customer ABN verified at ABR (last checked today)</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>Invoice # sequence intact · last issued INV-0033</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>GST splits sum to header total</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>Both GST + GST-free shown — Tax Invoice requirements met</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 pos"></i><span>Customer has not requested e-invoice (Peppol) yet</span></li>
+      </ul>
+    </div>
+
+    <div class="card p-4">
+      <h3 class="text-[11px] uppercase tracking-wider ink-3 mb-3">Delivery</h3>
+      <div class="space-y-2.5 text-[12px]">
+        <label class="flex items-center gap-2"><input type="checkbox" checked class="rounded border-gray-300"><span>Email PDF to <span class="font-mono">accounts@acme.com.au</span></span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" checked class="rounded border-gray-300"><span>CC <span class="font-mono">richard@saee.com.au</span></span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" class="rounded border-gray-300"><span>Attach payment link (Stripe AU)</span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" class="rounded border-gray-300"><span>Send via Peppol (e-invoice, AU PINT)</span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" class="rounded border-gray-300"><span>Schedule send for tomorrow 09:00 AEST</span></label>
+      </div>
+    </div>
+
+    <div class="card p-4" style="border: 1px dashed var(--sae);">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5" style="color: var(--sae);"></i>
+        <p class="text-[11px] uppercase tracking-wider" style="color: var(--sae);">Job-cost link suggestion</p>
+      </div>
+      <p class="text-[12px] ink-2 mt-1">J-2603 has <strong>A$28,261.16</strong> in approved work-in-progress that hasn't been invoiced yet. This invoice closes Phase 2 of the conveyor retrofit — margin will lock in at <strong class="num">38.4%</strong>.</p>
+      <button class="chip mt-3 text-[11px]">Mark J-2603 PG-02 complete</button>
+    </div>
+
+    <div class="card p-4">
+      <h3 class="text-[11px] uppercase tracking-wider ink-3 mb-2">Recent for Acme</h3>
+      <ul class="text-[12px] space-y-2">
+        <li class="flex items-center justify-between"><a href="/preview/invoices/inv-0028" class="sae hover:underline font-mono">INV-0028</a><span class="num pos">Paid · 14,179</span></li>
+        <li class="flex items-center justify-between"><a href="/preview/quotes/q-0032/convert" class="sae hover:underline font-mono">Q-0032</a><span class="num">Accepted · 34,321</span></li>
+        <li class="flex items-center justify-between"><a href="#" class="sae hover:underline font-mono">INV-0024</a><span class="num pos">Paid · 8,640</span></li>
+      </ul>
+      <a href="/preview/contacts/acme" class="text-[11px] sae mt-3 flex items-center gap-1">All Acme activity →</a>
+    </div>
+  </aside>
+</div>
+
+{% endblock %}

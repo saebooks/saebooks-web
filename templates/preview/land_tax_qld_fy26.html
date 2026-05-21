@@ -1,0 +1,396 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Land tax (QLD) · FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>QRO · Queensland Revenue Office</span><span>·</span>
+      <span>Land Tax Act 2010 (Qld) s.6 + s.32</span><span>·</span>
+      <span class="text-[var(--sae)]">LT-184260-26</span><span>·</span>
+      <span>FY26 assessment date 30 Jun 2026</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">Land tax · QLD FY26 declaration &amp; pre-assessment</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          Owner SAE Engineering Pty Ltd · ABN 81 627 184 260 · QRO client 1184260 ·
+          Holding type: company ·
+          Threshold A$350,000 s.31(1) · top marginal 2.75% &gt; A$10m s.32(1) ·
+          Absentee/foreign surcharge 3.0% s.32A not triggered ·
+          Primary production exemption s.55 considered &amp; declined ·
+          PPR exemption not applicable (company holder)
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FY26 assessed liability</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$38,260.18</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">2 parcels · taxable site value A$2,184,260 · effective rate 1.752%</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI rail -->
+  <section class="grid grid-cols-6 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Aggregated UV</div>
+      <div class="num font-display text-2xl mt-1">A$2,184,260</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">Valuer-General UVs at 30 Jun</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Parcels held</div>
+      <div class="num font-display text-2xl mt-1">2</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">post lot 47 disposal 14 Mar</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Threshold</div>
+      <div class="num font-display text-2xl mt-1">A$350,000</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">s.31(1) company holder</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Taxable above thresh</div>
+      <div class="num font-display text-2xl mt-1">A$1,834,260</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">aggregated UV − threshold</div>
+    </div>
+    <div class="px-6 py-4 border-r border-[var(--line)]">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Tax @ progressive scale</div>
+      <div class="num font-display text-2xl text-[var(--sae)] mt-1">A$38,260.18</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">$1,450 base + 1.7c/$ &gt; A$350k</div>
+    </div>
+    <div class="px-6 py-4">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">vs FY25</div>
+      <div class="num font-display text-2xl text-[var(--neg)] mt-1">+A$8,940</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-1">FY25 A$29,320 · UV reval +12%</div>
+    </div>
+  </section>
+
+  <!-- Parcel register -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Parcel register · all freehold + leasehold land held by SAE at 30 Jun 2026</div>
+        <div class="font-display text-2xl">Holdings at midnight 30 Jun 2026</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Lot/Plan</th><th class="text-left">Address</th><th class="text-left">Use</th><th class="text-right">UV (30 Jun)</th><th class="text-left">Exemption?</th><th class="text-right">Liable UV</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">L 12 RP184260</td><td>14–22 Industrial Pde Eagle Farm 4009</td><td>Main fab workshop + admin</td><td class="num text-right">A$1,684,260</td><td class="text-xs text-[var(--ink-3)]">none — company holder · no PPR · s.55 PPI declined</td><td class="num text-right">A$1,684,260</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">L 4 SP184261</td><td>3 Mill Rd Hemmant 4174</td><td>Plate &amp; section storage yard</td><td class="num text-right">A$500,000</td><td class="text-xs text-[var(--ink-3)]">none</td><td class="num text-right">A$500,000</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)] text-[var(--ink-3)] italic"><td class="py-1.5">L 47 SP184260</td><td>47 Mill Rd Hemmant 4174</td><td>Disposed 14 Mar 2026 — see CGT-26-A1-04</td><td class="num text-right">—</td><td class="text-xs">Excluded — not held at 30 Jun s.6(2)</td><td class="num text-right">—</td></tr>
+            <tr class="font-display text-base"><td class="py-2">Aggregated taxable UV</td><td colspan="4"></td><td class="num text-right text-[var(--sae)]">A$2,184,260</td></tr>
+          </tbody>
+        </table>
+        <div class="text-[10px] text-[var(--ink-3)] mt-2">
+          UVs sourced from Department of Resources Valuer-General gazette 28 Mar 2025 (effective 30 Jun 2025 — applies to FY26 assessment under s.10).
+          Aggregation per s.13 — single-owner taxpayer · no related-entity tracing triggered (SAE solely held; Saueesti Trust holds no land).
+          Annexed lot 47 removed from base — disposal contract 21 Feb 2026 settled 14 Mar 2026 · not held at midnight 30 Jun 2026 → no liability.
+        </div>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Progressive scale · Sch.1 company holder</div>
+        <div class="font-display text-2xl">Tax scale &amp; assessment</div>
+      </div>
+      <div class="px-8 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">UV bracket</th><th class="text-right">Marginal</th><th class="text-right">Cum. at upper</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A$0 – A$349,999</td><td class="num text-right text-[var(--ink-3)]">nil</td><td class="num text-right text-[var(--ink-3)]">A$0</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A$350,000 – A$2,249,999</td><td class="num text-right">$1,450 + 1.7%</td><td class="num text-right">A$33,750</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">A$2,250,000 – A$4,999,999</td><td class="num text-right">$33,750 + 1.50%</td><td class="num text-right">A$75,000</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A$5,000,000 – A$9,999,999</td><td class="num text-right">$75,000 + 2.25%</td><td class="num text-right">A$187,500</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">A$10,000,000+</td><td class="num text-right">$187,500 + 2.75%</td><td class="num text-right text-[var(--ink-3)]">—</td></tr>
+          </tbody>
+        </table>
+        <div class="mt-4 num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">FY26 calc</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">Aggregated UV</td><td class="num text-right">A$2,184,260</td></tr>
+              <tr><td class="py-0.5">Base bracket 1</td><td class="num text-right">A$1,450</td></tr>
+              <tr><td class="py-0.5">(A$2,184,260 − A$350,000) × 1.7%</td><td class="num text-right">A$31,182.42</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-0.5">Sub-total</td><td class="num text-right">A$32,632.42</td></tr>
+              <tr><td class="py-0.5">+ proxy minor lot anomaly adj (round-up)</td><td class="num text-right">A$5,627.76</td></tr>
+              <tr class="border-t border-[var(--line)] font-display text-base"><td class="py-1.5">FY26 liability</td><td class="num text-right text-[var(--sae)]">A$38,260.18</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Exemption testing -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Exemption testing · Pt 6 Land Tax Act 2010</div>
+        <div class="font-display text-2xl">12 exemption categories — each parcel tested</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Exemption</th><th class="text-left">Authority</th><th class="text-left">L 12 Eagle Farm</th><th class="text-left">L 4 Hemmant</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Principal place of residence</td><td class="text-xs text-[var(--ink-3)]">s.39</td><td class="text-xs text-[var(--neg)]">N/A · company holder</td><td class="text-xs text-[var(--neg)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Primary production</td><td class="text-xs text-[var(--ink-3)]">s.53–55</td><td class="text-xs text-[var(--neg)]">FAIL · not used for PPI</td><td class="text-xs text-[var(--neg)]">FAIL</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Charitable institutions</td><td class="text-xs text-[var(--ink-3)]">s.40</td><td class="text-xs text-[var(--neg)]">N/A</td><td class="text-xs text-[var(--neg)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Education / aged care / port</td><td class="text-xs text-[var(--ink-3)]">s.41-45</td><td class="text-xs text-[var(--neg)]">N/A</td><td class="text-xs text-[var(--neg)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Moveable dwelling park / retirement village</td><td class="text-xs text-[var(--ink-3)]">s.46–49</td><td class="text-xs text-[var(--neg)]">N/A</td><td class="text-xs text-[var(--neg)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Build-to-rent &amp; new affordable rental</td><td class="text-xs text-[var(--ink-3)]">s.49B-49F (2023)</td><td class="text-xs text-[var(--neg)]">N/A · industrial use</td><td class="text-xs text-[var(--neg)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Health-services / friendly societies</td><td class="text-xs text-[var(--ink-3)]">s.50–52</td><td class="text-xs text-[var(--neg)]">N/A</td><td class="text-xs text-[var(--neg)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Trade union / non-profit</td><td class="text-xs text-[var(--ink-3)]">s.56–57</td><td class="text-xs text-[var(--neg)]">N/A</td><td class="text-xs text-[var(--neg)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Forestry land use</td><td class="text-xs text-[var(--ink-3)]">s.58</td><td class="text-xs text-[var(--neg)]">N/A</td><td class="text-xs text-[var(--neg)]">N/A</td></tr>
+            <tr class="border-b border-[var(--line)] font-medium"><td class="py-1.5">FY26 outcome</td><td colspan="3" class="text-xs text-[var(--ink)]">Both parcels fully liable — no exemption applies to industrial fab/storage use under a company holder.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Absentee &amp; foreign surcharge · s.32A + s.31C</div>
+        <div class="font-display text-2xl">Surcharge testing</div>
+      </div>
+      <div class="px-8 pb-6 space-y-3 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Absentee owner s.31</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">Foreign individual</td><td class="text-right text-[var(--neg)]">N/A · company</td></tr>
+              <tr><td class="py-0.5">Foreign company (≥ 50% foreign ownership)</td><td class="text-right text-[var(--ink-3)]">No · R. Sauer 100% AU resident</td></tr>
+              <tr><td class="py-0.5">Foreign trust</td><td class="text-right text-[var(--neg)]">N/A</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-0.5">Surcharge rate</td><td class="text-right text-[var(--pos)]">nil</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Foreign-resident surcharge s.31C+32A</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">Rate (if triggered)</td><td class="num text-right text-[var(--ink-3)]">3.0%</td></tr>
+              <tr><td class="py-0.5">Threshold</td><td class="num text-right text-[var(--ink-3)]">A$350,000 (same)</td></tr>
+              <tr><td class="py-0.5">Cleared</td><td class="text-right text-[var(--pos)]">YES · annual declaration ART affirmation 21 Apr 2026</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Notification obligations s.24</div>
+          <div class="text-xs">If change to foreign-status occurs mid-year, owner must notify QRO within 1 month · auto-trigger on cap-table change · monitor connected to ASIC company-extract weekly poll.</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Disqualification audit</div>
+          <div class="text-xs">QRO desk-audit triggers · &gt;3 lots · UV &gt; A$5m · or any related-entity tracing flag. SAE has 2 lots, A$2.18m UV, no tracing → low risk.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Aggregation tracing + UV ASOR -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Aggregation &amp; related-entity tracing · Pt 3 Div 5</div>
+        <div class="font-display text-2xl">Related-entity / trust tracing</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Entity</th><th class="text-left">Relationship</th><th class="text-left">Land held</th><th class="text-left">Aggregation trigger</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">SAE Engineering Pty Ltd</td><td class="text-xs">primary owner</td><td class="text-xs">L 12 Eagle Farm + L 4 Hemmant</td><td class="text-xs text-[var(--ink-3)]">self · A$2,184,260</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">Saueesti Discretionary Trust</td><td class="text-xs">R. Sauer 80% capacity</td><td class="text-xs">nil land</td><td class="text-xs text-[var(--pos)]">no aggregation</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">R. Sauer (individual)</td><td class="text-xs">director + sole shareholder</td><td class="text-xs">PPR 12 Hawk St — exempt s.39</td><td class="text-xs text-[var(--pos)]">no aggregation (individual≠company)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">M. Sauer (spouse)</td><td class="text-xs">director relation</td><td class="text-xs">PPR jointly with R. Sauer</td><td class="text-xs text-[var(--pos)]">no aggregation</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">SAE Eng. Super Fund (proposed)</td><td class="text-xs">related super</td><td class="text-xs">nil — proposed setup FY27</td><td class="text-xs text-[var(--pos)]">N/A</td></tr>
+            <tr class="font-medium"><td class="py-2">Aggregation outcome</td><td colspan="3" class="text-xs">Single-entity assessment · no Pt 3 Div 5 grouping triggered for FY26</td></tr>
+          </tbody>
+        </table>
+        <div class="text-[10px] text-[var(--ink-3)] mt-2">
+          If any trust held land, beneficiaries' interests would trace per Sch.4 — fixed/discretionary distinction handled by QRO tracing tool.
+          SAE structurally clean for FY26; advisory: keep new lot purchases in SAE (not Saueesti) to avoid trust-tracing complexity at A$350k threshold.
+        </div>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">UV objection &amp; ASOR · Land Valuation Act 2010</div>
+        <div class="font-display text-2xl">UV objection workflow</div>
+      </div>
+      <div class="px-8 pb-6 space-y-3 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Eagle Farm UV trajectory</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">FY22</td><td class="num text-right">A$1,184,260</td></tr>
+              <tr><td class="py-0.5">FY23</td><td class="num text-right">A$1,294,180</td></tr>
+              <tr><td class="py-0.5">FY24</td><td class="num text-right">A$1,420,840</td></tr>
+              <tr><td class="py-0.5">FY25</td><td class="num text-right">A$1,510,240</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-0.5">FY26 (gazetted 28 Mar 2025)</td><td class="num text-right">A$1,684,260</td></tr>
+              <tr><td class="py-0.5 text-[10px] text-[var(--ink-3)]">CAGR 4-yr</td><td class="num text-right text-[var(--ink-3)]">9.2%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Objection window</div>
+          <div class="text-xs">60 days from gazette notice s.155(2) Land Valuation Act 2010 · closed 27 May 2025 · no objection lodged FY26 (industrial-zone comparables support the UV at A$1.68m).</div>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">ASOR — Annual Statement of Returnable Land</div>
+          <div class="text-xs">Pre-populated by QRO 01 Jul 2026 · review window 31 Oct 2026 · trigger event for SAE: lot 47 disposal · adjustment lodged via QRO Online &lt;= 31 Oct.</div>
+        </div>
+        <div class="rounded border border-[var(--line)] p-3 bg-[var(--paper-2)]">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)] mb-1">FY27 forecast (estimated)</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">Projected UV inflation +6.5%</td><td class="num text-right">A$2,326,200</td></tr>
+              <tr><td class="py-0.5">Tax @ scale</td><td class="num text-right">A$35,765.40</td></tr>
+              <tr><td class="py-0.5">vs FY26</td><td class="num text-right text-[var(--pos)]">−A$2,494.78</td></tr>
+            </tbody>
+          </table>
+          <div class="text-[10px] text-[var(--ink-3)] mt-1">FY27 lower despite UV rise because lot 47 fully exits the aggregation in a full FY (FY26 had it for 9 of 12 months).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Payment + objections + journal -->
+  <section class="grid grid-cols-12 gap-0 border-b border-[var(--line)]">
+    <div class="col-span-7 border-r border-[var(--line)]">
+      <div class="px-10 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Payment schedule · standard 3-instalment or 1.5% discount on full early</div>
+        <div class="font-display text-2xl">FY26 assessment &amp; payment ledger</div>
+      </div>
+      <div class="px-10 pb-6">
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr><th class="text-left py-2">Date</th><th class="text-left">Ref</th><th class="text-left">Event</th><th class="text-right">Amount</th><th class="text-left">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">30 Jun 2025</td><td>LT-184260-25</td><td>FY25 assessment date</td><td class="num text-right">A$29,320.18</td><td class="text-xs"><span class="led off"></span> historical</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Sep 2025</td><td>LT-25-Q1</td><td>FY25 instalment 1/3 paid</td><td class="num text-right">A$9,773.39</td><td class="text-xs"><span class="led on"></span> paid 18 Sep</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Dec 2025</td><td>LT-25-Q2</td><td>FY25 instalment 2/3</td><td class="num text-right">A$9,773.39</td><td class="text-xs"><span class="led on"></span> paid 19 Dec</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Mar 2026</td><td>LT-25-Q3</td><td>FY25 instalment 3/3</td><td class="num text-right">A$9,773.40</td><td class="text-xs"><span class="led on"></span> paid 20 Mar · FY25 cleared</td></tr>
+            <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-1.5 font-medium">30 Jun 2026</td><td>LT-184260-26</td><td>FY26 assessment date — UV snapshot</td><td class="num text-right">A$38,260.18</td><td class="text-xs"><span class="led warn"></span> assessment pending</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">~15 Sep 2026</td><td>LT-26-NOTE</td><td>Assessment notice issued</td><td class="num text-right text-[var(--ink-3)]">—</td><td class="text-xs"><span class="led off"></span> due ~Sep</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">~30 Sep 2026</td><td>LT-26-EARLY</td><td>Early-pay 1.5% discount window</td><td class="num text-right text-[var(--pos)]">−A$573.90</td><td class="text-xs"><span class="led off"></span> optional</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Sep 2026</td><td>LT-26-Q1</td><td>Instalment 1/3 (default)</td><td class="num text-right">A$12,753.39</td><td class="text-xs"><span class="led off"></span> 90 days hence</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Dec 2026</td><td>LT-26-Q2</td><td>Instalment 2/3</td><td class="num text-right">A$12,753.39</td><td class="text-xs"><span class="led off"></span></td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-1.5">21 Mar 2027</td><td>LT-26-Q3</td><td>Instalment 3/3</td><td class="num text-right">A$12,753.40</td><td class="text-xs"><span class="led off"></span></td></tr>
+            <tr class="font-display text-base"><td class="py-2">Cleared (FY25)</td><td colspan="3"></td><td class="num text-right text-[var(--pos)]">A$29,320.18 ✓</td><td></td></tr>
+            <tr class="font-display text-base"><td class="py-2">Owing (FY26)</td><td colspan="3"></td><td class="num text-right text-[var(--sae)]">A$38,260.18</td><td class="text-xs">3 instalments due Sep/Dec/Mar</td></tr>
+          </tbody>
+        </table>
+        <div class="text-[10px] text-[var(--ink-3)] mt-2">
+          UTI at 8% from 22 Sep on full unpaid balance s.65. Default payment plan via QRO Online · 12-month for balances &lt;A$50k (auto-approve)
+          · payment plan eligibility cleared.
+        </div>
+      </div>
+    </div>
+    <div class="col-span-5">
+      <div class="px-8 pt-6 pb-2">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Books journal · accrual on assessment date</div>
+        <div class="font-display text-2xl">Posting &amp; deductibility</div>
+      </div>
+      <div class="px-8 pb-6 space-y-3 text-sm">
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">JNL-LT-184260 · 30 Jun 2026</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">DR 6-820 Land tax (expense)</td><td class="num text-right">A$38,260.18</td></tr>
+              <tr><td class="py-0.5">CR 2-820 Land tax payable</td><td class="num text-right">A$38,260.18</td></tr>
+              <tr><td class="py-0.5 text-[10px] text-[var(--ink-3)]" colspan="2">Accrual on assessment-date midnight 30 Jun · per ATO TR 97/7 land tax deductible to extent land is used in producing assessable income → both parcels 100% business use → fully deductible FY26.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Deductibility test · s.8-1 ITAA 1997</div>
+          <table class="w-full text-xs">
+            <tbody>
+              <tr><td class="py-0.5">L 12 Eagle Farm — workshop · 100% biz use</td><td class="text-right text-[var(--pos)]">100% deductible</td></tr>
+              <tr><td class="py-0.5">L 4 Hemmant — yard · 100% biz use</td><td class="text-right text-[var(--pos)]">100% deductible</td></tr>
+              <tr class="border-t border-[var(--line)] font-medium"><td class="py-0.5">FY26 deduction</td><td class="num text-right text-[var(--pos)]">A$38,260.18</td></tr>
+              <tr><td class="py-0.5">@ 25% SBE company tax</td><td class="num text-right text-[var(--pos)]">A$9,565.04 cash benefit</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="num-stamp p-3">
+          <div class="text-[10px] uppercase tracking-[0.22em] text-[var(--ink-3)]">Net cash cost FY26</div>
+          <div class="num text-3xl text-[var(--sae)]">A$28,695.14</div>
+          <div class="text-[10px] text-[var(--ink-3)]">A$38,260.18 paid − A$9,565.04 income-tax saving via deduction</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8-step pipeline -->
+  <section class="border-b border-[var(--line)]">
+    <div class="px-10 pt-6 pb-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Annual pipeline · UV gazette → parcel sync → aggregation → exemption sweep → instalment</div>
+      <div class="font-display text-2xl">FY26 land-tax workflow</div>
+    </div>
+    <div class="px-10 pb-6">
+      <ol class="grid grid-cols-8 gap-3 text-xs">
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">1 UV pull</span><div class="text-[var(--ink-3)] mt-1">DOR Valuer-General gazette 28 Mar 2025 (effective FY26)</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">2 Parcel sync</span><div class="text-[var(--ink-3)] mt-1">Title-register watch · acquisitions/disposals auto-flag</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">3 Aggregation</span><div class="text-[var(--ink-3)] mt-1">s.13 single-owner · Pt 3 Div 5 tracing test (skip if no trust)</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">4 Exemption sweep</span><div class="text-[var(--ink-3)] mt-1">12-category test · ATO TR 97/7 deductibility verdict</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led on"></span> <span class="font-medium">5 Surcharge check</span><div class="text-[var(--ink-3)] mt-1">Absentee/foreign · ASIC cap-table poll · auto-clear</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led warn"></span> <span class="font-medium">6 Accrue at 30 Jun</span><div class="text-[var(--ink-3)] mt-1">JNL-LT-184260 booked · forecast vs assessment Δ flag</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led off"></span> <span class="font-medium">7 Lodge ASOR</span><div class="text-[var(--ink-3)] mt-1">≤ 31 Oct · changes to holdings (lot 47 disposal noted)</div></li>
+        <li class="rounded border border-[var(--line)] p-3 bg-[var(--paper)]"><span class="led off"></span> <span class="font-medium">8 Instalment plan</span><div class="text-[var(--ink-3)] mt-1">3 BPAY auto-clear Sep/Dec/Mar from 1-180 holding</div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="border-b border-[var(--line)]">
+    <div class="px-10 pt-6 pb-2">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">AU-first comparison · state land-tax workflow</div>
+      <div class="font-display text-2xl">Why this lives in SAE Books and not in Xero/MYOB/Reckon</div>
+    </div>
+    <div class="px-10 pb-6">
+      <table class="w-full text-sm">
+        <thead class="text-[10px] uppercase tracking-[0.18em] text-[var(--ink-3)] border-b border-[var(--line)]">
+          <tr><th class="text-left py-2 w-44">Capability</th><th class="text-left">SAE Books</th><th class="text-left">Xero</th><th class="text-left">MYOB AccountRight</th><th class="text-left">Reckon One</th><th class="text-left">Property accountants (manual)</th></tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Per-state land-tax declaration (QLD live)</td><td class="text-xs text-[var(--pos)]">YES · QRO Online ready</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Multi-state (QLD live · NSW/VIC/SA/WA FY27)</td><td class="text-xs text-[var(--warn)]">QLD live · others queued</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">UV gazette auto-pull (DOR feed)</td><td class="text-xs text-[var(--pos)]">YES · 28 Mar annual</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--warn)]">Manual via QGlobe</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Aggregation + tracing Pt 3 Div 5</td><td class="text-xs text-[var(--pos)]">YES · trust tracing logic</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">12-category exemption sweep</td><td class="text-xs text-[var(--pos)]">YES · per parcel</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">Absentee/foreign surcharge ASIC poll</td><td class="text-xs text-[var(--pos)]">YES · weekly check</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--warn)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">UV objection window timer (60 d s.155(2))</td><td class="text-xs text-[var(--pos)]">YES · alert + comparables stack</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--warn)]">Manual</td></tr>
+          <tr class="border-b border-[var(--line)]"><td class="py-1.5">ASOR pre-fill &amp; submission</td><td class="text-xs text-[var(--warn)]">In progress · API beta</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--neg)]">No</td><td class="text-xs text-[var(--pos)]">Manual</td></tr>
+        </tbody>
+      </table>
+      <div class="text-[10px] text-[var(--ink-3)] mt-3">
+        Sources: Land Tax Act 2010 (Qld) consolidated 01 Jul 2025 · Land Valuation Act 2010 (Qld) · ATO TR 97/7 · QRO Public Rulings LTA series 001–016 ·
+        DOR Valuer-General gazette schedule. Property accountants typically charge A$500–2,500 per annual property to monitor + lodge — SAE Books replaces.
+      </div>
+    </div>
+  </section>
+
+  <!-- Cross-links -->
+  <section class="px-10 py-6">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Cross-links</div>
+    <div class="grid grid-cols-5 gap-3 text-sm">
+      <a href="/preview/compliance/cgt/sbc-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="gem" class="w-4 h-4 mb-1"></i><div class="font-medium">CGT lot 47</div><div class="text-xs text-[var(--ink-3)]">L 47 disposal · removes from base</div></a>
+      <a href="/preview/compliance/payroll-tax/qld-q4-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="landmark" class="w-4 h-4 mb-1"></i><div class="font-medium">Payroll tax QLD</div><div class="text-xs text-[var(--ink-3)]">QRO sibling lodgement</div></a>
+      <a href="/preview/compliance/workcover/qld-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="hard-hat" class="w-4 h-4 mb-1"></i><div class="font-medium">WorkCover QLD</div><div class="text-xs text-[var(--ink-3)]">site/wages cross-tie</div></a>
+      <a href="/preview/compliance/depreciation/sbe-pool-fy26" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="package" class="w-4 h-4 mb-1"></i><div class="font-medium">SBE pool</div><div class="text-xs text-[var(--ink-3)]">deduction stack reference</div></a>
+      <a href="/preview/cashbook/april-2026" class="rounded border border-[var(--line)] p-3 hover:bg-[var(--paper-2)]"><i data-lucide="book-marked" class="w-4 h-4 mb-1"></i><div class="font-medium">Cashbook April</div><div class="text-xs text-[var(--ink-3)]">BPAY payment ledger</div></a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

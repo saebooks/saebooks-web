@@ -1,0 +1,79 @@
+{# HTMX partial — aged payables table body.
+   Rendered standalone for HX-Request fragments; embedded by aged_payables.html
+   for the initial full-page load.
+#}
+<div id="report-content">
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+  {{ error }}
+</div>
+{% endif %}
+
+{# Loading indicator shown while HTMX is fetching #}
+<div id="report-spinner" class="htmx-indicator flex items-center gap-2 text-sm text-gray-500 mb-4">
+  <svg class="animate-spin h-4 w-4 text-[#194291]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+  </svg>
+  Loading…
+</div>
+
+{% if report %}
+{% set buckets = report.get("buckets", []) %}
+{% set contacts = report.get("contacts", []) %}
+{% set totals = report.get("totals", {}) %}
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200 text-sm" id="aged-payables-table">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Contact</th>
+        {% for bucket in buckets %}
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ bucket }}</th>
+        {% endfor %}
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% if contacts %}
+        {% for contact in contacts %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-gray-900">{{ contact.get("contact_name", "—") }}</td>
+          {% for bucket in buckets %}
+          <td class="px-4 py-3 text-right tabular-nums text-gray-900">
+            {{ "%.2f"|format(contact.get(bucket, 0) | float) }}
+          </td>
+          {% endfor %}
+          <td class="px-4 py-3 text-right tabular-nums font-medium text-gray-900">
+            {{ "%.2f"|format(contact.get("total", 0) | float) }}
+          </td>
+        </tr>
+        {% endfor %}
+        {# Totals row #}
+        <tr class="bg-gray-50 font-semibold border-t-2 border-gray-300">
+          <td class="px-4 py-3 text-gray-900">Total</td>
+          {% for bucket in buckets %}
+          <td class="px-4 py-3 text-right tabular-nums text-gray-900">
+            {{ "%.2f"|format(totals.get(bucket, 0) | float) }}
+          </td>
+          {% endfor %}
+          <td class="px-4 py-3 text-right tabular-nums text-gray-900">
+            {{ "%.2f"|format(totals.get("total", 0) | float) }}
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="{{ (buckets | length) + 2 }}" class="px-4 py-8 text-center text-gray-400">
+            No outstanding payables as at {{ report.get("as_of_date", "") }}.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% elif not error %}
+<p class="text-sm text-gray-400">No data returned.</p>
+{% endif %}
+
+</div>{# end #report-content #}

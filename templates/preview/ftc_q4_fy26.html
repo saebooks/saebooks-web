@@ -1,0 +1,537 @@
+{% extends "preview/_layout.html" %}
+{% block title %}Fuel Tax Credits · Q4 FY26 — SAE Books{% endblock %}
+{% block content %}
+<div class="reg-marks"></div>
+<div class="dot-grid-soft min-h-screen">
+
+  <!-- Header -->
+  <section class="px-10 pt-10 pb-6 border-b border-[var(--line)] bg-[var(--paper)]">
+    <div class="flex items-baseline gap-3 text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">
+      <span>Fuel Tax Act 2006</span><span>·</span>
+      <span>Division 41 — entitlement to fuel tax credits</span><span>·</span>
+      <span class="text-[var(--sae)]">FTC-Q4-FY26</span><span>·</span>
+      <span>Period 01 Apr 2026 – 30 Jun 2026</span>
+    </div>
+    <div class="mt-3 flex items-end justify-between gap-8">
+      <div>
+        <h1 class="font-display text-5xl tracking-tight">Fuel tax credits · Q4 FY26 workpaper</h1>
+        <div class="mt-2 text-sm text-[var(--ink-3)]">
+          SAE Engineering Pty Ltd · ABN 18 184 261 842 · GST-registered · FTC-registered ·
+          Claim reported on BAS label <span class="font-mono">7D</span> · indexed rates current from <span class="font-mono">1 Feb 2026</span> ·
+          4-yr time limit per <span class="font-mono">TAA 1953 s.105-55</span>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FTC claim · Q4 FY26</div>
+        <div class="num font-display text-5xl text-[var(--ink)] mt-1">A$3,184.20</div>
+        <div class="num text-xs text-[var(--ink-3)] mt-1">6,184.10 L diesel · 4 activity classes · 0 disqualified L</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Status banner -->
+  <section class="px-10 py-5 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Eligibility · s.41-5</div>
+        <div class="text-sm">Compliant · acquired for business use · taxable fuel · registered for FTC</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Rate currency</div>
+        <div class="num text-sm">Indexed 1 Feb 2026 · off-road A$0.508/L · on-road heavy A$0.194/L</div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led on"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Reconciliation</div>
+        <div class="text-sm">6,184.10 L claimed · 6,184.10 L purchased · variance <span class="text-[var(--pos)]">0.00 L</span></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="led warn"></span>
+        <div class="text-[11px] uppercase tracking-[0.28em] text-[var(--ink-3)]">BAS lodgement</div>
+        <div class="text-sm">Q4 BAS due <span class="num">28 Jul 2026</span> · 7D pre-fill ready · SBR2 envelope queued</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <section class="px-10 py-6 grid grid-cols-6 gap-3 border-b border-[var(--line)]">
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Total diesel L</div>
+      <div class="num text-2xl mt-1">6,184.10</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">Apr–Jun 2026</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Off-road plant L</div>
+      <div class="num text-2xl mt-1 text-[var(--sae)]">4,418.20</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">@ 50.8c/L</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">On-road heavy L</div>
+      <div class="num text-2xl mt-1">1,460.40</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">@ 19.4c/L</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Auxiliary L</div>
+      <div class="num text-2xl mt-1">305.50</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">PTO/refrig @ 50.8c/L</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Disqualified L</div>
+      <div class="num text-2xl mt-1 text-[var(--neg)]">0.00</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">Light vehicles on public road = NIL</div>
+    </div>
+    <div class="num-stamp">
+      <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Net FTC claim</div>
+      <div class="num text-2xl mt-1 text-[var(--ink)]">A$3,184.20</div>
+      <div class="text-[10px] text-[var(--ink-3)] mt-0.5">BAS 7D · GST-ex</div>
+    </div>
+  </section>
+
+  <!-- Rates table -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">FTC rate schedule · current from 1 Feb 2026</div>
+        <h2 class="font-display text-2xl mt-1">Activity-class rates — Q4 FY26</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Indexed 1 Feb &amp; 1 Aug per s.43-5 · Road User Charge applied to on-road heavy
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-12">Class</th>
+          <th class="text-left">Activity</th>
+          <th class="text-left w-44">Examples · SAE</th>
+          <th class="text-right w-32">Excise A$/L</th>
+          <th class="text-right w-32">RUC A$/L</th>
+          <th class="text-right w-32">Net FTC A$/L</th>
+          <th class="text-left w-16">Section</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">A</td>
+          <td>Off-road business — plant &amp; machinery</td>
+          <td>CNC mill, plasma, gen-set, forklift</td>
+          <td class="text-right">0.508</td>
+          <td class="text-right">—</td>
+          <td class="text-right text-[var(--sae)]">0.508</td>
+          <td>s.41-5</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">B</td>
+          <td>On-road heavy vehicle (&gt;4.5t GVM) · public road</td>
+          <td>Iveco Daily 7t · HC truck</td>
+          <td class="text-right">0.508</td>
+          <td class="text-right">0.314</td>
+          <td class="text-right">0.194</td>
+          <td>s.43-10</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">C</td>
+          <td>Auxiliary equipment (PTO / hydraulic / refrig)</td>
+          <td>Crane truck PTO · refrig unit</td>
+          <td class="text-right">0.508</td>
+          <td class="text-right">—</td>
+          <td class="text-right">0.508</td>
+          <td>s.41-5 + ATO PCG 2016/8</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">D</td>
+          <td>Light vehicle (≤4.5t GVM) — public road</td>
+          <td>Ute UTE-1842 / UTE-2603 on-road portion</td>
+          <td class="text-right">0.508</td>
+          <td class="text-right">—</td>
+          <td class="text-right text-[var(--neg)]">NIL</td>
+          <td>s.41-20</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2">D′</td>
+          <td>Light vehicle (≤4.5t GVM) — off public road</td>
+          <td>UTE-2603 site portion (yard, quarry)</td>
+          <td class="text-right">0.508</td>
+          <td class="text-right">—</td>
+          <td class="text-right">0.508</td>
+          <td>s.41-5 + ATO ID 2010/91</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      <span class="font-medium text-[var(--ink)]">Indexation:</span> excise duty indexed by CPI on 1 Feb and 1 Aug each year (s.43-5).
+      The next scheduled indexation is 1 Aug 2026 — claims for fuel acquired in July 2026 use the rate current at acquisition (not BAS lodgement) per s.43-7.
+      <span class="font-medium text-[var(--ink)]">RUC:</span> on-road heavy is reduced by the Heavy Vehicle Road User Charge (32.4c/L from 1 Aug 2025 per ATO).
+    </div>
+  </section>
+
+  <!-- Vehicle/asset breakdown -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Asset-by-asset fuel usage · Q4 FY26</div>
+        <h2 class="font-display text-2xl mt-1">Litres consumed by fixed asset / vehicle</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Telematics + bowser meter readings · cross-checked against fuel-card invoices
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-24">Asset</th>
+          <th class="text-left">Description</th>
+          <th class="text-left w-20">Class</th>
+          <th class="text-right w-28">Litres</th>
+          <th class="text-right w-28">Rate A$/L</th>
+          <th class="text-right w-32">FTC A$</th>
+          <th class="text-left w-32">Evidence</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1812</td><td>Doosan DNM 5700 CNC mill · gen-set backup</td><td>A</td><td class="text-right">462.40</td><td class="text-right">0.508</td><td class="text-right">A$234.90</td><td>Bowser meter B-1</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1874</td><td>Hyster H3.0FT forklift · yard ops</td><td>A</td><td class="text-right">684.20</td><td class="text-right">0.508</td><td class="text-right">A$347.57</td><td>Bowser meter B-1</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1984</td><td>Atlas Copco GA22 compressor · yard</td><td>A</td><td class="text-right">238.60</td><td class="text-right">0.508</td><td class="text-right">A$121.21</td><td>Bowser meter B-1</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-2018</td><td>Stand-by gen-set 110 kVA · workshop</td><td>A</td><td class="text-right">1,184.20</td><td class="text-right">0.508</td><td class="text-right">A$601.57</td><td>Bowser meter B-2</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1942</td><td>Hypertherm 105 plasma · gen-set support</td><td>A</td><td class="text-right">848.60</td><td class="text-right">0.508</td><td class="text-right">A$431.09</td><td>Bowser meter B-2</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">FA-1820</td><td>Site welder · field-deployed</td><td>A</td><td class="text-right">1,000.20</td><td class="text-right">0.508</td><td class="text-right">A$508.10</td><td>Bowser meter B-3</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">VEH-3142</td><td>Iveco Daily 7t · public road</td><td>B</td><td class="text-right">1,460.40</td><td class="text-right">0.194</td><td class="text-right">A$283.32</td><td>Telematics · Fleetmatics</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">VEH-3142</td><td>Iveco Daily 7t · auxiliary PTO (crane)</td><td>C</td><td class="text-right">184.20</td><td class="text-right">0.508</td><td class="text-right">A$93.57</td><td>PTO meter · 12.6% method</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">VEH-3144</td><td>Reefer trailer · refrig motor</td><td>C</td><td class="text-right">121.30</td><td class="text-right">0.508</td><td class="text-right">A$61.62</td><td>Separate tank meter</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">UTE-2603</td><td>Toyota Hilux · off-road yard portion</td><td>D′</td><td class="text-right">0.00</td><td class="text-right">0.508</td><td class="text-right">A$0.00</td><td>Public-road only · not claimed</td></tr>
+        <tr class="border-b border-[var(--line)] text-[var(--ink-3)]"><td class="py-2">UTE-1842</td><td>Ford Ranger · public road only</td><td>D</td><td class="text-right">198.20</td><td class="text-right">NIL</td><td class="text-right">A$0.00</td><td>Disqualified — light on-road</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium">
+          <td class="py-3" colspan="3">11 fuel users · 6,184.10 L claimed / 198.20 L disqualified</td>
+          <td class="text-right">6,184.10</td>
+          <td class="text-right">—</td>
+          <td class="text-right text-[var(--sae)]">A$3,184.20</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Fuel purchase reconciliation -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Fuel-purchase ↔ usage reconciliation</div>
+        <h2 class="font-display text-2xl mt-1">Q4 fuel acquired matches Q4 fuel used</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Fuel-card invoices auto-attached · bowser deliveries reconciled to dip readings
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-8">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-2">Acquisitions Q4 (bills attached)</div>
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-28">Bill</th>
+              <th class="text-left">Supplier · delivery</th>
+              <th class="text-right w-28">Litres</th>
+              <th class="text-right w-32">A$ GST-ex</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">BILL-1820</td><td>Caltex StarCard · April</td><td class="text-right">1,460.40</td><td class="text-right">A$2,840.60</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">BILL-1834</td><td>BP Plus · April–May fleet</td><td class="text-right">1,184.20</td><td class="text-right">A$2,302.40</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">BILL-1841</td><td>Lowes Petroleum · bowser delivery 2,840 L</td><td class="text-right">2,840.00</td><td class="text-right">A$5,470.20</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">BILL-1858</td><td>BP Plus · June fleet</td><td class="text-right">699.50</td><td class="text-right">A$1,360.20</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-2" colspan="2">4 bills · all GST-ex evidence retained</td><td class="text-right">6,184.10</td><td class="text-right">A$11,973.40</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-2">Usage by activity class</div>
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-12">Class</th>
+              <th class="text-left">Activity bucket</th>
+              <th class="text-right w-28">Litres</th>
+              <th class="text-right w-32">A$ FTC</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">A</td><td>Off-road plant &amp; machinery</td><td class="text-right">4,418.20</td><td class="text-right">A$2,244.45</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">B</td><td>On-road heavy (&gt;4.5t GVM)</td><td class="text-right">1,460.40</td><td class="text-right">A$283.32</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">C</td><td>Auxiliary equipment</td><td class="text-right">305.50</td><td class="text-right">A$155.19</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">D′</td><td>Light off-road portion</td><td class="text-right">0.00</td><td class="text-right">A$0.00</td></tr>
+            <tr class="border-b border-[var(--line)] text-[var(--ink-3)]"><td class="py-2">D</td><td>Light on-road (disqualified)</td><td class="text-right">198.20</td><td class="text-right">A$0.00</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-2" colspan="2">Reconciliation</td><td class="text-right">6,184.10 + 198.20</td><td class="text-right text-[var(--sae)]">A$3,184.20</td></tr>
+            <tr><td class="py-1 text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]" colspan="4">acquired 6,382.30 L · claimed 6,184.10 L · 198.20 L excluded · variance 0.00 L</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- BAS 7D effect + journal -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-7">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">BAS label 7D · Q4 FY26 pre-fill</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Statement effect · 28 Jul 2026 lodgement</h2>
+
+        <table class="w-full text-sm">
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Label 7C · fuel tax credit over claim (prior period)</td><td class="text-right">A$0.00</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 font-medium">Label 7D · fuel tax credit</td><td class="text-right font-medium text-[var(--sae)]">A$3,184.20</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 text-[var(--ink-3)]">Net offset against 1A (GST payable)</td><td class="text-right text-[var(--ink-3)]">−A$3,184.20</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">BAS Q4 cash impact</td><td class="text-right text-[var(--pos)]">A$3,184.20 reduction</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2 pt-3 text-[var(--ink-3)]">SBR2 envelope</td><td class="text-right text-[var(--ink-3)]"><span class="font-mono">ABS.2024.07 · ATO-BAS-Q-Q4FY26</span></td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Lodgement window</td><td class="text-right">28 Jul 2026 (BAS agent)</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">Time-limit countdown</td><td class="text-right">3 yrs 11 mo to s.105-55 expiry</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-span-5">
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">Ledger journal · auto-posted</div>
+        <h2 class="font-display text-2xl mt-1 mb-4">Journal at BAS lodgement</h2>
+
+        <table class="w-full text-sm">
+          <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+            <tr>
+              <th class="text-left py-2 w-16">Acct</th>
+              <th class="text-left">Description</th>
+              <th class="text-right w-28">DR</th>
+              <th class="text-right w-28">CR</th>
+            </tr>
+          </thead>
+          <tbody class="num">
+            <tr class="border-b border-[var(--line)]"><td class="py-2">2-410</td><td>GST payable clearing — label 7D offset</td><td class="text-right">A$3,184.20</td><td class="text-right">—</td></tr>
+            <tr class="border-b border-[var(--line)]"><td class="py-2">4-820</td><td>Other income — fuel tax credits</td><td class="text-right">—</td><td class="text-right">A$3,184.20</td></tr>
+            <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-2" colspan="2">Balanced</td><td class="text-right">A$3,184.20</td><td class="text-right">A$3,184.20</td></tr>
+          </tbody>
+        </table>
+
+        <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed">
+          FTC is assessable income per <span class="font-mono">ITAA 1997 s.15-25</span> and posts to 4-820.
+          The Q4 BAS net-pay calc uses <span class="font-mono">1A − 1B − 7D</span> so the credit reduces cash payable.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4-quarter trend -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="flex items-baseline justify-between mb-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)]">4-quarter FTC trend · FY26</div>
+        <h2 class="font-display text-2xl mt-1">Quarter-by-quarter claim history</h2>
+      </div>
+      <div class="text-xs text-[var(--ink-3)]">
+        Mid-year rate indexation 1 Feb 2026 visible in Q3→Q4 unit-rate uplift
+      </div>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-32">Quarter</th>
+          <th class="text-left w-32">Period</th>
+          <th class="text-right w-28">Off-road L</th>
+          <th class="text-right w-28">On-road L</th>
+          <th class="text-right w-28">Aux L</th>
+          <th class="text-right w-28">Total L</th>
+          <th class="text-right w-32">FTC A$</th>
+          <th class="text-right w-32">BAS lodged</th>
+        </tr>
+      </thead>
+      <tbody class="num">
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Q1 FY26</td><td>Jul–Sep 25</td><td class="text-right">4,260.80</td><td class="text-right">1,384.40</td><td class="text-right">280.60</td><td class="text-right">5,925.80</td><td class="text-right">A$3,011.41</td><td class="text-right">28 Oct 2025 ✓</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Q2 FY26</td><td>Oct–Dec 25</td><td class="text-right">4,840.40</td><td class="text-right">1,540.20</td><td class="text-right">312.40</td><td class="text-right">6,693.00</td><td class="text-right">A$3,389.84</td><td class="text-right">28 Feb 2026 ✓</td></tr>
+        <tr class="border-b border-[var(--line)]"><td class="py-2">Q3 FY26</td><td>Jan–Mar 26</td><td class="text-right">4,184.20</td><td class="text-right">1,420.80</td><td class="text-right">294.20</td><td class="text-right">5,899.20</td><td class="text-right">A$2,955.07</td><td class="text-right">26 May 2026 ✓</td></tr>
+        <tr class="border-b border-[var(--line)] bg-[var(--paper-2)]"><td class="py-2 text-[var(--sae)]">Q4 FY26 (this)</td><td>Apr–Jun 26</td><td class="text-right">4,418.20</td><td class="text-right">1,460.40</td><td class="text-right">305.50</td><td class="text-right">6,184.10</td><td class="text-right text-[var(--sae)]">A$3,184.20</td><td class="text-right">28 Jul 2026 queued</td></tr>
+        <tr class="border-t-2 border-[var(--ink)] font-medium"><td class="py-3">FY26 Σ</td><td>full year</td><td class="text-right">17,703.60</td><td class="text-right">5,805.80</td><td class="text-right">1,192.70</td><td class="text-right">24,702.10</td><td class="text-right">A$12,540.52</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed">
+      Q3→Q4 unit-rate uplift driven by 1 Feb 2026 CPI indexation (off-road rate 0.502 → 0.508 c/L, +1.20%).
+      Q1 and Q2 used the pre-indexation rate (0.502 c/L); calculator engine auto-splits any litres acquired across indexation date.
+    </div>
+  </section>
+
+  <!-- Pipeline -->
+  <section class="px-10 py-8 border-b border-[var(--line)] bg-[var(--paper-2)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Quarterly FTC pipeline · automated</div>
+    <ol class="grid grid-cols-8 gap-2 text-xs">
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">1 · ingest</div>
+        <div class="font-medium mt-1">Fuel-card feed</div>
+        <div class="text-[var(--ink-3)] mt-1">BP Plus / Caltex CSV · daily polling</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">2 · classify</div>
+        <div class="font-medium mt-1">Vehicle → class</div>
+        <div class="text-[var(--ink-3)] mt-1">Asset rego &gt; A/B/C/D from FA register</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">3 · telematics</div>
+        <div class="font-medium mt-1">PTO method</div>
+        <div class="text-[var(--ink-3)] mt-1">Crane PTO 12.6% · refrig sep tank</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">4 · rate</div>
+        <div class="font-medium mt-1">Apply rate by date</div>
+        <div class="text-[var(--ink-3)] mt-1">Splits across indexation 1 Feb / 1 Aug</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">5 · reconcile</div>
+        <div class="font-medium mt-1">Bills ↔ usage</div>
+        <div class="text-[var(--ink-3)] mt-1">Variance must be ≤ 2% else hold</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">6 · journal</div>
+        <div class="font-medium mt-1">DR 2-410 / CR 4-820</div>
+        <div class="text-[var(--ink-3)] mt-1">FTC posted at BAS lodgement</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">7 · SBR2</div>
+        <div class="font-medium mt-1">7D pre-fill</div>
+        <div class="text-[var(--ink-3)] mt-1">ATO BAS XBRL · A$3,184.20 to 7D field</div>
+      </li>
+      <li class="border border-[var(--line)] bg-[var(--paper)] p-3">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">8 · WORM</div>
+        <div class="font-medium mt-1">4-yr evidence</div>
+        <div class="text-[var(--ink-3)] mt-1">Telematics + bills retained per s.382-5</div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Competitor comparison -->
+  <section class="px-10 py-8 border-b border-[var(--line)]">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">AU-market positioning · fuel tax credit surface</div>
+    <h2 class="font-display text-2xl mb-4">SAE Books vs Xero · MYOB · Reckon · Banlaw</h2>
+
+    <table class="w-full text-sm">
+      <thead class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)] border-b border-[var(--line)]">
+        <tr>
+          <th class="text-left py-2 w-44">Capability</th>
+          <th class="text-left">Xero (AU)</th>
+          <th class="text-left">MYOB Business</th>
+          <th class="text-left">Reckon One</th>
+          <th class="text-left">Banlaw FuelTrak</th>
+          <th class="text-left">SAE Books</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">FTC label 7D</td>
+          <td>Manual entry</td>
+          <td>Manual entry</td>
+          <td>Manual entry</td>
+          <td>Calculated externally · CSV out</td>
+          <td>Auto-computed · posted to 7D pre-fill</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Rate indexation</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Manual rate table maintenance</td>
+          <td>1 Feb / 1 Aug auto-updated · split across acquisition date</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Vehicle class assignment</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Fleet-management linkage</td>
+          <td>FA register coupling · class auto-derived from rego/GVM</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">PTO/auxiliary apportionment</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Telematics input</td>
+          <td>Telematics direct · ATO PCG 2016/8 method codes</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">RUC for heavy on-road</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Manual</td>
+          <td>Auto</td>
+          <td>Auto · RUC rate kept current</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">Bill ↔ usage reconciliation</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>Bowser/tank reconciliation only</td>
+          <td>End-to-end · suppliers UBL invoices ↔ telematics litres</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">4-yr time-limit tracker</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>s.105-55 countdown per quarter · alert at 12 mo to expiry</td>
+        </tr>
+        <tr class="border-b border-[var(--line)]">
+          <td class="py-2 font-medium">SBR2 BAS lodgement</td>
+          <td>Native</td>
+          <td>Native</td>
+          <td>Native</td>
+          <td>No</td>
+          <td>Native · FTC label populated before submit</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="mt-4 text-xs text-[var(--ink-3)] leading-relaxed max-w-4xl">
+      Of the AU incumbents Xero/MYOB/Reckon treat FTC as a single manual number on the BAS — the workings sit on a spreadsheet.
+      Banlaw FuelTrak is the dominant specialist tool but is a separate fleet-fuel system that exports to your accounting package.
+      SAE Books collapses both into the ledger so the BAS pre-fill is correct by construction and the working papers retain for audit.
+    </div>
+  </section>
+
+  <!-- Cross-link mesh -->
+  <section class="px-10 py-8">
+    <div class="text-[10px] uppercase tracking-[0.28em] text-[var(--ink-3)] mb-3">Related</div>
+    <div class="grid grid-cols-5 gap-3">
+      <a href="/preview/cashbook/april-2026" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Cash source</div>
+        <div class="font-medium mt-1">Cashbook · April 2026</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">BILL-1820 Caltex / BP fuel payments visible in payments column · feed into FTC reconciliation</div>
+      </a>
+      <a href="/preview/compliance/depreciation/sbe-pool-fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Asset linkage</div>
+        <div class="font-medium mt-1">SBE pool · Subdiv 328-D</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">FA register IDs are the same — fuel apportioned to FA-1812/1874/1942 etc</div>
+      </a>
+      <a href="/preview/compliance/fbt/fy26" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">FBT interaction</div>
+        <div class="font-medium mt-1">FBT FY26 workpaper</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">UTE-1842/2603 fuel cost flows to OC method test for FBT car valuation</div>
+      </a>
+      <a href="/preview/compliance/tpar" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Lodgement neighbours</div>
+        <div class="font-medium mt-1">TPAR · FY26</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Sibling annual lodgement · same SBR2 path · 28 Aug due date</div>
+      </a>
+      <a href="/preview/bills/bill-1843" class="border border-[var(--line)] bg-[var(--paper)] p-4 hover:bg-[var(--paper-2)]">
+        <div class="text-[10px] uppercase tracking-[0.24em] text-[var(--ink-3)]">Bill anatomy</div>
+        <div class="font-medium mt-1">BILL-1843 BlueScope</div>
+        <div class="text-xs text-[var(--ink-3)] mt-1">Reference pattern · how fuel bills (BILL-1820 etc) auto-code line items to FA usage</div>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}New Quote — Cashbook — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="max-w-xl">
+  <div class="mb-5 flex items-center gap-3">
+    <a href="/cashbook/quotes" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← quotes</a>
+    <span class="ink-4">/</span>
+    <h1 class="font-display text-xl ink-1" style="font-variation-settings:'opsz' 36;">New quote</h1>
+  </div>
+
+  {% if errors and errors.__all__ %}
+  <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+    <span class="dot" style="background:var(--neg);"></span>
+    <span class="text-sm" style="color:var(--neg);">{{ errors.__all__ }}</span>
+  </div>
+  {% endif %}
+
+  <div class="card p-6">
+    <form method="post" action="/cashbook/quotes/new">
+      {{ csrf_input(request) | safe }}
+      <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label for="customer_name" class="cb-label-inline">Customer</label>
+          <input type="text" id="customer_name" name="customer_name" required
+                 value="{{ form.customer_name }}" placeholder="e.g. Acme Pty Ltd"
+                 class="saebooks-input"
+                 {% if errors.customer_name %}style="border-color:var(--neg);"{% endif %}>
+          {% if errors.customer_name %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.customer_name }}</p>{% endif %}
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="customer_email" class="cb-label-inline">
+            Email <span class="ink-4 font-normal">(optional)</span>
+          </label>
+          <input type="email" id="customer_email" name="customer_email"
+                 value="{{ form.customer_email }}" placeholder="finance@acme.com.au"
+                 class="saebooks-input">
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="description" class="cb-label-inline">What for</label>
+          <input type="text" id="description" name="description"
+                 value="{{ form.description }}"
+                 class="saebooks-input">
+        </div>
+
+        <div>
+          <label for="amount" class="cb-label-inline">Amount</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center ink-3 num pointer-events-none">$</span>
+            <input type="number" id="amount" name="amount" inputmode="decimal" min="0.01" step="0.01" required
+                   value="{{ form.amount }}" placeholder="0.00"
+                   class="saebooks-input num-display pl-7"
+                   {% if errors.amount %}style="border-color:var(--neg);"{% endif %}>
+          </div>
+          {% if errors.amount %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors.amount }}</p>{% endif %}
+        </div>
+
+        <div class="flex items-end">
+          <label class="flex items-center gap-3 cursor-pointer select-none pb-2">
+            <input type="checkbox" name="gst" {% if form.gst == 'on' %}checked{% endif %}
+                   class="h-4 w-4 accent-[#194291]" style="border-color:var(--line);">
+            <span class="text-sm ink-2">Charging GST (10%)</span>
+          </label>
+        </div>
+
+        <div>
+          <label for="issue_date" class="cb-label-inline">Date</label>
+          <input type="date" id="issue_date" name="issue_date" value="{{ form.issue_date }}"
+                 class="saebooks-input num">
+        </div>
+
+        <div>
+          <label for="expiry_date" class="cb-label-inline">Expires</label>
+          <input type="date" id="expiry_date" name="expiry_date" value="{{ form.expiry_date }}"
+                 class="saebooks-input num">
+        </div>
+      </div>
+
+      <p class="text-[11px] ink-3 mt-3 font-mono">Total amount including GST if charging it.</p>
+
+      <div class="mt-6 hairline pt-5 flex gap-3">
+        <button type="submit" class="btn-primary">Save draft</button>
+        <a href="/cashbook/quotes" class="btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .cb-label-inline {
+    display:block; margin-bottom:.35rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing:.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+</style>
+
+{% endblock %}
