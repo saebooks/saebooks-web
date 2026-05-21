@@ -372,7 +372,7 @@
            alt="SAE Books"
            class="h-9 w-auto"
            style="color: var(--ink);">
-      <div class="text-[9.5px] font-mono ink-3">v2026.05 · {% block edition %}community{% endblock %}</div>
+      <div class="text-[9.5px] font-mono ink-3">v2026.05 · {{ request.session.get('edition') or 'community' }}</div>
     </a>
 
     {# Navigation #}
