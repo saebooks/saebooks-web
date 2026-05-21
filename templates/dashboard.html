@@ -643,10 +643,24 @@ function kpiSpark(canvasId, seed, tintCss) {
 </script>
 
 {# ─────────────────────────────────────────────────────────────────────────
-   Dashboard customisation — show/hide widgets, persisted in localStorage.
-   v1 scope: visibility only (no reorder). Each widget is identified by
-   data-widget="<slug>" on its <section>. Hidden slugs are stored as JSON
-   in localStorage["saebooks.dashboardHidden"].
+   Dashboard customisation — show/hide + drag-reorder, persisted in
+   localStorage. QBO-pattern (per saebooks-qbo-nav-reference.md):
+
+     • Customise button toggles `body.dashboard-customising`.
+     • In customise mode each widget shows: a drag handle (top-left), a
+       hide button (top-right), and a dashed outline with title chip.
+     • Drag a widget over another in the SAME PARENT to swap positions.
+       Cross-parent moves are disallowed so the grid layout doesn't break.
+     • Drag a widget onto the bottom trash zone to hide it.
+     • "Add widget" button opens a modal listing hidden widgets; clicking
+       one un-hides it (returns to original DOM position).
+
+   Persisted state in localStorage["saebooks.dashboardPrefs"]:
+     { hidden: ["slug", ...], order: { "<parent-key>": ["slug", ...] } }
+
+   Each widget needs only `data-widget="<slug>"` and `data-widget-title`.
+   Parent-key is derived from the widget's parent's "data-widget-zone" if
+   present, else its DOM position (best-effort).
    ───────────────────────────────────────────────────────────────────────── #}
 <style>
   body.dashboard-customising [data-widget] {
@@ -665,101 +679,381 @@ function kpiSpark(canvasId, seed, tintCss) {
     color: var(--ink-3);
     background: var(--paper);
     padding: 0 6px;
+    z-index: 1;
   }
-  /* Hidden widgets are kept in the DOM but display:none in customise-off mode */
+  /* Hidden widgets vanish in normal mode; in customise mode they stay
+     dimmed in place so you can drag them back if you want. */
   [data-widget].is-hidden { display: none !important; }
-  /* In customise mode, hidden widgets are visible but dimmed so the user can
-     re-enable them by clicking the eye icon. */
   body.dashboard-customising [data-widget].is-hidden {
     display: block !important;
     opacity: 0.35;
     filter: grayscale(0.6);
   }
-  .widget-eye-btn {
+  /* drag-over indicator on a same-parent target */
+  body.dashboard-customising [data-widget].drag-over {
+    outline: 2px solid var(--sae);
+    outline-offset: 4px;
+  }
+  body.dashboard-customising [data-widget].dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+  }
+  /* widget toolbar (drag handle + hide button) */
+  .widget-toolbar {
     position: absolute;
-    top: 8px; right: 8px;
+    top: 6px; right: 6px;
     z-index: 5;
-    width: 28px; height: 28px;
     display: none;
+    gap: 4px;
+  }
+  body.dashboard-customising .widget-toolbar { display: inline-flex; }
+  .widget-toolbar > button,
+  .widget-toolbar > span {
+    width: 26px; height: 26px;
+    display: inline-flex;
     align-items: center; justify-content: center;
     border-radius: 6px;
     background: var(--surface);
     border: 1px solid var(--line);
     color: var(--ink-3);
     cursor: pointer;
+    font-size: 14px;
   }
-  .widget-eye-btn:hover { color: var(--sae); border-color: var(--sae); }
-  body.dashboard-customising .widget-eye-btn { display: inline-flex; }
+  .widget-toolbar > button:hover { color: var(--sae); border-color: var(--sae); }
+  .widget-drag-handle { cursor: grab !important; }
+  .widget-drag-handle:active { cursor: grabbing !important; }
+
+  /* Trash drop-zone + add-widget button — visible only in customise mode */
+  #customise-rail {
+    position: sticky;
+    bottom: 12px;
+    z-index: 30;
+    display: none;
+    margin: 24px 0 12px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px dashed var(--ink-3);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(20,23,28,0.06);
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  body.dashboard-customising #customise-rail { display: flex; }
+  #widget-trash {
+    flex: 1;
+    border: 1px dashed var(--neg);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    color: var(--neg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: background .1s ease;
+  }
+  #widget-trash.over { background: rgba(239,68,68,0.08); }
+
+  /* Add-widget dialog */
+  #add-widget-dialog::backdrop { background: rgba(20,23,28,0.4); }
+  #add-widget-dialog {
+    max-width: 480px; padding: 20px;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--surface); color: var(--ink);
+  }
+  #add-widget-dialog ul { list-style: none; padding: 0; margin: 12px 0; }
+  #add-widget-dialog li {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  #add-widget-dialog li:last-child { border-bottom: 0; }
+  #add-widget-dialog button.add-widget-btn {
+    background: var(--sae); color: white;
+    padding: 4px 10px; border-radius: 6px; border: 0;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+  }
+  #add-widget-dialog button.add-widget-btn:hover { opacity: 0.9; }
+  #add-widget-dialog .empty-note {
+    padding: 24px; text-align: center; color: var(--ink-3);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
 </style>
+
+<div id="customise-rail" aria-hidden="true">
+  <button id="add-widget-btn" type="button" class="btn btn-secondary">
+    <i data-lucide="plus" class="w-4 h-4"></i> Add widget
+  </button>
+  <div id="widget-trash">Drag here to hide</div>
+  <button id="customise-reset" type="button" class="btn btn-secondary" title="Reset layout to defaults">
+    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+  </button>
+</div>
+
+<dialog id="add-widget-dialog">
+  <h3 class="font-display text-lg mb-2">Add widget</h3>
+  <p class="text-xs ink-3 mb-2">Hidden widgets you can return to the dashboard:</p>
+  <ul id="add-widget-list"></ul>
+  <div class="flex justify-end gap-2 mt-3">
+    <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-widget-dialog').close()">Close</button>
+  </div>
+</dialog>
+
 <script>
 (function () {
-  var STORAGE_KEY = 'saebooks.dashboardHidden';
-  function getHidden() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-    catch (e) { return []; }
+  var STORAGE_KEY = 'saebooks.dashboardPrefs';
+  // Legacy key — migrate the old hidden-only state if present.
+  var LEGACY_HIDDEN_KEY = 'saebooks.dashboardHidden';
+
+  function getPrefs() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    // migrate from old hidden-only key
+    try {
+      var oldHidden = JSON.parse(localStorage.getItem(LEGACY_HIDDEN_KEY) || '[]');
+      if (Array.isArray(oldHidden) && oldHidden.length) {
+        return { hidden: oldHidden, order: {} };
+      }
+    } catch (e) {}
+    return { hidden: [], order: {} };
   }
-  function setHidden(arr) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+  function setPrefs(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+
+  // Build a stable per-parent key so we can persist order within each
+  // grid/section without colliding across the page.
+  function parentKey(el) {
+    var p = el.parentElement;
+    if (!p) return 'root';
+    if (p.dataset.widgetZone) return 'zone:' + p.dataset.widgetZone;
+    // Fallback: use the path of indexOf-ed parents
+    var key = [], cur = p;
+    for (var i = 0; i < 4 && cur && cur !== document.body; i++) {
+      var sibs = Array.prototype.indexOf.call(cur.parentNode.children, cur);
+      key.unshift(cur.tagName.toLowerCase() + sibs);
+      cur = cur.parentElement;
+    }
+    return 'p:' + key.join('>');
   }
+
   function applyHidden() {
-    var hidden = getHidden();
+    var p = getPrefs();
     document.querySelectorAll('[data-widget]').forEach(function (el) {
       var slug = el.dataset.widget;
-      if (hidden.indexOf(slug) !== -1) el.classList.add('is-hidden');
+      if (p.hidden.indexOf(slug) !== -1) el.classList.add('is-hidden');
       else el.classList.remove('is-hidden');
     });
   }
-  function injectEyeButtons() {
+
+  function applyOrder() {
+    var p = getPrefs();
+    var byParent = {};
     document.querySelectorAll('[data-widget]').forEach(function (el) {
-      if (el.querySelector('.widget-eye-btn')) return;
-      // Ensure the widget has a positioning context for the absolute button.
-      var style = window.getComputedStyle(el);
-      if (style.position === 'static') el.style.position = 'relative';
+      var k = parentKey(el);
+      (byParent[k] = byParent[k] || []).push(el);
+    });
+    Object.keys(byParent).forEach(function (k) {
+      var saved = (p.order || {})[k];
+      if (!saved || !saved.length) return;
+      var widgets = byParent[k];
+      var bySlug = {};
+      widgets.forEach(function (w) { bySlug[w.dataset.widget] = w; });
+      // Reattach in saved order, then append any newcomers at the end
+      var seen = {};
+      saved.forEach(function (slug) {
+        if (bySlug[slug]) {
+          bySlug[slug].parentElement.appendChild(bySlug[slug]);
+          seen[slug] = true;
+        }
+      });
+      widgets.forEach(function (w) {
+        if (!seen[w.dataset.widget]) w.parentElement.appendChild(w);
+      });
+    });
+  }
+
+  function snapshotOrder() {
+    var byParent = {};
+    document.querySelectorAll('[data-widget]').forEach(function (el) {
+      var k = parentKey(el);
+      (byParent[k] = byParent[k] || []).push(el.dataset.widget);
+    });
+    var p = getPrefs();
+    p.order = byParent;
+    setPrefs(p);
+  }
+
+  function injectToolbar(el) {
+    if (el.querySelector('.widget-toolbar')) return;
+    if (window.getComputedStyle(el).position === 'static') el.style.position = 'relative';
+    var tb = document.createElement('div');
+    tb.className = 'widget-toolbar';
+    var handle = document.createElement('span');
+    handle.className = 'widget-drag-handle';
+    handle.title = 'Drag to reorder';
+    handle.innerHTML = '<i data-lucide="grip-vertical" class="w-4 h-4"></i>';
+    var hideBtn = document.createElement('button');
+    hideBtn.type = 'button';
+    hideBtn.title = 'Hide this widget';
+    hideBtn.innerHTML = '<i data-lucide="eye-off" class="w-4 h-4"></i>';
+    hideBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var p = getPrefs();
+      var slug = el.dataset.widget;
+      var idx = p.hidden.indexOf(slug);
+      if (idx === -1) p.hidden.push(slug);
+      else p.hidden.splice(idx, 1);
+      setPrefs(p);
+      applyHidden();
+      refreshAddDialog();
+    });
+    tb.appendChild(handle);
+    tb.appendChild(hideBtn);
+    el.appendChild(tb);
+  }
+
+  // ── HTML5 DnD reorder + trash ───────────────────────────────────────────
+  var dragged = null;
+  function setupDnD(el) {
+    if (el.dataset.dndBound) return;
+    el.dataset.dndBound = '1';
+    el.addEventListener('dragstart', function (e) {
+      if (!document.body.classList.contains('dashboard-customising')) {
+        e.preventDefault(); return;
+      }
+      dragged = el;
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', el.dataset.widget);
+    });
+    el.addEventListener('dragend', function () {
+      el.classList.remove('dragging');
+      document.querySelectorAll('[data-widget].drag-over').forEach(function (n) {
+        n.classList.remove('drag-over');
+      });
+      dragged = null;
+    });
+    el.addEventListener('dragover', function (e) {
+      if (!dragged || dragged === el) return;
+      // Only allow drop within the same parent so layout doesn't break
+      if (dragged.parentElement !== el.parentElement) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', function () { el.classList.remove('drag-over'); });
+    el.addEventListener('drop', function (e) {
+      if (!dragged || dragged === el) return;
+      if (dragged.parentElement !== el.parentElement) return;
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      // Insert dragged before or after el based on cursor position
+      var rect = el.getBoundingClientRect();
+      var after = (e.clientY - rect.top) > rect.height / 2;
+      el.parentElement.insertBefore(dragged, after ? el.nextSibling : el);
+      snapshotOrder();
+    });
+  }
+
+  function setupTrash() {
+    var z = document.getElementById('widget-trash');
+    if (!z) return;
+    z.addEventListener('dragover', function (e) {
+      if (!dragged) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      z.classList.add('over');
+    });
+    z.addEventListener('dragleave', function () { z.classList.remove('over'); });
+    z.addEventListener('drop', function (e) {
+      if (!dragged) return;
+      e.preventDefault();
+      z.classList.remove('over');
+      var p = getPrefs();
+      var slug = dragged.dataset.widget;
+      if (p.hidden.indexOf(slug) === -1) p.hidden.push(slug);
+      setPrefs(p);
+      applyHidden();
+      refreshAddDialog();
+    });
+  }
+
+  // ── Add-widget dialog ───────────────────────────────────────────────────
+  function refreshAddDialog() {
+    var ul = document.getElementById('add-widget-list');
+    if (!ul) return;
+    ul.innerHTML = '';
+    var p = getPrefs();
+    var any = false;
+    document.querySelectorAll('[data-widget]').forEach(function (el) {
+      var slug = el.dataset.widget;
+      if (p.hidden.indexOf(slug) === -1) return;
+      any = true;
+      var li = document.createElement('li');
+      var label = document.createElement('span');
+      label.textContent = el.dataset.widgetTitle || slug;
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'widget-eye-btn';
-      btn.setAttribute('title', 'Hide / show this widget');
-      btn.innerHTML = '<i data-lucide="eye" class="w-4 h-4"></i>';
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var slug = el.dataset.widget;
-        var hidden = getHidden();
-        var idx = hidden.indexOf(slug);
-        if (idx === -1) hidden.push(slug);
-        else hidden.splice(idx, 1);
-        setHidden(hidden);
+      btn.className = 'add-widget-btn';
+      btn.textContent = 'Add';
+      btn.addEventListener('click', function () {
+        var p2 = getPrefs();
+        var idx = p2.hidden.indexOf(slug);
+        if (idx !== -1) p2.hidden.splice(idx, 1);
+        setPrefs(p2);
         applyHidden();
-        updateEyeIcons();
+        refreshAddDialog();
       });
-      el.appendChild(btn);
+      li.appendChild(label); li.appendChild(btn);
+      ul.appendChild(li);
     });
+    if (!any) {
+      ul.innerHTML = '<li class="empty-note">All widgets are visible. Drag one to the trash to hide it.</li>';
+    }
   }
-  function updateEyeIcons() {
+
+  // ── Setup ───────────────────────────────────────────────────────────────
+  function init() {
     document.querySelectorAll('[data-widget]').forEach(function (el) {
-      var btn = el.querySelector('.widget-eye-btn');
-      if (!btn) return;
-      var isHidden = el.classList.contains('is-hidden');
-      btn.innerHTML = isHidden
-        ? '<i data-lucide="eye-off" class="w-4 h-4"></i>'
-        : '<i data-lucide="eye" class="w-4 h-4"></i>';
+      el.setAttribute('draggable', 'true');
+      injectToolbar(el);
+      setupDnD(el);
     });
-    if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
-  }
+    setupTrash();
+    applyOrder();
+    applyHidden();
 
-  applyHidden();
-  injectEyeButtons();
-  updateEyeIcons();
-
-  var toggle = document.getElementById('customise-toggle');
-  if (toggle) {
-    toggle.addEventListener('click', function () {
-      document.body.classList.toggle('dashboard-customising');
-      var on = document.body.classList.contains('dashboard-customising');
-      var lbl = toggle.querySelector('[data-customise-label]');
-      if (lbl) lbl.textContent = on ? 'Done' : 'Customise';
-      updateEyeIcons();
-    });
+    var toggle = document.getElementById('customise-toggle');
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        document.body.classList.toggle('dashboard-customising');
+        var on = document.body.classList.contains('dashboard-customising');
+        var lbl = toggle.querySelector('[data-customise-label]');
+        if (lbl) lbl.textContent = on ? 'Done' : 'Customise';
+        if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
+      });
+    }
+    var addBtn = document.getElementById('add-widget-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', function () {
+        refreshAddDialog();
+        document.getElementById('add-widget-dialog').showModal();
+      });
+    }
+    var resetBtn = document.getElementById('customise-reset');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        if (!confirm('Reset dashboard layout to defaults?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LEGACY_HIDDEN_KEY);
+        location.reload();
+      });
+    }
+    if (window.lucide) lucide.createIcons({ attrs: { 'stroke-width': 1.75 } });
   }
+  init();
 })();
 </script>
 {% endblock %}
