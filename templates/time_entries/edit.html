@@ -18,6 +18,7 @@
 {% endif %}
 
 <form method="POST" action="/time-entries/{{ entry.id }}/edit" class="card p-6 max-w-3xl">
+  {{ csrf_input(request)|safe }}
   <input type="hidden" name="version" value="{{ entry.version }}">
   <div class="grid grid-cols-2 gap-4">
     <div>

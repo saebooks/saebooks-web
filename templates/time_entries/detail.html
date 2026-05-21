@@ -104,17 +104,21 @@
         {% if entry.approval_status in ('DRAFT','REJECTED') %}
         <a href="/time-entries/{{ entry.id }}/edit" class="btn btn-primary w-full">Edit</a>
         <form method="POST" action="/time-entries/{{ entry.id }}/submit">
+  {{ csrf_input(request)|safe }}
           <button type="submit" class="btn btn-secondary w-full">Submit for approval</button>
         </form>
         <form method="POST" action="/time-entries/{{ entry.id }}/archive"
               onsubmit="return confirm('Archive this entry?')">
+  {{ csrf_input(request)|safe }}
           <button type="submit" class="btn btn-danger w-full">Archive</button>
         </form>
         {% elif entry.approval_status == 'SUBMITTED' %}
         <form method="POST" action="/time-entries/{{ entry.id }}/approve">
+  {{ csrf_input(request)|safe }}
           <button type="submit" class="btn btn-primary w-full">Approve</button>
         </form>
         <form method="POST" action="/time-entries/{{ entry.id }}/reject">
+  {{ csrf_input(request)|safe }}
           <input type="text" name="reason" required placeholder="Reason..."
                  class="w-full rounded-md hairline px-2 py-1.5 mb-2 text-sm">
           <button type="submit" class="btn btn-danger w-full">Reject</button>
@@ -123,6 +127,7 @@
         <p class="ink-3 text-sm">Approved — awaiting invoice conversion or pay-run lock.</p>
         {% if entry.billable and not entry.invoice_line_id %}
         <form method="POST" action="/time-entries/convert-to-invoice">
+  {{ csrf_input(request)|safe }}
           <input type="hidden" name="entry_ids" value="{{ entry.id }}">
           <button type="submit" class="btn btn-primary w-full">Convert to invoice line</button>
         </form>

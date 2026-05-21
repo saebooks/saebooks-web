@@ -77,6 +77,7 @@
 
     {# Quick-add — single-row form per day, submits to /time-entries/new #}
     <form method="POST" action="/time-entries/new" class="border-t hairline pt-2">
+  {{ csrf_input(request)|safe }}
       <input type="hidden" name="work_date" value="{{ d_iso }}">
       <div class="flex gap-1 mb-1">
         <input type="number" name="hours" step="0.25" min="0.01" required

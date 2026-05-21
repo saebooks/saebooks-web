@@ -16,6 +16,7 @@
 {% endif %}
 
 <form method="POST" action="/time-entries/new" class="card p-6 max-w-3xl">
+  {{ csrf_input(request)|safe }}
   <div class="grid grid-cols-2 gap-4">
     <div>
       <label class="block text-sm ink-3 mb-1">Date *</label>
