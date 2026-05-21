@@ -368,12 +368,10 @@
        Replaced master's SVG monogram at user request 2026-05-21 with the
        actual logo at /static/sae-books-logo.png. #}
     <a href="/" class="flex flex-col items-start gap-1 px-4 py-3.5 border-b hairline group">
-      {# Inline style instead of Tailwind h-9/w-auto utilities — those
-         classes weren't in the prebuilt tailwind.css, so the image was
-         rendering at its natural 585×362 dimensions. #}
       <img src="/static/sae-books-logo.png"
            alt="SAE Books"
-           style="height: 28px; width: auto; max-width: 180px;">
+           class="h-9"
+           style="max-width: 180px;">
       <div class="text-[9.5px] font-mono ink-3">v2026.05 · {{ request.session.get('edition') or 'community' }}</div>
     </a>
 
