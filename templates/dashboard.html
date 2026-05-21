@@ -1070,20 +1070,27 @@ function kpiSpark(canvasId, seed, tintCss) {
     }
   }
 
-  // Seed first-visit defaults from data-widget-default-hidden="1" on each
-  // widget. Only runs when no prefs have been persisted yet — once the user
-  // has touched their layout, we never override their choices.
+  // Seed default-hidden widgets. Tracks which slugs have already been
+  // considered in `prefs.seededDefaults` so this is incremental:
+  //  - First-ever visit: hides every default-hidden widget.
+  //  - Existing user, new default-hidden widget shipped: hides only the
+  //    newly-introduced slug; leaves their previous reveal/hide choices
+  //    untouched.
+  //  - Once a slug has been seeded, we never re-hide it: if the user
+  //    reveals it via "Add widget", it stays revealed forever.
   function seedDefaultsIfNew() {
-    var hasPrefs = false;
-    try { hasPrefs = localStorage.getItem(STORAGE_KEY) !== null
-                 || localStorage.getItem(LEGACY_HIDDEN_KEY) !== null; } catch (e) {}
-    if (hasPrefs) return;
-    var hidden = [];
+    var p = getPrefs();
+    if (!Array.isArray(p.seededDefaults)) p.seededDefaults = [];
+    var changed = false;
     document.querySelectorAll('[data-widget][data-widget-default-hidden="1"]').forEach(function (el) {
       var slug = el.dataset.widget;
-      if (slug && hidden.indexOf(slug) === -1) hidden.push(slug);
+      if (!slug) return;
+      if (p.seededDefaults.indexOf(slug) !== -1) return;  // already considered
+      p.seededDefaults.push(slug);
+      if (p.hidden.indexOf(slug) === -1) p.hidden.push(slug);
+      changed = true;
     });
-    if (hidden.length) setPrefs({ hidden: hidden, order: {} });
+    if (changed) setPrefs(p);
   }
 
   // ── Setup ───────────────────────────────────────────────────────────────
