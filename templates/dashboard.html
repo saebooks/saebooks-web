@@ -2,12 +2,6 @@
 
 {% block title %}Dashboard — SAE Books{% endblock %}
 
-{% block head %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
-{% endblock %}
-
 {% block content %}
 
 {# ─────────────────────────────────────────────────────────────────────────
@@ -25,7 +19,7 @@
         </span>
         {% endif %}
       </div>
-      <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight" style="font-variation-settings: 'opsz' 96;">
+      <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight">
         <span id="greeting" data-username="{{ request.session.get('username') or '' }}">Today at a glance</span>
       </h1>
       <p class="mt-2 text-sm ink-3">
@@ -154,7 +148,7 @@
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Cash flow · this month</p>
-          <h2 class="font-display text-2xl mt-1" style="font-variation-settings:'opsz' 48;">
+          <h2 class="font-display text-2xl mt-1">
             Net <span class="num-display" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
               {% if cash.net < 0 %}−{% endif %}${{ "{:,.2f}".format(cash.net|abs|float) }}
             </span>
@@ -186,7 +180,7 @@
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Receivables aging</p>
-          <h2 class="font-display text-xl mt-1" style="font-variation-settings:'opsz' 36;">
+          <h2 class="font-display text-xl mt-1">
             Money owed to you
           </h2>
         </div>
@@ -241,7 +235,7 @@
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Payables aging</p>
-          <h2 class="font-display text-xl mt-1" style="font-variation-settings:'opsz' 36;">
+          <h2 class="font-display text-xl mt-1">
             Money you owe
           </h2>
         </div>
@@ -297,7 +291,7 @@
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Weekly takings</p>
-          <h2 class="font-display text-xl mt-1" style="font-variation-settings:'opsz' 36;">
+          <h2 class="font-display text-xl mt-1">
             Cash through the door
           </h2>
           <p class="text-xs ink-3 mt-1 font-mono">
@@ -333,7 +327,7 @@
     <section id="gst-tile" data-widget="gst-tile" data-widget-title="GST turnover · YTD" class="card p-6 relative overflow-hidden">
       <div class="dot-grid absolute inset-0 -z-10 opacity-40"></div>
       <p class="nav-section-label">GST · {% if gst and gst.fy_start %}FY {{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}{% else %}this FY{% endif %}</p>
-      <h2 class="font-display text-xl mt-1 mb-4" style="font-variation-settings:'opsz' 36;">
+      <h2 class="font-display text-xl mt-1 mb-4">
         Turnover tracker
       </h2>
 
@@ -396,7 +390,7 @@
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Recent activity</p>
-          <h2 class="font-display text-xl mt-1" style="font-variation-settings:'opsz' 36;">
+          <h2 class="font-display text-xl mt-1">
             Latest in the ledger
           </h2>
         </div>

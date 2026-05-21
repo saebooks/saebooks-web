@@ -40,7 +40,7 @@
         {% elif bill.status == 'VOIDED' %}<span class="badge-overdue">Voided</span>
         {% else %}<span class="badge-draft">{{ bill.status|capitalize }}</span>{% endif %}
       </div>
-      <h1 class="font-display text-3xl leading-none tracking-tight num-display" style="font-variation-settings:'opsz' 72;">
+      <h1 class="font-display text-3xl leading-none tracking-tight num-display">
         {{ bill.number or "—" }}
       </h1>
       <p class="text-xs ink-3 font-mono mt-2">supplier · <span class="ink-2">{{ bill.contact_id }}</span></p>
