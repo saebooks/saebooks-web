@@ -19,7 +19,6 @@
     <div>
       <div class="flex items-center gap-2 mb-1">
         <span class="nav-section-label">Dashboard</span>
-        <span class="reg-mark"></span>
         {% if gst and gst.fy_start %}
         <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
           FY&nbsp;{{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}
@@ -27,7 +26,7 @@
         {% endif %}
       </div>
       <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight" style="font-variation-settings: 'opsz' 96;">
-        Today at a glance
+        <span id="greeting" data-username="{{ request.session.get('username') or '' }}">Today at a glance</span>
       </h1>
       <p class="mt-2 text-sm ink-3">
         {{ fy_from }} <span class="ink-4">→</span> {{ fy_to }}
@@ -36,6 +35,13 @@
 
     {# Compact status chips replace the loud banners; details below. #}
     <div class="flex flex-wrap items-center gap-2">
+      <button id="customise-toggle" type="button"
+              class="chip ink-3 hover:bg-[color:var(--paper-2)]"
+              style="border-color:var(--line);"
+              title="Hide/show dashboard widgets">
+        <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
+        <span data-customise-label>Customise</span>
+      </button>
       {% if gst and gst.threshold_crossed %}
         <a href="#gst-tile" class="chip" style="border-color:var(--neg);color:var(--neg);">
           <span class="dot" style="background:var(--neg);"></span>
@@ -74,7 +80,8 @@
 {# ─────────────────────────────────────────────────────────────────────────
    KPI strip — four primary numbers, JetBrains-Mono display.
    ───────────────────────────────────────────────────────────────────────── #}
-<section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
+<section data-widget="kpi-strip" data-widget-title="Key numbers (AR · AP · Cash · GST)"
+         class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">AR · outstanding</p>
     <p class="num-display text-2xl sae">
@@ -143,7 +150,7 @@
   <div class="lg:col-span-2 space-y-6">
 
     {# Cash flow card with sparkline #}
-    <section class="card p-6">
+    <section data-widget="cashflow" data-widget-title="Cash flow · this month" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Cash flow · this month</p>
@@ -175,7 +182,7 @@
     </section>
 
     {# AR aging #}
-    <section class="card p-6">
+    <section data-widget="ar-aging" data-widget-title="Receivables aging" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Receivables aging</p>
@@ -230,7 +237,7 @@
     </section>
 
     {# AP aging #}
-    <section class="card p-6">
+    <section data-widget="ap-aging" data-widget-title="Payables aging" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Payables aging</p>
@@ -286,7 +293,7 @@
 
     {# Weekly takings — preserved, restyled #}
     {% if takings %}
-    <section class="card p-6">
+    <section data-widget="weekly-takings" data-widget-title="Weekly takings" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Weekly takings</p>
@@ -323,7 +330,7 @@
   <aside class="space-y-6">
 
     {# GST gauge #}
-    <section id="gst-tile" class="card p-6 relative overflow-hidden">
+    <section id="gst-tile" data-widget="gst-tile" data-widget-title="GST turnover · YTD" class="card p-6 relative overflow-hidden">
       <div class="dot-grid absolute inset-0 -z-10 opacity-40"></div>
       <p class="nav-section-label">GST · {% if gst and gst.fy_start %}FY {{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}{% else %}this FY{% endif %}</p>
       <h2 class="font-display text-xl mt-1 mb-4" style="font-variation-settings:'opsz' 36;">
@@ -385,7 +392,7 @@
     </section>
 
     {# Recent activity #}
-    <section class="card p-6">
+    <section data-widget="recent-activity" data-widget-title="Recent activity" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">Recent activity</p>
@@ -435,7 +442,7 @@
    loud red/amber banners with prose under hairlines.
    ───────────────────────────────────────────────────────────────────────── #}
 {% if (gst and (gst.threshold_crossed or gst.threshold_approaching)) or concentration_warning or psi_status == "unsure" %}
-<section class="card-hero p-6">
+<section data-widget="compliance" data-widget-title="Compliance notes" class="card-hero p-6">
   <p class="nav-section-label mb-4">Compliance notes</p>
   <div class="space-y-4 text-sm">
 
@@ -505,6 +512,26 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+// Time-of-day greeting — derived from the browser's local hour so that the
+// timezone follows the user, not the server. Falls back to "Today at a
+// glance" if anything goes wrong.
+(function () {
+  try {
+    var el = document.getElementById('greeting');
+    if (!el) return;
+    var username = (el.dataset.username || '').trim();
+    var first = username.split(/[\s.@]/)[0]; // strip surname / domain / dot-suffix
+    var h = new Date().getHours();
+    var part;
+    if (h < 5)       part = 'Hello';          // 00:00–04:59
+    else if (h < 12) part = 'Good morning';   // 05:00–11:59
+    else if (h < 18) part = 'Good afternoon'; // 12:00–17:59
+    else             part = 'Good evening';   // 18:00–23:59
+    el.textContent = first ? (part + ', ' + first) : (part);
+  } catch (e) { /* keep default fallback */ }
+})();
+</script>
 <script src="/static/chart.umd.min.js"></script>
 <script>
 (function () {
@@ -619,5 +646,126 @@ function kpiSpark(canvasId, seed, tintCss) {
   const cv = document.getElementById(id);
   if (cv) kpiSpark(id, parseInt(cv.dataset.seed) || 1, cv.dataset.tint || 'var(--sae)');
 });
+</script>
+
+{# ─────────────────────────────────────────────────────────────────────────
+   Dashboard customisation — show/hide widgets, persisted in localStorage.
+   v1 scope: visibility only (no reorder). Each widget is identified by
+   data-widget="<slug>" on its <section>. Hidden slugs are stored as JSON
+   in localStorage["saebooks.dashboardHidden"].
+   ───────────────────────────────────────────────────────────────────────── #}
+<style>
+  body.dashboard-customising [data-widget] {
+    outline: 1px dashed var(--ink-3);
+    outline-offset: 4px;
+    position: relative;
+  }
+  body.dashboard-customising [data-widget]::before {
+    content: attr(data-widget-title);
+    position: absolute;
+    top: -22px; left: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-3);
+    background: var(--paper);
+    padding: 0 6px;
+  }
+  /* Hidden widgets are kept in the DOM but display:none in customise-off mode */
+  [data-widget].is-hidden { display: none !important; }
+  /* In customise mode, hidden widgets are visible but dimmed so the user can
+     re-enable them by clicking the eye icon. */
+  body.dashboard-customising [data-widget].is-hidden {
+    display: block !important;
+    opacity: 0.35;
+    filter: grayscale(0.6);
+  }
+  .widget-eye-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    z-index: 5;
+    width: 28px; height: 28px;
+    display: none;
+    align-items: center; justify-content: center;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+  .widget-eye-btn:hover { color: var(--sae); border-color: var(--sae); }
+  body.dashboard-customising .widget-eye-btn { display: inline-flex; }
+</style>
+<script>
+(function () {
+  var STORAGE_KEY = 'saebooks.dashboardHidden';
+  function getHidden() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+  function setHidden(arr) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+  }
+  function applyHidden() {
+    var hidden = getHidden();
+    document.querySelectorAll('[data-widget]').forEach(function (el) {
+      var slug = el.dataset.widget;
+      if (hidden.indexOf(slug) !== -1) el.classList.add('is-hidden');
+      else el.classList.remove('is-hidden');
+    });
+  }
+  function injectEyeButtons() {
+    document.querySelectorAll('[data-widget]').forEach(function (el) {
+      if (el.querySelector('.widget-eye-btn')) return;
+      // Ensure the widget has a positioning context for the absolute button.
+      var style = window.getComputedStyle(el);
+      if (style.position === 'static') el.style.position = 'relative';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'widget-eye-btn';
+      btn.setAttribute('title', 'Hide / show this widget');
+      btn.innerHTML = '<i data-lucide="eye" class="w-4 h-4"></i>';
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var slug = el.dataset.widget;
+        var hidden = getHidden();
+        var idx = hidden.indexOf(slug);
+        if (idx === -1) hidden.push(slug);
+        else hidden.splice(idx, 1);
+        setHidden(hidden);
+        applyHidden();
+        updateEyeIcons();
+      });
+      el.appendChild(btn);
+    });
+  }
+  function updateEyeIcons() {
+    document.querySelectorAll('[data-widget]').forEach(function (el) {
+      var btn = el.querySelector('.widget-eye-btn');
+      if (!btn) return;
+      var isHidden = el.classList.contains('is-hidden');
+      btn.innerHTML = isHidden
+        ? '<i data-lucide="eye-off" class="w-4 h-4"></i>'
+        : '<i data-lucide="eye" class="w-4 h-4"></i>';
+    });
+    if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
+  }
+
+  applyHidden();
+  injectEyeButtons();
+  updateEyeIcons();
+
+  var toggle = document.getElementById('customise-toggle');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      document.body.classList.toggle('dashboard-customising');
+      var on = document.body.classList.contains('dashboard-customising');
+      var lbl = toggle.querySelector('[data-customise-label]');
+      if (lbl) lbl.textContent = on ? 'Done' : 'Customise';
+      updateEyeIcons();
+    });
+  }
+})();
 </script>
 {% endblock %}
