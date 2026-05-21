@@ -215,7 +215,7 @@
             <a href="/contacts/{{ c.contact_id }}" class="sae hover:underline truncate" style="max-width: 60%;">
               {{ c.contact_name or '—' }}
             </a>
-            <span class="num-display ink">${{ "{:,.0f}".format(c.total|float) }}</span>
+            <span class="num-display ink">${{ "{:,.0f}".format(c.revenue|float) }}</span>
           </li>
           {% endfor %}
         </ul>

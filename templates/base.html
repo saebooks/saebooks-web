@@ -528,7 +528,7 @@
       {% set gst_open = path.startswith('/gst')
                         or path.startswith('/tax-codes')
                         or path.startswith('/admin/ato-sbr')
-                        or path == '/reports/bas' %}
+                        or path == '/reports/bas-summary' %}
       <details class="group" data-section="gst" {% if gst_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>GST</span>
@@ -538,7 +538,7 @@
           <a href="/gst/overview" class="nav-item is-sub {% if path == '/gst/overview' %}active{% endif %}">
             <i data-lucide="layout-dashboard" class="nav-ico"></i>Overview
           </a>
-          <a href="/reports/bas" class="nav-item is-sub {% if path == '/reports/bas' %}active{% endif %}">
+          <a href="/reports/bas-summary" class="nav-item is-sub {% if path == '/reports/bas-summary' %}active{% endif %}">
             <i data-lucide="file-check" class="nav-ico"></i>BAS worksheet
           </a>
           <a href="/tax-codes" class="nav-item is-sub {% if path.startswith('/tax-codes') %}active{% endif %}">
@@ -552,7 +552,7 @@
         </div>
       </details>
 
-      {% set reports_open = (path.startswith('/reports') and path != '/reports/bas') %}
+      {% set reports_open = (path.startswith('/reports') and path != '/reports/bas-summary') %}
       <details class="group" data-section="reports" {% if reports_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>Reports</span>
@@ -610,7 +610,7 @@
           <a href="/settings/company" class="nav-item is-sub {% if path == '/settings/company' %}active{% endif %}">
             <i data-lucide="cog" class="nav-ico"></i>Settings
           </a>
-          <a href="/settings/licence" class="nav-item is-sub {% if path == '/settings/licence' %}active{% endif %}">
+          <a href="/admin/license" class="nav-item is-sub {% if path == '/admin/license' %}active{% endif %}">
             <i data-lucide="key-round" class="nav-ico"></i>Licence
           </a>
           <a href="/companies" class="nav-item is-sub {% if path.startswith('/companies') or path.startswith('/settings/companies') %}active{% endif %}">
@@ -882,12 +882,12 @@
     { g: 'Reports', i: 'scale',        t: 'Balance Sheet',         s: 'As at today',            k: 'R B', href: '/reports/balance-sheet' },
     { g: 'Reports', i: 'hourglass',    t: 'Aged Receivables',      s: 'Days-sales-outstanding', k: 'R A', href: '/reports/aged-receivables' },
     { g: 'Reports', i: 'alarm-clock',  t: 'Aged Payables',         s: 'Days-payable-outstanding', k: 'R Y', href: '/reports/aged-payables' },
-    { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas' },
+    { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas-summary' },
     { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll',               href: '/pay-run' },
     { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG',                       href: '/pay-run' },
     { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report',     href: '/reports' },
     { g: 'Admin',   i: 'cog',          t: 'Company settings',      s: 'ABN · GST · tax codes',              href: '/settings/company' },
-    { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/settings/licence' },
+    { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/admin/license' },
     { g: 'Admin',   i: 'history',      t: 'Audit log',              s: 'All ledger mutations',               href: '/admin/audit' },
     { g: 'Admin',   i: 'moon',         t: 'Toggle theme',           s: 'Light · Dark',           k: '⌘⇧L', href: '#theme' },
     { g: 'Admin',   i: 'log-out',      t: 'Sign out',               s: 'End session',                        href: '/logout' },

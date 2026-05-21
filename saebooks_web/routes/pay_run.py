@@ -86,6 +86,20 @@ async def pay_run_index(request: Request) -> HTMLResponse | RedirectResponse:
 
 
 # ---------------------------------------------------------------------------
+# GET /pay-run/new — sidebar/Create+ alias; the new-pay-run form lives on
+# the index page, so just redirect there. MUST be declared before
+# /pay-run/{pay_run_id} or the UUID-typed path param will swallow "new"
+# and return a 422.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/pay-run/new", response_class=HTMLResponse, response_model=None)
+async def pay_run_new_form(request: Request) -> RedirectResponse:
+    """Redirect /pay-run/new to /pay-run (the index hosts the create form)."""
+    return RedirectResponse(url="/pay-run", status_code=303)
+
+
+# ---------------------------------------------------------------------------
 # POST /pay-run/new — create draft pay run
 # ---------------------------------------------------------------------------
 

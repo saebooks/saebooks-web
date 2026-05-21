@@ -30,7 +30,7 @@
 <section class="mb-6">
   <h2 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
     <span>{{ sec.label }}</span>
-    <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 tabular-nums">{{ sec.items | length }}</span>
+    <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 tabular-nums">{{ sec['items'] | length }}</span>
   </h2>
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200 text-sm">
@@ -51,7 +51,7 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
-        {% for account in sec.items %}
+        {% for account in sec['items'] %}
         <tr
           class="hover:bg-gray-50 cursor-pointer"
           onclick="window.location='/bank-accounts/{{ account.id }}'"
