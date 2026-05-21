@@ -454,13 +454,21 @@
       </details>
 
       {% set people_open = path.startswith('/time-entries')
-                           or path.startswith('/pay-run') %}
+                           or path.startswith('/pay-run')
+                           or path.startswith('/employees')
+                           or path.startswith('/super-funds') %}
       <details class="group" data-section="people" {% if people_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>People</span>
           <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
         </summary>
         <div class="space-y-0.5 mt-1">
+          <a href="/employees" class="nav-item is-sub {% if path.startswith('/employees') %}active{% endif %}">
+            <i data-lucide="users" class="nav-ico"></i>Employees
+          </a>
+          <a href="/super-funds" class="nav-item is-sub {% if path.startswith('/super-funds') %}active{% endif %}">
+            <i data-lucide="piggy-bank" class="nav-ico"></i>Super funds
+          </a>
           <a href="/time-entries/week" class="nav-item is-sub {% if path.startswith('/time-entries') %}active{% endif %}">
             <i data-lucide="clock" class="nav-ico"></i>Time entries
           </a>
@@ -740,6 +748,8 @@
               <a href="/contacts/new?type=SUPPLIER" class="create-link"><i data-lucide="user-plus" class="w-4 h-4"></i>Supplier</a>
               <div class="hairline border-t mt-2 pt-2"></div>
               <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">People</p>
+              <a href="/employees/new"          class="create-link"><i data-lucide="users"         class="w-4 h-4"></i>Employee</a>
+              <a href="/super-funds/new"        class="create-link"><i data-lucide="piggy-bank"    class="w-4 h-4"></i>Super fund</a>
               <a href="/time-entries/new"       class="create-link"><i data-lucide="clock"        class="w-4 h-4"></i>Time entry</a>
               <a href="/time-entries/week"      class="create-link"><i data-lucide="calendar-days" class="w-4 h-4"></i>Weekly grid</a>
               <a href="/pay-run/new"            class="create-link"><i data-lucide="badge-dollar-sign" class="w-4 h-4"></i>Pay run</a>
@@ -881,6 +891,8 @@
     { g: 'Create',  i: 'user-plus',    t: 'New contact',           s: 'Customer or supplier',    k: 'C N', href: '/contacts/new' },
     { g: 'Create',  i: 'book-open',    t: 'New journal entry',     s: 'Double-entry posting',    k: 'C J', href: '/journal-entries/new' },
     { g: 'Create',  i: 'clock',        t: 'New time entry',        s: 'Log hours worked',        k: 'C T', href: '/time-entries/new' },
+    { g: 'Create',  i: 'users',        t: 'New employee',          s: 'Register payroll employee',       href: '/employees/new' },
+    { g: 'Create',  i: 'piggy-bank',   t: 'New super fund',        s: 'APRA fund or SMSF',               href: '/super-funds/new' },
     { g: 'Go to',   i: 'home',         t: 'Dashboard',             s: 'Today at a glance',                  href: '/' },
     { g: 'Go to',   i: 'layout-dashboard', t: 'Sales overview',     s: 'AR · MTD · top customers',           href: '/sales/overview' },
     { g: 'Go to',   i: 'layout-dashboard', t: 'Expenses overview',  s: 'AP · MTD · bills',                   href: '/expenses-overview' },
@@ -896,6 +908,8 @@
     { g: 'Go to',   i: 'book-open',    t: 'Journal entries',       s: 'General ledger postings',            href: '/journal-entries' },
     { g: 'Go to',   i: 'list-tree',    t: 'Chart of accounts',     s: 'Tax-mapped AU CoA',                  href: '/accounts' },
     { g: 'Go to',   i: 'banknote',     t: 'Payments',              s: 'Cash in and out',                    href: '/payments' },
+    { g: 'Go to',   i: 'users',        t: 'Employees',             s: 'Payroll staff · STP2',               href: '/employees' },
+    { g: 'Go to',   i: 'piggy-bank',  t: 'Super funds',           s: 'APRA funds and SMSFs',               href: '/super-funds' },
     { g: 'Go to',   i: 'calendar-days',t: 'Weekly time grid',      s: 'Mon-Sun hours grid',                 href: '/time-entries/week' },
     { g: 'Go to',   i: 'clock',        t: 'Time entries',          s: 'Hours per project · billable',       href: '/time-entries' },
     { g: 'Go to',   i: 'landmark',     t: 'Bank accounts',         s: 'Cleared balances',                   href: '/bank-accounts' },

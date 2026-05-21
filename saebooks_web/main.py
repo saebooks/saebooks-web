@@ -86,6 +86,8 @@ from saebooks_web.routes.quotes import router as quotes_router
 from saebooks_web.routes.items import router as items_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
 from saebooks_web.routes.journal_templates import router as journal_templates_router
+from saebooks_web.routes.employees import router as employees_router
+from saebooks_web.routes.super_funds import router as super_funds_router
 from saebooks_web.routes.pay_run import router as pay_run_router
 from saebooks_web.routes.payments import router as payments_router
 from saebooks_web.routes.profile import router as profile_router
@@ -314,6 +316,8 @@ app.include_router(search_router)
 app.include_router(profile_router)
 app.include_router(companies_router)
 app.include_router(settings_router)
+app.include_router(employees_router)
+app.include_router(super_funds_router)
 app.include_router(pay_run_router)
 app.include_router(admin_router)
 app.include_router(imports_router)

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Employees — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="font-display text-3xl text-gray-900">Employees</h1>
+    <p class="text-base ink-3 mt-1">
+      Payroll staff — STP Phase 2 registered.
+    </p>
+    {% if not error %}
+    <p class="text-base ink-3 mt-1 num">{{ total }} employee{{ "s" if total != 1 else "" }}</p>
+    {% endif %}
+  </div>
+  <div class="flex gap-2">
+    <a href="/super-funds" class="btn btn-secondary">Super funds</a>
+    <a href="/employees/new" class="btn btn-primary">+ New employee</a>
+  </div>
+</div>
+
+{% if error %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+<form hx-get="/employees" hx-push-url="true" hx-target="body" hx-swap="none"
+      action="/employees" method="get"
+      class="mb-4 flex flex-wrap gap-3 items-end">
+  <div>
+    <label class="block text-sm ink-3 mb-1">Search employee number</label>
+    <input type="text" name="search" value="{{ filter_search }}"
+           placeholder="EMP-000001"
+           class="rounded-md hairline px-2 py-1.5 bg-paper text-sm w-40">
+  </div>
+  <div>
+    <label class="block text-sm ink-3 mb-1">Super fund</label>
+    <select name="super_fund_id" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm">
+      <option value="">All</option>
+      {% for f in super_funds %}
+      <option value="{{ f.id }}" {% if filter_super_fund_id == f.id|string %}selected{% endif %}>{{ f.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <label class="inline-flex items-center gap-2 text-sm ink-1">
+    <input type="checkbox" name="only_active" value="true"
+           {% if filter_only_active %}checked{% endif %}>
+    Active only
+  </label>
+  <input type="hidden" name="limit" value="{{ limit }}">
+  <input type="hidden" name="offset" value="0">
+  <button type="submit" class="btn btn-primary">Filter</button>
+  <a href="/employees" class="btn btn-secondary">Reset</a>
+</form>
+
+<div class="card">
+  <table class="w-full text-base">
+    <thead>
+      <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="px-3 py-2">Number</th>
+        <th class="px-3 py-2">Name</th>
+        <th class="px-3 py-2">Start</th>
+        <th class="px-3 py-2">Basis</th>
+        <th class="px-3 py-2">Pay</th>
+        <th class="px-3 py-2 text-right">Rate</th>
+        <th class="px-3 py-2 text-center">TFN</th>
+        <th class="px-3 py-2 text-center">Status</th>
+        <th class="px-3 py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for emp in employees %}
+      {% set fund = fund_by_id.get(emp.super_fund_id|string) if emp.super_fund_id else None %}
+      <tr class="border-b hairline hover:bg-paper-2">
+        <td class="px-3 py-2 num">{{ emp.employee_number }}</td>
+        <td class="px-3 py-2">{{ emp.contact_id }}</td>
+        <td class="px-3 py-2 num text-sm">{{ emp.start_date }}</td>
+        <td class="px-3 py-2">
+          <span class="chip chip-ink text-xs">
+            {% if emp.employment_basis == 'F' %}Full time
+            {% elif emp.employment_basis == 'P' %}Part time
+            {% elif emp.employment_basis == 'C' %}Casual
+            {% elif emp.employment_basis == 'L' %}Labour hire
+            {% elif emp.employment_basis == 'V' %}Vol. agreement
+            {% elif emp.employment_basis == 'N' %}Non-employee
+            {% else %}{{ emp.employment_basis }}{% endif %}
+          </span>
+        </td>
+        <td class="px-3 py-2 text-sm ink-3">
+          {{ emp.pay_frequency|lower|capitalize }} · {{ emp.pay_basis|lower }}
+        </td>
+        <td class="px-3 py-2 text-right num-display">${{ "%.4f"|format(emp.base_rate|float) }}</td>
+        <td class="px-3 py-2 text-center">
+          {% if emp.tfn_status == 'PROVIDED' %}
+          <span class="chip chip-pos text-xs">Provided</span>
+          {% elif emp.tfn_status == 'NOT_PROVIDED' %}
+          <span class="chip text-xs ink-3">Not provided</span>
+          {% elif emp.tfn_status == 'NEW_PAYEE_30D' %}
+          <span class="chip chip-warm text-xs">New (30d)</span>
+          {% elif emp.tfn_status == 'APPLIED_FOR' %}
+          <span class="chip chip-warm text-xs">Applied</span>
+          {% elif emp.tfn_status == 'EXEMPT_PENSIONER' %}
+          <span class="chip chip-ink text-xs">Exempt pensioner</span>
+          {% elif emp.tfn_status == 'EXEMPT_UNDER_18' %}
+          <span class="chip chip-ink text-xs">Exempt U18</span>
+          {% else %}
+          <span class="chip text-xs">{{ emp.tfn_status }}</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-2 text-center">
+          {% if emp.end_date %}
+          <span class="chip chip-neg text-xs">Terminated</span>
+          {% elif emp.archived_at %}
+          <span class="chip chip-ink text-xs">Archived</span>
+          {% else %}
+          <span class="chip chip-pos text-xs">Active</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-2 text-right">
+          <a href="/employees/{{ emp.id }}" class="sae hover:underline text-sm">Open</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="p-6 text-center ink-3">No employees match these filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-4 flex items-center justify-end">
+  <div class="text-sm ink-3 flex gap-2">
+    {% if prev_offset is not none %}
+    <a href="?offset={{ prev_offset }}&amp;limit={{ limit }}" class="sae hover:underline">← Prev</a>
+    {% endif %}
+    {% if next_offset is not none %}
+    <a href="?offset={{ next_offset }}&amp;limit={{ limit }}" class="sae hover:underline">Next →</a>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

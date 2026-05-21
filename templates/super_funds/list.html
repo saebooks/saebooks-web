@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Super funds — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="font-display text-3xl text-gray-900">Super funds</h1>
+    <p class="text-base ink-3 mt-1">
+      APRA-regulated funds and SMSFs available for employee super contributions.
+    </p>
+    {% if not error %}
+    <p class="text-base ink-3 mt-1 num">{{ total }} fund{{ "s" if total != 1 else "" }}</p>
+    {% endif %}
+  </div>
+  <div class="flex gap-2">
+    <a href="/employees" class="btn btn-secondary">Employees</a>
+    <a href="/super-funds/new" class="btn btn-primary">+ New fund</a>
+  </div>
+</div>
+
+{% if error %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="card">
+  <table class="w-full text-base">
+    <thead>
+      <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="px-3 py-2">Fund name</th>
+        <th class="px-3 py-2">Type</th>
+        <th class="px-3 py-2">USI / ABN</th>
+        <th class="px-3 py-2">ESA</th>
+        <th class="px-3 py-2 text-center">Default</th>
+        <th class="px-3 py-2 text-center">Bank</th>
+        <th class="px-3 py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in funds %}
+      <tr class="border-b hairline hover:bg-paper-2 {% if f.archived_at %}opacity-50{% endif %}">
+        <td class="px-3 py-2 font-medium">
+          {{ f.name }}
+          {% if f.is_default %}
+          <span class="chip chip-pos text-xs ml-2">Default</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-2">
+          {% if f.is_smsf %}
+          <span class="chip chip-warm text-xs">SMSF</span>
+          {% else %}
+          <span class="chip chip-ink text-xs">APRA</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-2 num text-sm">
+          {% if f.usi %}{{ f.usi }}{% elif f.employer_abn %}{{ f.employer_abn }}{% else %}—{% endif %}
+        </td>
+        <td class="px-3 py-2 num text-sm">{{ f.esa or "—" }}</td>
+        <td class="px-3 py-2 text-center">
+          {% if f.is_default %}
+          <i data-lucide="check-circle" class="w-4 h-4 inline" style="color: var(--pos);"></i>
+          {% else %}—{% endif %}
+        </td>
+        <td class="px-3 py-2 text-center">
+          {% if f.has_smsf_bank %}
+          <span class="chip chip-ink text-xs">Set</span>
+          {% else %}—{% endif %}
+        </td>
+        <td class="px-3 py-2 text-right">
+          <a href="/super-funds/{{ f.id }}" class="sae hover:underline text-sm">Open</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="p-6 text-center ink-3">No super funds configured yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-4 flex items-center justify-end">
+  <div class="text-sm ink-3 flex gap-2">
+    {% if prev_offset is not none %}
+    <a href="?offset={{ prev_offset }}&amp;limit={{ limit }}" class="sae hover:underline">← Prev</a>
+    {% endif %}
+    {% if next_offset is not none %}
+    <a href="?offset={{ next_offset }}&amp;limit={{ limit }}" class="sae hover:underline">Next →</a>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Employee {{ employee.employee_number if employee else "" }} — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if error and not employee %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if employee %}
+
+<div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+  <div>
+    <h1 class="font-display text-3xl text-gray-900">
+      {{ contact.name if contact else employee.contact_id }}
+      <span class="num text-lg ink-3 ml-2">#{{ employee.employee_number }}</span>
+    </h1>
+    <p class="text-base ink-3 mt-1">
+      Started {{ employee.start_date }}
+      {% if employee.end_date %} · Terminated {{ employee.end_date }}{% endif %}
+      {% if employee.employment_basis == 'F' %} · Full time
+      {% elif employee.employment_basis == 'P' %} · Part time
+      {% elif employee.employment_basis == 'C' %} · Casual
+      {% elif employee.employment_basis == 'L' %} · Labour hire
+      {% elif employee.employment_basis == 'V' %} · Voluntary agreement
+      {% elif employee.employment_basis == 'N' %} · Non-employee
+      {% endif %}
+    </p>
+  </div>
+  <div class="flex gap-2">
+    {% if employee.end_date %}
+    <span class="chip chip-neg">Terminated</span>
+    {% elif employee.archived_at %}
+    <span class="chip chip-ink">Archived</span>
+    {% else %}
+    <span class="chip chip-pos">Active</span>
+    {% endif %}
+    {% if employee.has_bank %}
+    <span class="chip chip-ink">Bank configured</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid grid-cols-3 gap-6">
+
+  {# ── Main detail columns ─────────────────────────────────────────────── #}
+  <div class="col-span-2 space-y-6">
+
+    {# Identity #}
+    <div class="card p-6">
+      <p class="nav-section-label mb-4">Identity</p>
+      <dl class="space-y-3 text-base">
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Employee number</dt>
+          <dd class="col-span-2 num">{{ employee.employee_number }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Contact</dt>
+          <dd class="col-span-2">
+            {% if contact %}
+            <a href="/contacts/{{ employee.contact_id }}" class="sae hover:underline">{{ contact.name }}</a>
+            {% else %}
+            <span class="num ink-3">{{ employee.contact_id }}</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Start date</dt>
+          <dd class="col-span-2 num">{{ employee.start_date }}</dd>
+        </div>
+        {% if employee.dob %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Date of birth</dt>
+          <dd class="col-span-2 num">{{ employee.dob }}</dd>
+        </div>
+        {% endif %}
+        {% if employee.end_date %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Termination date</dt>
+          <dd class="col-span-2 num text-rose-700">{{ employee.end_date }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Termination reason</dt>
+          <dd class="col-span-2">
+            {% if employee.termination_reason == 'V' %}Voluntary cessation
+            {% elif employee.termination_reason == 'I' %}Ill health
+            {% elif employee.termination_reason == 'D' %}Deceased
+            {% elif employee.termination_reason == 'R' %}Redundancy
+            {% elif employee.termination_reason == 'F' %}Dismissal
+            {% elif employee.termination_reason == 'C' %}Contract cessation
+            {% elif employee.termination_reason == 'T' %}Transfer to associated entity
+            {% else %}{{ employee.termination_reason or "—" }}{% endif %}
+          </dd>
+        </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    {# Tax / STP #}
+    <div class="card p-6">
+      <p class="nav-section-label mb-4">Tax and STP</p>
+
+      {# TFN reveal block #}
+      <div class="rounded-md p-4 mb-4"
+           style="background: var(--sae-tint); border: 1px solid var(--sae-tint-2);">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-medium" style="color: var(--sae-2);">Tax File Number</p>
+            {% if tfn_plaintext %}
+            <p class="num text-lg mt-1" style="color: var(--ink);">{{ tfn_plaintext }}</p>
+            <p class="text-xs mt-1 ink-3">Access to this TFN has been recorded in the audit log.</p>
+            {% else %}
+            <p class="num text-base mt-1 ink-3">{{ employee.tfn_masked or "XXX-XXX-NNN" }}</p>
+            {% endif %}
+          </div>
+          {% if not tfn_plaintext %}
+          <form method="POST" action="/employees/{{ employee.id }}/reveal-tfn"
+                onsubmit="return confirm('Revealing this TFN will be recorded in the audit log. Continue?')">
+            {{ csrf_input(request)|safe }}
+            <button type="submit" class="btn btn-secondary">Reveal TFN</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <dl class="space-y-3 text-base">
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">TFN status</dt>
+          <dd class="col-span-2">
+            {% if employee.tfn_status == 'PROVIDED' %}<span class="chip chip-pos">Provided</span>
+            {% elif employee.tfn_status == 'NOT_PROVIDED' %}<span class="chip">Not provided</span>
+            {% elif employee.tfn_status == 'NEW_PAYEE_30D' %}<span class="chip chip-warm">New payee (30d)</span>
+            {% elif employee.tfn_status == 'APPLIED_FOR' %}<span class="chip chip-warm">Applied for</span>
+            {% elif employee.tfn_status == 'EXEMPT_PENSIONER' %}<span class="chip chip-ink">Exempt — pensioner</span>
+            {% elif employee.tfn_status == 'EXEMPT_UNDER_18' %}<span class="chip chip-ink">Exempt — under 18</span>
+            {% else %}<span class="chip">{{ employee.tfn_status }}</span>{% endif %}
+          </dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Employment basis</dt>
+          <dd class="col-span-2">
+            {% if employee.employment_basis == 'F' %}F — Full time
+            {% elif employee.employment_basis == 'P' %}P — Part time
+            {% elif employee.employment_basis == 'C' %}C — Casual
+            {% elif employee.employment_basis == 'L' %}L — Labour hire
+            {% elif employee.employment_basis == 'V' %}V — Voluntary agreement
+            {% elif employee.employment_basis == 'N' %}N — Non-employee
+            {% else %}{{ employee.employment_basis }}{% endif %}
+          </dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Income stream</dt>
+          <dd class="col-span-2 num">{{ employee.income_stream_type }}</dd>
+        </div>
+        {% if employee.tax_treatment_code %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Tax treatment</dt>
+          <dd class="col-span-2 num">{{ employee.tax_treatment_code }}</dd>
+        </div>
+        {% endif %}
+        {% if employee.payg_branch_code %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">PAYG branch</dt>
+          <dd class="col-span-2 num">{{ employee.payg_branch_code }}</dd>
+        </div>
+        {% endif %}
+        <div class="grid grid-cols-3 gap-2 pt-1 hairline border-t">
+          <dt class="ink-3">Tax-free threshold</dt>
+          <dd class="col-span-2">{{ "Yes" if employee.claims_tax_free_threshold else "No" }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">AU resident</dt>
+          <dd class="col-span-2">{{ "Yes" if employee.is_australian_resident else "No" }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">STSL / HECS</dt>
+          <dd class="col-span-2">{{ "Yes" if employee.study_training_support_loan else "No" }}</dd>
+        </div>
+        {% if employee.working_holiday_maker %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Working holiday maker</dt>
+          <dd class="col-span-2">Yes · country {{ employee.whm_country_code }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    {# Address #}
+    {% if employee.address_line1 or employee.suburb %}
+    <div class="card p-6">
+      <p class="nav-section-label mb-4">Address</p>
+      <address class="text-base not-italic space-y-1">
+        {% if employee.address_line1 %}<p>{{ employee.address_line1 }}</p>{% endif %}
+        {% if employee.address_line2 %}<p>{{ employee.address_line2 }}</p>{% endif %}
+        <p>{{ [employee.suburb, employee.state, employee.postcode]|select|join("  ") }}</p>
+        {% if employee.country_code and employee.country_code != 'AU' %}
+        <p>{{ employee.country_code }}</p>
+        {% endif %}
+      </address>
+    </div>
+    {% endif %}
+
+    {# Pay shape #}
+    <div class="card p-6">
+      <p class="nav-section-label mb-4">Pay shape</p>
+      <dl class="space-y-3 text-base">
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Frequency</dt>
+          <dd class="col-span-2 num">{{ employee.pay_frequency|lower|capitalize }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Basis</dt>
+          <dd class="col-span-2">{{ employee.pay_basis|lower|capitalize }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Base rate</dt>
+          <dd class="col-span-2 num-display">${{ "%.4f"|format(employee.base_rate|float) }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Weekly hours</dt>
+          <dd class="col-span-2 num">{{ "%.2f"|format(employee.weekly_hours|float) }}h</dd>
+        </div>
+        {% if employee.payslip_email %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Payslip email</dt>
+          <dd class="col-span-2">{{ employee.payslip_email }}</dd>
+        </div>
+        {% endif %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Payslip delivery</dt>
+          <dd class="col-span-2">{{ employee.payslip_delivery|lower|capitalize }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    {# Super + bank #}
+    <div class="card p-6">
+      <p class="nav-section-label mb-4">Super and bank</p>
+      <dl class="space-y-3 text-base">
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Super fund</dt>
+          <dd class="col-span-2">
+            {% if super_fund %}
+            <a href="/super-funds/{{ employee.super_fund_id }}" class="sae hover:underline">{{ super_fund.name }}</a>
+            {% elif employee.super_fund_id %}
+            <span class="num ink-3">{{ employee.super_fund_id }}</span>
+            {% else %}—{% endif %}
+          </dd>
+        </div>
+        {% if employee.super_member_number %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Member number</dt>
+          <dd class="col-span-2 num">{{ employee.super_member_number }}</dd>
+        </div>
+        {% endif %}
+        <div class="grid grid-cols-3 gap-2 hairline border-t pt-3">
+          <dt class="ink-3">Bank account</dt>
+          <dd class="col-span-2">
+            {% if employee.has_bank %}
+            <span class="chip chip-ink">Configured — revealed during pay run</span>
+            {% else %}
+            <span class="ink-3 text-sm">Not set</span>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    {# Audit / version row #}
+    <div class="card p-4">
+      <dl class="flex flex-wrap gap-6 text-sm">
+        <div>
+          <dt class="ink-3 text-xs uppercase tracking-wide">Version</dt>
+          <dd class="num">{{ employee.version }}</dd>
+        </div>
+        <div>
+          <dt class="ink-3 text-xs uppercase tracking-wide">Payee ID (BMS)</dt>
+          <dd class="num text-xs ink-3">{{ employee.payee_id_bms }}</dd>
+        </div>
+        <div>
+          <dt class="ink-3 text-xs uppercase tracking-wide">Created</dt>
+          <dd class="num text-xs ink-3">{{ employee.created_at }}</dd>
+        </div>
+        <div>
+          <dt class="ink-3 text-xs uppercase tracking-wide">Updated</dt>
+          <dd class="num text-xs ink-3">{{ employee.updated_at }}</dd>
+        </div>
+      </dl>
+    </div>
+
+  </div>
+
+  {# ── Sidebar actions ─────────────────────────────────────────────────── #}
+  <aside class="space-y-4">
+    <div class="card p-5">
+      <p class="nav-section-label mb-3">Actions</p>
+      <div class="space-y-2">
+        {% if not employee.archived_at %}
+        <a href="/employees/{{ employee.id }}/edit" class="btn btn-primary w-full">Edit</a>
+
+        {% if not employee.end_date %}
+        {# Terminate modal trigger — inline form #}
+        <button onclick="document.getElementById('terminate-panel').classList.toggle('hidden')"
+                class="btn btn-secondary w-full">Terminate</button>
+        <div id="terminate-panel" class="hidden mt-2 rounded-md p-4 border hairline" style="background: var(--paper-2);">
+          <form method="POST" action="/employees/{{ employee.id }}/terminate">
+            {{ csrf_input(request)|safe }}
+            <div class="mb-3">
+              <label class="block text-sm ink-3 mb-1">Last day of employment *</label>
+              <input type="date" name="end_date" required
+                     class="w-full rounded-md hairline px-3 py-2 bg-paper">
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm ink-3 mb-1">Cessation type (STP2) *</label>
+              <select name="reason" required
+                      class="w-full rounded-md hairline px-3 py-2 bg-paper">
+                <option value="V">V — Voluntary</option>
+                <option value="I">I — Ill health</option>
+                <option value="D">D — Deceased</option>
+                <option value="R">R — Redundancy</option>
+                <option value="F">F — Dismissal</option>
+                <option value="C">C — Contract cessation</option>
+                <option value="T">T — Transfer to associated entity</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-danger w-full">Confirm termination</button>
+          </form>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/employees/{{ employee.id }}/archive"
+              onsubmit="return confirm('Archive this employee? The record is kept for STP history.')">
+          {{ csrf_input(request)|safe }}
+          <button type="submit" class="btn btn-danger w-full">Archive</button>
+        </form>
+        {% else %}
+        <p class="ink-3 text-sm">Archived on {{ employee.archived_at }}.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <p class="nav-section-label mb-2">Navigate</p>
+      <a href="/employees" class="block text-sm sae hover:underline">← All employees</a>
+      {% if super_fund %}
+      <a href="/super-funds/{{ employee.super_fund_id }}"
+         class="block text-sm sae hover:underline mt-1">{{ super_fund.name }} →</a>
+      {% endif %}
+      <a href="/pay-run" class="block text-sm sae hover:underline mt-1">Pay runs →</a>
+    </div>
+  </aside>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
