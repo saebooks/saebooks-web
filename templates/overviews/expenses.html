@@ -9,7 +9,7 @@
   <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Expenses &amp; Bills</span>
+        <span class="nav-section-label">Purchases</span>
         <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
           As of {{ today_iso }}
         </span>
@@ -26,9 +26,9 @@
   <div class="drafting mt-5"></div>
 </header>
 
-{# ── Money out — quick actions band ── #}
+{# ── Quick actions band ── #}
 <section class="card p-5 mb-6">
-  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Money out</p>
+  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Quick actions</p>
   <div class="flex flex-wrap items-center gap-2">
     <a href="/bills/new" class="btn btn-primary">
       <i data-lucide="receipt" class="w-4 h-4"></i> New bill
@@ -51,9 +51,9 @@
   </div>
 </section>
 
-{# ── Bills funnel ── #}
+{# ── Bills pipeline ── #}
 <div class="mb-6">
-  {{ funnel(bills_funnel, title="Bills funnel", as_of=today_iso) }}
+  {{ funnel(bills_funnel, title="Bills pipeline", as_of=today_iso) }}
 </div>
 
 {# ── KPI strip ── #}
@@ -196,7 +196,7 @@
     <section class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
-          <p class="nav-section-label">Spend insights · top vendors</p>
+          <p class="nav-section-label">Top vendors</p>
           <p class="num-display text-xl mt-1 ink">
             ${{ "{:,.0f}".format(top_suppliers_total|float) }}
           </p>

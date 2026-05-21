@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% from "_funnel_macros.html" import funnel %}
 
-{% block title %}Customer Hub — SAE Books{% endblock %}
+{% block title %}Customer overview — SAE Books{% endblock %}
 
 {% block content %}
 <header class="mb-8">
   <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Customer Hub</span>
+        <span class="nav-section-label">Customers</span>
         <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
           As of {{ today_iso }}
         </span>
@@ -19,7 +19,7 @@
       </div>
       <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
           style="font-variation-settings: 'opsz' 96;">
-        Customer Hub
+        Customer overview
       </h1>
       <p class="mt-2 text-sm ink-3 max-w-2xl">
         Customers at a glance — quotes, projects, and unpaid invoices in one
@@ -52,9 +52,9 @@
   </div>
 </section>
 
-{# ── Customers funnel ── #}
+{# ── Customer pipeline ── #}
 <div class="mb-6">
-  {{ funnel(customers_funnel, title="Customers funnel", as_of=today_iso) }}
+  {{ funnel(customers_funnel, title="Customer pipeline", as_of=today_iso) }}
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

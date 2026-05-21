@@ -9,7 +9,7 @@
   <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Sales &amp; Get Paid</span>
+        <span class="nav-section-label">Sales</span>
         <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
           As of {{ today_iso }}
         </span>
@@ -26,9 +26,9 @@
   <div class="drafting mt-5"></div>
 </header>
 
-{# ── Money in — quick actions band ── #}
+{# ── Quick actions band ── #}
 <section class="card p-5 mb-6">
-  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Money in</p>
+  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Quick actions</p>
   <div class="flex flex-wrap items-center gap-2">
     <a href="/invoices/new" class="btn btn-primary">
       <i data-lucide="plus" class="w-4 h-4"></i> New invoice
@@ -51,9 +51,9 @@
   </div>
 </section>
 
-{# ── Sales funnel ── #}
+{# ── Sales pipeline ── #}
 <div class="mb-6">
-  {{ funnel(sales_funnel, title="Sales funnel", as_of=today_iso) }}
+  {{ funnel(sales_funnel, title="Sales pipeline", as_of=today_iso) }}
 </div>
 
 {# ── AR two-pane (Unpaid | Paid) ── #}

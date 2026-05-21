@@ -183,7 +183,7 @@ async def sales_overview(request: Request) -> HTMLResponse | RedirectResponse:
         if win_start <= str(p.get("payment_date", "")) <= win_end
     )
 
-    # Sales funnel stages — Quotes → Drafts → Unpaid (overdue) → Unpaid (current) → Paid
+    # Sales pipeline stages — Quotes → Drafts → Unpaid (overdue) → Unpaid (current) → Paid
     # "Quotes open" counts recent quotes that aren't accepted/declined.
     quotes_open = [
         q for q in recent_quotes
@@ -593,15 +593,16 @@ async def inventory_overview(request: Request) -> HTMLResponse | RedirectRespons
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# /customer-hub/overview
+# /customer-hub/overview (route path kept; label is "Customer overview")
 # ─────────────────────────────────────────────────────────────────────────
 
 
 @router.get("/customer-hub/overview", response_class=HTMLResponse, response_model=None)
 async def customer_hub_overview(request: Request) -> HTMLResponse | RedirectResponse:
-    """Minimal Customer Hub overview — Customers Funnel + Overdue Invoices +
-    Open Quotes + Quick actions. Skipping referrals / reviews / work-requests
-    because they're zero-state for 95% of orgs (per saebooks-qbo-nav-reference)."""
+    """Minimal Customer overview — Customer pipeline + Overdue invoices +
+    Open quotes + Quick actions. Skipping referrals / reviews / work-requests
+    because they're zero-state for 95% of orgs (per saebooks-qbo-nav-reference).
+    Label avoids "Customer Hub" / "Customers Funnel" trade-dress."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -625,7 +626,7 @@ async def customer_hub_overview(request: Request) -> HTMLResponse | RedirectResp
 
     cmap = _name_map(contacts_raw)
 
-    # Customers funnel — Open quotes → In-progress projects → Unpaid invoices → Overdue
+    # Customer pipeline — Open quotes → In-progress projects → Unpaid invoices → Overdue
     quotes_open = [
         q for q in quotes_raw
         if (q.get("status") or "").upper() not in ("ACCEPTED", "DECLINED", "EXPIRED", "VOIDED")
