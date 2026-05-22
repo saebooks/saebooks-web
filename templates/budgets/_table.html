@@ -16,7 +16,7 @@
       <tr>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Year</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Month</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account ID</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Amount</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Notes</th>
       </tr>
@@ -32,21 +32,32 @@
           <td class="px-4 py-3 text-gray-900">
             {{ ["", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][budget.month] }}
           </td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">
-            <a href="/budgets/{{ budget.id }}" class="hover:underline text-[#194291] font-sans text-sm">
-              {{ budget.account_id }}
+          <td class="px-4 py-3">
+            <a href="/budgets/{{ budget.id }}" class="hover:underline text-[#194291] text-sm font-medium">View</a>
+            <a href="/accounts/{{ budget.account_id }}" class="ml-2 hover:underline text-gray-400 font-mono text-xs" title="{{ budget.account_id }}">
+              {{ budget.account_id[:8] }}…
             </a>
           </td>
           <td class="px-4 py-3 text-right tabular-nums text-gray-900">
-            {{ "%.2f"|format(budget.amount | float) }}
+            $ {{ "%.2f"|format(budget.amount | float) }}
           </td>
           <td class="px-4 py-3 text-gray-500 text-xs">{{ budget.notes or "—" }}</td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
-            No budget rows found.
+          <td colspan="5" class="px-4 py-12 text-center">
+            <p class="text-sm font-medium text-gray-500 mb-1">No budget rows found</p>
+            {% if filter_year or filter_month %}
+            <p class="text-xs text-gray-400 mb-4">Try adjusting the year or month filter.</p>
+            <a href="/budgets" class="text-sm text-[#194291] hover:underline">Clear filters</a>
+            {% else %}
+            <p class="text-xs text-gray-400 mb-4">Add a budget to track planned spend against actuals.</p>
+            <a href="/budgets/new"
+               class="inline-flex items-center rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
+              New budget
+            </a>
+            {% endif %}
           </td>
         </tr>
       {% endif %}

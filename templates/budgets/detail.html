@@ -70,7 +70,7 @@
   </div>
   <div class="bg-white rounded-xl border border-gray-200 p-4">
     <p class="text-xs text-gray-500 uppercase tracking-wide">Amount</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">{{ "%.2f"|format(budget.amount | float) }}</p>
+    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">$&nbsp;{{ "%.2f"|format(budget.amount | float) }}</p>
   </div>
   <div class="bg-white rounded-xl border border-gray-200 p-4">
     <p class="text-xs text-gray-500 uppercase tracking-wide">Version</p>
@@ -85,8 +85,10 @@
     <table class="min-w-full text-sm">
       <tbody class="divide-y divide-gray-100">
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500 w-48">Account ID</td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ budget.account_id }}</td>
+          <td class="px-4 py-3 font-medium text-gray-500 w-48">Account</td>
+          <td class="px-4 py-3">
+            <a href="/accounts/{{ budget.account_id }}" class="text-[#194291] hover:underline font-mono text-xs">{{ budget.account_id }}</a>
+          </td>
         </tr>
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500">Year</td>
@@ -101,7 +103,7 @@
         </tr>
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500">Amount</td>
-          <td class="px-4 py-3 text-gray-900 tabular-nums">{{ "%.2f"|format(budget.amount | float) }}</td>
+          <td class="px-4 py-3 text-gray-900 tabular-nums">$ {{ "%.2f"|format(budget.amount | float) }}</td>
         </tr>
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500">Notes</td>
