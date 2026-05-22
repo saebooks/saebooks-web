@@ -517,10 +517,33 @@ async def bank_account_detail(
                 status_code=resp.status_code,
             )
 
+        # Fetch bank-statement transactions for this account — empty list
+        # is fine (account may have no feed history yet).
+        lines: list[dict] = []
+        lines_total = 0
+        lines_error: str | None = None
+        bsl_resp = await client.get(
+            "/api/v1/bank_statement_lines",
+            params={"bank_account_id": account_id, "limit": 50, "offset": 0},
+        )
+        if bsl_resp.is_success:
+            bsl_payload = bsl_resp.json()
+            lines = bsl_payload.get("items", [])
+            lines_total = bsl_payload.get("total", len(lines))
+        else:
+            lines_error = f"Could not load transactions: HTTP {bsl_resp.status_code}"
+
     account = resp.json()
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "bank_accounts/detail.html",
-        {"account": account, "error": None, "flash": flash},
+        {
+            "account": account,
+            "error": None,
+            "flash": flash,
+            "lines": lines,
+            "lines_total": lines_total,
+            "lines_error": lines_error,
+        },
     )

@@ -10,53 +10,88 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">BSB</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account number</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Title</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Bank</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-      {% if accounts %}
-        {% for account in accounts %}
-        <tr
-          class="hover:bg-gray-50 cursor-pointer"
-          onclick="window.location='/bank-accounts/{{ account.id }}'"
-        >
-          <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/bank-accounts/{{ account.id }}" class="hover:underline">
-              {{ account.code }}
-            </a>
-          </td>
-          <td class="px-4 py-3 text-gray-900">
-            {{ account.name }}
-            {% if account.is_trust_account %}
-            <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Trust</span>
-            {% endif %}
-          </td>
-          <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bsb or "—" }}</td>
-          <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ account.bank_account_title or "—" }}</td>
-          <td class="px-4 py-3 text-gray-600 text-xs">{{ account.bank_abbreviation or "—" }}</td>
-        </tr>
-        {% endfor %}
-      {% else %}
-        <tr>
-          <td colspan="6" class="px-4 py-12 text-center">
-            <p class="text-gray-400 text-sm mb-2">No bank accounts found.</p>
-            <a href="/bank-accounts/new" class="text-sm text-[#194291] hover:underline">Add your first bank account →</a>
-          </td>
-        </tr>
-      {% endif %}
-    </tbody>
-  </table>
-</div>
+{% macro account_row(account) %}
+<tr
+  class="hover:bg-gray-50 cursor-pointer"
+  onclick="window.location='/bank-accounts/{{ account.id }}'"
+>
+  <td class="px-4 py-3 font-medium text-[#194291]">
+    <a href="/bank-accounts/{{ account.id }}" class="hover:underline">
+      {{ account.code }}
+    </a>
+  </td>
+  <td class="px-4 py-3 text-gray-900">
+    {{ account.name }}
+    {% if account.is_trust_account %}
+    <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Trust</span>
+    {% endif %}
+  </td>
+  <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bsb or "—" }}</td>
+  <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>
+  <td class="px-4 py-3 text-gray-600">{{ account.bank_account_title or "—" }}</td>
+  <td class="px-4 py-3 text-gray-600 text-xs">{{ account.bank_abbreviation or "—" }}</td>
+</tr>
+{% endmacro %}
+
+{% if accounts %}
+  {% if sections %}
+    {# Sectioned render — one card per kind. #}
+    {% for section in sections %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto mb-6">
+      <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+        <h2 class="text-sm font-semibold text-gray-700">{{ section.label }}
+          <span class="ml-2 text-xs font-normal text-gray-400">
+            {{ section["items"]|length }} account{{ "s" if section["items"]|length != 1 else "" }}
+          </span>
+        </h2>
+      </div>
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-white">
+          <tr>
+            <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">BSB</th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account number</th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Title</th>
+            <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Bank</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for account in section["items"] %}
+            {{ account_row(account) }}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  {% else %}
+    {# Fallback: flat table (no sectioning data — e.g. unbucketed legacy rows). #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">BSB</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account number</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Title</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Bank</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for account in accounts %}
+            {{ account_row(account) }}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% else %}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 px-4 py-12 text-center">
+    <p class="text-gray-400 text-sm mb-2">No bank accounts found.</p>
+    <a href="/bank-accounts/new" class="text-sm text-[#194291] hover:underline">Add your first bank account →</a>
+  </div>
+{% endif %}
 
 {# Pagination #}
 {% if prev_offset is not none or next_offset is not none %}

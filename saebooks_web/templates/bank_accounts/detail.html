@@ -122,6 +122,81 @@
   </div>
 </div>
 
+{# ── Transactions ── #}
+<div class="mb-8">
+  <div class="flex items-end justify-between mb-3">
+    <h2 class="text-base font-semibold text-gray-900">
+      Transactions
+      {% if lines_total %}
+      <span class="ml-2 text-xs font-normal text-gray-400">{{ lines_total }} line{{ "s" if lines_total != 1 else "" }}</span>
+      {% endif %}
+    </h2>
+    <a
+      href="/bank-statement-lines?bank_account_id={{ account.id }}"
+      class="text-sm text-[#194291] hover:underline"
+    >View all &rarr;</a>
+  </div>
+
+  {% if lines_error %}
+  <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-3">
+    {{ lines_error }}
+  </div>
+  {% endif %}
+
+  {% if lines %}
+  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
+          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
+          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Ref</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Amount</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Balance</th>
+          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for ln in lines %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-2 text-gray-700 whitespace-nowrap">{{ ln.txn_date }}</td>
+          <td class="px-4 py-2 text-gray-900">{{ ln.description or "—" }}</td>
+          <td class="px-4 py-2 text-gray-500 font-mono text-xs">{{ ln.reference or "" }}</td>
+          <td class="px-4 py-2 text-right font-mono {% if ln.amount and ln.amount|float < 0 %}text-red-600{% else %}text-gray-900{% endif %}">
+            {{ ln.amount }}
+          </td>
+          <td class="px-4 py-2 text-right font-mono text-gray-500">{{ ln.balance if ln.balance is not none else "—" }}</td>
+          <td class="px-4 py-2">
+            {% set st = ln.status or "" %}
+            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+              {% if st == 'RECONCILED' %}bg-emerald-100 text-emerald-800
+              {% elif st == 'MATCHED' %}bg-blue-100 text-blue-800
+              {% elif st == 'IGNORED' %}bg-gray-100 text-gray-600
+              {% else %}bg-amber-100 text-amber-800{% endif %}">
+              {{ st or "UNMATCHED" }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if lines_total and lines_total > lines|length %}
+  <p class="mt-2 text-xs text-gray-500">
+    Showing first {{ lines|length }} of {{ lines_total }}.
+    <a href="/bank-statement-lines?bank_account_id={{ account.id }}" class="text-[#194291] hover:underline">See all transactions &rarr;</a>
+  </p>
+  {% endif %}
+  {% elif not lines_error %}
+  <div class="bg-white rounded-xl border border-gray-200 px-4 py-8 text-center">
+    <p class="text-sm text-gray-400">No transactions for this account yet.</p>
+    <p class="text-xs text-gray-400 mt-1">
+      Import a bank statement or connect a feed to see transactions here.
+    </p>
+  </div>
+  {% endif %}
+</div>
+
 {# ── Metadata footer ── #}
 <div class="bg-gray-50 rounded-xl border border-gray-200 px-4 py-4 text-xs text-gray-500 grid grid-cols-2 gap-2 sm:grid-cols-3">
   <div>
