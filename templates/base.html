@@ -367,12 +367,12 @@
     {# Brand — official SAE Books wordmark PNG from marketing repo.
        Replaced master's SVG monogram at user request 2026-05-21 with the
        actual logo at /static/sae-books-logo.png. #}
-    <a href="/" class="flex flex-col items-start gap-1 px-4 py-3.5 border-b hairline group">
+    <a href="/" class="flex flex-col items-start gap-1 px-4 py-4 border-b hairline group">
       <img src="/static/sae-books-logo.png"
            alt="SAE Books"
-           class="h-9"
-           style="max-width: 180px;">
-      <div class="text-[9.5px] font-mono ink-3">v2026.05 · {{ request.session.get('edition') or 'community' }}</div>
+           class="h-14"
+           style="max-width: 240px;">
+      <div class="text-[10px] font-mono ink-3">v2026.05 · {{ request.session.get('edition') or 'community' }}</div>
     </a>
 
     {# Navigation #}
@@ -693,32 +693,27 @@
   {# ── Right column: top bar + content ────────────────────────────────── #}
   <div class="flex-1 flex flex-col overflow-hidden bg-paper">
 
-    {# Top app bar — search-as-cmd-K, quick create, theme, profile #}
-    <header class="topbar flex-shrink-0 flex items-center h-14 px-4 sm:px-6 gap-3">
-      <button id="sidebar-toggle"
-              onclick="openSidebar()"
-              class="sm:hidden p-1.5 rounded-md ink-2 hover:bg-[color:var(--paper-2)]"
-              aria-label="Open menu">
-        <i data-lucide="menu" class="w-5 h-5"></i>
-      </button>
+    {# Top app bar — left: hamburger; center (absolutely positioned): company name;
+       right: search icon (cmd-K) + Create dropdown. Theme toggle has moved to
+       the floating widget at bottom-right (see end of body). #}
+    <header class="topbar relative flex-shrink-0 flex items-center justify-between h-14 px-4 sm:px-6 gap-3">
+      <div class="flex items-center gap-2">
+        <button id="sidebar-toggle"
+                onclick="openSidebar()"
+                class="sm:hidden p-1.5 rounded-md ink-2 hover:bg-[color:var(--paper-2)]"
+                aria-label="Open menu">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
 
-      <span class="text-sm font-medium" style="color: var(--ink);">
+      <span class="absolute left-1/2 -translate-x-1/2 text-base font-semibold pointer-events-none whitespace-nowrap"
+            style="color: var(--ink);">
         {% block company_name %}{{ company_name | default("SAE Engineering") }}{% endblock %}
+        <span class="reg-mark ml-1 hidden sm:inline-block" aria-hidden="true"></span>
       </span>
 
-      <span class="reg-mark mx-1 hidden sm:inline-block" aria-hidden="true"></span>
-
-      {# Cmd-K trigger #}
-      <button onclick="openCmdK()" class="hidden md:flex flex-1 max-w-xl items-center gap-2 text-left px-3 py-1.5 rounded-lg saebooks-input cursor-pointer hover:border-[color:var(--ink-4)]" style="background: var(--paper-2);">
-        <i data-lucide="search" class="w-4 h-4 ink-3"></i>
-        <span class="ink-3 text-sm flex-1">Search transactions, contacts, reports…</span>
-        <span class="ink-3 text-[10px] font-mono px-1.5 py-0.5 rounded border hairline" style="background: var(--surface);">⌘K</span>
-      </button>
-
-      <div class="flex-1 md:hidden"></div>
-
       <div class="flex items-center gap-1">
-        <button onclick="openCmdK()" title="Search (⌘K)" class="md:hidden p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
+        <button onclick="openCmdK()" title="Search (⌘K)" class="p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
           <i data-lucide="search" class="w-4 h-4"></i>
         </button>
         {# Create mega-dropdown — 4-column verb picker (renamed from QBO-style). #}
@@ -774,10 +769,6 @@
             </div>
           </div>
         </details>
-        <button id="theme-toggle" title="Toggle theme (⌘⇧L)" class="p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
-          <i data-lucide="moon" class="w-4 h-4" data-theme-icon="light"></i>
-          <i data-lucide="sun" class="w-4 h-4 hidden" data-theme-icon="dark"></i>
-        </button>
       </div>
     </header>
 
@@ -816,6 +807,18 @@
   </main>
 
 {% endif %}
+
+{# Floating theme toggle — bottom-right, brand-coloured circular button,
+   visible on every page (authed + unauthed). Icons are swapped by the
+   theme script below via data-theme-icon attributes. #}
+<button id="theme-toggle"
+        title="Toggle theme (⌘⇧L)"
+        aria-label="Toggle dark mode"
+        class="fixed bottom-2 right-4 z-50 inline-flex items-center justify-center w-14 h-14 rounded-full text-white shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 transition"
+        style="background: var(--brand-2); --tw-ring-color: var(--brand-2);">
+  <i data-lucide="moon" class="w-6 h-6" data-theme-icon="light"></i>
+  <i data-lucide="sun"  class="w-6 h-6 hidden" data-theme-icon="dark"></i>
+</button>
 
 <script>
   // Theme toggle — keeps Tailwind dark: class AND data-theme attribute in sync
