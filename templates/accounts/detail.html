@@ -86,8 +86,8 @@
       {% if not account.is_header %}
       <div class="flex gap-2">
         <dt class="w-36 shrink-0 text-gray-500">Balance</dt>
-        <dd class="tabular-nums {% if account.balance is not none and (account.balance|float) < 0 %}text-red-600{% else %}text-gray-900{% endif %}">
-          {% if account.balance is none or (account.balance|float) == 0 %}—{% else %}{{ "%.2f"|format(account.balance|float) }}{% endif %}
+        <dd class="tabular-nums {% if account.balance is defined and account.balance is not none and (account.balance|float) < 0 %}text-red-600{% else %}text-gray-900{% endif %}">
+          {% if account.balance is not defined or account.balance is none or (account.balance|float) == 0 %}—{% else %}{{ "%.2f"|format(account.balance|float) }}{% endif %}
         </dd>
       </div>
       {% endif %}
