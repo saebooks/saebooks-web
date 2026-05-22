@@ -171,9 +171,69 @@
        blowing out the layout. Wraps any table that's wider than its container. */
     @media (max-width: 768px) {
       .card { overflow-x: auto; }
-      .card table { min-width: max-content; }
+      /* list-view tables scroll horizontally; form line-item tables reflow as cards */
+      .card table:not(.line-items-table) { min-width: max-content; }
       /* Header action rows wrap nicely on mobile */
       header .flex-wrap { row-gap: 0.5rem; }
+
+      /* ── Line-items card reflow ── */
+      /* On mobile, each <tr> becomes a card, each <td> a labelled row */
+      .line-items-table thead { display: none; }
+      .line-items-table tbody { display: block; }
+      .line-items-table tr.line-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface);
+      }
+      /* All cells stack full-width, except the last (delete button) */
+      .line-items-table td[data-label] {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        grid-column: 1 / 2;
+        width: auto;
+        padding: 0;
+        border: none;
+      }
+      .line-items-table td[data-label]::before {
+        content: attr(data-label);
+        font-size: 10px;
+        font-family: 'JetBrains Mono', monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--ink-3);
+        font-weight: 500;
+      }
+      /* Delete button cell — spans full right column, vertically centred */
+      .line-items-table td.line-delete-cell {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        grid-column: 2 / 3;
+        grid-row: 1 / 99;
+      }
+      /* Ensure all inputs/selects fill their card cell and meet 44px touch target */
+      .line-items-table td[data-label] .saebooks-input,
+      .line-items-table td[data-label] input,
+      .line-items-table td[data-label] select {
+        width: 100%;
+        min-height: 44px;
+      }
+      /* Delete button touch target */
+      .line-items-table .line-delete-btn {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
     }
     .create-link {
       display: flex; align-items: center; gap: .5rem;

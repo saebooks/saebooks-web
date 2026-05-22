@@ -4,6 +4,8 @@
   Used both when rendering the full new-credit-note form and as an HTMX fragment
   returned by GET /credit-notes/_add_line?index=N.
 
+  On mobile (<768px) each <tr> is reflowed as a card via .line-items-table CSS in base.html.
+
   Expected context variables:
     index      : int   — zero-based row index used in field names
     line       : dict  — pre-filled values (empty dict for a blank row)
@@ -13,9 +15,10 @@
 #}
 <tr class="line-row border-b border-gray-100">
   {# Account #}
-  <td class="px-3 py-2">
+  <td class="px-3 py-2" data-label="Account">
     <select
       name="lines[{{ index }}][account_id]"
+      aria-label="Account, row {{ index }}"
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
              focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
     >
@@ -30,10 +33,11 @@
   </td>
 
   {# Description #}
-  <td class="px-3 py-2">
+  <td class="px-3 py-2" data-label="Description">
     <input
       type="text"
       name="lines[{{ index }}][description]"
+      aria-label="Description, row {{ index }}"
       value="{{ line.get('description', '') }}"
       placeholder="Description"
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
@@ -42,36 +46,43 @@
   </td>
 
   {# Quantity #}
-  <td class="px-3 py-2 w-24">
+  <td class="px-3 py-2 w-24" data-label="Qty">
     <input
       type="number"
       name="lines[{{ index }}][quantity]"
+      aria-label="Quantity, row {{ index }}"
       value="{{ line.get('quantity', '1') }}"
       step="0.001"
       min="0"
+      inputmode="decimal"
+      pattern="[0-9]*\.?[0-9]*"
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
              focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
     >
   </td>
 
   {# Unit price #}
-  <td class="px-3 py-2 w-28">
+  <td class="px-3 py-2 w-28" data-label="Unit price">
     <input
       type="number"
       name="lines[{{ index }}][unit_price]"
+      aria-label="Unit price, row {{ index }}"
       value="{{ line.get('unit_price', '') }}"
       step="0.01"
       min="0"
       placeholder="0.00"
+      inputmode="decimal"
+      pattern="[0-9]*\.?[0-9]*"
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
              focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
     >
   </td>
 
   {# Tax code #}
-  <td class="px-3 py-2 w-32">
+  <td class="px-3 py-2 w-32" data-label="Tax code">
     <select
       name="lines[{{ index }}][tax_code_id]"
+      aria-label="Tax code, row {{ index }}"
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
              focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
     >
@@ -86,11 +97,11 @@
   </td>
 
   {# Remove button #}
-  <td class="px-3 py-2 w-10 text-center">
+  <td class="px-3 py-2 w-10 text-center line-delete-cell">
     <button
       type="button"
       onclick="this.closest('tr').remove()"
-      class="text-red-400 hover:text-red-600 text-lg leading-none font-bold"
+      class="line-delete-btn text-red-400 hover:text-red-600 text-lg leading-none font-bold"
       title="Remove line"
     >&times;</button>
   </td>
