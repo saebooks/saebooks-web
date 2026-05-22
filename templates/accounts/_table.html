@@ -63,8 +63,17 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-8 text-center text-gray-400">
-            No accounts found.
+          <td colspan="6" class="px-4 py-12 text-center">
+            <p class="text-sm font-medium text-gray-500 mb-1">No accounts yet</p>
+            <p class="text-xs text-gray-400 mb-4">Add your first account to start building your chart of accounts.</p>
+            {% if not filter_account_type %}
+            <a href="/accounts/new"
+               class="inline-flex items-center rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
+              New account
+            </a>
+            {% else %}
+            <a href="/accounts" class="text-sm text-[#194291] hover:underline">Clear filter</a>
+            {% endif %}
           </td>
         </tr>
       {% endif %}
