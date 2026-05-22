@@ -16,8 +16,8 @@
       <tr>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Cost</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Residual value</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Cost</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Residual value</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Purchase date</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
       </tr>
@@ -54,8 +54,18 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-8 text-center text-gray-400">
-            No fixed assets found.
+          <td colspan="6" class="px-4 py-12 text-center">
+            <p class="text-sm font-medium text-gray-500 mb-1">No fixed assets found</p>
+            {% if filter_status or filter_search %}
+            <p class="text-xs text-gray-400 mb-4">Try clearing your filters.</p>
+            <a href="/fixed-assets" class="text-sm text-[#194291] hover:underline">Clear filters</a>
+            {% else %}
+            <p class="text-xs text-gray-400 mb-4">Add an asset to start tracking depreciation.</p>
+            <a href="/fixed-assets/new"
+               class="inline-flex items-center rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
+              New fixed asset
+            </a>
+            {% endif %}
           </td>
         </tr>
       {% endif %}

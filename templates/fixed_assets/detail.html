@@ -69,11 +69,11 @@
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="bg-white rounded-xl border border-gray-200 p-4">
     <p class="text-xs text-gray-500 uppercase tracking-wide">Cost</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ "%.2f"|format(asset.cost | float) }}</p>
+    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">$ {{ "%.2f"|format(asset.cost | float) }}</p>
   </div>
   <div class="bg-white rounded-xl border border-gray-200 p-4">
     <p class="text-xs text-gray-500 uppercase tracking-wide">Residual value</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ "%.2f"|format(asset.residual_value | float) }}</p>
+    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">$ {{ "%.2f"|format(asset.residual_value | float) }}</p>
   </div>
   <div class="bg-white rounded-xl border border-gray-200 p-4">
     <p class="text-xs text-gray-500 uppercase tracking-wide">Purchase date</p>
@@ -93,7 +93,14 @@
       <tbody class="divide-y divide-gray-100">
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500 w-48">Depreciation model</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.depreciation_model_id }}</td>
+          <td class="px-4 py-3 text-gray-900">
+            {% if asset.depreciation_model and asset.depreciation_model.method %}
+              {{ asset.depreciation_model.method | replace("_", " ") | title }}
+              <span class="ml-2 text-gray-400 font-mono text-xs">{{ asset.depreciation_model_id }}</span>
+            {% else %}
+              <span class="font-mono text-xs text-gray-500">{{ asset.depreciation_model_id }}</span>
+            {% endif %}
+          </td>
         </tr>
         {% if asset.depreciation_model %}
         <tr>
@@ -177,15 +184,21 @@
       <tbody class="divide-y divide-gray-100">
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500 w-48">Cost account</td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ asset.cost_account_id }}</td>
+          <td class="px-4 py-3">
+            <a href="/accounts/{{ asset.cost_account_id }}" class="text-[#194291] hover:underline font-mono text-xs">{{ asset.cost_account_id }}</a>
+          </td>
         </tr>
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500">Accum. dep. account</td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ asset.accum_dep_account_id }}</td>
+          <td class="px-4 py-3">
+            <a href="/accounts/{{ asset.accum_dep_account_id }}" class="text-[#194291] hover:underline font-mono text-xs">{{ asset.accum_dep_account_id }}</a>
+          </td>
         </tr>
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500">Dep. expense account</td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ asset.dep_expense_account_id }}</td>
+          <td class="px-4 py-3">
+            <a href="/accounts/{{ asset.dep_expense_account_id }}" class="text-[#194291] hover:underline font-mono text-xs">{{ asset.dep_expense_account_id }}</a>
+          </td>
         </tr>
         {% if asset.tax_model_id %}
         <tr>
