@@ -852,6 +852,7 @@ async def recurring_invoice_detail(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    contact_name: str = ""
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/recurring_invoices/{ri_id}")
         if resp.status_code == 401:
@@ -861,18 +862,25 @@ async def recurring_invoice_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "recurring_invoices/detail.html",
-                {"ri": None, "error": "Recurring invoice not found", "flash": None},
+                {"ri": None, "error": "Recurring invoice not found", "flash": None,
+                 "contact_name": ""},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "recurring_invoices/detail.html",
-                {"ri": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
+                {"ri": None, "error": f"API error: HTTP {resp.status_code}", "flash": None,
+                 "contact_name": ""},
                 status_code=resp.status_code,
             )
 
-    ri = resp.json()
+        ri = resp.json()
+        if ri.get("contact_id"):
+            c_resp = await client.get(f"/api/v1/contacts/{ri['contact_id']}")
+            if c_resp.is_success:
+                contact_name = c_resp.json().get("name", "")
+
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
@@ -882,5 +890,6 @@ async def recurring_invoice_detail(
             "error": None,
             "flash": flash,
             "generate_idempotency_key": str(uuid.uuid4()),
+            "contact_name": contact_name,
         },
     )

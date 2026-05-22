@@ -1,5 +1,12 @@
+{# HTMX partial — bill table body + pagination.
+   Rendered standalone for HX-Request fragments; embedded by list.html for
+   the initial full-page load. #}
+{% import "_sort_macros.html" as srt %}
+{% import "_status_macros.html" as sb %}
 {% import "_partials/empty_state.html" as empty %}
-{# HTMX partial — bill table body + pagination. #}
+{% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
+                  'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'limit': limit, 'offset': offset} %}
 <div id="bills-table">
 
 {% if error %}
@@ -13,30 +20,29 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th class="text-left">Bill number</th>
-        <th class="text-left">Date</th>
-        <th class="text-left">Due</th>
-        <th class="text-left">Supplier</th>
-        <th class="text-right">Total</th>
-        <th class="text-left">Status</th>
+        <th class="text-left">{{ srt.sort_link('number',     'Bill number', sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('issue_date', 'Date',        sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('due_date',   'Due',         sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('contact_id', 'Supplier',    sort, direction, filters) }}</th>
+        <th class="text-right">{{ srt.sort_link('total',     'Total',       sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('status',    'Status',      sort, direction, filters) }}</th>
       </tr>
     </thead>
     <tbody>
       {% if bills %}
         {% for bill in bills %}
         <tr class="cursor-pointer" data-status="{{ (bill.status or 'draft')|lower }}" onclick="window.location='/bills/{{ bill.id }}'">
-          <td class="num-display"><a href="/bills/{{ bill.id }}" class="sae hover:underline font-medium">{{ bill.number or "—" }}</a></td>
+          <td class="num-display">
+            <a href="/bills/{{ bill.id }}" class="sae hover:underline font-medium">{{ bill.number or "—" }}</a>
+          </td>
           <td class="ink-2 num">{{ bill.issue_date }}</td>
           <td class="ink-2 num">{{ bill.due_date }}</td>
-          {% set _c = contacts_by_id.get(bill.contact_id) if contacts_by_id else None %}
-          <td class="ink-2">{{ _c.name if _c else "—" }}</td>
-          <td class="text-right num-display ink-1">{{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}</td>
-          <td>
-            {% if bill.status == 'POSTED' %}<span class="badge-paid">Posted</span>
-            {% elif bill.status == 'DRAFT' %}<span class="badge-draft">Draft</span>
-            {% elif bill.status == 'VOIDED' %}<span class="badge-overdue">Voided</span>
-            {% else %}<span class="badge-draft">{{ bill.status|capitalize }}</span>{% endif %}
+          <td class="ink-2">
+            {% set _c = contacts_by_id.get(bill.contact_id) if contacts_by_id else None %}
+            {% if _c %}<a href="/contacts/{{ _c.id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
           </td>
+          <td class="text-right num-display ink-1">{{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}</td>
+          <td>{{ sb.payment_status_badge(bill, today, due_soon_cutoff) }}</td>
         </tr>
         {% endfor %}
       {% else %}
@@ -53,24 +59,12 @@
   </table>
 </div>
 
-{% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-xs ink-3 font-mono">
-  <div>Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}</div>
-  <div class="flex gap-2">
-    {% if prev_offset is not none %}
-    <a href="/bills?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-       hx-get="/bills?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-       hx-target="#bills-table" hx-swap="outerHTML" hx-push-url="true"
-       class="btn-secondary text-xs">← Prev</a>
-    {% endif %}
-    {% if next_offset is not none %}
-    <a href="/bills?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-       hx-get="/bills?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-       hx-target="#bills-table" hx-swap="outerHTML" hx-push-url="true"
-       class="btn-secondary text-xs">Next →</a>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+{# Pagination — page-number selection via _pagination_macros.html. Filter state
+   preserved through the URL via the pg_filters dict. #}
+{% import "_pagination_macros.html" as pg %}
+{% set pg_filters = {'status': filter_status, 'contact_id': filter_contact_id,
+                     'date_from': filter_date_from, 'date_to': filter_date_to,
+                     'sort': sort, 'direction': direction} %}
+{{ pg.page_numbers('/bills', total, limit, offset, pg_filters, target='#bills-table') }}
 
 </div>

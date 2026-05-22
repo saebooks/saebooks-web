@@ -21,11 +21,13 @@
     <div>
       <div class="flex items-center gap-2 mb-1">
         <span class="nav-section-label">Directory</span>
-        <span class="reg-mark"></span>
       </div>
-      <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3" style="font-variation-settings:'opsz' 72;">
+      <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="users" class="w-7 h-7 ink-3" aria-hidden="true"></i>
         <span>Contacts</span>
+        {% if show == 'one-off' %}<span class="text-base font-normal ink-3">— one-off</span>
+        {% elif show == 'all' %}<span class="text-base font-normal ink-3">— all (incl. one-off)</span>
+        {% endif %}
       </h1>
       {% if not error %}
       <p class="text-xs ink-3 font-mono mt-2">{{ total }} contact{{ "s" if total != 1 else "" }}</p>
@@ -35,6 +37,23 @@
   </div>
   <div class="drafting mt-4"></div>
 </header>
+
+{# View toggle: main / one-off / all #}
+<div class="mb-4 inline-flex rounded-md border border-gray-300 bg-white text-sm overflow-hidden">
+  <a href="/contacts"
+     class="px-3 py-1.5 {% if not show or show not in ('one-off','all') %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">Main</a>
+  <a href="/contacts?show=one-off"
+     class="px-3 py-1.5 border-l border-gray-300 {% if show == 'one-off' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">One-off</a>
+  <a href="/contacts?show=all"
+     class="px-3 py-1.5 border-l border-gray-300 {% if show == 'all' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">All</a>
+</div>
+
+{% if candidate_count and candidate_count > 0 and show != 'one-off' %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-4 flex items-center justify-between">
+  <span>{{ candidate_count }} contact{{ 's' if candidate_count != 1 else '' }} look like one-offs (single posted txn, quiet 90+ days).</span>
+  <a href="/contacts/cleanup" class="rounded-md bg-amber-600 px-3 py-1.5 text-white hover:bg-amber-700">Review &amp; tag →</a>
+</div>
+{% endif %}
 
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">

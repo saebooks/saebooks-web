@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Tidy one-off contacts — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-base text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="mb-6">
+  <h1 class="text-3xl font-semibold text-gray-900">Tidy one-off contacts</h1>
+  <p class="text-base text-gray-500 mt-1 max-w-3xl">
+    These contacts each have a single POSTED transaction, no drafts, and have
+    been quiet for at least 90 days — likely cash purchases or walk-ins you
+    don't need on your main contacts list. Ticked rows below will be marked
+    as one-off and hidden from the default view. Their transactions stay
+    where they are. You can un-tag any of them later from the contact's edit
+    page.
+  </p>
+</div>
+
+{% if error %}
+<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-base text-red-800 mb-4">{{ error }}</div>
+{% endif %}
+
+{% if candidates %}
+<form method="post" action="/contacts/cleanup" class="space-y-4">
+  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 text-base">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-3 py-2 text-left text-sm font-medium text-gray-600">
+            <input type="checkbox" id="select-all" checked class="rounded border-gray-300" onclick="document.querySelectorAll('input[name=contact_id]').forEach(cb => cb.checked = this.checked)">
+          </th>
+          <th class="px-3 py-2 text-left font-medium text-gray-600">Name</th>
+          <th class="px-3 py-2 text-left font-medium text-gray-600">Type</th>
+          <th class="px-3 py-2 text-left font-medium text-gray-600">Last txn</th>
+          <th class="px-3 py-2 text-left font-medium text-gray-600">Kind</th>
+          <th class="px-3 py-2 text-right font-medium text-gray-600">Total</th>
+          <th class="px-3 py-2 text-left font-medium text-gray-600">Last seen</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 bg-white">
+        {% for c in candidates %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-3 py-2">
+            <input type="checkbox" name="contact_id" value="{{ c.id }}" checked class="rounded border-gray-300">
+          </td>
+          <td class="px-3 py-2">
+            <a href="/contacts/{{ c.id }}" class="text-indigo-600 hover:underline" target="_blank">{{ c.name }}</a>
+          </td>
+          <td class="px-3 py-2">
+            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-sm font-medium
+              {% if c.contact_type == 'CUSTOMER' %}bg-blue-100 text-blue-700
+              {% elif c.contact_type == 'SUPPLIER' %}bg-amber-100 text-amber-700
+              {% else %}bg-gray-100 text-gray-600{% endif %}">
+              {{ c.contact_type|capitalize }}
+            </span>
+          </td>
+          <td class="px-3 py-2 text-gray-700 tabular-nums">{{ c.posted_date or "—" }}</td>
+          <td class="px-3 py-2 text-gray-700">{{ c.kind or "—" }}</td>
+          <td class="px-3 py-2 text-right text-gray-900 font-semibold tabular-nums">
+            {% if c.posted_total %}${{ "%.2f"|format(c.posted_total|float) }}{% else %}—{% endif %}
+          </td>
+          <td class="px-3 py-2 text-gray-500 tabular-nums">{{ c.last_seen or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <button type="submit"
+      class="rounded-md bg-indigo-600 px-4 py-2 text-base font-medium text-white hover:bg-indigo-700">
+      Tag selected as one-off
+    </button>
+    <a href="/contacts" class="text-base text-gray-500 hover:underline">Cancel</a>
+    <span class="text-sm text-gray-400 ml-auto">{{ candidates|length }} candidate{{ 's' if candidates|length != 1 else '' }} found</span>
+  </div>
+</form>
+{% else %}
+<div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 px-4 py-8 text-center text-base text-gray-500">
+  Nothing to tidy — no one-off candidates right now.
+</div>
+{% endif %}
+
+{% endblock %}

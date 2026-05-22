@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Time entry {{ entry.work_date if entry else "" }} — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if error and not entry %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if entry %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="font-display text-3xl text-gray-900">
+      <span class="num-display">{{ "%.2f"|format(entry.hours|float) }}h</span>
+      on {{ entry.work_date }}
+    </h1>
+    <p class="text-base ink-3 mt-1">
+      {% if entry.project_id and project_by_id.get(entry.project_id) %}
+      Project: <strong>{{ project_by_id[entry.project_id].name }}</strong>
+      {% endif %}
+      {% if entry.contact_id and contact_by_id.get(entry.contact_id) %}
+       · Contact: <strong>{{ contact_by_id[entry.contact_id].name }}</strong>
+      {% endif %}
+    </p>
+  </div>
+  <div class="flex gap-2">
+    <span class="chip
+      {% if entry.approval_status == 'APPROVED' %}chip-pos
+      {% elif entry.approval_status == 'REJECTED' %}chip-neg
+      {% elif entry.approval_status == 'LOCKED' %}chip-ink
+      {% elif entry.approval_status == 'SUBMITTED' %}chip-warm
+      {% endif %}">
+      {{ entry.approval_status }}
+    </span>
+    {% if entry.billable %}<span class="chip">$ billable</span>{% endif %}
+    {% if entry.invoice_line_id %}
+      <a href="/invoices/" class="chip" title="On invoice line">→ invoiced</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid grid-cols-3 gap-6">
+  <div class="col-span-2">
+    <div class="card p-6">
+      <p class="nav-section-label mb-4">Entry</p>
+      <dl class="space-y-3 text-base">
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Description</dt>
+          <dd class="col-span-2">{{ entry.description or "—" }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Hours</dt>
+          <dd class="col-span-2 num-display">{{ "%.2f"|format(entry.hours|float) }}</dd>
+        </div>
+        {% if entry.start_time or entry.end_time %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Clock</dt>
+          <dd class="col-span-2 num">{{ entry.start_time or "—" }} → {{ entry.end_time or "—" }}
+            {% if entry.break_minutes %} (break {{ entry.break_minutes }}m){% endif %}
+          </dd>
+        </div>
+        {% endif %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Billable</dt>
+          <dd class="col-span-2">
+            {% if entry.billable %}Yes
+              {% if entry.rate %}@ ${{ "%.2f"|format(entry.rate|float) }}/h
+                · <span class="num-display">${{ "%.2f"|format((entry.rate|float) * (entry.hours|float)) }}</span>
+              {% endif %}
+            {% else %}No{% endif %}
+          </dd>
+        </div>
+        {% if entry.invoice_line_id %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Invoice line</dt>
+          <dd class="col-span-2 num">{{ entry.invoice_line_id }}</dd>
+        </div>
+        {% endif %}
+        {% if entry.rejection_reason %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Rejection reason</dt>
+          <dd class="col-span-2 text-rose-700">{{ entry.rejection_reason }}</dd>
+        </div>
+        {% endif %}
+        <div class="grid grid-cols-3 gap-2 hairline border-t pt-3">
+          <dt class="ink-3">Version</dt>
+          <dd class="col-span-2 num">{{ entry.version }}</dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">Created / updated</dt>
+          <dd class="col-span-2 ink-3 text-sm num">{{ entry.created_at }} · {{ entry.updated_at }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <aside class="space-y-4">
+    <div class="card p-5">
+      <p class="nav-section-label mb-3">Actions</p>
+      <div class="space-y-2">
+        {% if entry.approval_status in ('DRAFT','REJECTED') %}
+        <a href="/time-entries/{{ entry.id }}/edit" class="btn btn-primary w-full">Edit</a>
+        <form method="POST" action="/time-entries/{{ entry.id }}/submit">
+  {{ csrf_input(request)|safe }}
+          <button type="submit" class="btn btn-secondary w-full">Submit for approval</button>
+        </form>
+        <form method="POST" action="/time-entries/{{ entry.id }}/archive"
+              onsubmit="return confirm('Archive this entry?')">
+  {{ csrf_input(request)|safe }}
+          <button type="submit" class="btn btn-danger w-full">Archive</button>
+        </form>
+        {% elif entry.approval_status == 'SUBMITTED' %}
+        <form method="POST" action="/time-entries/{{ entry.id }}/approve">
+  {{ csrf_input(request)|safe }}
+          <button type="submit" class="btn btn-primary w-full">Approve</button>
+        </form>
+        <form method="POST" action="/time-entries/{{ entry.id }}/reject">
+  {{ csrf_input(request)|safe }}
+          <input type="text" name="reason" required placeholder="Reason..."
+                 class="w-full rounded-md hairline px-2 py-1.5 mb-2 text-sm">
+          <button type="submit" class="btn btn-danger w-full">Reject</button>
+        </form>
+        {% elif entry.approval_status == 'APPROVED' %}
+        <p class="ink-3 text-sm">Approved — awaiting invoice conversion or pay-run lock.</p>
+        {% if entry.billable and not entry.invoice_line_id %}
+        <form method="POST" action="/time-entries/convert-to-invoice">
+  {{ csrf_input(request)|safe }}
+          <input type="hidden" name="entry_ids" value="{{ entry.id }}">
+          <button type="submit" class="btn btn-primary w-full">Convert to invoice line</button>
+        </form>
+        {% endif %}
+        {% elif entry.approval_status == 'LOCKED' %}
+        <p class="ink-3 text-sm">Locked into a pay run — read-only.</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card p-5">
+      <p class="nav-section-label mb-2">Navigate</p>
+      <a href="/time-entries" class="block text-sm sae hover:underline">← All entries</a>
+      <a href="/time-entries/week?week_start={{ entry.work_date }}"
+         class="block text-sm sae hover:underline mt-1">View this week →</a>
+    </div>
+  </aside>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -16,7 +16,7 @@
         <span class="nav-section-label">FX</span>
         <span class="reg-mark"></span>
       </div>
-      <h1 class="font-display text-3xl leading-none tracking-tight" style="font-variation-settings:'opsz' 72;">FX Revaluation</h1>
+      <h1 class="font-display text-3xl leading-none tracking-tight">FX Revaluation</h1>
       {% if report %}<p class="text-xs ink-3 font-mono mt-2">As at {{ report.get("as_of_date", as_of_date) }} &mdash; Base currency: <span class="font-semibold">{{ report.get("base_currency", "AUD") }}</span></p>{% endif %}
     </div>
     <button type="button" onclick="window.print()" class="btn-secondary text-sm">Print</button>

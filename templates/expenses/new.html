@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}New expense — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-3xl font-semibold text-gray-900">New expense</h1>
+  <p class="text-base text-gray-500 mt-1">Paid at checkout — credits the chosen bank, card, or cash account directly. For supplier invoices you'll pay later, use <a href="/bills/new" class="text-indigo-600 hover:underline">New bill</a>.</p>
+</div>
+
+{% if errors and errors.__all__ %}
+<div class="rounded-md bg-red-50 border border-red-300 px-4 py-3 text-base text-red-800 mb-4">
+  {{ errors.__all__ }}
+</div>
+{% endif %}
+
+<form method="post" action="/expenses/new" class="space-y-6 max-w-3xl">
+  <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label for="expense_date" class="block text-base font-medium text-gray-700">Date</label>
+      <input type="date" id="expense_date" name="expense_date"
+        value="{{ form.expense_date or '' }}" required
+        class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      {% if errors.expense_date %}<p class="mt-1 text-sm text-red-600">{{ errors.expense_date }}</p>{% endif %}
+    </div>
+    <div>
+      <label for="reference" class="block text-base font-medium text-gray-700">Reference / receipt #</label>
+      <input type="text" id="reference" name="reference" value="{{ form.reference or '' }}"
+        placeholder="optional"
+        class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    </div>
+    <div>
+      <label for="payment_account_id" class="block text-base font-medium text-gray-700">Paid from</label>
+      <select id="payment_account_id" name="payment_account_id" required
+        class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <option value="">— select a bank / card / cash account —</option>
+        {% for a in payment_accounts %}
+        <option value="{{ a.id }}" {% if form.payment_account_id == a.id %}selected{% endif %}>
+          {{ a.code }} {{ a.name }}
+        </option>
+        {% endfor %}
+      </select>
+      {% if errors.payment_account_id %}<p class="mt-1 text-sm text-red-600">{{ errors.payment_account_id }}</p>{% endif %}
+    </div>
+    <div>
+      <label for="contact_id" class="block text-base font-medium text-gray-700">Supplier (optional)</label>
+      <select id="contact_id" name="contact_id"
+        class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <option value="">— no supplier on file —</option>
+        {% for c in contacts %}
+        <option value="{{ c.id }}" {% if form.contact_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="notes" class="block text-base font-medium text-gray-700">Notes</label>
+    <textarea id="notes" name="notes" rows="2"
+      class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ form.notes or '' }}</textarea>
+  </div>
+
+  <div>
+    <div class="flex items-center justify-between mb-2">
+      <label class="block text-base font-medium text-gray-700">Lines</label>
+      <button type="button"
+        hx-get="/expenses/_add_line"
+        hx-target="#expense-lines-body"
+        hx-swap="beforeend"
+        hx-vals='js:{"index": document.querySelectorAll(".expense-line-row").length}'
+        class="text-base text-indigo-600 hover:underline">
+        + Add line
+      </button>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200 text-base">
+      <thead class="bg-gray-50 text-sm text-gray-500">
+        <tr>
+          <th class="px-2 py-1 text-left">Description</th>
+          <th class="px-2 py-1 text-left">Account</th>
+          <th class="px-2 py-1 text-left">Tax</th>
+          <th class="px-2 py-1 text-right">Qty</th>
+          <th class="px-2 py-1 text-right">Unit price</th>
+        </tr>
+      </thead>
+      <tbody id="expense-lines-body" class="divide-y divide-gray-100 bg-white">
+        {% for line in lines %}
+          {% include "expenses/_line_row.html" %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <button type="submit"
+      class="rounded-md bg-indigo-600 px-4 py-2 text-base font-medium text-white hover:bg-indigo-700">
+      Save draft
+    </button>
+    <a href="/expenses" class="text-base text-gray-500 hover:underline">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}

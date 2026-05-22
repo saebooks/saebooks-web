@@ -48,7 +48,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -108,10 +108,12 @@
       font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       transition: background-color .2s ease, color .2s ease;
     }
-    .font-display { font-family: 'Fraunces', 'Times New Roman', serif; letter-spacing: -0.02em; font-variation-settings: "opsz" 48; }
+    /* No Fraunces — banned per [[feedback_no-fraunces]] (2026-05-21).
+       Display + num-display use Inter / JetBrains Mono respectively. */
+    .font-display { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; font-weight: 700; }
     .font-mono    { font-family: 'JetBrains Mono', ui-monospace, monospace; }
     .num          { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-    .num-display  { font-family: 'Fraunces', serif; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; font-variation-settings: "opsz" 96; }
+    .num-display  { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 
     .card {
       background: var(--surface);
@@ -158,10 +160,32 @@
     @media (prefers-reduced-motion: reduce) { .dot-grid-soft { animation: none; } }
     html.dark .dot-grid, html.dark .dot-grid-soft { background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px); }
 
-    .reg-mark { width: 16px; height: 16px; border: 1px solid var(--sae); border-radius: 50%; position: relative; display: inline-block; }
-    .reg-mark::before, .reg-mark::after { content: ''; position: absolute; background: var(--sae); }
-    .reg-mark::before { left: 50%; top: -3px; bottom: -3px; width: 1px; transform: translateX(-50%); }
-    .reg-mark::after  { top: 50%; left: -3px; right: -3px; height: 1px; transform: translateY(-50%); }
+    /* Reg-mark "crosshair" removed at user request (autonomous run 2026-05-21). */
+    .reg-mark, .reg-marks { display: none !important; }
+
+    /* Create+ mega-dropdown — hides default <details> marker, styles the row links. */
+    #create-menu > summary { list-style: none; }
+    #create-menu > summary::-webkit-details-marker { display: none; }
+    #create-menu[open] > summary i[data-lucide="chevron-down"] { transform: rotate(180deg); }
+    /* Mobile: long tables scroll horizontally inside their card rather than
+       blowing out the layout. Wraps any table that's wider than its container. */
+    @media (max-width: 768px) {
+      .card { overflow-x: auto; }
+      .card table { min-width: max-content; }
+      /* Header action rows wrap nicely on mobile */
+      header .flex-wrap { row-gap: 0.5rem; }
+    }
+    .create-link {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .375rem .5rem; border-radius: 6px;
+      color: var(--ink-2); font-size: .875rem;
+      background: transparent; border: 0; text-align: left;
+      cursor: pointer; transition: background .08s ease, color .08s ease;
+    }
+    .create-link:hover { background: var(--sae-tint); color: var(--sae-2); }
+    html.dark .create-link:hover { color: var(--sae); }
+    .create-link i[data-lucide] { color: var(--ink-3); flex-shrink: 0; }
+    .create-link:hover i[data-lucide] { color: var(--sae); }
 
     .chip { display: inline-flex; align-items: center; gap: .375rem; padding: .375rem .75rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: .8125rem; color: var(--ink-2); transition: all .12s ease; cursor: pointer; }
     .chip:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink-4); }
@@ -309,6 +333,18 @@
     document.body && document.body.addEventListener && document.body.addEventListener('htmx:afterSwap', function () {
       if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
     });
+
+    // Create+ dropdown: click outside or press Esc to close.
+    document.addEventListener('click', function (e) {
+      var menu = document.getElementById('create-menu');
+      if (!menu || !menu.open) return;
+      if (!menu.contains(e.target)) menu.open = false;
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var menu = document.getElementById('create-menu');
+      if (menu && menu.open) menu.open = false;
+    });
   </script>
 
   {% block head %}{% endblock %}
@@ -328,21 +364,15 @@
                 fixed inset-y-0 left-0 z-30 -translate-x-full transition-transform duration-200
                 sm:relative sm:translate-x-0 sm:transition-none">
 
-    {# Brand — SAE monogram + wordmark #}
-    <a href="/" class="flex items-center gap-2.5 px-4 py-3.5 border-b hairline group">
-      <svg viewBox="0 0 36 36" class="w-8 h-8" aria-label="SAE">
-        <rect x="1" y="1" width="34" height="34" rx="8" class="sae-logo-mark" fill="currentColor" style="color: var(--sae-3);"/>
-        <g fill="none" stroke="#7d9dd3" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 12 Q8 12 8 15 Q8 17.5 11 17.5 Q14 17.5 14 20 Q14 23 11 23"/>
-          <path d="M16 23 L19 12 L22 23 M17.2 19 L20.8 19"/>
-          <path d="M28 12 L24 12 L24 23 L28 23 M24 17.5 L27 17.5"/>
-        </g>
-        <circle cx="32" cy="4" r="1.3" fill="#194291"/>
-      </svg>
-      <div class="leading-none">
-        <div class="font-display text-[16px] font-semibold tracking-tight" style="color: var(--ink);">SAE Books</div>
-        <div class="text-[9.5px] font-mono ink-3 mt-1">v2026.05 · {% block edition %}community{% endblock %}</div>
-      </div>
+    {# Brand — official SAE Books wordmark PNG from marketing repo.
+       Replaced master's SVG monogram at user request 2026-05-21 with the
+       actual logo at /static/sae-books-logo.png. #}
+    <a href="/" class="flex flex-col items-start gap-1 px-4 py-3.5 border-b hairline group">
+      <img src="/static/sae-books-logo.png"
+           alt="SAE Books"
+           class="h-9"
+           style="max-width: 180px;">
+      <div class="text-[9.5px] font-mono ink-3">v2026.05 · {{ request.session.get('edition') or 'community' }}</div>
     </a>
 
     {# Navigation #}
@@ -365,16 +395,21 @@
         </a>
       </div>
 
-      {% set customers_open = path.startswith('/invoices')
+      {% set customers_open = path.startswith('/sales')
+                              or path.startswith('/invoices')
                               or path.startswith('/credit-notes')
                               or path.startswith('/recurring-invoices')
-                              or path.startswith('/quotes') %}
+                              or path.startswith('/quotes')
+                              or path.startswith('/customer-hub') %}
       <details class="group" data-section="customers" {% if customers_open %}open{% endif %}>
         <summary class="nav-section-label">
-          <span>Customers</span>
+          <span>Sales</span>
           <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
         </summary>
         <div class="space-y-0.5 mt-1">
+          <a href="/sales/overview" class="nav-item is-sub {% if path == '/sales/overview' %}active{% endif %}">
+            <i data-lucide="layout-dashboard" class="nav-ico"></i>Overview
+          </a>
           <a href="/quotes" class="nav-item is-sub {% if path.startswith('/quotes') %}active{% endif %}">
             <i data-lucide="file-pen-line" class="nav-ico"></i>Quotes
           </a>
@@ -387,23 +422,55 @@
           <a href="/recurring-invoices" class="nav-item is-sub {% if path.startswith('/recurring-invoices') %}active{% endif %}">
             <i data-lucide="repeat" class="nav-ico"></i>Recurring
           </a>
+          <a href="/customer-hub/overview" class="nav-item is-sub {% if path.startswith('/customer-hub') %}active{% endif %}">
+            <i data-lucide="users" class="nav-ico"></i>Customer overview
+          </a>
         </div>
       </details>
 
-      {% set vendors_open = path.startswith('/bills')
-                            or path.startswith('/purchase_orders')
-                            or path.startswith('/pay-run') %}
+      {% set vendors_open = path.startswith('/expenses-overview')
+                            or path.startswith('/bills')
+                            or path.startswith('/expenses')
+                            or path.startswith('/purchase_orders') %}
       <details class="group" data-section="suppliers" {% if vendors_open %}open{% endif %}>
         <summary class="nav-section-label">
-          <span>Suppliers</span>
+          <span>Purchases</span>
           <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
         </summary>
         <div class="space-y-0.5 mt-1">
-          <a href="/purchase_orders" class="nav-item is-sub {% if path.startswith('/purchase_orders') %}active{% endif %}">
-            <i data-lucide="shopping-cart" class="nav-ico"></i>Purchase Orders
+          <a href="/expenses-overview" class="nav-item is-sub {% if path == '/expenses-overview' %}active{% endif %}">
+            <i data-lucide="layout-dashboard" class="nav-ico"></i>Overview
           </a>
           <a href="/bills" class="nav-item is-sub {% if path.startswith('/bills') %}active{% endif %}">
             <i data-lucide="receipt" class="nav-ico"></i>Bills
+          </a>
+          <a href="/expenses" class="nav-item is-sub {% if path.startswith('/expenses') and path != '/expenses-overview' %}active{% endif %}">
+            <i data-lucide="credit-card" class="nav-ico"></i>Expenses (paid)
+          </a>
+          <a href="/purchase_orders" class="nav-item is-sub {% if path.startswith('/purchase_orders') %}active{% endif %}">
+            <i data-lucide="shopping-cart" class="nav-ico"></i>Purchase Orders
+          </a>
+        </div>
+      </details>
+
+      {% set people_open = path.startswith('/time-entries')
+                           or path.startswith('/pay-run')
+                           or path.startswith('/employees')
+                           or path.startswith('/super-funds') %}
+      <details class="group" data-section="people" {% if people_open %}open{% endif %}>
+        <summary class="nav-section-label">
+          <span>People</span>
+          <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
+        </summary>
+        <div class="space-y-0.5 mt-1">
+          <a href="/employees" class="nav-item is-sub {% if path.startswith('/employees') %}active{% endif %}">
+            <i data-lucide="users" class="nav-ico"></i>Employees
+          </a>
+          <a href="/super-funds" class="nav-item is-sub {% if path.startswith('/super-funds') %}active{% endif %}">
+            <i data-lucide="piggy-bank" class="nav-ico"></i>Super funds
+          </a>
+          <a href="/time-entries/week" class="nav-item is-sub {% if path.startswith('/time-entries') %}active{% endif %}">
+            <i data-lucide="clock" class="nav-ico"></i>Time entries
           </a>
           <a href="/pay-run" class="nav-item is-sub {% if path.startswith('/pay-run') %}active{% endif %}">
             <i data-lucide="badge-dollar-sign" class="nav-ico"></i>Pay Run
@@ -414,7 +481,7 @@
       {% set accounting_open = path.startswith('/journal-entries')
                                or path.startswith('/journal-templates')
                                or path.startswith('/accounts')
-                               or path.startswith('/tax-codes') %}
+                               or path == '/recurring' %}
       <details class="group" data-section="accounting" {% if accounting_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>Accounting</span>
@@ -427,11 +494,11 @@
           <a href="/journal-templates" class="nav-item is-sub {% if path.startswith('/journal-templates') %}active{% endif %}">
             <i data-lucide="file-stack" class="nav-ico"></i>Templates
           </a>
+          <a href="/recurring" class="nav-item is-sub {% if path == '/recurring' %}active{% endif %}">
+            <i data-lucide="repeat" class="nav-ico"></i>Recurring
+          </a>
           <a href="/accounts" class="nav-item is-sub {% if path.startswith('/accounts') %}active{% endif %}">
             <i data-lucide="list-tree" class="nav-ico"></i>Accounts
-          </a>
-          <a href="/tax-codes" class="nav-item is-sub {% if path.startswith('/tax-codes') %}active{% endif %}">
-            <i data-lucide="percent" class="nav-ico"></i>Tax Codes
           </a>
         </div>
       </details>
@@ -465,14 +532,57 @@
         </div>
       </details>
 
-      {% set reports_open = path.startswith('/reports') %}
+      {% set inventory_open = path.startswith('/inventory') or path.startswith('/items') %}
+      <details class="group" data-section="inventory" {% if inventory_open %}open{% endif %}>
+        <summary class="nav-section-label">
+          <span>Inventory</span>
+          <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
+        </summary>
+        <div class="space-y-0.5 mt-1">
+          <a href="/inventory/overview" class="nav-item is-sub {% if path == '/inventory/overview' %}active{% endif %}">
+            <i data-lucide="layout-dashboard" class="nav-ico"></i>Overview
+          </a>
+          <a href="/items" class="nav-item is-sub {% if path.startswith('/items') %}active{% endif %}">
+            <i data-lucide="package" class="nav-ico"></i>Items
+          </a>
+        </div>
+      </details>
+
+      {% set gst_open = path.startswith('/gst')
+                        or path.startswith('/tax-codes')
+                        or path.startswith('/admin/ato-sbr')
+                        or path == '/reports/bas-summary' %}
+      <details class="group" data-section="gst" {% if gst_open %}open{% endif %}>
+        <summary class="nav-section-label">
+          <span>GST</span>
+          <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
+        </summary>
+        <div class="space-y-0.5 mt-1">
+          <a href="/gst/overview" class="nav-item is-sub {% if path == '/gst/overview' %}active{% endif %}">
+            <i data-lucide="layout-dashboard" class="nav-ico"></i>Overview
+          </a>
+          <a href="/reports/bas-summary" class="nav-item is-sub {% if path == '/reports/bas-summary' %}active{% endif %}">
+            <i data-lucide="file-check" class="nav-ico"></i>BAS worksheet
+          </a>
+          <a href="/tax-codes" class="nav-item is-sub {% if path.startswith('/tax-codes') %}active{% endif %}">
+            <i data-lucide="percent" class="nav-ico"></i>Tax Codes
+          </a>
+          {% if user_role == 'admin' %}
+          <a href="/admin/ato-sbr" class="nav-item is-sub {% if path.startswith('/admin/ato-sbr') %}active{% endif %}">
+            <i data-lucide="landmark" class="nav-ico"></i>ATO SBR
+          </a>
+          {% endif %}
+        </div>
+      </details>
+
+      {% set reports_open = (path.startswith('/reports') and path != '/reports/bas-summary') %}
       <details class="group" data-section="reports" {% if reports_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>Reports</span>
           <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
         </summary>
         <div class="space-y-0.5 mt-1">
-          <a href="/reports" class="nav-item is-sub {% if path.startswith('/reports') %}active{% endif %}">
+          <a href="/reports" class="nav-item is-sub {% if path == '/reports' %}active{% endif %}">
             <i data-lucide="line-chart" class="nav-ico"></i>All Reports
           </a>
         </div>
@@ -482,8 +592,7 @@
                           or path.startswith('/budgets')
                           or path.startswith('/allocations')
                           or path == '/settings/allocations'
-                          or path.startswith('/projects')
-                          or path.startswith('/items') %}
+                          or path.startswith('/projects') %}
       <details class="group" data-section="assets" {% if setup_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>Assets &amp; Setup</span>
@@ -501,9 +610,6 @@
           </a>
           <a href="/projects" class="nav-item is-sub {% if path.startswith('/projects') %}active{% endif %}">
             <i data-lucide="folder-kanban" class="nav-ico"></i>Projects
-          </a>
-          <a href="/items" class="nav-item is-sub {% if path.startswith('/items') %}active{% endif %}">
-            <i data-lucide="package" class="nav-ico"></i>Items
           </a>
           <a href="/proration" class="nav-item is-sub {% if path.startswith('/proration') %}active{% endif %}">
             <i data-lucide="calculator" class="nav-ico"></i>Prorate Calculator
@@ -527,7 +633,7 @@
           <a href="/settings/company" class="nav-item is-sub {% if path == '/settings/company' %}active{% endif %}">
             <i data-lucide="cog" class="nav-ico"></i>Settings
           </a>
-          <a href="/settings/licence" class="nav-item is-sub {% if path == '/settings/licence' %}active{% endif %}">
+          <a href="/admin/license" class="nav-item is-sub {% if path == '/admin/license' %}active{% endif %}">
             <i data-lucide="key-round" class="nav-ico"></i>Licence
           </a>
           <a href="/companies" class="nav-item is-sub {% if path.startswith('/companies') or path.startswith('/settings/companies') %}active{% endif %}">
@@ -539,9 +645,6 @@
           </a>
           <a href="/admin/imports" class="nav-item is-sub {% if path == '/admin/imports' %}active{% endif %}">
             <i data-lucide="upload" class="nav-ico"></i>Imports
-          </a>
-          <a href="/admin/ato-sbr" class="nav-item is-sub {% if path.startswith('/admin/ato-sbr') %}active{% endif %}">
-            <i data-lucide="landmark" class="nav-ico"></i>ATO SBR
           </a>
           {% if request.session.get("is_sae_staff") %}
           <a href="/admin/sql-tool" class="nav-item is-sub {% if path == '/admin/sql-tool' %}active{% endif %}">
@@ -618,13 +721,59 @@
         <button onclick="openCmdK()" title="Search (⌘K)" class="md:hidden p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
           <i data-lucide="search" class="w-4 h-4"></i>
         </button>
-        <a href="/invoices/new" class="btn-primary !py-1.5 !px-3 hidden sm:inline-flex">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>New invoice</span>
-        </a>
-        <a href="/invoices/new" title="New invoice" class="btn-primary !p-2 sm:hidden">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-        </a>
+        {# Create mega-dropdown — 4-column verb picker (renamed from QBO-style). #}
+        <details id="create-menu" class="relative">
+          <summary class="btn-primary !py-1.5 !px-3 list-none cursor-pointer select-none flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Create</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 hidden sm:inline"></i>
+          </summary>
+          <div class="absolute right-0 top-full mt-2 w-[min(720px,calc(100vw-1.5rem))] rounded-xl border hairline shadow-lg z-50 p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1"
+               style="background: var(--surface);">
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">Customers</p>
+              <a href="/invoices/new"           class="create-link"><i data-lucide="file-text"     class="w-4 h-4"></i>Invoice</a>
+              <a href="/quotes/new"             class="create-link"><i data-lucide="file-pen-line" class="w-4 h-4"></i>Quote</a>
+              <a href="/payments/new?direction=IN" class="create-link"><i data-lucide="banknote-arrow-up" class="w-4 h-4"></i>Receive payment</a>
+              <a href="/credit-notes/new"       class="create-link"><i data-lucide="file-minus"    class="w-4 h-4"></i>Credit note</a>
+              <a href="/recurring-invoices/new" class="create-link"><i data-lucide="repeat"        class="w-4 h-4"></i>Recurring invoice</a>
+              <a href="/contacts/new?type=CUSTOMER" class="create-link"><i data-lucide="user-plus" class="w-4 h-4"></i>Customer</a>
+            </div>
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">Suppliers</p>
+              <a href="/bills/new"              class="create-link"><i data-lucide="receipt"      class="w-4 h-4"></i>Bill</a>
+              <a href="/expenses/new"           class="create-link"><i data-lucide="credit-card"  class="w-4 h-4"></i>Expense (paid)</a>
+              <a href="/purchase_orders/new"    class="create-link"><i data-lucide="shopping-cart" class="w-4 h-4"></i>Purchase order</a>
+              <a href="/payments/new?direction=OUT" class="create-link"><i data-lucide="banknote" class="w-4 h-4"></i>Pay bill</a>
+              <a href="/contacts/new?type=SUPPLIER" class="create-link"><i data-lucide="user-plus" class="w-4 h-4"></i>Supplier</a>
+              <div class="hairline border-t mt-2 pt-2"></div>
+              <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">People</p>
+              <a href="/employees/new"          class="create-link"><i data-lucide="users"         class="w-4 h-4"></i>Employee</a>
+              <a href="/super-funds/new"        class="create-link"><i data-lucide="piggy-bank"    class="w-4 h-4"></i>Super fund</a>
+              <a href="/time-entries/new"       class="create-link"><i data-lucide="clock"        class="w-4 h-4"></i>Time entry</a>
+              <a href="/time-entries/week"      class="create-link"><i data-lucide="calendar-days" class="w-4 h-4"></i>Weekly grid</a>
+              <a href="/pay-run/new"            class="create-link"><i data-lucide="badge-dollar-sign" class="w-4 h-4"></i>Pay run</a>
+            </div>
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">Banking &amp; Books</p>
+              <a href="/journal-entries/new"    class="create-link"><i data-lucide="book-open"    class="w-4 h-4"></i>Journal entry</a>
+              <a href="/payments/new?direction=TRANSFER" class="create-link"><i data-lucide="arrow-left-right" class="w-4 h-4"></i>Transfer</a>
+              <a href="/bank-accounts/new"      class="create-link"><i data-lucide="landmark"     class="w-4 h-4"></i>Bank account</a>
+              <a href="/bank-rules/new"         class="create-link"><i data-lucide="wand-sparkles" class="w-4 h-4"></i>Bank rule</a>
+              <a href="/reconciliation"         class="create-link"><i data-lucide="git-pull-request" class="w-4 h-4"></i>Reconcile</a>
+              <a href="/accounts/new"           class="create-link"><i data-lucide="list-tree"    class="w-4 h-4"></i>Account</a>
+            </div>
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">Other</p>
+              <a href="/items/new"              class="create-link"><i data-lucide="package"     class="w-4 h-4"></i>Product / service</a>
+              <a href="/fixed-assets/new"       class="create-link"><i data-lucide="box"         class="w-4 h-4"></i>Fixed asset</a>
+              <a href="/projects/new"           class="create-link"><i data-lucide="folder-kanban" class="w-4 h-4"></i>Project</a>
+              <a href="/budgets/new"            class="create-link"><i data-lucide="pie-chart"   class="w-4 h-4"></i>Budget</a>
+              <a href="/admin/imports"          class="create-link"><i data-lucide="upload"      class="w-4 h-4"></i>Import…</a>
+              <button onclick="openCmdK(); document.getElementById('create-menu').open=false" class="create-link w-full"><i data-lucide="sparkles" class="w-4 h-4"></i>AI assistant</button>
+            </div>
+          </div>
+        </details>
         <button id="theme-toggle" title="Toggle theme (⌘⇧L)" class="p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
           <i data-lucide="moon" class="w-4 h-4" data-theme-icon="light"></i>
           <i data-lucide="sun" class="w-4 h-4 hidden" data-theme-icon="dark"></i>
@@ -720,6 +869,18 @@
     if (sidebar) sidebar.classList.add('-translate-x-full');
     if (overlay) overlay.classList.add('hidden');
   }
+  // Auto-close the mobile sidebar drawer after navigation taps so the drawer
+  // doesn't stay open over the destination page on small screens.
+  (function () {
+    var sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    sidebar.addEventListener('click', function (e) {
+      var t = e.target.closest('a.nav-item');
+      if (!t) return;
+      // Only auto-close at <sm; the desktop sidebar is sticky.
+      if (window.innerWidth < 640) closeSidebar();
+    });
+  })();
 
   // Cmd-K palette
   const CMDK_ITEMS = [
@@ -729,7 +890,17 @@
     { g: 'Create',  i: 'banknote',     t: 'New payment',           s: 'Record a payment in/out', k: 'C P', href: '/payments/new' },
     { g: 'Create',  i: 'user-plus',    t: 'New contact',           s: 'Customer or supplier',    k: 'C N', href: '/contacts/new' },
     { g: 'Create',  i: 'book-open',    t: 'New journal entry',     s: 'Double-entry posting',    k: 'C J', href: '/journal-entries/new' },
+    { g: 'Create',  i: 'clock',        t: 'New time entry',        s: 'Log hours worked',        k: 'C T', href: '/time-entries/new' },
+    { g: 'Create',  i: 'users',        t: 'New employee',          s: 'Register payroll employee',       href: '/employees/new' },
+    { g: 'Create',  i: 'piggy-bank',   t: 'New super fund',        s: 'APRA fund or SMSF',               href: '/super-funds/new' },
     { g: 'Go to',   i: 'home',         t: 'Dashboard',             s: 'Today at a glance',                  href: '/' },
+    { g: 'Go to',   i: 'layout-dashboard', t: 'Sales overview',     s: 'AR · MTD · top customers',           href: '/sales/overview' },
+    { g: 'Go to',   i: 'layout-dashboard', t: 'Expenses overview',  s: 'AP · MTD · bills',                   href: '/expenses-overview' },
+    { g: 'Go to',   i: 'layout-dashboard', t: 'Inventory overview', s: 'Items · low stock',                  href: '/inventory/overview' },
+    { g: 'Go to',   i: 'layout-dashboard', t: 'GST overview',       s: 'BAS quarter · turnover',             href: '/gst/overview' },
+    { g: 'Go to',   i: 'users',        t: 'Customer overview',     s: 'Quotes · projects · overdue',        href: '/customer-hub/overview' },
+    // (Route path /customer-hub kept; sidebar label is "Customer overview" — no QBO trade-dress.)
+    { g: 'Go to',   i: 'repeat',       t: 'Recurring transactions',s: 'Invoices · templates · bills',       href: '/recurring' },
     { g: 'Go to',   i: 'file-text',    t: 'Invoices',              s: 'Sales · receivables',                href: '/invoices' },
     { g: 'Go to',   i: 'receipt',      t: 'Bills',                 s: 'Purchases · payables',               href: '/bills' },
     { g: 'Go to',   i: 'file-pen-line',t: 'Quotes',                s: 'Pending and accepted',               href: '/quotes' },
@@ -737,18 +908,22 @@
     { g: 'Go to',   i: 'book-open',    t: 'Journal entries',       s: 'General ledger postings',            href: '/journal-entries' },
     { g: 'Go to',   i: 'list-tree',    t: 'Chart of accounts',     s: 'Tax-mapped AU CoA',                  href: '/accounts' },
     { g: 'Go to',   i: 'banknote',     t: 'Payments',              s: 'Cash in and out',                    href: '/payments' },
+    { g: 'Go to',   i: 'users',        t: 'Employees',             s: 'Payroll staff · STP2',               href: '/employees' },
+    { g: 'Go to',   i: 'piggy-bank',  t: 'Super funds',           s: 'APRA funds and SMSFs',               href: '/super-funds' },
+    { g: 'Go to',   i: 'calendar-days',t: 'Weekly time grid',      s: 'Mon-Sun hours grid',                 href: '/time-entries/week' },
+    { g: 'Go to',   i: 'clock',        t: 'Time entries',          s: 'Hours per project · billable',       href: '/time-entries' },
     { g: 'Go to',   i: 'landmark',     t: 'Bank accounts',         s: 'Cleared balances',                   href: '/bank-accounts' },
     { g: 'Go to',   i: 'git-pull-request', t: 'Reconciliation',    s: 'Match · Create · Transfer · Discuss', href: '/reconciliation' },
     { g: 'Reports', i: 'line-chart',   t: 'Profit &amp; Loss',     s: 'FY26 to date',           k: 'R P', href: '/reports/profit-loss' },
     { g: 'Reports', i: 'scale',        t: 'Balance Sheet',         s: 'As at today',            k: 'R B', href: '/reports/balance-sheet' },
     { g: 'Reports', i: 'hourglass',    t: 'Aged Receivables',      s: 'Days-sales-outstanding', k: 'R A', href: '/reports/aged-receivables' },
     { g: 'Reports', i: 'alarm-clock',  t: 'Aged Payables',         s: 'Days-payable-outstanding', k: 'R Y', href: '/reports/aged-payables' },
-    { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas' },
+    { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas-summary' },
     { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll',               href: '/pay-run' },
     { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG',                       href: '/pay-run' },
     { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report',     href: '/reports' },
     { g: 'Admin',   i: 'cog',          t: 'Company settings',      s: 'ABN · GST · tax codes',              href: '/settings/company' },
-    { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/settings/licence' },
+    { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/admin/license' },
     { g: 'Admin',   i: 'history',      t: 'Audit log',              s: 'All ledger mutations',               href: '/admin/audit' },
     { g: 'Admin',   i: 'moon',         t: 'Toggle theme',           s: 'Light · Dark',           k: '⌘⇧L', href: '#theme' },
     { g: 'Admin',   i: 'log-out',      t: 'Sign out',               s: 'End session',                        href: '/logout' },

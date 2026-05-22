@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Time entries — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-base text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="font-display text-3xl text-gray-900">Time entries</h1>
+    <p class="text-base ink-3 mt-1">
+      Hours logged against projects and contacts.
+      <a href="/time-entries/week" class="sae hover:underline">Switch to weekly grid →</a>
+    </p>
+    {% if not error %}
+    <p class="text-base ink-3 mt-1 num">{{ total }} entr{{ "ies" if total != 1 else "y" }}</p>
+    {% endif %}
+  </div>
+  <div class="flex gap-2">
+    <a href="/time-entries/week" class="btn btn-secondary">Weekly grid</a>
+    <a href="/time-entries/new" class="btn btn-primary">+ New entry</a>
+  </div>
+</div>
+
+{% if error %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+<form hx-get="/time-entries" hx-push-url="true" hx-target="#entries-table" hx-swap="outerHTML"
+      class="mb-4 flex flex-wrap gap-3 items-end">
+  <div>
+    <label class="block text-sm ink-3 mb-1">Status</label>
+    <select name="approval_status" class="rounded-md hairline px-2 py-1.5 bg-paper">
+      <option value="" {% if not filter_approval_status %}selected{% endif %}>All</option>
+      <option value="DRAFT" {% if filter_approval_status == 'DRAFT' %}selected{% endif %}>Draft</option>
+      <option value="SUBMITTED" {% if filter_approval_status == 'SUBMITTED' %}selected{% endif %}>Submitted</option>
+      <option value="APPROVED" {% if filter_approval_status == 'APPROVED' %}selected{% endif %}>Approved</option>
+      <option value="REJECTED" {% if filter_approval_status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+      <option value="LOCKED" {% if filter_approval_status == 'LOCKED' %}selected{% endif %}>Locked</option>
+    </select>
+  </div>
+  <div>
+    <label class="block text-sm ink-3 mb-1">Project</label>
+    <select name="project_id" class="rounded-md hairline px-2 py-1.5 bg-paper">
+      <option value="">All</option>
+      {% for p in projects %}
+      <option value="{{ p.id }}" {% if filter_project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-sm ink-3 mb-1">Contact</label>
+    <select name="contact_id" class="rounded-md hairline px-2 py-1.5 bg-paper">
+      <option value="">All</option>
+      {% for c in contacts %}
+      <option value="{{ c.id }}" {% if filter_contact_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-sm ink-3 mb-1">From</label>
+    <input type="date" name="date_from" value="{{ filter_date_from }}"
+           class="rounded-md hairline px-2 py-1.5 bg-paper">
+  </div>
+  <div>
+    <label class="block text-sm ink-3 mb-1">To</label>
+    <input type="date" name="date_to" value="{{ filter_date_to }}"
+           class="rounded-md hairline px-2 py-1.5 bg-paper">
+  </div>
+  <label class="inline-flex items-center gap-2 text-sm ink-1">
+    <input type="checkbox" name="billable_only" value="true"
+           {% if filter_billable_only %}checked{% endif %}>
+    Billable only
+  </label>
+  <label class="inline-flex items-center gap-2 text-sm ink-1">
+    <input type="checkbox" name="uninvoiced_only" value="true"
+           {% if filter_uninvoiced_only %}checked{% endif %}>
+    Uninvoiced only
+  </label>
+  <input type="hidden" name="limit" value="{{ limit }}">
+  <input type="hidden" name="offset" value="0">
+  <button type="submit" class="btn btn-primary">Filter</button>
+  <a href="/time-entries" class="btn btn-secondary">Reset</a>
+</form>
+
+<form method="POST" action="/time-entries/convert-to-invoice" id="entries-form">
+  {{ csrf_input(request)|safe }}
+<div id="entries-table" class="card">
+  <table class="w-full text-base">
+    <thead>
+      <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="px-3 py-2 w-8"></th>
+        <th class="px-3 py-2">Date</th>
+        <th class="px-3 py-2">Description</th>
+        <th class="px-3 py-2">Project</th>
+        <th class="px-3 py-2">Contact</th>
+        <th class="px-3 py-2 text-right">Hours</th>
+        <th class="px-3 py-2 text-right">Rate</th>
+        <th class="px-3 py-2 text-right">Amount</th>
+        <th class="px-3 py-2 text-center">Status</th>
+        <th class="px-3 py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in entries %}
+      <tr class="border-b hairline hover:bg-paper-2">
+        <td class="px-3 py-2">
+          {% if e.billable and not e.invoice_line_id and e.approval_status != 'LOCKED' %}
+          <input type="checkbox" name="entry_ids" value="{{ e.id }}">
+          {% endif %}
+        </td>
+        <td class="px-3 py-2 num">{{ e.work_date }}</td>
+        <td class="px-3 py-2">{{ e.description or "—" }}</td>
+        <td class="px-3 py-2">
+          {% if e.project_id and project_by_id.get(e.project_id) %}
+          {{ project_by_id[e.project_id].name }}
+          {% else %}—{% endif %}
+        </td>
+        <td class="px-3 py-2">
+          {% if e.contact_id and contact_by_id.get(e.contact_id) %}
+          {{ contact_by_id[e.contact_id].name }}
+          {% else %}—{% endif %}
+        </td>
+        <td class="px-3 py-2 text-right num-display">{{ "%.2f"|format(e.hours|float) }}</td>
+        <td class="px-3 py-2 text-right num">
+          {% if e.rate %}${{ "%.2f"|format(e.rate|float) }}{% else %}—{% endif %}
+        </td>
+        <td class="px-3 py-2 text-right num-display">
+          {% if e.rate %}${{ "%.2f"|format((e.rate|float) * (e.hours|float)) }}{% else %}—{% endif %}
+        </td>
+        <td class="px-3 py-2 text-center">
+          <span class="chip
+            {% if e.approval_status == 'APPROVED' %}chip-pos
+            {% elif e.approval_status == 'REJECTED' %}chip-neg
+            {% elif e.approval_status == 'LOCKED' %}chip-ink
+            {% elif e.approval_status == 'SUBMITTED' %}chip-warm
+            {% endif %}">
+            {{ e.approval_status }}
+          </span>
+          {% if e.billable %}<span class="chip ml-1">$</span>{% endif %}
+          {% if e.invoice_line_id %}<span class="chip ml-1" title="On invoice line">→ inv</span>{% endif %}
+        </td>
+        <td class="px-3 py-2 text-right">
+          <a href="/time-entries/{{ e.id }}" class="sae hover:underline">Open</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="10" class="p-6 text-center ink-3">No entries match these filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-4 flex items-center justify-between">
+  <button type="submit" class="btn btn-primary">
+    Convert selected → invoice
+  </button>
+  <div class="text-sm ink-3 flex gap-2">
+    {% if prev_offset is not none %}
+    <a href="?offset={{ prev_offset }}&amp;limit={{ limit }}" class="sae hover:underline">← Prev</a>
+    {% endif %}
+    {% if next_offset is not none %}
+    <a href="?offset={{ next_offset }}&amp;limit={{ limit }}" class="sae hover:underline">Next →</a>
+    {% endif %}
+  </div>
+</div>
+</form>
+
+{% endblock %}

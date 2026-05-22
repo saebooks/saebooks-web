@@ -83,8 +83,25 @@ class TrustedHeaderAuthMiddleware(BaseHTTPMiddleware):
         if any(path.startswith(p) for p in _SKIP_PREFIXES):
             return await call_next(request)
 
-        # Already authenticated — nothing to do.
+        # Already authenticated — but lazy-upgrade existing sessions that
+        # predate the edition fetch (request.session.edition didn't exist
+        # before 2026-05-21). Best-effort, silent on failure.
         if request.session.get("api_token"):
+            if not request.session.get("edition"):
+                try:
+                    async with httpx.AsyncClient(
+                        base_url=settings.api_url, timeout=3.0,
+                    ) as client:
+                        lic = await client.get(
+                            "/api/v1/license",
+                            headers={"Authorization": f"Bearer {request.session['api_token']}"},
+                        )
+                        if lic.is_success:
+                            request.session["edition"] = (
+                                lic.json().get("edition") or "community"
+                            )
+                except Exception:
+                    pass
             return await call_next(request)
 
         email = (request.headers.get("x-authentik-email") or "").strip().lower()
@@ -160,5 +177,26 @@ class TrustedHeaderAuthMiddleware(BaseHTTPMiddleware):
         else:
             request.session["is_sae_staff"] = False
             request.session["user_role"] = ""
+
+        # Fetch and cache the upstream's edition (community / business / pro /
+        # enterprise) so base.html can label the version chip per-deployment
+        # instead of hard-coding "community". Best-effort — silent fallback on
+        # any error.
+        try:
+            async with httpx.AsyncClient(
+                base_url=settings.api_url, timeout=3.0,
+            ) as client:
+                lic = await client.get(
+                    "/api/v1/license",
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+                if lic.is_success:
+                    request.session["edition"] = (
+                        lic.json().get("edition") or "community"
+                    )
+                else:
+                    request.session["edition"] = "community"
+        except Exception:
+            request.session["edition"] = "community"
 
         return await call_next(request)

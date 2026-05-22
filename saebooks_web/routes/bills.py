@@ -40,6 +40,20 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+from datetime import date as _date, timedelta as _td
+
+_BILL_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
+
+
+def _bill_sort_key(b: dict, key: str) -> object:
+    if key == "total":
+        try:
+            return float(b.get("total") or 0)
+        except (TypeError, ValueError):
+            return 0.0
+    return str(b.get(key) or "")
+
+
 @router.get("/bills", response_class=HTMLResponse, response_model=None)
 async def bills_list(
     request: Request,
@@ -47,6 +61,8 @@ async def bills_list(
     contact_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    sort: str = "issue_date",
+    direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
@@ -58,6 +74,9 @@ async def bills_list(
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    sort = sort if sort in _BILL_SORT_KEYS else "issue_date"
+    direction = "asc" if direction == "asc" else "desc"
 
     # The API uses page/page_size rather than limit/offset.
     page_size = limit
@@ -90,13 +109,20 @@ async def bills_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+        # Fetch suppliers so the template can show contact NAME, not the
+        # raw UUID. Keep the page-size at 500 — covers all but the largest
+        # CoAs, and the list page only renders 50 rows at a time anyway.
         c_resp = await client.get(
             "/api/v1/contacts",
-            params={"contact_type": "SUPPLIER", "limit": 200, "offset": 0},
+            params={"contact_type": "SUPPLIER", "limit": 500, "offset": 0},
         )
         if c_resp.is_success:
             for c in c_resp.json().get("items", []):
                 contacts_by_id[c["id"]] = c
+
+    # Page-level sort. Sorts the current page of results; for global sort
+    # across all pages, narrow with filters first.
+    bills.sort(key=lambda b: _bill_sort_key(b, sort), reverse=(direction == "desc"))
 
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
@@ -105,17 +131,24 @@ async def bills_list(
     # Consume and clear any flash message (e.g. from a successful archive).
     flash = request.session.pop("flash", None)
 
+    _today_iso = _date.today().isoformat()
+    _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
+
     ctx = {
         "bills": bills,
         "total": total,
         "error": error,
         "flash": flash,
         "contacts_by_id": contacts_by_id,
+        "today": _today_iso,
+        "due_soon_cutoff": _due_soon_iso,
         # Filter values echoed back to the form.
         "filter_status": status or "",
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "sort": sort,
+        "direction": direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,
@@ -243,6 +276,43 @@ async def bill_create(request: Request) -> HTMLResponse | RedirectResponse:
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
+
+    # One-off supplier path: if the form has a one_off_name, create a one-off
+    # SUPPLIER contact first and use its id. Failed creation -> re-render with
+    # field-level error rather than 500.
+    one_off_name = form.get("one_off_name", "").strip()
+    if one_off_name and not payload.get("contact_id"):
+        async with api_client(request) as _client:
+            c_resp = await _client.post(
+                "/api/v1/contacts",
+                json={
+                    "name": one_off_name,
+                    "contact_type": "SUPPLIER",
+                    "is_one_off": True,
+                },
+            )
+        if c_resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if c_resp.status_code == 201:
+            payload["contact_id"] = c_resp.json()["id"]
+        else:
+            # Bubble up a friendly error and re-render
+            errors = {"one_off_name": f"Could not create one-off contact (HTTP {c_resp.status_code})."}
+            contacts, accounts, tax_codes, projects = [], [], [], []
+            async with api_client(request) as client:
+                c2 = await client.get("/api/v1/contacts",
+                                      params={"contact_type": "SUPPLIER", "limit": 500, "offset": 0})
+                if c2.is_success:
+                    contacts = c2.json().get("items", [])
+            return _TEMPLATES.TemplateResponse(
+                request, "bills/new.html",
+                {"form": form, "errors": errors, "contacts": contacts,
+                 "accounts": accounts, "tax_codes": tax_codes,
+                 "projects": projects, "idempotency_key": idempotency_key,
+                 "lines": [], "line_count": 0},
+                status_code=400,
+            )
 
     currency = form.get("currency", "").strip().upper() or "AUD"
     payload["currency"] = currency

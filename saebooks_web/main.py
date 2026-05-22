@@ -73,6 +73,8 @@ from saebooks_web.routes.bank_accounts import router as bank_accounts_router
 from saebooks_web.routes.bank_rules import router as bank_rules_router
 from saebooks_web.routes.bank_statement_lines import router as bank_statement_lines_router
 from saebooks_web.routes.bills import router as bills_router
+from saebooks_web.routes.expenses import router as expenses_router
+from saebooks_web.routes.time_entries import router as time_entries_router
 from saebooks_web.routes.budgets import router as budgets_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
@@ -84,6 +86,8 @@ from saebooks_web.routes.quotes import router as quotes_router
 from saebooks_web.routes.items import router as items_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
 from saebooks_web.routes.journal_templates import router as journal_templates_router
+from saebooks_web.routes.employees import router as employees_router
+from saebooks_web.routes.super_funds import router as super_funds_router
 from saebooks_web.routes.pay_run import router as pay_run_router
 from saebooks_web.routes.payments import router as payments_router
 from saebooks_web.routes.profile import router as profile_router
@@ -102,6 +106,8 @@ from saebooks_web.routes.integrations import router as integrations_router  # Ca
 from saebooks_web.routes.attachments import router as attachments_router  # Phase 1.5
 from saebooks_web.routes.pwa import router as pwa_router  # PWA: /sw.js + /manifest.webmanifest
 from saebooks_web.routes.cashbook import router as cashbook_router
+from saebooks_web.routes.overviews import router as overviews_router  # /sales /expenses /inventory /gst overview dashboards
+from saebooks_web.routes.recurring import router as recurring_router  # /recurring aggregator hub
 from saebooks_web.routes.cashbook_invoices import router as cashbook_invoices_router
 from saebooks_web.routes.cashbook_quotes import router as cashbook_quotes_router
 
@@ -284,6 +290,8 @@ app.include_router(ai_extraction_router)
 app.include_router(invoices_router)
 app.include_router(quotes_router)
 app.include_router(bills_router)
+app.include_router(expenses_router)
+app.include_router(time_entries_router)
 app.include_router(purchase_orders_router)
 app.include_router(proration_router)
 app.include_router(payments_router)
@@ -308,6 +316,8 @@ app.include_router(search_router)
 app.include_router(profile_router)
 app.include_router(companies_router)
 app.include_router(settings_router)
+app.include_router(employees_router)
+app.include_router(super_funds_router)
 app.include_router(pay_run_router)
 app.include_router(admin_router)
 app.include_router(imports_router)
@@ -322,6 +332,10 @@ app.include_router(pwa_router)
 app.include_router(cashbook_router)
 app.include_router(cashbook_invoices_router)
 app.include_router(cashbook_quotes_router)
+# Section overview dashboards — /sales/overview /expenses-overview /inventory/overview /gst/overview
+app.include_router(overviews_router)
+# Recurring transactions hub — /recurring aggregator over invoices + templates
+app.include_router(recurring_router)
 
 # Pass B preview — static design mocks (no data wiring, no auth).
 app.include_router(preview_router)

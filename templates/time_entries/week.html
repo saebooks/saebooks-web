@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Time — Week of {{ monday }} — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="font-display text-3xl text-gray-900">Weekly time grid</h1>
+    <p class="text-base ink-3 mt-1">
+      Week of {{ monday }} —
+      <span class="num-display">{{ week_total }}h</span> total
+      ({{ billable_total }}h billable, {{ non_billable_total }}h non-billable).
+    </p>
+  </div>
+  <div class="flex gap-2 items-center">
+    <a href="/time-entries/week?week_start={{ prev_week }}" class="btn btn-secondary">← Prev</a>
+    <a href="/time-entries/week?week_start={{ this_week }}" class="btn btn-secondary">This week</a>
+    <a href="/time-entries/week?week_start={{ next_week }}" class="btn btn-secondary">Next →</a>
+    <a href="/time-entries" class="btn btn-secondary">List view</a>
+  </div>
+</div>
+
+{% if error %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
+  {{ error }}
+</div>
+{% endif %}
+
+<div class="grid grid-cols-7 gap-px bg-paper-2 rounded-xl overflow-hidden hairline">
+  {% for d_iso in days %}
+  {% set i = loop.index0 %}
+  <section class="bg-paper p-3 min-h-[200px]">
+    <header class="mb-3">
+      <p class="text-xs font-mono uppercase tracking-wider ink-3">{{ day_labels[i] }}</p>
+      <p class="text-sm ink-1 font-medium">{{ day_full_labels[i] }}</p>
+      <p class="num-display text-lg mt-1">{{ day_totals[d_iso] }}h</p>
+    </header>
+
+    <ul class="space-y-2 mb-3">
+      {% for e in by_day[d_iso] %}
+      <li class="rounded-md hairline p-2 hover:bg-paper-2 text-sm">
+        <a href="/time-entries/{{ e.id }}" class="block">
+          <div class="flex items-center justify-between">
+            <span class="num-display">{{ "%.2f"|format(e.hours|float) }}h</span>
+            <span class="chip text-[10px]
+              {% if e.approval_status == 'APPROVED' %}chip-pos
+              {% elif e.approval_status == 'REJECTED' %}chip-neg
+              {% elif e.approval_status == 'LOCKED' %}chip-ink
+              {% elif e.approval_status == 'SUBMITTED' %}chip-warm
+              {% endif %}">
+              {{ e.approval_status[:3] }}
+            </span>
+          </div>
+          <p class="ink-3 text-xs mt-1 truncate">
+            {% if e.project_id and project_by_id.get(e.project_id) %}
+              <span class="ink-1">{{ project_by_id[e.project_id].name }}</span>
+              {% if e.description %} · {{ e.description }}{% endif %}
+            {% elif e.description %}
+              {{ e.description }}
+            {% else %}
+              (no description)
+            {% endif %}
+          </p>
+          {% if e.billable %}
+          <p class="text-xs sae mt-0.5">
+            {% if e.rate %}${{ "%.2f"|format(e.rate|float) }}/h
+              · <span class="num-display">${{ "%.2f"|format((e.rate|float) * (e.hours|float)) }}</span>
+            {% else %}billable{% endif %}
+            {% if e.invoice_line_id %} → on invoice{% endif %}
+          </p>
+          {% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {# Quick-add — single-row form per day, submits to /time-entries/new #}
+    <form method="POST" action="/time-entries/new" class="border-t hairline pt-2">
+  {{ csrf_input(request)|safe }}
+      <input type="hidden" name="work_date" value="{{ d_iso }}">
+      <div class="flex gap-1 mb-1">
+        <input type="number" name="hours" step="0.25" min="0.01" required
+               placeholder="h"
+               class="w-12 rounded hairline px-1.5 py-1 text-sm num">
+        <input type="text" name="description" placeholder="What"
+               class="flex-1 rounded hairline px-1.5 py-1 text-sm min-w-0">
+      </div>
+      <div class="flex gap-1 mb-1">
+        <select name="project_id" class="flex-1 rounded hairline px-1 py-1 text-xs min-w-0">
+          <option value="">project…</option>
+          {% for p in projects %}
+          <option value="{{ p.id }}">{{ p.name }}</option>
+          {% endfor %}
+        </select>
+        <label class="inline-flex items-center gap-1 text-xs ink-3">
+          <input type="checkbox" name="billable" value="on">
+          $
+        </label>
+      </div>
+      <button type="submit" class="w-full text-xs btn btn-secondary py-1">+ Add</button>
+    </form>
+  </section>
+  {% endfor %}
+</div>
+
+<div class="mt-6 flex items-center gap-3">
+  <a href="/time-entries?date_from={{ days[0] }}&amp;date_to={{ days[6] }}&amp;billable_only=true&amp;uninvoiced_only=true"
+     class="btn btn-secondary">
+    Show this week's billable uninvoiced →
+  </a>
+  <a href="/time-entries/new?work_date={{ this_week }}" class="btn btn-primary ml-auto">
+    + Long-form entry
+  </a>
+</div>
+
+{% endblock %}

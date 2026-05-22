@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+{% from "_status_macros.html" import payment_status_badge %}
+{% from "_funnel_macros.html" import funnel %}
+
+{% block title %}Expenses overview — SAE Books{% endblock %}
+
+{% block content %}
+<header class="mb-8">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Purchases</span>
+        <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
+          As of {{ today_iso }}
+        </span>
+      </div>
+      <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
+         >
+        Expenses overview
+      </h1>
+      <p class="mt-2 text-sm ink-3">
+        FY {{ fy_from }} <span class="ink-4">→</span> {{ fy_to }}
+      </p>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</header>
+
+{# ── Quick actions band ── #}
+<section class="card p-5 mb-6">
+  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Quick actions</p>
+  <div class="flex flex-wrap items-center gap-2">
+    <a href="/bills/new" class="btn btn-primary">
+      <i data-lucide="receipt" class="w-4 h-4"></i> New bill
+    </a>
+    <a href="/expenses/new" class="btn btn-secondary">
+      <i data-lucide="credit-card" class="w-4 h-4"></i> Record expense
+    </a>
+    <a href="/purchase_orders/new" class="btn btn-secondary">
+      <i data-lucide="shopping-cart" class="w-4 h-4"></i> Purchase order
+    </a>
+    <a href="/payments/new?direction=OUT" class="btn btn-secondary">
+      <i data-lucide="banknote" class="w-4 h-4"></i> Pay bill
+    </a>
+    <a href="/pay-run/new" class="btn btn-secondary">
+      <i data-lucide="badge-dollar-sign" class="w-4 h-4"></i> Pay run
+    </a>
+    <a href="/contacts/new?type=SUPPLIER" class="btn btn-secondary">
+      <i data-lucide="user-plus" class="w-4 h-4"></i> Add supplier
+    </a>
+  </div>
+</section>
+
+{# ── Bills pipeline ── #}
+<div class="mb-6">
+  {{ funnel(bills_funnel, title="Bills pipeline", as_of=today_iso) }}
+</div>
+
+{# ── KPI strip ── #}
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
+  <a href="/bills?status=POSTED" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">AP · outstanding</p>
+    <p class="num-display text-2xl" style="color:var(--sae-2);">
+      ${{ "{:,.0f}".format(outstanding_total|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">
+      {{ outstanding_count }} bill{{ '' if outstanding_count == 1 else 's' }}
+      {% if overdue_count > 0 %}
+        <span style="color:var(--neg);">· {{ overdue_count }} overdue</span>
+      {% endif %}
+    </p>
+  </a>
+  <a href="/bills?status=POSTED" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">Due ≤ 7 days</p>
+    <p class="num-display text-2xl" style="color:var(--warm);">
+      ${{ "{:,.0f}".format(due_soon_total|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">{{ due_soon_count }} bill{{ '' if due_soon_count == 1 else 's' }}</p>
+  </a>
+  <a href="/bills?from_date={{ month_start }}&to_date={{ month_end }}" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">Spend · MTD</p>
+    <p class="num-display text-2xl" style="color:var(--neg);">
+      ${{ "{:,.0f}".format(spend_mtd|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">{{ month_start }} → today</p>
+  </a>
+  <a href="/bills?status=DRAFT" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">Drafts</p>
+    <p class="num-display text-2xl" style="color:var(--warm);">
+      ${{ "{:,.0f}".format(draft_total|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">{{ draft_count }} draft{{ '' if draft_count == 1 else 's' }}</p>
+  </a>
+</section>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+  {# Left — 30-day chart + AP aging + recent bills #}
+  <div class="lg:col-span-2 space-y-6">
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <p class="nav-section-label">Spend · 30-day</p>
+          <h2 class="font-display text-2xl mt-1">
+            Daily billed
+          </h2>
+        </div>
+        <a href="/bills" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all bills →</a>
+      </div>
+      <div class="w-full" style="height: 96px; position: relative;">
+        <canvas id="spendSpark"></canvas>
+      </div>
+      <div class="hairline mt-5 pt-4 grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Spend YTD</p>
+          <p class="num-display text-xl mt-1" style="color:var(--neg);">
+            ${{ "{:,.2f}".format(spend_ytd|float) }}
+          </p>
+        </div>
+        <div class="border-l hairline pl-4">
+          <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Spend MTD</p>
+          <p class="num-display text-xl mt-1" style="color:var(--sae-2);">
+            ${{ "{:,.2f}".format(spend_mtd|float) }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">AP aging</p>
+        <a href="/reports/ap-aging-detail" class="text-xs sae hover:underline font-mono uppercase tracking-wider">full report →</a>
+      </div>
+      <div class="grid grid-cols-5 gap-2 text-center">
+        <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">Current</p>
+          <p class="num-display text-lg mt-1">${{ "{:,.0f}".format(aging.current|float) }}</p>
+        </a>
+        <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">1–30 d</p>
+          <p class="num-display text-lg mt-1" style="color:var(--warm);">${{ "{:,.0f}".format(aging.d_1_30|float) }}</p>
+        </a>
+        <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">31–60 d</p>
+          <p class="num-display text-lg mt-1" style="color:var(--warm);">${{ "{:,.0f}".format(aging.d_31_60|float) }}</p>
+        </a>
+        <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">61–90 d</p>
+          <p class="num-display text-lg mt-1" style="color:var(--neg);">${{ "{:,.0f}".format(aging.d_61_90|float) }}</p>
+        </a>
+        <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">90+ d</p>
+          <p class="num-display text-lg mt-1" style="color:var(--neg);">${{ "{:,.0f}".format(aging.d_90_plus|float) }}</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">Recent bills</p>
+        <a href="/bills" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      </div>
+      {% if recent_bills %}
+        <table class="w-full text-sm">
+          <thead class="text-[11px] font-mono uppercase ink-3">
+            <tr>
+              <th class="text-left py-1">#</th>
+              <th class="text-left py-1">Supplier</th>
+              <th class="text-left py-1">Date</th>
+              <th class="text-right py-1">Amount</th>
+              <th class="text-right py-1">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in recent_bills[:10] %}
+            {% set _c = contacts_by_id.get(b.contact_id) %}
+            <tr class="hairline-t">
+              <td class="py-2 font-mono">
+                <a href="/bills/{{ b.id }}" class="sae hover:underline">{{ b.number or b.id[:8] }}</a>
+              </td>
+              <td class="py-2">{{ _c or '—' }}</td>
+              <td class="py-2 font-mono ink-3">{{ b.bill_date }}</td>
+              <td class="py-2 text-right num-display">${{ "{:,.2f}".format(b.total|float) }}</td>
+              <td class="py-2 text-right">{{ payment_status_badge(b, today=today_iso, due_soon_cutoff=due_soon_cutoff_iso) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-sm ink-3 py-6 text-center font-mono">— no recent bills —</p>
+      {% endif %}
+    </section>
+  </div>
+
+  {# Right — Spend Insights (top vendors with $ + count + last) + recent expenses + POs #}
+  <div class="space-y-6">
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <p class="nav-section-label">Top vendors</p>
+          <p class="num-display text-xl mt-1 ink">
+            ${{ "{:,.0f}".format(top_suppliers_total|float) }}
+          </p>
+          <p class="text-[11px] font-mono ink-3 mt-0.5">YTD · top {{ top_suppliers|length }} vendors</p>
+        </div>
+        <a href="/contacts?type=SUPPLIER" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all suppliers →</a>
+      </div>
+      {% if top_suppliers %}
+        <table class="w-full text-sm">
+          <thead class="text-[10px] font-mono uppercase ink-3">
+            <tr>
+              <th class="text-left py-1">Vendor</th>
+              <th class="text-right py-1">Bills</th>
+              <th class="text-right py-1">Last</th>
+              <th class="text-right py-1">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set max_total = top_suppliers[0].total|float if top_suppliers else 1 %}
+            {% for s in top_suppliers %}
+            <tr class="hairline-t">
+              <td class="py-2">
+                <a href="/contacts/{{ s.contact_id }}" class="sae hover:underline truncate block"
+                   style="max-width: 200px;">{{ s.name or '—' }}</a>
+                <div class="mt-1 h-1 rounded-full overflow-hidden" style="background: var(--paper-2);">
+                  <div style="background: var(--sae-2);
+                              width: {{ ((s.total|float / max_total) * 100)|round(1) if max_total else 0 }}%; height: 100%;"></div>
+                </div>
+              </td>
+              <td class="py-2 text-right num-display ink-3">{{ s.count }}</td>
+              <td class="py-2 text-right font-mono text-xs ink-3">{{ s.last_date or '—' }}</td>
+              <td class="py-2 text-right num-display">${{ "{:,.0f}".format(s.total|float) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-sm ink-3 py-4 text-center font-mono">— no spend yet —</p>
+      {% endif %}
+    </section>
+
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">Recent expenses</p>
+        <a href="/expenses" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      </div>
+      {% if recent_expenses %}
+        <ul class="space-y-2">
+          {% for e in recent_expenses[:5] %}
+          {% set _c = contacts_by_id.get(e.contact_id) %}
+          <li class="flex items-center justify-between text-sm">
+            <a href="/expenses/{{ e.id }}" class="truncate" style="max-width:65%;">
+              <span class="font-mono sae">{{ e.number or e.id[:8] }}</span>
+              <span class="ink-3"> · {{ _c or '—' }}</span>
+            </a>
+            <span class="num-display ink">${{ "{:,.0f}".format(e.total|float) }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-sm ink-3 py-4 text-center font-mono">— no expenses —</p>
+      {% endif %}
+    </section>
+
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">Recent purchase orders</p>
+        <a href="/purchase_orders" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      </div>
+      {% if recent_pos %}
+        <ul class="space-y-2">
+          {% for po in recent_pos[:5] %}
+          {% set _c = contacts_by_id.get(po.contact_id) %}
+          <li class="flex items-center justify-between text-sm">
+            <a href="/purchase_orders/{{ po.id }}" class="truncate" style="max-width:65%;">
+              <span class="font-mono sae">{{ po.number or po.id[:8] }}</span>
+              <span class="ink-3"> · {{ _c or '—' }}</span>
+            </a>
+            <span class="num-display ink">${{ "{:,.0f}".format(po.total|float) }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-sm ink-3 py-4 text-center font-mono">— no purchase orders —</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<script src="/static/chart.umd.min.js"></script>
+<script>
+(function(){
+  var el = document.getElementById('spendSpark');
+  if (!el || typeof Chart === 'undefined') return;
+  var data = {{ daily_spend|tojson }};
+  var labels = {{ daily_dates|tojson }};
+  new Chart(el, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: 'rgba(239,68,68,0.50)',
+        borderColor: 'rgba(239,68,68,1)',
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { displayColors: false } },
+      scales: { x: { display: false }, y: { display: false, beginAtZero: true } }
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% from "_status_macros.html" import payment_status_badge %}
+{% from "_funnel_macros.html" import funnel, invoices_two_pane %}
+
+{% block title %}Sales overview — SAE Books{% endblock %}
+
+{% block content %}
+<header class="mb-8">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Sales</span>
+        <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
+          As of {{ today_iso }}
+        </span>
+      </div>
+      <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
+         >
+        Sales overview
+      </h1>
+      <p class="mt-2 text-sm ink-3">
+        FY {{ fy_from }} <span class="ink-4">→</span> {{ fy_to }}
+      </p>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</header>
+
+{# ── Quick actions band ── #}
+<section class="card p-5 mb-6">
+  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Quick actions</p>
+  <div class="flex flex-wrap items-center gap-2">
+    <a href="/invoices/new" class="btn btn-primary">
+      <i data-lucide="plus" class="w-4 h-4"></i> New invoice
+    </a>
+    <a href="/quotes/new" class="btn btn-secondary">
+      <i data-lucide="file-pen-line" class="w-4 h-4"></i> New quote
+    </a>
+    <a href="/payments/new?direction=IN" class="btn btn-secondary">
+      <i data-lucide="banknote-arrow-up" class="w-4 h-4"></i> Receive payment
+    </a>
+    <a href="/credit-notes/new" class="btn btn-secondary">
+      <i data-lucide="file-minus" class="w-4 h-4"></i> Credit note
+    </a>
+    <a href="/recurring-invoices/new" class="btn btn-secondary">
+      <i data-lucide="repeat" class="w-4 h-4"></i> Recurring invoice
+    </a>
+    <a href="/contacts/new?type=CUSTOMER" class="btn btn-secondary">
+      <i data-lucide="user-plus" class="w-4 h-4"></i> Add customer
+    </a>
+  </div>
+</section>
+
+{# ── Sales pipeline ── #}
+<div class="mb-6">
+  {{ funnel(sales_funnel, title="Sales pipeline", as_of=today_iso) }}
+</div>
+
+{# ── AR two-pane (Unpaid | Paid) ── #}
+<div class="mb-6">
+  {{ invoices_two_pane(invoices_pane, title="Invoices", as_of=today_iso) }}
+</div>
+
+{# ── KPI strip ── #}
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
+  <a href="/invoices?status=POSTED" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">AR · outstanding</p>
+    <p class="num-display text-2xl sae">
+      ${{ "{:,.0f}".format(outstanding_total|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">
+      {{ outstanding_count }} invoice{{ '' if outstanding_count == 1 else 's' }}
+      {% if overdue_count > 0 %}
+        <span style="color:var(--neg);">· {{ overdue_count }} overdue</span>
+      {% endif %}
+    </p>
+  </a>
+  <a href="/invoices?status=DRAFT" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">Drafts</p>
+    <p class="num-display text-2xl" style="color:var(--warm);">
+      ${{ "{:,.0f}".format(draft_total|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">{{ draft_count }} draft{{ '' if draft_count == 1 else 's' }}</p>
+  </a>
+  <a href="/invoices?from_date={{ month_start }}&to_date={{ month_end }}" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">Sales · MTD</p>
+    <p class="num-display text-2xl" style="color:var(--pos);">
+      ${{ "{:,.0f}".format(sales_mtd|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">{{ month_start }} → today</p>
+  </a>
+  <a href="/payments?direction=INCOMING&from_date={{ month_start }}&to_date={{ month_end }}" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">Receipts · MTD</p>
+    <p class="num-display text-2xl" style="color:var(--pos);">
+      ${{ "{:,.0f}".format(receipts_mtd|float) }}
+    </p>
+    <p class="mt-1 text-xs ink-3">cash collected</p>
+  </a>
+</section>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+  {# Left — 30-day chart + AR aging #}
+  <div class="lg:col-span-2 space-y-6">
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <p class="nav-section-label">Sales · 30-day</p>
+          <h2 class="font-display text-2xl mt-1">
+            Daily invoiced
+          </h2>
+        </div>
+        <a href="/invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
+          all invoices →
+        </a>
+      </div>
+      <div class="w-full" style="height: 96px; position: relative;">
+        <canvas id="salesSpark"></canvas>
+      </div>
+      <div class="hairline mt-5 pt-4 grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Sales YTD</p>
+          <p class="num-display text-xl mt-1" style="color:var(--pos);">
+            ${{ "{:,.2f}".format(sales_ytd|float) }}
+          </p>
+        </div>
+        <div class="border-l hairline pl-4">
+          <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Sales MTD</p>
+          <p class="num-display text-xl mt-1" style="color:var(--sae);">
+            ${{ "{:,.2f}".format(sales_mtd|float) }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">AR aging</p>
+        <a href="/reports/ar-aging-detail" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
+          full report →
+        </a>
+      </div>
+      <div class="grid grid-cols-5 gap-2 text-center">
+        <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">Current</p>
+          <p class="num-display text-lg mt-1">${{ "{:,.0f}".format(aging.current|float) }}</p>
+        </a>
+        <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">1–30 d</p>
+          <p class="num-display text-lg mt-1" style="color:var(--warm);">${{ "{:,.0f}".format(aging.d_1_30|float) }}</p>
+        </a>
+        <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">31–60 d</p>
+          <p class="num-display text-lg mt-1" style="color:var(--warm);">${{ "{:,.0f}".format(aging.d_31_60|float) }}</p>
+        </a>
+        <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">61–90 d</p>
+          <p class="num-display text-lg mt-1" style="color:var(--neg);">${{ "{:,.0f}".format(aging.d_61_90|float) }}</p>
+        </a>
+        <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
+          <p class="text-[10px] font-mono uppercase ink-3">90+ d</p>
+          <p class="num-display text-lg mt-1" style="color:var(--neg);">${{ "{:,.0f}".format(aging.d_90_plus|float) }}</p>
+        </a>
+      </div>
+    </section>
+
+    {# Recent invoices #}
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">Recent invoices</p>
+        <a href="/invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      </div>
+      {% if recent_invoices %}
+        <table class="w-full text-sm">
+          <thead class="text-[11px] font-mono uppercase ink-3">
+            <tr>
+              <th class="text-left py-1">#</th>
+              <th class="text-left py-1">Customer</th>
+              <th class="text-left py-1">Date</th>
+              <th class="text-right py-1">Amount</th>
+              <th class="text-right py-1">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inv in recent_invoices[:10] %}
+            {% set _c = contacts_by_id.get(inv.contact_id) %}
+            <tr class="hairline-t">
+              <td class="py-2 font-mono">
+                <a href="/invoices/{{ inv.id }}" class="sae hover:underline">{{ inv.number or inv.id[:8] }}</a>
+              </td>
+              <td class="py-2">{{ _c or '—' }}</td>
+              <td class="py-2 font-mono ink-3">{{ inv.invoice_date }}</td>
+              <td class="py-2 text-right num-display">${{ "{:,.2f}".format(inv.total|float) }}</td>
+              <td class="py-2 text-right">{{ payment_status_badge(inv, today=today_iso) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-sm ink-3 py-6 text-center font-mono">— no recent invoices —</p>
+      {% endif %}
+    </section>
+  </div>
+
+  {# Right — top customers + recent quotes + credit notes #}
+  <div class="space-y-6">
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">Top customers · YTD</p>
+        <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}" class="text-xs sae hover:underline font-mono uppercase tracking-wider">full →</a>
+      </div>
+      {% if top_customers %}
+        <ul class="space-y-3">
+          {% for c in top_customers %}
+          <li class="flex items-center justify-between text-sm">
+            <a href="/contacts/{{ c.contact_id }}" class="sae hover:underline truncate" style="max-width: 60%;">
+              {{ c.contact_name or '—' }}
+            </a>
+            <span class="num-display ink">${{ "{:,.0f}".format(c.revenue|float) }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-sm ink-3 py-4 text-center font-mono">— no sales yet —</p>
+      {% endif %}
+    </section>
+
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">Recent quotes</p>
+        <a href="/quotes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      </div>
+      {% if recent_quotes %}
+        <ul class="space-y-2">
+          {% for q in recent_quotes[:5] %}
+          {% set _c = contacts_by_id.get(q.contact_id) %}
+          <li class="flex items-center justify-between text-sm">
+            <a href="/quotes/{{ q.id }}" class="truncate" style="max-width:65%;">
+              <span class="font-mono sae">{{ q.number or q.id[:8] }}</span>
+              <span class="ink-3"> · {{ _c or '—' }}</span>
+            </a>
+            <span class="num-display ink">${{ "{:,.0f}".format(q.total|float) }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-sm ink-3 py-4 text-center font-mono">— no quotes —</p>
+      {% endif %}
+    </section>
+
+    <section class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <p class="nav-section-label">Recent credit notes</p>
+        <a href="/credit-notes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      </div>
+      {% if recent_credit_notes %}
+        <ul class="space-y-2">
+          {% for n in recent_credit_notes[:5] %}
+          {% set _c = contacts_by_id.get(n.contact_id) %}
+          <li class="flex items-center justify-between text-sm">
+            <a href="/credit-notes/{{ n.id }}" class="truncate" style="max-width:65%;">
+              <span class="font-mono sae">{{ n.number or n.id[:8] }}</span>
+              <span class="ink-3"> · {{ _c or '—' }}</span>
+            </a>
+            <span class="num-display ink">${{ "{:,.0f}".format(n.total|float) }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-sm ink-3 py-4 text-center font-mono">— no credit notes —</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<script src="/static/chart.umd.min.js"></script>
+<script>
+(function(){
+  var el = document.getElementById('salesSpark');
+  if (!el || typeof Chart === 'undefined') return;
+  var data = {{ daily_sales|tojson }};
+  var labels = {{ daily_dates|tojson }};
+  new Chart(el, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: 'rgba(34,197,94,0.55)',
+        borderColor: 'rgba(34,197,94,1)',
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { displayColors: false } },
+      scales: { x: { display: false }, y: { display: false, beginAtZero: true } }
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Edit time entry — SAE Books{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="font-display text-3xl text-gray-900">Edit time entry</h1>
+  <p class="text-base ink-3 mt-1">
+    {% if entry %}{{ entry.work_date }} · v{{ entry.version }}{% endif %}
+  </p>
+</div>
+
+{% if errors._global %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
+  {{ errors._global }}
+</div>
+{% endif %}
+
+<form method="POST" action="/time-entries/{{ entry.id }}/edit" class="card p-6 max-w-3xl">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="version" value="{{ entry.version }}">
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm ink-3 mb-1">Date</label>
+      <input type="date" name="work_date" value="{{ form.work_date }}"
+             class="w-full rounded-md hairline px-3 py-2 bg-paper">
+    </div>
+    <div>
+      <label class="block text-sm ink-3 mb-1">Hours</label>
+      <input type="number" name="hours" step="0.25" min="0.01"
+             value="{{ form.hours }}"
+             class="w-full rounded-md hairline px-3 py-2 bg-paper num-display">
+    </div>
+    <div class="col-span-2">
+      <label class="block text-sm ink-3 mb-1">Description</label>
+      <input type="text" name="description" value="{{ form.description or '' }}"
+             class="w-full rounded-md hairline px-3 py-2 bg-paper">
+    </div>
+    <div>
+      <label class="block text-sm ink-3 mb-1">Project</label>
+      <select name="project_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <option value="">—</option>
+        {% for p in projects %}
+        <option value="{{ p.id }}" {% if form.project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm ink-3 mb-1">Contact</label>
+      <select name="contact_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <option value="">—</option>
+        {% for c in contacts %}
+        <option value="{{ c.id }}" {% if form.contact_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-span-2 hairline border-t pt-4">
+      <label class="inline-flex items-center gap-2 text-base ink-1">
+        <input type="checkbox" name="billable" value="on"
+               {% if form.billable %}checked{% endif %}>
+        Billable
+      </label>
+    </div>
+    <div>
+      <label class="block text-sm ink-3 mb-1">Rate ($/h)</label>
+      <input type="number" name="rate" step="0.01" min="0"
+             value="{{ form.rate or '' }}"
+             class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+    </div>
+    <div>
+      <label class="block text-sm ink-3 mb-1">Break (minutes)</label>
+      <input type="number" name="break_minutes" step="5" min="0"
+             value="{{ form.break_minutes or '' }}"
+             class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+    </div>
+  </div>
+
+  <div class="mt-6 flex items-center gap-3">
+    <button type="submit" class="btn btn-primary">Save changes</button>
+    <a href="/time-entries/{{ entry.id }}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}

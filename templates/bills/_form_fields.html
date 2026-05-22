@@ -12,21 +12,72 @@
 <fieldset class="space-y-4">
   <legend class="nav-section-label mb-3">Bill details</legend>
 
-  <div>
-    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Supplier <span style="color:var(--neg);">*</span>
-    </label>
-    <select id="contact_id" name="contact_id" required class="saebooks-input"
+  {# Supplier — picker OR one-off inline name. Styling matches master's
+     saebooks-input chrome; behaviour adds the one-off toggle from feat. #}
+  <div data-supplier-picker>
+    <div class="flex items-center justify-between mb-1">
+      <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block">
+        Supplier <span style="color:var(--neg);">*</span>
+      </label>
+      <label class="inline-flex items-center gap-1.5 text-xs ink-3 cursor-pointer">
+        <input type="checkbox" id="one_off_toggle" name="one_off_toggle" value="on"
+               {% if form.get("one_off_toggle") in ("on", True, "true", "True") or form.get("one_off_name") %}checked{% endif %}
+               class="h-3.5 w-3.5 rounded">
+        One-off supplier
+      </label>
+    </div>
+    {# Picker — visible when toggle off #}
+    <select id="contact_id" name="contact_id" data-supplier-select class="saebooks-input"
             {% if errors.get('contact_id') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
-      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>Select supplier…</option>
+      <option value="" {% if not form.get("contact_id") %}selected{% endif %}>Select supplier…</option>
       {% for contact in contacts %}
       <option value="{{ contact.id }}" {% if form.get("contact_id") == contact.id %}selected{% endif %}>
         {{ contact.name }}
       </option>
       {% endfor %}
     </select>
+    {# Inline one-off name — visible when toggle on #}
+    <input type="text" id="one_off_name" name="one_off_name"
+           value="{{ form.get('one_off_name', '') }}"
+           placeholder="One-off supplier name (e.g. Cash purchase, counter sale)"
+           data-supplier-oneoff
+           class="hidden saebooks-input"
+           style="border-color: var(--warm); background: rgba(234,179,8,0.05);">
+    <p data-supplier-oneoff-hint class="hidden mt-1 text-xs" style="color: var(--warm);">
+      A new <em>one-off</em> contact will be created and hidden from your main /contacts list.
+    </p>
     {% if errors.get("contact_id") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["contact_id"] }}</p>{% endif %}
+    {% if errors.get("one_off_name") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["one_off_name"] }}</p>{% endif %}
   </div>
+  <script>
+    (function () {
+      var root = document.querySelector('[data-supplier-picker]');
+      if (!root) return;
+      var toggle = root.querySelector('#one_off_toggle');
+      var picker = root.querySelector('[data-supplier-select]');
+      var oneoff = root.querySelector('[data-supplier-oneoff]');
+      var hint   = root.querySelector('[data-supplier-oneoff-hint]');
+      function sync() {
+        if (toggle.checked) {
+          picker.classList.add('hidden');
+          picker.removeAttribute('required');
+          picker.value = '';
+          oneoff.classList.remove('hidden');
+          hint.classList.remove('hidden');
+          oneoff.setAttribute('required', 'required');
+        } else {
+          oneoff.classList.add('hidden');
+          hint.classList.add('hidden');
+          oneoff.removeAttribute('required');
+          oneoff.value = '';
+          picker.classList.remove('hidden');
+          picker.setAttribute('required', 'required');
+        }
+      }
+      toggle.addEventListener('change', sync);
+      sync();
+    })();
+  </script>
 
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div>

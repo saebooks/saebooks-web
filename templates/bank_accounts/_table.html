@@ -1,7 +1,10 @@
 {% import "_partials/empty_state.html" as empty %}
-{# HTMX partial — bank accounts table body + pagination.
+{# HTMX partial — bank accounts list grouped by ``account_kind``.
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
+
+   Sections: Bank — Checking / Savings / Credit Cards / Loans / Cash / Other.
+   The route only emits sections that have at least one row.
 #}
 <div id="bank-accounts-table">
 
@@ -11,21 +14,44 @@
 </div>
 {% endif %}
 
+{% if not sections %}
 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
   <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
-      <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">BSB</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account number</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Title</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Bank</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-      {% if accounts %}
-        {% for account in accounts %}
+    <tbody>
+      {{ empty.row(6, "landmark", "No bank-side accounts yet",
+                   "Add a bank account, credit card, loan, or cash account to get started.",
+                   "Add account", "/bank-accounts/new") }}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% for sec in sections %}
+<section class="mb-6">
+  <h2 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+    <span>{{ sec.label }}</span>
+    <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 tabular-nums">{{ sec['items'] | length }}</span>
+  </h2>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
+          {% if sec.key in ('BANK_CHECKING', 'BANK_SAVINGS') %}
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">BSB</th>
+          {% endif %}
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">
+            {% if sec.key == 'CREDIT_CARD' %}Card number{% elif sec.key == 'BANK_LOAN' %}Loan reference{% else %}Account number{% endif %}
+          </th>
+          {% if sec.key in ('BANK_CHECKING', 'BANK_SAVINGS') %}
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Title</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Bank</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for account in sec['items'] %}
         <tr
           class="hover:bg-gray-50 cursor-pointer"
           onclick="window.location='/bank-accounts/{{ account.id }}'"
@@ -41,20 +67,21 @@
             <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Trust</span>
             {% endif %}
           </td>
+          {% if sec.key in ('BANK_CHECKING', 'BANK_SAVINGS') %}
           <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bsb or "—" }}</td>
+          {% endif %}
           <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>
+          {% if sec.key in ('BANK_CHECKING', 'BANK_SAVINGS') %}
           <td class="px-4 py-3 text-gray-600">{{ account.bank_account_title or "—" }}</td>
           <td class="px-4 py-3 text-gray-600 text-xs">{{ account.bank_abbreviation or "—" }}</td>
+          {% endif %}
         </tr>
         {% endfor %}
-      {% else %}
-        {{ empty.row(6, "landmark", "No bank accounts yet",
-                     "Add a bank account before importing statements.",
-                     "Add account", "/bank-accounts/new") }}
-      {% endif %}
-    </tbody>
-  </table>
-</div>
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endfor %}
 
 {# Pagination #}
 {% if prev_offset is not none or next_offset is not none %}

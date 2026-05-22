@@ -147,7 +147,9 @@
       <tbody class="divide-y divide-gray-100">
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500 w-48">Contact</td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ ri.contact_id }}</td>
+          <td class="px-4 py-3 text-gray-900">
+            {% if contact_name %}<a href="/contacts/{{ ri.contact_id }}" class="text-indigo-600 hover:underline">{{ contact_name }}</a>{% else %}—{% endif %}
+          </td>
         </tr>
         <tr>
           <td class="px-4 py-3 font-medium text-gray-500">Anchor day</td>

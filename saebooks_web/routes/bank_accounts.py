@@ -39,11 +39,22 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 _EDIT_FIELDS = (
     "code",
     "name",
+    "account_kind",
     "bsb",
     "bank_account_number",
     "bank_account_title",
     "bank_abbreviation",
     "apca_user_id",
+)
+
+# Display order + label for the Bank Accounts list sections.
+_KIND_SECTIONS: tuple[tuple[str, str], ...] = (
+    ("BANK_CHECKING", "Bank — Checking"),
+    ("BANK_SAVINGS",  "Bank — Savings"),
+    ("CREDIT_CARD",   "Credit Cards"),
+    ("BANK_LOAN",     "Loans"),
+    ("CASH",          "Cash"),
+    ("OTHER",         "Other"),
 )
 
 
@@ -102,8 +113,24 @@ async def bank_accounts_list(
 
     flash = request.session.pop("flash", None)
 
+    # Bucket accounts by ``account_kind`` so the list renders as sections.
+    # Buckets preserve _KIND_SECTIONS ordering; any kind not in the canon
+    # falls into OTHER. Accounts with no kind set (legacy rows that didn't
+    # get auto-classified) also land in OTHER so they remain visible.
+    by_kind: dict[str, list[dict]] = {k: [] for k, _ in _KIND_SECTIONS}
+    for a in accounts:
+        k = a.get("account_kind") or "OTHER"
+        by_kind.setdefault(k, by_kind["OTHER"])
+        by_kind[k].append(a) if k in by_kind else by_kind["OTHER"].append(a)
+    sections = [
+        {"key": k, "label": label, "items": by_kind.get(k, [])}
+        for k, label in _KIND_SECTIONS
+        if by_kind.get(k)
+    ]
+
     ctx = {
         "accounts": accounts,
+        "sections": sections,
         "total": total,
         "error": error,
         "flash": flash,
@@ -161,12 +188,18 @@ async def bank_account_create(request: Request) -> HTMLResponse | RedirectRespon
 
     # Required fields always included.
     payload: dict[str, object] = {}
-    for required_field in ("code", "name", "bsb"):
+    for required_field in ("code", "name"):
         val = form.get(required_field, "").strip()
         payload[required_field] = val
 
-    # Optional fields — include only when non-empty.
+    # account_kind drives the form shape; default to BANK_CHECKING.
+    payload["account_kind"] = (form.get("account_kind", "").strip()
+                               or "BANK_CHECKING")
+
+    # Optional fields — include only when non-empty. BSB is now optional
+    # because credit cards and loans don't carry one.
     for optional_field in (
+        "bsb",
         "bank_account_number",
         "bank_account_title",
         "bank_abbreviation",

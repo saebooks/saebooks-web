@@ -251,6 +251,7 @@ async def bank_statement_line_detail(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    contact_name: str = ""
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/bank_statement_lines/{line_id}")
         if resp.status_code == 401:
@@ -260,21 +261,28 @@ async def bank_statement_line_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "bank_statement_lines/detail.html",
-                {"line": None, "error": "Bank statement line not found", "flash": None},
+                {"line": None, "error": "Bank statement line not found", "flash": None,
+                 "contact_name": ""},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "bank_statement_lines/detail.html",
-                {"line": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
+                {"line": None, "error": f"API error: HTTP {resp.status_code}", "flash": None,
+                 "contact_name": ""},
                 status_code=resp.status_code,
             )
 
-    line = resp.json()
+        line = resp.json()
+        if line.get("contact_id"):
+            c_resp = await client.get(f"/api/v1/contacts/{line['contact_id']}")
+            if c_resp.is_success:
+                contact_name = c_resp.json().get("name", "")
+
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "bank_statement_lines/detail.html",
-        {"line": line, "error": None, "flash": flash},
+        {"line": line, "error": None, "flash": flash, "contact_name": contact_name},
     )

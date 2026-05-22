@@ -145,3 +145,25 @@
             {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("notes", "") }}</textarea>
   {% if errors.get("notes") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["notes"] }}</p>{% endif %}
 </div>
+
+{# ── One-off flag ── #}
+<div class="mt-6 flex items-start gap-3">
+  <div class="flex items-center h-5">
+    <input
+      type="checkbox"
+      id="is_one_off"
+      name="is_one_off"
+      value="on"
+      {% if form.get("is_one_off") in ("on", True, "true", "True") %}checked{% endif %}
+      class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+    >
+  </div>
+  <div>
+    <label for="is_one_off" class="block text-sm font-medium text-gray-700">One-off contact</label>
+    <p class="text-xs text-gray-500 mt-0.5">
+      Hide from the main /contacts list. Use this for cash purchases, walk-in
+      customers, or any counterparty you created just so a transaction had a
+      name but don't want to track as an ongoing relationship.
+    </p>
+  </div>
+</div>

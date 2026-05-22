@@ -227,27 +227,66 @@ def _ap_tile(
 
 
 def _cash_tile(payments: list[dict]) -> dict:
-    """Compute cash-movement totals for the current month from payments list."""
+    """Compute cash-movement totals for the current month + 30-day daily series.
+
+    Returns month totals plus per-day arrays the dashboard sparkline can plot
+    directly (no client-side synthesis of fake data). Days with no payment
+    contribute zero amounts so the series is always 30 elements long.
+    """
+    from datetime import date as _date, timedelta as _td
+
     month_start, month_end = _this_month_range()
+    today = _date.today()
+    window_start = today - _td(days=29)
+
+    daily_in: dict[str, Decimal] = {}
+    daily_out: dict[str, Decimal] = {}
+    dates: list[str] = []
+    for i in range(30):
+        d = (window_start + _td(days=i)).isoformat()
+        dates.append(d)
+        daily_in[d] = Decimal("0")
+        daily_out[d] = Decimal("0")
 
     in_total = Decimal("0")
     out_total = Decimal("0")
 
     for pmt in payments:
         pmt_date = pmt.get("payment_date", "")
-        if not (pmt_date and month_start <= str(pmt_date) <= month_end):
+        if not pmt_date:
             continue
+        pmt_date_str = str(pmt_date)
         amount = _to_decimal(pmt.get("amount", 0))
         direction = pmt.get("direction", "")
-        if direction == "INCOMING":
-            in_total += amount
-        elif direction == "OUTGOING":
-            out_total += amount
+
+        if month_start <= pmt_date_str <= month_end:
+            if direction == "INCOMING":
+                in_total += amount
+            elif direction == "OUTGOING":
+                out_total += amount
+
+        if pmt_date_str in daily_in:
+            if direction == "INCOMING":
+                daily_in[pmt_date_str] += amount
+            elif direction == "OUTGOING":
+                daily_out[pmt_date_str] += amount
+
+    series_in = [float(daily_in[d]) for d in dates]
+    series_out = [float(daily_out[d]) for d in dates]
+    cum_net: list[float] = []
+    running = 0.0
+    for i in range(len(dates)):
+        running += series_in[i] - series_out[i]
+        cum_net.append(running)
 
     return {
         "in_total": in_total,
         "out_total": out_total,
         "net": in_total - out_total,
+        "daily_in": series_in,
+        "daily_out": series_out,
+        "daily_net": cum_net,
+        "daily_dates": dates,
     }
 
 
@@ -325,27 +364,44 @@ def _recent_activity(
     """Merge first-page items from each entity, sort by created_at DESC, return top 5."""
     tagged: list[dict] = []
 
+    # Build a contact lookup so invoice/bill/payment rows can show the
+    # counterparty name alongside the document number.
+    cmap: dict[str, str] = {c.get("id"): c.get("name") or "" for c in contacts if c.get("id")}
+
+    def _with_contact(number: str, cid: str | None) -> str:
+        name = cmap.get(cid or "") or ""
+        if number and name:
+            return f"{number} — {name}"
+        return number or name or ""
+
     for item in invoices:
         tagged.append({"entity_type": "Invoice", "item": item,
-                        "label": item.get("number") or item.get("id", ""),
+                        "label": _with_contact(item.get("number", ""), item.get("contact_id")) or item.get("id", ""),
                         "url": f"/invoices/{item.get('id', '')}",
                         "created_at": item.get("created_at", "")})
 
     for item in bills:
         tagged.append({"entity_type": "Bill", "item": item,
-                        "label": item.get("number") or item.get("id", ""),
+                        "label": _with_contact(item.get("number", ""), item.get("contact_id")) or item.get("id", ""),
                         "url": f"/bills/{item.get('id', '')}",
                         "created_at": item.get("created_at", "")})
 
     for item in payments:
+        num = item.get("number") or item.get("reference") or ""
         tagged.append({"entity_type": "Payment", "item": item,
-                        "label": item.get("number") or item.get("reference") or item.get("id", ""),
+                        "label": _with_contact(num, item.get("contact_id")) or item.get("id", ""),
                         "url": f"/payments/{item.get('id', '')}",
                         "created_at": item.get("created_at", "")})
 
     for item in journal_entries:
+        # JEs use `ref` (e.g. FIX-20260519-001, QT3194) — not `number`.
+        ref = item.get("ref") or item.get("number") or ""
+        desc = (item.get("description") or "").strip()
+        label = ref
+        if desc:
+            label = f"{ref} — {desc[:60]}" if ref else desc[:80]
         tagged.append({"entity_type": "Journal Entry", "item": item,
-                        "label": item.get("number") or item.get("id", ""),
+                        "label": label or item.get("id", ""),
                         "url": f"/journal-entries/{item.get('id', '')}",
                         "created_at": item.get("created_at", "")})
 
@@ -357,6 +413,152 @@ def _recent_activity(
 
     tagged.sort(key=lambda x: x["created_at"], reverse=True)
     return tagged[:5]
+
+
+# ---------------------------------------------------------------------------
+# Catalogue-only widgets (default-hidden — user adds via Customise)
+# ---------------------------------------------------------------------------
+
+
+def _sales_pipeline(
+    draft_invoices: list[dict],
+    open_invoices: list[dict],
+    payments: list[dict],
+) -> list[dict]:
+    """5-stage AR pipeline — matches the funnel shape used on /sales/overview."""
+    today = date.today()
+    window_start = (today - timedelta(days=29)).isoformat()
+
+    draft_total = sum(_to_decimal(inv.get("total", 0)) for inv in draft_invoices)
+    overdue = [
+        inv for inv in open_invoices
+        if inv.get("due_date")
+        and date.fromisoformat(str(inv["due_date"])) < today
+        and _to_decimal(inv.get("amount_paid", 0)) < _to_decimal(inv.get("total", 0))
+    ]
+    overdue_total = sum(
+        _to_decimal(inv.get("total", 0)) - _to_decimal(inv.get("amount_paid", 0))
+        for inv in overdue
+    )
+    unpaid = [
+        inv for inv in open_invoices
+        if _to_decimal(inv.get("amount_paid", 0)) < _to_decimal(inv.get("total", 0))
+        and inv not in overdue
+    ]
+    unpaid_total = sum(
+        _to_decimal(inv.get("total", 0)) - _to_decimal(inv.get("amount_paid", 0))
+        for inv in unpaid
+    )
+    paid_30d = sum(
+        _to_decimal(p.get("amount", 0)) for p in payments
+        if p.get("direction") == "INCOMING"
+        and str(p.get("payment_date", "")) >= window_start
+    )
+    return [
+        {"label": "Drafts", "count": len(draft_invoices), "total": draft_total,
+         "tone": "warm", "href": "/invoices?status=DRAFT", "icon": "file-text"},
+        {"label": "Overdue", "count": len(overdue), "total": overdue_total,
+         "tone": "neg", "href": "/invoices?status=POSTED", "icon": "alert-triangle"},
+        {"label": "Unpaid", "count": len(unpaid), "total": unpaid_total,
+         "tone": "sae", "href": "/invoices?status=POSTED", "icon": "clock"},
+        {"label": "Paid · 30d", "count": None, "total": paid_30d,
+         "tone": "pos", "href": "/payments?direction=INCOMING", "icon": "check-circle-2"},
+    ]
+
+
+def _bills_pipeline(
+    draft_bills: list[dict],
+    open_bills: list[dict],
+    payments: list[dict],
+) -> list[dict]:
+    """5-stage AP pipeline — mirrors /expenses-overview funnel."""
+    today = date.today()
+    in_7 = today + timedelta(days=7)
+    window_start = (today - timedelta(days=29)).isoformat()
+
+    draft_total = sum(_to_decimal(b.get("total", 0)) for b in draft_bills)
+    overdue = [
+        b for b in open_bills
+        if b.get("due_date")
+        and date.fromisoformat(str(b["due_date"])) < today
+        and _to_decimal(b.get("amount_paid", 0)) < _to_decimal(b.get("total", 0))
+    ]
+    overdue_total = sum(
+        _to_decimal(b.get("total", 0)) - _to_decimal(b.get("amount_paid", 0))
+        for b in overdue
+    )
+    due_soon = [
+        b for b in open_bills
+        if b.get("due_date")
+        and today <= date.fromisoformat(str(b["due_date"])) <= in_7
+        and _to_decimal(b.get("amount_paid", 0)) < _to_decimal(b.get("total", 0))
+    ]
+    due_soon_total = sum(
+        _to_decimal(b.get("total", 0)) - _to_decimal(b.get("amount_paid", 0))
+        for b in due_soon
+    )
+    unpaid = [
+        b for b in open_bills
+        if _to_decimal(b.get("amount_paid", 0)) < _to_decimal(b.get("total", 0))
+        and b not in overdue and b not in due_soon
+    ]
+    unpaid_total = sum(
+        _to_decimal(b.get("total", 0)) - _to_decimal(b.get("amount_paid", 0))
+        for b in unpaid
+    )
+    paid_30d = sum(
+        _to_decimal(p.get("amount", 0)) for p in payments
+        if p.get("direction") == "OUTGOING"
+        and str(p.get("payment_date", "")) >= window_start
+    )
+    return [
+        {"label": "For review", "count": len(draft_bills), "total": draft_total,
+         "tone": "warm", "href": "/bills?status=DRAFT", "icon": "file-text"},
+        {"label": "Overdue", "count": len(overdue), "total": overdue_total,
+         "tone": "neg", "href": "/bills?status=POSTED", "icon": "alert-triangle"},
+        {"label": "Due soon", "count": len(due_soon), "total": due_soon_total,
+         "tone": "warm", "href": "/bills?status=POSTED", "icon": "clock"},
+        {"label": "Unpaid", "count": len(unpaid), "total": unpaid_total,
+         "tone": "sae", "href": "/bills?status=POSTED", "icon": "hourglass"},
+        {"label": "Paid · 30d", "count": None, "total": paid_30d,
+         "tone": "pos", "href": "/payments?direction=OUTGOING", "icon": "check-circle-2"},
+    ]
+
+
+def _top_vendors_month(
+    bills: list[dict],
+    contacts: list[dict],
+) -> list[dict]:
+    """Top 5 suppliers by spend this calendar month.
+
+    Aggregates from the bills already pre-fetched (DRAFT + POSTED first
+    page). Sufficient for a catalogue widget; the full report lives at
+    /expenses-overview.
+    """
+    month_start, month_end = _this_month_range()
+    cmap: dict[str, str] = {c.get("id"): c.get("name") or "" for c in contacts if c.get("id")}
+
+    by_supplier: dict[str, Decimal] = {}
+    by_count: dict[str, int] = {}
+    for b in bills:
+        d = str(b.get("issue_date") or "")
+        if not (month_start <= d <= month_end):
+            continue
+        cid = b.get("contact_id") or ""
+        if not cid:
+            continue
+        by_supplier[cid] = by_supplier.get(cid, Decimal("0")) + _to_decimal(b.get("total", 0))
+        by_count[cid] = by_count.get(cid, 0) + 1
+
+    return [
+        {
+            "contact_id": cid,
+            "name": cmap.get(cid, "—"),
+            "total": tot,
+            "count": by_count.get(cid, 0),
+        }
+        for cid, tot in sorted(by_supplier.items(), key=lambda x: x[1], reverse=True)[:5]
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -419,9 +621,11 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             _fetch_items(client, "/api/v1/payments",
                          {"page": 1, "page_size": 10}),
             _fetch_items(client, "/api/v1/journal_entries",
-                         {"page": 1, "page_size": 10}),
+                         {"page": 1, "page_size": 500}),
+            # page_size=200 so we have a contact name map for the Top
+            # vendors catalogue widget. Recent-activity still trims to 5.
             _fetch_items(client, "/api/v1/contacts",
-                         {"page": 1, "page_size": 10}),
+                         {"page": 1, "page_size": 200}),
             # GST turnover tile
             _fetch_json(client, "/api/v1/reports/ytd_turnover"),
             # PSI status from first active company
@@ -447,6 +651,18 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
         recent_contacts_raw,
     )
     gst = _gst_tile(ytd_turnover_raw)
+
+    # Catalogue widgets — default hidden, surfaced via "Add widget" dialog.
+    sales_pipeline = _sales_pipeline(
+        draft_invoices_raw, open_invoices_raw, payments_raw
+    )
+    bills_pipeline = _bills_pipeline(
+        draft_bills_raw, open_bills_raw, payments_raw
+    )
+    top_vendors_month = _top_vendors_month(
+        list(draft_bills_raw) + list(open_bills_raw),
+        recent_contacts_raw,
+    )
 
     first_company = (companies_raw.get("items") or [{}])[0]
     psi_status = first_company.get("psi_status", "unsure") or "unsure"
@@ -476,5 +692,9 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "fy_from": fy_from,
             "fy_to": fy_to,
             "company_name": company_name,
+            "sales_pipeline": sales_pipeline,
+            "bills_pipeline": bills_pipeline,
+            "top_vendors_month": top_vendors_month,
+            "today_iso": date.today().isoformat(),
         },
     )

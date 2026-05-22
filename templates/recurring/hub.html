@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Recurring transactions — SAE Books{% endblock %}
+
+{% block content %}
+<header class="mb-8">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Accounting</span>
+      </div>
+      <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
+         >
+        Recurring transactions
+      </h1>
+      <p class="mt-2 text-sm ink-3">
+        Templates that repeat on a schedule — invoices, journals, and (soon) bills.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="/recurring-invoices/new" class="btn btn-primary">
+        <i data-lucide="repeat" class="w-4 h-4"></i> New recurring invoice
+      </a>
+      <a href="/journal-templates/new" class="btn btn-secondary">
+        <i data-lucide="file-stack" class="w-4 h-4"></i> New journal template
+      </a>
+    </div>
+  </div>
+  <div class="drafting mt-5"></div>
+</header>
+
+{# ── KPI strip ── #}
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
+  <a href="/recurring-invoices" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">Recurring invoices · active</p>
+    <p class="num-display text-2xl" style="color: var(--pos);">{{ active_invoices_count }}</p>
+    <p class="mt-1 text-xs ink-3">{{ paused_invoices_count }} paused</p>
+  </a>
+  <a href="/journal-templates" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">Journal templates</p>
+    <p class="num-display text-2xl sae">{{ journal_templates_count }}</p>
+    <p class="mt-1 text-xs ink-3">recurring journals</p>
+  </a>
+  <div class="card bg-paper p-5 rounded-none opacity-60">
+    <p class="nav-section-label mb-2">Recurring bills</p>
+    <p class="num-display text-2xl ink-3">—</p>
+    <p class="mt-1 text-xs" style="color: var(--warm);">coming soon</p>
+  </div>
+  <div class="card bg-paper p-5 rounded-none opacity-60">
+    <p class="nav-section-label mb-2">Recurring expenses</p>
+    <p class="num-display text-2xl ink-3">—</p>
+    <p class="mt-1 text-xs" style="color: var(--warm);">coming soon</p>
+  </div>
+</section>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  {# Recurring invoices #}
+  <section class="card p-6">
+    <div class="flex items-start justify-between mb-4">
+      <p class="nav-section-label">Recurring invoices</p>
+      <a href="/recurring-invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+    </div>
+    {% if recurring_invoices %}
+      <table class="w-full text-sm">
+        <thead class="text-[11px] font-mono uppercase ink-3">
+          <tr>
+            <th class="text-left py-1">Name</th>
+            <th class="text-left py-1">Customer</th>
+            <th class="text-left py-1">Schedule</th>
+            <th class="text-right py-1">Next run</th>
+            <th class="text-right py-1">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recurring_invoices[:10] %}
+          {% set _c = contacts_by_id.get(r.contact_id) %}
+          <tr class="hairline-t">
+            <td class="py-2">
+              <a href="/recurring-invoices/{{ r.id }}" class="sae hover:underline">
+                {{ r.name or r.number or r.id[:8] }}
+              </a>
+            </td>
+            <td class="py-2 ink-3">{{ _c or '—' }}</td>
+            <td class="py-2 font-mono text-xs ink-3">{{ r.frequency or r.interval or '—' }}</td>
+            <td class="py-2 text-right font-mono ink-3">{{ r.next_run_date or '—' }}</td>
+            <td class="py-2 text-right">
+              {% set st = (r.status or 'ACTIVE')|upper %}
+              {% if st == 'ACTIVE' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono"
+                      style="background: rgba(34,197,94,0.12); color: var(--pos);">Active</span>
+              {% elif st == 'PAUSED' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono"
+                      style="background: rgba(234,179,8,0.12); color: var(--warm);">Paused</span>
+              {% else %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono ink-3">{{ st|title }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-sm ink-3 py-6 text-center font-mono">— no recurring invoices —</p>
+      <div class="text-center mt-2">
+        <a href="/recurring-invoices/new" class="text-xs sae hover:underline">Create one →</a>
+      </div>
+    {% endif %}
+  </section>
+
+  {# Journal templates #}
+  <section class="card p-6">
+    <div class="flex items-start justify-between mb-4">
+      <p class="nav-section-label">Journal templates</p>
+      <a href="/journal-templates" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+    </div>
+    {% if journal_templates %}
+      <table class="w-full text-sm">
+        <thead class="text-[11px] font-mono uppercase ink-3">
+          <tr>
+            <th class="text-left py-1">Name</th>
+            <th class="text-left py-1">Description</th>
+            <th class="text-right py-1">Lines</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for jt in journal_templates[:10] %}
+          <tr class="hairline-t">
+            <td class="py-2">
+              <a href="/journal-templates/{{ jt.id }}" class="sae hover:underline">{{ jt.name or jt.id[:8] }}</a>
+            </td>
+            <td class="py-2 ink-3 truncate" style="max-width: 220px;">{{ jt.description or '' }}</td>
+            <td class="py-2 text-right num-display ink-3">{{ (jt.lines or [])|length }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-sm ink-3 py-6 text-center font-mono">— no journal templates —</p>
+      <div class="text-center mt-2">
+        <a href="/journal-templates/new" class="text-xs sae hover:underline">Create one →</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+{# Backend gap notice — placeholder card #}
+<section class="card p-6 mb-8" style="background: rgba(234,179,8,0.05); border: 1px dashed var(--warm);">
+  <div class="flex items-start gap-3">
+    <i data-lucide="construction" class="w-5 h-5" style="color: var(--warm);"></i>
+    <div>
+      <p class="text-sm font-semibold" style="color: var(--warm);">Recurring bills + expenses — coming soon</p>
+      <p class="text-xs ink-3 mt-1 max-w-xl">
+        SAE Books currently supports recurring invoices and journal templates.
+        Recurring bills (e.g. monthly rent, weekly contractor invoices) and
+        recurring expenses (subscriptions, regular cash purchases) will land in
+        a future release — they need the same scheduler that drives recurring
+        invoices, applied to the bill / expense templates.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
