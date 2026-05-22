@@ -350,6 +350,8 @@
   {% block head %}{% endblock %}
 </head>
 <body class="{% if request.session.get('api_token') %}flex h-screen overflow-hidden{% else %}min-h-screen{% endif %}">
+<a class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[999] focus:px-4 focus:py-2 focus:rounded focus:bg-white focus:text-[color:var(--sae)] focus:font-medium focus:shadow-lg" href="#main">Skip to main content</a>
+<div id="toast-region" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
 {% if request.session.get("api_token") %}
 
@@ -773,7 +775,7 @@
     </header>
 
     {# Page content #}
-    <main class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 sm:py-8">
+    <main id="main" tabindex="-1" class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 sm:py-8">
       <div class="max-w-[1320px] mx-auto">
         {% block content %}{% endblock %}
       </div>
@@ -802,7 +804,7 @@
 {% else %}
 
   {# Unauthenticated shell — login/signup pages #}
-  <main class="mx-auto max-w-7xl px-6 py-8">
+  <main id="main" tabindex="-1" class="mx-auto max-w-7xl px-6 py-8">
     {{ self.content() }}
   </main>
 

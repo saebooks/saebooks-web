@@ -22,8 +22,10 @@
 </div>
 
 {% if error %}
-<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
-  {{ error }}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6 flex items-center justify-between gap-4">
+  <span>Couldn't load entries. Please try again.</span>
+  <button type="button" onclick="window.location.reload()"
+          class="shrink-0 text-sm font-medium underline hover:no-underline">Retry</button>
 </div>
 {% endif %}
 
@@ -80,14 +82,14 @@
   {{ csrf_input(request)|safe }}
       <input type="hidden" name="work_date" value="{{ d_iso }}">
       <div class="flex gap-1 mb-1">
-        <input type="number" name="hours" step="0.25" min="0.01" required
+        <input type="number" name="hours" aria-label="Hours for {{ d_iso }}" step="0.25" min="0.01" required aria-required="true"
                placeholder="h"
                class="w-12 rounded hairline px-1.5 py-1 text-sm num">
-        <input type="text" name="description" placeholder="What"
+        <input type="text" name="description" aria-label="Description for {{ d_iso }}" placeholder="What"
                class="flex-1 rounded hairline px-1.5 py-1 text-sm min-w-0">
       </div>
       <div class="flex gap-1 mb-1">
-        <select name="project_id" class="flex-1 rounded hairline px-1 py-1 text-xs min-w-0">
+        <select name="project_id" aria-label="Project for {{ d_iso }}" class="flex-1 rounded hairline px-1 py-1 text-xs min-w-0">
           <option value="">project…</option>
           {% for p in projects %}
           <option value="{{ p.id }}">{{ p.name }}</option>

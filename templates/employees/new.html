@@ -23,10 +23,10 @@
     <p class="nav-section-label mb-4">Identity</p>
     <div class="grid grid-cols-2 gap-4">
       <div class="col-span-2">
-        <label class="block text-sm ink-3 mb-1">Contact *
+        <label class="block text-sm ink-3 mb-1" for="contact_id">Contact *<span class="sr-only"> (required)</span>
           <span class="ink-4 text-xs">(links this employee to an existing contact card)</span>
         </label>
-        <select name="contact_id" required
+        <select id="contact_id" name="contact_id" required
                 class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="">— Select contact —</option>
           {% for c in contacts %}
@@ -39,29 +39,29 @@
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1">Employee number
+        <label class="block text-sm ink-3 mb-1" for="employee_number">Employee number
           <span class="ink-4 text-xs">(blank = server mints EMP-NNNNNN)</span>
         </label>
-        <input type="text" name="employee_number" value="{{ form.employee_number }}"
+        <input type="text" id="employee_number" name="employee_number" value="{{ form.employee_number }}"
                placeholder="EMP-000001"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1">Start date *</label>
-        <input type="date" name="start_date" required value="{{ form.start_date }}"
+        <label class="block text-sm ink-3 mb-1" for="start_date">Start date *<span class="sr-only"> (required)</span></label>
+        <input type="date" id="start_date" name="start_date" required aria-required="true" value="{{ form.start_date }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1">Date of birth</label>
-        <input type="date" name="dob" value="{{ form.dob or '' }}"
+        <label class="block text-sm ink-3 mb-1" for="dob">Date of birth</label>
+        <input type="date" id="dob" name="dob" value="{{ form.dob or '' }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1">Employment basis *</label>
-        <select name="employment_basis" required
+        <label class="block text-sm ink-3 mb-1" for="employment_basis">Employment basis *<span class="sr-only"> (required)</span></label>
+        <select id="employment_basis" name="employment_basis" required aria-required="true"
                 class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="F" {% if form.employment_basis == 'F' %}selected{% endif %}>F — Full time</option>
           <option value="P" {% if form.employment_basis == 'P' %}selected{% endif %}>P — Part time</option>
@@ -95,8 +95,8 @@
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1">TFN status</label>
-        <select name="tfn_status" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <label class="block text-sm ink-3 mb-1" for="tfn_status">TFN status</label>
+        <select id="tfn_status" name="tfn_status" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="NOT_PROVIDED"    {% if form.tfn_status == 'NOT_PROVIDED' %}selected{% endif %}>Not provided</option>
           <option value="PROVIDED"        {% if form.tfn_status == 'PROVIDED' %}selected{% endif %}>Provided</option>
           <option value="NEW_PAYEE_30D"   {% if form.tfn_status == 'NEW_PAYEE_30D' %}selected{% endif %}>New payee (30-day exemption)</option>
@@ -107,8 +107,8 @@
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1">Income stream type</label>
-        <select name="income_stream_type" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <label class="block text-sm ink-3 mb-1" for="income_stream_type">Income stream type</label>
+        <select id="income_stream_type" name="income_stream_type" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="SAW" {% if form.income_stream_type == 'SAW' %}selected{% endif %}>SAW — Salary &amp; wages</option>
           <option value="CHP" {% if form.income_stream_type == 'CHP' %}selected{% endif %}>CHP — Closely held payee</option>
           <option value="IAA" {% if form.income_stream_type == 'IAA' %}selected{% endif %}>IAA — Inbound assignee (AU)</option>
@@ -122,17 +122,17 @@
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1">Tax treatment code
+        <label class="block text-sm ink-3 mb-1" for="tax_treatment_code">Tax treatment code
           <span class="ink-4 text-xs">(auto-suggested; editable)</span>
         </label>
-        <input type="text" name="tax_treatment_code" value="{{ form.tax_treatment_code }}"
+        <input type="text" id="tax_treatment_code" name="tax_treatment_code" value="{{ form.tax_treatment_code }}"
                placeholder="e.g. RTRR"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1">PAYG branch code</label>
-        <input type="text" name="payg_branch_code" value="{{ form.payg_branch_code }}"
+        <label class="block text-sm ink-3 mb-1" for="payg_branch_code">PAYG branch code</label>
+        <input type="text" id="payg_branch_code" name="payg_branch_code" value="{{ form.payg_branch_code }}"
                placeholder="NNN"
                maxlength="3"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
@@ -176,23 +176,23 @@
     <p class="nav-section-label mb-4">Address</p>
     <div class="grid grid-cols-2 gap-4">
       <div class="col-span-2">
-        <label class="block text-sm ink-3 mb-1">Street line 1</label>
-        <input type="text" name="address_line1" value="{{ form.address_line1 }}"
+        <label class="block text-sm ink-3 mb-1" for="address_line1">Street line 1</label>
+        <input type="text" id="address_line1" name="address_line1" value="{{ form.address_line1 }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
       <div class="col-span-2">
-        <label class="block text-sm ink-3 mb-1">Street line 2</label>
-        <input type="text" name="address_line2" value="{{ form.address_line2 }}"
+        <label class="block text-sm ink-3 mb-1" for="address_line2">Street line 2</label>
+        <input type="text" id="address_line2" name="address_line2" value="{{ form.address_line2 }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Suburb / city</label>
-        <input type="text" name="suburb" value="{{ form.suburb }}"
+        <label class="block text-sm ink-3 mb-1" for="suburb">Suburb / city</label>
+        <input type="text" id="suburb" name="suburb" value="{{ form.suburb }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">State / territory</label>
-        <select name="state" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <label class="block text-sm ink-3 mb-1" for="state">State / territory</label>
+        <select id="state" name="state" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="">—</option>
           {% for st in ['NSW','VIC','QLD','WA','SA','TAS','ACT','NT'] %}
           <option value="{{ st }}" {% if form.state == st %}selected{% endif %}>{{ st }}</option>
@@ -200,14 +200,14 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Postcode</label>
-        <input type="text" name="postcode" value="{{ form.postcode }}"
+        <label class="block text-sm ink-3 mb-1" for="postcode">Postcode</label>
+        <input type="text" id="postcode" name="postcode" value="{{ form.postcode }}"
                maxlength="8"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Country code</label>
-        <input type="text" name="country_code" value="{{ form.country_code or 'AU' }}"
+        <label class="block text-sm ink-3 mb-1" for="country_code">Country code</label>
+        <input type="text" id="country_code" name="country_code" value="{{ form.country_code or 'AU' }}"
                maxlength="2"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
@@ -219,8 +219,8 @@
     <p class="nav-section-label mb-4">Pay shape</p>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm ink-3 mb-1">Pay frequency</label>
-        <select name="pay_frequency" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <label class="block text-sm ink-3 mb-1" for="pay_frequency">Pay frequency</label>
+        <select id="pay_frequency" name="pay_frequency" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="WEEKLY"      {% if form.pay_frequency == 'WEEKLY' %}selected{% endif %}>Weekly</option>
           <option value="FORTNIGHTLY" {% if form.pay_frequency == 'FORTNIGHTLY' %}selected{% endif %}>Fortnightly</option>
           <option value="MONTHLY"     {% if form.pay_frequency == 'MONTHLY' %}selected{% endif %}>Monthly</option>
@@ -229,37 +229,37 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Pay basis</label>
-        <select name="pay_basis" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <label class="block text-sm ink-3 mb-1" for="pay_basis">Pay basis</label>
+        <select id="pay_basis" name="pay_basis" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="HOURLY" {% if form.pay_basis == 'HOURLY' %}selected{% endif %}>Hourly</option>
           <option value="SALARY" {% if form.pay_basis == 'SALARY' %}selected{% endif %}>Salary</option>
         </select>
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Base rate *
+        <label class="block text-sm ink-3 mb-1" for="base_rate">Base rate *<span class="sr-only"> (required)</span>
           <span class="ink-4 text-xs">($/hr for hourly; annual salary otherwise)</span>
         </label>
-        <input type="number" name="base_rate" required step="0.0001" min="0"
+        <input type="number" id="base_rate" name="base_rate" required aria-required="true" step="0.0001" min="0"
                value="{{ form.base_rate }}"
                placeholder="e.g. 32.50"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num-display">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Ordinary weekly hours</label>
-        <input type="number" name="weekly_hours" step="0.01" min="0"
+        <label class="block text-sm ink-3 mb-1" for="weekly_hours">Ordinary weekly hours</label>
+        <input type="number" id="weekly_hours" name="weekly_hours" step="0.01" min="0"
                value="{{ form.weekly_hours or '38.00' }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Payslip email
+        <label class="block text-sm ink-3 mb-1" for="payslip_email">Payslip email
           <span class="ink-4 text-xs">(defaults to contact email)</span>
         </label>
-        <input type="email" name="payslip_email" value="{{ form.payslip_email }}"
+        <input type="email" id="payslip_email" name="payslip_email" value="{{ form.payslip_email }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Payslip delivery</label>
-        <select name="payslip_delivery" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <label class="block text-sm ink-3 mb-1" for="payslip_delivery">Payslip delivery</label>
+        <select id="payslip_delivery" name="payslip_delivery" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="EMAIL"  {% if form.payslip_delivery == 'EMAIL' %}selected{% endif %}>Email</option>
           <option value="PRINT"  {% if form.payslip_delivery == 'PRINT' %}selected{% endif %}>Print</option>
           <option value="PORTAL" {% if form.payslip_delivery == 'PORTAL' %}selected{% endif %}>Employee portal</option>
@@ -273,8 +273,8 @@
     <p class="nav-section-label mb-4">Super and bank</p>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm ink-3 mb-1">Super fund</label>
-        <select name="super_fund_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+        <label class="block text-sm ink-3 mb-1" for="super_fund_id">Super fund</label>
+        <select id="super_fund_id" name="super_fund_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="">— None —</option>
           {% for f in super_funds %}
           <option value="{{ f.id }}"
@@ -285,8 +285,8 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1">Member number</label>
-        <input type="text" name="super_member_number" value="{{ form.super_member_number }}"
+        <label class="block text-sm ink-3 mb-1" for="super_member_number">Member number</label>
+        <input type="text" id="super_member_number" name="super_member_number" value="{{ form.super_member_number }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
 
