@@ -98,8 +98,11 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=tailwind --chown=saebooks:saebooks /css/tailwind.css /app/static/tailwind.css
 
-# PWA assets — manifest, service worker, icons, splash screens. Copied AFTER
-# the tailwind stage so the tailwind output already exists at /app/static/.
+# Static vendor assets and branding. Copied AFTER the tailwind stage so the
+# tailwind output already exists at /app/static/.
+COPY --chown=saebooks:saebooks static/chart.umd.min.js /app/static/chart.umd.min.js
+COPY --chown=saebooks:saebooks static/sae-books-logo.png /app/static/sae-books-logo.png
+# PWA assets — manifest, service worker, icons, splash screens.
 COPY --chown=saebooks:saebooks static/manifest.webmanifest /app/static/manifest.webmanifest
 COPY --chown=saebooks:saebooks static/pwa/ /app/static/pwa/
 

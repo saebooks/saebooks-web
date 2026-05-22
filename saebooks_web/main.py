@@ -248,12 +248,24 @@ class _PreviewBasicAuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._user, _, self._password = credential.partition(":")
 
+    # PWA assets must be accessible without auth so the service worker
+    # can fetch its own manifest/icons without triggering an offline-page hijack.
+    _BYPASS_PREFIXES = (
+        "/healthz",
+        "/manifest.webmanifest",
+        "/manifest.json",
+        "/sw.js",
+        "/offline.html",
+        "/static/pwa/",
+    )
+
     async def dispatch(
         self,
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
-        if request.url.path == "/healthz":
+        path = request.url.path
+        if any(path == p or path.startswith(p) for p in self._BYPASS_PREFIXES):
             return await call_next(request)
         header = request.headers.get("authorization", "")
         if header.lower().startswith("basic "):

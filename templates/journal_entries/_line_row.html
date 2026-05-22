@@ -16,6 +16,7 @@
   <td class="px-3 py-2">
     <select
       name="lines[{{ index }}][account_id]"
+      aria-label="Account, row {{ index }}"
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
              focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
     >
@@ -34,6 +35,7 @@
     <input
       type="text"
       name="lines[{{ index }}][description]"
+      aria-label="Description, row {{ index }}"
       value="{{ line.get('description', '') }}"
       placeholder="Description"
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
@@ -45,6 +47,7 @@
   <td class="px-3 py-2 w-32">
     <select
       name="lines[{{ index }}][tax_code_id]"
+      aria-label="Tax code, row {{ index }}"
       class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
              focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
     >
@@ -63,6 +66,7 @@
     <input
       type="number"
       name="lines[{{ index }}][debit]"
+      aria-label="Debit, row {{ index }}"
       value="{{ line.get('debit', '') }}"
       step="0.01"
       min="0"
@@ -77,6 +81,7 @@
     <input
       type="number"
       name="lines[{{ index }}][credit]"
+      aria-label="Credit, row {{ index }}"
       value="{{ line.get('credit', '') }}"
       step="0.01"
       min="0"

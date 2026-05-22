@@ -19,27 +19,27 @@
   {{ csrf_input(request)|safe }}
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm ink-3 mb-1">Date *</label>
-      <input type="date" name="work_date" required value="{{ form.work_date }}"
+      <label class="block text-sm ink-3 mb-1" for="work_date">Date *<span class="sr-only"> (required)</span></label>
+      <input type="date" id="work_date" name="work_date" required aria-required="true" value="{{ form.work_date }}"
              class="w-full rounded-md hairline px-3 py-2 bg-paper">
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1">Hours *</label>
-      <input type="number" name="hours" step="0.25" min="0.01" required value="{{ form.hours }}"
+      <label class="block text-sm ink-3 mb-1" for="hours">Hours *<span class="sr-only"> (required)</span></label>
+      <input type="number" id="hours" name="hours" step="0.25" min="0.01" required aria-required="true" value="{{ form.hours }}"
              placeholder="e.g. 1.5"
              class="w-full rounded-md hairline px-3 py-2 bg-paper num-display">
     </div>
 
     <div class="col-span-2">
-      <label class="block text-sm ink-3 mb-1">Description</label>
-      <input type="text" name="description" value="{{ form.description }}"
+      <label class="block text-sm ink-3 mb-1" for="description">Description</label>
+      <input type="text" id="description" name="description" value="{{ form.description }}"
              placeholder="Site visit, drawings review, etc."
              class="w-full rounded-md hairline px-3 py-2 bg-paper">
     </div>
 
     <div>
-      <label class="block text-sm ink-3 mb-1">Project</label>
-      <select name="project_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+      <label class="block text-sm ink-3 mb-1" for="project_id">Project</label>
+      <select id="project_id" name="project_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
         <option value="">—</option>
         {% for p in projects %}
         <option value="{{ p.id }}" {% if form.project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
@@ -47,8 +47,8 @@
       </select>
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1">Contact</label>
-      <select name="contact_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+      <label class="block text-sm ink-3 mb-1" for="contact_id">Contact</label>
+      <select id="contact_id" name="contact_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
         <option value="">—</option>
         {% for c in contacts %}
         <option value="{{ c.id }}" {% if form.contact_id == c.id %}selected{% endif %}>{{ c.name }}</option>
@@ -64,8 +64,8 @@
       </label>
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1">Rate ($/h, optional)</label>
-      <input type="number" name="rate" step="0.01" min="0" value="{{ form.rate }}"
+      <label class="block text-sm ink-3 mb-1" for="rate">Rate ($/h, optional)</label>
+      <input type="number" id="rate" name="rate" step="0.01" min="0" value="{{ form.rate }}"
              placeholder="e.g. 150.00"
              class="w-full rounded-md hairline px-3 py-2 bg-paper num">
     </div>
@@ -74,18 +74,18 @@
       <p class="text-sm ink-3 mb-2">Optional clock times</p>
       <div class="grid grid-cols-3 gap-3">
         <div>
-          <label class="block text-sm ink-3 mb-1">Start</label>
-          <input type="time" name="start_time" value="{{ form.start_time or '' }}"
+          <label class="block text-sm ink-3 mb-1" for="start_time">Start</label>
+          <input type="time" id="start_time" name="start_time" value="{{ form.start_time or '' }}"
                  class="w-full rounded-md hairline px-3 py-2 bg-paper num">
         </div>
         <div>
-          <label class="block text-sm ink-3 mb-1">End</label>
-          <input type="time" name="end_time" value="{{ form.end_time or '' }}"
+          <label class="block text-sm ink-3 mb-1" for="end_time">End</label>
+          <input type="time" id="end_time" name="end_time" value="{{ form.end_time or '' }}"
                  class="w-full rounded-md hairline px-3 py-2 bg-paper num">
         </div>
         <div>
-          <label class="block text-sm ink-3 mb-1">Break (min)</label>
-          <input type="number" name="break_minutes" min="0" step="5"
+          <label class="block text-sm ink-3 mb-1" for="break_minutes">Break (min)</label>
+          <input type="number" id="break_minutes" name="break_minutes" min="0" step="5"
                  value="{{ form.break_minutes or '' }}"
                  class="w-full rounded-md hairline px-3 py-2 bg-paper num">
         </div>

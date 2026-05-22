@@ -4,7 +4,7 @@
 #}
 <tr class="line-row">
   <td class="px-3 py-2">
-    <select name="lines[{{ index }}][account_id]" class="saebooks-input text-sm py-1.5">
+    <select name="lines[{{ index }}][account_id]" aria-label="Account, row {{ index }}" class="saebooks-input text-sm py-1.5">
       <option value="">— account —</option>
       {% for acct in accounts %}
       <option value="{{ acct.id }}" {% if line.get("account_id") == acct.id %}selected{% endif %}>
@@ -15,24 +15,24 @@
   </td>
 
   <td class="px-3 py-2">
-    <input type="text" name="lines[{{ index }}][description]" value="{{ line.get('description', '') }}"
+    <input type="text" name="lines[{{ index }}][description]" aria-label="Description, row {{ index }}" value="{{ line.get('description', '') }}"
            placeholder="Description" class="saebooks-input text-sm py-1.5">
   </td>
 
   <td class="px-3 py-2 w-24">
-    <input type="number" name="lines[{{ index }}][quantity]" value="{{ line.get('quantity', '1') }}"
+    <input type="number" name="lines[{{ index }}][quantity]" aria-label="Quantity, row {{ index }}" value="{{ line.get('quantity', '1') }}"
            step="0.001" min="0" class="saebooks-input num text-sm py-1.5 text-right">
   </td>
 
   <td class="px-3 py-2 w-28">
-    <input type="number" name="lines[{{ index }}][unit_price]" value="{{ line.get('unit_price', '') }}"
+    <input type="number" name="lines[{{ index }}][unit_price]" aria-label="Unit price, row {{ index }}" value="{{ line.get('unit_price', '') }}"
            step="0.01" placeholder="0.00"
            title="Negative amounts reduce the total (e.g. marketplace tax deductions)"
            class="saebooks-input num-display text-sm py-1.5 text-right">
   </td>
 
   <td class="px-3 py-2 w-32">
-    <select name="lines[{{ index }}][tax_code_id]" class="saebooks-input text-sm py-1.5">
+    <select name="lines[{{ index }}][tax_code_id]" aria-label="Tax code, row {{ index }}" class="saebooks-input text-sm py-1.5">
       <option value="">— none —</option>
       {% for tc in tax_codes %}
       <option value="{{ tc.id }}" {% if line.get("tax_code_id") == tc.id %}selected{% endif %}>
@@ -43,7 +43,7 @@
   </td>
 
   <td class="px-3 py-2 w-36">
-    <select name="lines[{{ index }}][project_id]" class="saebooks-input text-sm py-1.5">
+    <select name="lines[{{ index }}][project_id]" aria-label="Project, row {{ index }}" class="saebooks-input text-sm py-1.5">
       <option value="">— none —</option>
       {% for proj in projects %}
       <option value="{{ proj.id }}"
@@ -55,7 +55,7 @@
   </td>
 
   <td class="px-3 py-2 w-28" title="Acquisition cost (Margin Scheme / MGN lines only)">
-    <input type="number" name="lines[{{ index }}][margin_acq_cost]" value="{{ line.get('margin_acq_cost', '') }}"
+    <input type="number" name="lines[{{ index }}][margin_acq_cost]" aria-label="Acquisition cost, row {{ index }}" value="{{ line.get('margin_acq_cost', '') }}"
            step="0.01" min="0" placeholder="Acq. cost"
            class="saebooks-input num text-sm py-1.5 text-right">
   </td>
