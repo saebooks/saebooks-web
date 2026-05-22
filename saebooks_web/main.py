@@ -60,6 +60,7 @@ from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware  # noqa
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.discourse_sso import router as discourse_sso_router
+from saebooks_web.authentik_sso import router as authentik_sso_router
 from saebooks_web.routes.preview import router as preview_router
 from saebooks_web.routes.public_auth import router as public_auth_router
 from saebooks_web.routes.billing import router as billing_router
@@ -281,6 +282,7 @@ if _PREVIEW_AUTH and ":" in _PREVIEW_AUTH:
 # ---------------------------------------------------------------------------
 app.include_router(auth_router)
 app.include_router(discourse_sso_router)
+app.include_router(authentik_sso_router)
 app.include_router(public_auth_router)
 app.include_router(contact_router)
 app.include_router(billing_router)

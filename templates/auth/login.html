@@ -80,7 +80,7 @@
         </button>
       </form>
 
-      {% if discourse_enabled %}
+      {% if discourse_enabled or authentik_enabled %}
       <div class="my-6 flex items-center gap-3">
         <div class="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
         <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">or</span>
@@ -88,6 +88,17 @@
       </div>
 
       <div class="space-y-2">
+        {% if authentik_enabled %}
+        <a href="/auth/authentik/login"
+           class="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[#194291] px-4 py-2 text-sm font-medium text-white bg-[#194291] hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291]">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {{ authentik_button_label or "Continue with SAE Engineering" }}
+        </a>
+        {% endif %}
+        {% if discourse_enabled %}
         <a href="/auth/discourse/login"
            class="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#194291]">
           <svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -95,6 +106,7 @@
           </svg>
           Continue with Discourse
         </a>
+        {% endif %}
       </div>
       {% endif %}
 
