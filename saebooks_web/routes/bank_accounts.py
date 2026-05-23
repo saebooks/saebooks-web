@@ -492,10 +492,27 @@ async def bank_account_archive(
 async def bank_account_detail(
     request: Request,
     account_id: str,
+    status: str | None = None,
+    limit: int = 200,
+    offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
-    """Render a single bank account detail page."""
+    """Render a single bank account detail page.
+
+    The transactions section uses the bottom-of-page real estate as the
+    primary view of this account's bank-statement lines — no separate
+    page nav. Supports status filter + offset pagination via query
+    string. Default limit is 200 (API caps at 500).
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    # Clamp limit to API max so we never burn a 422 round-trip.
+    if limit < 1:
+        limit = 1
+    elif limit > 500:
+        limit = 500
+    if offset < 0:
+        offset = 0
 
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/bank_accounts/{account_id}")
@@ -522,9 +539,16 @@ async def bank_account_detail(
         lines: list[dict] = []
         lines_total = 0
         lines_error: str | None = None
+        bsl_params: dict[str, object] = {
+            "bank_account_id": account_id,
+            "limit": limit,
+            "offset": offset,
+        }
+        if status:
+            bsl_params["status"] = status
         bsl_resp = await client.get(
             "/api/v1/bank_statement_lines",
-            params={"bank_account_id": account_id, "limit": 50, "offset": 0},
+            params=bsl_params,
         )
         if bsl_resp.is_success:
             bsl_payload = bsl_resp.json()
@@ -532,6 +556,9 @@ async def bank_account_detail(
             lines_total = bsl_payload.get("total", len(lines))
         else:
             lines_error = f"Could not load transactions: HTTP {bsl_resp.status_code}"
+
+    prev_offset = max(offset - limit, 0) if offset > 0 else None
+    next_offset = offset + limit if (offset + limit) < lines_total else None
 
     account = resp.json()
     flash = request.session.pop("flash", None)
@@ -545,5 +572,10 @@ async def bank_account_detail(
             "lines": lines,
             "lines_total": lines_total,
             "lines_error": lines_error,
+            "filter_status": status or "",
+            "limit": limit,
+            "offset": offset,
+            "prev_offset": prev_offset,
+            "next_offset": next_offset,
         },
     )
