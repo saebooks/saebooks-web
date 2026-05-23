@@ -1,4 +1,5 @@
 {% import "_partials/empty_state.html" as empty %}
+{% import "_components/kebab_menu.html" as km %}
 {# HTMX partial — quotes table body + pagination. #}
 <div id="quotes-table">
 
@@ -13,23 +14,37 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
+        <th class="w-8 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="text-left">Number</th>
+        <th class="text-left">Title</th>
         <th class="text-left">Date</th>
         <th class="text-left">Expiry</th>
         <th class="text-left">Customer</th>
         <th class="text-right">Total</th>
         <th class="text-left">Status</th>
+        <th class="w-8"></th>{# kebab column header — intentionally empty #}
       </tr>
     </thead>
     <tbody>
       {% if quotes %}
         {% for q in quotes %}
         <tr class="hover:bg-paper-2 cursor-pointer" data-status="{{ (q.status or 'draft')|lower }}" onclick="window.location='/quotes/{{ q.id }}'">
+          <td class="text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ q.id }}"
+                   aria-label="Select quote {{ q.number or q.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td>
-            <a href="/quotes/{{ q.id }}" class="sae hover:underline font-medium num">
+            <a href="/quotes/{{ q.id }}" class="sae hover:underline font-medium num" onclick="event.stopPropagation()">
               {{ q.number or "—" }}
             </a>
           </td>
+          <td class="ink-1">{{ q.title or "—" }}</td>
           <td class="num ink-2">{{ q.issue_date }}</td>
           <td class="num ink-2">{{ q.expiry_date or "—" }}</td>
           {% set _c = contacts_by_id.get(q.customer_id) if contacts_by_id else None %}
@@ -54,15 +69,32 @@
               <span class="badge-draft">{{ q.status|capitalize }}</span>
             {% endif %}
           </td>
+          <td class="text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (q.status or 'draft')|lower %}
+            {%- set actions = [
+              ("view", "View", "/quotes/" ~ q.id,       "link", false),
+              ("edit", "Edit", "/quotes/" ~ q.id ~ "/edit", "link", false),
+            ] %}
+            {%- if status_lower == 'draft' %}
+              {%- set _ = actions.append(("send",    "Send",    "/quotes/" ~ q.id ~ "/send",    "post", false)) %}
+            {%- elif status_lower == 'sent' %}
+              {%- set _ = actions.append(("accept",  "Accept",  "/quotes/" ~ q.id ~ "/accept",  "post", false)) %}
+              {%- set _ = actions.append(("decline", "Decline", "/quotes/" ~ q.id ~ "/decline", "post", true)) %}
+            {%- endif %}
+            {%- if status_lower not in ('invoiced', 'archived') %}
+              {%- set _ = actions.append(("archive", "Archive", "/quotes/" ~ q.id ~ "/archive", "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=q.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         {% if not filter_status and not filter_customer_id %}
-        {{ empty.row(6, "inbox", "No quotes yet",
+        {{ empty.row(9, "inbox", "No quotes yet",
                      "Send your first quote to a customer.",
                      "New quote", "/quotes/new") }}
         {% else %}
-        {{ empty.row(6, "search-x", "No quotes match these filters",
+        {{ empty.row(9, "search-x", "No quotes match these filters",
                      "Try clearing the filters above.") }}
         {% endif %}
       {% endif %}

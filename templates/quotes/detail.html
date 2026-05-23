@@ -52,9 +52,18 @@
           <span class="badge-draft">{{ quote.status|capitalize }}</span>
         {% endif %}
       </div>
+      {% if quote.title %}
+      <h1 class="font-display text-3xl leading-none tracking-tight">
+        {{ quote.title }}
+      </h1>
+      <p class="text-sm ink-3 font-mono mt-2 num-display">
+        {{ quote.number or "—" }}
+      </p>
+      {% else %}
       <h1 class="font-display text-3xl leading-none tracking-tight num-display">
         {{ quote.number or "—" }}
       </h1>
+      {% endif %}
       <p class="text-xs ink-3 font-mono mt-2">
         customer ·
         <a href="/contacts/{{ quote.customer_id }}" class="sae hover:underline">

@@ -13,6 +13,17 @@
   <legend class="nav-section-label mb-3">Quote details</legend>
 
   <div>
+    <label for="title" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+      Title <span class="ink-4 font-normal normal-case">(project / job name)</span>
+    </label>
+    <input type="text" id="title" name="title" value="{{ form.get('title', '') }}"
+           maxlength="255" class="saebooks-input"
+           placeholder="e.g. Barron Valley Gymnastics Club Extension"
+           {% if errors.get('title') %}style="border-color:var(--neg);"{% endif %}>
+    {% if errors.get("title") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["title"] }}</p>{% endif %}
+  </div>
+
+  <div>
     <label for="customer_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
       Customer <span style="color:var(--neg);">*</span>
     </label>

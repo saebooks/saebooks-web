@@ -2,6 +2,7 @@
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
 #}
+{% import "_components/kebab_menu.html" as km %}
 <div id="credit-notes-table">
 
 {% if error %}
@@ -14,12 +15,18 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">CN #</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Contact</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Applied To</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Amount</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -27,10 +34,17 @@
         {% for cn in credit_notes %}
         <tr
           class="hover:bg-gray-50 cursor-pointer"
+          data-status="{{ (cn.status or 'draft')|lower }}"
           onclick="window.location='/credit-notes/{{ cn.id }}'"
         >
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ cn.id }}"
+                   aria-label="Select credit note {{ cn.number or cn.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/credit-notes/{{ cn.id }}" class="hover:underline">
+            <a href="/credit-notes/{{ cn.id }}" class="hover:underline" onclick="event.stopPropagation()">
               {{ cn.number or "—" }}
             </a>
           </td>
@@ -62,11 +76,25 @@
               {{ cn.status | capitalize }}
             </span>
           </td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (cn.status or 'draft')|lower %}
+            {%- set actions = [
+              ("view", "View", "/credit-notes/" ~ cn.id,       "link", false),
+              ("edit", "Edit", "/credit-notes/" ~ cn.id ~ "/edit", "link", false),
+            ] %}
+            {%- if status_lower == 'draft' %}
+              {%- set _ = actions.append(("post",    "Post",    "/credit-notes/" ~ cn.id ~ "/post",    "post", false)) %}
+              {%- set _ = actions.append(("archive", "Archive", "/credit-notes/" ~ cn.id ~ "/archive", "post", true)) %}
+            {%- elif status_lower == 'posted' %}
+              {%- set _ = actions.append(("void",    "Void",    "/credit-notes/" ~ cn.id ~ "/void",    "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=cn.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="8" class="px-4 py-8 text-center text-gray-400">
             No credit notes found.
           </td>
         </tr>

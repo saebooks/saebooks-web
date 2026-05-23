@@ -1,4 +1,5 @@
 {# HTMX partial — purchase-order table body + pagination. #}
+{% import "_components/kebab_menu.html" as km %}
 <div id="purchase-orders-table">
 
 {% if error %}
@@ -11,12 +12,18 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">PO number</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Issue date</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Expected</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Supplier</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -24,10 +31,17 @@
         {% for po in purchase_orders %}
         <tr
           class="hover:bg-gray-50 cursor-pointer"
+          data-status="{{ (po.status or 'draft')|lower }}"
           onclick="window.location='/purchase_orders/{{ po.id }}'"
         >
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ po.id }}"
+                   aria-label="Select purchase order {{ po.number or po.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/purchase_orders/{{ po.id }}" class="hover:underline">
+            <a href="/purchase_orders/{{ po.id }}" class="hover:underline" onclick="event.stopPropagation()">
               {{ po.number or "—" }}
             </a>
           </td>
@@ -52,11 +66,28 @@
               {{ po.status | capitalize }}
             </span>
           </td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (po.status or 'draft')|lower %}
+            {%- set actions = [
+              ("view", "View", "/purchase_orders/" ~ po.id, "link", false),
+              ("edit", "Edit", "/purchase_orders/" ~ po.id ~ "/edit", "link", false),
+            ] %}
+            {%- if status_lower == 'draft' %}
+              {%- set _ = actions.append(("send",    "Send",    "/purchase_orders/" ~ po.id ~ "/send",    "post", false)) %}
+            {%- elif status_lower in ('open', 'partial') %}
+              {%- set _ = actions.append(("close",   "Close",   "/purchase_orders/" ~ po.id ~ "/close",   "post", false)) %}
+              {%- set _ = actions.append(("cancel",  "Cancel",  "/purchase_orders/" ~ po.id ~ "/cancel",  "post", true)) %}
+            {%- endif %}
+            {%- if status_lower not in ('cancelled', 'closed') %}
+              {%- set _ = actions.append(("archive", "Archive", "/purchase_orders/" ~ po.id ~ "/archive", "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=po.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-12 text-center">
+          <td colspan="8" class="px-4 py-12 text-center">
             <p class="text-gray-400 text-sm mb-2">No purchase orders found.</p>
             {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
             <a href="/purchase_orders/new" class="text-sm text-[#194291] hover:underline">Create your first purchase order →</a>

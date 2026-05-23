@@ -1,4 +1,5 @@
 {# HTMX partial — payment table body + pagination. #}
+{% import "_components/kebab_menu.html" as km %}
 <div id="payments-table">
 
 {% if error %}
@@ -12,31 +13,59 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
+        <th class="w-8 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="text-left">Date</th>
         <th class="text-left">Reference</th>
         <th class="text-left">Direction</th>
         <th class="text-left">Contact</th>
         <th class="text-right">Amount</th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody>
       {% if payments %}
         {% for payment in payments %}
-        <tr class="cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">
-          <td class="ink-2 num">{{ payment.payment_date }}</td>
-          <td><a href="/payments/{{ payment.id }}" class="sae hover:underline font-medium">{{ payment.reference or payment.number or "—" }}</a></td>
-          <td>
+        <tr class="hover:bg-paper-2" data-status="{{ (payment.status or 'draft')|lower }}">
+          <td class="text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ payment.id }}"
+                   aria-label="Select payment {{ payment.reference or payment.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
+          <td class="ink-2 num cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">{{ payment.payment_date }}</td>
+          <td class="cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">
+            <a href="/payments/{{ payment.id }}" class="sae hover:underline font-medium" onclick="event.stopPropagation()">{{ payment.reference or payment.number or "—" }}</a>
+          </td>
+          <td class="cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">
             {% if payment.direction == 'INCOMING' %}<span class="badge-paid">Incoming</span>
             {% elif payment.direction == 'OUTGOING' %}<span class="badge-pending">Outgoing</span>
             {% else %}<span class="badge-draft">{{ payment.direction|capitalize }}</span>{% endif %}
           </td>
-          <td class="ink-3 text-xs font-mono">{{ payment.contact_id }}</td>
-          <td class="text-right num-display ink-1">{{ payment.currency }} {{ "%.2f"|format(payment.amount|float) }}</td>
+          <td class="ink-3 text-xs font-mono cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">{{ payment.contact_id }}</td>
+          <td class="text-right num-display ink-1 cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">{{ payment.currency }} {{ "%.2f"|format(payment.amount|float) }}</td>
+          <td class="text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (payment.status or 'draft')|lower %}
+            {%- set actions = [
+              ("view", "View", "/payments/" ~ payment.id,       "link", false),
+              ("edit", "Edit", "/payments/" ~ payment.id ~ "/edit", "link", false),
+            ] %}
+            {%- if status_lower == 'draft' %}
+              {%- set _ = actions.append(("post",    "Post",    "/payments/" ~ payment.id ~ "/post",    "post", false)) %}
+              {%- set _ = actions.append(("archive", "Archive", "/payments/" ~ payment.id ~ "/archive", "post", true)) %}
+            {%- elif status_lower == 'posted' %}
+              {%- set _ = actions.append(("void",    "Void",    "/payments/" ~ payment.id ~ "/void",    "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=payment.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="text-center ink-3 font-mono text-sm py-10">
+          <td colspan="7" class="text-center ink-3 font-mono text-sm py-10">
             <p class="mb-2">— no payments found —</p>
             {% if not filter_direction and not filter_contact_id and not filter_date_from and not filter_date_to %}
             <a href="/payments/new" class="sae hover:underline">Record your first payment →</a>

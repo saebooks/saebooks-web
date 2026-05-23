@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_components/kebab_menu.html" as km %}
 
 {% block title %}Employees — SAE Books{% endblock %}
 
@@ -59,6 +60,11 @@
   <table class="w-full text-base">
     <thead>
       <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="w-8 px-3 py-2 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-3 py-2">Number</th>
         <th class="px-3 py-2">Name</th>
         <th class="px-3 py-2">Start</th>
@@ -67,13 +73,19 @@
         <th class="px-3 py-2 text-right">Rate</th>
         <th class="px-3 py-2 text-center">TFN</th>
         <th class="px-3 py-2 text-center">Status</th>
-        <th class="px-3 py-2"></th>
+        <th class="w-8 px-3 py-2"></th>
       </tr>
     </thead>
     <tbody>
       {% for emp in employees %}
       {% set fund = fund_by_id.get(emp.super_fund_id|string) if emp.super_fund_id else None %}
       <tr class="border-b hairline hover:bg-paper-2">
+        <td class="px-3 py-2 text-center" onclick="event.stopPropagation()">
+          <input type="checkbox" data-row-select data-id="{{ emp.id }}"
+                 aria-label="Select employee {{ emp.employee_number }}"
+                 onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </td>
         <td class="px-3 py-2 num">{{ emp.employee_number }}</td>
         <td class="px-3 py-2">{{ emp.contact_id }}</td>
         <td class="px-3 py-2 num text-sm">{{ emp.start_date }}</td>
@@ -118,12 +130,17 @@
           <span class="chip chip-pos text-xs">Active</span>
           {% endif %}
         </td>
-        <td class="px-3 py-2 text-right">
-          <a href="/employees/{{ emp.id }}" class="sae hover:underline text-sm">Open</a>
+        <td class="px-3 py-2 text-right" onclick="event.stopPropagation()">
+          {%- set actions = [
+            ("view",    "View",    "/employees/" ~ emp.id,           "link", false),
+            ("edit",    "Edit",    "/employees/" ~ emp.id ~ "/edit", "link", false),
+            ("archive", "Archive", "/employees/" ~ emp.id ~ "/archive","post", true),
+          ] %}
+          {{ km.kebab(row_id=emp.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="9" class="p-6 text-center ink-3">No employees match these filters.</td></tr>
+      <tr><td colspan="11" class="p-6 text-center ink-3">No employees match these filters.</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -139,5 +156,19 @@
     {% endif %}
   </div>
 </div>
+
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="employees",
+     action_endpoint="/employees/bulk",
+     actions=[
+       ("archive", "Archive", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
 
 {% endblock %}

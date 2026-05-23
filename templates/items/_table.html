@@ -2,6 +2,7 @@
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
 #}
+{% import "_components/kebab_menu.html" as km %}
 <div id="items-table">
 
 {% if error %}
@@ -14,11 +15,17 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">SKU</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Type</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Sale price</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">On hand</th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -28,9 +35,15 @@
           class="hover:bg-gray-50 cursor-pointer"
           onclick="window.location='/items/{{ item.id }}'"
         >
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ item.id }}"
+                   aria-label="Select item {{ item.name }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 font-mono text-gray-700 text-xs">{{ item.sku }}</td>
           <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/items/{{ item.id }}" class="hover:underline">{{ item.name }}</a>
+            <a href="/items/{{ item.id }}" class="hover:underline" onclick="event.stopPropagation()">{{ item.name }}</a>
           </td>
           <td class="px-4 py-3">
             <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
@@ -48,11 +61,19 @@
               {{ item.on_hand_qty }}
             {% else %}—{% endif %}
           </td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set actions = [
+              ("view",    "View",    "/items/" ~ item.id,             "link", false),
+              ("edit",    "Edit",    "/items/" ~ item.id ~ "/edit",   "link", false),
+              ("archive", "Archive", "/items/" ~ item.id ~ "/archive","post", true),
+            ] %}
+            {{ km.kebab(row_id=item.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="7" class="px-4 py-8 text-center text-gray-400">
             No items found.
           </td>
         </tr>

@@ -2,6 +2,7 @@
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
 #}
+{% import "_components/kebab_menu.html" as km %}
 <div id="bank-statement-lines-table">
 
 {% if error %}
@@ -14,11 +15,17 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Amount</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Balance</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -26,11 +33,18 @@
         {% for line in lines %}
         <tr
           class="hover:bg-gray-50 cursor-pointer"
+          data-status="{{ (line.status or 'unmatched')|lower }}"
           onclick="window.location='/bank-statement-lines/{{ line.id }}'"
         >
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ line.id }}"
+                   aria-label="Select line {{ line.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ line.txn_date or "—" }}</td>
           <td class="px-4 py-3 text-gray-900">
-            <a href="/bank-statement-lines/{{ line.id }}" class="hover:underline text-[#194291]">
+            <a href="/bank-statement-lines/{{ line.id }}" class="hover:underline text-[#194291]" onclick="event.stopPropagation()">
               {{ line.description or "—" }}
             </a>
           </td>
@@ -52,11 +66,21 @@
               {{ line.status | replace("_", " ") | title }}
             </span>
           </td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (line.status or 'unmatched')|lower %}
+            {%- set actions = [
+              ("view", "View", "/bank-statement-lines/" ~ line.id, "link", false),
+            ] %}
+            {%- if status_lower in ('matched', 'reconciled') %}
+              {%- set _ = actions.append(("unmatch", "Unmatch", "/bank-statement-lines/" ~ line.id ~ "/unmatch", "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=line.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="7" class="px-4 py-8 text-center text-gray-400">
             No bank statement lines found.
           </td>
         </tr>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons %}
+{% import "_components/kebab_menu.html" as km %}
 
 {% block title %}Bank Rules — SAE Books{% endblock %}
 
@@ -52,17 +53,28 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Priority</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Match</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Action</th>
-        <th class="px-4 py-3"></th>
+        <th class="w-8 px-4 py-3"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
       {% if rules %}
         {% for rule in rules %}
         <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ rule.id }}"
+                   aria-label="Select rule {{ rule.name or rule.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ rule.priority | default("—") }}</td>
           <td class="px-4 py-3 font-medium text-gray-900">{{ rule.name | default("—") }}</td>
           <td class="px-4 py-3 text-gray-600 text-xs">
@@ -78,29 +90,18 @@
               <span class="text-gray-400 ml-1">Tax: {{ rule.action_tax_code_id }}</span>
             {% endif %}
           </td>
-          <td class="px-4 py-3 text-right">
-            <div class="flex items-center justify-end gap-1">
-              {{ icons.edit("/bank-rules/" ~ rule.id ~ "/edit") }}
-              {{ icons.soft_delete(
-                   "/bank-rules/" ~ rule.id ~ "/delete",
-                   csrf_input(request),
-                   rule.version,
-                   "Delete rule '" ~ (rule.name|default('')) ~ "'?"
-              ) }}
-              {% if is_admin %}
-              {{ icons.hard_delete(
-                   "/api/v1/bank_rules/" ~ rule.id,
-                   "rule '" ~ (rule.name|default('this rule')) ~ "'",
-                   "/bank-rules"
-              ) }}
-              {% endif %}
-            </div>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set actions = [
+              ("edit",   "Edit",   "/bank-rules/" ~ rule.id ~ "/edit",   "link", false),
+              ("delete", "Delete", "/bank-rules/" ~ rule.id ~ "/delete", "post", true),
+            ] %}
+            {{ km.kebab(row_id=rule.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="7" class="px-4 py-8 text-center text-gray-400">
             No bank rules defined.
             <a href="/bank-rules/new" class="text-[#194291] hover:underline ml-1">Create one.</a>
           </td>
@@ -109,5 +110,19 @@
     </tbody>
   </table>
 </div>
+
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="bank_rules",
+     action_endpoint="/bank-rules/bulk",
+     actions=[
+       ("delete", "Delete", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
 
 {% endblock %}

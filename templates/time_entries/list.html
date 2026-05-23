@@ -98,6 +98,11 @@
   <table class="w-full text-base">
     <thead>
       <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="w-8 px-3 py-2 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-3 py-2 w-8"></th>
         <th class="px-3 py-2">Date</th>
         <th class="px-3 py-2">Description</th>
@@ -107,12 +112,18 @@
         <th class="px-3 py-2 text-right">Rate</th>
         <th class="px-3 py-2 text-right">Amount</th>
         <th class="px-3 py-2 text-center">Status</th>
-        <th class="px-3 py-2"></th>
+        <th class="w-8 px-3 py-2"></th>
       </tr>
     </thead>
     <tbody>
       {% for e in entries %}
-      <tr class="border-b hairline hover:bg-paper-2">
+      <tr class="border-b hairline hover:bg-paper-2" data-status="{{ (e.approval_status or 'draft')|lower }}">
+        <td class="px-3 py-2 text-center" onclick="event.stopPropagation()">
+          <input type="checkbox" data-row-select data-id="{{ e.id }}"
+                 aria-label="Select time entry {{ e.id }}"
+                 onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </td>
         <td class="px-3 py-2">
           {% if e.billable and not e.invoice_line_id and e.approval_status != 'LOCKED' %}
           <input type="checkbox" name="entry_ids" value="{{ e.id }}">
@@ -149,12 +160,26 @@
           {% if e.billable %}<span class="chip ml-1">$</span>{% endif %}
           {% if e.invoice_line_id %}<span class="chip ml-1" title="On invoice line">→ inv</span>{% endif %}
         </td>
-        <td class="px-3 py-2 text-right">
-          <a href="/time-entries/{{ e.id }}" class="sae hover:underline">Open</a>
+        <td class="px-3 py-2 text-right" onclick="event.stopPropagation()">
+          {%- set status_lower = (e.approval_status or 'draft')|lower %}
+          {%- set te_actions = [
+            ("view", "View", "/time-entries/" ~ e.id, "link", false),
+            ("edit", "Edit", "/time-entries/" ~ e.id ~ "/edit", "link", false),
+          ] %}
+          {%- if status_lower == 'draft' %}
+            {%- set _ = te_actions.append(("submit", "Submit", "/time-entries/" ~ e.id ~ "/submit", "post", false)) %}
+          {%- elif status_lower == 'submitted' %}
+            {%- set _ = te_actions.append(("approve", "Approve", "/time-entries/" ~ e.id ~ "/approve", "post", false)) %}
+          {%- endif %}
+          {%- if status_lower != 'locked' %}
+            {%- set _ = te_actions.append(("archive", "Archive", "/time-entries/" ~ e.id ~ "/archive", "post", true)) %}
+          {%- endif %}
+          {% import "_components/kebab_menu.html" as km %}
+          {{ km.kebab(row_id=e.id, actions=te_actions, csrf_token=csrf_token if csrf_token is defined else "") }}
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="10" class="p-6 text-center ink-3">No entries match these filters.</td></tr>
+      <tr><td colspan="11" class="p-6 text-center ink-3">No entries match these filters.</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -174,5 +199,21 @@
   </div>
 </div>
 </form>
+
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="time_entries",
+     action_endpoint="/time-entries/bulk",
+     actions=[
+       ("submit",  "Submit",  false),
+       ("approve", "Approve", false),
+       ("archive", "Archive", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
 
 {% endblock %}

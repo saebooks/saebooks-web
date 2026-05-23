@@ -288,3 +288,72 @@ async def journal_template_delete(
         request.session["flash"] = f"Delete failed: HTTP {resp.status_code}"
 
     return RedirectResponse(url="/journal-templates", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Bulk action — POST /journal-templates/bulk
+# ---------------------------------------------------------------------------
+
+_BULK_ACTIONS_JOURNAL_TEMPLATES = {
+    "delete": ("DELETE", "/api/v1/journal_templates/{id}"),
+}
+
+
+@router.post("/journal-templates/bulk", response_class=HTMLResponse, response_model=None)
+async def journal_templates_bulk_action(request: Request) -> RedirectResponse:
+    """Run an action against many journal templates at once.
+
+    Form fields:
+      action  — one of: delete
+      ids[]   — one entry per UUID
+
+    Aggregates per-row outcomes into a flash message and redirects back
+    to /journal-templates. Best-effort: a failed row does not halt the batch.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    action = str(form_data.get("action", "")).strip()
+    if action not in _BULK_ACTIONS_JOURNAL_TEMPLATES:
+        request.session["flash"] = f"Unknown bulk action: {action!r}"
+        return RedirectResponse(url="/journal-templates", status_code=303)
+
+    ids = [str(v) for v in form_data.getlist("ids[]") if str(v).strip()]
+    if not ids:
+        request.session["flash"] = "No rows selected."
+        return RedirectResponse(url="/journal-templates", status_code=303)
+
+    method, path_tpl = _BULK_ACTIONS_JOURNAL_TEMPLATES[action]
+    ok = 0
+    failed: list[str] = []
+    async with api_client(request) as client:
+        for row_id in ids:
+            try:
+                resp = await client.request(method, path_tpl.format(id=row_id))
+                if 200 <= resp.status_code < 300:
+                    ok += 1
+                else:
+                    msg = ""
+                    try:
+                        body = resp.json()
+                        detail = body.get("detail")
+                        if isinstance(detail, str):
+                            msg = detail
+                        elif isinstance(detail, list) and detail:
+                            msg = detail[0].get("msg", str(detail))
+                    except Exception:
+                        msg = ""
+                    failed.append(f"{row_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
+            except Exception as exc:
+                failed.append(f"{row_id[:8]} (transport error: {exc!s})")
+
+    label = action.replace("_", " ").title()
+    if failed:
+        request.session["flash"] = (
+            f"{label}: {ok} succeeded, {len(failed)} failed — " + "; ".join(failed[:5])
+            + (f" … +{len(failed) - 5} more" if len(failed) > 5 else "")
+        )
+    else:
+        request.session["flash"] = f"{label}: {ok} journal template{'s' if ok != 1 else ''} processed."
+    return RedirectResponse(url="/journal-templates", status_code=303)

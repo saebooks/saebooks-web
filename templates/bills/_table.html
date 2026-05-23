@@ -4,6 +4,7 @@
 {% import "_sort_macros.html" as srt %}
 {% import "_status_macros.html" as sb %}
 {% import "_partials/empty_state.html" as empty %}
+{% import "_components/kebab_menu.html" as km %}
 {% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
                   'date_from': filter_date_from, 'date_to': filter_date_to,
                   'limit': limit, 'offset': offset} %}
@@ -20,38 +21,64 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
+        <th class="w-8 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="text-left">{{ srt.sort_link('number',     'Bill number', sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('issue_date', 'Date',        sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('due_date',   'Due',         sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('contact_id', 'Supplier',    sort, direction, filters) }}</th>
         <th class="text-right">{{ srt.sort_link('total',     'Total',       sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('status',    'Status',      sort, direction, filters) }}</th>
+        <th class="w-8"></th>{# kebab column header — intentionally empty #}
       </tr>
     </thead>
     <tbody>
       {% if bills %}
         {% for bill in bills %}
-        <tr class="cursor-pointer" data-status="{{ (bill.status or 'draft')|lower }}" onclick="window.location='/bills/{{ bill.id }}'">
-          <td class="num-display">
-            <a href="/bills/{{ bill.id }}" class="sae hover:underline font-medium">{{ bill.number or "—" }}</a>
+        <tr class="hover:bg-paper-2" data-status="{{ (bill.status or 'draft')|lower }}">
+          <td class="text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ bill.id }}"
+                   aria-label="Select bill {{ bill.number or bill.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="ink-2 num">{{ bill.issue_date }}</td>
-          <td class="ink-2 num">{{ bill.due_date }}</td>
-          <td class="ink-2">
+          <td class="num-display cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">
+            <a href="/bills/{{ bill.id }}" class="sae hover:underline font-medium" onclick="event.stopPropagation()">{{ bill.number or "—" }}</a>
+          </td>
+          <td class="ink-2 num cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.issue_date }}</td>
+          <td class="ink-2 num cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.due_date }}</td>
+          <td class="ink-2 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">
             {% set _c = contacts_by_id.get(bill.contact_id) if contacts_by_id else None %}
             {% if _c %}<a href="/contacts/{{ _c.id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
           </td>
-          <td class="text-right num-display ink-1">{{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}</td>
-          <td>{{ sb.payment_status_badge(bill, today, due_soon_cutoff) }}</td>
+          <td class="text-right num-display ink-1 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}</td>
+          <td class="cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ sb.payment_status_badge(bill, today, due_soon_cutoff) }}</td>
+          <td class="text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (bill.status or 'draft')|lower %}
+            {%- set actions = [
+              ("view", "View", "/bills/" ~ bill.id,       "link", false),
+              ("edit", "Edit", "/bills/" ~ bill.id ~ "/edit", "link", false),
+            ] %}
+            {%- if status_lower == 'draft' %}
+              {%- set _ = actions.append(("post", "Post", "/bills/" ~ bill.id ~ "/post", "post", false)) %}
+              {%- set _ = actions.append(("archive", "Archive", "/bills/" ~ bill.id ~ "/archive", "post", true)) %}
+            {%- elif status_lower == 'posted' %}
+              {%- set _ = actions.append(("void", "Void", "/bills/" ~ bill.id ~ "/void", "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=bill.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-        {{ empty.row(6, "inbox", "No bills yet",
+        {{ empty.row(8, "inbox", "No bills yet",
                      "Record your first supplier bill.",
                      "New bill", "/bills/new") }}
         {% else %}
-        {{ empty.row(6, "search-x", "No bills match these filters",
+        {{ empty.row(8, "search-x", "No bills match these filters",
                      "Try clearing the filters above.") }}
         {% endif %}
       {% endif %}

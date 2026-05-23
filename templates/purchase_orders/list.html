@@ -99,4 +99,20 @@
 
 {% include "purchase_orders/_table.html" %}
 
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="purchase_orders",
+     action_endpoint="/purchase_orders/bulk",
+     actions=[
+       ("send", "Send", false),
+       ("cancel", "Cancel", true),
+       ("archive", "Archive", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
+
 {% endblock %}

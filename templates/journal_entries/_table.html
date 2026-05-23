@@ -1,4 +1,5 @@
 {% import "_partials/empty_state.html" as empty %}
+{% import "_components/kebab_menu.html" as km %}
 {# HTMX partial — journal entries table body + pagination.
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
@@ -15,11 +16,17 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">JE #</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total Debit</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -27,10 +34,17 @@
         {% for je in journal_entries %}
         <tr
           class="hover:bg-gray-50 cursor-pointer"
+          data-status="{{ (je.status or 'draft')|lower }}"
           onclick="window.location='/journal-entries/{{ je.id }}'"
         >
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ je.id }}"
+                   aria-label="Select journal entry {{ je.ref or je.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/journal-entries/{{ je.id }}" class="hover:underline">
+            <a href="/journal-entries/{{ je.id }}" class="hover:underline" onclick="event.stopPropagation()">
               {{ je.ref or "—" }}
             </a>
           </td>
@@ -53,10 +67,24 @@
               {{ je.status | capitalize }}
             </span>
           </td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (je.status or 'draft')|lower %}
+            {%- set actions = [
+              ("view", "View", "/journal-entries/" ~ je.id,       "link", false),
+              ("edit", "Edit", "/journal-entries/" ~ je.id ~ "/edit", "link", false),
+            ] %}
+            {%- if status_lower == 'draft' %}
+              {%- set _ = actions.append(("post",    "Post",    "/journal-entries/" ~ je.id ~ "/post",    "post", false)) %}
+              {%- set _ = actions.append(("archive", "Archive", "/journal-entries/" ~ je.id ~ "/archive", "post", true)) %}
+            {%- elif status_lower == 'posted' %}
+              {%- set _ = actions.append(("reverse", "Reverse", "/journal-entries/" ~ je.id ~ "/reverse", "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=je.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(5, "book-open", "No journal entries yet",
+        {{ empty.row(7, "book-open", "No journal entries yet",
                      "Post your first journal to record a manual transaction.",
                      "New journal", "/journal-entries/new") }}
       {% endif %}

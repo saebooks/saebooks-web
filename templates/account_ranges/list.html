@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons %}
+{% import "_components/kebab_menu.html" as km %}
 
 {% block title %}Account Ranges — SAE Books{% endblock %}
 
@@ -61,44 +62,44 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Prefix</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account type</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-        <th class="px-4 py-3"></th>
+        <th class="w-8 px-4 py-3"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
       {% if ranges %}
         {% for rng in ranges %}
         <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ rng.id }}"
+                   aria-label="Select range {{ rng.name }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 font-medium text-gray-900">{{ rng.name }}</td>
           <td class="px-4 py-3 font-mono text-gray-700">{{ rng.prefix | default("—") }}</td>
           <td class="px-4 py-3 text-gray-600">{{ rng.account_type | default("—") }}</td>
           <td class="px-4 py-3 text-gray-500 text-xs">{{ rng.description | default("") }}</td>
-          <td class="px-4 py-3 text-right">
-            <div class="flex items-center justify-end gap-1">
-              {{ icons.edit("/admin/ranges/" ~ rng.id ~ "/edit") }}
-              {{ icons.soft_delete(
-                   "/admin/ranges/" ~ rng.id ~ "/delete",
-                   csrf_input(request),
-                   rng.version,
-                   "Delete range '" ~ (rng.name|default('')) ~ "'?"
-              ) }}
-              {% if is_admin %}
-              {{ icons.hard_delete(
-                   "/api/v1/account_ranges/" ~ rng.id,
-                   "range '" ~ (rng.name|default('this range')) ~ "'",
-                   "/admin/ranges"
-              ) }}
-              {% endif %}
-            </div>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set actions = [
+              ("edit",   "Edit",   "/admin/ranges/" ~ rng.id ~ "/edit",   "link", false),
+              ("delete", "Delete", "/admin/ranges/" ~ rng.id ~ "/delete", "post", true),
+            ] %}
+            {{ km.kebab(row_id=rng.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="7" class="px-4 py-8 text-center text-gray-400">
             No account ranges defined.
             <a href="/admin/ranges/new" class="text-[#194291] hover:underline ml-1">Create one.</a>
           </td>
@@ -107,5 +108,19 @@
     </tbody>
   </table>
 </div>
+
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="account_ranges",
+     action_endpoint="/admin/ranges/bulk",
+     actions=[
+       ("delete", "Delete", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
 
 {% endblock %}

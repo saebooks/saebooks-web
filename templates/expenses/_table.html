@@ -1,6 +1,7 @@
 {# HTMX-swappable expenses table — used both inline on list.html and as
    a partial when filter/pagination submit. #}
 {% import "_sort_macros.html" as srt %}
+{% import "_components/kebab_menu.html" as km %}
 {% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
                   'payment_account_id': filter_payment_account_id,
                   'date_from': filter_date_from, 'date_to': filter_date_to,
@@ -18,16 +19,28 @@
 <table class="min-w-full divide-y divide-gray-200 text-base">
   <thead class="bg-gray-50">
     <tr>
+      <th class="w-8 px-3 py-2 text-center">
+        <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+               onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+               class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+      </th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('number',       'Number',    sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('expense_date', 'Date',      sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('reference',    'Reference', sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-right font-medium text-gray-600">{{ srt.sort_link('total',        'Total',     sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('status',       'Status',    sort, direction, filters) }}</th>
+      <th class="w-8"></th>
     </tr>
   </thead>
   <tbody class="divide-y divide-gray-100 bg-white">
     {% for e in expenses %}
-    <tr>
+    <tr data-status="{{ (e.status or 'draft')|lower }}">
+      <td class="px-3 py-2 text-center" onclick="event.stopPropagation()">
+        <input type="checkbox" data-row-select data-id="{{ e.id }}"
+               aria-label="Select expense {{ e.number or e.id }}"
+               onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+               class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+      </td>
       <td class="px-3 py-2"><a class="text-indigo-600 hover:underline" href="/expenses/{{ e.id }}">{{ e.number or "(draft)" }}</a></td>
       <td class="px-3 py-2 text-gray-700">{{ e.expense_date }}</td>
       <td class="px-3 py-2 text-gray-700">{{ e.reference or "—" }}</td>
@@ -40,6 +53,19 @@
         {% else %}
           <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-sm font-medium text-amber-800">Draft</span>
         {% endif %}
+      </td>
+      <td class="px-3 py-2 text-right" onclick="event.stopPropagation()">
+        {%- set status_lower = (e.status or 'draft')|lower %}
+        {%- set actions = [
+          ("view", "View", "/expenses/" ~ e.id, "link", false),
+        ] %}
+        {%- if status_lower == 'draft' %}
+          {%- set _ = actions.append(("post",    "Post",    "/expenses/" ~ e.id ~ "/post",    "post", false)) %}
+          {%- set _ = actions.append(("archive", "Archive", "/expenses/" ~ e.id ~ "/archive", "post", true)) %}
+        {%- elif status_lower == 'posted' %}
+          {%- set _ = actions.append(("void",    "Void",    "/expenses/" ~ e.id ~ "/void",    "post", true)) %}
+        {%- endif %}
+        {{ km.kebab(row_id=e.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
       </td>
     </tr>
     {% endfor %}

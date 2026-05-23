@@ -74,4 +74,20 @@
 {# Table fragment — HTMX replaces this div on filter/pagination #}
 {% include "recurring_invoices/_table.html" %}
 
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="recurring_invoices",
+     action_endpoint="/recurring-invoices/bulk",
+     actions=[
+       ("pause", "Pause", false),
+       ("resume", "Resume", false),
+       ("archive", "Archive", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
+
 {% endblock %}

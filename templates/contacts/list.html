@@ -2,6 +2,7 @@
 
 {% import "_partials/empty_state.html" as empty %}
 {% import "_icons.html" as icons %}
+{% import "_components/kebab_menu.html" as km %}
 
 {% block title %}Contacts — SAE Books{% endblock %}
 
@@ -66,18 +67,29 @@
   <table class="sae-table w-full" id="contacts-table">
     <thead>
       <tr>
+        <th class="w-8 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="text-left">Name</th>
         <th class="text-left">Type</th>
         <th class="text-left">Email</th>
         <th class="text-left">Phone</th>
         <th class="text-left">City</th>
-        <th></th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody id="contacts-tbody">
       {% if contacts %}
         {% for c in contacts %}
         <tr>
+          <td class="text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ c.id }}"
+                   aria-label="Select contact {{ c.name }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td><a href="/contacts/{{ c.id }}" class="sae hover:underline font-medium">{{ c.name }}</a></td>
           <td>
             {% set _ct = c.contact_type|lower %}
@@ -89,28 +101,37 @@
           <td class="ink-2">{{ c.email or "—" }}</td>
           <td class="ink-2 num">{{ c.phone or "—" }}</td>
           <td class="ink-2">{{ c.city or "—" }}</td>
-          <td class="text-right">
-            <div class="flex items-center justify-end gap-1">
-              {{ icons.view("/contacts/" ~ c.id) }}
-              {{ icons.edit("/contacts/" ~ c.id ~ "/edit") }}
-              {% if is_admin %}
-              {{ icons.hard_delete(
-                   "/api/v1/contacts/" ~ c.id,
-                   "contact '" ~ (c.name|default('this contact')) ~ "'",
-                   "/contacts"
-              ) }}
-              {% endif %}
-            </div>
+          <td class="text-right" onclick="event.stopPropagation()">
+            {%- set actions = [
+              ("view",    "View",    "/contacts/" ~ c.id,             "link", false),
+              ("edit",    "Edit",    "/contacts/" ~ c.id ~ "/edit",   "link", false),
+              ("archive", "Archive", "/contacts/" ~ c.id ~ "/archive","post", true),
+            ] %}
+            {{ km.kebab(row_id=c.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(6, "users", "No contacts yet",
+        {{ empty.row(8, "users", "No contacts yet",
                      "Add the customers and suppliers you work with.",
                      "Add contact", "/contacts/new") }}
       {% endif %}
     </tbody>
   </table>
 </div>
+
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="contacts",
+     action_endpoint="/contacts/bulk",
+     actions=[
+       ("archive", "Archive", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
 
 {% endblock %}

@@ -29,4 +29,18 @@
 
 {% include "tax_codes/_table.html" %}
 
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="tax_codes",
+     action_endpoint="/tax-codes/bulk",
+     actions=[
+       ("archive", "Archive", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
+
 {% endblock %}

@@ -2,6 +2,7 @@
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
 #}
+{% import "_components/kebab_menu.html" as km %}
 <div id="recurring-invoices-table">
 
 {% if error %}
@@ -14,12 +15,18 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Frequency</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Next run</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">End date</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Auto post</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -27,10 +34,17 @@
         {% for ri in recurring_invoices %}
         <tr
           class="hover:bg-gray-50 cursor-pointer"
+          data-status="{{ (ri.status or 'active')|lower }}"
           onclick="window.location='/recurring-invoices/{{ ri.id }}'"
         >
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ ri.id }}"
+                   aria-label="Select recurring invoice {{ ri.name }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/recurring-invoices/{{ ri.id }}" class="hover:underline">
+            <a href="/recurring-invoices/{{ ri.id }}" class="hover:underline" onclick="event.stopPropagation()">
               {{ ri.name }}
             </a>
           </td>
@@ -53,11 +67,27 @@
               {{ ri.status | replace("_", " ") | title }}
             </span>
           </td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (ri.status or 'active')|lower %}
+            {%- set actions = [
+              ("view", "View", "/recurring-invoices/" ~ ri.id,       "link", false),
+              ("edit", "Edit", "/recurring-invoices/" ~ ri.id ~ "/edit", "link", false),
+            ] %}
+            {%- if status_lower == 'active' %}
+              {%- set _ = actions.append(("pause",   "Pause",   "/recurring-invoices/" ~ ri.id ~ "/pause",   "post", false)) %}
+            {%- elif status_lower == 'paused' %}
+              {%- set _ = actions.append(("resume",  "Resume",  "/recurring-invoices/" ~ ri.id ~ "/resume",  "post", false)) %}
+            {%- endif %}
+            {%- if status_lower != 'ended' %}
+              {%- set _ = actions.append(("archive", "Archive", "/recurring-invoices/" ~ ri.id ~ "/archive", "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=ri.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="8" class="px-4 py-8 text-center text-gray-400">
             No recurring invoices found.
           </td>
         </tr>

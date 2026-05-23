@@ -38,9 +38,9 @@
     <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Status</label>
     <select id="status" name="status" class="saebooks-input text-sm py-1.5">
       <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>Posted</option>
-      <option value="VOIDED" {% if filter_status == 'VOIDED' %}selected{% endif %}>Voided</option>
+      <option value="DRAFT" {% if filter_status == "DRAFT" %}selected{% endif %}>Draft</option>
+      <option value="POSTED" {% if filter_status == "POSTED" %}selected{% endif %}>Posted</option>
+      <option value="VOIDED" {% if filter_status == "VOIDED" %}selected{% endif %}>Voided</option>
     </select>
   </div>
   <div>
@@ -62,5 +62,20 @@
 </form>
 
 {% include "bills/_table.html" %}
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="bills",
+     action_endpoint="/bills/bulk",
+     actions=[
+       ("post",    "Post",    false),
+       ("void",    "Void",    true),
+       ("archive", "Archive", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
 
 {% endblock %}

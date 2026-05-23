@@ -68,4 +68,18 @@
 {# Table fragment — HTMX replaces this div on filter/pagination #}
 {% include "bank_statement_lines/_table.html" %}
 
+
+{# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="bank_statement_lines",
+     action_endpoint="/bank-statement-lines/bulk",
+     actions=[
+       ("unmatch", "Unmatch", true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+<script src="/static/js/list_table.js" defer></script>
+
 {% endblock %}

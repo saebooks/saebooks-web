@@ -2,6 +2,7 @@
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load. Short list (typically < 20 rows), no pagination needed.
 #}
+{% import "_components/kebab_menu.html" as km %}
 <div id="tax-codes-table">
 
 {% if error %}
@@ -14,11 +15,17 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
+        <th class="w-8 px-4 py-3 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Rate</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Tax system</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Reporting type</th>
+        <th class="w-8"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -28,8 +35,14 @@
           class="hover:bg-gray-50 cursor-pointer"
           onclick="window.location='/tax-codes/{{ tc.id }}'"
         >
+          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ tc.id }}"
+                   aria-label="Select tax code {{ tc.code }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+          </td>
           <td class="px-4 py-3 font-mono font-medium text-gray-900">
-            <a href="/tax-codes/{{ tc.id }}" class="text-[#194291] hover:underline">{{ tc.code }}</a>
+            <a href="/tax-codes/{{ tc.id }}" class="text-[#194291] hover:underline" onclick="event.stopPropagation()">{{ tc.code }}</a>
           </td>
           <td class="px-4 py-3 text-gray-700">{{ tc.name }}</td>
           <td class="px-4 py-3 text-right tabular-nums text-gray-900 font-medium">
@@ -37,11 +50,19 @@
           </td>
           <td class="px-4 py-3 text-gray-600">{{ tc.tax_system }}</td>
           <td class="px-4 py-3 text-gray-600">{{ tc.reporting_type | replace("_", " ") | title }}</td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set actions = [
+              ("view",    "View",    "/tax-codes/" ~ tc.id,             "link", false),
+              ("edit",    "Edit",    "/tax-codes/" ~ tc.id ~ "/edit",   "link", false),
+              ("archive", "Archive", "/tax-codes/" ~ tc.id ~ "/archive","post", true),
+            ] %}
+            {{ km.kebab(row_id=tc.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="7" class="px-4 py-8 text-center text-gray-400">
             No tax codes found.
           </td>
         </tr>
