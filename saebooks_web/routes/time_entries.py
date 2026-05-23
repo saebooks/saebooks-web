@@ -600,6 +600,28 @@ async def time_entry_archive(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Revert: APPROVED -> DRAFT (unlocks edit + archive)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/time-entries/{entry_id}/revert", response_class=HTMLResponse, response_model=None)
+async def time_entry_revert(request: Request, entry_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.post(f"/api/v1/time-entries/{entry_id}/revert")
+    if resp.is_success:
+        request.session["flash"] = "Reverted to draft — edit or archive as needed."
+    else:
+        try:
+            detail = resp.json().get("detail", "")
+        except Exception:
+            detail = ""
+        request.session["flash"] = f"Revert failed: HTTP {resp.status_code}{(' — ' + str(detail)) if detail else ''}"
+    return RedirectResponse(url=f"/time-entries/{entry_id}", status_code=303)
+
+
 @router.post(
     "/time-entries/convert-to-invoice",
     response_class=HTMLResponse,

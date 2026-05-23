@@ -132,6 +132,16 @@
           <button type="submit" class="btn btn-primary w-full">Convert to invoice line</button>
         </form>
         {% endif %}
+        {% if not entry.invoice_line_id %}
+        <form method="POST" action="/time-entries/{{ entry.id }}/revert"
+              onsubmit="return confirm('Revert this entry back to draft so it can be edited or archived?')">
+  {{ csrf_input(request)|safe }}
+          <button type="submit" class="btn btn-secondary w-full">Revert to draft</button>
+        </form>
+        <p class="ink-3 text-xs mt-2">
+          Revert clears the approval and lets you edit or archive. Already-invoiced entries can't be reverted — void the invoice line first.
+        </p>
+        {% endif %}
         {% elif entry.approval_status == 'LOCKED' %}
         <p class="ink-3 text-sm">Locked into a pay run — read-only.</p>
         {% endif %}
