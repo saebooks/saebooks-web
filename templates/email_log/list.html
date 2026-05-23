@@ -4,15 +4,22 @@
 {% block title %}Email send log — SAE Books{% endblock %}
 
 {% block content %}
-<header class="mb-6">
-  <div class="flex items-center gap-2 mb-1">
-    <span class="nav-section-label">Audit</span>
+<header class="mb-6 flex items-start justify-between gap-4">
+  <div>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="nav-section-label">Audit</span>
+    </div>
+    <h1 class="font-display text-2xl leading-none tracking-tight">Email send log</h1>
+    <p class="text-xs ink-3 font-mono mt-2">
+      Every outbound email attempt — blocked or actual — for this tenant.
+      Tamper-evident: DB-level trigger blocks UPDATE on locked columns + all
+      DELETE. Bytes of each attached PDF stored inline + SHA-256 verified.
+    </p>
   </div>
-  <h1 class="font-display text-2xl leading-none tracking-tight">Email send log</h1>
-  <p class="text-xs ink-3 font-mono mt-2">
-    Every outbound email attempt — blocked or actual — for this tenant.
-    Tamper-evident (RLS-isolated); no UPDATE / DELETE wired into the API.
-  </p>
+  <a href="/email-log/export.csv{% if filter_doc_type or filter_status %}?{% endif %}{% if filter_doc_type %}doc_type={{ filter_doc_type }}{% endif %}{% if filter_doc_type and filter_status %}&{% endif %}{% if filter_status %}status={{ filter_status }}{% endif %}"
+     class="btn-secondary text-sm whitespace-nowrap">
+    Download CSV
+  </a>
 </header>
 
 {# ─── Filter chips ─── #}

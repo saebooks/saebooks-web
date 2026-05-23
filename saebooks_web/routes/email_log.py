@@ -11,7 +11,7 @@ import logging
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
@@ -80,6 +80,61 @@ async def email_log_list(
             "filter_doc_type": doc_type or "",
             "filter_status":   status or "",
             "status_badges": _STATUS_BADGES,
+        },
+    )
+
+
+@router.get("/email-log/export.csv", response_model=None)
+async def email_log_export_csv(
+    request: Request,
+    doc_type: str | None = None,
+    status: str | None = None,
+) -> Response | RedirectResponse:
+    """Proxy to /api/v1/email-log/export.csv — streams CSV to the browser."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    params: dict[str, str] = {}
+    if doc_type:
+        params["doc_type"] = doc_type
+    if status:
+        params["status"] = status
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/email-log/export.csv", params=params)
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code != 200:
+        raise HTTPException(resp.status_code, "Upstream error")
+    return Response(
+        content=resp.content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": resp.headers.get("content-disposition", 'attachment; filename="email_send_log.csv"'),
+            "Cache-Control":       "no-store",
+        },
+    )
+
+
+@router.get("/email-log/{log_id}/attachment/{idx}", response_model=None)
+async def email_log_attachment(
+    request: Request, log_id: str, idx: int
+) -> Response | RedirectResponse:
+    """Proxy to /api/v1/email-log/{id}/attachment/{idx} — streams PDF."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/email-log/{log_id}/attachment/{idx}")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code != 200:
+        raise HTTPException(resp.status_code, "Upstream error")
+    return Response(
+        content=resp.content,
+        media_type=resp.headers.get("content-type", "application/octet-stream"),
+        headers={
+            "Content-Disposition": resp.headers.get("content-disposition", f'inline; filename="attachment-{idx}"'),
+            "Cache-Control":       "private, max-age=0, must-revalidate",
         },
     )
 
