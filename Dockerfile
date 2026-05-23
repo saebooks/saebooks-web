@@ -105,6 +105,7 @@ COPY --chown=saebooks:saebooks static/sae-books-logo.png /app/static/sae-books-l
 # PWA assets — manifest, service worker, icons, splash screens.
 COPY --chown=saebooks:saebooks static/manifest.webmanifest /app/static/manifest.webmanifest
 COPY --chown=saebooks:saebooks static/pwa/ /app/static/pwa/
+COPY --chown=saebooks:saebooks static/js/ /app/static/js/
 
 COPY --chown=saebooks:saebooks saebooks_web/ ./saebooks_web/
 # Top-level templates/ directory — Jinja2 ChoiceLoader looks here first,
