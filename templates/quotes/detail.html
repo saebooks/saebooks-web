@@ -73,6 +73,16 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
+      <a href="/quotes/{{ quote.id }}/pdf" target="_blank" rel="noopener" class="btn-secondary text-sm">
+        Preview PDF
+      </a>
+
+      <a href="/quotes/{{ quote.id }}/email" class="btn-secondary text-sm"
+         style="border-color:var(--warm); color:var(--warm);"
+         title="Compose email to customer — blocked by kill switch during build">
+        Send to customer
+      </a>
+
       {% if quote.status in ('DRAFT', 'SENT') %}
       <a href="/quotes/{{ quote.id }}/edit" class="btn-secondary text-sm">Edit</a>
       {% endif %}

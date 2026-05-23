@@ -25,8 +25,8 @@ import uuid
 from datetime import date, timedelta
 from pathlib import Path
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
@@ -279,6 +279,186 @@ async def quote_create(request: Request) -> HTMLResponse | RedirectResponse:
             "line_count": len(lines),
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+@router.get("/quotes/{quote_id}/pdf", response_model=None)
+async def quote_pdf(
+    request: Request, quote_id: str
+) -> Response | RedirectResponse:
+    """Stream the rendered quote PDF from the API.
+
+    The API serves the PDF inline (Content-Disposition: inline) — the link is
+    `target="_blank"` on the detail page so the PDF opens in a new tab.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/quotes/{quote_id}/pdf")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        raise HTTPException(404, detail="Quote not found")
+    if resp.status_code != 200:
+        raise HTTPException(resp.status_code, detail=f"Upstream returned {resp.status_code}")
+    return Response(
+        content=resp.content,
+        media_type=resp.headers.get("content-type", "application/pdf"),
+        headers={
+            "Content-Disposition": resp.headers.get(
+                "content-disposition", f'inline; filename="quote-{quote_id}.pdf"'
+            ),
+            "Cache-Control": "private, max-age=0, must-revalidate",
+        },
+    )
+
+
+_FROM_OPTIONS = ("admin@saee.com.au", "accounts@saee.com.au")
+_DEFAULT_FROM_BY_DOC_TYPE = {
+    "quote":       "admin@saee.com.au",
+    "invoice":     "accounts@saee.com.au",
+    "bill":        "admin@saee.com.au",
+    "credit_note": "accounts@saee.com.au",
+    "remittance":  "accounts@saee.com.au",
+    "letterhead":  "admin@saee.com.au",
+}
+
+
+@router.get("/quotes/{quote_id}/email", response_class=HTMLResponse, response_model=None)
+async def quote_email_compose(
+    request: Request, quote_id: str
+) -> HTMLResponse | RedirectResponse:
+    """Email composer for a quote — pre-fills To/Subject/Body from quote+customer."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        qresp = await client.get(f"/api/v1/quotes/{quote_id}")
+        if qresp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if qresp.status_code == 404:
+            raise HTTPException(404, "Quote not found")
+        if qresp.status_code != 200:
+            raise HTTPException(qresp.status_code, "Upstream error")
+        quote = qresp.json()
+
+        # Pull customer for default-To address
+        cresp = await client.get(f"/api/v1/contacts/{quote['customer_id']}")
+        customer = cresp.json() if cresp.status_code == 200 else {}
+
+    default_to = customer.get("email", "")
+    title = quote.get("title") or f"Quote SAE-2026-{quote.get('number')}"
+    default_subject = f"Estimate SAE-2026-{quote.get('number')} — {title}"
+    default_body_html = (
+        f'<p>Dear {customer.get("name", "team")},</p>\n'
+        f'<p>Please find attached our estimate <b>SAE-2026-{quote.get("number")}</b> '
+        f'for <b>{title}</b>.</p>\n'
+        f'<p>Total ex GST: ${float(quote.get("subtotal", 0)):,.2f}. '
+        f'Valid for {quote.get("validity_days", 28)} days from {quote.get("issue_date", "today")}.</p>\n'
+        f'<p>To proceed, please issue a purchase order referencing '
+        f'<b>SAE-2026-{quote.get("number")}</b> to admin@saee.com.au. '
+        f'Upon receipt of your PO we will issue a tax invoice for the deposit '
+        f'amount and schedule works accordingly.</p>\n'
+        f'<p>If you have any questions please reply to this email or call '
+        f'0457 704 373.</p>\n'
+        f'<p>Kind regards,<br>Richard Sauer<br>Director — SAE Engineering</p>'
+    )
+
+    return _TEMPLATES.TemplateResponse(
+        request, "quotes/email_compose.html",
+        {
+            "quote":            quote,
+            "form":             {},
+            "from_options":     _FROM_OPTIONS,
+            "default_from":     _DEFAULT_FROM_BY_DOC_TYPE["quote"],
+            "default_to":       default_to,
+            "default_subject":  default_subject,
+            "default_body_html": default_body_html,
+            "flash":            None,
+            "flash_kind":       None,
+        },
+    )
+
+
+@router.post("/quotes/{quote_id}/email", response_class=HTMLResponse, response_model=None)
+async def quote_email_send(
+    request: Request, quote_id: str
+) -> HTMLResponse | RedirectResponse:
+    """Submit the composer — POST to upstream /api/v1/quotes/{id}/send-email.
+
+    Whether it actually sends or gets blocked is decided server-side by the
+    two-key kill switch. This route just relays + re-renders the form with
+    the result.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form = {k: str(v) for k, v in form_data.items() if k != "csrf_token"}
+
+    to_list  = [s.strip() for s in form.get("to", "").split(",") if s.strip()]
+    cc_list  = [s.strip() for s in form.get("cc", "").split(",") if s.strip()]
+    bcc_list = [s.strip() for s in form.get("bcc", "").split(",") if s.strip()]
+
+    payload = {
+        "from_addr": form.get("from_addr", ""),
+        "to":        to_list,
+        "cc":        cc_list,
+        "bcc":       bcc_list,
+        "subject":   form.get("subject", ""),
+        "body_html": form.get("body_html", ""),
+    }
+
+    async with api_client(request) as client:
+        resp = await client.post(f"/api/v1/quotes/{quote_id}/send-email", json=payload)
+        qresp = await client.get(f"/api/v1/quotes/{quote_id}")
+        quote = qresp.json() if qresp.status_code == 200 else {}
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    result = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+    mode = result.get("mode", "unknown")
+    if mode == "blocked":
+        flash = (
+            f"🛑 <b>BLOCKED</b> — nothing was sent. "
+            f"Reason: <code>{result.get('reason', 'unknown')}</code>. "
+            f"Outbox copy: <code>{result.get('outbox_path', '?')}</code>. "
+            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+        )
+        flash_kind = "warm"
+    elif mode == "sent":
+        flash = (
+            f"✅ Sent. Resend message id: <code>{result.get('message_id', '?')}</code>. "
+            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+        )
+        flash_kind = "pos"
+    elif mode == "failed":
+        flash = (
+            f"❌ Failed. Errors: <code>{result.get('errors', '?')}</code>. "
+            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+        )
+        flash_kind = "neg"
+    else:
+        flash = f"Upstream HTTP {resp.status_code}: <code>{(resp.text or '')[:300]}</code>"
+        flash_kind = "neg"
+
+    return _TEMPLATES.TemplateResponse(
+        request, "quotes/email_compose.html",
+        {
+            "quote":            quote,
+            "form":             form,
+            "from_options":     _FROM_OPTIONS,
+            "default_from":     _DEFAULT_FROM_BY_DOC_TYPE["quote"],
+            "default_to":       "",
+            "default_subject":  "",
+            "default_body_html": "",
+            "flash":            flash,
+            "flash_kind":       flash_kind,
+        },
     )
 
 
@@ -782,3 +962,23 @@ async def quotes_bulk_action(request: Request) -> RedirectResponse:
     else:
         request.session["flash"] = f"{label}: {ok} quote{'s' if ok != 1 else ''} processed."
     return RedirectResponse(url="/quotes", status_code=303)
+
+# ---------------------------------------------------------------------------
+# Hard-delete: developer-tier only. Client-side gated via the kebab,
+# server-side enforced by the API hard_delete_admin_gate.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/quotes/{quote_id}/hard-delete", response_class=HTMLResponse, response_model=None)
+async def quote_hard_delete(request: Request, quote_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    from saebooks_web.archive_helpers import hard_delete_entity
+    return await hard_delete_entity(
+        request=request,
+        entity_api_path="/api/v1/quotes",
+        entity_id=quote_id,
+        entity_label=f"Quote {quote_id}",
+        list_url="/quotes",
+        detail_url=f"/quotes/{quote_id}",
+    )
