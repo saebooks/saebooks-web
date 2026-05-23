@@ -4,6 +4,14 @@
    Rendered standalone for HX-Request fragments; embedded by list.html for
    the initial full-page load.
 #}
+{%- set _filter_parts = [] %}
+{%- if filter_status %}{%- set _ = _filter_parts.append("status=" ~ filter_status) %}{%- endif %}
+{%- if filter_date_from %}{%- set _ = _filter_parts.append("date_from=" ~ filter_date_from) %}{%- endif %}
+{%- if filter_date_to %}{%- set _ = _filter_parts.append("date_to=" ~ filter_date_to) %}{%- endif %}
+{%- if filter_ref %}{%- set _ = _filter_parts.append("ref=" ~ (filter_ref|urlencode)) %}{%- endif %}
+{%- if filter_posted_by %}{%- set _ = _filter_parts.append("posted_by=" ~ (filter_posted_by|urlencode)) %}{%- endif %}
+{%- if filter_account_id %}{%- set _ = _filter_parts.append("account_id=" ~ filter_account_id) %}{%- endif %}
+{%- set filter_qs = ("&" ~ _filter_parts|join("&")) if _filter_parts else "" %}
 <div id="journal-entries-table">
 
 {% if error %}
@@ -104,8 +112,8 @@
   <div class="flex gap-3">
     {% if prev_offset is not none %}
     <a
-      href="/journal-entries?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/journal-entries?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      href="/journal-entries?offset={{ prev_offset }}&limit={{ limit }}{{ filter_qs }}"
+      hx-get="/journal-entries?offset={{ prev_offset }}&limit={{ limit }}{{ filter_qs }}"
       hx-target="#journal-entries-table"
       hx-swap="outerHTML"
       hx-push-url="true"
@@ -114,8 +122,8 @@
     {% endif %}
     {% if next_offset is not none %}
     <a
-      href="/journal-entries?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/journal-entries?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      href="/journal-entries?offset={{ next_offset }}&limit={{ limit }}{{ filter_qs }}"
+      hx-get="/journal-entries?offset={{ next_offset }}&limit={{ limit }}{{ filter_qs }}"
       hx-target="#journal-entries-table"
       hx-swap="outerHTML"
       hx-push-url="true"

@@ -71,6 +71,68 @@
     >
   </div>
 
+  <div>
+    <label for="ref" class="block text-xs font-medium text-gray-500 mb-1">Ref</label>
+    <input
+      type="text"
+      id="ref"
+      name="ref"
+      value="{{ filter_ref }}"
+      list="ref-prefix-options"
+      placeholder="Pick prefix or type"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+    <datalist id="ref-prefix-options">
+      {% for p in ref_prefix_options %}
+      <option value="{{ p }}"></option>
+      {% endfor %}
+    </datalist>
+  </div>
+
+  <div>
+    <label for="account_id" class="block text-xs font-medium text-gray-500 mb-1">Account</label>
+    <select
+      id="account_id"
+      name="account_id"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] min-w-[14rem]"
+    >
+      <option value="" {% if not filter_account_id %}selected{% endif %}>All accounts</option>
+      {%- set _types = [
+        ("ASSET", "Assets"),
+        ("LIABILITY", "Liabilities"),
+        ("EQUITY", "Equity"),
+        ("INCOME", "Income"),
+        ("EXPENSE", "Expenses"),
+      ] %}
+      {%- for type_code, type_label in _types %}
+        {%- set _members = accounts | selectattr("account_type", "equalto", type_code) | list %}
+        {%- if _members %}
+        <optgroup label="{{ type_label }}">
+          {%- for acct in _members %}
+          <option value="{{ acct.id }}" {% if filter_account_id == acct.id|string %}selected{% endif %}>
+            {{ acct.code }} — {{ acct.name }}
+          </option>
+          {%- endfor %}
+        </optgroup>
+        {%- endif %}
+      {%- endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label for="posted_by" class="block text-xs font-medium text-gray-500 mb-1">Posted by</label>
+    <select
+      id="posted_by"
+      name="posted_by"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+      <option value="" {% if not filter_posted_by %}selected{% endif %}>Anyone</option>
+      {%- for who in posted_by_options %}
+      <option value="{{ who }}" {% if filter_posted_by == who %}selected{% endif %}>{{ who }}</option>
+      {%- endfor %}
+    </select>
+  </div>
+
   {# carry pagination limit; reset offset to 0 on new filter #}
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
@@ -81,6 +143,12 @@
   >
     Filter
   </button>
+  {% if filter_status or filter_date_from or filter_date_to or filter_ref or filter_posted_by or filter_account_id %}
+  <a
+    href="/journal-entries"
+    class="text-sm text-gray-500 hover:text-gray-700 px-2 py-1.5"
+  >Clear</a>
+  {% endif %}
 </form>
 
 {# Table fragment — HTMX replaces this div on filter/pagination #}
