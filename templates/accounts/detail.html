@@ -134,6 +134,134 @@
 
 </div>
 
+{# ── Transactions (GL ledger) — primary view, fills the bottom of the page. ── #}
+<div class="mb-8" id="transactions">
+  <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
+    <h2 class="text-base font-semibold text-gray-900">
+      Transactions
+      {% if lines_total %}
+      <span class="ml-2 text-xs font-normal text-gray-400">{{ lines_total }} line{{ "s" if lines_total != 1 else "" }}</span>
+      {% endif %}
+    </h2>
+
+    {# Date filter — submits as GET so the URL stays shareable. #}
+    <form method="get" action="/accounts/{{ account.id }}" class="flex flex-wrap items-end gap-2 text-sm">
+      <div class="flex flex-col">
+        <label for="date_from" class="text-xs text-gray-500 mb-0.5">From</label>
+        <input type="date" id="date_from" name="date_from" value="{{ date_from }}"
+               class="rounded-md border border-gray-300 text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#194291]">
+      </div>
+      <div class="flex flex-col">
+        <label for="date_to" class="text-xs text-gray-500 mb-0.5">To</label>
+        <input type="date" id="date_to" name="date_to" value="{{ date_to }}"
+               class="rounded-md border border-gray-300 text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#194291]">
+      </div>
+      <input type="hidden" name="limit" value="{{ limit }}">
+      <input type="hidden" name="offset" value="0">
+      <button type="submit"
+              class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
+        Filter
+      </button>
+      {% if date_from or date_to %}
+      <a href="/accounts/{{ account.id }}"
+         class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">
+        Clear
+      </a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if ledger_error %}
+  <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-3">
+    {{ ledger_error }}
+  </div>
+  {% endif %}
+
+  {% if lines %}
+  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50 sticky top-0">
+        <tr>
+          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
+          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Ref</th>
+          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Debit</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Credit</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Balance</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% if date_from and opening_balance not in ("0", "0.00") %}
+        <tr class="bg-gray-50/50">
+          <td class="px-4 py-2 text-gray-500 italic">{{ date_from }}</td>
+          <td class="px-4 py-2 text-gray-500"></td>
+          <td class="px-4 py-2 text-gray-500 italic">Opening balance</td>
+          <td class="px-4 py-2"></td>
+          <td class="px-4 py-2"></td>
+          <td class="px-4 py-2 text-right font-mono text-gray-500">{{ opening_balance }}</td>
+        </tr>
+        {% endif %}
+        {% for ln in lines %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-2 text-gray-700 whitespace-nowrap">{{ ln.entry_date }}</td>
+          <td class="px-4 py-2 text-gray-500 font-mono text-xs">
+            {% if ln.entry_id %}
+              <a href="/journal-entries/{{ ln.entry_id }}" class="text-[#194291] hover:underline">{{ ln.ref or "—" }}</a>
+            {% else %}{{ ln.ref or "—" }}{% endif %}
+          </td>
+          <td class="px-4 py-2 text-gray-900">{{ ln.description or "—" }}</td>
+          <td class="px-4 py-2 text-right font-mono {% if ln.debit and ln.debit not in ('0', '0.00') %}text-gray-900{% else %}text-gray-300{% endif %}">
+            {{ ln.debit if ln.debit not in ('0', '0.00') else '' }}
+          </td>
+          <td class="px-4 py-2 text-right font-mono {% if ln.credit and ln.credit not in ('0', '0.00') %}text-gray-900{% else %}text-gray-300{% endif %}">
+            {{ ln.credit if ln.credit not in ('0', '0.00') else '' }}
+          </td>
+          <td class="px-4 py-2 text-right font-mono text-gray-700">{{ ln.balance }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if total_debit not in ('0', '0.00') or total_credit not in ('0', '0.00') %}
+      <tfoot class="bg-gray-50 border-t border-gray-200">
+        <tr>
+          <td colspan="3" class="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
+            Page totals
+          </td>
+          <td class="px-4 py-2 text-right font-mono text-sm text-gray-900">{{ total_debit }}</td>
+          <td class="px-4 py-2 text-right font-mono text-sm text-gray-900">{{ total_credit }}</td>
+          <td class="px-4 py-2"></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+
+  {% if prev_offset is not none or next_offset is not none %}
+  <div class="mt-3 flex items-center justify-between text-sm text-gray-600">
+    <div>
+      Showing {{ offset + 1 }}–{{ [offset + (lines|length), lines_total] | min }} of {{ lines_total }}
+    </div>
+    <div class="flex gap-3">
+      {% if prev_offset is not none %}
+      <a href="/accounts/{{ account.id }}?{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}offset={{ prev_offset }}&limit={{ limit }}#transactions"
+         class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50">Previous</a>
+      {% endif %}
+      {% if next_offset is not none %}
+      <a href="/accounts/{{ account.id }}?{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}offset={{ next_offset }}&limit={{ limit }}#transactions"
+         class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50">Next</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% elif not ledger_error %}
+  <div class="bg-white rounded-xl border border-gray-200 px-4 py-8 text-center">
+    <p class="text-sm text-gray-400">
+      {% if date_from or date_to %}No posted journal entries against this account in the selected range.
+      {% else %}No posted journal entries against this account yet.{% endif %}
+    </p>
+  </div>
+  {% endif %}
+</div>
+
 {# ── System / audit info ── #}
 <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
   <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">System Info</h2>

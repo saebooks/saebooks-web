@@ -450,10 +450,26 @@ async def account_archive(
 async def account_detail(
     request: Request,
     account_id: str,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    limit: int = 200,
+    offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
-    """Render a single account detail page."""
+    """Render a single account detail page with its GL ledger at the bottom.
+
+    Same UX pattern as /bank-accounts/{id}: the page's bottom real
+    estate hosts the transactions list (posted journal lines with
+    running balance), with date filter + pagination inline.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    if limit < 1:
+        limit = 1
+    elif limit > 1000:
+        limit = 1000
+    if offset < 0:
+        offset = 0
 
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/accounts/{account_id}")
@@ -475,11 +491,58 @@ async def account_detail(
                 status_code=resp.status_code,
             )
 
+        # Fetch the per-account ledger lines. Empty array is fine for
+        # accounts with no posted activity (system-managed buckets etc.).
+        lines: list[dict] = []
+        lines_total = 0
+        opening_balance = "0"
+        total_debit = "0"
+        total_credit = "0"
+        credit_normal = False
+        ledger_error: str | None = None
+        ledger_params: dict[str, object] = {"limit": limit, "offset": offset}
+        if date_from:
+            ledger_params["date_from"] = date_from
+        if date_to:
+            ledger_params["date_to"] = date_to
+        ledger_resp = await client.get(
+            f"/api/v1/accounts/{account_id}/ledger", params=ledger_params
+        )
+        if ledger_resp.is_success:
+            body = ledger_resp.json()
+            lines = body.get("items", [])
+            lines_total = body.get("total", len(lines))
+            opening_balance = body.get("opening_balance", "0")
+            total_debit = body.get("total_debit", "0")
+            total_credit = body.get("total_credit", "0")
+            credit_normal = body.get("credit_normal", False)
+        else:
+            ledger_error = f"Could not load ledger: HTTP {ledger_resp.status_code}"
+
+    prev_offset = max(offset - limit, 0) if offset > 0 else None
+    next_offset = offset + limit if (offset + limit) < lines_total else None
+
     account = resp.json()
-    # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "accounts/detail.html",
-        {"account": account, "error": None, "flash": flash},
+        {
+            "account": account,
+            "error": None,
+            "flash": flash,
+            "lines": lines,
+            "lines_total": lines_total,
+            "ledger_error": ledger_error,
+            "opening_balance": opening_balance,
+            "total_debit": total_debit,
+            "total_credit": total_credit,
+            "credit_normal": credit_normal,
+            "date_from": date_from or "",
+            "date_to": date_to or "",
+            "limit": limit,
+            "offset": offset,
+            "prev_offset": prev_offset,
+            "next_offset": next_offset,
+        },
     )
