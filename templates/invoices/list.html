@@ -76,4 +76,23 @@
 {# Table fragment — HTMX replaces this div on filter/pagination #}
 {% include "invoices/_table.html" %}
 
+{# Bulk action bar (sticky bottom when ≥1 row selected) + confirm modal. #}
+{% import "_components/bulk_action_bar.html" as bb %}
+{{ bb.bulk_bar(
+     entity="invoices",
+     action_endpoint="/invoices/bulk",
+     actions=[
+       ("post",      "Post",      false),
+       ("send",      "Send",      false),
+       ("mark_paid", "Mark Paid", false),
+       ("void",      "Void",      true),
+       ("delete",    "Delete",    true),
+     ],
+     csrf_token=csrf_token if csrf_token is defined else "",
+) }}
+
+{# Vanilla-JS module — kebab popovers, contextmenu, cross-page selection,
+   confirmation modal. Loaded once per list page that uses these components. #}
+<script src="/static/js/list_table.js" defer></script>
+
 {% endblock %}

@@ -1,0 +1,68 @@
+{#
+  Row kebab (⋮) menu — reusable component.
+
+  Usage:
+    {% import "_components/kebab_menu.html" as km %}
+    {{ km.kebab(
+         row_id=invoice.id,
+         actions=[
+           ("view",        "View",        "/invoices/" ~ invoice.id,              "link",   false),
+           ("duplicate",   "Duplicate",   "/invoices/" ~ invoice.id ~ "/duplicate", "post", false),
+           ("send",        "Send",        "/invoices/" ~ invoice.id ~ "/send",      "post", false),
+           ("mark_paid",   "Mark Paid",   "/invoices/" ~ invoice.id ~ "/mark-paid", "post", false),
+           ("void",        "Void",        "/invoices/" ~ invoice.id ~ "/void",      "post", true),
+           ("delete",      "Delete",      "/invoices/" ~ invoice.id ~ "/delete",    "post", true),
+         ]
+    ) }}
+
+  Each action tuple is (key, label, href_or_endpoint, kind, destructive).
+  kind: "link" (plain GET nav) | "post" (form POST with CSRF).
+  destructive: true → action gets red colour + modal confirmation.
+
+  The button is a vanilla <button> with aria-haspopup/aria-expanded. JS in
+  static/js/list_table.js handles popover positioning, click-outside-to-close,
+  and the rowwide context-menu binding.
+
+  IMPORTANT: This macro only renders the button + (popover skeleton). The
+  popover content is rendered inline next to the button so it shows up in
+  the DOM without needing JS to construct it. JS just toggles `data-open`.
+#}
+{% macro kebab(row_id, actions, csrf_token="") %}
+<div class="kebab relative inline-block" data-row-id="{{ row_id }}">
+  <button type="button"
+          class="kebab-trigger inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-label="Row actions"
+          onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleKebab(this)">
+    <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <circle cx="10" cy="4" r="1.5"/>
+      <circle cx="10" cy="10" r="1.5"/>
+      <circle cx="10" cy="16" r="1.5"/>
+    </svg>
+  </button>
+  <div class="kebab-popover hidden absolute right-0 z-30 mt-1 w-44 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none"
+       role="menu" tabindex="-1"
+       data-popover-for="{{ row_id }}">
+    <div class="py-1">
+      {% for key, label, target, kind, destructive in actions %}
+        {% if kind == "link" %}
+          <a href="{{ target }}" role="menuitem" tabindex="-1"
+             class="block px-4 py-2 text-sm {% if destructive %}text-red-700 hover:bg-red-50{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            {{ label }}
+          </a>
+        {% else %}
+          <form method="POST" action="{{ target }}" class="m-0"
+                {% if destructive %}data-confirm="{{ label }} this row?"{% endif %}>
+            {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
+            <button type="submit" role="menuitem" tabindex="-1"
+                    class="w-full text-left block px-4 py-2 text-sm {% if destructive %}text-red-700 hover:bg-red-50{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+              {{ label }}
+            </button>
+          </form>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endmacro %}

@@ -4,6 +4,7 @@
 {% import "_sort_macros.html" as srt %}
 {% import "_status_macros.html" as sb %}
 {% import "_partials/empty_state.html" as empty %}
+{% import "_components/kebab_menu.html" as km %}
 {% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
                   'date_from': filter_date_from, 'date_to': filter_date_to,
                   'limit': limit, 'offset': offset} %}
@@ -16,44 +17,75 @@
 </div>
 {% endif %}
 
-<section class="card overflow-hidden">
+<section class="card">{# overflow-visible — kebab popover otherwise clips on last row #}
   <table class="sae-table w-full">
     <thead>
       <tr>
+        <th class="w-8 text-center">
+          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+                 onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
+                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        </th>
         <th class="text-left">{{ srt.sort_link('number',     'Number',  sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('issue_date', 'Date',    sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('due_date',   'Due',     sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('contact_id', 'Contact', sort, direction, filters) }}</th>
         <th class="text-right">{{ srt.sort_link('total',     'Total',   sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('status',    'Status',  sort, direction, filters) }}</th>
+        <th class="w-8"></th>{# kebab column header — intentionally empty #}
       </tr>
     </thead>
     <tbody>
       {% if invoices %}
         {% for inv in invoices %}
-        <tr class="hover:bg-paper-2 cursor-pointer" data-status="{{ (inv.status or 'draft')|lower }}" onclick="window.location='/invoices/{{ inv.id }}'">
-          <td>
-            <a href="/invoices/{{ inv.id }}" class="sae hover:underline font-medium num">{{ inv.number or "—" }}</a>
+        <tr class="hover:bg-paper-2" data-status="{{ (inv.status or 'draft')|lower }}">
+          <td class="text-center" onclick="event.stopPropagation()">
+            <input type="checkbox" data-row-select data-id="{{ inv.id }}"
+                   aria-label="Select invoice {{ inv.number or inv.id }}"
+                   onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
+                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="num ink-2">{{ inv.issue_date }}</td>
-          <td class="num ink-2">{{ inv.due_date }}</td>
-          <td class="ink-1">
+          <td class="cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">
+            <a href="/invoices/{{ inv.id }}" class="sae hover:underline font-medium num" onclick="event.stopPropagation()">{{ inv.number or "—" }}</a>
+          </td>
+          <td class="num ink-2 cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">{{ inv.issue_date }}</td>
+          <td class="num ink-2 cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">{{ inv.due_date }}</td>
+          <td class="ink-1 cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">
             {% set _c = contacts_by_id.get(inv.contact_id) if contacts_by_id else None %}
             {% if _c %}<a href="/contacts/{{ _c.id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
           </td>
-          <td class="text-right num-display ink-1" style="font-weight:500;">
+          <td class="text-right num-display ink-1 cursor-pointer" style="font-weight:500;" onclick="window.location='/invoices/{{ inv.id }}'">
             {{ inv.currency }} {{ "%.2f"|format(inv.total|float) }}
           </td>
-          <td>{{ sb.payment_status_badge(inv, today, due_soon_cutoff) }}</td>
+          <td class="cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">{{ sb.payment_status_badge(inv, today, due_soon_cutoff) }}</td>
+          <td class="text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (inv.status or 'draft')|lower %}
+            {%- set actions = [
+              ("view",      "View",      "/invoices/" ~ inv.id,              "link",  false),
+              ("edit",      "Edit",      "/invoices/" ~ inv.id ~ "/edit",     "link",  false),
+              ("duplicate", "Duplicate", "/invoices/" ~ inv.id ~ "/duplicate","post",  false),
+            ] %}
+            {%- if status_lower == 'draft' %}
+              {%- set _ = actions.append(("post", "Post", "/invoices/" ~ inv.id ~ "/post", "post", false)) %}
+            {%- elif status_lower == 'posted' %}
+              {%- set _ = actions.append(("send",     "Send",     "/invoices/" ~ inv.id ~ "/send",     "post", false)) %}
+              {%- set _ = actions.append(("mark_paid","Mark Paid","/invoices/" ~ inv.id ~ "/mark-paid","post", false)) %}
+              {%- set _ = actions.append(("void",     "Void",     "/invoices/" ~ inv.id ~ "/void",     "post", true)) %}
+            {%- endif %}
+            {%- if status_lower != 'voided' %}
+              {%- set _ = actions.append(("archive", "Archive", "/invoices/" ~ inv.id ~ "/archive", "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=inv.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-        {{ empty.row(6, "inbox", "No invoices yet",
+        {{ empty.row(8, "inbox", "No invoices yet",
                      "Bill your first customer to start the ledger.",
                      "New invoice", "/invoices/new") }}
         {% else %}
-        {{ empty.row(6, "search-x", "No invoices match these filters",
+        {{ empty.row(8, "search-x", "No invoices match these filters",
                      "Try clearing the filters above.") }}
         {% endif %}
       {% endif %}
