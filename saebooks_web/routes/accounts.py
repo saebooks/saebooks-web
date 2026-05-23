@@ -60,14 +60,18 @@ def _require_auth(request: Request) -> str | None:
 async def accounts_list(
     request: Request,
     account_type: str | None = None,
-    limit: int = 200,
-    offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
-    """Render the accounts list page (full or HTMX fragment)."""
+    """Render the accounts page as a collapsible tree by parent_id.
+
+    The CoA is rarely deep enough that pagination helps — we'd rather
+    show the whole hierarchy and let HTML <details> collapse what the
+    user isn't looking at. Fetches all accounts in one call (API caps
+    at 1000) and groups by parent_id server-side.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    params: dict[str, object] = {"limit": limit, "offset": offset}
+    params: dict[str, object] = {"limit": 1000, "offset": 0}
     if account_type:
         params["account_type"] = account_type
 
@@ -87,27 +91,37 @@ async def accounts_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-    prev_offset: int | None = offset - limit if offset > 0 else None
-    next_offset: int | None = offset + limit if offset + limit < total else None
+    # ── Build a tree ───────────────────────────────────────────────────
+    # children_by_parent: parent_id (str or None for roots) -> list of accounts
+    # When a parent filter is active we still get all matching rows but
+    # need to be tolerant of dangling parents (parent excluded by filter):
+    # if a row's parent_id isn't in this result set, treat it as a root.
+    by_id = {str(a["id"]): a for a in accounts}
+    children_by_parent: dict[str | None, list[dict]] = {}
+    for a in accounts:
+        pid = a.get("parent_id")
+        key: str | None = str(pid) if pid and str(pid) in by_id else None
+        children_by_parent.setdefault(key, []).append(a)
 
-    # Consume and clear any flash message (e.g. from a successful archive/edit).
+    # Sort siblings by code at every level.
+    for k in children_by_parent:
+        children_by_parent[k].sort(key=lambda a: (a.get("code") or ""))
+
+    roots = children_by_parent.get(None, [])
+
     flash = request.session.pop("flash", None)
 
     ctx = {
         "accounts": accounts,
+        "roots": roots,
+        "children_by_parent": children_by_parent,
         "total": total,
-        "limit": limit,
-        "offset": offset,
         "filter_account_type": account_type or "",
-        "prev_offset": prev_offset,
-        "next_offset": next_offset,
         "error": error,
         "flash": flash,
     }
 
-    is_htmx = request.headers.get("HX-Request") == "true"
-    template = "accounts/_table.html" if is_htmx else "accounts/list.html"
-    return _TEMPLATES.TemplateResponse(request, template, ctx)
+    return _TEMPLATES.TemplateResponse(request, "accounts/list.html", ctx)
 
 
 # ---------------------------------------------------------------------------

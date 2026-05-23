@@ -235,23 +235,18 @@
     </table>
   </div>
 
-  {% if prev_offset is not none or next_offset is not none %}
-  <div class="mt-3 flex items-center justify-between text-sm text-gray-600">
-    <div>
-      Showing {{ offset + 1 }}–{{ [offset + (lines|length), lines_total] | min }} of {{ lines_total }}
-    </div>
-    <div class="flex gap-3">
-      {% if prev_offset is not none %}
-      <a href="/accounts/{{ account.id }}?{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}offset={{ prev_offset }}&limit={{ limit }}#transactions"
-         class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50">Previous</a>
-      {% endif %}
-      {% if next_offset is not none %}
-      <a href="/accounts/{{ account.id }}?{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}&{% endif %}offset={{ next_offset }}&limit={{ limit }}#transactions"
-         class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50">Next</a>
-      {% endif %}
-    </div>
-  </div>
-  {% endif %}
+  {% import "_partials/_pagination.html" as pg %}
+  {%- set _date_q = [] -%}
+  {%- if date_from %}{%- set _ = _date_q.append("date_from=" ~ date_from) -%}{% endif %}
+  {%- if date_to   %}{%- set _ = _date_q.append("date_to=" ~ date_to) -%}{% endif %}
+  {{ pg.page_numbers(
+       base_url="/accounts/" ~ account.id,
+       total=lines_total,
+       limit=limit,
+       offset=offset,
+       extra_query=_date_q | join("&"),
+       fragment="transactions",
+  ) }}
   {% elif not ledger_error %}
   <div class="bg-white rounded-xl border border-gray-200 px-4 py-8 text-center">
     <p class="text-sm text-gray-400">

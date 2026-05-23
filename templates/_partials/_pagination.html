@@ -1,0 +1,89 @@
+{#
+  Reusable pagination control with page numbers.
+
+  Usage:
+    {% import "_partials/_pagination.html" as pg %}
+    {{ pg.page_numbers(
+         base_url="/accounts/" ~ account.id,
+         extra_query="status=" ~ filter_status,
+         fragment="transactions",
+         total=lines_total,
+         limit=limit,
+         offset=offset
+    ) }}
+
+  Renders: First / Prev / numbered pages with ellipsis / Next / Last.
+
+  When `extra_query` is supplied it should NOT include a leading `&` or `?` —
+  the macro joins it correctly. Pass "" if you have no extra params.
+
+  When `fragment` is supplied (e.g. "transactions") the links are suffixed
+  with `#<fragment>` so the browser scrolls back to the table on navigate.
+#}
+{% macro page_numbers(base_url, total, limit, offset, extra_query="", fragment="") %}
+  {%- set total_pages = ((total + limit - 1) // limit) if total > 0 else 1 %}
+  {%- set current = (offset // limit) + 1 %}
+  {%- if total_pages > 1 %}
+
+  {%- macro _url(page_num) -%}
+    {%- set off = (page_num - 1) * limit -%}
+    {{ base_url }}?{% if extra_query %}{{ extra_query }}&{% endif %}offset={{ off }}&limit={{ limit }}{% if fragment %}#{{ fragment }}{% endif %}
+  {%- endmacro %}
+
+  {# Window: show 2 pages either side of current, plus first & last with ellipses #}
+  {%- set window = 2 %}
+  {%- set window_start = [current - window, 1] | max %}
+  {%- set window_end = [current + window, total_pages] | min %}
+
+  <nav class="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+    <div>
+      Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+      <span class="text-gray-400 ml-2">· page {{ current }} of {{ total_pages }}</span>
+    </div>
+    <div class="flex flex-wrap items-center gap-1">
+      {# First / Prev #}
+      {%- if current > 1 %}
+      <a href="{{ _url(1) }}" class="rounded-md border border-gray-300 px-2 py-1 hover:bg-gray-50" aria-label="First page">«</a>
+      <a href="{{ _url(current - 1) }}" class="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50" aria-label="Previous page">‹ Prev</a>
+      {%- else %}
+      <span class="rounded-md border border-gray-200 px-2 py-1 text-gray-300 cursor-not-allowed" aria-disabled="true">«</span>
+      <span class="rounded-md border border-gray-200 px-3 py-1 text-gray-300 cursor-not-allowed" aria-disabled="true">‹ Prev</span>
+      {%- endif %}
+
+      {# Leading 1 + ellipsis if window doesn't already include 1 #}
+      {%- if window_start > 1 %}
+      <a href="{{ _url(1) }}" class="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">1</a>
+      {%- if window_start > 2 %}
+      <span class="px-1 text-gray-400">…</span>
+      {%- endif %}
+      {%- endif %}
+
+      {# Window pages #}
+      {%- for p in range(window_start, window_end + 1) %}
+        {%- if p == current %}
+      <span aria-current="page" class="rounded-md border border-[#194291] bg-[#194291] px-3 py-1 font-medium text-white">{{ p }}</span>
+        {%- else %}
+      <a href="{{ _url(p) }}" class="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">{{ p }}</a>
+        {%- endif %}
+      {%- endfor %}
+
+      {# Trailing ellipsis + last page if window doesn't already include it #}
+      {%- if window_end < total_pages %}
+      {%- if window_end < total_pages - 1 %}
+      <span class="px-1 text-gray-400">…</span>
+      {%- endif %}
+      <a href="{{ _url(total_pages) }}" class="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">{{ total_pages }}</a>
+      {%- endif %}
+
+      {# Next / Last #}
+      {%- if current < total_pages %}
+      <a href="{{ _url(current + 1) }}" class="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50" aria-label="Next page">Next ›</a>
+      <a href="{{ _url(total_pages) }}" class="rounded-md border border-gray-300 px-2 py-1 hover:bg-gray-50" aria-label="Last page">»</a>
+      {%- else %}
+      <span class="rounded-md border border-gray-200 px-3 py-1 text-gray-300 cursor-not-allowed" aria-disabled="true">Next ›</span>
+      <span class="rounded-md border border-gray-200 px-2 py-1 text-gray-300 cursor-not-allowed" aria-disabled="true">»</span>
+      {%- endif %}
+    </div>
+  </nav>
+  {%- endif %}
+{% endmacro %}
