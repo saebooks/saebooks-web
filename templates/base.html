@@ -374,7 +374,15 @@
            alt="SAE Books"
            class="h-14"
            style="max-width: 240px;">
-      <div class="text-[10px] font-mono ink-3">v2026.05 · {{ request.session.get('edition') or 'community' }}</div>
+      {% set _edition = current_edition() %}
+      <div class="text-[10px] font-mono">
+        <span class="ink-3">v2026.05 ·</span>
+        {% if _edition == "developer" %}
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm font-semibold uppercase tracking-wider bg-red-600 text-white">DEV</span>
+        {% else %}
+        <span class="ink-3 uppercase tracking-wider">{{ _edition }}</span>
+        {% endif %}
+      </div>
     </a>
 
     {# Navigation #}

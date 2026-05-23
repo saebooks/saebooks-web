@@ -41,14 +41,34 @@ def is_feature_enabled(flag: str) -> bool:
     return flag in _EDITION_FLAGS.get(edition, frozenset())
 
 
+def current_edition() -> str:
+    """Return the active edition string (e.g. ``"developer"``, ``"pro"``).
+
+    Templates use this to render the edition badge in the side-nav, swap
+    in a distinct colour on dev instances, etc.
+    """
+    return _current_edition()
+
+
+def is_dev_edition() -> bool:
+    """True when the active edition is ``developer``.
+
+    Convenience for templates that just want to know "should I render the
+    dev-specific UI affordance?" without naming a specific flag.
+    """
+    return _current_edition() == "developer"
+
+
 def register_feature_global(templates) -> None:
-    """Add ``is_feature_enabled`` to a Jinja2Templates env's globals.
+    """Add feature-flag helpers to a Jinja2Templates env's globals.
 
     Called from the patched Jinja2Templates.__init__ so every templates
-    instance gets the global automatically. Idempotent — ``setdefault``
+    instance gets the globals automatically. Idempotent — ``setdefault``
     no-ops if already present.
     """
     try:
         templates.env.globals.setdefault("is_feature_enabled", is_feature_enabled)
+        templates.env.globals.setdefault("current_edition", current_edition)
+        templates.env.globals.setdefault("is_dev_edition", is_dev_edition)
     except AttributeError:
         pass
