@@ -539,6 +539,64 @@ async def contact_update(
     )
 
 
+
+# ---------------------------------------------------------------------------
+# Per-row one-off toggle — POST /{contact_id}/make-one-off | /make-main
+# NOTE: MUST appear before the catch-all /{contact_id} GET so FastAPI matches
+# the literal "/make-one-off" / "/make-main" suffixes first.
+# ---------------------------------------------------------------------------
+
+
+async def _set_one_off(request: Request, contact_id: str, *, value: bool) -> RedirectResponse:
+    """Helper: flip ``is_one_off`` on a single contact via the bulk API.
+
+    Uses /api/v1/contacts/bulk-tag-one-off with a single-element list so the
+    server handles the fetch + If-Match + change_log internally. Avoids the
+    round-trip-and-version-juggling the per-row PATCH would need.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.post(
+            "/api/v1/contacts/bulk-tag-one-off",
+            json={"contact_ids": [contact_id], "is_one_off": value},
+        )
+    label = "one-off" if value else "main"
+    if resp.is_success:
+        flipped = resp.json().get("flipped", 0)
+        if flipped:
+            request.session["flash"] = f"Marked as {label}."
+        else:
+            request.session["flash"] = f"Already {label} — no change."
+    else:
+        request.session["flash"] = f"Could not update: HTTP {resp.status_code}"
+    # Stay on whichever list view the user came from when possible.
+    referer = request.headers.get("referer", "")
+    target = "/contacts"
+    if referer:
+        # Trust only same-host paths to avoid open-redirect
+        from urllib.parse import urlparse
+        try:
+            parsed = urlparse(referer)
+            if parsed.path.startswith("/contacts"):
+                target = parsed.path + (f"?{parsed.query}" if parsed.query else "")
+        except Exception:
+            pass
+    return RedirectResponse(url=target, status_code=303)
+
+
+@router.post("/contacts/{contact_id}/make-one-off", response_class=HTMLResponse, response_model=None)
+async def contact_make_one_off(request: Request, contact_id: str) -> RedirectResponse:
+    """Flip a single contact's ``is_one_off`` flag to True."""
+    return await _set_one_off(request, contact_id, value=True)
+
+
+@router.post("/contacts/{contact_id}/make-main", response_class=HTMLResponse, response_model=None)
+async def contact_make_main(request: Request, contact_id: str) -> RedirectResponse:
+    """Flip a single contact's ``is_one_off`` flag back to False."""
+    return await _set_one_off(request, contact_id, value=False)
+
+
 # ---------------------------------------------------------------------------
 # Archive — POST /{contact_id}/archive
 # NOTE: MUST appear before the catch-all /{contact_id} GET.
@@ -757,8 +815,16 @@ async def contact_detail(
 # Bulk action — POST /contacts/bulk
 # ---------------------------------------------------------------------------
 
+# Per-row actions: iterate ids, dispatch one HTTP call per id.
 _BULK_ACTIONS_CONTACTS = {
     "archive": ("DELETE", "/api/v1/contacts/{id}"),
+}
+
+# Single-call actions: one HTTP request, ids carried in the body.
+# Tuple: (method, path, base_body — ids are merged in at dispatch time).
+_BULK_ACTIONS_CONTACTS_SINGLE: dict[str, tuple[str, str, dict]] = {
+    "make_one_off": ("POST", "/api/v1/contacts/bulk-tag-one-off", {"is_one_off": True}),
+    "make_main":    ("POST", "/api/v1/contacts/bulk-tag-one-off", {"is_one_off": False}),
 }
 
 
@@ -778,13 +844,29 @@ async def contacts_bulk_action(request: Request) -> RedirectResponse:
 
     form_data = await request.form()
     action = str(form_data.get("action", "")).strip()
-    if action not in _BULK_ACTIONS_CONTACTS:
+    if action not in _BULK_ACTIONS_CONTACTS and action not in _BULK_ACTIONS_CONTACTS_SINGLE:
         request.session["flash"] = f"Unknown bulk action: {action!r}"
         return RedirectResponse(url="/contacts", status_code=303)
 
     ids = [str(v) for v in form_data.getlist("ids[]") if str(v).strip()]
     if not ids:
         request.session["flash"] = "No rows selected."
+        return RedirectResponse(url="/contacts", status_code=303)
+
+    # ── Single-call actions (one HTTP call, all ids in body) ────────────────
+    if action in _BULK_ACTIONS_CONTACTS_SINGLE:
+        method, path, base_body = _BULK_ACTIONS_CONTACTS_SINGLE[action]
+        body = {**base_body, "contact_ids": ids}
+        async with api_client(request) as client:
+            resp = await client.request(method, path, json=body)
+        label = action.replace("_", " ").title()
+        if resp.is_success:
+            flipped = resp.json().get("flipped", 0)
+            skipped = len(ids) - flipped
+            tail = f" ({skipped} already in target state)" if skipped else ""
+            request.session["flash"] = f"{label}: {flipped} contact{'s' if flipped != 1 else ''} updated{tail}."
+        else:
+            request.session["flash"] = f"{label} failed: HTTP {resp.status_code}"
         return RedirectResponse(url="/contacts", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS_CONTACTS[action]

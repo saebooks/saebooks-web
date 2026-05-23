@@ -105,8 +105,13 @@
             {%- set actions = [
               ("view",    "View",    "/contacts/" ~ c.id,             "link", false),
               ("edit",    "Edit",    "/contacts/" ~ c.id ~ "/edit",   "link", false),
-              ("archive", "Archive", "/contacts/" ~ c.id ~ "/archive","post", true),
             ] %}
+            {%- if c.is_one_off %}
+              {%- set _ = actions.append(("make_main",    "Mark as main",    "/contacts/" ~ c.id ~ "/make-main",    "post", false)) %}
+            {%- else %}
+              {%- set _ = actions.append(("make_one_off", "Mark as one-off", "/contacts/" ~ c.id ~ "/make-one-off", "post", false)) %}
+            {%- endif %}
+            {%- set _ = actions.append(("archive", "Archive", "/contacts/" ~ c.id ~ "/archive","post", true)) %}
             {{ km.kebab(row_id=c.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
@@ -127,7 +132,9 @@
      entity="contacts",
      action_endpoint="/contacts/bulk",
      actions=[
-       ("archive", "Archive", true),
+       ("make_one_off", "Mark as one-off", false),
+       ("make_main",    "Mark as main",    false),
+       ("archive",      "Archive",         true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
