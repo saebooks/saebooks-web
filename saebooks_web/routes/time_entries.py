@@ -647,10 +647,16 @@ async def time_entry_convert(request: Request) -> RedirectResponse:
 # Bulk action — POST /time-entries/bulk
 # ---------------------------------------------------------------------------
 
+# Per-row actions: iterate ids, one HTTP call each.
 _BULK_ACTIONS_TIME_ENTRIES = {
     "submit": ("POST", "/api/v1/time-entries/{id}/submit"),
     "approve": ("POST", "/api/v1/time-entries/{id}/approve"),
     "archive": ("DELETE", "/api/v1/time-entries/{id}"),
+}
+
+# Single-call actions: one HTTP request, ids carried in the body.
+_BULK_ACTIONS_TIME_ENTRIES_SINGLE: dict[str, tuple[str, str, dict]] = {
+    "convert_to_invoice": ("POST", "/api/v1/time-entries/convert-to-invoice", {}),
 }
 
 
@@ -670,13 +676,34 @@ async def time_entries_bulk_action(request: Request) -> RedirectResponse:
 
     form_data = await request.form()
     action = str(form_data.get("action", "")).strip()
-    if action not in _BULK_ACTIONS_TIME_ENTRIES:
+    if action not in _BULK_ACTIONS_TIME_ENTRIES and action not in _BULK_ACTIONS_TIME_ENTRIES_SINGLE:
         request.session["flash"] = f"Unknown bulk action: {action!r}"
         return RedirectResponse(url="/time-entries", status_code=303)
 
     ids = [str(v) for v in form_data.getlist("ids[]") if str(v).strip()]
     if not ids:
         request.session["flash"] = "No rows selected."
+        return RedirectResponse(url="/time-entries", status_code=303)
+
+    # ── Single-call action: one HTTP request, all ids in body. ──────────────
+    if action in _BULK_ACTIONS_TIME_ENTRIES_SINGLE:
+        method, path, base_body = _BULK_ACTIONS_TIME_ENTRIES_SINGLE[action]
+        body = {**base_body, "entry_ids": ids}
+        async with api_client(request) as client:
+            resp = await client.request(method, path, json=body)
+        if resp.is_success:
+            try:
+                data = resp.json()
+                summary = ", ".join(f"{k}={v}" for k, v in data.items() if isinstance(v, (int, str)))
+            except Exception:
+                summary = ""
+            label = action.replace("_", " ").title()
+            request.session["flash"] = (
+                f"{label}: {len(ids)} entr{'ies' if len(ids) != 1 else 'y'} processed"
+                + (f" ({summary})" if summary else "") + "."
+            )
+        else:
+            request.session["flash"] = f"{action.replace('_', ' ').title()} failed: HTTP {resp.status_code}"
         return RedirectResponse(url="/time-entries", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS_TIME_ENTRIES[action]

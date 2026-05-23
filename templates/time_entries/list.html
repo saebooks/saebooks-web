@@ -92,63 +92,56 @@
   <a href="/time-entries" class="btn btn-secondary">Reset</a>
 </form>
 
-<form method="POST" action="/time-entries/convert-to-invoice" id="entries-form">
-  {{ csrf_input(request)|safe }}
+{% import "_components/kebab_menu.html" as km %}
 <div id="entries-table" class="card">
-  <table class="w-full text-base">
+  <table class="w-full text-sm">
     <thead>
       <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
-        <th class="w-8 px-3 py-2 text-center">
+        <th class="w-8 px-2 py-2 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-3 py-2 w-8"></th>
-        <th class="px-3 py-2">Date</th>
-        <th class="px-3 py-2">Description</th>
-        <th class="px-3 py-2">Project</th>
-        <th class="px-3 py-2">Contact</th>
-        <th class="px-3 py-2 text-right">Hours</th>
-        <th class="px-3 py-2 text-right">Rate</th>
-        <th class="px-3 py-2 text-right">Amount</th>
-        <th class="px-3 py-2 text-center">Status</th>
-        <th class="w-8 px-3 py-2"></th>
+        <th class="px-2 py-2 whitespace-nowrap">Date</th>
+        <th class="px-2 py-2">Description</th>
+        <th class="px-2 py-2">Project</th>
+        <th class="px-2 py-2">Contact</th>
+        <th class="px-2 py-2 text-right whitespace-nowrap">Hours</th>
+        <th class="px-2 py-2 text-right whitespace-nowrap">Rate</th>
+        <th class="px-2 py-2 text-right whitespace-nowrap">Amount</th>
+        <th class="px-2 py-2 text-center whitespace-nowrap">Status</th>
+        <th class="w-8 px-2 py-2"></th>
       </tr>
     </thead>
     <tbody>
       {% for e in entries %}
       <tr class="border-b hairline hover:bg-paper-2" data-status="{{ (e.approval_status or 'draft')|lower }}">
-        <td class="px-3 py-2 text-center" onclick="event.stopPropagation()">
+        <td class="px-2 py-2 text-center" onclick="event.stopPropagation()">
           <input type="checkbox" data-row-select data-id="{{ e.id }}"
                  aria-label="Select time entry {{ e.id }}"
                  onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </td>
-        <td class="px-3 py-2">
-          {% if e.billable and not e.invoice_line_id and e.approval_status != 'LOCKED' %}
-          <input type="checkbox" name="entry_ids" value="{{ e.id }}">
-          {% endif %}
-        </td>
-        <td class="px-3 py-2 num">{{ e.work_date }}</td>
-        <td class="px-3 py-2">{{ e.description or "—" }}</td>
-        <td class="px-3 py-2">
+        <td class="px-2 py-2 num whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">{{ e.work_date }}</td>
+        <td class="px-2 py-2 cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">{{ e.description or "—" }}</td>
+        <td class="px-2 py-2 cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">
           {% if e.project_id and project_by_id.get(e.project_id) %}
           {{ project_by_id[e.project_id].name }}
           {% else %}—{% endif %}
         </td>
-        <td class="px-3 py-2">
+        <td class="px-2 py-2 cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">
           {% if e.contact_id and contact_by_id.get(e.contact_id) %}
           {{ contact_by_id[e.contact_id].name }}
           {% else %}—{% endif %}
         </td>
-        <td class="px-3 py-2 text-right num-display">{{ "%.2f"|format(e.hours|float) }}</td>
-        <td class="px-3 py-2 text-right num">
+        <td class="px-2 py-2 text-right num-display whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">{{ "%.2f"|format(e.hours|float) }}</td>
+        <td class="px-2 py-2 text-right num whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">
           {% if e.rate %}${{ "%.2f"|format(e.rate|float) }}{% else %}—{% endif %}
         </td>
-        <td class="px-3 py-2 text-right num-display">
+        <td class="px-2 py-2 text-right num-display whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">
           {% if e.rate %}${{ "%.2f"|format((e.rate|float) * (e.hours|float)) }}{% else %}—{% endif %}
         </td>
-        <td class="px-3 py-2 text-center">
+        <td class="px-2 py-2 text-center whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">
           <span class="chip
             {% if e.approval_status == 'APPROVED' %}chip-pos
             {% elif e.approval_status == 'REJECTED' %}chip-neg
@@ -160,7 +153,7 @@
           {% if e.billable %}<span class="chip ml-1">$</span>{% endif %}
           {% if e.invoice_line_id %}<span class="chip ml-1" title="On invoice line">→ inv</span>{% endif %}
         </td>
-        <td class="px-3 py-2 text-right" onclick="event.stopPropagation()">
+        <td class="px-2 py-2 text-right" onclick="event.stopPropagation()">
           {%- set status_lower = (e.approval_status or 'draft')|lower %}
           {%- set te_actions = [
             ("view", "View", "/time-entries/" ~ e.id, "link", false),
@@ -174,21 +167,17 @@
           {%- if status_lower != 'locked' %}
             {%- set _ = te_actions.append(("archive", "Archive", "/time-entries/" ~ e.id ~ "/archive", "post", true)) %}
           {%- endif %}
-          {% import "_components/kebab_menu.html" as km %}
           {{ km.kebab(row_id=e.id, actions=te_actions, csrf_token=csrf_token if csrf_token is defined else "") }}
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="11" class="p-6 text-center ink-3">No entries match these filters.</td></tr>
+      <tr><td colspan="10" class="p-6 text-center ink-3">No entries match these filters.</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 
-<div class="mt-4 flex items-center justify-between">
-  <button type="submit" class="btn btn-primary">
-    Convert selected → invoice
-  </button>
+<div class="mt-4 flex items-center justify-end gap-3">
   <div class="text-sm ink-3 flex gap-2">
     {% if prev_offset is not none %}
     <a href="?offset={{ prev_offset }}&amp;limit={{ limit }}" class="sae hover:underline">← Prev</a>
@@ -198,7 +187,6 @@
     {% endif %}
   </div>
 </div>
-</form>
 
 
 {# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
@@ -207,9 +195,10 @@
      entity="time_entries",
      action_endpoint="/time-entries/bulk",
      actions=[
-       ("submit",  "Submit",  false),
-       ("approve", "Approve", false),
-       ("archive", "Archive", true),
+       ("submit",             "Submit",            false),
+       ("approve",            "Approve",           false),
+       ("convert_to_invoice", "Convert to invoice", false),
+       ("archive",            "Archive",           true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
