@@ -493,6 +493,8 @@ async def bank_account_detail(
     request: Request,
     account_id: str,
     status: str | None = None,
+    sort: str = "date",
+    order: str = "desc",
     limit: int = 200,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
@@ -539,10 +541,14 @@ async def bank_account_detail(
         lines: list[dict] = []
         lines_total = 0
         lines_error: str | None = None
+        if order not in ("asc", "desc"):
+            order = "desc"
         bsl_params: dict[str, object] = {
             "bank_account_id": account_id,
             "limit": limit,
             "offset": offset,
+            "sort": sort,
+            "order": order,
         }
         if status:
             bsl_params["status"] = status
@@ -573,6 +579,8 @@ async def bank_account_detail(
             "lines_total": lines_total,
             "lines_error": lines_error,
             "filter_status": status or "",
+            "sort": sort,
+            "order": order,
             "limit": limit,
             "offset": offset,
             "prev_offset": prev_offset,

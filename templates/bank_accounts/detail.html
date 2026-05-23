@@ -163,12 +163,14 @@
     <table class="min-w-full divide-y divide-gray-200 text-sm">
       <thead class="bg-gray-50 sticky top-0">
         <tr>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Ref</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Amount</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Balance</th>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+          {%- import "_partials/_sort_header.html" as sh -%}
+          {%- set _extra = ("status=" ~ filter_status) if filter_status else "" -%}
+          {{ sh.sort_th("Date",        "date",        sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "left") }}
+          {{ sh.sort_th("Description", "description", sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "left") }}
+          {{ sh.sort_th("Ref",         "reference",   sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "left") }}
+          {{ sh.sort_th("Amount",      "amount",      sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "right") }}
+          {{ sh.sort_th("Balance",     "balance",     sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "right") }}
+          {{ sh.sort_th("Status",      "status",      sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "left") }}
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
@@ -199,12 +201,16 @@
 
   {# Inline pagination with page numbers — see _partials/_pagination.html #}
   {% import "_partials/_pagination.html" as pg %}
+  {%- set _q = [] -%}
+  {%- if filter_status %}{%- set _ = _q.append("status=" ~ filter_status) -%}{% endif %}
+  {%- if sort %}{%- set _ = _q.append("sort=" ~ sort) -%}{% endif %}
+  {%- if order %}{%- set _ = _q.append("order=" ~ order) -%}{% endif %}
   {{ pg.page_numbers(
        base_url="/bank-accounts/" ~ account.id,
        total=lines_total,
        limit=limit,
        offset=offset,
-       extra_query=("status=" ~ filter_status) if filter_status else "",
+       extra_query=_q | join("&"),
        fragment="transactions",
   ) }}
   {% elif not lines_error %}

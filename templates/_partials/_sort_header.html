@@ -1,0 +1,53 @@
+{#
+  Reusable sortable <th>.
+
+  Usage:
+    {% import "_partials/_sort_header.html" as sh %}
+    {{ sh.sort_th(
+         label="Date",
+         column="date",
+         current_sort=sort,
+         current_order=order,
+         base_url="/bank-accounts/" ~ account.id,
+         extra_query="status=" ~ filter_status,
+         fragment="transactions",
+         align="left",
+    ) }}
+
+  Toggles asc/desc on the active column, defaults to desc on a new one
+  (matching the "newest first" default for date columns).
+#}
+{% macro sort_th(label, column, current_sort, current_order, base_url, extra_query="", fragment="", align="left") %}
+  {%- set is_active = (current_sort == column) %}
+  {%- set next_order = "asc" if (is_active and current_order == "desc") else "desc" %}
+  {%- if is_active and current_order == "asc" %}
+    {%- set next_order = "desc" %}
+  {%- endif %}
+  {# Clicking the active column flips order; clicking a new column starts desc. #}
+  {%- if not is_active %}
+    {%- set next_order = "desc" %}
+  {%- endif %}
+  {%- set url -%}
+    {{ base_url }}?{% if extra_query %}{{ extra_query }}&{% endif %}sort={{ column }}&order={{ next_order }}&offset=0{% if fragment %}#{{ fragment }}{% endif %}
+  {%- endset %}
+  <th class="px-4 py-2 text-{{ align }} font-medium text-gray-500 uppercase tracking-wide text-xs">
+    <a href="{{ url }}" class="inline-flex items-center gap-1 hover:text-[#194291] {% if is_active %}text-[#194291]{% endif %}">
+      <span>{{ label }}</span>
+      {%- if is_active %}
+        {%- if current_order == "asc" %}
+        <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
+        </svg>
+        {%- else %}
+        <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+        {%- endif %}
+      {%- else %}
+        <svg class="w-3 h-3 text-gray-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M5 8l5-5 5 5H5zM15 12l-5 5-5-5h10z"/>
+        </svg>
+      {%- endif %}
+    </a>
+  </th>
+{% endmacro %}

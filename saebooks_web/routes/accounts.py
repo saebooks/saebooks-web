@@ -56,10 +56,21 @@ def _require_auth(request: Request) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+_ACCOUNT_TABS: dict[str, tuple[str, ...]] = {
+    "all":       (),
+    "asset":     ("ASSET",),
+    "liability": ("LIABILITY",),
+    "equity":    ("EQUITY",),
+    "income":    ("INCOME", "OTHER_INCOME"),
+    "expense":   ("EXPENSE", "COST_OF_SALES", "OTHER_EXPENSE"),
+}
+
+
 @router.get("/accounts", response_class=HTMLResponse, response_model=None)
 async def accounts_list(
     request: Request,
-    account_type: str | None = None,
+    tab: str = "all",
+    account_type: str | None = None,  # legacy ?account_type=… still respected
 ) -> HTMLResponse | RedirectResponse:
     """Render the accounts page as a collapsible tree by parent_id.
 
@@ -67,13 +78,28 @@ async def accounts_list(
     show the whole hierarchy and let HTML <details> collapse what the
     user isn't looking at. Fetches all accounts in one call (API caps
     at 1000) and groups by parent_id server-side.
+
+    ``tab`` controls the top-level account-type filter. Tabs collapse
+    related types (e.g. expense covers EXPENSE / COST_OF_SALES /
+    OTHER_EXPENSE) — see ``_ACCOUNT_TABS``. The legacy
+    ``?account_type=…`` query param still works for direct API/links.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    params: dict[str, object] = {"limit": 1000, "offset": 0}
-    if account_type:
-        params["account_type"] = account_type
+    # Normalise tab → set of account_types.
+    tab = (tab or "all").lower()
+    if tab not in _ACCOUNT_TABS:
+        tab = "all"
+    tab_types: set[str] = set(_ACCOUNT_TABS[tab])
+
+    # Always fetch all accounts (with balances). Filter in Python so
+    # tabs and tree composition stay coherent.
+    params: dict[str, object] = {
+        "limit": 1000,
+        "offset": 0,
+        "include_balance": "true",
+    }
 
     error: str | None = None
     accounts: list[dict] = []
@@ -91,31 +117,57 @@ async def accounts_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-    # ── Build a tree ───────────────────────────────────────────────────
-    # children_by_parent: parent_id (str or None for roots) -> list of accounts
-    # When a parent filter is active we still get all matching rows but
-    # need to be tolerant of dangling parents (parent excluded by filter):
-    # if a row's parent_id isn't in this result set, treat it as a root.
-    by_id = {str(a["id"]): a for a in accounts}
+    # Tab-side filter: by default keep everything; otherwise restrict to
+    # the tab's account_types. Legacy ?account_type=… further narrows.
+    filtered = accounts
+    if tab_types:
+        filtered = [a for a in filtered if a.get("account_type") in tab_types]
+    if account_type:
+        filtered = [a for a in filtered if a.get("account_type") == account_type]
+
+    # ── Build a tree from the filtered subset ──────────────────────────
+    by_id = {str(a["id"]): a for a in filtered}
     children_by_parent: dict[str | None, list[dict]] = {}
-    for a in accounts:
+    for a in filtered:
         pid = a.get("parent_id")
         key: str | None = str(pid) if pid and str(pid) in by_id else None
         children_by_parent.setdefault(key, []).append(a)
-
-    # Sort siblings by code at every level.
     for k in children_by_parent:
         children_by_parent[k].sort(key=lambda a: (a.get("code") or ""))
-
     roots = children_by_parent.get(None, [])
+
+    # ── Stamp subtree_balance on every node (header roll-up) ───────────
+    from decimal import Decimal as _D
+
+    def _subtree(nid: str) -> _D:
+        node = by_id.get(nid, {})
+        own = _D(node.get("balance") or "0") if not node.get("is_header") else _D("0")
+        for child in children_by_parent.get(nid, []):
+            own += _subtree(str(child["id"]))
+        node["subtree_balance"] = str(own)
+        return own
+
+    for r in roots:
+        _subtree(str(r["id"]))
+
+    # Tab counts so the UI can show "Asset (32)" etc. without a second
+    # fetch. Counted from the unfiltered fetch.
+    tab_counts: dict[str, int] = {"all": len(accounts)}
+    for tname, types in _ACCOUNT_TABS.items():
+        if not types:
+            continue
+        tab_counts[tname] = sum(1 for a in accounts if a.get("account_type") in types)
 
     flash = request.session.pop("flash", None)
 
     ctx = {
-        "accounts": accounts,
+        "accounts": filtered,
         "roots": roots,
         "children_by_parent": children_by_parent,
-        "total": total,
+        "total": len(filtered),
+        "grand_total": total,
+        "tab": tab,
+        "tab_counts": tab_counts,
         "filter_account_type": account_type or "",
         "error": error,
         "flash": flash,
@@ -466,6 +518,8 @@ async def account_detail(
     account_id: str,
     date_from: str | None = None,
     date_to: str | None = None,
+    sort: str = "date",
+    order: str = "desc",
     limit: int = 200,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
@@ -514,7 +568,14 @@ async def account_detail(
         total_credit = "0"
         credit_normal = False
         ledger_error: str | None = None
-        ledger_params: dict[str, object] = {"limit": limit, "offset": offset}
+        if order not in ("asc", "desc"):
+            order = "desc"
+        ledger_params: dict[str, object] = {
+            "limit": limit,
+            "offset": offset,
+            "sort": sort,
+            "order": order,
+        }
         if date_from:
             ledger_params["date_from"] = date_from
         if date_to:
@@ -554,6 +615,8 @@ async def account_detail(
             "credit_normal": credit_normal,
             "date_from": date_from or "",
             "date_to": date_to or "",
+            "sort": sort,
+            "order": order,
             "limit": limit,
             "offset": offset,
             "prev_offset": prev_offset,

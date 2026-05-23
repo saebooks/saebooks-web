@@ -34,30 +34,30 @@
   </div>
 </div>
 
-{# Filter form — plain GET, no HTMX (tree is single-fetch) #}
-<form method="get" action="/accounts" class="mb-4 flex flex-wrap gap-3 items-end">
-  <div>
-    <label for="account_type" class="block text-xs font-medium text-gray-500 mb-1">Type</label>
-    <select id="account_type" name="account_type"
-            class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]">
-      <option value="" {% if not filter_account_type %}selected{% endif %}>All types</option>
-      <option value="ASSET"          {% if filter_account_type == 'ASSET'          %}selected{% endif %}>Asset</option>
-      <option value="LIABILITY"      {% if filter_account_type == 'LIABILITY'      %}selected{% endif %}>Liability</option>
-      <option value="EQUITY"         {% if filter_account_type == 'EQUITY'         %}selected{% endif %}>Equity</option>
-      <option value="INCOME"         {% if filter_account_type == 'INCOME'         %}selected{% endif %}>Income</option>
-      <option value="OTHER_INCOME"   {% if filter_account_type == 'OTHER_INCOME'   %}selected{% endif %}>Other Income</option>
-      <option value="EXPENSE"        {% if filter_account_type == 'EXPENSE'        %}selected{% endif %}>Expense</option>
-      <option value="COST_OF_SALES"  {% if filter_account_type == 'COST_OF_SALES'  %}selected{% endif %}>Cost of Sales</option>
-      <option value="OTHER_EXPENSE"  {% if filter_account_type == 'OTHER_EXPENSE'  %}selected{% endif %}>Other Expense</option>
-    </select>
-  </div>
-  <button type="submit" class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
-    Filter
-  </button>
-  {% if filter_account_type %}
-  <a href="/accounts" class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">Clear</a>
-  {% endif %}
-</form>
+{# Tabs by account-type group #}
+<nav class="mb-4 flex flex-wrap gap-1 border-b border-gray-200" aria-label="Account types">
+  {% set _tabs = [
+    ("all",       "All accounts", "All"),
+    ("asset",     "Assets",       "Assets"),
+    ("liability", "Liabilities",  "Liabilities"),
+    ("equity",    "Equity",       "Equity"),
+    ("income",    "Income",       "Income"),
+    ("expense",   "Expenses",     "Expenses"),
+  ] %}
+  {% for tab_key, full_label, short_label in _tabs %}
+    {% set is_active = (tab == tab_key) %}
+    <a href="/accounts?tab={{ tab_key }}"
+       class="-mb-px px-3 py-2 text-sm border-b-2 transition-colors
+              {% if is_active %}border-[#194291] text-[#194291] font-medium
+              {% else %}border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300{% endif %}">
+      {{ full_label }}
+      {% set c = tab_counts.get(tab_key, 0) %}
+      {% if c %}
+      <span class="ml-1 text-xs text-gray-400">({{ c }})</span>
+      {% endif %}
+    </a>
+  {% endfor %}
+</nav>
 
 {% if error %}
 <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">{{ error }}</div>
@@ -74,6 +74,18 @@
     {% else %}bg-gray-100 text-gray-600{% endif %}">
     {{ t | replace("_", " ") | title }}
   </span>
+{% endmacro %}
+
+{# ── Balance cell ── #}
+{% macro balance_cell(value, bold=false) %}
+  {%- if value is none or value == "" or value == "0" or value == "0.00" %}
+    <span class="text-gray-300">—</span>
+  {%- else %}
+    {%- set f = value|float %}
+    <span class="font-mono tabular-nums {% if f < 0 %}text-red-600{% else %}text-gray-700{% endif %}{% if bold %} font-semibold{% endif %}">
+      {{ "%.2f"|format(f) }}
+    </span>
+  {%- endif %}
 {% endmacro %}
 
 {# ── Recursive node renderer ──
@@ -99,7 +111,10 @@
         {% if node.is_header %}
         <span class="inline-block rounded-full px-2 py-0.5 bg-gray-100 text-gray-500 text-xs">Header</span>
         {% endif %}
-        <span class="ml-auto text-xs text-gray-400">{{ kids|length }} child{{ "ren" if kids|length != 1 else "" }}</span>
+        <span class="ml-auto flex items-center gap-3 shrink-0">
+          <span class="text-xs text-gray-400">{{ kids|length }} child{{ "ren" if kids|length != 1 else "" }}</span>
+          <span class="text-xs">{{ balance_cell(node.subtree_balance, bold=true) }}</span>
+        </span>
       </summary>
       <div class="border-t border-gray-100">
         {% for child in kids %}
@@ -118,12 +133,8 @@
       {% if node.tax_code_default %}
       <span class="text-xs text-gray-400">{{ node.tax_code_default }}</span>
       {% endif %}
-      <span class="ml-auto text-xs text-gray-400 font-mono">
-        {% if node.balance is defined and node.balance is not none and (node.balance|float) != 0 %}
-          <span class="{% if (node.balance|float) < 0 %}text-red-600{% else %}text-gray-700{% endif %}">
-            {{ "%.2f"|format(node.balance|float) }}
-          </span>
-        {% else %}—{% endif %}
+      <span class="ml-auto text-xs">
+        {{ balance_cell(node.balance) }}
       </span>
     </a>
   {%- endif %}

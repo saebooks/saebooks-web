@@ -182,12 +182,19 @@
     <table class="min-w-full divide-y divide-gray-200 text-sm">
       <thead class="bg-gray-50 sticky top-0">
         <tr>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Ref</th>
-          <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Debit</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Credit</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Balance</th>
+          {%- import "_partials/_sort_header.html" as sh -%}
+          {%- set _eq = [] -%}
+          {%- if date_from %}{%- set _ = _eq.append("date_from=" ~ date_from) -%}{% endif %}
+          {%- if date_to %}{%- set _ = _eq.append("date_to=" ~ date_to) -%}{% endif %}
+          {%- set _extra = _eq | join("&") -%}
+          {{ sh.sort_th("Date",        "date",        sort, order, "/accounts/" ~ account.id, _extra, "transactions", "left") }}
+          {{ sh.sort_th("Ref",         "ref",         sort, order, "/accounts/" ~ account.id, _extra, "transactions", "left") }}
+          {{ sh.sort_th("Description", "description", sort, order, "/accounts/" ~ account.id, _extra, "transactions", "left") }}
+          {{ sh.sort_th("Debit",       "debit",       sort, order, "/accounts/" ~ account.id, _extra, "transactions", "right") }}
+          {{ sh.sort_th("Credit",      "credit",      sort, order, "/accounts/" ~ account.id, _extra, "transactions", "right") }}
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">
+            Balance{% if sort != 'date' or order != 'asc' %}<span class="ml-1 text-gray-300" title="Balance is only meaningful when sorted by Date ascending">·</span>{% endif %}
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
@@ -216,7 +223,7 @@
           <td class="px-4 py-2 text-right font-mono {% if ln.credit and ln.credit not in ('0', '0.00') %}text-gray-900{% else %}text-gray-300{% endif %}">
             {{ ln.credit if ln.credit not in ('0', '0.00') else '' }}
           </td>
-          <td class="px-4 py-2 text-right font-mono text-gray-700">{{ ln.balance }}</td>
+          <td class="px-4 py-2 text-right font-mono text-gray-700">{{ ln.balance if ln.balance is not none else "—" }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -239,6 +246,8 @@
   {%- set _date_q = [] -%}
   {%- if date_from %}{%- set _ = _date_q.append("date_from=" ~ date_from) -%}{% endif %}
   {%- if date_to   %}{%- set _ = _date_q.append("date_to=" ~ date_to) -%}{% endif %}
+  {%- if sort %}{%- set _ = _date_q.append("sort=" ~ sort) -%}{% endif %}
+  {%- if order %}{%- set _ = _date_q.append("order=" ~ order) -%}{% endif %}
   {{ pg.page_numbers(
        base_url="/accounts/" ~ account.id,
        total=lines_total,
