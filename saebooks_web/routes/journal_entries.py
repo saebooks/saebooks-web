@@ -844,7 +844,7 @@ async def journal_entry_detail(
         # '{code} — {name}' and the Description cell can link to the source
         # invoice/bill/payment when one exists.
         accounts_resp, source_resp = await asyncio.gather(
-            client.get("/api/v1/accounts", params={"limit": 500, "offset": 0}),
+            client.get("/api/v1/accounts", params={"limit": 1000, "offset": 0, "include_archived": "true"}),
             client.get(f"/api/v1/journal_entries/{entry_id}/source"),
             return_exceptions=True,
         )
