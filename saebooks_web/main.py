@@ -83,6 +83,7 @@ from saebooks_web.routes.dashboard import router as dashboard_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.imports import router as imports_router
 from saebooks_web.routes.invoices import router as invoices_router
+from saebooks_web.routes.email_log import router as email_log_router
 from saebooks_web.routes.quotes import router as quotes_router
 from saebooks_web.routes.items import router as items_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
@@ -303,6 +304,7 @@ app.include_router(contacts_router)
 app.include_router(ai_extraction_router)
 app.include_router(invoices_router)
 app.include_router(quotes_router)
+app.include_router(email_log_router)
 app.include_router(bills_router)
 app.include_router(expenses_router)
 app.include_router(time_entries_router)

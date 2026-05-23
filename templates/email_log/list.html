@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% import "_partials/empty_state.html" as empty %}
+
+{% block title %}Email send log — SAE Books{% endblock %}
+
+{% block content %}
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">Audit</span>
+  </div>
+  <h1 class="font-display text-2xl leading-none tracking-tight">Email send log</h1>
+  <p class="text-xs ink-3 font-mono mt-2">
+    Every outbound email attempt — blocked or actual — for this tenant.
+    Tamper-evident (RLS-isolated); no UPDATE / DELETE wired into the API.
+  </p>
+</header>
+
+{# ─── Filter chips ─── #}
+<div class="card p-3 mb-4 flex flex-wrap items-center gap-2">
+  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Status:</span>
+  {% for s in ['', 'sent', 'queued', 'blocked', 'failed'] %}
+    {% set is_active = (filter_status == s) %}
+    <a href="/email-log?{% if filter_doc_type %}doc_type={{ filter_doc_type }}&{% endif %}{% if s %}status={{ s }}{% endif %}"
+       class="text-xs font-mono px-2 py-1 rounded
+              {% if is_active %}sae bg-paper-2 ring-1 ring-line{% else %}ink-2 hover:bg-paper-2{% endif %}">
+      {{ s or 'all' }}
+    </a>
+  {% endfor %}
+  <span class="mx-2 ink-4">·</span>
+  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Doc:</span>
+  {% for d in ['', 'quote', 'invoice', 'bill', 'credit_note', 'remittance', 'letterhead'] %}
+    {% set is_active = (filter_doc_type == d) %}
+    <a href="/email-log?{% if filter_status %}status={{ filter_status }}&{% endif %}{% if d %}doc_type={{ d }}{% endif %}"
+       class="text-xs font-mono px-2 py-1 rounded
+              {% if is_active %}sae bg-paper-2 ring-1 ring-line{% else %}ink-2 hover:bg-paper-2{% endif %}">
+      {{ d or 'all' }}
+    </a>
+  {% endfor %}
+</div>
+
+<section class="card overflow-hidden">
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">Sent at</th>
+        <th class="text-left">Doc</th>
+        <th class="text-left">From</th>
+        <th class="text-left">To</th>
+        <th class="text-left">Subject</th>
+        <th class="text-left">Status</th>
+        <th class="text-left">Reason</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if items %}
+        {% for it in items %}
+        {% set badge = status_badges.get(it.resend_status, ('badge-draft', it.resend_status|capitalize)) %}
+        <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/email-log/{{ it.id }}'">
+          <td class="num ink-2 font-mono text-xs">{{ it.sent_at[:19].replace('T', ' ') }}</td>
+          <td class="ink-1">
+            <span class="text-xs font-mono ink-3 uppercase tracking-wider">{{ it.doc_type }}</span>
+            {% if it.doc_type == 'quote' %}
+            <a href="/quotes/{{ it.doc_id }}" class="sae hover:underline ml-1" onclick="event.stopPropagation()">
+              ↗
+            </a>
+            {% endif %}
+          </td>
+          <td class="ink-2 font-mono text-xs">{{ it.from_addr }}</td>
+          <td class="ink-1 font-mono text-xs">{{ it.to_addrs | join(', ') }}</td>
+          <td class="ink-1 truncate" style="max-width:260px;">{{ it.subject }}</td>
+          <td>
+            <span class="{{ badge[0] }}">{{ badge[1] }}</span>
+          </td>
+          <td class="ink-3 text-xs">
+            {% if it.kill_switch_reason %}
+              <span title="{{ it.kill_switch_reason }}">{{ it.kill_switch_reason | truncate(60) }}</span>
+            {% elif it.resend_error %}
+              <span style="color:var(--neg);" title="{{ it.resend_error }}">{{ it.resend_error | truncate(60) }}</span>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {{ empty.row(7, "inbox", "No send attempts yet",
+                     "Once an email is sent (or blocked), it'll show up here.") }}
+      {% endif %}
+    </tbody>
+  </table>
+</section>
+
+{% if prev_offset is not none or next_offset is not none %}
+<div class="mt-4 flex items-center justify-between text-sm">
+  <div class="ink-3 font-mono text-xs">
+    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+  </div>
+  <div class="flex gap-2">
+    {% if prev_offset is not none %}
+    <a href="/email-log?offset={{ prev_offset }}&limit={{ limit }}{% if filter_doc_type %}&doc_type={{ filter_doc_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
+       class="btn-secondary text-sm py-1.5">← Previous</a>
+    {% endif %}
+    {% if next_offset is not none %}
+    <a href="/email-log?offset={{ next_offset }}&limit={{ limit }}{% if filter_doc_type %}&doc_type={{ filter_doc_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
+       class="btn-secondary text-sm py-1.5">Next →</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

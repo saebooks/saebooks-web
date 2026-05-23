@@ -247,6 +247,43 @@
 </section>
 {% endif %}
 
+{# ── Send history ── #}
+{% if email_log %}
+<section class="mb-7">
+  <p class="nav-section-label mb-2">Send history</p>
+  <div class="card overflow-hidden">
+    <table class="sae-table w-full text-sm">
+      <thead>
+        <tr>
+          <th class="text-left">When</th>
+          <th class="text-left">To</th>
+          <th class="text-left">Subject</th>
+          <th class="text-left">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in email_log %}
+        {% set badge_class = {'sent':'badge-paid','queued':'badge-pending','blocked':'badge-draft','failed':'badge-overdue'}.get(ev.resend_status, 'badge-draft') %}
+        <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/email-log/{{ ev.id }}'">
+          <td class="num font-mono text-xs ink-2">{{ ev.sent_at[:19].replace('T', ' ') }}</td>
+          <td class="font-mono text-xs ink-1">{{ ev.to_addrs | join(', ') }}</td>
+          <td class="ink-1 truncate" style="max-width:280px;">{{ ev.subject }}</td>
+          <td>
+            <span class="{{ badge_class }}">{{ ev.resend_status | capitalize }}</span>
+            {% if ev.kill_switch_reason %}
+              <span class="text-xs ink-3 ml-2" title="{{ ev.kill_switch_reason }}">
+                {{ ev.kill_switch_reason | truncate(60) }}
+              </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
 {# ── Timestamps ── #}
 <div class="card p-4 mb-4" style="border-style:dashed;">
   <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs ink-3 font-mono">

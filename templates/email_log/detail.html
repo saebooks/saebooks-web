@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Email send log {{ entry.id[:8] }} — SAE Books{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="/email-log" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← email log</a>
+</div>
+
+{% set badge = status_badges.get(entry.resend_status, ('badge-draft', entry.resend_status|capitalize)) %}
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">Email send log</span>
+    <span class="{{ badge[0] }}">{{ badge[1] }}</span>
+  </div>
+  <h1 class="font-display text-xl leading-tight tracking-tight">{{ entry.subject }}</h1>
+  <p class="text-xs ink-3 font-mono mt-2">
+    {{ entry.sent_at[:19].replace('T', ' ') }} ·
+    <span class="ink-2">{{ entry.doc_type }}</span>
+    {% if entry.doc_type == 'quote' %}
+      <a href="/quotes/{{ entry.doc_id }}" class="sae hover:underline">↗ quote</a>
+    {% endif %}
+    · v{{ entry.doc_version }}
+  </p>
+</header>
+
+{% if entry.resend_status == 'blocked' %}
+<div class="card p-3 mb-5" style="border-color:var(--warm); background:rgba(217,140,0,0.04);">
+  <div class="flex items-start gap-3">
+    <span class="dot mt-1" style="background:var(--warm);"></span>
+    <div class="text-sm ink-1">
+      <div class="font-medium" style="color:var(--warm);">BLOCKED — nothing sent</div>
+      <div class="ink-2 mt-1 font-mono text-xs">{{ entry.kill_switch_reason }}</div>
+    </div>
+  </div>
+</div>
+{% elif entry.resend_status == 'failed' %}
+<div class="card p-3 mb-5" style="border-color:var(--neg); background:rgba(161,67,51,0.04);">
+  <div class="text-sm ink-1">
+    <div class="font-medium" style="color:var(--neg);">FAILED at Resend</div>
+    <div class="ink-2 mt-1 font-mono text-xs">{{ entry.resend_error }}</div>
+  </div>
+</div>
+{% elif entry.resend_status == 'sent' %}
+<div class="card p-3 mb-5" style="border-color:var(--pos); background:rgba(46,125,77,0.04);">
+  <div class="text-sm ink-1">
+    <div class="font-medium" style="color:var(--pos);">SENT</div>
+    <div class="ink-2 mt-1 font-mono text-xs">Resend message id: {{ entry.resend_message_id }}</div>
+  </div>
+</div>
+{% endif %}
+
+<section class="card p-4 mb-5">
+  <h2 class="nav-section-label mb-3">Envelope</h2>
+  <dl class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 text-sm">
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">From</dt>
+    <dd class="ink-1 font-mono">{{ entry.from_addr }}</dd>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">To</dt>
+    <dd class="ink-1 font-mono">{{ entry.to_addrs | join(', ') }}</dd>
+    {% if entry.cc_addrs %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Cc</dt>
+    <dd class="ink-1 font-mono">{{ entry.cc_addrs | join(', ') }}</dd>
+    {% endif %}
+    {% if entry.bcc_addrs %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Bcc</dt>
+    <dd class="ink-1 font-mono">{{ entry.bcc_addrs | join(', ') }}</dd>
+    {% endif %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Subject</dt>
+    <dd class="ink-1">{{ entry.subject }}</dd>
+    {% if entry.attachment_filenames %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Attachments</dt>
+    <dd class="ink-1 font-mono text-xs">
+      {% for f in entry.attachment_filenames %}
+      <div>{{ f }}</div>
+      {% endfor %}
+    </dd>
+    {% endif %}
+    {% if entry.sent_by_user_id %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Sent by</dt>
+    <dd class="ink-1 font-mono text-xs">{{ entry.sent_by_user_id }}</dd>
+    {% endif %}
+  </dl>
+</section>
+
+<section class="card p-4 mb-5">
+  <h2 class="nav-section-label mb-3">Body (HTML)</h2>
+  <div class="card p-4 bg-paper-2 text-sm" style="max-height:500px; overflow:auto;">
+    {{ entry.body_html | safe }}
+  </div>
+</section>
+
+{% if entry.body_text %}
+<section class="card p-4 mb-5">
+  <h2 class="nav-section-label mb-3">Body (plain text)</h2>
+  <pre class="font-mono text-xs ink-2 whitespace-pre-wrap">{{ entry.body_text }}</pre>
+</section>
+{% endif %}
+
+<section class="text-xs ink-3 font-mono mt-6">
+  <div>log id: {{ entry.id }}</div>
+  <div>doc id: {{ entry.doc_id }} (version {{ entry.doc_version }})</div>
+  <div>tenant: {{ entry.tenant_id }}</div>
+</section>
+{% endblock %}
