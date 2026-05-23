@@ -52,12 +52,12 @@
     {% endif %}
   </div>
   <div class="flex items-center gap-3">
-    {% if credit_note.status == 'DRAFT' %}
+    {% if credit_note.status == 'DRAFT' or is_feature_enabled('edit_frozen_state') %}
     <a
       href="/credit-notes/{{ credit_note.id }}/edit"
       class="rounded-md bg-[#194291] px-4 py-1.5 text-sm font-medium text-white
              hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
-    >Edit</a>
+    >{% if credit_note.status != 'DRAFT' %}Edit (override){% else %}Edit{% endif %}</a>
     <form
       method="post"
       action="/credit-notes/{{ credit_note.id }}/post"

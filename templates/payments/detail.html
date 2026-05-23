@@ -50,8 +50,8 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
-      {% if payment.status == 'DRAFT' %}
-      <a href="/payments/{{ payment.id }}/edit" class="btn-secondary text-sm">Edit</a>
+      {% if payment.status == 'DRAFT' or is_feature_enabled('edit_frozen_state') %}
+      <a href="/payments/{{ payment.id }}/edit" class="btn-secondary text-sm">{% if payment.status != 'DRAFT' %}Edit (override){% else %}Edit{% endif %}</a>
       <form method="post" action="/payments/{{ payment.id }}/post"
             onsubmit="return confirm('Post this payment? This cannot be undone easily.');" class="inline">
         {{ csrf_input(request)|safe }}

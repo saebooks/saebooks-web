@@ -101,8 +101,8 @@
     <div class="card p-5">
       <p class="nav-section-label mb-3">Actions</p>
       <div class="space-y-2">
-        {% if entry.approval_status in ('DRAFT','REJECTED') %}
-        <a href="/time-entries/{{ entry.id }}/edit" class="btn btn-primary w-full">Edit</a>
+        {% if entry.approval_status in ('DRAFT','REJECTED') or is_feature_enabled("edit_frozen_state") %}
+        <a href="/time-entries/{{ entry.id }}/edit" class="btn btn-primary w-full">{% if entry.approval_status not in ('DRAFT','REJECTED') %}Edit (override){% else %}Edit{% endif %}</a>
         <form method="POST" action="/time-entries/{{ entry.id }}/submit">
   {{ csrf_input(request)|safe }}
           <button type="submit" class="btn btn-secondary w-full">Submit for approval</button>

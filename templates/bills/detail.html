@@ -47,8 +47,8 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
-      {% if bill.status != 'VOIDED' %}
-      <a href="/bills/{{ bill.id }}/edit" class="btn-secondary text-sm">Edit</a>
+      {% if bill.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
+      <a href="/bills/{{ bill.id }}/edit" class="btn-secondary text-sm">{% if bill.status in ('POSTED', 'PAID', 'VOIDED') %}Edit (override){% else %}Edit{% endif %}</a>
       {% endif %}
       {% if bill.status == 'DRAFT' %}
       <form method="post" action="/bills/{{ bill.id }}/post"

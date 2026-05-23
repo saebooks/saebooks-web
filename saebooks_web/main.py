@@ -68,6 +68,8 @@ from saebooks_web.routes.account_ranges import router as account_ranges_router
 from saebooks_web.routes.allocations import router as allocations_router
 from saebooks_web.routes.accounts import router as accounts_router
 from saebooks_web.routes.admin import router as admin_router
+from saebooks_web.routes.admin_inspect import router as admin_inspect_router
+from saebooks_web.routes.admin_tenants import router as admin_tenants_router
 from saebooks_web.routes.ai_extraction import router as ai_extraction_router
 from saebooks_web.routes.ato_sbr import router as ato_sbr_router
 from saebooks_web.routes.bank_accounts import router as bank_accounts_router
@@ -293,6 +295,8 @@ if _PREVIEW_AUTH and ":" in _PREVIEW_AUTH:
 # ---------------------------------------------------------------------------
 # Routers
 # ---------------------------------------------------------------------------
+app.include_router(admin_inspect_router)
+app.include_router(admin_tenants_router)
 app.include_router(auth_router)
 app.include_router(discourse_sso_router)
 app.include_router(authentik_sso_router)

@@ -620,6 +620,8 @@ async def bill_update(
     # Lines are always sent (full replace semantics).
     payload["lines"] = _parse_lines(form)
 
+    from saebooks_web.features import is_feature_enabled as _ff
+    _params = {"force": "true"} if _ff("edit_frozen_state") else None
     async with api_client(request) as client:
         resp = await client.patch(
             f"/api/v1/bills/{bill_id}",
@@ -628,6 +630,7 @@ async def bill_update(
                 "If-Match": version,
                 "X-Idempotency-Key": idempotency_key,
             },
+            params=_params,
         )
 
     if resp.status_code == 401:

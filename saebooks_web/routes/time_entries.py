@@ -498,11 +498,16 @@ async def time_entry_edit_submit(
     if version := form.get("version", "").strip():
         headers["If-Match"] = version
 
+    # Developer-tier override: when FLAG_EDIT_FROZEN_STATE is on, append
+    # ?force=true so the API gate lets us patch frozen-state entries.
+    from saebooks_web.features import is_feature_enabled as _ff
+    _params = {"force": "true"} if _ff("edit_frozen_state") else None
     async with api_client(request) as client:
         resp = await client.patch(
             f"/api/v1/time-entries/{entry_id}",
             json=payload,
             headers=headers,
+            params=_params,
         )
         if resp.status_code == 401:
             request.session.clear()

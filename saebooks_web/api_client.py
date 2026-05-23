@@ -54,6 +54,12 @@ async def api_client(request: Request) -> AsyncGenerator[httpx.AsyncClient, None
     headers: dict[str, str] = {}
     if token:
         headers["Authorization"] = f"Bearer {token}"
+    # FLAG_TENANT_SWITCHER — when an override is set in session, forward it
+    # to the API as X-Active-Tenant. API gate verifies admin + flag before
+    # honouring it (see resolve_tenant_id).
+    override = request.session.get("active_tenant_override")
+    if override:
+        headers["X-Active-Tenant"] = str(override)
 
     async with httpx.AsyncClient(
         base_url=settings.api_url,

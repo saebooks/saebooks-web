@@ -624,6 +624,8 @@ async def payment_update(
     # Allocations are always sent (full replace semantics, mirrors JE lines).
     payload["allocations"] = _parse_allocations(form)
 
+    from saebooks_web.features import is_feature_enabled as _ff
+    _params = {"force": "true"} if _ff("edit_frozen_state") else None
     async with api_client(request) as client:
         resp = await client.patch(
             f"/api/v1/payments/{payment_id}",
@@ -632,6 +634,7 @@ async def payment_update(
                 "If-Match": version,
                 "X-Idempotency-Key": idempotency_key,
             },
+            params=_params,
         )
 
     if resp.status_code == 401:

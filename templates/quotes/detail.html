@@ -83,8 +83,8 @@
         Send to customer
       </a>
 
-      {% if quote.status in ('DRAFT', 'SENT') %}
-      <a href="/quotes/{{ quote.id }}/edit" class="btn-secondary text-sm">Edit</a>
+      {% if quote.status in ('DRAFT', 'SENT') or is_feature_enabled('edit_frozen_state') %}
+      <a href="/quotes/{{ quote.id }}/edit" class="btn-secondary text-sm">{% if quote.status not in ('DRAFT', 'SENT') %}Edit (override){% else %}Edit{% endif %}</a>
       {% endif %}
 
       {% if quote.status == 'DRAFT' %}

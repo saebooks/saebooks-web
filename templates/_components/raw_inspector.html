@@ -1,0 +1,98 @@
+{#
+  Raw-JSON inspector — developer-tier debug affordance.
+
+  Renders a floating button bottom-right that parses the current URL to
+  derive the (table, id) tuple, then fetches /admin/inspect/{table}/{id}
+  and shows the JSON in a slide-over panel.
+
+  Path → table mapping is in the JS below. Adding a new entity just means
+  adding an entry to URL_TO_TABLE.
+#}
+{% if is_feature_enabled("raw_json_inspector") %}
+<div id="raw-inspector-root" class="fixed bottom-4 right-4 z-30">
+  <button type="button"
+          id="raw-inspector-trigger"
+          class="hidden rounded-md bg-red-700 text-white px-3 py-1.5 text-xs font-mono uppercase tracking-wider shadow-md hover:bg-red-800">
+    {raw}
+  </button>
+  <div id="raw-inspector-panel" class="hidden fixed inset-y-0 right-0 w-[640px] max-w-full bg-white border-l border-gray-200 shadow-2xl z-40 flex flex-col">
+    <div class="flex items-center justify-between px-4 py-3 border-b">
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-wider text-red-700">Raw inspector — dev only</p>
+        <p id="raw-inspector-label" class="font-mono text-sm"></p>
+      </div>
+      <button type="button"
+              onclick="document.getElementById('raw-inspector-panel').classList.add('hidden')"
+              class="text-gray-500 hover:text-gray-900 text-xl leading-none">×</button>
+    </div>
+    <pre id="raw-inspector-body" class="flex-1 overflow-auto font-mono text-xs p-4 bg-gray-50 whitespace-pre-wrap">loading…</pre>
+    <div id="raw-inspector-link" class="px-4 py-2 border-t text-[10px] font-mono text-gray-400"></div>
+  </div>
+</div>
+<script>
+(function() {
+  // URL-prefix → table-name mapping. Order matters — longer prefixes first
+  // so /admin/ranges matches before /admin. UUID at end is the row id.
+  const URL_TO_TABLE = [
+    ["/admin/ranges/",          "account_ranges"],
+    ["/bank-statement-lines/",  "bank_statement_lines"],
+    ["/bank-accounts/",         "accounts"],
+    ["/bank-rules/",            "bank_rules"],
+    ["/credit-notes/",          "credit_notes"],
+    ["/journal-entries/",       "journal_entries"],
+    ["/journal-templates/",     "journal_templates"],
+    ["/purchase_orders/",       "purchase_orders"],
+    ["/recurring-invoices/",    "recurring_invoices"],
+    ["/super-funds/",           "super_funds"],
+    ["/tax-codes/",             "tax_codes"],
+    ["/time-entries/",          "time_entries"],
+    ["/accounts/",              "accounts"],
+    ["/bills/",                 "bills"],
+    ["/budgets/",               "budgets"],
+    ["/companies/",             "companies"],
+    ["/contacts/",              "contacts"],
+    ["/employees/",             "employees"],
+    ["/expenses/",              "expenses"],
+    ["/fixed-assets/",          "fixed_assets"],
+    ["/invoices/",              "invoices"],
+    ["/items/",                 "items"],
+    ["/payments/",              "payments"],
+    ["/projects/",              "projects"],
+    ["/quotes/",                "quotes"],
+  ];
+
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  function detectEntity() {
+    const path = window.location.pathname;
+    for (const [prefix, table] of URL_TO_TABLE) {
+      if (!path.startsWith(prefix)) continue;
+      const rest = path.slice(prefix.length).split("/")[0];
+      if (UUID_RE.test(rest)) return { table, id: rest };
+    }
+    return null;
+  }
+
+  const entity = detectEntity();
+  if (!entity) return;
+
+  const btn = document.getElementById("raw-inspector-trigger");
+  const panel = document.getElementById("raw-inspector-panel");
+  const body = document.getElementById("raw-inspector-body");
+  const label = document.getElementById("raw-inspector-label");
+  const link = document.getElementById("raw-inspector-link");
+  btn.classList.remove("hidden");
+  label.textContent = entity.table + " · " + entity.id;
+  link.innerHTML = "GET <a href='/admin/inspect/" + entity.table + "/" + entity.id + "' target='_blank' class='underline'>/admin/inspect/" + entity.table + "/" + entity.id + "</a>";
+
+  btn.addEventListener("click", function() {
+    panel.classList.remove("hidden");
+    body.textContent = "loading…";
+    fetch("/admin/inspect/" + entity.table + "/" + entity.id)
+      .then(r => r.json())
+      .then(d => { body.textContent = JSON.stringify(d, null, 2); })
+      .catch(e => { body.textContent = "Error: " + e; });
+  });
+})();
+</script>
+{% endif %}
