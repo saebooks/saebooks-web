@@ -82,3 +82,47 @@ async def archive_entity(
         f"Archive failed — unexpected error (HTTP {resp.status_code})."
     )
     return RedirectResponse(url=detail_url, status_code=303)
+
+
+async def hard_delete_entity(
+    request: Request,
+    entity_api_path: str,
+    entity_id: str,
+    entity_label: str,
+    list_url: str,
+    detail_url: str,
+) -> RedirectResponse:
+    """Issue DELETE ?hard=true (X-Admin: true header) and redirect.
+
+    Developer-tier only — gated client-side by ``is_feature_enabled('hard_delete')``
+    in the kebab template; gated server-side by ``hard_delete_admin_gate`` on
+    every entity's API DELETE handler. Reaches this helper only when a
+    rendered "Delete (hard)" kebab item was clicked.
+
+    No If-Match — hard-delete intentionally bypasses optimistic locking;
+    "remove this row" is the contract, version state irrelevant.
+    """
+    from saebooks_web.features import is_feature_enabled
+    if not is_feature_enabled("hard_delete"):
+        request.session["flash"] = "Hard-delete not enabled on this instance."
+        return RedirectResponse(url=detail_url, status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.delete(
+            f"{entity_api_path}/{entity_id}",
+            params={"hard": "true"},
+            headers={"X-Admin": "true"},
+        )
+    if 200 <= resp.status_code < 300:
+        request.session["flash"] = f"{entity_label} hard-deleted."
+        return RedirectResponse(url=list_url, status_code=303)
+    try:
+        body = resp.json()
+        detail = body.get("detail", "")
+    except Exception:
+        detail = ""
+    request.session["flash"] = (
+        f"Hard-delete failed: HTTP {resp.status_code}"
+        + (f" — {detail}" if detail else "")
+    )
+    return RedirectResponse(url=detail_url, status_code=303)

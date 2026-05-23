@@ -167,6 +167,9 @@
           {%- if status_lower != 'locked' %}
             {%- set _ = te_actions.append(("archive", "Archive", "/time-entries/" ~ e.id ~ "/archive", "post", true)) %}
           {%- endif %}
+          {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = te_actions.append(("hard_delete", "Delete (hard)", "/time-entries/" ~ e.id ~ "/hard-delete", "post", true)) %}
+          {%- endif %}
           {{ km.kebab(row_id=e.id, actions=te_actions, csrf_token=csrf_token if csrf_token is defined else "") }}
         </td>
       </tr>

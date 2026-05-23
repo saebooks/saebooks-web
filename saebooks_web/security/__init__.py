@@ -74,6 +74,13 @@ def _patch_jinja_templates() -> None:
     def _patched_init(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         _orig_init(self, *args, **kwargs)
         ensure_csrf_global(self)
+        # Also register the feature-flag Jinja global so templates can do
+        # {% if is_feature_enabled('hard_delete') %} — see features.py.
+        try:
+            from saebooks_web.features import register_feature_global
+            register_feature_global(self)
+        except Exception:
+            pass
 
     _patched_init._saebooks_csrf_patched = True  # type: ignore[attr-defined]
     Jinja2Templates.__init__ = _patched_init  # type: ignore[method-assign]

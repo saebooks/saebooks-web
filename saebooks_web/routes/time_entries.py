@@ -761,3 +761,23 @@ async def time_entries_bulk_action(request: Request) -> RedirectResponse:
     else:
         request.session["flash"] = f"{label}: {ok} time entry{'s' if ok != 1 else ''} processed."
     return RedirectResponse(url="/time-entries", status_code=303)
+
+# ---------------------------------------------------------------------------
+# Hard-delete: developer-tier only. Client-side gated via the kebab,
+# server-side enforced by the API hard_delete_admin_gate.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/time-entries/{entry_id}/hard-delete", response_class=HTMLResponse, response_model=None)
+async def time_entry_hard_delete(request: Request, entry_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    from saebooks_web.archive_helpers import hard_delete_entity
+    return await hard_delete_entity(
+        request=request,
+        entity_api_path="/api/v1/time-entries",
+        entity_id=entry_id,
+        entity_label="Time entry",
+        list_url="/time-entries",
+        detail_url=f"/time-entries/{entry_id}",
+    )
