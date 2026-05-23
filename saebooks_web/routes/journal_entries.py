@@ -41,6 +41,7 @@ Auth guard: redirect to /login (303) if no session token.
 """
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import date
 from pathlib import Path
@@ -825,22 +826,50 @@ async def journal_entry_detail(
             return _TEMPLATES.TemplateResponse(
                 request,
                 "journal_entries/detail.html",
-                {"entry": None, "error": "Journal entry not found", "flash": None},
+                {"entry": None, "error": "Journal entry not found", "flash": None,
+                 "accounts_by_id": {}, "source": None},
                 status_code=404,
             )
         if not resp.is_success:
             return _TEMPLATES.TemplateResponse(
                 request,
                 "journal_entries/detail.html",
-                {"entry": None, "error": f"API error: HTTP {resp.status_code}", "flash": None},
+                {"entry": None, "error": f"API error: HTTP {resp.status_code}", "flash": None,
+                 "accounts_by_id": {}, "source": None},
                 status_code=resp.status_code,
             )
+        entry = resp.json()
 
-    entry = resp.json()
+        # Fetch accounts + source in parallel so the Account cell can show
+        # '{code} — {name}' and the Description cell can link to the source
+        # invoice/bill/payment when one exists.
+        accounts_resp, source_resp = await asyncio.gather(
+            client.get("/api/v1/accounts", params={"limit": 500, "offset": 0}),
+            client.get(f"/api/v1/journal_entries/{entry_id}/source"),
+            return_exceptions=True,
+        )
+
+    accounts_by_id: dict[str, dict] = {}
+    if not isinstance(accounts_resp, BaseException) and accounts_resp.is_success:
+        for a in accounts_resp.json().get("items", []):
+            accounts_by_id[str(a["id"])] = a
+
+    source: dict | None = None
+    if not isinstance(source_resp, BaseException) and source_resp.is_success:
+        body = source_resp.json()
+        if body.get("type") and body.get("id"):
+            source = body
+
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "journal_entries/detail.html",
-        {"entry": entry, "error": None, "flash": flash},
+        {
+            "entry": entry,
+            "error": None,
+            "flash": flash,
+            "accounts_by_id": accounts_by_id,
+            "source": source,
+        },
     )
