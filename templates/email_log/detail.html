@@ -50,6 +50,52 @@
 </div>
 {% endif %}
 
+{# ─── Delivery timeline (Resend webhook events) ─── #}
+{% if entry.delivered_at or entry.bounced_at or entry.opened_at or entry.clicked_at or entry.complained_at %}
+<section class="card p-4 mb-5">
+  <h2 class="nav-section-label mb-3">Delivery timeline</h2>
+  <dl class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 text-sm">
+    {% if entry.delivered_at %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Delivered</dt>
+    <dd class="ink-1 font-mono text-xs" style="color:var(--pos);">✓ {{ entry.delivered_at[:19].replace('T', ' ') }}</dd>
+    {% endif %}
+    {% if entry.opened_at %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Opened</dt>
+    <dd class="ink-1 font-mono text-xs">
+      {{ entry.opened_at[:19].replace('T', ' ') }}
+      {% if entry.opened_count > 1 %}<span class="ink-3">({{ entry.opened_count }}×)</span>{% endif %}
+    </dd>
+    {% endif %}
+    {% if entry.clicked_at %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Clicked</dt>
+    <dd class="ink-1 font-mono text-xs">
+      {{ entry.clicked_at[:19].replace('T', ' ') }}
+      {% if entry.clicked_count > 1 %}<span class="ink-3">({{ entry.clicked_count }}×)</span>{% endif %}
+    </dd>
+    {% endif %}
+    {% if entry.bounced_at %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Bounced</dt>
+    <dd class="ink-1 font-mono text-xs" style="color:var(--neg);">
+      ❌ {{ entry.bounced_at[:19].replace('T', ' ') }}
+      {% if entry.bounce_reason %} — {{ entry.bounce_reason }}{% endif %}
+    </dd>
+    {% endif %}
+    {% if entry.complained_at %}
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Complained</dt>
+    <dd class="ink-1 font-mono text-xs" style="color:var(--neg);">
+      🚨 {{ entry.complained_at[:19].replace('T', ' ') }} — recipient marked as spam
+    </dd>
+    {% endif %}
+  </dl>
+  {% if entry.webhook_events %}
+  <details class="mt-3">
+    <summary class="text-xs ink-3 cursor-pointer font-mono">{{ entry.webhook_events|length }} raw event(s) — toggle</summary>
+    <pre class="font-mono text-[10px] ink-3 mt-2 overflow-x-auto max-h-64">{{ entry.webhook_events|tojson(indent=2) }}</pre>
+  </details>
+  {% endif %}
+</section>
+{% endif %}
+
 <section class="card p-4 mb-5">
   <h2 class="nav-section-label mb-3">Envelope</h2>
   <dl class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 text-sm">
@@ -67,11 +113,23 @@
     {% endif %}
     <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Subject</dt>
     <dd class="ink-1">{{ entry.subject }}</dd>
-    {% if entry.attachment_filenames %}
+    {% if entry.attachments %}
     <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Attachments</dt>
     <dd class="ink-1 font-mono text-xs">
-      {% for f in entry.attachment_filenames %}
-      <div>{{ f }}</div>
+      {% for att in entry.attachments %}
+      <div class="flex items-center gap-3 py-1">
+        <a href="/email-log/{{ entry.id }}/attachment/{{ att.index }}" target="_blank" rel="noopener"
+           class="sae hover:underline">{{ att.filename }}</a>
+        <span class="ink-3 text-[10px]">
+          {{ att.content_type }} ·
+          {% if att.size_bytes %}{{ "%.1f"|format(att.size_bytes/1024) }} KB{% endif %}
+        </span>
+        {% if att.sha256 %}
+        <span class="ink-4 text-[10px]" title="SHA-256 of the exact bytes that {{ entry.resend_status }}">
+          sha256:{{ att.sha256[:12] }}…
+        </span>
+        {% endif %}
+      </div>
       {% endfor %}
     </dd>
     {% endif %}
