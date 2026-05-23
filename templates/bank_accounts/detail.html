@@ -163,14 +163,14 @@
     <table class="min-w-full divide-y divide-gray-200 text-sm">
       <thead class="bg-gray-50 sticky top-0">
         <tr>
-          {%- import "_partials/_sort_header.html" as sh -%}
-          {%- set _extra = ("status=" ~ filter_status) if filter_status else "" -%}
-          {{ sh.sort_th("Date",        "date",        sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "left") }}
-          {{ sh.sort_th("Description", "description", sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "left") }}
-          {{ sh.sort_th("Ref",         "reference",   sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "left") }}
-          {{ sh.sort_th("Amount",      "amount",      sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "right") }}
-          {{ sh.sort_th("Balance",     "balance",     sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "right") }}
-          {{ sh.sort_th("Status",      "status",      sort, order, "/bank-accounts/" ~ account.id, _extra, "transactions", "left") }}
+          {%- import "_sort_macros.html" as srt -%}
+          {%- set _filters = {"status": filter_status} if filter_status else {} -%}
+          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("date",        "Date",        sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("description", "Description", sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("reference",   "Ref",         sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("amount",      "Amount",      sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("balance",     "Balance",     sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("status",      "Status",      sort, direction, _filters, fragment="transactions") }}</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
@@ -199,20 +199,11 @@
     </table>
   </div>
 
-  {# Inline pagination with page numbers — see _partials/_pagination.html #}
-  {% import "_partials/_pagination.html" as pg %}
-  {%- set _q = [] -%}
-  {%- if filter_status %}{%- set _ = _q.append("status=" ~ filter_status) -%}{% endif %}
-  {%- if sort %}{%- set _ = _q.append("sort=" ~ sort) -%}{% endif %}
-  {%- if order %}{%- set _ = _q.append("order=" ~ order) -%}{% endif %}
-  {{ pg.page_numbers(
-       base_url="/bank-accounts/" ~ account.id,
-       total=lines_total,
-       limit=limit,
-       offset=offset,
-       extra_query=_q | join("&"),
-       fragment="transactions",
-  ) }}
+  {# Pagination — page-number selection via _pagination_macros.html. Filter
+     state preserved through the URL via the pg_filters dict. #}
+  {% import "_pagination_macros.html" as pg %}
+  {%- set _pg_filters = {"status": filter_status, "sort": sort, "direction": direction} -%}
+  {{ pg.page_numbers("/bank-accounts/" ~ account.id, lines_total, limit, offset, _pg_filters, fragment="transactions") }}
   {% elif not lines_error %}
   <div class="bg-white rounded-xl border border-gray-200 px-4 py-8 text-center">
     <p class="text-sm text-gray-400">

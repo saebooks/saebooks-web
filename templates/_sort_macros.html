@@ -20,9 +20,9 @@
   {%- endfor -%}
 {%- endmacro %}
 
-{% macro sort_link(col, label, current_sort, current_dir, filters=None) -%}
+{% macro sort_link(col, label, current_sort, current_dir, filters=None, fragment=None) -%}
   {% set next_dir = 'asc' if (col == current_sort and current_dir == 'desc') else ('desc' if col == current_sort else 'asc') %}
-  <a href="?sort={{ col }}&amp;direction={{ next_dir }}{{ _filter_qs(filters) }}"
+  <a href="?sort={{ col }}&amp;direction={{ next_dir }}{{ _filter_qs(filters) }}{% if fragment %}#{{ fragment }}{% endif %}"
      class="inline-flex items-center gap-1 hover:text-indigo-600">
     {{ label }}{{ sort_arrow(col, current_sort, current_dir) }}
   </a>

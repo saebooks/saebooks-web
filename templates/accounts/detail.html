@@ -182,18 +182,15 @@
     <table class="min-w-full divide-y divide-gray-200 text-sm">
       <thead class="bg-gray-50 sticky top-0">
         <tr>
-          {%- import "_partials/_sort_header.html" as sh -%}
-          {%- set _eq = [] -%}
-          {%- if date_from %}{%- set _ = _eq.append("date_from=" ~ date_from) -%}{% endif %}
-          {%- if date_to %}{%- set _ = _eq.append("date_to=" ~ date_to) -%}{% endif %}
-          {%- set _extra = _eq | join("&") -%}
-          {{ sh.sort_th("Date",        "date",        sort, order, "/accounts/" ~ account.id, _extra, "transactions", "left") }}
-          {{ sh.sort_th("Ref",         "ref",         sort, order, "/accounts/" ~ account.id, _extra, "transactions", "left") }}
-          {{ sh.sort_th("Description", "description", sort, order, "/accounts/" ~ account.id, _extra, "transactions", "left") }}
-          {{ sh.sort_th("Debit",       "debit",       sort, order, "/accounts/" ~ account.id, _extra, "transactions", "right") }}
-          {{ sh.sort_th("Credit",      "credit",      sort, order, "/accounts/" ~ account.id, _extra, "transactions", "right") }}
+          {%- import "_sort_macros.html" as srt -%}
+          {%- set _filters = {"date_from": date_from, "date_to": date_to} -%}
+          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("date",        "Date",        sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("ref",         "Ref",         sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("description", "Description", sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("debit",       "Debit",       sort, direction, _filters, fragment="transactions") }}</th>
+          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("credit",      "Credit",      sort, direction, _filters, fragment="transactions") }}</th>
           <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">
-            Balance{% if sort != 'date' or order != 'asc' %}<span class="ml-1 text-gray-300" title="Balance is only meaningful when sorted by Date ascending">·</span>{% endif %}
+            Balance{% if sort != 'date' or direction != 'asc' %}<span class="ml-1 text-gray-300" title="Balance is only meaningful when sorted by Date ascending">·</span>{% endif %}
           </th>
         </tr>
       </thead>
@@ -242,20 +239,9 @@
     </table>
   </div>
 
-  {% import "_partials/_pagination.html" as pg %}
-  {%- set _date_q = [] -%}
-  {%- if date_from %}{%- set _ = _date_q.append("date_from=" ~ date_from) -%}{% endif %}
-  {%- if date_to   %}{%- set _ = _date_q.append("date_to=" ~ date_to) -%}{% endif %}
-  {%- if sort %}{%- set _ = _date_q.append("sort=" ~ sort) -%}{% endif %}
-  {%- if order %}{%- set _ = _date_q.append("order=" ~ order) -%}{% endif %}
-  {{ pg.page_numbers(
-       base_url="/accounts/" ~ account.id,
-       total=lines_total,
-       limit=limit,
-       offset=offset,
-       extra_query=_date_q | join("&"),
-       fragment="transactions",
-  ) }}
+  {% import "_pagination_macros.html" as pg %}
+  {%- set _pg_filters = {"date_from": date_from, "date_to": date_to, "sort": sort, "direction": direction} -%}
+  {{ pg.page_numbers("/accounts/" ~ account.id, lines_total, limit, offset, _pg_filters, fragment="transactions") }}
   {% elif not ledger_error %}
   <div class="bg-white rounded-xl border border-gray-200 px-4 py-8 text-center">
     <p class="text-sm text-gray-400">

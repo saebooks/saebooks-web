@@ -519,7 +519,7 @@ async def account_detail(
     date_from: str | None = None,
     date_to: str | None = None,
     sort: str = "date",
-    order: str = "desc",
+    direction: str = "desc",
     limit: int = 200,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
@@ -568,13 +568,13 @@ async def account_detail(
         total_credit = "0"
         credit_normal = False
         ledger_error: str | None = None
-        if order not in ("asc", "desc"):
-            order = "desc"
+        if direction not in ("asc", "desc"):
+            direction = "desc"
         ledger_params: dict[str, object] = {
             "limit": limit,
             "offset": offset,
             "sort": sort,
-            "order": order,
+            "direction": direction,
         }
         if date_from:
             ledger_params["date_from"] = date_from
@@ -616,7 +616,7 @@ async def account_detail(
             "date_from": date_from or "",
             "date_to": date_to or "",
             "sort": sort,
-            "order": order,
+            "direction": direction,
             "limit": limit,
             "offset": offset,
             "prev_offset": prev_offset,

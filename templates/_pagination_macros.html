@@ -18,12 +18,12 @@
   {%- endfor -%}
 {%- endmacro -%}
 
-{%- macro _page_url(base_path, page_offset, limit, filters) -%}
-  {{ base_path }}?offset={{ page_offset }}&amp;limit={{ limit }}{{ _qs(filters) }}
+{%- macro _page_url(base_path, page_offset, limit, filters, fragment) -%}
+  {{ base_path }}?offset={{ page_offset }}&amp;limit={{ limit }}{{ _qs(filters) }}{% if fragment %}#{{ fragment }}{% endif %}
 {%- endmacro -%}
 
-{% macro _page_btn(label, page_offset, base_path, limit, filters, target, active=False, disabled=False, label_class='') -%}
-  {% set url = _page_url(base_path, page_offset, limit, filters) %}
+{% macro _page_btn(label, page_offset, base_path, limit, filters, target, active=False, disabled=False, label_class='', fragment=None) -%}
+  {% set url = _page_url(base_path, page_offset, limit, filters, fragment) %}
   {% if disabled %}
     <span class="rounded-md border border-gray-200 px-3 py-1.5 text-gray-300 cursor-not-allowed {{ label_class }}">{{ label | safe }}</span>
   {% elif active %}
@@ -59,7 +59,7 @@
   {%- endif -%}
 {%- endmacro -%}
 
-{% macro page_numbers(base_path, total, limit, offset, filters=None, target=None) -%}
+{% macro page_numbers(base_path, total, limit, offset, filters=None, target=None, fragment=None) -%}
   {% if total and limit and total > 0 %}
     {% set total_pages = ((total + limit - 1) // limit) %}
     {% set current_page = (offset // limit) + 1 if limit > 0 else 1 %}
@@ -71,20 +71,20 @@
         Showing <span class="tabular-nums">{{ offset + 1 }}–{{ [offset + limit, total] | min }}</span> of <span class="tabular-nums">{{ total }}</span>
       </div>
       <div class="flex flex-wrap items-center gap-1">
-        {{ _page_btn('« First', 0, base_path, limit, filters, target, disabled=(current_page == 1)) }}
-        {{ _page_btn('‹ Prev', prev_offset or 0, base_path, limit, filters, target, disabled=(current_page == 1)) }}
+        {{ _page_btn('« First', 0, base_path, limit, filters, target, disabled=(current_page == 1), fragment=fragment) }}
+        {{ _page_btn('‹ Prev', prev_offset or 0, base_path, limit, filters, target, disabled=(current_page == 1), fragment=fragment) }}
 
         {% for token in window.split(',') %}
           {% if token == '…' %}
             <span class="px-2 text-gray-400 select-none">…</span>
           {% else %}
             {% set p = token | int %}
-            {{ _page_btn(p|string, (p - 1) * limit, base_path, limit, filters, target, active=(p == current_page)) }}
+            {{ _page_btn(p|string, (p - 1) * limit, base_path, limit, filters, target, active=(p == current_page), fragment=fragment) }}
           {% endif %}
         {% endfor %}
 
-        {{ _page_btn('Next ›', next_offset or 0, base_path, limit, filters, target, disabled=(current_page == total_pages)) }}
-        {{ _page_btn('Last »', (total_pages - 1) * limit, base_path, limit, filters, target, disabled=(current_page == total_pages)) }}
+        {{ _page_btn('Next ›', next_offset or 0, base_path, limit, filters, target, disabled=(current_page == total_pages), fragment=fragment) }}
+        {{ _page_btn('Last »', (total_pages - 1) * limit, base_path, limit, filters, target, disabled=(current_page == total_pages), fragment=fragment) }}
       </div>
     </div>
   {% endif %}
