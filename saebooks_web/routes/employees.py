@@ -659,3 +659,23 @@ async def employees_bulk_action(request: Request) -> RedirectResponse:
     else:
         request.session["flash"] = f"{label}: {ok} employee{'s' if ok != 1 else ''} processed."
     return RedirectResponse(url="/employees", status_code=303)
+
+# ---------------------------------------------------------------------------
+# Hard-delete: developer-tier only. Client-side gated via the kebab,
+# server-side enforced by the API hard_delete_admin_gate.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/employees/{employee_id}/hard-delete", response_class=HTMLResponse, response_model=None)
+async def employee_hard_delete(request: Request, employee_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    from saebooks_web.archive_helpers import hard_delete_entity
+    return await hard_delete_entity(
+        request=request,
+        entity_api_path="/api/v1/employees",
+        entity_id=employee_id,
+        entity_label=f"Employee {employee_id}",
+        list_url="/employees",
+        detail_url=f"/employees/{employee_id}",
+    )

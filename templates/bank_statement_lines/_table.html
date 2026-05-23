@@ -74,6 +74,9 @@
             {%- if status_lower in ('matched', 'reconciled') %}
               {%- set _ = actions.append(("unmatch", "Unmatch", "/bank-statement-lines/" ~ line.id ~ "/unmatch", "post", true)) %}
             {%- endif %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/bank-statement-lines/" ~ line.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=line.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>

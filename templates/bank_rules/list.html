@@ -94,7 +94,10 @@
             {%- set actions = [
               ("edit",   "Edit",   "/bank-rules/" ~ rule.id ~ "/edit",   "link", false),
               ("delete", "Delete", "/bank-rules/" ~ rule.id ~ "/delete", "post", true),
-            ] %}
+              ] %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/bank-rules/" ~ rule.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=rule.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>

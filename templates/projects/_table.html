@@ -63,8 +63,10 @@
             {%- set actions = [
               ("view",    "View",    "/projects/" ~ project.id,             "link", false),
               ("edit",    "Edit",    "/projects/" ~ project.id ~ "/edit",   "link", false),
-              ("archive", "Archive", "/projects/" ~ project.id ~ "/archive","post", true),
-            ] %}
+              ("archive", "Archive", "/projects/" ~ project.id ~ "/archive","post", true),            ] %}
+              {%- if is_feature_enabled("hard_delete") %}
+              {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/projects/" ~ project.id ~ "/hard-delete", "post", true)) %}
+              {%- endif %}
             {{ km.kebab(row_id=project.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>

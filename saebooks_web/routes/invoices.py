@@ -1072,3 +1072,23 @@ async def invoice_detail(
             "vault_enabled": vault_enabled,
         },
     )
+
+# ---------------------------------------------------------------------------
+# Hard-delete: developer-tier only. Client-side gated via the kebab,
+# server-side enforced by the API hard_delete_admin_gate.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/invoices/{invoice_id}/hard-delete", response_class=HTMLResponse, response_model=None)
+async def invoice_hard_delete(request: Request, invoice_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    from saebooks_web.archive_helpers import hard_delete_entity
+    return await hard_delete_entity(
+        request=request,
+        entity_api_path="/api/v1/invoices",
+        entity_id=invoice_id,
+        entity_label=f"Invoice {invoice_id}",
+        list_url="/invoices",
+        detail_url=f"/invoices/{invoice_id}",
+    )

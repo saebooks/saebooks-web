@@ -85,7 +85,10 @@
         <td class="px-4 py-4 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
               ("view", "View", "/settings/company?company_id=" ~ company.id, "link", false),
-            ] %}
+              ] %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/companies/" ~ company.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=company.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
       </tr>

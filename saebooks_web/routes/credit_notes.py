@@ -899,3 +899,23 @@ async def credit_notes_bulk_action(request: Request) -> RedirectResponse:
     else:
         request.session["flash"] = f"{label}: {ok} credit note{'s' if ok != 1 else ''} processed."
     return RedirectResponse(url="/credit-notes", status_code=303)
+
+# ---------------------------------------------------------------------------
+# Hard-delete: developer-tier only. Client-side gated via the kebab,
+# server-side enforced by the API hard_delete_admin_gate.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/credit-notes/{cn_id}/hard-delete", response_class=HTMLResponse, response_model=None)
+async def credit_note_hard_delete(request: Request, cn_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    from saebooks_web.archive_helpers import hard_delete_entity
+    return await hard_delete_entity(
+        request=request,
+        entity_api_path="/api/v1/credit_notes",
+        entity_id=cn_id,
+        entity_label=f"Credit note {cn_id}",
+        list_url="/credit-notes",
+        detail_url=f"/credit-notes/{cn_id}",
+    )

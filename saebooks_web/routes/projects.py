@@ -563,3 +563,23 @@ async def projects_bulk_action(request: Request) -> RedirectResponse:
     else:
         request.session["flash"] = f"{label}: {ok} project{'s' if ok != 1 else ''} processed."
     return RedirectResponse(url="/projects", status_code=303)
+
+# ---------------------------------------------------------------------------
+# Hard-delete: developer-tier only. Client-side gated via the kebab,
+# server-side enforced by the API hard_delete_admin_gate.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/projects/{project_id}/hard-delete", response_class=HTMLResponse, response_model=None)
+async def project_hard_delete(request: Request, project_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    from saebooks_web.archive_helpers import hard_delete_entity
+    return await hard_delete_entity(
+        request=request,
+        entity_api_path="/api/v1/projects",
+        entity_id=project_id,
+        entity_label=f"Project {project_id}",
+        list_url="/projects",
+        detail_url=f"/projects/{project_id}",
+    )

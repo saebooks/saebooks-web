@@ -55,7 +55,10 @@
               ("view",    "View",    "/tax-codes/" ~ tc.id,             "link", false),
               ("edit",    "Edit",    "/tax-codes/" ~ tc.id ~ "/edit",   "link", false),
               ("archive", "Archive", "/tax-codes/" ~ tc.id ~ "/archive","post", true),
-            ] %}
+              ] %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/tax-codes/" ~ tc.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=tc.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>

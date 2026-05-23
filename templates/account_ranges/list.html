@@ -92,7 +92,10 @@
             {%- set actions = [
               ("edit",   "Edit",   "/admin/ranges/" ~ rng.id ~ "/edit",   "link", false),
               ("delete", "Delete", "/admin/ranges/" ~ rng.id ~ "/delete", "post", true),
-            ] %}
+              ] %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/admin/ranges/" ~ rng.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=rng.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>

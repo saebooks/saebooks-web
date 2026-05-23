@@ -72,7 +72,10 @@
             {%- set actions = [
               ("apply",  "Apply",  "/journal-templates/" ~ tmpl.id ~ "/apply",  "post", false),
               ("delete", "Delete", "/journal-templates/" ~ tmpl.id ~ "/delete", "post", true),
-            ] %}
+              ] %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/journal-templates/" ~ tmpl.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=tmpl.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>

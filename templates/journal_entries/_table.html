@@ -79,6 +79,9 @@
             {%- elif status_lower == 'posted' %}
               {%- set _ = actions.append(("reverse", "Reverse", "/journal-entries/" ~ je.id ~ "/reverse", "post", true)) %}
             {%- endif %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/journal-entries/" ~ je.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=je.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>

@@ -112,6 +112,9 @@
               {%- set _ = actions.append(("make_one_off", "Mark as one-off", "/contacts/" ~ c.id ~ "/make-one-off", "post", false)) %}
             {%- endif %}
             {%- set _ = actions.append(("archive", "Archive", "/contacts/" ~ c.id ~ "/archive","post", true)) %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/contacts/" ~ c.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=c.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>

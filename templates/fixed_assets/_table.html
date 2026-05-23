@@ -73,6 +73,9 @@
             {%- if status_lower == 'active' %}
               {%- set _ = actions.append(("archive", "Archive", "/fixed-assets/" ~ asset.id ~ "/archive", "post", true)) %}
             {%- endif %}
+            {%- if is_feature_enabled("hard_delete") %}
+            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/fixed-assets/" ~ asset.id ~ "/hard-delete", "post", true)) %}
+            {%- endif %}
             {{ km.kebab(row_id=asset.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
