@@ -11,7 +11,27 @@
 {%- if filter_ref %}{%- set _ = _filter_parts.append("ref=" ~ (filter_ref|urlencode)) %}{%- endif %}
 {%- if filter_posted_by %}{%- set _ = _filter_parts.append("posted_by=" ~ (filter_posted_by|urlencode)) %}{%- endif %}
 {%- if filter_account_id %}{%- set _ = _filter_parts.append("account_id=" ~ filter_account_id) %}{%- endif %}
+{%- set filter_qs_no_sort = ("&" ~ _filter_parts|join("&")) if _filter_parts else "" %}
+{%- if sort %}{%- set _ = _filter_parts.append("sort=" ~ sort) %}{%- endif %}
+{%- if dir %}{%- set _ = _filter_parts.append("dir=" ~ dir) %}{%- endif %}
 {%- set filter_qs = ("&" ~ _filter_parts|join("&")) if _filter_parts else "" %}
+
+{# Macro for a sortable column header. Clicking toggles direction if
+   the column is already active, else sets desc as the default. #}
+{%- macro sort_header(field, label, align="left") -%}
+  {%- set is_active = (sort == field) -%}
+  {%- set next_dir = "asc" if (is_active and dir == "desc") else "desc" -%}
+  {%- set arrow = "" -%}
+  {%- if is_active -%}{%- set arrow = " ↓" if dir == "desc" else " ↑" -%}{%- endif -%}
+  <a
+    href="/journal-entries?offset=0&limit={{ limit }}{{ filter_qs_no_sort }}&sort={{ field }}&dir={{ next_dir }}"
+    hx-get="/journal-entries?offset=0&limit={{ limit }}{{ filter_qs_no_sort }}&sort={{ field }}&dir={{ next_dir }}"
+    hx-target="#journal-entries-table"
+    hx-swap="outerHTML"
+    hx-push-url="true"
+    class="inline-flex items-center gap-0.5 hover:text-gray-700 {% if is_active %}text-gray-900 font-semibold{% endif %}"
+  >{{ label }}<span class="tabular-nums">{{ arrow }}</span></a>
+{%- endmacro %}
 <div id="journal-entries-table">
 
 {% if error %}
@@ -29,11 +49,11 @@
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">JE #</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("ref", "JE #") }}</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("date", "Date") }}</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total Debit</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("total_debit", "Total Debit") }}</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("status", "Status") }}</th>
         <th class="w-8"></th>
       </tr>
     </thead>

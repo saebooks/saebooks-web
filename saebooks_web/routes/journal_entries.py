@@ -111,6 +111,8 @@ async def journal_entries_list(
     ref: str | None = None,
     posted_by: str | None = None,
     account_id: str | None = None,
+    sort: str = "date",
+    dir: str = "desc",
     limit: int = 50,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
@@ -140,6 +142,11 @@ async def journal_entries_list(
         params["posted_by"] = posted_by
     if account_id:
         params["account_id"] = account_id
+    # Always forward sort/dir so the API is the source of truth for ordering.
+    if sort:
+        params["sort"] = sort
+    if dir:
+        params["dir"] = dir
 
     error: str | None = None
     journal_entries: list[dict] = []
@@ -194,6 +201,8 @@ async def journal_entries_list(
         "filter_ref": ref or "",
         "filter_posted_by": posted_by or "",
         "filter_account_id": account_id or "",
+        "sort": sort,
+        "dir": dir,
         # Dropdown source data (full-page renders only; empty on HTMX swap).
         "accounts": accounts,
         "posted_by_options": filter_options.get("posted_by", []),
