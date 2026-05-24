@@ -56,6 +56,7 @@ from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bea
     ensure_csrf_global,
 )
 from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware  # noqa: E402
+from saebooks_web.cf_access import CFAccessAuthMiddleware
 from saebooks_web.company_context import CompanyContextMiddleware
 from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware  # noqa: E402
 
@@ -189,6 +190,12 @@ app.add_middleware(TrustedHeaderAuthMiddleware)
 app.add_middleware(DemoAutoLoginMiddleware)
 
 app.add_middleware(CompanyContextMiddleware)
+
+# CF Access JWT trust — runs INSIDE SessionMiddleware (added before it in
+# source) and OUTSIDE CompanyContextMiddleware (added after it in source) so
+# that a freshly-minted session is visible to CompanyContext on the same
+# request. Off by default; enable per-instance via SAEBOOKS_TRUST_CF_ACCESS=1.
+app.add_middleware(CFAccessAuthMiddleware)
 
 app.add_middleware(
     SessionMiddleware,

@@ -57,6 +57,10 @@ async def login_page(request: Request) -> HTMLResponse | RedirectResponse:
     auth.sauer.com.au is silent. The form remains reachable via ?form=1 as
     an emergency escape hatch (e.g. local-admin recovery if Authentik is down).
     """
+    # If something earlier in the middleware chain (e.g. CFAccessAuthMiddleware)
+    # already minted a session for this request, jump straight to the app.
+    if request.session.get("api_token"):
+        return RedirectResponse(url="/", status_code=303)
     if authentik_enabled() and request.query_params.get("form") != "1":
         return RedirectResponse(url="/auth/authentik/login", status_code=303)
     return _TEMPLATES.TemplateResponse(request, "auth/login.html", {"error": None, "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()})
