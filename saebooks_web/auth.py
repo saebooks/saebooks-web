@@ -100,6 +100,7 @@ async def login_submit(
             # attacker pre-seeds a known token (via login form CSRF) and then
             # impersonates the now-logged-in user with their own csrf_token.
             request.session.pop("csrf_token", None)
+            request.session.pop("active_company_id", None)
             request.session["api_token"] = token
 
             # Fetch user profile to store in session — MUST happen inside the

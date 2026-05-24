@@ -132,6 +132,7 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         request.session.pop("csrf_token", None)
+        request.session.pop("active_company_id", None)
         request.session["api_token"] = token
 
         if me_resp.is_success:

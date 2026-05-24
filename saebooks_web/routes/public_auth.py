@@ -90,6 +90,7 @@ async def _login_with_jwt(request: Request, token: str) -> None:
     """Drop the JWT into the session and fetch profile info — mirror of
     the post-login bookkeeping in ``saebooks_web.auth.login_submit``."""
     request.session.pop("csrf_token", None)
+    request.session.pop("active_company_id", None)
     request.session["api_token"] = token
     try:
         async with _api_client() as client:

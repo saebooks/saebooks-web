@@ -209,6 +209,7 @@ async def callback(
             return _login_error(request, "Login failed — no token returned", 502)
 
         request.session.pop("csrf_token", None)
+        request.session.pop("active_company_id", None)
         request.session["api_token"] = token
 
         try:

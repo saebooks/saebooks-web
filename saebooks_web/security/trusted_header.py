@@ -149,6 +149,7 @@ class TrustedHeaderAuthMiddleware(BaseHTTPMiddleware):
 
                 token = resp.json()["access_token"]
                 request.session.pop("csrf_token", None)
+                request.session.pop("active_company_id", None)
                 request.session["api_token"] = token
 
                 me = await client.get(
