@@ -41,13 +41,73 @@ from datetime import date as _date, timedelta as _td
 
 _INVOICE_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
 
+# See [[saebooks-payment-status-filter-pattern]]. The Status column renders
+# the computed payment-status badge (templates/_status_macros.html ::
+# payment_status_badge), so filter+sort must mirror the badge — not the
+# raw DRAFT/POSTED/VOIDED field.
+_PAYMENT_STATUS_VALUES = {"draft", "open", "due-soon", "overdue", "partial", "paid", "voided"}
 
-def _invoice_sort_key(i: dict, key: str) -> object:
+_PAYMENT_STATUS_RAW_HINT = {
+    "draft":    "DRAFT",
+    "voided":   "VOIDED",
+    "open":     "POSTED",
+    "due-soon": "POSTED",
+    "overdue":  "POSTED",
+    "partial":  "POSTED",
+    "paid":     "POSTED",
+}
+
+_PAYMENT_STATUS_RANK = {
+    "draft":    0,
+    "overdue":  1,
+    "due-soon": 2,
+    "open":     3,
+    "partial":  4,
+    "paid":     5,
+    "voided":   6,
+}
+
+
+def _invoice_payment_status(inv: dict, today: str, due_soon_cutoff: str) -> str:
+    """Mirror of the Jinja ``payment_status_badge`` macro so filter / sort
+    match what the user sees in the Status column."""
+    s = (inv.get("status") or "").upper()
+    if s == "VOIDED":
+        return "voided"
+    if s == "DRAFT":
+        return "draft"
+    if s == "POSTED":
+        try:
+            total = float(inv.get("total") or 0)
+        except (TypeError, ValueError):
+            total = 0.0
+        try:
+            paid = float(inv.get("amount_paid") or 0)
+        except (TypeError, ValueError):
+            paid = 0.0
+        if total > 0 and paid >= total:
+            return "paid"
+        if paid > 0:
+            return "partial"
+        due = inv.get("due_date") or ""
+        if due and due < today:
+            return "overdue"
+        if due and due <= due_soon_cutoff:
+            return "due-soon"
+        return "open"
+    return "open"
+
+
+def _invoice_sort_key(i: dict, key: str, today: str, due_soon_cutoff: str) -> object:
     if key == "total":
         try:
             return float(i.get("total") or 0)
         except (TypeError, ValueError):
             return 0.0
+    if key == "status":
+        return _PAYMENT_STATUS_RANK.get(
+            _invoice_payment_status(i, today, due_soon_cutoff), 99
+        )
     return str(i.get(key) or "")
 
 
@@ -75,13 +135,32 @@ async def invoices_list(
     sort = sort if sort in _INVOICE_SORT_KEYS else "issue_date"
     direction = "asc" if direction == "asc" else "desc"
 
+    _today_iso = _date.today().isoformat()
+    _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
+
+    # The status filter is a payment-status value (draft / open / due-soon /
+    # overdue / partial / paid / voided). For POSTED-derived buckets the
+    # API can only narrow to raw status=POSTED — the final filter and the
+    # total count are computed in Python below.
+    status_norm = (status or "").lower().strip()
+    filter_client_side = status_norm in _PAYMENT_STATUS_VALUES
+    api_status = _PAYMENT_STATUS_RAW_HINT.get(status_norm) if filter_client_side else None
+
     # The API uses page/page_size rather than limit/offset.
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
-    params: dict[str, object] = {"page": page, "page_size": page_size}
-    if status:
-        params["status"] = status
+    # When filtering by payment status we fetch a single wide page from the
+    # API (capped at 500 — the API's hard upper bound) and slice in Python
+    # so the total count and pagination reflect the filtered set.
+    if filter_client_side:
+        api_page, api_page_size = 1, 500
+    else:
+        api_page, api_page_size = page, page_size
+
+    params: dict[str, object] = {"page": api_page, "page_size": api_page_size}
+    if api_status:
+        params["status"] = api_status
     if contact_id:
         params["contact_id"] = contact_id
     if date_from:
@@ -118,8 +197,25 @@ async def invoices_list(
                 for c in c_resp.json().get("items", []):
                     contacts_by_id[c["id"]] = c
 
-    # Page-level sort.
-    invoices.sort(key=lambda i: _invoice_sort_key(i, sort), reverse=(direction == "desc"))
+    if filter_client_side:
+        # Drop rows that don't match the requested payment status, then sort
+        # and slice in Python so total/pagination reflect the filtered set.
+        invoices = [
+            i for i in invoices
+            if _invoice_payment_status(i, _today_iso, _due_soon_iso) == status_norm
+        ]
+        invoices.sort(
+            key=lambda i: _invoice_sort_key(i, sort, _today_iso, _due_soon_iso),
+            reverse=(direction == "desc"),
+        )
+        total = len(invoices)
+        invoices = invoices[offset:offset + limit]
+    else:
+        # Page-level sort.
+        invoices.sort(
+            key=lambda i: _invoice_sort_key(i, sort, _today_iso, _due_soon_iso),
+            reverse=(direction == "desc"),
+        )
 
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
@@ -127,9 +223,6 @@ async def invoices_list(
 
     # Consume and clear any flash message (e.g. from a successful archive).
     flash = request.session.pop("flash", None)
-
-    _today_iso = _date.today().isoformat()
-    _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
 
     ctx = {
         "invoices": invoices,
@@ -140,7 +233,7 @@ async def invoices_list(
         "today": _today_iso,
         "due_soon_cutoff": _due_soon_iso,
         # Filter values echoed back to the form.
-        "filter_status": status or "",
+        "filter_status": status_norm,
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",

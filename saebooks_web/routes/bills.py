@@ -44,13 +44,75 @@ from datetime import date as _date, timedelta as _td
 
 _BILL_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
 
+# Payment-status values exposed to the UI. The dropdown sends these as the
+# `status` query param. They mirror the badges rendered by
+# templates/_status_macros.html :: payment_status_badge.
+_PAYMENT_STATUS_VALUES = {"draft", "open", "due-soon", "overdue", "partial", "paid", "voided"}
 
-def _bill_sort_key(b: dict, key: str) -> object:
+# Map payment-status → raw API status to narrow the fetched set. The POSTED
+# bucket is still filtered in Python afterwards.
+_PAYMENT_STATUS_RAW_HINT = {
+    "draft":    "DRAFT",
+    "voided":   "VOIDED",
+    "open":     "POSTED",
+    "due-soon": "POSTED",
+    "overdue":  "POSTED",
+    "partial":  "POSTED",
+    "paid":     "POSTED",
+}
+
+# Sort order for the Status column — least-resolved first, then resolved.
+_PAYMENT_STATUS_RANK = {
+    "draft":    0,
+    "overdue":  1,
+    "due-soon": 2,
+    "open":     3,
+    "partial":  4,
+    "paid":     5,
+    "voided":   6,
+}
+
+
+def _bill_payment_status(b: dict, today: str, due_soon_cutoff: str) -> str:
+    """Derive the payment-status string for a bill. Mirror of the Jinja
+    ``payment_status_badge`` macro so filter/sort match what the user sees."""
+    s = (b.get("status") or "").upper()
+    if s == "VOIDED":
+        return "voided"
+    if s == "DRAFT":
+        return "draft"
+    if s == "POSTED":
+        try:
+            total = float(b.get("total") or 0)
+        except (TypeError, ValueError):
+            total = 0.0
+        try:
+            paid = float(b.get("amount_paid") or 0)
+        except (TypeError, ValueError):
+            paid = 0.0
+        if total > 0 and paid >= total:
+            return "paid"
+        if paid > 0:
+            return "partial"
+        due = b.get("due_date") or ""
+        if due and due < today:
+            return "overdue"
+        if due and due <= due_soon_cutoff:
+            return "due-soon"
+        return "open"
+    return "open"
+
+
+def _bill_sort_key(b: dict, key: str, today: str, due_soon_cutoff: str) -> object:
     if key == "total":
         try:
             return float(b.get("total") or 0)
         except (TypeError, ValueError):
             return 0.0
+    if key == "status":
+        return _PAYMENT_STATUS_RANK.get(
+            _bill_payment_status(b, today, due_soon_cutoff), 99
+        )
     return str(b.get(key) or "")
 
 
@@ -78,13 +140,32 @@ async def bills_list(
     sort = sort if sort in _BILL_SORT_KEYS else "issue_date"
     direction = "asc" if direction == "asc" else "desc"
 
+    _today_iso = _date.today().isoformat()
+    _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
+
+    # The status filter is a payment-status value (draft / open / due-soon /
+    # overdue / partial / paid / voided). For the POSTED-derived buckets the
+    # API can only narrow to raw status=POSTED — the final filter and the
+    # total count are computed in Python below.
+    status_norm = (status or "").lower().strip()
+    filter_client_side = status_norm in _PAYMENT_STATUS_VALUES
+    api_status = _PAYMENT_STATUS_RAW_HINT.get(status_norm) if filter_client_side else None
+
     # The API uses page/page_size rather than limit/offset.
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
-    params: dict[str, object] = {"page": page, "page_size": page_size}
-    if status:
-        params["status"] = status
+    # When filtering by payment status we fetch a single wide page from the
+    # API (capped at 500 — the API's hard upper bound) and slice in Python
+    # so the total count and pagination reflect the filtered set.
+    if filter_client_side:
+        api_page, api_page_size = 1, 500
+    else:
+        api_page, api_page_size = page, page_size
+
+    params: dict[str, object] = {"page": api_page, "page_size": api_page_size}
+    if api_status:
+        params["status"] = api_status
     if contact_id:
         params["contact_id"] = contact_id
     if date_from:
@@ -120,9 +201,23 @@ async def bills_list(
             for c in c_resp.json().get("items", []):
                 contacts_by_id[c["id"]] = c
 
-    # Page-level sort. Sorts the current page of results; for global sort
-    # across all pages, narrow with filters first.
-    bills.sort(key=lambda b: _bill_sort_key(b, sort), reverse=(direction == "desc"))
+    if filter_client_side:
+        # Drop rows that don't match the requested payment status, then sort
+        # and slice in Python so total/pagination reflect the filtered set.
+        bills = [b for b in bills if _bill_payment_status(b, _today_iso, _due_soon_iso) == status_norm]
+        bills.sort(
+            key=lambda b: _bill_sort_key(b, sort, _today_iso, _due_soon_iso),
+            reverse=(direction == "desc"),
+        )
+        total = len(bills)
+        bills = bills[offset:offset + limit]
+    else:
+        # Page-level sort. Sorts the current page of results; for global sort
+        # across all pages, narrow with filters first.
+        bills.sort(
+            key=lambda b: _bill_sort_key(b, sort, _today_iso, _due_soon_iso),
+            reverse=(direction == "desc"),
+        )
 
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
@@ -130,9 +225,6 @@ async def bills_list(
 
     # Consume and clear any flash message (e.g. from a successful archive).
     flash = request.session.pop("flash", None)
-
-    _today_iso = _date.today().isoformat()
-    _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
 
     ctx = {
         "bills": bills,
@@ -143,7 +235,7 @@ async def bills_list(
         "today": _today_iso,
         "due_soon_cutoff": _due_soon_iso,
         # Filter values echoed back to the form.
-        "filter_status": status or "",
+        "filter_status": status_norm,
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
