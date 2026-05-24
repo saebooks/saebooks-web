@@ -108,6 +108,11 @@ async def journal_entries_list(
     status: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    ref: str | None = None,
+    posted_by: str | None = None,
+    account_id: str | None = None,
+    sort: str = "date",
+    dir: str = "desc",
     limit: int = 50,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
@@ -131,10 +136,25 @@ async def journal_entries_list(
         params["date_from"] = date_from
     if date_to:
         params["date_to"] = date_to
+    if ref:
+        params["ref"] = ref
+    if posted_by:
+        params["posted_by"] = posted_by
+    if account_id:
+        params["account_id"] = account_id
+    # Always forward sort/dir so the API is the source of truth for ordering.
+    if sort:
+        params["sort"] = sort
+    if dir:
+        params["dir"] = dir
 
     error: str | None = None
     journal_entries: list[dict] = []
     total: int = 0
+    accounts: list[dict] = []
+    filter_options: dict[str, list[str]] = {"posted_by": [], "ref_prefixes": []}
+
+    is_htmx = request.headers.get("HX-Request") == "true"
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/journal_entries", params=params)
@@ -147,6 +167,20 @@ async def journal_entries_list(
             total = payload.get("total", len(journal_entries))
         else:
             error = f"API error: HTTP {resp.status_code}"
+
+        # Only fetch dropdown data on full page loads; HTMX swap is table-only.
+        if not is_htmx and not error:
+            a_resp = await client.get(
+                "/api/v1/accounts", params={"limit": 1000, "offset": 0}
+            )
+            if a_resp.is_success:
+                accounts = a_resp.json().get("items", [])
+
+            opt_resp = await client.get(
+                "/api/v1/journal_entries/_filter_options"
+            )
+            if opt_resp.is_success:
+                filter_options = opt_resp.json()
 
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
@@ -164,14 +198,22 @@ async def journal_entries_list(
         "filter_status": status or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "filter_ref": ref or "",
+        "filter_posted_by": posted_by or "",
+        "filter_account_id": account_id or "",
+        "sort": sort,
+        "dir": dir,
+        # Dropdown source data (full-page renders only; empty on HTMX swap).
+        "accounts": accounts,
+        "posted_by_options": filter_options.get("posted_by", []),
+        "ref_prefix_options": filter_options.get("ref_prefixes", []),
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,
         "next_offset": next_offset,
     }
 
-    # HTMX requests get just the table fragment.
-    is_htmx = request.headers.get("HX-Request") == "true"
+    # HTMX requests get just the table fragment (is_htmx already computed above).
     template = "journal_entries/_table.html" if is_htmx else "journal_entries/list.html"
 
     return _TEMPLATES.TemplateResponse(request, template, ctx)
