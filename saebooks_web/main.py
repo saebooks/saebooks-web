@@ -56,6 +56,7 @@ from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bea
     ensure_csrf_global,
 )
 from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware  # noqa: E402
+from saebooks_web.company_context import CompanyContextMiddleware
 from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware  # noqa: E402
 
 from saebooks_web.auth import router as auth_router
@@ -74,6 +75,7 @@ from saebooks_web.routes.ai_extraction import router as ai_extraction_router
 from saebooks_web.routes.ato_sbr import router as ato_sbr_router
 from saebooks_web.routes.bank_accounts import router as bank_accounts_router
 from saebooks_web.routes.bank_rules import router as bank_rules_router
+from saebooks_web.routes.branches import router as branches_router
 from saebooks_web.routes.bank_statement_lines import router as bank_statement_lines_router
 from saebooks_web.routes.bills import router as bills_router
 from saebooks_web.routes.expenses import router as expenses_router
@@ -82,6 +84,7 @@ from saebooks_web.routes.budgets import router as budgets_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.dashboard import router as dashboard_router
+from saebooks_web.routes.switch_company import router as switch_company_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.imports import router as imports_router
 from saebooks_web.routes.invoices import router as invoices_router
@@ -184,6 +187,8 @@ app.add_middleware(TrustedHeaderAuthMiddleware)
 # request, mints a session if creds env vars are set, and lets the
 # rest of the stack proceed as if the user manually logged in.
 app.add_middleware(DemoAutoLoginMiddleware)
+
+app.add_middleware(CompanyContextMiddleware)
 
 app.add_middleware(
     SessionMiddleware,
@@ -304,6 +309,7 @@ app.include_router(public_auth_router)
 app.include_router(contact_router)
 app.include_router(billing_router)
 app.include_router(dashboard_router)
+app.include_router(switch_company_router)
 app.include_router(contacts_router)
 app.include_router(ai_extraction_router)
 app.include_router(invoices_router)
@@ -327,6 +333,7 @@ app.include_router(fixed_assets_router)
 app.include_router(recurring_invoices_router)
 app.include_router(bank_accounts_router)
 app.include_router(bank_rules_router)
+app.include_router(branches_router)
 app.include_router(bank_statement_lines_router)
 app.include_router(reconciliation_router)
 app.include_router(budgets_router)

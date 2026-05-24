@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Branches — SAE Books{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto p-6">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold">Branches</h1>
+      <p class="ink-2 text-sm mt-1">
+        Internal sub-divisional tags for the active company. Used to split
+        reports by trading-name / location / cost-centre without creating a
+        new legal entity.
+      </p>
+    </div>
+    <a href="/branches/new" class="btn-primary inline-flex items-center gap-1.5">
+      <i data-lucide="plus" class="w-4 h-4"></i>
+      New branch
+    </a>
+  </div>
+
+  {% if branches %}
+    <div class="rounded-xl border hairline overflow-hidden" style="background: var(--surface);">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase tracking-wider ink-3" style="background: var(--paper-2);">
+          <tr>
+            <th class="text-left px-4 py-2 font-mono">Code</th>
+            <th class="text-left px-4 py-2">Name</th>
+            <th class="text-center px-4 py-2">Default</th>
+            <th class="text-center px-4 py-2">Status</th>
+            <th class="text-right px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in branches %}
+            <tr class="border-t hairline {% if b.archived_at %}opacity-50{% endif %}">
+              <td class="px-4 py-2 font-mono">{{ b.code }}</td>
+              <td class="px-4 py-2">{{ b.name }}</td>
+              <td class="px-4 py-2 text-center">
+                {% if b.is_default %}<i data-lucide="check" class="w-4 h-4 inline-block"></i>{% endif %}
+              </td>
+              <td class="px-4 py-2 text-center">
+                {% if b.archived_at %}<span class="ink-3 text-xs">Archived</span>
+                {% else %}<span class="text-xs">Active</span>{% endif %}
+              </td>
+              <td class="px-4 py-2 text-right">
+                {% if not b.archived_at %}
+                  <a href="/branches/{{ b.id }}/edit" class="text-sm underline hover:no-underline">Edit</a>
+                  {% if not b.is_default %}
+                    <form method="post" action="/branches/{{ b.id }}/archive" class="inline ml-3"
+                          onsubmit="return confirm('Archive branch {{ b.code }}?');">
+                      <button type="submit" class="text-sm underline hover:no-underline ink-2">Archive</button>
+                    </form>
+                  {% endif %}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="rounded-xl border hairline p-8 text-center" style="background: var(--surface);">
+      <p class="ink-2">No branches yet. <a href="/branches/new" class="underline">Create the first one</a> for this company.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
