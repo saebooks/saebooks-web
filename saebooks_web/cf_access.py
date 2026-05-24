@@ -148,7 +148,7 @@ class CFAccessAuthMiddleware(BaseHTTPMiddleware):
                     "/api/v1/auth/oauth-handoff",
                     headers={"X-OAuth-Handoff-Secret": secret},
                     json={
-                        "provider": "cloudflare-access",
+                        "provider": "cf-access",
                         "provider_user_id": sub,
                         "email": email,
                         "display_name": display_name,
