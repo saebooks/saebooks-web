@@ -84,7 +84,10 @@ async def contacts_list(
     elif show == "all":
         params["include_one_off"] = "true"
     if ct:
-        params["contact_type"] = ct
+        # The API list endpoint exposes the ContactType filter as ?type=
+        # (alias on Query(default=None, alias="type")). Sending the field's
+        # internal name "contact_type" is silently ignored.
+        params["type"] = ct
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/contacts", params=params)
