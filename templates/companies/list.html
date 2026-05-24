@@ -76,9 +76,19 @@
         <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
           {{ company.base_currency or 'AUD' }}
         </td>
-        <td class="px-6 py-4 text-right text-sm">
+        <td class="px-6 py-4 text-right text-sm whitespace-nowrap">
+          {% if request.state.active_company_id and company.id == request.state.active_company_id %}
+            <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded">
+              <i data-lucide="check" class="w-3 h-3"></i> Active
+            </span>
+          {% else %}
+            <a href="/switch-company?company_id={{ company.id }}"
+               class="inline-flex items-center gap-1 rounded-md bg-[#194291] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#133372]">
+              Switch to this
+            </a>
+          {% endif %}
           <a href="/settings/company?company_id={{ company.id }}"
-             class="text-[#194291] dark:text-[#8aa9d8] hover:underline">
+             class="ml-2 text-[#194291] dark:text-[#8aa9d8] hover:underline">
             Settings
           </a>
         </td>
