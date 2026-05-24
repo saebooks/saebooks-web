@@ -1119,6 +1119,91 @@
 </script>
 
 {% block extra_scripts %}{% endblock %}
+{# Service-restart watchdog: when an htmx request hits a network error or
+   a 502/503/504, the page is in a half-rendered state. Poll /healthz on
+   the web layer; if it has failed at least once and then recovers, hard-
+   reload so the user gets fresh templates. Session cookie stays valid so
+   they don't have to log in again. If /healthz answers 200 immediately
+   the failure was upstream (e.g. API restarting while web is up) — we
+   stay silent rather than loop-reload. Added 2026-05-23. #}
+<script>
+  (function () {
+    var WATCHDOG_MAX_MS = 60000;
+    var POLL_INTERVAL_MS = 1000;
+    var GATEWAY_STATUSES = { 502: 1, 503: 1, 504: 1 };
+    var active = false;
+    var toastShown = false;
+
+    function showToast(message, withReload) {
+      var existing = document.getElementById('sb-reconnect-toast');
+      if (existing) existing.remove();
+      var el = document.createElement('div');
+      el.id = 'sb-reconnect-toast';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      el.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);' +
+        'background:#1f2937;color:#f9fafb;padding:10px 16px;border-radius:8px;' +
+        'font:500 13px/1.4 system-ui,-apple-system,sans-serif;z-index:9999;' +
+        'box-shadow:0 10px 25px rgba(0,0,0,0.25);display:flex;gap:10px;align-items:center;';
+      el.textContent = message;
+      if (withReload) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = 'Reload';
+        btn.style.cssText = 'background:#3b82f6;color:#fff;border:0;padding:4px 10px;' +
+          'border-radius:6px;font:600 12px system-ui,sans-serif;cursor:pointer;';
+        btn.addEventListener('click', function () { location.reload(); });
+        el.appendChild(btn);
+      }
+      document.body.appendChild(el);
+      toastShown = true;
+    }
+
+    function dismissToast() {
+      var existing = document.getElementById('sb-reconnect-toast');
+      if (existing) existing.remove();
+      toastShown = false;
+    }
+
+    function startRecovery() {
+      if (active) return;
+      active = true;
+      var sawWebFailure = false;
+      var started = Date.now();
+      (function poll() {
+        fetch('/healthz', { cache: 'no-store', credentials: 'same-origin' })
+          .then(function (r) {
+            if (r.ok) {
+              if (sawWebFailure) { location.reload(); return; }
+              dismissToast();
+              active = false;
+              return;
+            }
+            throw new Error('healthz not ok');
+          })
+          .catch(function () {
+            if (!sawWebFailure) {
+              sawWebFailure = true;
+              showToast('Service restarting, will reload when back…', false);
+            }
+            if (Date.now() - started > WATCHDOG_MAX_MS) {
+              showToast('Service still unreachable.', true);
+              active = false;
+              return;
+            }
+            setTimeout(poll, POLL_INTERVAL_MS);
+          });
+      })();
+    }
+
+    document.body.addEventListener('htmx:sendError', startRecovery);
+    document.body.addEventListener('htmx:responseError', function (e) {
+      var status = e && e.detail && e.detail.xhr ? e.detail.xhr.status : 0;
+      if (GATEWAY_STATUSES[status]) startRecovery();
+    });
+  })();
+</script>
+
   {% include "_components/raw_inspector.html" %}
 </body>
 </html>
