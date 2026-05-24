@@ -52,6 +52,8 @@ async def contacts_list(
     request: Request,
     show: str | None = None,
     contact_type: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
     """Render the contacts list page.
 
@@ -73,7 +75,10 @@ async def contacts_list(
     if ct not in _CONTACT_TYPE_VALUES:
         ct = ""
 
-    params: dict[str, object] = {"limit": 100, "offset": 0}
+    limit = max(1, min(int(limit or 50), 500))
+    offset = max(0, int(offset or 0))
+
+    params: dict[str, object] = {"limit": limit, "offset": offset}
     if show == "one-off":
         params["one_off_only"] = "true"
     elif show == "all":
@@ -118,6 +123,8 @@ async def contacts_list(
             "flash": flash,
             "show": show or "",
             "filter_contact_type": ct,
+            "limit": limit,
+            "offset": offset,
             "candidate_count": candidate_count,
         },
     )

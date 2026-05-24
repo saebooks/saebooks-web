@@ -149,6 +149,11 @@
 </div>
 
 
+{# Pagination — preserves both filters via the URL. #}
+{% import "_pagination_macros.html" as pg %}
+{% set pg_filters = {'show': show, 'contact_type': filter_contact_type} %}
+{{ pg.page_numbers('/contacts', total, limit, offset, pg_filters) }}
+
 {# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}
 {% import "_components/bulk_action_bar.html" as bb %}
 {{ bb.bulk_bar(
