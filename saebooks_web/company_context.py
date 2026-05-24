@@ -59,7 +59,15 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                         items.append({
                             "id": it["id"],
                             "name": it.get("trading_name") or it.get("name") or it.get("legal_name") or "(unnamed)",
+                            "created_at": it.get("created_at") or "",
                         })
+                    # Order matches the API's get_active_company_id fallback
+                    # (oldest company first by created_at). Without this, the
+                    # dropdown defaulted to the alphabetically-first company
+                    # ("Richard Sauer") while data fetches resolved to the
+                    # oldest one ("SAE Engineering") — header label and
+                    # displayed data disagreed.
+                    items.sort(key=lambda c: c["created_at"])
                     request.state.companies = items
                     active = None
                     if active_id_in_session:
