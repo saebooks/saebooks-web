@@ -44,16 +44,23 @@ def _require_auth(request: Request) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+_CONTACT_TYPE_VALUES = {"CUSTOMER", "SUPPLIER", "BOTH", "BENEFICIARY"}
+
+
 @router.get("/contacts", response_class=HTMLResponse, response_model=None)
 async def contacts_list(
     request: Request,
     show: str | None = None,
+    contact_type: str | None = None,
 ) -> HTMLResponse | RedirectResponse:
     """Render the contacts list page.
 
     By default, one-off contacts (``is_one_off=true``) are hidden.
     ``?show=one-off`` lists ONLY the one-offs; ``?show=all`` lists
     everything. Anything else (or unset) renders the main pool.
+
+    ``?contact_type=CUSTOMER|SUPPLIER|BOTH|BENEFICIARY`` filters by the
+    underlying ContactType enum.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -62,11 +69,17 @@ async def contacts_list(
     contacts: list[dict] = []
     total: int = 0
 
+    ct = (contact_type or "").upper().strip()
+    if ct not in _CONTACT_TYPE_VALUES:
+        ct = ""
+
     params: dict[str, object] = {"limit": 100, "offset": 0}
     if show == "one-off":
         params["one_off_only"] = "true"
     elif show == "all":
         params["include_one_off"] = "true"
+    if ct:
+        params["contact_type"] = ct
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/contacts", params=params)
@@ -104,6 +117,7 @@ async def contacts_list(
             "error": error,
             "flash": flash,
             "show": show or "",
+            "filter_contact_type": ct,
             "candidate_count": candidate_count,
         },
     )

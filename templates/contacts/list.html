@@ -39,14 +39,34 @@
   <div class="drafting mt-4"></div>
 </header>
 
-{# View toggle: main / one-off / all #}
-<div class="mb-4 inline-flex rounded-md border border-gray-300 bg-white text-sm overflow-hidden">
-  <a href="/contacts"
-     class="px-3 py-1.5 {% if not show or show not in ('one-off','all') %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">Main</a>
-  <a href="/contacts?show=one-off"
-     class="px-3 py-1.5 border-l border-gray-300 {% if show == 'one-off' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">One-off</a>
-  <a href="/contacts?show=all"
-     class="px-3 py-1.5 border-l border-gray-300 {% if show == 'all' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">All</a>
+{# View toggle (main / one-off / all) + contact-type filter. The toggle
+   preserves contact_type via querystring; the filter form preserves show
+   via a hidden input. Dropdown auto-submits on change. #}
+{% set _ct_qs = ('&contact_type=' ~ filter_contact_type) if filter_contact_type else '' %}
+<div class="mb-4 flex flex-wrap gap-3 items-center">
+  <div class="inline-flex rounded-md border border-gray-300 bg-white text-sm overflow-hidden">
+    <a href="/contacts{% if filter_contact_type %}?contact_type={{ filter_contact_type }}{% endif %}"
+       class="px-3 py-1.5 {% if not show or show not in ('one-off','all') %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">Main</a>
+    <a href="/contacts?show=one-off{{ _ct_qs }}"
+       class="px-3 py-1.5 border-l border-gray-300 {% if show == 'one-off' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">One-off</a>
+    <a href="/contacts?show=all{{ _ct_qs }}"
+       class="px-3 py-1.5 border-l border-gray-300 {% if show == 'all' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">All</a>
+  </div>
+
+  <form method="get" action="/contacts" class="flex items-end gap-2">
+    {% if show %}<input type="hidden" name="show" value="{{ show }}">{% endif %}
+    <div>
+      <label for="contact_type" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Type</label>
+      <select id="contact_type" name="contact_type" class="saebooks-input text-sm py-1.5"
+              onchange="this.form.requestSubmit()">
+        <option value=""            {% if not filter_contact_type %}selected{% endif %}>All</option>
+        <option value="CUSTOMER"    {% if filter_contact_type == 'CUSTOMER' %}selected{% endif %}>Customer</option>
+        <option value="SUPPLIER"    {% if filter_contact_type == 'SUPPLIER' %}selected{% endif %}>Supplier</option>
+        <option value="BOTH"        {% if filter_contact_type == 'BOTH' %}selected{% endif %}>Both</option>
+        <option value="BENEFICIARY" {% if filter_contact_type == 'BENEFICIARY' %}selected{% endif %}>Beneficiary</option>
+      </select>
+    </div>
+  </form>
 </div>
 
 {% if candidate_count and candidate_count > 0 and show != 'one-off' %}
