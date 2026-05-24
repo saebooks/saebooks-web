@@ -39,7 +39,8 @@
   </div>
   <div>
     <label for="direction" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Direction</label>
-    <select id="direction" name="direction" class="saebooks-input text-sm py-1.5">
+    <select id="direction" name="direction" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
       <option value="" {% if not filter_direction %}selected{% endif %}>Any</option>
       <option value="income" {% if filter_direction == 'income' %}selected{% endif %}>Cash in</option>
       <option value="expense" {% if filter_direction == 'expense' %}selected{% endif %}>Cash out</option>
@@ -47,7 +48,8 @@
   </div>
   <div>
     <label for="category" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Category</label>
-    <select id="category" name="category" class="saebooks-input text-sm py-1.5">
+    <select id="category" name="category" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
       <option value="" {% if not filter_category %}selected{% endif %}>Any</option>
       {% for cat in categories %}
       <option value="{{ cat.code }}" {% if filter_category == cat.code %}selected{% endif %}>{{ cat.label }}</option>

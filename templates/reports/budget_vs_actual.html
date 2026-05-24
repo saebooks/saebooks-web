@@ -28,7 +28,8 @@
       class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
   <div>
     <label for="year" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Year</label>
-    <select id="year" name="year" class="saebooks-input text-sm py-1.5">
+    <select id="year" name="year" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
       {% for y in range(current_year - 2, current_year + 2) %}
       <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
       {% endfor %}
@@ -36,7 +37,8 @@
   </div>
   <div>
     <label for="month" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Month (optional)</label>
-    <select id="month" name="month" class="saebooks-input text-sm py-1.5">
+    <select id="month" name="month" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
       <option value="" {% if month is none %}selected{% endif %}>Full year</option>
       {% for m in range(1, 13) %}
       <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>

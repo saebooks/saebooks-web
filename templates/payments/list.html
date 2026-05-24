@@ -33,7 +33,8 @@
       class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
   <div>
     <label for="direction" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Direction</label>
-    <select id="direction" name="direction" class="saebooks-input text-sm py-1.5">
+    <select id="direction" name="direction" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
       <option value="" {% if not filter_direction %}selected{% endif %}>All</option>
       <option value="INCOMING" {% if filter_direction == 'INCOMING' %}selected{% endif %}>Incoming</option>
       <option value="OUTGOING" {% if filter_direction == 'OUTGOING' %}selected{% endif %}>Outgoing</option>

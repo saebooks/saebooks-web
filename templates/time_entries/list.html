@@ -39,7 +39,8 @@
       class="mb-4 flex flex-wrap gap-3 items-end">
   <div>
     <label class="block text-sm ink-3 mb-1">Status</label>
-    <select name="approval_status" class="rounded-md hairline px-2 py-1.5 bg-paper">
+    <select name="approval_status" class="rounded-md hairline px-2 py-1.5 bg-paper"
+            onchange="this.form.requestSubmit()">
       <option value="" {% if not filter_approval_status %}selected{% endif %}>All</option>
       <option value="DRAFT" {% if filter_approval_status == 'DRAFT' %}selected{% endif %}>Draft</option>
       <option value="SUBMITTED" {% if filter_approval_status == 'SUBMITTED' %}selected{% endif %}>Submitted</option>
@@ -50,7 +51,8 @@
   </div>
   <div>
     <label class="block text-sm ink-3 mb-1">Project</label>
-    <select name="project_id" class="rounded-md hairline px-2 py-1.5 bg-paper">
+    <select name="project_id" class="rounded-md hairline px-2 py-1.5 bg-paper"
+            onchange="this.form.requestSubmit()">
       <option value="">All</option>
       {% for p in projects %}
       <option value="{{ p.id }}" {% if filter_project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
@@ -59,7 +61,8 @@
   </div>
   <div>
     <label class="block text-sm ink-3 mb-1">Contact</label>
-    <select name="contact_id" class="rounded-md hairline px-2 py-1.5 bg-paper">
+    <select name="contact_id" class="rounded-md hairline px-2 py-1.5 bg-paper"
+            onchange="this.form.requestSubmit()">
       <option value="">All</option>
       {% for c in contacts %}
       <option value="{{ c.id }}" {% if filter_contact_id == c.id %}selected{% endif %}>{{ c.name }}</option>

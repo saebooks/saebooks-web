@@ -43,7 +43,8 @@
 >
   <div>
     <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Status</label>
-    <select id="status" name="status" class="saebooks-input text-sm py-1.5">
+    <select id="status" name="status" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
       <option value="" {% if not filter_status %}selected{% endif %}>All</option>
       <option value="DRAFT"    {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
       <option value="SENT"     {% if filter_status == 'SENT' %}selected{% endif %}>Sent</option>

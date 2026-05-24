@@ -36,7 +36,8 @@
   </div>
   <div>
     <label for="segment_type" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Segment type</label>
-    <select id="segment_type" name="segment_type" class="saebooks-input text-sm py-1.5">
+    <select id="segment_type" name="segment_type" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
       <option value="project" {% if segment_type == "project" %}selected{% endif %}>Project</option>
       <option value="department" {% if segment_type == "department" %}selected{% endif %}>Department</option>
       <option value="cost_centre" {% if segment_type == "cost_centre" %}selected{% endif %}>Cost Centre</option>

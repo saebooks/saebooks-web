@@ -32,7 +32,8 @@
   </div>
   <div>
     <label for="method" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Method</label>
-    <select id="method" name="method" class="saebooks-input text-sm py-1.5">
+    <select id="method" name="method" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
       <option value="all" {% if method == "all" %}selected{% endif %}>All methods</option>
       <option value="linear" {% if method == "linear" %}selected{% endif %}>Linear (Straight-line)</option>
       <option value="diminishing_value" {% if method == "diminishing_value" %}selected{% endif %}>Diminishing Value</option>

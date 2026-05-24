@@ -38,7 +38,8 @@
   </div>
   <div>
     <label class="block text-sm ink-3 mb-1">Super fund</label>
-    <select name="super_fund_id" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm">
+    <select name="super_fund_id" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm"
+            onchange="this.form.requestSubmit()">
       <option value="">All</option>
       {% for f in super_funds %}
       <option value="{{ f.id }}" {% if filter_super_fund_id == f.id|string %}selected{% endif %}>{{ f.name }}</option>
