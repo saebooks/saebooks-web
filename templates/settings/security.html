@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Security · SAE Books{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto p-6">
+  <h1 class="text-2xl font-semibold ink-1 mb-2">Security</h1>
+  <p class="ink-2 mb-6">
+    Enrol a hardware security key, Touch ID, Windows Hello, or a passkey on this
+    device. Once enrolled, you can sign in without typing a password.
+  </p>
+
+  {% if not webauthn_enabled %}
+    <div class="p-4 rounded-lg border hairline bg-[color:var(--paper-2)]">
+      <strong>WebAuthn is disabled on this instance.</strong>
+      Set <code>SAEBOOKS_WEBAUTHN_ENABLED=1</code> + RP id / origin in this
+      instance’s env to turn it on.
+    </div>
+  {% else %}
+    <section class="rounded-2xl border hairline bg-[color:var(--surface)] p-5 mb-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-medium ink-1">Add a new key</h2>
+          <p class="text-sm ink-2">Tap your security key or use this device’s built-in authenticator.</p>
+        </div>
+      </div>
+      <div class="mt-4 flex items-end gap-3">
+        <label class="flex flex-col gap-1 grow">
+          <span class="text-xs ink-2">Name</span>
+          <input id="webauthn-name" type="text" maxlength="64" value="Security key"
+                 class="rounded-lg border hairline px-3 py-2 bg-[color:var(--paper-1)] ink-1">
+        </label>
+        <button id="webauthn-enroll"
+                class="px-4 py-2.5 rounded-lg bg-[color:var(--sae)] text-white font-medium hover:opacity-90 disabled:opacity-50">
+          Enrol
+        </button>
+      </div>
+      <div id="enroll-msg" class="mt-2 text-xs ink-2 min-h-[1.25rem]"></div>
+    </section>
+
+    <section class="rounded-2xl border hairline bg-[color:var(--surface)] p-5">
+      <h2 class="text-lg font-medium ink-1 mb-3">Enrolled keys</h2>
+      <ul id="cred-list" class="divide-y divide-[color:var(--hairline)]">
+        <li class="py-3 text-sm ink-2">Loading…</li>
+      </ul>
+    </section>
+  {% endif %}
+</div>
+
+<script>
+  // -------- helpers --------
+  function b64urlToBytes(s) {
+    const pad = '='.repeat((4 - (s.length % 4)) % 4);
+    const b64 = (s + pad).replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(b64); const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function bytesToB64url(buf) {
+    const bytes = new Uint8Array(buf); let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  async function apiFetch(url, opts) {
+    opts = opts || {};
+    opts.credentials = 'same-origin';
+    opts.headers = Object.assign({'Content-Type': 'application/json'}, opts.headers || {});
+    // The session cookie carries the JWT — the saebooks-web layer
+    // proxies API calls through itself; ours bypass that and hit the
+    // API directly with the cookie session translated into a bearer.
+    // For settings page we use the saebooks-web /api/ proxy.
+    const apiUrl = url.startsWith('/api/v1/') ? url : url;
+    return fetch(apiUrl, opts);
+  }
+
+  async function loadCredentials() {
+    const ul = document.getElementById('cred-list');
+    try {
+      const r = await fetch('/auth/webauthn/credentials', {credentials: 'same-origin'});
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const creds = await r.json();
+      if (creds.length === 0) {
+        ul.innerHTML = '<li class="py-3 text-sm ink-2">No keys enrolled yet.</li>';
+        return;
+      }
+      ul.innerHTML = creds.map(c => `
+        <li class="py-3 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="text-sm font-medium ink-1 truncate">${escapeHtml(c.friendly_name)}</div>
+            <div class="text-xs ink-2 truncate">
+              ${(c.transports || []).join(', ') || 'unknown transport'}
+              ${c.last_used_at ? ' · last used ' + new Date(c.last_used_at).toLocaleString() : ' · never used'}
+            </div>
+          </div>
+          <button data-id="${c.id}" class="cred-delete text-xs px-2 py-1 rounded border hairline ink-2 hover:ink-1">Remove</button>
+        </li>
+      `).join('');
+      ul.querySelectorAll('.cred-delete').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Remove this key? You will not be able to sign in with it again until you re-enrol.')) return;
+          const id = btn.getAttribute('data-id');
+          const r = await fetch('/auth/webauthn/credentials/' + id, {
+            method: 'DELETE', credentials: 'same-origin',
+          });
+          if (r.ok || r.status === 204) loadCredentials();
+          else alert('Delete failed: HTTP ' + r.status);
+        });
+      });
+    } catch (e) {
+      ul.innerHTML = '<li class="py-3 text-sm" style="color: var(--neg)">Could not load keys: ' + (e.message || e) + '</li>';
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function enroll() {
+    const msgEl = document.getElementById('enroll-msg');
+    const btn = document.getElementById('webauthn-enroll');
+    const nameEl = document.getElementById('webauthn-name');
+    msgEl.textContent = ''; msgEl.style.color = '';
+    if (!window.PublicKeyCredential) {
+      msgEl.textContent = 'This browser does not support WebAuthn.';
+      msgEl.style.color = 'var(--neg)'; return;
+    }
+    btn.disabled = true;
+    try {
+      const beginResp = await fetch('/auth/webauthn/register/begin', {
+        method: 'POST', credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json'}, body: '{}',
+      });
+      if (!beginResp.ok) throw new Error('Could not start enrolment (' + beginResp.status + ')');
+      const begin = await beginResp.json();
+      const pk = begin.publicKey;
+      // Convert b64url fields to ArrayBuffers
+      const opts = Object.assign({}, pk, {
+        challenge: b64urlToBytes(pk.challenge),
+        user: Object.assign({}, pk.user, {id: b64urlToBytes(pk.user.id)}),
+        excludeCredentials: (pk.excludeCredentials || []).map(c => ({
+          id: b64urlToBytes(c.id), type: c.type,
+          transports: c.transports || undefined,
+        })),
+      });
+      const attestation = await navigator.credentials.create({publicKey: opts});
+      if (!attestation) throw new Error('Enrolment cancelled');
+
+      const cred = {
+        id: attestation.id,
+        rawId: bytesToB64url(attestation.rawId),
+        type: attestation.type,
+        response: {
+          clientDataJSON: bytesToB64url(attestation.response.clientDataJSON),
+          attestationObject: bytesToB64url(attestation.response.attestationObject),
+          transports: attestation.response.getTransports
+            ? attestation.response.getTransports() : [],
+        },
+        clientExtensionResults: attestation.getClientExtensionResults
+          ? attestation.getClientExtensionResults() : {},
+      };
+      const finResp = await fetch('/auth/webauthn/register/finish', {
+        method: 'POST', credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({credential: cred, friendly_name: nameEl.value || 'Security key'}),
+      });
+      if (!finResp.ok) {
+        const body = await finResp.json().catch(() => ({}));
+        throw new Error(body.detail || ('HTTP ' + finResp.status));
+      }
+      msgEl.textContent = 'Enrolled.'; msgEl.style.color = 'var(--pos)';
+      nameEl.value = 'Security key';
+      loadCredentials();
+    } catch (e) {
+      msgEl.textContent = e && e.message ? e.message : 'Enrolment failed';
+      msgEl.style.color = 'var(--neg)';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('webauthn-enroll')?.addEventListener('click', enroll);
+  if (document.getElementById('cred-list')) loadCredentials();
+</script>
+{% endblock %}

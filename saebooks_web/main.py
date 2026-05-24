@@ -57,6 +57,7 @@ from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bea
 )
 from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware  # noqa: E402
 from saebooks_web.cf_access import CFAccessAuthMiddleware
+from saebooks_web.webauthn_sso import router as webauthn_router, webauthn_enabled
 from saebooks_web.company_context import CompanyContextMiddleware
 from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware  # noqa: E402
 
@@ -312,6 +313,7 @@ app.include_router(admin_tenants_router)
 app.include_router(auth_router)
 app.include_router(discourse_sso_router)
 app.include_router(authentik_sso_router)
+app.include_router(webauthn_router)
 app.include_router(public_auth_router)
 app.include_router(contact_router)
 app.include_router(billing_router)

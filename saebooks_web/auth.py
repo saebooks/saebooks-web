@@ -24,6 +24,7 @@ from fastapi.templating import Jinja2Templates
 from saebooks_web.config import settings
 from saebooks_web.discourse_sso import discourse_enabled
 from saebooks_web.authentik_sso import authentik_enabled, _button_label as _authentik_button_label
+from saebooks_web.webauthn_sso import webauthn_enabled
 
 
 def _staff_allowlist() -> frozenset[str]:
@@ -63,7 +64,7 @@ async def login_page(request: Request) -> HTMLResponse | RedirectResponse:
         return RedirectResponse(url="/", status_code=303)
     if authentik_enabled() and request.query_params.get("form") != "1":
         return RedirectResponse(url="/auth/authentik/login", status_code=303)
-    return _TEMPLATES.TemplateResponse(request, "auth/login.html", {"error": None, "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()})
+    return _TEMPLATES.TemplateResponse(request, "auth/login.html", {"error": None, "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "webauthn_enabled": webauthn_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()})
 
 
 @router.post("/login", response_model=None)
@@ -87,14 +88,14 @@ async def login_submit(
                 return _TEMPLATES.TemplateResponse(
                     request,
                     "auth/login.html",
-                    {"error": "Invalid email or password", "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()},
+                    {"error": "Invalid email or password", "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "webauthn_enabled": webauthn_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()},
                     status_code=401,
                 )
             if not resp.is_success:
                 return _TEMPLATES.TemplateResponse(
                     request,
                     "auth/login.html",
-                    {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()},
+                    {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "webauthn_enabled": webauthn_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()},
                     status_code=502,
                 )
 
@@ -119,7 +120,7 @@ async def login_submit(
         return _TEMPLATES.TemplateResponse(
             request,
             "auth/login.html",
-            {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()},
+            {"error": "Login failed — please try again", "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "webauthn_enabled": webauthn_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()},
             status_code=502,
         )
 
