@@ -165,7 +165,7 @@
           <tr class="hairline-t">
             <td class="py-2 font-mono sae">{{ tc.code }}</td>
             <td class="py-2">{{ tc.name }}</td>
-            <td class="py-2 text-right num-display">{{ "%.1f"|format((tc.rate or 0)|float * 100) }}%</td>
+            <td class="py-2 text-right num-display">{{ "%.1f"|format((tc.rate or 0)|float) }}%</td>
           </tr>
           {% endfor %}
         </tbody>
