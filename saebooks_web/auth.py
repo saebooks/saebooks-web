@@ -47,9 +47,18 @@ _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 
-@router.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request) -> HTMLResponse:
-    """Render the login form."""
+@router.get("/login", response_class=HTMLResponse, response_model=None)
+async def login_page(request: Request) -> HTMLResponse | RedirectResponse:
+    """Render the login form.
+
+    When Authentik OIDC is configured (sauer-internal instances), skip the
+    form and bounce directly to the OIDC flow — the user has already
+    authenticated upstream (CF Access tap-through), so the round-trip to
+    auth.sauer.com.au is silent. The form remains reachable via ?form=1 as
+    an emergency escape hatch (e.g. local-admin recovery if Authentik is down).
+    """
+    if authentik_enabled() and request.query_params.get("form") != "1":
+        return RedirectResponse(url="/auth/authentik/login", status_code=303)
     return _TEMPLATES.TemplateResponse(request, "auth/login.html", {"error": None, "discourse_enabled": discourse_enabled(), "authentik_enabled": authentik_enabled(), "authentik_button_label": _authentik_button_label(), "is_demo": _is_demo_mode()})
 
 
