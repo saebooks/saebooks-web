@@ -10,6 +10,10 @@
 </div>
 {% endif %}
 
+{# Sign convention: credit-card (LIABILITY) accounts carry money owed as a
+   negative GL/stmt number — flip on display so the on-screen figure reads
+   positive ("amount owed") and tag with "owed". Matches the dashboard
+   widget. #}
 {% macro account_row(account) %}
 <tr
   class="hover:bg-gray-50 cursor-pointer"
@@ -25,11 +29,36 @@
     {% if account.is_trust_account %}
     <span class="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Trust</span>
     {% endif %}
+    {% if account.account_type == "LIABILITY" %}
+    <span class="ml-1.5 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">owed</span>
+    {% endif %}
   </td>
   <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bsb or "—" }}</td>
   <td class="px-4 py-3 text-gray-600 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>
   <td class="px-4 py-3 text-gray-600">{{ account.bank_account_title or "—" }}</td>
   <td class="px-4 py-3 text-gray-600 text-xs">{{ account.bank_abbreviation or "—" }}</td>
+  <td class="px-4 py-3 text-right font-mono text-sm text-gray-900 tabular-nums">
+    {% if account.balance is not none %}
+      {% if account.account_type == "LIABILITY" %}
+        {{ "%.2f"|format(-(account.balance|float)) }}
+      {% else %}
+        {{ "%.2f"|format(account.balance|float) }}
+      {% endif %}
+    {% else %}
+      —
+    {% endif %}
+  </td>
+  <td class="px-4 py-3 text-right font-mono text-sm text-gray-900 tabular-nums">
+    {% if account.statement_balance is not none %}
+      {% if account.account_type == "LIABILITY" %}
+        {{ "%.2f"|format(-(account.statement_balance|float)) }}
+      {% else %}
+        {{ "%.2f"|format(account.statement_balance|float) }}
+      {% endif %}
+    {% else %}
+      —
+    {% endif %}
+  </td>
 </tr>
 {% endmacro %}
 
@@ -54,6 +83,8 @@
             <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account number</th>
             <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Title</th>
             <th class="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Bank</th>
+            <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Per ledger</th>
+            <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Per statement</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -76,6 +107,8 @@
             <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account number</th>
             <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Title</th>
             <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Bank</th>
+            <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Per ledger</th>
+            <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Per statement</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">

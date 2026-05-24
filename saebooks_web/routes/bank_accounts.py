@@ -88,7 +88,12 @@ async def bank_accounts_list(
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
-    params: dict[str, object] = {"page": page, "page_size": page_size}
+    params: dict[str, object] = {
+        "page": page,
+        "page_size": page_size,
+        "include_balance": "true",
+        "include_statement_balance": "true",
+    }
     if archived:
         params["archived"] = True
 
