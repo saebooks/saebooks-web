@@ -112,29 +112,6 @@
     openKebab = wrap;
   }
 
-  // ── Right-click on row → open that row's kebab ────────────────────────
-  function bindRowContextmenu(tr) {
-    if (tr.__ctxBound) return;
-    tr.__ctxBound = true;
-    tr.addEventListener('contextmenu', function (e) {
-      const kebab = tr.querySelector('.kebab .kebab-trigger');
-      if (!kebab) return;
-      e.preventDefault();
-      toggleKebab(kebab);
-      // Position popover near cursor on right-click for desktop feel.
-      const popover = tr.querySelector('.kebab-popover');
-      if (popover) {
-        // Compute viewport-relative coordinates and position relative to
-        // the kebab wrapper (which is the offsetParent we'll use).
-        const wrap = tr.querySelector('.kebab');
-        const wrect = wrap.getBoundingClientRect();
-        popover.style.left = (e.clientX - wrect.left) + 'px';
-        popover.style.top  = (e.clientY - wrect.top) + 'px';
-        popover.style.right = 'auto';
-      }
-    });
-  }
-
   // ── Row selection ────────────────────────────────────────────────────
   function toggleSelection(checkbox) {
     const id = checkbox.getAttribute('data-id');
@@ -290,10 +267,6 @@
 
   // ── Init on DOMContentLoaded ─────────────────────────────────────────
   function init() {
-    // Bind contextmenu on every row that has a kebab.
-    document.querySelectorAll('tr').forEach((tr) => {
-      if (tr.querySelector('.kebab')) bindRowContextmenu(tr);
-    });
     // Restore visible-selected state from persisted set.
     const entity = entityFromBar();
     if (entity) {
