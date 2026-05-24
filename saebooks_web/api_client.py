@@ -60,6 +60,12 @@ async def api_client(request: Request) -> AsyncGenerator[httpx.AsyncClient, None
     override = request.session.get("active_tenant_override")
     if override:
         headers["X-Active-Tenant"] = str(override)
+    # Multi-company switcher (2026-05-24): when the user has picked a
+    # company in the header dropdown, inject it so the API resolves to
+    # the right company instead of falling back to the first active one.
+    active_company_id = request.session.get("active_company_id")
+    if active_company_id:
+        headers["X-Company-Id"] = str(active_company_id)
 
     async with httpx.AsyncClient(
         base_url=settings.api_url,

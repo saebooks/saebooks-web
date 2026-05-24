@@ -199,7 +199,7 @@ async def cashbook_landing(request: Request) -> HTMLResponse | RedirectResponse:
         "cashbook/landing.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "entries": entries,
             "categories": categories,
@@ -299,7 +299,7 @@ async def cashbook_entry_create(request: Request) -> HTMLResponse | RedirectResp
         "cashbook/landing.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "entries": entries,
             "categories": categories,
@@ -419,7 +419,7 @@ async def cashbook_entries_list(
         "cashbook/entries_list.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "entries": entries,
             "categories": categories,
@@ -490,7 +490,7 @@ async def cashbook_entry_detail(
         "cashbook/entry_detail.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "entry": entry,
             "flash": flash,
@@ -517,7 +517,7 @@ async def cashbook_about(request: Request) -> HTMLResponse | RedirectResponse:
         "cashbook/about.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
         },
     )
@@ -568,7 +568,7 @@ async def cashbook_entry_edit_form(
         "cashbook/entry_edit.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "entry": entry,
             "categories": categories,
@@ -643,7 +643,7 @@ async def cashbook_entry_update(
             "cashbook/entry_edit.html",
             {
                 "company": company,
-                "company_name": company.get("legal_name") or company.get("name") or "My Company",
+                "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
                 "entry": server_entry,
                 "categories": categories,
@@ -666,7 +666,7 @@ async def cashbook_entry_update(
         "cashbook/entry_edit.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "entry": entry,
             "categories": categories,
@@ -752,7 +752,7 @@ async def cashbook_report(
         "cashbook/report.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "summary": summary,
             "error": error,
@@ -856,7 +856,7 @@ async def cashbook_upgrade_confirm(request: Request) -> HTMLResponse | RedirectR
         "cashbook/upgrade_confirm.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "flash": flash,
             "error": None,
@@ -898,7 +898,7 @@ async def cashbook_upgrade_submit(request: Request) -> HTMLResponse | RedirectRe
         "cashbook/upgrade_confirm.html",
         {
             "company": company,
-            "company_name": company.get("legal_name") or company.get("name") or "My Company",
+            "company_name": company.get("trading_name") or company.get("name") or company.get("legal_name") or "My Company",
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "flash": None,
             "error": str(detail),

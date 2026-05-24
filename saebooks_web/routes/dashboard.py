@@ -666,7 +666,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
 
     first_company = (companies_raw.get("items") or [{}])[0]
     psi_status = first_company.get("psi_status", "unsure") or "unsure"
-    company_name = first_company.get("legal_name") or first_company.get("name") or ""
+    company_name = first_company.get("trading_name") or first_company.get("name") or first_company.get("legal_name") or ""
 
     # Revenue concentration — used by PSI 80/20 dashboard banner
     concentration_warning = revenue_concentration_raw.get("concentration_warning", False)

@@ -776,11 +776,37 @@
         </button>
       </div>
 
-      <span class="absolute left-1/2 -translate-x-1/2 text-base font-semibold pointer-events-none whitespace-nowrap"
+      {# Company name + switcher (multi-company tenants).
+         Falls back to single-name display if the user only belongs to one
+         company OR the middleware did not populate request.state.companies
+         (e.g. unauthenticated page). #}
+      <div class="absolute left-1/2 -translate-x-1/2 text-base font-semibold whitespace-nowrap"
             style="color: var(--ink);">
-        {% block company_name %}{{ company_name | default("SAE Engineering") }}{% endblock %}
+        {% set _state_companies = (request.state.companies if request is defined and request.state is defined else None) or [] %}
+        {% set _active_name = (request.state.active_company_name if request is defined and request.state is defined else None) %}
+        {% set _label = _active_name or company_name or "Books" %}
+        {% if _state_companies|length > 1 %}
+          <details class="relative inline-block" id="company-switcher">
+            <summary class="list-none cursor-pointer select-none inline-flex items-center gap-1 hover:underline">
+              <span>{{ _label }}</span>
+              <i data-lucide="chevron-down" class="w-3 h-3"></i>
+            </summary>
+            <div class="absolute left-1/2 -translate-x-1/2 top-full mt-2 min-w-[16rem] rounded-xl border hairline shadow-lg z-50 p-1"
+                 style="background: var(--surface);">
+              {% for _c in _state_companies %}
+                <a href="/switch-company?company_id={{ _c.id }}"
+                   class="block px-3 py-2 rounded-md text-sm font-normal hover:bg-[color:var(--paper-2)] {% if _c.id == request.state.active_company_id %}font-semibold{% endif %}">
+                  {% if _c.id == request.state.active_company_id %}<i data-lucide="check" class="w-3 h-3 inline-block mr-1"></i>{% endif %}
+                  {{ _c.name }}
+                </a>
+              {% endfor %}
+            </div>
+          </details>
+        {% else %}
+          <span class="pointer-events-none">{{ _label }}</span>
+        {% endif %}
         <span class="reg-mark ml-1 hidden sm:inline-block" aria-hidden="true"></span>
-      </span>
+      </div>
 
       <div class="flex items-center gap-1">
         <button onclick="openCmdK()" title="Search (⌘K)" class="p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
