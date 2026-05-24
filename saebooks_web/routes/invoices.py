@@ -191,7 +191,7 @@ async def invoices_list(
         for ctype in ("CUSTOMER", "BOTH"):
             c_resp = await client.get(
                 "/api/v1/contacts",
-                params={"contact_type": ctype, "limit": 500, "offset": 0},
+                params={"type": ctype, "limit": 500, "offset": 0},
             )
             if c_resp.is_success:
                 for c in c_resp.json().get("items", []):
@@ -283,7 +283,7 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
     projects: list[dict] = []
 
     async with api_client(request) as client:
-        c_resp = await client.get("/api/v1/contacts", params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0})
+        c_resp = await client.get("/api/v1/contacts", params={"type": "CUSTOMER", "limit": 200, "offset": 0})
         if c_resp.is_success:
             contacts = c_resp.json().get("items", [])
 
@@ -374,7 +374,7 @@ async def invoice_create(request: Request) -> HTMLResponse | RedirectResponse:
             projects: list[dict] = []
             async with api_client(request) as client:
                 c2 = await client.get("/api/v1/contacts",
-                                      params={"contact_type": "CUSTOMER", "limit": 500, "offset": 0})
+                                      params={"type": "CUSTOMER", "limit": 500, "offset": 0})
                 if c2.is_success:
                     contacts = c2.json().get("items", [])
             return _TEMPLATES.TemplateResponse(
@@ -428,7 +428,7 @@ async def invoice_create(request: Request) -> HTMLResponse | RedirectResponse:
     projects: list[dict] = []
 
     async with api_client(request) as client:
-        c_resp = await client.get("/api/v1/contacts", params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0})
+        c_resp = await client.get("/api/v1/contacts", params={"type": "CUSTOMER", "limit": 200, "offset": 0})
         if c_resp.is_success:
             contacts = c_resp.json().get("items", [])
 
@@ -528,7 +528,7 @@ async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict], 
     tax_codes: list[dict] = []
     projects: list[dict] = []
 
-    c_resp = await client.get("/api/v1/contacts", params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0})
+    c_resp = await client.get("/api/v1/contacts", params={"type": "CUSTOMER", "limit": 200, "offset": 0})
     if c_resp.is_success:
         contacts = c_resp.json().get("items", [])
 

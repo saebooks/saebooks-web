@@ -169,14 +169,14 @@ async def _fetch_payment_dropdowns(
 
     c_resp = await client.get(
         "/api/v1/contacts",
-        params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+        params={"type": "CUSTOMER", "limit": 200, "offset": 0},
     )
     if c_resp.is_success:
         customers = c_resp.json().get("items", [])
 
     s_resp = await client.get(
         "/api/v1/contacts",
-        params={"contact_type": "SUPPLIER", "limit": 200, "offset": 0},
+        params={"type": "SUPPLIER", "limit": 200, "offset": 0},
     )
     if s_resp.is_success:
         suppliers = s_resp.json().get("items", [])

@@ -44,7 +44,7 @@ async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict], 
 
     c_resp = await client.get(
         "/api/v1/contacts",
-        params={"contact_type": "SUPPLIER", "limit": 500, "offset": 0},
+        params={"type": "SUPPLIER", "limit": 500, "offset": 0},
     )
     if c_resp.is_success:
         contacts = c_resp.json().get("items", [])
@@ -123,7 +123,7 @@ async def purchase_orders_list(
         for ctype in ("SUPPLIER", "BOTH"):
             c_resp = await client.get(
                 "/api/v1/contacts",
-                params={"contact_type": ctype, "limit": 500, "offset": 0},
+                params={"type": ctype, "limit": 500, "offset": 0},
             )
             if c_resp.is_success:
                 for c in c_resp.json().get("items", []):

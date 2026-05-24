@@ -109,7 +109,7 @@ async def credit_notes_list(
         for ctype in ("CUSTOMER", "SUPPLIER", "BOTH"):
             c_resp = await client.get(
                 "/api/v1/contacts",
-                params={"contact_type": ctype, "limit": 500, "offset": 0},
+                params={"type": ctype, "limit": 500, "offset": 0},
             )
             if c_resp.is_success:
                 for c in c_resp.json().get("items", []):
@@ -176,7 +176,7 @@ async def credit_note_new_form(request: Request) -> HTMLResponse | RedirectRespo
     async with api_client(request) as client:
         c_resp = await client.get(
             "/api/v1/contacts",
-            params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+            params={"type": "CUSTOMER", "limit": 200, "offset": 0},
         )
         if c_resp.is_success:
             contacts = c_resp.json().get("items", [])
@@ -279,7 +279,7 @@ async def credit_note_create(request: Request) -> HTMLResponse | RedirectRespons
     async with api_client(request) as client:
         c_resp = await client.get(
             "/api/v1/contacts",
-            params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+            params={"type": "CUSTOMER", "limit": 200, "offset": 0},
         )
         if c_resp.is_success:
             contacts = c_resp.json().get("items", [])
@@ -371,7 +371,7 @@ async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict]]:
 
     c_resp = await client.get(
         "/api/v1/contacts",
-        params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+        params={"type": "CUSTOMER", "limit": 200, "offset": 0},
     )
     if c_resp.is_success:
         contacts = c_resp.json().get("items", [])

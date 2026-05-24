@@ -98,7 +98,7 @@ async def quotes_list(
 
         c_resp = await client.get(
             "/api/v1/contacts",
-            params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+            params={"type": "CUSTOMER", "limit": 200, "offset": 0},
         )
         if c_resp.is_success:
             for c in c_resp.json().get("items", []):
@@ -144,7 +144,7 @@ async def _fetch_quote_dropdowns(client) -> tuple[list[dict], list[dict], list[d
 
     c_resp = await client.get(
         "/api/v1/contacts",
-        params={"contact_type": "CUSTOMER", "limit": 200, "offset": 0},
+        params={"type": "CUSTOMER", "limit": 200, "offset": 0},
     )
     if c_resp.is_success:
         contacts = c_resp.json().get("items", [])

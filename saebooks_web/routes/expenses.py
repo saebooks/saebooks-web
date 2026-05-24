@@ -55,7 +55,7 @@ async def _fetch_dropdowns(
 
     c_resp = await client.get(
         "/api/v1/contacts",
-        params={"contact_type": "SUPPLIER", "limit": 500, "offset": 0},
+        params={"type": "SUPPLIER", "limit": 500, "offset": 0},
     )
     if c_resp.is_success:
         contacts = c_resp.json().get("items", [])
