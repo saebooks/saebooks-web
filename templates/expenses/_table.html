@@ -26,6 +26,7 @@
       </th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('number',       'Number',    sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('expense_date', 'Date',      sort, direction, filters) }}</th>
+      <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('contact_id',   'Supplier',  sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('reference',    'Reference', sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-right font-medium text-gray-600">{{ srt.sort_link('total',        'Total',     sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('status',       'Status',    sort, direction, filters) }}</th>
@@ -43,6 +44,10 @@
       </td>
       <td class="px-3 py-2"><a class="text-indigo-600 hover:underline" href="/expenses/{{ e.id }}">{{ e.number or "(draft)" }}</a></td>
       <td class="px-3 py-2 text-gray-700">{{ e.expense_date }}</td>
+      <td class="px-3 py-2 text-gray-700">
+        {%- set _c = contacts_by_id.get(e.contact_id) if contacts_by_id else None %}
+        {%- if _c %}<a href="/contacts/{{ _c.id }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
+      </td>
       <td class="px-3 py-2 text-gray-700">{{ e.reference or "—" }}</td>
       <td class="px-3 py-2 text-right text-gray-900 font-semibold tabular-nums">${{ "%.2f"|format(e.total|float) }}</td>
       <td class="px-3 py-2">
