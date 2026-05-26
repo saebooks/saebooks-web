@@ -319,6 +319,7 @@
       border-radius: 2px; margin-right: .55rem; background: var(--ink-4);
     }
     .sidebar-shell details[data-section="customers"]  > .nav-section-label::before { background: var(--sae);  }
+    .sidebar-shell details[data-section="contacts"]   > .nav-section-label::before { background: var(--sae-2);}
     .sidebar-shell details[data-section="suppliers"]  > .nav-section-label::before { background: var(--warm); }
     .sidebar-shell details[data-section="accounting"] > .nav-section-label::before { background: var(--ink-2); }
     .sidebar-shell details[data-section="banking"]    > .nav-section-label::before { background: var(--pos);  }
@@ -460,9 +461,42 @@
         <a href="/" class="nav-item {% if path == '/' %}active{% endif %}">
           <i data-lucide="home" class="nav-ico"></i>Dashboard
         </a>
-        <a href="/contacts" class="nav-item {% if path.startswith('/contacts') %}active{% endif %}">
-          <i data-lucide="users" class="nav-ico"></i>Contacts
-        </a>
+      </div>
+
+      {% set contacts_open = path.startswith('/contacts')
+                              or path.startswith('/suppliers')
+                              or path.startswith('/customers')
+                              or path.startswith('/beneficiaries')
+                              or path.startswith('/one-off-suppliers')
+                              or path.startswith('/one-off-customers') %}
+      <details class="group" data-section="contacts" {% if contacts_open %}open{% endif %}>
+        <summary class="nav-section-label">
+          <span>Contacts</span>
+          <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
+        </summary>
+        <div class="space-y-0.5 mt-1">
+          <a href="/customers" class="nav-item is-sub {% if path.startswith('/customers') %}active{% endif %}">
+            <i data-lucide="user-round" class="nav-ico"></i>Customers
+          </a>
+          <a href="/suppliers" class="nav-item is-sub {% if path.startswith('/suppliers') %}active{% endif %}">
+            <i data-lucide="truck" class="nav-ico"></i>Suppliers
+          </a>
+          <a href="/one-off-customers" class="nav-item is-sub {% if path.startswith('/one-off-customers') %}active{% endif %}">
+            <i data-lucide="user-plus" class="nav-ico"></i>One-off customers
+          </a>
+          <a href="/one-off-suppliers" class="nav-item is-sub {% if path.startswith('/one-off-suppliers') %}active{% endif %}">
+            <i data-lucide="package" class="nav-ico"></i>One-off suppliers
+          </a>
+          <a href="/beneficiaries" class="nav-item is-sub {% if path.startswith('/beneficiaries') %}active{% endif %}">
+            <i data-lucide="heart" class="nav-ico"></i>Beneficiaries
+          </a>
+          <a href="/contacts" class="nav-item is-sub {% if path == '/contacts' or (path.startswith('/contacts/') and not path.startswith('/contacts/cleanup')) %}active{% endif %}">
+            <i data-lucide="users" class="nav-ico"></i>All contacts
+          </a>
+        </div>
+      </details>
+
+      <div>
       </div>
 
       {% set customers_open = path.startswith('/sales')

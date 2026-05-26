@@ -191,15 +191,17 @@ async def bills_list(
             error = f"API error: HTTP {resp.status_code}"
 
         # Fetch suppliers so the template can show contact NAME, not the
-        # raw UUID. Keep the page-size at 500 — covers all but the largest
-        # CoAs, and the list page only renders 50 rows at a time anyway.
-        c_resp = await client.get(
-            "/api/v1/contacts",
-            params={"type": "SUPPLIER", "limit": 500, "offset": 0},
-        )
-        if c_resp.is_success:
-            for c in c_resp.json().get("items", []):
-                contacts_by_id[c["id"]] = c
+        # raw UUID. SUPPLIER alone misses contact_type=BOTH (suppliers who
+        # are also customers, e.g. General Engineering, Steve's Backhoe),
+        # so do a second pass — mirrors invoices.py's CUSTOMER+BOTH.
+        for ctype in ("SUPPLIER", "BOTH"):
+            c_resp = await client.get(
+                "/api/v1/contacts",
+                params={"type": ctype, "limit": 500, "offset": 0},
+            )
+            if c_resp.is_success:
+                for c in c_resp.json().get("items", []):
+                    contacts_by_id[c["id"]] = c
 
     if filter_client_side:
         # Drop rows that don't match the requested payment status, then sort

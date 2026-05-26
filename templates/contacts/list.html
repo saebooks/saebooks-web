@@ -26,9 +26,7 @@
       <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="users" class="w-7 h-7 ink-3" aria-hidden="true"></i>
         <span>Contacts</span>
-        {% if show == 'one-off' %}<span class="text-base font-normal ink-3">— one-off</span>
-        {% elif show == 'all' %}<span class="text-base font-normal ink-3">— all (incl. one-off)</span>
-        {% endif %}
+
       </h1>
       {% if not error %}
       <p class="text-xs ink-3 font-mono mt-2">{{ total }} contact{{ "s" if total != 1 else "" }}</p>
@@ -39,22 +37,11 @@
   <div class="drafting mt-4"></div>
 </header>
 
-{# View toggle (main / one-off / all) + contact-type filter. The toggle
-   preserves contact_type via querystring; the filter form preserves show
-   via a hidden input. Dropdown auto-submits on change. #}
-{% set _ct_qs = ('&contact_type=' ~ filter_contact_type) if filter_contact_type else '' %}
+{# Contact-type filter. The Main/One-off/All toggle was retired in
+   migration 0137 — one-offs now live in dedicated tables under
+   /one-off-suppliers and /one-off-customers (sidebar). #}
 <div class="mb-4 flex flex-wrap gap-3 items-center">
-  <div class="inline-flex rounded-md border border-gray-300 bg-white text-sm overflow-hidden">
-    <a href="/contacts{% if filter_contact_type %}?contact_type={{ filter_contact_type }}{% endif %}"
-       class="px-3 py-1.5 {% if not show or show not in ('one-off','all') %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">Main</a>
-    <a href="/contacts?show=one-off{{ _ct_qs }}"
-       class="px-3 py-1.5 border-l border-gray-300 {% if show == 'one-off' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">One-off</a>
-    <a href="/contacts?show=all{{ _ct_qs }}"
-       class="px-3 py-1.5 border-l border-gray-300 {% if show == 'all' %}bg-indigo-600 text-white{% else %}text-gray-700 hover:bg-gray-50{% endif %}">All</a>
-  </div>
-
   <form method="get" action="/contacts" class="flex items-end gap-2">
-    {% if show %}<input type="hidden" name="show" value="{{ show }}">{% endif %}
     <div>
       <label for="contact_type" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Type</label>
       <select id="contact_type" name="contact_type" class="saebooks-input text-sm py-1.5"
@@ -69,12 +56,6 @@
   </form>
 </div>
 
-{% if candidate_count and candidate_count > 0 and show != 'one-off' %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-4 flex items-center justify-between">
-  <span>{{ candidate_count }} contact{{ 's' if candidate_count != 1 else '' }} look like one-offs (single posted txn, quiet 90+ days).</span>
-  <a href="/contacts/cleanup" class="rounded-md bg-amber-600 px-3 py-1.5 text-white hover:bg-amber-700">Review &amp; tag →</a>
-</div>
-{% endif %}
 
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
@@ -126,11 +107,6 @@
               ("view",    "View",    "/contacts/" ~ c.id,             "link", false),
               ("edit",    "Edit",    "/contacts/" ~ c.id ~ "/edit",   "link", false),
             ] %}
-            {%- if c.is_one_off %}
-              {%- set _ = actions.append(("make_main",    "Mark as main",    "/contacts/" ~ c.id ~ "/make-main",    "post", false)) %}
-            {%- else %}
-              {%- set _ = actions.append(("make_one_off", "Mark as one-off", "/contacts/" ~ c.id ~ "/make-one-off", "post", false)) %}
-            {%- endif %}
             {%- set _ = actions.append(("archive", "Archive", "/contacts/" ~ c.id ~ "/archive","post", true)) %}
             {%- if is_feature_enabled("hard_delete") %}
             {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/contacts/" ~ c.id ~ "/hard-delete", "post", true)) %}
@@ -160,8 +136,6 @@
      entity="contacts",
      action_endpoint="/contacts/bulk",
      actions=[
-       ("make_one_off", "Mark as one-off", false),
-       ("make_main",    "Mark as main",    false),
        ("archive",      "Archive",         true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",

@@ -46,7 +46,9 @@
       <td class="px-3 py-2 text-gray-700">{{ e.expense_date }}</td>
       <td class="px-3 py-2 text-gray-700">
         {%- set _c = contacts_by_id.get(e.contact_id) if contacts_by_id else None %}
-        {%- if _c %}<a href="/contacts/{{ _c.id }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
+        {%- if _c %}<a href="/contacts/{{ _c.id }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>
+        {%- elif e.one_off_vendor_name %}<span class="text-gray-700">{{ e.one_off_vendor_name }}</span>
+        {%- else %}—{% endif %}
       </td>
       <td class="px-3 py-2 text-gray-700">{{ e.reference or "—" }}</td>
       <td class="px-3 py-2 text-right text-gray-900 font-semibold tabular-nums">${{ "%.2f"|format(e.total|float) }}</td>

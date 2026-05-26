@@ -163,17 +163,17 @@ async def expenses_list(
             error = f"API error: HTTP {resp.status_code}"
 
         # Resolve contact_id -> contact dict so the template can render the
-        # supplier NAME (not the raw UUID). Mirrors bills.py — fetch suppliers
-        # at page_size=500 which covers the largest CoAs we deal with; if an
-        # expense row references a contact outside the supplier filter, the
-        # template falls back to '—'.
-        c_resp = await client.get(
-            "/api/v1/contacts",
-            params={"type": "SUPPLIER", "limit": 500, "offset": 0},
-        )
-        if c_resp.is_success:
-            for c in c_resp.json().get("items", []):
-                contacts_by_id[c["id"]] = c
+        # supplier NAME (not the raw UUID). SUPPLIER alone misses
+        # contact_type=BOTH (suppliers who are also customers), so do a
+        # second pass — mirrors invoices.py's CUSTOMER+BOTH.
+        for ctype in ("SUPPLIER", "BOTH"):
+            c_resp = await client.get(
+                "/api/v1/contacts",
+                params={"type": ctype, "limit": 500, "offset": 0},
+            )
+            if c_resp.is_success:
+                for c in c_resp.json().get("items", []):
+                    contacts_by_id[c["id"]] = c
 
     expenses.sort(key=lambda e: _expense_sort_key(e, sort), reverse=(direction == "desc"))
 

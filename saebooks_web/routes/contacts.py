@@ -79,10 +79,6 @@ async def contacts_list(
     offset = max(0, int(offset or 0))
 
     params: dict[str, object] = {"limit": limit, "offset": offset}
-    if show == "one-off":
-        params["one_off_only"] = "true"
-    elif show == "all":
-        params["include_one_off"] = "true"
     if ct:
         # The API list endpoint exposes the ContactType filter as ?type=
         # (alias on Query(default=None, alias="type")). Sending the field's

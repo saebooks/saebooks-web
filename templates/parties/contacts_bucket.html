@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% import "_partials/empty_state.html" as empty %}
+{% import "_pagination_macros.html" as pg %}
+
+{% block title %}{{ title }} — SAE Books{% endblock %}
+
+{% block content %}
+
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Contacts</span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
+        <i data-lucide="{{ icon }}" class="w-7 h-7 ink-3" aria-hidden="true"></i>
+        <span>{{ title }}</span>
+      </h1>
+      <p class="text-xs ink-3 font-mono mt-2">
+        {{ total }} {{ "record" if total == 1 else "records" }}
+        {% if subtitle %}<span class="ml-2 ink-3">· {{ subtitle }}</span>{% endif %}
+      </p>
+    </div>
+    {% if new_url %}
+    <a href="{{ new_url }}" class="btn-primary text-sm">
+      <i data-lucide="user-plus" class="w-4 h-4" aria-hidden="true"></i>
+      <span>{{ new_label }}</span>
+    </a>
+    {% endif %}
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+
+<form method="get" action="{{ base_path }}" class="mb-4 flex items-end gap-2">
+  <div class="flex-1 max-w-sm">
+    <label for="search" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Search</label>
+    <input id="search" name="search" type="text" value="{{ search }}"
+           placeholder="Name or email"
+           class="saebooks-input text-sm py-1.5 w-full">
+  </div>
+  <button type="submit" class="btn-secondary text-sm">Filter</button>
+  {% if search %}<a href="{{ base_path }}" class="text-sm ink-3 hover:underline self-end pb-2">Clear</a>{% endif %}
+</form>
+
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="card overflow-x-auto">
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">Name</th>
+        <th class="text-left">Type</th>
+        <th class="text-left">Email</th>
+        <th class="text-left">Phone</th>
+        <th class="text-left">City</th>
+        <th class="text-left">ABN</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if items %}
+        {% for c in items %}
+        <tr>
+          <td>
+            <a href="/contacts/{{ c.id }}" class="sae hover:underline font-medium">{{ c.name }}</a>
+          </td>
+          <td>
+            {% set _ct = (c.contact_type or '')|lower %}
+            {% if _ct == 'customer' %}<span class="badge-paid">Customer</span>
+            {% elif _ct == 'supplier' %}<span class="badge-pending">Supplier</span>
+            {% elif _ct == 'both' %}<span class="badge-open">Both</span>
+            {% elif _ct == 'beneficiary' %}<span class="badge-draft">Beneficiary</span>
+            {% else %}<span class="badge-draft">{{ c.contact_type|default('—') }}</span>{% endif %}
+          </td>
+          <td class="ink-2">{{ c.email or "—" }}</td>
+          <td class="ink-2 num">{{ c.phone or "—" }}</td>
+          <td class="ink-2">{{ c.city or "—" }}</td>
+          <td class="ink-2 num">{{ c.abn or "—" }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {{ empty.row(6, icon, "No " ~ title|lower ~ " yet",
+                     "Records in this bucket will appear here.",
+                     new_label if new_url else "", new_url or "") }}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% set pg_filters = {'search': search} %}
+{{ pg.page_numbers(base_path, total, limit, offset, pg_filters) }}
+
+{% endblock %}
