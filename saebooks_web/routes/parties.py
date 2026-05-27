@@ -49,7 +49,7 @@ async def _fetch_contacts_by_types(
     error: str | None = None
     async with api_client(request) as client:
         for ct in types:
-            params: dict[str, object] = {"contact_type": ct, "limit": 500, "offset": 0}
+            params: dict[str, object] = {"type": ct, "limit": 500, "offset": 0}
             if search:
                 params["search"] = search
             try:
