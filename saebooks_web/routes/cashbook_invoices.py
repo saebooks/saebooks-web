@@ -94,19 +94,22 @@ async def _lookup_or_create_contact(
         return None, "Customer name is required."
 
     async with api_client(request) as client:
-        # Search via list endpoint (q matches name OR email ilike).
-        params = {"type": "CUSTOMER", "limit": 50, "offset": 0}
-        if email:
-            params["q"] = email
-        else:
-            params["q"] = name
-        resp = await client.get("/api/v1/contacts", params=params)
-        if resp.is_success:
-            for c in resp.json().get("items", []):
-                if email and (c.get("email") or "").strip().lower() == email.lower():
-                    return c["id"], None
-                if (c.get("name") or "").strip().lower() == name.lower():
-                    return c["id"], None
+        # Search via list endpoint (q matches name OR email ilike). Check both
+        # CUSTOMER and BOTH contact_types so an existing dual-role contact is
+        # matched here instead of duplicated.
+        for _ctype in ("CUSTOMER", "BOTH"):
+            params = {"type": _ctype, "limit": 50, "offset": 0}
+            if email:
+                params["q"] = email
+            else:
+                params["q"] = name
+            resp = await client.get("/api/v1/contacts", params=params)
+            if resp.is_success:
+                for c in resp.json().get("items", []):
+                    if email and (c.get("email") or "").strip().lower() == email.lower():
+                        return c["id"], None
+                    if (c.get("name") or "").strip().lower() == name.lower():
+                        return c["id"], None
 
         # Not found — create.
         payload: dict[str, object] = {"name": name, "contact_type": "CUSTOMER"}
@@ -166,13 +169,14 @@ async def cashbook_invoices_list(request: Request) -> HTMLResponse | RedirectRes
         resp = await client.get("/api/v1/invoices", params={"limit": 100, "offset": 0})
         if resp.is_success:
             invoices = resp.json().get("items", [])
-        c_resp = await client.get(
-            "/api/v1/contacts",
-            params={"type": "CUSTOMER", "limit": 200, "offset": 0},
-        )
-        if c_resp.is_success:
-            for c in c_resp.json().get("items", []):
-                contacts_by_id[c["id"]] = c
+        for _ctype in ("CUSTOMER", "BOTH"):
+            c_resp = await client.get(
+                "/api/v1/contacts",
+                params={"type": _ctype, "limit": 200, "offset": 0},
+            )
+            if c_resp.is_success:
+                for c in c_resp.json().get("items", []):
+                    contacts_by_id[c["id"]] = c
 
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(

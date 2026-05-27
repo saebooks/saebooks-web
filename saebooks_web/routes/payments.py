@@ -167,19 +167,23 @@ async def _fetch_payment_dropdowns(
     suppliers: list[dict] = []
     bank_accounts: list[dict] = []
 
-    c_resp = await client.get(
-        "/api/v1/contacts",
-        params={"type": "CUSTOMER", "limit": 200, "offset": 0},
-    )
-    if c_resp.is_success:
-        customers = c_resp.json().get("items", [])
+    customers = []
+    for _ctype in ("CUSTOMER", "BOTH"):
+        _r = await client.get(
+            "/api/v1/contacts",
+            params={"type": _ctype, "limit": 200, "offset": 0},
+        )
+        if _r.is_success:
+            customers.extend(_r.json().get("items", []))
 
-    s_resp = await client.get(
-        "/api/v1/contacts",
-        params={"type": "SUPPLIER", "limit": 200, "offset": 0},
-    )
-    if s_resp.is_success:
-        suppliers = s_resp.json().get("items", [])
+    suppliers = []
+    for _ctype in ("SUPPLIER", "BOTH"):
+        _r = await client.get(
+            "/api/v1/contacts",
+            params={"type": _ctype, "limit": 200, "offset": 0},
+        )
+        if _r.is_success:
+            suppliers.extend(_r.json().get("items", []))
 
     # Bank accounts: filter to ASSET type accounts — no dedicated endpoint,
     # so we fetch all accounts and rely on the template to show a useful list.
@@ -231,6 +235,7 @@ async def payments_list(
     error: str | None = None
     payments: list[dict] = []
     total: int = 0
+    contacts_by_id: dict[str, dict] = {}
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/payments", params=params)
@@ -244,6 +249,19 @@ async def payments_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+        # Resolve contact_id -> contact dict so the template can render the
+        # contact NAME, not the raw UUID. Payments cover both directions
+        # (CUSTOMER receipts, SUPPLIER payments) and BOTH-type contacts —
+        # so three passes are needed.
+        for ctype in ("CUSTOMER", "SUPPLIER", "BOTH"):
+            c_resp = await client.get(
+                "/api/v1/contacts",
+                params={"type": ctype, "limit": 500, "offset": 0},
+            )
+            if c_resp.is_success:
+                for c in c_resp.json().get("items", []):
+                    contacts_by_id[c["id"]] = c
+
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -253,6 +271,7 @@ async def payments_list(
 
     ctx = {
         "payments": payments,
+        "contacts_by_id": contacts_by_id,
         "total": total,
         "error": error,
         "flash": flash,

@@ -51,7 +51,9 @@
           <td class="px-4 py-3 text-gray-600">{{ cn.issue_date }}</td>
           <td class="px-4 py-3 text-gray-600">
             {% set _c = contacts_by_id.get(cn.contact_id) if contacts_by_id else None %}
-            {% if _c %}<a href="/contacts/{{ _c.id }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
+            {% if _c %}<a href="/contacts/{{ _c.id }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>
+            {%- elif cn.one_off_customer_name %}<span class="text-gray-700">{{ cn.one_off_customer_name }}</span>
+            {%- else %}—{% endif %}
           </td>
           <td class="px-4 py-3 text-gray-600">
             {% if cn.original_invoice_id %}

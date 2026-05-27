@@ -60,13 +60,14 @@ async def cashbook_quotes_list(request: Request) -> HTMLResponse | RedirectRespo
         resp = await client.get("/api/v1/quotes", params={"limit": 100, "offset": 0})
         if resp.is_success:
             quotes = resp.json().get("items", [])
-        c_resp = await client.get(
-            "/api/v1/contacts",
-            params={"type": "CUSTOMER", "limit": 200, "offset": 0},
-        )
-        if c_resp.is_success:
-            for c in c_resp.json().get("items", []):
-                contacts_by_id[c["id"]] = c
+        for _ctype in ("CUSTOMER", "BOTH"):
+            c_resp = await client.get(
+                "/api/v1/contacts",
+                params={"type": _ctype, "limit": 200, "offset": 0},
+            )
+            if c_resp.is_success:
+                for c in c_resp.json().get("items", []):
+                    contacts_by_id[c["id"]] = c
 
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(

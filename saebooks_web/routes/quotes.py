@@ -96,13 +96,16 @@ async def quotes_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-        c_resp = await client.get(
-            "/api/v1/contacts",
-            params={"type": "CUSTOMER", "limit": 200, "offset": 0},
-        )
-        if c_resp.is_success:
-            for c in c_resp.json().get("items", []):
-                contacts_by_id[c["id"]] = c
+        # CUSTOMER misses contact_type=BOTH (customers who are also suppliers);
+        # mirror the invoices list pattern with a second pass.
+        for ctype in ("CUSTOMER", "BOTH"):
+            c_resp = await client.get(
+                "/api/v1/contacts",
+                params={"type": ctype, "limit": 500, "offset": 0},
+            )
+            if c_resp.is_success:
+                for c in c_resp.json().get("items", []):
+                    contacts_by_id[c["id"]] = c
 
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -142,12 +145,14 @@ async def _fetch_quote_dropdowns(client) -> tuple[list[dict], list[dict], list[d
     accounts: list[dict] = []
     tax_codes: list[dict] = []
 
-    c_resp = await client.get(
-        "/api/v1/contacts",
-        params={"type": "CUSTOMER", "limit": 200, "offset": 0},
-    )
-    if c_resp.is_success:
-        contacts = c_resp.json().get("items", [])
+    contacts = []
+    for _ctype in ("CUSTOMER", "BOTH"):
+        _r = await client.get(
+            "/api/v1/contacts",
+            params={"type": _ctype, "limit": 200, "offset": 0},
+        )
+        if _r.is_success:
+            contacts.extend(_r.json().get("items", []))
 
     a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
     if a_resp.is_success:

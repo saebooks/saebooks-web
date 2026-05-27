@@ -42,12 +42,14 @@ async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict], 
     tax_codes: list[dict] = []
     projects: list[dict] = []
 
-    c_resp = await client.get(
-        "/api/v1/contacts",
-        params={"type": "SUPPLIER", "limit": 500, "offset": 0},
-    )
-    if c_resp.is_success:
-        contacts = c_resp.json().get("items", [])
+    contacts = []
+    for _ctype in ("SUPPLIER", "BOTH"):
+        _r = await client.get(
+            "/api/v1/contacts",
+            params={"type": _ctype, "limit": 500, "offset": 0},
+        )
+        if _r.is_success:
+            contacts.extend(_r.json().get("items", []))
 
     a_resp = await client.get(
         "/api/v1/accounts",
