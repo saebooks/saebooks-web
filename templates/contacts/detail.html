@@ -147,6 +147,12 @@
 </div>
 {% endif %}
 
+{# ── Attachments ── #}
+<section class="mb-7">
+  <p class="nav-section-label mb-2">Attachments</p>
+  {% include "_partials/attachments.html" with context %}
+</section>
+
 {# ── Transaction history ── #}
 {% macro sort_arrow(col, current_sort, current_dir) -%}
   {% if col == current_sort %}{% if current_dir == 'asc' %} ↑{% else %} ↓{% endif %}{% endif %}

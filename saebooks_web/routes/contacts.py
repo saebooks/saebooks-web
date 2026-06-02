@@ -816,6 +816,20 @@ async def contact_detail(
         reverse=(direction == "desc"),
     )
 
+    # Fetch attachments for this contact. 503 means vault is disabled — render
+    # the panel in its disabled state rather than raising an error.
+    attachments: list[dict] = []
+    vault_enabled: bool = True
+    async with api_client(request) as client:
+        att_resp = await client.get(
+            "/api/v1/attachments",
+            params={"entity_kind": "contact", "entity_id": contact_id},
+        )
+    if att_resp.status_code == 503:
+        vault_enabled = False
+    elif att_resp.is_success:
+        attachments = att_resp.json()
+
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
@@ -827,7 +841,11 @@ async def contact_detail(
          "date_from": date_from or "",
          "date_to": date_to or "",
          "sort": sort,
-         "direction": direction},
+         "direction": direction,
+         "attachments": attachments,
+         "vault_enabled": vault_enabled,
+         "entity_kind": "contact",
+         "entity_id": contact_id},
     )
 
 

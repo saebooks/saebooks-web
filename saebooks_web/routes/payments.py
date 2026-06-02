@@ -956,12 +956,35 @@ async def payment_detail(
             )
 
     payment = resp.json()
+
+    # Fetch attachments for this payment. 503 means vault is disabled — render
+    # the panel in its disabled state rather than raising an error.
+    attachments: list[dict] = []
+    vault_enabled: bool = True
+    async with api_client(request) as client:
+        att_resp = await client.get(
+            "/api/v1/attachments",
+            params={"entity_kind": "payment", "entity_id": payment_id},
+        )
+    if att_resp.status_code == 503:
+        vault_enabled = False
+    elif att_resp.is_success:
+        attachments = att_resp.json()
+
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "payments/detail.html",
-        {"payment": payment, "error": None, "flash": flash},
+        {
+            "payment": payment,
+            "error": None,
+            "flash": flash,
+            "attachments": attachments,
+            "vault_enabled": vault_enabled,
+            "entity_kind": "payment",
+            "entity_id": payment_id,
+        },
     )
 
 

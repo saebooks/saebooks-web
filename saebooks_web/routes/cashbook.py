@@ -483,6 +483,24 @@ async def cashbook_entry_detail(
         return RedirectResponse(url="/cashbook/entries", status_code=303)
 
     entry = resp.json()
+
+    # Fetch attachments for this cashbook entry. A cashbook entry *is* a
+    # journal entry (entry.id == JournalEntry.id), so receipts link against
+    # entity_kind="journal_entry". 503 = vault disabled → disabled panel.
+    entity_id = str(entry.get("id") or entry.get("journal_entry_id") or "")
+    attachments: list[dict] = []
+    vault_enabled: bool = True
+    if entity_id:
+        async with api_client(request) as client:
+            att_resp = await client.get(
+                "/api/v1/attachments",
+                params={"entity_kind": "journal_entry", "entity_id": entity_id},
+            )
+        if att_resp.status_code == 503:
+            vault_enabled = False
+        elif att_resp.is_success:
+            attachments = att_resp.json()
+
     flash = request.session.pop("flash", None)
 
     return _TEMPLATES.TemplateResponse(
@@ -494,6 +512,10 @@ async def cashbook_entry_detail(
             "bookkeeping_mode": company.get("bookkeeping_mode", "cashbook"),
             "entry": entry,
             "flash": flash,
+            "attachments": attachments,
+            "vault_enabled": vault_enabled,
+            "entity_kind": "journal_entry",
+            "entity_id": entity_id,
         },
     )
 
