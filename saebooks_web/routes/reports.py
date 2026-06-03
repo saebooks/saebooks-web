@@ -99,6 +99,80 @@ async def reports_index(request: Request) -> HTMLResponse | RedirectResponse:
 # ---------------------------------------------------------------------------
 
 
+@router.get("/reports/statement-pack", response_class=HTMLResponse, response_model=None)
+async def statement_pack(
+    request: Request,
+    as_of_date: str | None = None,
+    from_date: str | None = None,
+    to_date: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """Financial statement pack — P&L + Balance Sheet + Trial Balance bundled
+    into one printable document with a cover page and trustee declaration.
+
+    Read-only: reuses the existing /api/v1/reports/* endpoints and the
+    per-statement table fragments. Defaults to the current AU financial year
+    (1 Jul → today). Use the Print button to save the whole pack as one PDF.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    today = date.today()
+    fy_start = date(
+        today.year if today.month >= 7 else today.year - 1, 7, 1
+    ).isoformat()
+    as_of = as_of_date or _today()
+    from_ = from_date or fy_start
+    to_ = to_date or as_of
+
+    pl_report: dict = {}
+    bs_report: dict = {}
+    tb_report: dict = {}
+    company: dict = {}
+    error: str | None = None
+
+    async with api_client(request) as client:
+        pl_resp, bs_resp, tb_resp, co_resp = await asyncio.gather(
+            client.get(
+                "/api/v1/reports/profit_loss",
+                params={"from_date": from_, "to_date": to_},
+            ),
+            client.get(
+                "/api/v1/reports/balance_sheet", params={"as_of_date": as_of}
+            ),
+            client.get(
+                "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
+            ),
+            client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
+        )
+        if 401 in (pl_resp.status_code, bs_resp.status_code, tb_resp.status_code):
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if pl_resp.is_success:
+            pl_report = pl_resp.json()
+        else:
+            error = f"API error: HTTP {pl_resp.status_code}"
+        if bs_resp.is_success:
+            bs_report = bs_resp.json()
+        if tb_resp.is_success:
+            tb_report = tb_resp.json()
+        if co_resp.is_success:
+            items = co_resp.json().get("items", [])
+            company = items[0] if items else {}
+
+    ctx = {
+        "pl_report": pl_report,
+        "bs_report": bs_report,
+        "tb_report": tb_report,
+        "company": company,
+        "as_of_date": as_of,
+        "from_date": from_,
+        "to_date": to_,
+        "prepared": _today(),
+        "error": error,
+    }
+    return _TEMPLATES.TemplateResponse(request, "reports/statement_pack.html", ctx)
+
+
 @router.get("/reports/aged-receivables", response_class=HTMLResponse, response_model=None)
 async def aged_receivables(
     request: Request,

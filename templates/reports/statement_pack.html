@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Statement Pack — SAE Books{% endblock %}
+
+{% block content %}
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .pack-section { break-before: page; page-break-before: always; }
+    .pack-cover { break-after: page; page-break-after: always; }
+  }
+</style>
+
+<div class="mb-4 no-print">
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← reports</a>
+</div>
+
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Statement pack</span>
+        <span class="reg-mark"></span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight">Financial Statement Pack</h1>
+      <p class="text-xs ink-3 font-mono mt-2">{{ from_date }} → {{ to_date }} · as at {{ as_of_date }}</p>
+    </div>
+    <button type="button" onclick="window.print()" class="btn-secondary text-sm no-print">Print / Save PDF</button>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+
+<form hx-get="/reports/statement-pack" hx-target="body" hx-swap="outerHTML"
+      class="card p-4 mb-5 flex flex-wrap gap-3 items-end no-print">
+  <div>
+    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">P&amp;L from</label>
+    <input id="from_date" type="date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <div>
+    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">P&amp;L to</label>
+    <input id="to_date" type="date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <div>
+    <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Balance as at</label>
+    <input id="as_of_date" type="date" name="as_of_date" value="{{ as_of_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <button type="submit" class="btn-secondary text-sm">Run</button>
+</form>
+
+{% if error %}
+<div class="card p-4 mb-5 border-l-2" style="border-color:var(--danger,#c0392b)">
+  <p class="text-sm ink-1">{{ error }}</p>
+</div>
+{% endif %}
+
+<section class="card p-8 text-center mb-8 pack-cover">
+  <h2 class="font-display text-2xl ink-1">{{ company.get("legal_name") or company.get("name") or "—" }}</h2>
+  {% if company.get("acn") %}<p class="text-xs ink-3 font-mono mt-1">ACN {{ company.get("acn") }}</p>{% endif %}
+  {% if company.get("abn") %}<p class="text-xs ink-3 font-mono">ABN {{ company.get("abn") }}</p>{% endif %}
+  <p class="font-display text-lg ink-1 mt-5">Special Purpose Financial Statements</p>
+  <p class="text-sm ink-2 mt-1">For the year ended {{ to_date }}</p>
+  <p class="text-xs ink-3 mt-3">Prepared {{ prepared }} · <span class="uppercase tracking-wider">Draft — not certified</span></p>
+</section>
+
+<section class="pack-section mb-10">
+  <h2 class="font-display text-xl ink-1 mb-1">Statement of Profit or Loss</h2>
+  <p class="text-xs ink-3 font-mono mb-3">For the period {{ from_date }} → {{ to_date }}</p>
+  {% with report=pl_report %}{% include "reports/_profit_loss_table.html" %}{% endwith %}
+</section>
+
+<section class="pack-section mb-10">
+  <h2 class="font-display text-xl ink-1 mb-1">Statement of Financial Position</h2>
+  <p class="text-xs ink-3 font-mono mb-3">As at {{ as_of_date }}</p>
+  {% with report=bs_report %}{% include "reports/_balance_sheet_table.html" %}{% endwith %}
+</section>
+
+<section class="pack-section mb-10">
+  <h2 class="font-display text-xl ink-1 mb-1">Trial Balance</h2>
+  <p class="text-xs ink-3 font-mono mb-3">As at {{ as_of_date }}</p>
+  {% with report=tb_report %}{% include "reports/_trial_balance_table.html" %}{% endwith %}
+</section>
+
+<section class="card p-6 pack-section">
+  <h2 class="font-display text-lg ink-1 mb-3">Trustee's Declaration</h2>
+  <p class="text-sm ink-2 mb-2">In the opinion of the trustee of {{ company.get("legal_name") or company.get("name") or "the entity" }}:</p>
+  <ul class="text-sm ink-2 list-disc ml-5 space-y-1">
+    <li>the financial statements present fairly the financial position as at {{ as_of_date }} and the result for the year then ended; and</li>
+    <li>there are reasonable grounds to believe the entity will be able to pay its debts as and when they become due and payable.</li>
+  </ul>
+  <p class="text-sm ink-2 mt-5">Signed for and on behalf of the trustee:</p>
+  <p class="num ink-2 mt-8">_______________________________&nbsp;&nbsp;&nbsp;Date: ____________</p>
+</section>
+{% endblock %}
