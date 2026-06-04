@@ -50,6 +50,23 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+def _require_admin(request: Request) -> bool:
+    """True if the session is SAE staff or a tenant admin (year-end close)."""
+    role = request.session.get("user_role", "")
+    return bool(request.session.get("is_sae_staff")) or role == "admin"
+
+
+def _last_fy_end() -> str:
+    """Most recent 30 June (AU FY end), ISO string."""
+    from datetime import date as _date
+
+    today = _date.today()
+    end = _date(today.year, 6, 30)
+    if end > today:
+        end = _date(today.year - 1, 6, 30)
+    return end.isoformat()
+
+
 def _today() -> str:
     return date.today().isoformat()
 
@@ -97,6 +114,128 @@ async def reports_index(request: Request) -> HTMLResponse | RedirectResponse:
 # ---------------------------------------------------------------------------
 # GET /reports/aged-receivables
 # ---------------------------------------------------------------------------
+
+
+@router.get("/reports/close-year", response_class=HTMLResponse, response_model=None)
+async def close_year_form(
+    request: Request,
+    through: str | None = None,
+    retained_earnings_account_id: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """Year-end close — preview the zeroing entry (ADMIN only)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
+
+    through_ = through or _last_fy_end()
+    equity_accounts: list = []
+    preview: dict = {}
+    error: str | None = None
+
+    async with api_client(request) as client:
+        acc_resp = await client.get(
+            "/api/v1/accounts", params={"account_type": "EQUITY", "limit": 200}
+        )
+        if acc_resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if acc_resp.is_success:
+            equity_accounts = acc_resp.json().get("items", [])
+
+        retained = retained_earnings_account_id or next(
+            (
+                a["id"]
+                for a in equity_accounts
+                if "retained" in (a.get("name", "") or "").lower()
+            ),
+            (equity_accounts[0]["id"] if equity_accounts else None),
+        )
+        if retained:
+            pv = await client.get(
+                "/api/v1/period-close/preview",
+                params={
+                    "through_date": through_,
+                    "retained_earnings_account_id": retained,
+                },
+            )
+            if pv.is_success:
+                preview = pv.json()
+            else:
+                error = f"Preview unavailable: HTTP {pv.status_code}"
+        else:
+            error = "No equity account found for retained earnings."
+
+    flash = request.session.pop("flash", None)
+    ctx = {
+        "through": through_,
+        "equity_accounts": equity_accounts,
+        "retained_earnings_id": retained_earnings_account_id
+        or (preview and retained)
+        or "",
+        "preview": preview,
+        "error": error,
+        "flash": flash,
+    }
+    return _TEMPLATES.TemplateResponse(request, "reports/close_year.html", ctx)
+
+
+@router.post("/reports/close-year", response_class=HTMLResponse, response_model=None)
+async def close_year_submit(request: Request) -> RedirectResponse:
+    """Post the year-end close journal + lock the period (ADMIN only)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
+
+    form = await request.form()
+    through_ = str(form.get("through", "")).strip()
+    retained = str(form.get("retained_earnings_account_id", "")).strip()
+    override = str(form.get("override_reason", "")).strip()
+    if not through_ or not retained:
+        request.session["flash"] = (
+            "Through date and retained-earnings account are required."
+        )
+        return RedirectResponse(url="/reports/close-year", status_code=303)
+
+    body: dict[str, str] = {
+        "through_date": through_,
+        "retained_earnings_account_id": retained,
+    }
+    if override:
+        body["override_reason"] = override
+
+    async with api_client(request) as client:
+        resp = await client.post("/api/v1/period-close/close-year", json=body)
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.is_success:
+        data = resp.json()
+        if data.get("closed") and data.get("journal_entry_id"):
+            request.session["flash"] = "Year-end close posted; period locked."
+            return RedirectResponse(
+                url=f"/journal-entries/{data['journal_entry_id']}", status_code=303
+            )
+        request.session["flash"] = (
+            "Nothing to close — every P&L account is already zero for that period."
+        )
+        return RedirectResponse(
+            url=f"/reports/close-year?through={through_}", status_code=303
+        )
+
+    try:
+        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
+        if isinstance(detail, list) and detail:
+            detail = detail[0].get("msg", str(detail))
+    except Exception:
+        detail = f"API error: HTTP {resp.status_code}"
+    request.session["flash"] = str(detail)
+    return RedirectResponse(
+        url=f"/reports/close-year?through={through_}", status_code=303
+    )
 
 
 @router.get("/reports/statement-pack", response_class=HTMLResponse, response_model=None)
