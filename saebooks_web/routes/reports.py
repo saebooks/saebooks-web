@@ -238,12 +238,150 @@ async def close_year_submit(request: Request) -> RedirectResponse:
     )
 
 
+def _subtract_one_year(d: date) -> date:
+    """Subtract exactly one calendar year from d, with a safe leap-day fallback.
+
+    2025-02-28 → 2024-02-28 (normal)
+    2024-02-29 → 2023-02-28 (29 Feb only exists in a leap year; clamp to 28 Feb)
+    """
+    try:
+        return d.replace(year=d.year - 1)
+    except ValueError:
+        # Only possible when d is 29 Feb in a leap year; prior year has no 29 Feb.
+        return d.replace(year=d.year - 1, day=28)
+
+
+def _build_comparative_lines(
+    current_lines: list[dict],
+    prior_lines: list[dict],
+) -> list[dict]:
+    """Merge two account-line lists into a single list suitable for comparative rendering.
+
+    Each entry in the result has:
+      account_id, account_name, code, current_amount, prior_amount
+
+    Accounts present in only one period appear with 0.0 in the absent column.
+    Order: current-period accounts first (in their original order), then any
+    prior-only accounts appended at the end.
+    """
+    prior_by_id: dict[str, dict] = {
+        line["account_id"]: line for line in prior_lines if line.get("account_id")
+    }
+    current_ids: set[str] = set()
+    merged: list[dict] = []
+
+    for line in current_lines:
+        aid = line.get("account_id", "")
+        current_ids.add(aid)
+        prior = prior_by_id.get(aid, {})
+        merged.append({
+            "account_id": aid,
+            "account_name": line.get("account_name") or line.get("name", "—"),
+            "code": line.get("code", ""),
+            "current_amount": float(line.get("amount", line.get("balance", 0)) or 0),
+            "prior_amount": float(prior.get("amount", prior.get("balance", 0)) or 0),
+        })
+
+    # Accounts in prior but not in current — append with current_amount = 0.
+    for aid, line in prior_by_id.items():
+        if aid not in current_ids:
+            merged.append({
+                "account_id": aid,
+                "account_name": line.get("account_name") or line.get("name", "—"),
+                "code": line.get("code", ""),
+                "current_amount": 0.0,
+                "prior_amount": float(line.get("amount", line.get("balance", 0)) or 0),
+            })
+
+    return merged
+
+
+def _extract_pl_lines(report: dict, section: str, key: str) -> list[dict]:
+    """Extract a flat list of account lines from a P&L section dict."""
+    return report.get(section, {}).get(key, [])
+
+
+def _extract_bs_lines(report: dict, section: str, key: str) -> list[dict]:
+    """Extract asset/liability/equity lines from a BS section dict."""
+    return report.get(section, {}).get(key, [])
+
+
+def _build_comparative_pl(current: dict, prior: dict) -> dict:
+    """Build a comparative P&L structure for template rendering.
+
+    Returns a dict with income/expenses sections, each containing merged
+    comparative line lists and totals for both periods.
+    """
+    income_keys = ["INCOME", "OTHER_INCOME"]
+    expense_keys = ["EXPENSE", "COST_OF_SALES", "OTHER_EXPENSE"]
+
+    c_income: dict = current.get("income", {})
+    p_income: dict = prior.get("income", {})
+    c_expenses: dict = current.get("expenses", {})
+    p_expenses: dict = prior.get("expenses", {})
+
+    income_sections: dict[str, list] = {}
+    for k in income_keys:
+        income_sections[k] = _build_comparative_lines(
+            c_income.get(k, []), p_income.get(k, [])
+        )
+
+    expense_sections: dict[str, list] = {}
+    for k in expense_keys:
+        expense_sections[k] = _build_comparative_lines(
+            c_expenses.get(k, []), p_expenses.get(k, [])
+        )
+
+    return {
+        "income": {**income_sections, "total_income_current": float(c_income.get("total_income", 0) or 0), "total_income_prior": float(p_income.get("total_income", 0) or 0)},
+        "expenses": {**expense_sections, "total_expenses_current": float(c_expenses.get("total_expenses", 0) or 0), "total_expenses_prior": float(p_expenses.get("total_expenses", 0) or 0)},
+        "net_profit_current": float(current.get("net_profit", 0) or 0),
+        "net_profit_prior": float(prior.get("net_profit", 0) or 0),
+    }
+
+
+def _build_comparative_bs(current: dict, prior: dict) -> dict:
+    """Build a comparative Balance Sheet structure for template rendering.
+
+    NOTE: The prior BS is computed as_of the prior year-end; its CYE line
+    reflects that year's own earnings, not the current year's. This is
+    intentional — each period's CYE is computed by the engine independently.
+    """
+    c_assets = current.get("assets", {})
+    p_assets = prior.get("assets", {})
+    c_liabilities = current.get("liabilities", {})
+    p_liabilities = prior.get("liabilities", {})
+    c_equity = current.get("equity", {})
+    p_equity = prior.get("equity", {})
+
+    return {
+        "assets": {
+            "ASSET": _build_comparative_lines(c_assets.get("ASSET", []), p_assets.get("ASSET", [])),
+            "total_assets_current": float(c_assets.get("total_assets", 0) or 0),
+            "total_assets_prior": float(p_assets.get("total_assets", 0) or 0),
+        },
+        "liabilities": {
+            "LIABILITY": _build_comparative_lines(c_liabilities.get("LIABILITY", []), p_liabilities.get("LIABILITY", [])),
+            "total_liabilities_current": float(c_liabilities.get("total_liabilities", 0) or 0),
+            "total_liabilities_prior": float(p_liabilities.get("total_liabilities", 0) or 0),
+        },
+        "equity": {
+            "EQUITY": _build_comparative_lines(c_equity.get("EQUITY", []), p_equity.get("EQUITY", [])),
+            "total_equity_current": float(c_equity.get("total_equity", 0) or 0),
+            "total_equity_prior": float(p_equity.get("total_equity", 0) or 0),
+        },
+        "balanced": current.get("balanced", False),
+        "difference": float(current.get("difference", 0) or 0),
+    }
+
+
 @router.get("/reports/statement-pack", response_class=HTMLResponse, response_model=None)
 async def statement_pack(
     request: Request,
     as_of_date: str | None = None,
     from_date: str | None = None,
     to_date: str | None = None,
+    comparative: bool = True,
 ) -> HTMLResponse | RedirectResponse:
     """Financial statement pack — P&L + Balance Sheet + Trial Balance bundled
     into one printable document with a cover page and trustee declaration.
@@ -251,6 +389,14 @@ async def statement_pack(
     Read-only: reuses the existing /api/v1/reports/* endpoints and the
     per-statement table fragments. Defaults to the current AU financial year
     (1 Jul → today). Use the Print button to save the whole pack as one PDF.
+
+    When comparative=true (default) also fetches the prior FY P&L and the
+    prior year-end Balance Sheet in the same asyncio.gather, and renders a
+    second "Prior year" column next to each current-period amount.
+
+    Prior-year CYE note: the prior BS is fetched as_of the prior year-end so
+    the engine computes that year's own Current Year Earnings independently.
+    This avoids double-counting the current year's CYE in the prior column.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -263,26 +409,68 @@ async def statement_pack(
     from_ = from_date or fy_start
     to_ = to_date or as_of
 
+    # Derive prior-period dates (safe leap-day guard via _subtract_one_year).
+    from_date_obj = date.fromisoformat(from_)
+    to_date_obj = date.fromisoformat(to_)
+    as_of_obj = date.fromisoformat(as_of)
+    prior_from = _subtract_one_year(from_date_obj).isoformat()
+    prior_to = _subtract_one_year(to_date_obj).isoformat()
+    prior_as_of = _subtract_one_year(as_of_obj).isoformat()
+
     pl_report: dict = {}
     bs_report: dict = {}
     tb_report: dict = {}
+    pl_prior_raw: dict = {}
+    bs_prior_raw: dict = {}
     company: dict = {}
     error: str | None = None
 
     async with api_client(request) as client:
-        pl_resp, bs_resp, tb_resp, co_resp = await asyncio.gather(
-            client.get(
-                "/api/v1/reports/profit_loss",
-                params={"from_date": from_, "to_date": to_},
-            ),
-            client.get(
-                "/api/v1/reports/balance_sheet", params={"as_of_date": as_of}
-            ),
-            client.get(
-                "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
-            ),
-            client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
-        )
+        if comparative:
+            (
+                pl_resp, bs_resp, tb_resp, co_resp,
+                pl_prior_resp, bs_prior_resp,
+            ) = await asyncio.gather(
+                client.get(
+                    "/api/v1/reports/profit_loss",
+                    params={"from_date": from_, "to_date": to_},
+                ),
+                client.get(
+                    "/api/v1/reports/balance_sheet", params={"as_of_date": as_of}
+                ),
+                client.get(
+                    "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
+                ),
+                client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
+                # Prior-year fetches — in same gather to avoid serialisation.
+                client.get(
+                    "/api/v1/reports/profit_loss",
+                    params={"from_date": prior_from, "to_date": prior_to},
+                ),
+                client.get(
+                    "/api/v1/reports/balance_sheet",
+                    params={"as_of_date": prior_as_of},
+                ),
+            )
+            if pl_prior_resp.is_success:
+                pl_prior_raw = pl_prior_resp.json()
+            if bs_prior_resp.is_success:
+                bs_prior_raw = bs_prior_resp.json()
+        else:
+            pl_resp, bs_resp, tb_resp, co_resp = await asyncio.gather(
+                client.get(
+                    "/api/v1/reports/profit_loss",
+                    params={"from_date": from_, "to_date": to_},
+                ),
+                client.get(
+                    "/api/v1/reports/balance_sheet", params={"as_of_date": as_of}
+                ),
+                client.get(
+                    "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
+                ),
+                client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
+            )
+
         if 401 in (pl_resp.status_code, bs_resp.status_code, tb_resp.status_code):
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
@@ -298,6 +486,14 @@ async def statement_pack(
             items = co_resp.json().get("items", [])
             company = items[0] if items else {}
 
+    # Build comparative data structures (empty when comparative=False).
+    comp_pl: dict = {}
+    comp_bs: dict = {}
+    if comparative and pl_report and pl_prior_raw:
+        comp_pl = _build_comparative_pl(pl_report, pl_prior_raw)
+    if comparative and bs_report and bs_prior_raw:
+        comp_bs = _build_comparative_bs(bs_report, bs_prior_raw)
+
     ctx = {
         "pl_report": pl_report,
         "bs_report": bs_report,
@@ -308,6 +504,16 @@ async def statement_pack(
         "to_date": to_,
         "prepared": _today(),
         "error": error,
+        # Comparative context — passed to pack-local markup only.
+        # The shared fragment includes (_profit_loss_table, _balance_sheet_table,
+        # _trial_balance_table) receive only their own report variable and are
+        # NOT modified, preserving backward compatibility for all other routes.
+        "comparative": comparative,
+        "comp_pl": comp_pl,
+        "comp_bs": comp_bs,
+        "prior_from": prior_from,
+        "prior_to": prior_to,
+        "prior_as_of": prior_as_of,
     }
     return _TEMPLATES.TemplateResponse(request, "reports/statement_pack.html", ctx)
 

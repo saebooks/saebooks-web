@@ -45,6 +45,11 @@
     <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Balance as at</label>
     <input id="as_of_date" type="date" name="as_of_date" value="{{ as_of_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
+  <div class="flex items-center gap-2 self-end mb-1">
+    <input id="comparative" type="checkbox" name="comparative" value="true"
+           {% if comparative %}checked{% endif %} class="accent-[var(--sae)]">
+    <label for="comparative" class="text-[10px] font-mono uppercase tracking-wider ink-3">Prior year</label>
+  </div>
   <button type="submit" class="btn-secondary text-sm">Run</button>
 </form>
 
@@ -63,21 +68,283 @@
   <p class="text-xs ink-3 mt-3">Prepared {{ prepared }} · <span class="uppercase tracking-wider">Draft — not certified</span></p>
 </section>
 
+{# ─── Statement of Profit or Loss ─────────────────────────────────────────── #}
 <section class="pack-section mb-10">
   <h2 class="font-display text-xl ink-1 mb-1">Statement of Profit or Loss</h2>
   <p class="text-xs ink-3 font-mono mb-3">For the period {{ from_date }} → {{ to_date }}</p>
+
+  {% if comparative and comp_pl %}
+  {# Pack-local comparative P&L — two amount columns (current + prior year).
+     This markup is ONLY used inside the statement pack; the shared fragment
+     _profit_loss_table.html is NOT modified so other report pages are unchanged. #}
+  <div class="space-y-6" id="profit-loss-table">
+
+    {# Income section #}
+    <div class="card overflow-hidden mb-0">
+      <div class="px-6 py-3 hairline-b" style="background:rgba(62,122,78,0.06);">
+        <p class="nav-section-label" style="color:var(--pos);">Income</p>
+      </div>
+      <table class="sae-table w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Account</th>
+            <th class="text-left">Code</th>
+            <th class="text-right">{{ from_date[:4] }}–{{ to_date[:4] }}</th>
+            <th class="text-right ink-3">Prior year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set income_lines = comp_pl.income.get("INCOME", []) + comp_pl.income.get("OTHER_INCOME", []) %}
+          {% if income_lines %}
+            {% for line in income_lines %}
+            <tr>
+              <td class="ink-1">{{ line.account_name }}</td>
+              <td class="ink-3 num text-xs">{{ line.code }}</td>
+              <td class="text-right num ink-1">{{ "%.2f"|format(line.current_amount) }}</td>
+              <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no income for this period —</td></tr>
+          {% endif %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" class="font-semibold" style="color:var(--pos);">Total Income</td>
+            <td class="text-right num-display font-semibold" style="color:var(--pos);">
+              {{ "%.2f"|format(comp_pl.income.total_income_current) }}
+            </td>
+            <td class="text-right num ink-3 font-semibold">
+              {{ "%.2f"|format(comp_pl.income.total_income_prior) }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {# Expenses section #}
+    <div class="card overflow-hidden mb-0">
+      <div class="px-6 py-3 hairline-b" style="background:rgba(161,67,51,0.06);">
+        <p class="nav-section-label" style="color:var(--neg);">Expenses</p>
+      </div>
+      <table class="sae-table w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Account</th>
+            <th class="text-left">Code</th>
+            <th class="text-right">{{ from_date[:4] }}–{{ to_date[:4] }}</th>
+            <th class="text-right ink-3">Prior year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set expense_lines = comp_pl.expenses.get("EXPENSE", []) + comp_pl.expenses.get("COST_OF_SALES", []) + comp_pl.expenses.get("OTHER_EXPENSE", []) %}
+          {% if expense_lines %}
+            {% for line in expense_lines %}
+            <tr>
+              <td class="ink-1">{{ line.account_name }}</td>
+              <td class="ink-3 num text-xs">{{ line.code }}</td>
+              <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+              <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no expenses for this period —</td></tr>
+          {% endif %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" class="font-semibold" style="color:var(--neg);">Total Expenses</td>
+            <td class="text-right num-display font-semibold" style="color:var(--neg);">
+              {{ "%.2f"|format(comp_pl.expenses.total_expenses_current) }}
+            </td>
+            <td class="text-right num ink-3 font-semibold">
+              {{ "%.2f"|format(comp_pl.expenses.total_expenses_prior) }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {# Net Profit / Loss highlight row #}
+    {% set net_cur = comp_pl.net_profit_current %}
+    {% set net_pri = comp_pl.net_profit_prior %}
+    {% if net_cur >= 0 %}
+    <div class="card p-5 flex items-center justify-between gap-6" style="border-color:var(--pos);background:rgba(62,122,78,0.04);">
+      <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit</span>
+      <div class="flex items-center gap-8">
+        <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ "%.2f"|format(net_cur) }}</span>
+        <span class="num ink-3 text-sm">Prior: {{ "%.2f"|format(net_pri) }}</span>
+      </div>
+    </div>
+    {% else %}
+    <div class="card p-5 flex items-center justify-between gap-6" style="border-color:var(--neg);background:rgba(161,67,51,0.04);">
+      <span class="text-sm font-semibold" style="color:var(--neg);">Net Loss</span>
+      <div class="flex items-center gap-8">
+        <span class="font-display text-2xl num-display" style="color:var(--neg);">{{ "%.2f"|format(net_cur) }}</span>
+        <span class="num ink-3 text-sm">Prior: {{ "%.2f"|format(net_pri) }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+  {% else %}
+  {# Non-comparative fallback — unchanged shared fragment #}
   {% with report=pl_report %}{% include "reports/_profit_loss_table.html" %}{% endwith %}
+  {% endif %}
 </section>
 
+{# ─── Statement of Financial Position ────────────────────────────────────── #}
 <section class="pack-section mb-10">
   <h2 class="font-display text-xl ink-1 mb-1">Statement of Financial Position</h2>
-  <p class="text-xs ink-3 font-mono mb-3">As at {{ as_of_date }}</p>
+  <p class="text-xs ink-3 font-mono mb-3">As at {{ as_of_date }}{% if comparative %} (Prior year: {{ prior_as_of }}){% endif %}</p>
+
+  {% if comparative and comp_bs %}
+  {# Pack-local comparative Balance Sheet — two amount columns.
+     The shared _balance_sheet_table.html fragment is NOT modified. #}
+  <div class="space-y-6" id="balance-sheet-table">
+
+    {# Balanced indicator (current period only) #}
+    {% if comp_bs.balanced %}
+    <div class="card p-3 flex items-center gap-2" style="border-color:var(--pos);">
+      <span class="dot" style="background:var(--pos);"></span>
+      <span class="text-sm font-semibold" style="color:var(--pos);">Balance sheet is balanced.</span>
+    </div>
+    {% else %}
+    <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
+      <span class="dot" style="background:var(--neg);"></span>
+      <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ "%.2f"|format(comp_bs.difference) }}</span>
+    </div>
+    {% endif %}
+
+    {# Assets #}
+    <div class="card overflow-hidden mb-0">
+      <div class="px-6 py-3 hairline-b">
+        <p class="nav-section-label">Assets</p>
+      </div>
+      <table class="sae-table w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Account</th>
+            <th class="text-left">Code</th>
+            <th class="text-right">{{ as_of_date }}</th>
+            <th class="text-right ink-3">Prior year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set asset_lines = comp_bs.assets.get("ASSET", []) %}
+          {% if asset_lines %}
+            {% for line in asset_lines %}
+            <tr>
+              <td class="ink-1">{{ line.account_name }}</td>
+              <td class="ink-3 num text-xs">{{ line.code }}</td>
+              <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+              <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no asset accounts —</td></tr>
+          {% endif %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" class="font-semibold ink-1">Total Assets</td>
+            <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.assets.total_assets_current) }}</td>
+            <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.assets.total_assets_prior) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {# Liabilities #}
+    <div class="card overflow-hidden mb-0">
+      <div class="px-6 py-3 hairline-b">
+        <p class="nav-section-label">Liabilities</p>
+      </div>
+      <table class="sae-table w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Account</th>
+            <th class="text-left">Code</th>
+            <th class="text-right">{{ as_of_date }}</th>
+            <th class="text-right ink-3">Prior year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set liability_lines = comp_bs.liabilities.get("LIABILITY", []) %}
+          {% if liability_lines %}
+            {% for line in liability_lines %}
+            <tr>
+              <td class="ink-1">{{ line.account_name }}</td>
+              <td class="ink-3 num text-xs">{{ line.code }}</td>
+              <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+              <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no liability accounts —</td></tr>
+          {% endif %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" class="font-semibold ink-1">Total Liabilities</td>
+            <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.liabilities.total_liabilities_current) }}</td>
+            <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.liabilities.total_liabilities_prior) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {# Equity #}
+    <div class="card overflow-hidden mb-0">
+      <div class="px-6 py-3 hairline-b">
+        <p class="nav-section-label">Equity</p>
+      </div>
+      <table class="sae-table w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Account</th>
+            <th class="text-left">Code</th>
+            <th class="text-right">{{ as_of_date }}</th>
+            <th class="text-right ink-3">Prior year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set equity_lines = comp_bs.equity.get("EQUITY", []) %}
+          {% if equity_lines %}
+            {% for line in equity_lines %}
+            <tr>
+              <td class="ink-1">{{ line.account_name }}</td>
+              <td class="ink-3 num text-xs">{{ line.code }}</td>
+              <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+              <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no equity accounts —</td></tr>
+          {% endif %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" class="font-semibold ink-1">Total Equity</td>
+            <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.equity.total_equity_current) }}</td>
+            <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.equity.total_equity_prior) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+  </div>
+  {% else %}
+  {# Non-comparative fallback — unchanged shared fragment #}
   {% with report=bs_report %}{% include "reports/_balance_sheet_table.html" %}{% endwith %}
+  {% endif %}
 </section>
 
+{# ─── Trial Balance ───────────────────────────────────────────────────────── #}
 <section class="pack-section mb-10">
   <h2 class="font-display text-xl ink-1 mb-1">Trial Balance</h2>
   <p class="text-xs ink-3 font-mono mb-3">As at {{ as_of_date }}</p>
+  {# Trial Balance comparative is not implemented; always uses the shared fragment. #}
   {% with report=tb_report %}{% include "reports/_trial_balance_table.html" %}{% endwith %}
 </section>
 
