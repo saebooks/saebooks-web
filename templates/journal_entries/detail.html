@@ -117,11 +117,24 @@
       method="post"
       action="/journal-entries/{{ entry.id }}/reverse"
       onsubmit="return confirm('Reverse this journal entry? A new reversal entry will be created.');"
-      class="inline"
+      class="inline-flex items-center gap-2"
     >
     {{ csrf_input(request)|safe }}
 
       <input type="hidden" name="version" value="{{ entry.version }}">
+      <input
+        type="date"
+        name="reversal_date"
+        class="rounded-md border border-gray-300 px-2 py-1 text-xs align-middle"
+        title="Reversal date — leave blank to reverse on the original entry's date. Set e.g. 1 Jul to reverse a 30 Jun accrual into the next period."
+      >
+      <input
+        type="text"
+        name="override_reason"
+        placeholder="Override (if reversal date is locked)"
+        class="rounded-md border border-gray-300 px-2 py-1 text-xs w-56 align-middle"
+        title="Only needed if the reversal date falls in a period-locked range."
+      >
       <button
         type="submit"
         class="rounded-md bg-amber-600 px-4 py-1.5 text-sm font-medium text-white

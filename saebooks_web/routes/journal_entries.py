@@ -831,12 +831,32 @@ async def journal_entry_reverse(
 
     form_data = await request.form()
     version = str(form_data.get("version", ""))
+    reversal_date = str(form_data.get("reversal_date", "")).strip()
+    override_reason = str(form_data.get("override_reason", "")).strip()
+
+    # Only send a JSON body when the user chose a reversal date or supplied an
+    # override reason — keeps the ordinary reverse path byte-identical (reversal
+    # lands on the original entry's date). reversal_date lets an accrual posted
+    # 30-Jun reverse on 1-Jul; override_reason satisfies the period-lock gate if
+    # the reversal date is in a locked range (F-04).
+    body: dict[str, str] = {}
+    if reversal_date:
+        body["reversal_date"] = reversal_date
+    if override_reason:
+        body["override_reason"] = override_reason
 
     async with api_client(request) as client:
-        resp = await client.post(
-            f"/api/v1/journal_entries/{entry_id}/reverse",
-            headers={"If-Match": version},
-        )
+        if body:
+            resp = await client.post(
+                f"/api/v1/journal_entries/{entry_id}/reverse",
+                headers={"If-Match": version},
+                json=body,
+            )
+        else:
+            resp = await client.post(
+                f"/api/v1/journal_entries/{entry_id}/reverse",
+                headers={"If-Match": version},
+            )
 
     if resp.status_code == 401:
         request.session.clear()
