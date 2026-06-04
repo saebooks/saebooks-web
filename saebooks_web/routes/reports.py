@@ -618,8 +618,15 @@ async def profit_loss(
     from_date: str | None = None,
     to_date: str | None = None,
     include_draft: bool = False,
+    comparative: bool = False,
 ) -> HTMLResponse | RedirectResponse:
-    """Profit & Loss report — income/expense sections and net profit."""
+    """Profit & Loss report — income/expense sections and net profit.
+
+    When comparative=true, also fetches the prior-year P&L (each date minus 1 year)
+    and passes comp_pl into the template context for the shared fragment to render
+    a second "Prior year" column.  Default is False — single-column behaviour
+    unchanged for all existing callers.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -628,15 +635,36 @@ async def profit_loss(
     report: dict = {}
     error: str | None = None
     gst: dict = {}
+    comp_pl: dict = {}
+
+    from_date_obj = date.fromisoformat(from_)
+    to_date_obj = date.fromisoformat(to_)
+    prior_from = _subtract_one_year(from_date_obj).isoformat()
+    prior_to = _subtract_one_year(to_date_obj).isoformat()
 
     async with api_client(request) as client:
-        pl_resp, ytd_resp = await asyncio.gather(
-            client.get(
-                "/api/v1/reports/profit_loss",
-                params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
-            ),
-            client.get("/api/v1/reports/ytd_turnover"),
-        )
+        if comparative:
+            pl_resp, pl_prior_resp, ytd_resp = await asyncio.gather(
+                client.get(
+                    "/api/v1/reports/profit_loss",
+                    params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
+                ),
+                client.get(
+                    "/api/v1/reports/profit_loss",
+                    params={"from_date": prior_from, "to_date": prior_to, "include_draft": str(include_draft).lower()},
+                ),
+                client.get("/api/v1/reports/ytd_turnover"),
+            )
+        else:
+            pl_resp, ytd_resp = await asyncio.gather(
+                client.get(
+                    "/api/v1/reports/profit_loss",
+                    params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
+                ),
+                client.get("/api/v1/reports/ytd_turnover"),
+            )
+            pl_prior_resp = None
+
         if pl_resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
@@ -644,6 +672,10 @@ async def profit_loss(
             report = pl_resp.json()
         else:
             error = f"API error: HTTP {pl_resp.status_code}"
+
+        if comparative and pl_prior_resp is not None and pl_prior_resp.is_success:
+            comp_pl = _build_comparative_pl(report, pl_prior_resp.json())
+
         if ytd_resp.is_success:
             ytd_data = ytd_resp.json()
             ytd = float(ytd_data.get("ytd_turnover", 0))
@@ -665,6 +697,10 @@ async def profit_loss(
         "include_draft": include_draft,
         "error": error,
         "gst": gst,
+        "comparative": comparative,
+        "comp_pl": comp_pl,
+        "prior_from": prior_from,
+        "prior_to": prior_to,
     }
 
     template = (
@@ -684,32 +720,56 @@ async def profit_loss(
 async def balance_sheet(
     request: Request,
     as_of_date: str | None = None,
+    comparative: bool = False,
 ) -> HTMLResponse | RedirectResponse:
-    """Balance sheet report — assets, liabilities, equity sections."""
+    """Balance sheet report — assets, liabilities, equity sections.
+
+    When comparative=true, also fetches the prior year-end Balance Sheet
+    (as_of minus 1 year) and passes comp_bs into the template context for the
+    shared fragment to render a second "Prior year" column.  Default is False.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     as_of = as_of_date or _today()
     report: dict = {}
     error: str | None = None
+    comp_bs: dict = {}
+
+    as_of_obj = date.fromisoformat(as_of)
+    prior_as_of = _subtract_one_year(as_of_obj).isoformat()
 
     async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/balance_sheet",
-            params={"as_of_date": as_of},
-        )
-        if resp.status_code == 401:
+        if comparative:
+            bs_resp, bs_prior_resp = await asyncio.gather(
+                client.get("/api/v1/reports/balance_sheet", params={"as_of_date": as_of}),
+                client.get("/api/v1/reports/balance_sheet", params={"as_of_date": prior_as_of}),
+            )
+        else:
+            bs_resp = await client.get(
+                "/api/v1/reports/balance_sheet",
+                params={"as_of_date": as_of},
+            )
+            bs_prior_resp = None
+
+        if bs_resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
+        if bs_resp.is_success:
+            report = bs_resp.json()
         else:
-            error = f"API error: HTTP {resp.status_code}"
+            error = f"API error: HTTP {bs_resp.status_code}"
+
+        if comparative and bs_prior_resp is not None and bs_prior_resp.is_success:
+            comp_bs = _build_comparative_bs(report, bs_prior_resp.json())
 
     ctx = {
         "report": report,
         "as_of_date": as_of,
         "error": error,
+        "comparative": comparative,
+        "comp_bs": comp_bs,
+        "prior_as_of": prior_as_of,
     }
 
     template = (
@@ -933,36 +993,102 @@ async def trial_balance(
     request: Request,
     as_of_date: str | None = None,
     include_zero_balance: bool = False,
+    comparative: bool = False,
 ) -> HTMLResponse | RedirectResponse:
-    """Trial balance report — debits/credits/balance per account with balanced indicator."""
+    """Trial balance report — debits/credits/balance per account with balanced indicator.
+
+    When comparative=true, also fetches the prior year-end Trial Balance
+    (as_of minus 1 year) and passes comp_tb into the template context for the
+    shared fragment to render a second "Prior year" column.  Default is False.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     as_of = as_of_date or _today()
     report: dict = {}
     error: str | None = None
+    comp_tb: list[dict] = []
+
+    as_of_obj = date.fromisoformat(as_of)
+    prior_as_of = _subtract_one_year(as_of_obj).isoformat()
 
     async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/trial_balance",
-            params={
-                "as_of_date": as_of,
-                "include_zero_balance": str(include_zero_balance).lower(),
-            },
-        )
-        if resp.status_code == 401:
+        if comparative:
+            tb_resp, tb_prior_resp = await asyncio.gather(
+                client.get(
+                    "/api/v1/reports/trial_balance",
+                    params={
+                        "as_of_date": as_of,
+                        "include_zero_balance": str(include_zero_balance).lower(),
+                    },
+                ),
+                client.get(
+                    "/api/v1/reports/trial_balance",
+                    params={
+                        "as_of_date": prior_as_of,
+                        "include_zero_balance": str(include_zero_balance).lower(),
+                    },
+                ),
+            )
+        else:
+            tb_resp = await client.get(
+                "/api/v1/reports/trial_balance",
+                params={
+                    "as_of_date": as_of,
+                    "include_zero_balance": str(include_zero_balance).lower(),
+                },
+            )
+            tb_prior_resp = None
+
+        if tb_resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
+        if tb_resp.is_success:
+            report = tb_resp.json()
         else:
-            error = f"API error: HTTP {resp.status_code}"
+            error = f"API error: HTTP {tb_resp.status_code}"
+
+        if comparative and tb_prior_resp is not None and tb_prior_resp.is_success:
+            # Build comparative line list: current accounts enriched with prior balance.
+            prior_accounts = tb_prior_resp.json().get("accounts", [])
+            prior_by_id: dict[str, dict] = {a["account_id"]: a for a in prior_accounts if a.get("account_id")}
+            current_ids: set[str] = set()
+            merged: list[dict] = []
+            for acct in report.get("accounts", []):
+                aid = acct.get("account_id", "")
+                current_ids.add(aid)
+                prior = prior_by_id.get(aid, {})
+                merged.append({
+                    **acct,
+                    "prior_balance": float(prior.get("balance", 0) or 0),
+                    "prior_debit_total": float(prior.get("debit_total", 0) or 0),
+                    "prior_credit_total": float(prior.get("credit_total", 0) or 0),
+                })
+            # Append prior-only accounts
+            for aid, acct in prior_by_id.items():
+                if aid not in current_ids:
+                    merged.append({
+                        "account_id": aid,
+                        "code": acct.get("code", ""),
+                        "name": acct.get("name", ""),
+                        "account_type": acct.get("account_type", ""),
+                        "debit_total": 0.0,
+                        "credit_total": 0.0,
+                        "balance": 0.0,
+                        "prior_balance": float(acct.get("balance", 0) or 0),
+                        "prior_debit_total": float(acct.get("debit_total", 0) or 0),
+                        "prior_credit_total": float(acct.get("credit_total", 0) or 0),
+                    })
+            comp_tb = merged
 
     ctx = {
         "report": report,
         "as_of_date": as_of,
         "include_zero_balance": include_zero_balance,
         "error": error,
+        "comparative": comparative,
+        "comp_tb": comp_tb,
+        "prior_as_of": prior_as_of,
     }
 
     template = (

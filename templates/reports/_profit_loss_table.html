@@ -17,6 +17,126 @@
 </div>
 
 {% if report %}
+
+{% if comp_pl is defined and comp_pl %}
+{# ── Comparative two-column rendering ── #}
+<div class="space-y-6" id="profit-loss-table">
+
+  {# Income section #}
+  <div class="card overflow-hidden mb-0">
+    <div class="px-6 py-3 hairline-b" style="background:rgba(62,122,78,0.06);">
+      <p class="nav-section-label" style="color:var(--pos);">Income</p>
+    </div>
+    <table class="sae-table w-full">
+      <thead>
+        <tr>
+          <th class="text-left">Account</th>
+          <th class="text-left">Code</th>
+          <th class="text-right">Current</th>
+          <th class="text-right ink-3">Prior year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set income_lines = comp_pl.income.get("INCOME", []) + comp_pl.income.get("OTHER_INCOME", []) %}
+        {% if income_lines %}
+          {% for line in income_lines %}
+          <tr>
+            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-3 num text-xs">{{ line.code }}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no income for this period —</td>
+          </tr>
+        {% endif %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" class="font-semibold" style="color:var(--pos);">Total Income</td>
+          <td class="text-right num-display font-semibold" style="color:var(--pos);">
+            {{ "%.2f"|format(comp_pl.income.total_income_current) }}
+          </td>
+          <td class="text-right num ink-3 font-semibold">
+            {{ "%.2f"|format(comp_pl.income.total_income_prior) }}
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  {# Expenses section #}
+  <div class="card overflow-hidden mb-0">
+    <div class="px-6 py-3 hairline-b" style="background:rgba(161,67,51,0.06);">
+      <p class="nav-section-label" style="color:var(--neg);">Expenses</p>
+    </div>
+    <table class="sae-table w-full">
+      <thead>
+        <tr>
+          <th class="text-left">Account</th>
+          <th class="text-left">Code</th>
+          <th class="text-right">Current</th>
+          <th class="text-right ink-3">Prior year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set expense_lines = comp_pl.expenses.get("EXPENSE", []) + comp_pl.expenses.get("COST_OF_SALES", []) + comp_pl.expenses.get("OTHER_EXPENSE", []) %}
+        {% if expense_lines %}
+          {% for line in expense_lines %}
+          <tr>
+            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-3 num text-xs">{{ line.code }}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no expenses for this period —</td>
+          </tr>
+        {% endif %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" class="font-semibold" style="color:var(--neg);">Total Expenses</td>
+          <td class="text-right num-display font-semibold" style="color:var(--neg);">
+            {{ "%.2f"|format(comp_pl.expenses.total_expenses_current) }}
+          </td>
+          <td class="text-right num ink-3 font-semibold">
+            {{ "%.2f"|format(comp_pl.expenses.total_expenses_prior) }}
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  {# Net Profit / Loss — comparative #}
+  {% set net_cur = comp_pl.net_profit_current %}
+  {% set net_pri = comp_pl.net_profit_prior %}
+  {% if net_cur >= 0 %}
+  <div class="card p-5 flex items-center justify-between gap-6" style="border-color:var(--pos);background:rgba(62,122,78,0.04);">
+    <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit</span>
+    <div class="flex items-center gap-8">
+      <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ "%.2f"|format(net_cur) }}</span>
+      <span class="num ink-3 text-sm">Prior: {{ "%.2f"|format(net_pri) }}</span>
+    </div>
+  </div>
+  {% else %}
+  <div class="card p-5 flex items-center justify-between gap-6" style="border-color:var(--neg);background:rgba(161,67,51,0.04);">
+    <span class="text-sm font-semibold" style="color:var(--neg);">Net Loss</span>
+    <div class="flex items-center gap-8">
+      <span class="font-display text-2xl num-display" style="color:var(--neg);">{{ "%.2f"|format(net_cur) }}</span>
+      <span class="num ink-3 text-sm">Prior: {{ "%.2f"|format(net_pri) }}</span>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+{% else %}
+{# ── Single-column rendering — unchanged from original ── #}
 {% set income = report.get("income", {}) %}
 {% set expenses = report.get("expenses", {}) %}
 {% set net_profit = report.get("net_profit", 0) | float %}
@@ -145,6 +265,8 @@
   {% endif %}
 
 </div>
+{% endif %}
+
 {% elif not error %}
 <p class="text-sm ink-3 font-mono">— no data —</p>
 {% endif %}
