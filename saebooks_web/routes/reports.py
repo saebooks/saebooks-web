@@ -1247,3 +1247,56 @@ async def revenue_by_customer(
         else "reports/revenue_by_customer.html"
     )
     return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+@router.get("/reports/statement-pack/pdf", response_model=None)
+async def statement_pack_pdf(
+    request: Request,
+    as_of_date: str | None = None,
+    from_date: str | None = None,
+    to_date: str | None = None,
+    comparative: bool = True,
+) -> "Response | RedirectResponse":
+    """Proxy the statement pack PDF from the API.
+
+    Forwards query params to ``/api/v1/reports/statement_pack.pdf`` and
+    streams the PDF bytes back with the correct content-type and
+    content-disposition headers.  Pattern mirrors ``quote_pdf`` in
+    ``saebooks_web.routes.quotes``.
+    """
+    from fastapi import HTTPException
+    from fastapi.responses import Response
+
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    params: dict[str, str] = {}
+    if as_of_date:
+        params["as_of_date"] = as_of_date
+    if from_date:
+        params["from_date"] = from_date
+    if to_date:
+        params["to_date"] = to_date
+    params["comparative"] = "true" if comparative else "false"
+
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/reports/statement_pack.pdf", params=params)
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        raise HTTPException(404, detail="Statement pack not found")
+    if resp.status_code != 200:
+        raise HTTPException(resp.status_code, detail=f"Upstream returned {resp.status_code}")
+
+    return Response(
+        content=resp.content,
+        media_type=resp.headers.get("content-type", "application/pdf"),
+        headers={
+            "Content-Disposition": resp.headers.get(
+                "content-disposition", 'inline; filename="statement-pack.pdf"'
+            ),
+            "Cache-Control": "private, max-age=0, must-revalidate",
+        },
+    )

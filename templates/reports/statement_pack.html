@@ -26,7 +26,13 @@
       <h1 class="font-display text-3xl leading-none tracking-tight">Financial Statement Pack</h1>
       <p class="text-xs ink-3 font-mono mt-2">{{ from_date }} → {{ to_date }} · as at {{ as_of_date }}</p>
     </div>
-    <button type="button" onclick="window.print()" class="btn-secondary text-sm no-print">Print / Save PDF</button>
+    <div class="flex gap-2 no-print">
+      <button type="button" onclick="window.print()" class="btn-secondary text-sm">Print / Save PDF</button>
+      <a href="/reports/statement-pack/pdf?as_of_date={{ as_of_date }}&from_date={{ from_date }}&to_date={{ to_date }}&comparative={{ 'true' if comparative else 'false' }}"
+         class="btn-secondary text-sm"
+         target="_blank"
+         rel="noopener noreferrer">Download PDF</a>
+    </div>
   </div>
   <div class="drafting mt-4"></div>
 </header>
