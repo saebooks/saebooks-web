@@ -50,6 +50,10 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
+      {% if contact.contact_type in ("CUSTOMER", "BOTH") %}
+      <a href="/contacts/{{ contact.id }}/statement/pdf" target="_blank" rel="noopener"
+         class="btn-secondary text-sm">Statement PDF</a>
+      {% endif %}
       <a href="/contacts/{{ contact.id }}/edit" class="btn-secondary text-sm">Edit</a>
       {% if not contact.archived_at %}
       <form method="post" action="/contacts/{{ contact.id }}/archive"
