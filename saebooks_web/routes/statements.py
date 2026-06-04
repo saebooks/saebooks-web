@@ -1,4 +1,4 @@
-"""Supplier statement reconciliation views — Gitea #28, Phase 1-3.
+"""Supplier statement reconciliation views — Gitea #28, Phase 1-4.
 
 Route map
 ---------
@@ -8,17 +8,21 @@ POST /statements/ingest                   — ingest a Paperless doc → redirec
 POST /statements/{id}/draft-missing-bill  — draft a bill from a missing line
 POST /statements/{id}/dismiss             — dismiss the statement
 POST /statements/{id}/confirm             — confirm / mark reviewed
+POST /statements/{id}/template            — add an extraction template for this supplier
 
 Route ordering: /statements/ingest MUST be declared before /statements/{id}
 so FastAPI resolves the literal path first.
 
 API endpoints consumed:
 - GET  /api/v1/statements?status=&limit=&offset=
+- GET  /api/v1/statements?contact_id=<uuid>         (sibling history)
 - GET  /api/v1/statements/{id}
 - POST /api/v1/statements/ingest                 body: {"paperless_document_id": int}
 - POST /api/v1/statements/{id}/draft-missing-bill body: {"line_id": "<uuid>"}
 - POST /api/v1/statements/{id}/dismiss
 - POST /api/v1/statements/{id}/confirm
+- POST /api/v1/statement-templates               body: {contact_id, supplier_abn, supplier_name,
+                                                        prompt_hint, page_scope?}
 
 Auth guard: redirect to /login (303) if no session token.
 
@@ -350,6 +354,82 @@ async def statements_confirm(
 
 
 # ---------------------------------------------------------------------------
+# POST /statements/{id}/template — add an extraction template
+# NOTE: MUST appear before /statements/{id}
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/statements/{statement_id}/template",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def statements_add_template(
+    request: Request,
+    statement_id: str,
+) -> RedirectResponse:
+    """Create an extraction template for this statement's supplier.
+
+    Reads ``prompt_hint`` (required) and optional ``page_scope`` from the form.
+    Uses the statement's ``contact_id``, ``supplier_abn``, and ``supplier_name``
+    as match keys when creating the template via the API.
+
+    On success flashes a message instructing the user to re-ingest and redirects
+    back to the detail page.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    prompt_hint = str(form_data.get("prompt_hint", "")).strip()
+    page_scope_raw = str(form_data.get("page_scope", "")).strip()
+
+    if not prompt_hint:
+        request.session["flash"] = "Prompt hint is required."
+        return RedirectResponse(url=f"/statements/{statement_id}", status_code=303)
+
+    # Fetch the statement so we can pass contact_id / abn / name as match keys.
+    statement: dict = {}
+    async with api_client(request) as client:
+        stmt_resp = await client.get(f"/api/v1/statements/{statement_id}")
+        if stmt_resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if stmt_resp.is_success:
+            statement = stmt_resp.json()
+
+    payload: dict = {"prompt_hint": prompt_hint}
+    if statement.get("contact_id"):
+        payload["contact_id"] = statement["contact_id"]
+    if statement.get("supplier_abn"):
+        payload["supplier_abn"] = statement["supplier_abn"]
+    if statement.get("supplier_name"):
+        payload["supplier_name"] = statement["supplier_name"]
+    if page_scope_raw:
+        payload["page_scope"] = page_scope_raw
+
+    async with api_client(request) as client:
+        resp = await client.post("/api/v1/statement-templates", json=payload)
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code in (200, 201):
+        request.session["flash"] = (
+            "Template saved — re-ingest this statement to apply it."
+        )
+        return RedirectResponse(url=f"/statements/{statement_id}", status_code=303)
+
+    try:
+        msg = resp.json().get("detail", f"Template save failed: HTTP {resp.status_code}")
+    except Exception:  # noqa: BLE001
+        msg = f"Template save failed: HTTP {resp.status_code}"
+    request.session["flash"] = str(msg)
+    return RedirectResponse(url=f"/statements/{statement_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
 # GET /statements/{id} — recon detail
 # NOTE: MUST appear after all /statements/{id}/… routes
 # ---------------------------------------------------------------------------
@@ -360,13 +440,19 @@ async def statements_detail(
     request: Request,
     statement_id: str,
 ) -> HTMLResponse | RedirectResponse:
-    """Render the reconciliation detail for a single supplier statement."""
+    """Render the reconciliation detail for a single supplier statement.
+
+    Also fetches sibling statements for the same contact (recon history) and
+    extraction templates for this supplier when a contact_id is present.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     error: str | None = None
     statement: dict | None = None
     lines: list[dict] = []
+    sibling_statements: list[dict] = []
+    supplier_templates: list[dict] = []
 
     async with api_client(request) as client:
         resp = await client.get(f"/api/v1/statements/{statement_id}")
@@ -382,6 +468,8 @@ async def statements_detail(
                         "request": request,
                         "statement": None,
                         "lines": [],
+                        "sibling_statements": [],
+                        "supplier_templates": [],
                         "error": "Statement not found.",
                         "flash": None,
                     }
@@ -395,6 +483,35 @@ async def statements_detail(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+        # Fetch sibling statements and templates if we have a contact_id.
+        if statement and statement.get("contact_id"):
+            contact_id = statement["contact_id"]
+
+            # Sibling statements — exclude the current one in the template layer.
+            siblings_resp = await client.get(
+                "/api/v1/statements",
+                params={"contact_id": contact_id, "limit": 50},
+            )
+            if siblings_resp.is_success:
+                payload = siblings_resp.json()
+                all_siblings: list[dict] = payload.get("items", [])
+                sibling_statements = [
+                    s for s in all_siblings if s.get("id") != statement_id
+                ]
+
+            # Extraction templates for this supplier.
+            tmpl_resp = await client.get(
+                "/api/v1/statement-templates",
+                params={"contact_id": contact_id},
+            )
+            if tmpl_resp.is_success:
+                tmpl_payload = tmpl_resp.json()
+                supplier_templates = (
+                    tmpl_payload.get("items", tmpl_payload)
+                    if isinstance(tmpl_payload, dict)
+                    else tmpl_payload
+                )
+
     flash = request.session.pop("flash", None)
 
     return _TEMPLATES.TemplateResponse(
@@ -403,6 +520,8 @@ async def statements_detail(
         {
             "statement": statement,
             "lines": lines,
+            "sibling_statements": sibling_statements,
+            "supplier_templates": supplier_templates,
             "error": error,
             "flash": flash,
         },

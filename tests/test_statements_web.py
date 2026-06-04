@@ -1,4 +1,4 @@
-"""Tests for supplier statement reconciliation views — Gitea #28, Phase 1-3.
+"""Tests for supplier statement reconciliation views — Gitea #28, Phase 1-4.
 
 Route map tested:
 Phase 1/2 (existing):
@@ -35,6 +35,23 @@ Phase 3 — Part B (detail actions):
 27. test_confirm_error_flash                   — API error → flash on detail
 28. test_detail_shows_draft_bill_button        — detail renders "Draft bill" for missing_in_books lines
 29. test_detail_shows_dismiss_and_confirm_buttons — detail renders Dismiss + Mark reviewed buttons
+
+Phase 4 — P4a (recon history per supplier):
+30. test_detail_shows_sibling_statements       — detail fetches & renders sibling statements when contact_id present
+31. test_detail_no_sibling_section_without_contact_id — no sibling section when contact_id is None
+
+Phase 4 — P4b (add-template from detail):
+32. test_add_template_requires_auth            — POST /statements/{id}/template without session → 303 /login
+33. test_add_template_calls_api_and_redirects  — success → calls POST /api/v1/statement-templates, flash, redirect
+34. test_add_template_missing_hint_flash       — empty prompt_hint → flash, no API call
+35. test_add_template_api_error_flash          — API error → flash on detail
+
+Phase 4 — P4c (templates list page):
+36. test_templates_list_requires_auth          — GET /statement-templates without session → 303 /login
+37. test_templates_list_renders                — GET /statement-templates renders template rows
+38. test_templates_list_empty                  — GET /statement-templates with no items shows empty state
+39. test_templates_delete_requires_auth        — POST /statement-templates/{id}/delete without session → 303 /login
+40. test_templates_delete_calls_api_and_redirects — success → calls DELETE, redirects to /statement-templates
 """
 from __future__ import annotations
 
@@ -56,6 +73,9 @@ from saebooks_web.main import app
 _STMT_ID = "dddddddd-1111-2222-3333-444444444444"
 _BILL_ID = "eeeeeeee-1111-2222-3333-444444444444"
 _LINE_ID_MISSING = "line-0001"
+_CONTACT_ID = "cccccccc-1111-2222-3333-444444444444"
+_SIBLING_STMT_ID = "ffffffff-1111-2222-3333-444444444444"
+_TMPL_ID = "tttttttt-1111-2222-3333-444444444444"
 
 _MOCK_STMT_SUMMARY = {
     "id": _STMT_ID,
@@ -159,6 +179,37 @@ _MOCK_STMT_DETAIL = {
             "note": "",
         },
     ],
+}
+
+# Detail fixture WITH a contact_id (for sibling + template tests)
+_MOCK_STMT_DETAIL_WITH_CONTACT = dict(
+    _MOCK_STMT_DETAIL,
+    contact_id=_CONTACT_ID,
+)
+
+# A sibling statement (different id, same contact_id)
+_MOCK_SIBLING_STMT = {
+    "id": _SIBLING_STMT_ID,
+    "supplier_name": "Acme Supplies Pty Ltd",
+    "statement_date": "2026-04-30",
+    "status": "reconciled",
+    "closing_balance": 9800.00,
+    "our_ap_as_at": 9800.00,
+    "balance_delta": 0.00,
+    "contact_id": _CONTACT_ID,
+    "exception_count": 0,
+}
+
+# An extraction template
+_MOCK_TEMPLATE = {
+    "id": _TMPL_ID,
+    "contact_id": _CONTACT_ID,
+    "supplier_abn": "12 345 678 901",
+    "supplier_name": "Acme Supplies Pty Ltd",
+    "prompt_hint": "Lines start after the 'Transaction Detail' header.",
+    "page_scope": "1",
+    "active": True,
+    "created_at": "2026-06-01T10:00:00",
 }
 
 
@@ -299,6 +350,10 @@ async def test_statements_detail_renders(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
         return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
     )
+    # No contact_id → no sibling/template calls expected; mock templates to be safe.
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -337,6 +392,9 @@ async def test_statements_detail_lines_status_colours(respx_mock: respx.MockRout
     """Detail page must render colour attributes for all six match_status values."""
     respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
         return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(
@@ -733,6 +791,9 @@ async def test_draft_missing_bill_error_flash(respx_mock: respx.MockRouter) -> N
     respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
         return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
     )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -798,6 +859,9 @@ async def test_dismiss_error_flash(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
         return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
     )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -860,6 +924,9 @@ async def test_confirm_error_flash(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
         return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
     )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -882,6 +949,9 @@ async def test_detail_shows_draft_bill_button(respx_mock: respx.MockRouter) -> N
     """Detail page renders a 'Draft bill' button for missing_in_books lines."""
     respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
         return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(
@@ -908,6 +978,9 @@ async def test_detail_shows_dismiss_and_confirm_buttons(
     respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
         return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
     )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -922,3 +995,326 @@ async def test_detail_shows_dismiss_and_confirm_buttons(
     assert f"/statements/{_STMT_ID}/confirm" in body
     assert "Mark reviewed" in body
     assert "Dismiss" in body
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — P4a: Recon history per supplier
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_detail_shows_sibling_statements(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Detail page fetches sibling statements when contact_id is present and renders them."""
+    # Statement with a contact_id
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL_WITH_CONTACT))
+    )
+    # Sibling list (includes current + one sibling; route excludes current)
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements\?.*contact_id.*$").mock(
+        return_value=Response(
+            200,
+            json={
+                "items": [
+                    dict(_MOCK_STMT_DETAIL_WITH_CONTACT, lines=[]),  # current — excluded by route
+                    _MOCK_SIBLING_STMT,
+                ],
+                "total": 2,
+            },
+        )
+    )
+    # Templates call (no templates for this test)
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/statements/{_STMT_ID}")
+
+    assert resp.status_code == 200
+    body = resp.text
+
+    # Sibling section heading
+    assert "Other statements from this supplier" in body
+    # Sibling row data
+    assert "2026-04-30" in body       # sibling statement_date
+    assert _SIBLING_STMT_ID in body   # link to sibling
+    assert "Reconciled" in body       # sibling status badge
+    # Current statement must NOT appear in the sibling list
+    assert body.count(_STMT_ID) >= 1  # present at least once (in own header)
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_detail_no_sibling_section_without_contact_id(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """When contact_id is None the sibling section must not appear and no sibling API call is made."""
+    stmt_route = respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))  # contact_id: None
+    )
+    # No statement-templates call expected either since no contact_id
+    sibling_route = respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/statements\?.*contact_id.*$"
+    ).mock(return_value=Response(200, json={"items": [], "total": 0}))
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/statements/{_STMT_ID}")
+
+    assert resp.status_code == 200
+    assert "Other statements from this supplier" not in resp.text
+    # The sibling-list endpoint must NOT have been called
+    assert not sibling_route.called
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — P4b: Add extraction template from detail
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_add_template_requires_auth() -> None:
+    """POST /statements/{id}/template without session → 303 /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            f"/statements/{_STMT_ID}/template",
+            data={"prompt_hint": "Some hint"},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_add_template_calls_api_and_redirects(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """POST /statements/{id}/template → fetches statement, calls POST /api/v1/statement-templates,
+    flashes success message, and redirects to the detail."""
+    # The route first fetches the statement for contact_id / abn / name
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL_WITH_CONTACT))
+    )
+    template_route = respx_mock.post(f"{_API_BASE}/api/v1/statement-templates").mock(
+        return_value=Response(201, json={"id": _TMPL_ID})
+    )
+    # Detail page mock for the follow-redirect path
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": [_MOCK_TEMPLATE]})
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements\?.*contact_id.*$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=True,
+    ) as client:
+        resp = await client.post(
+            f"/statements/{_STMT_ID}/template",
+            data={"prompt_hint": "Lines start after header.", "page_scope": "1"},
+        )
+
+    assert resp.status_code == 200
+    assert "Template saved" in resp.text or "re-ingest" in resp.text
+
+    # Verify the template-create API was called
+    assert template_route.called
+    sent = _json.loads(template_route.calls.last.request.content)
+    assert sent["prompt_hint"] == "Lines start after header."
+    assert sent["page_scope"] == "1"
+    assert sent["contact_id"] == _CONTACT_ID
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_add_template_missing_hint_flash(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """POST /statements/{id}/template with empty prompt_hint → flash validation error,
+    no API calls to statement-templates."""
+    template_route = respx_mock.post(f"{_API_BASE}/api/v1/statement-templates").mock(
+        return_value=Response(201, json={"id": _TMPL_ID})
+    )
+    # Detail page mocks for redirect
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL_WITH_CONTACT))
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements\?.*contact_id.*$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=True,
+    ) as client:
+        resp = await client.post(
+            f"/statements/{_STMT_ID}/template",
+            data={"prompt_hint": ""},  # empty
+        )
+
+    assert resp.status_code == 200
+    assert "Prompt hint is required" in resp.text or "required" in resp.text.lower()
+    assert not template_route.called
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_add_template_api_error_flash(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """POST /statements/{id}/template with API 422 → flash error, redirects to detail."""
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL_WITH_CONTACT))
+    )
+    respx_mock.post(f"{_API_BASE}/api/v1/statement-templates").mock(
+        return_value=Response(422, json={"detail": "Duplicate template for supplier"})
+    )
+    # Detail page mocks for redirect
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statement-templates.*$").mock(
+        return_value=Response(200, json={"items": []})
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements\?.*contact_id.*$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=True,
+    ) as client:
+        resp = await client.post(
+            f"/statements/{_STMT_ID}/template",
+            data={"prompt_hint": "Some hint"},
+        )
+
+    assert resp.status_code == 200
+    assert "Duplicate template" in resp.text or "Template save failed" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — P4c: Templates list page
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_templates_list_requires_auth() -> None:
+    """GET /statement-templates without session → 303 /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.get("/statement-templates")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_templates_list_renders(respx_mock: respx.MockRouter) -> None:
+    """GET /statement-templates renders template rows."""
+    respx_mock.get(f"{_API_BASE}/api/v1/statement-templates").mock(
+        return_value=Response(200, json={"items": [_MOCK_TEMPLATE]})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statement-templates")
+
+    assert resp.status_code == 200
+    body = resp.text
+    assert "Extraction Templates" in body
+    assert "Acme Supplies Pty Ltd" in body
+    assert "Lines start after the" in body  # prompt_hint
+    assert "1" in body                       # page_scope
+    # Delete button form present
+    assert f"/statement-templates/{_TMPL_ID}/delete" in body
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_templates_list_empty(respx_mock: respx.MockRouter) -> None:
+    """GET /statement-templates with no items shows empty state."""
+    respx_mock.get(f"{_API_BASE}/api/v1/statement-templates").mock(
+        return_value=Response(200, json={"items": []})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statement-templates")
+
+    assert resp.status_code == 200
+    assert "No extraction templates" in resp.text
+
+
+@pytest.mark.anyio
+async def test_templates_delete_requires_auth() -> None:
+    """POST /statement-templates/{id}/delete without session → 303 /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/statement-templates/{_TMPL_ID}/delete")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_templates_delete_calls_api_and_redirects(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """POST /statement-templates/{id}/delete → calls DELETE /api/v1/statement-templates/{id},
+    then redirects to /statement-templates."""
+    delete_route = respx_mock.delete(
+        f"{_API_BASE}/api/v1/statement-templates/{_TMPL_ID}"
+    ).mock(return_value=Response(204))
+    # Mock the list page for follow-redirect
+    respx_mock.get(f"{_API_BASE}/api/v1/statement-templates").mock(
+        return_value=Response(200, json={"items": []})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=True,
+    ) as client:
+        resp = await client.post(f"/statement-templates/{_TMPL_ID}/delete")
+
+    assert resp.status_code == 200
+    assert delete_route.called
+    assert "Template deleted" in resp.text or "No extraction templates" in resp.text

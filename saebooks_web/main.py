@@ -106,6 +106,7 @@ from saebooks_web.routes.proration import router as proration_router
 from saebooks_web.routes.purchase_orders import router as purchase_orders_router
 from saebooks_web.routes.reconciliation import router as reconciliation_router
 from saebooks_web.routes.statements import router as statements_router
+from saebooks_web.routes.statement_templates import router as statement_templates_router
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.search import router as search_router
@@ -349,6 +350,7 @@ app.include_router(branches_router)
 app.include_router(bank_statement_lines_router)
 app.include_router(reconciliation_router)
 app.include_router(statements_router)
+app.include_router(statement_templates_router)
 app.include_router(budgets_router)
 app.include_router(allocations_router)
 app.include_router(reports_router)
