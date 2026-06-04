@@ -83,6 +83,13 @@
     {{ csrf_input(request)|safe }}
 
       <input type="hidden" name="version" value="{{ entry.version }}">
+      <input
+        type="text"
+        name="override_reason"
+        placeholder="Override reason (only to post into a locked period)"
+        class="rounded-md border border-gray-300 px-2 py-1 text-xs w-72 align-middle"
+        title="Required to post into a period-locked range (year-end adjustment, BAS amendment). Leave blank for normal posting."
+      >
       <button
         type="submit"
         class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white

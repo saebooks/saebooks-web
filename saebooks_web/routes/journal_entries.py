@@ -760,16 +760,26 @@ async def journal_entry_post(
 
     form_data = await request.form()
     version = str(form_data.get("version", ""))
+    override_reason = str(form_data.get("override_reason", "")).strip()
     idempotency_key = str(uuid.uuid4())
 
+    headers = {"If-Match": version, "X-Idempotency-Key": idempotency_key}
     async with api_client(request) as client:
-        resp = await client.post(
-            f"/api/v1/journal_entries/{entry_id}/post",
-            headers={
-                "If-Match": version,
-                "X-Idempotency-Key": idempotency_key,
-            },
-        )
+        # Only send a JSON body when an override reason is supplied — keeps the
+        # ordinary (unlocked-period) post path byte-identical. override_reason
+        # is required by the API to post into a period-locked range (F-04);
+        # the API resolves actor_role from the session itself.
+        if override_reason:
+            resp = await client.post(
+                f"/api/v1/journal_entries/{entry_id}/post",
+                headers=headers,
+                json={"override_reason": override_reason},
+            )
+        else:
+            resp = await client.post(
+                f"/api/v1/journal_entries/{entry_id}/post",
+                headers=headers,
+            )
 
     if resp.status_code == 401:
         request.session.clear()
