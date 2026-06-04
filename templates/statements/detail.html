@@ -46,16 +46,47 @@
         {% if statement.customer_ref %}· Ref {{ statement.customer_ref }}{% endif %}
       </p>
     </div>
-    <div>
+
+    {# ── Status badge + action buttons ── #}
+    <div class="flex items-center gap-2 flex-wrap justify-end">
       {% set s = (statement.status or "") | lower %}
       {% if s == "reconciled" %}
         <span class="badge-ok text-sm px-3 py-1">Reconciled</span>
+      {% elif s == "needs_review" %}
+        <span class="badge-warn text-sm px-3 py-1">Needs Review</span>
+      {% elif s == "extracted" %}
+        <span class="badge-draft text-sm px-3 py-1">Extracted</span>
+      {% elif s == "dismissed" %}
+        <span class="badge-ink text-sm px-3 py-1">Dismissed</span>
       {% elif s == "exception" %}
         <span class="badge-warn text-sm px-3 py-1">Exception</span>
       {% elif s == "pending" %}
         <span class="badge-draft text-sm px-3 py-1">Pending</span>
       {% else %}
         <span class="badge-ink text-sm px-3 py-1">{{ statement.status | default("—") }}</span>
+      {% endif %}
+
+      {# Confirm / Mark reviewed button — available when not already reconciled #}
+      {% if s not in ("reconciled", "dismissed") %}
+      <form method="POST" action="/statements/{{ statement.id }}/confirm" class="inline">
+        {{ csrf_input(request)|safe }}
+        <button type="submit" class="btn-primary text-sm"
+                style="background:var(--pos);border-color:var(--pos);">
+          Mark reviewed
+        </button>
+      </form>
+      {% endif %}
+
+      {# Dismiss button — available when not already dismissed #}
+      {% if s != "dismissed" %}
+      <form method="POST" action="/statements/{{ statement.id }}/dismiss" class="inline"
+            onsubmit="return confirm('Dismiss this statement? It will be hidden from the default queue.');">
+        {{ csrf_input(request)|safe }}
+        <button type="submit" class="btn-secondary text-sm"
+                style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
+          Dismiss
+        </button>
+      </form>
       {% endif %}
     </div>
   </div>
@@ -177,6 +208,7 @@
         <th class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Description</th>
         <th class="px-3 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Amount</th>
         <th class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Note</th>
+        <th class="px-3 py-3 text-[10px] font-mono uppercase tracking-wider ink-3">Action</th>
       </tr>
     </thead>
     <tbody>
@@ -277,11 +309,29 @@
           <td class="px-3 py-3 text-xs ink-3 max-w-[200px] truncate">
             {{ line.note | default("") }}
           </td>
+
+          <td class="px-3 py-3">
+            {# Draft Bill button — only for missing_in_books lines #}
+            {% if ms == "missing_in_books" %}
+            <form method="POST" action="/statements/{{ statement.id }}/draft-missing-bill" class="inline">
+              {{ csrf_input(request)|safe }}
+              <input type="hidden" name="line_id" value="{{ line.id }}">
+              <button type="submit"
+                      class="text-xs font-mono px-2 py-1 rounded border transition-colors"
+                      style="background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4);color:#f87171;"
+                      title="Draft a new bill from this missing line">
+                Draft bill
+              </button>
+            </form>
+            {% else %}
+            <span class="ink-4">—</span>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="7" class="px-4 py-10 text-center ink-4 text-sm">
+          <td colspan="8" class="px-4 py-10 text-center ink-4 text-sm">
             No lines found on this statement.
           </td>
         </tr>

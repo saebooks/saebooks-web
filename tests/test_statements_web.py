@@ -1,6 +1,7 @@
-"""Tests for supplier statement reconciliation views — Gitea #28, Phase 1.
+"""Tests for supplier statement reconciliation views — Gitea #28, Phase 1-3.
 
 Route map tested:
+Phase 1/2 (existing):
 1.  test_statements_queue_requires_auth        — 303 → /login without session
 2.  test_statements_queue_renders              — renders statements table
 3.  test_statements_queue_empty                — empty state message shown
@@ -12,6 +13,28 @@ Route map tested:
 9.  test_statements_ingest_calls_api_and_redirects — success → 303 to detail
 10. test_statements_ingest_error_flash         — API error → 303 to queue with flash
 11. test_statements_ingest_invalid_id          — non-numeric doc id → flash, no API call
+
+Phase 3 — Part A (queue default filter):
+12. test_statements_queue_default_excludes_reconciled   — default view hides reconciled
+13. test_statements_queue_default_excludes_dismissed    — default view hides dismissed
+14. test_statements_queue_default_shows_needs_review    — default view shows needs_review
+15. test_statements_queue_default_shows_extracted       — default view shows extracted
+16. test_statements_queue_all_tab_shows_everything      — ?status=all shows all statuses
+17. test_statements_queue_reconciled_tab                — ?status=reconciled passes through to API
+18. test_statements_queue_dismissed_tab                 — ?status=dismissed passes through to API
+
+Phase 3 — Part B (detail actions):
+19. test_draft_missing_bill_requires_auth      — POST without session → 303 /login
+20. test_draft_missing_bill_calls_api_redirects_to_bills — success → 303 to /bills/{bill_id}
+21. test_draft_missing_bill_error_flash        — API error → flash on detail
+22. test_dismiss_requires_auth                 — POST without session → 303 /login
+23. test_dismiss_calls_api_redirects_to_queue  — success → 303 to /statements
+24. test_dismiss_error_flash                   — API error → flash on detail
+25. test_confirm_requires_auth                 — POST without session → 303 /login
+26. test_confirm_calls_api_redirects_to_detail — success → 303 to /statements/{id}
+27. test_confirm_error_flash                   — API error → flash on detail
+28. test_detail_shows_draft_bill_button        — detail renders "Draft bill" for missing_in_books lines
+29. test_detail_shows_dismiss_and_confirm_buttons — detail renders Dismiss + Mark reviewed buttons
 """
 from __future__ import annotations
 
@@ -32,6 +55,7 @@ from saebooks_web.main import app
 
 _STMT_ID = "dddddddd-1111-2222-3333-444444444444"
 _BILL_ID = "eeeeeeee-1111-2222-3333-444444444444"
+_LINE_ID_MISSING = "line-0001"
 
 _MOCK_STMT_SUMMARY = {
     "id": _STMT_ID,
@@ -45,6 +69,12 @@ _MOCK_STMT_SUMMARY = {
     "exception_count": 2,
 }
 
+# Variants for the multi-status filter tests
+_MOCK_STMT_NEEDS_REVIEW = dict(_MOCK_STMT_SUMMARY, status="needs_review")
+_MOCK_STMT_EXTRACTED = dict(_MOCK_STMT_SUMMARY, status="extracted")
+_MOCK_STMT_RECONCILED = dict(_MOCK_STMT_SUMMARY, status="reconciled")
+_MOCK_STMT_DISMISSED = dict(_MOCK_STMT_SUMMARY, status="dismissed")
+
 _MOCK_STMT_DETAIL = {
     "id": _STMT_ID,
     "supplier_name": "Acme Supplies Pty Ltd",
@@ -55,7 +85,7 @@ _MOCK_STMT_DETAIL = {
     "opening_balance": 5000.00,
     "closing_balance": 12345.67,
     "currency": "AUD",
-    "status": "pending",
+    "status": "needs_review",
     "our_ap_as_at": 11245.67,
     "balance_delta": 1100.00,
     "contact_id": None,
@@ -63,7 +93,7 @@ _MOCK_STMT_DETAIL = {
     "extraction_meta": None,
     "lines": [
         {
-            "id": "line-0001",
+            "id": _LINE_ID_MISSING,
             "line_date": "2026-05-01",
             "line_type": "INVOICE",
             "reference": "INV-9999",
@@ -171,7 +201,7 @@ async def test_statements_queue_requires_auth() -> None:
 async def test_statements_queue_renders(respx_mock: respx.MockRouter) -> None:
     """GET /statements renders the queue table with statement rows."""
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements.*$").mock(
-        return_value=Response(200, json={"items": [_MOCK_STMT_SUMMARY], "total": 1})
+        return_value=Response(200, json={"items": [_MOCK_STMT_NEEDS_REVIEW], "total": 1})
     )
 
     async with AsyncClient(
@@ -211,7 +241,7 @@ async def test_statements_queue_empty(respx_mock: respx.MockRouter) -> None:
         resp = await client.get("/statements")
 
     assert resp.status_code == 200
-    assert "No statements found" in resp.text
+    assert "No statements" in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -376,7 +406,7 @@ async def test_statements_ingest_calls_api_and_redirects(respx_mock: respx.MockR
     """POST /statements/ingest with valid doc_id → calls /api/v1/statements/ingest,
     then redirects (303) to /statements/{new_id}."""
     respx_mock.post(f"{_API_BASE}/api/v1/statements/ingest").mock(
-        return_value=Response(201, json={"id": _STMT_ID, "status": "pending"})
+        return_value=Response(201, json={"id": _STMT_ID, "status": "needs_review"})
     )
 
     async with AsyncClient(
@@ -463,3 +493,432 @@ async def test_statements_ingest_invalid_id(respx_mock: respx.MockRouter) -> Non
     assert "Invalid document ID" in resp.text
     # API ingest must not have been called
     assert len(ingest_route.calls) == 0
+
+
+# ---------------------------------------------------------------------------
+# Part A — Queue default filter (Phase 3)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_statements_queue_default_excludes_reconciled(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Default queue view (no ?status) must NOT show reconciled statements."""
+    reconciled = dict(_MOCK_STMT_RECONCILED, supplier_name="Reconciled Supplier")
+    needs_review = dict(_MOCK_STMT_NEEDS_REVIEW, supplier_name="Needs Review Supplier")
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements.*$").mock(
+        return_value=Response(200, json={"items": [reconciled, needs_review], "total": 2})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statements")  # no ?status=
+
+    assert resp.status_code == 200
+    body = resp.text
+    assert "Reconciled Supplier" not in body, "reconciled should be filtered out of default view"
+    assert "Needs Review Supplier" in body
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_statements_queue_default_excludes_dismissed(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Default queue view (no ?status) must NOT show dismissed statements."""
+    dismissed = dict(_MOCK_STMT_DISMISSED, supplier_name="Dismissed Supplier")
+    extracted = dict(_MOCK_STMT_EXTRACTED, supplier_name="Extracted Supplier")
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements.*$").mock(
+        return_value=Response(200, json={"items": [dismissed, extracted], "total": 2})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statements")
+
+    assert resp.status_code == 200
+    body = resp.text
+    assert "Dismissed Supplier" not in body, "dismissed should be filtered out of default view"
+    assert "Extracted Supplier" in body
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_statements_queue_default_shows_needs_review(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Default queue view shows needs_review statements."""
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements.*$").mock(
+        return_value=Response(200, json={"items": [_MOCK_STMT_NEEDS_REVIEW], "total": 1})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statements")
+
+    assert resp.status_code == 200
+    assert "Acme Supplies Pty Ltd" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_statements_queue_default_shows_extracted(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Default queue view shows extracted statements."""
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements.*$").mock(
+        return_value=Response(200, json={"items": [_MOCK_STMT_EXTRACTED], "total": 1})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statements")
+
+    assert resp.status_code == 200
+    assert "Acme Supplies Pty Ltd" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_statements_queue_all_tab_shows_everything(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """?status=all tab shows all statements regardless of status."""
+    reconciled = dict(_MOCK_STMT_RECONCILED, supplier_name="Reconciled Supplier")
+    dismissed = dict(_MOCK_STMT_DISMISSED, supplier_name="Dismissed Supplier")
+    needs_review = dict(_MOCK_STMT_NEEDS_REVIEW, supplier_name="Needs Review Supplier")
+    all_items = [reconciled, dismissed, needs_review]
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements.*$").mock(
+        return_value=Response(200, json={"items": all_items, "total": 3})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statements?status=all")
+
+    assert resp.status_code == 200
+    body = resp.text
+    assert "Reconciled Supplier" in body
+    assert "Dismissed Supplier" in body
+    assert "Needs Review Supplier" in body
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_statements_queue_reconciled_tab(respx_mock: respx.MockRouter) -> None:
+    """?status=reconciled passes the status param to the API."""
+    api_route = respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements.*$").mock(
+        return_value=Response(200, json={"items": [_MOCK_STMT_RECONCILED], "total": 1})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statements?status=reconciled")
+
+    assert resp.status_code == 200
+    # Verify the API was called with status=reconciled
+    assert api_route.called
+    request_url = str(api_route.calls.last.request.url)
+    assert "status=reconciled" in request_url
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_statements_queue_dismissed_tab(respx_mock: respx.MockRouter) -> None:
+    """?status=dismissed passes the status param to the API."""
+    api_route = respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/statements.*$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/statements?status=dismissed")
+
+    assert resp.status_code == 200
+    assert api_route.called
+    request_url = str(api_route.calls.last.request.url)
+    assert "status=dismissed" in request_url
+
+
+# ---------------------------------------------------------------------------
+# Part B — Detail actions (Phase 3)
+# ---------------------------------------------------------------------------
+
+
+# --- Draft missing bill ---
+
+
+@pytest.mark.anyio
+async def test_draft_missing_bill_requires_auth() -> None:
+    """POST /statements/{id}/draft-missing-bill without session → 303 /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            f"/statements/{_STMT_ID}/draft-missing-bill",
+            data={"line_id": _LINE_ID_MISSING},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_draft_missing_bill_calls_api_redirects_to_bills(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """POST draft-missing-bill success → calls the API with line_id, redirects to /bills/{bill_id}."""
+    respx_mock.post(
+        f"{_API_BASE}/api/v1/statements/{_STMT_ID}/draft-missing-bill"
+    ).mock(
+        return_value=Response(
+            201, json={"bill_id": _BILL_ID, "statement": {"id": _STMT_ID}}
+        )
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            f"/statements/{_STMT_ID}/draft-missing-bill",
+            data={"line_id": _LINE_ID_MISSING},
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/bills/{_BILL_ID}"
+
+    # Verify API body
+    sent = _json.loads(respx_mock.calls.last.request.content)
+    assert sent == {"line_id": _LINE_ID_MISSING}
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_draft_missing_bill_error_flash(respx_mock: respx.MockRouter) -> None:
+    """POST draft-missing-bill with API 422 → flash on detail page (redirect back)."""
+    respx_mock.post(
+        f"{_API_BASE}/api/v1/statements/{_STMT_ID}/draft-missing-bill"
+    ).mock(
+        return_value=Response(422, json={"detail": "Line already billed"})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=True,
+    ) as client:
+        resp = await client.post(
+            f"/statements/{_STMT_ID}/draft-missing-bill",
+            data={"line_id": _LINE_ID_MISSING},
+        )
+
+    assert resp.status_code == 200
+    assert "Line already billed" in resp.text or "Draft bill failed" in resp.text
+
+
+# --- Dismiss ---
+
+
+@pytest.mark.anyio
+async def test_dismiss_requires_auth() -> None:
+    """POST /statements/{id}/dismiss without session → 303 /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/statements/{_STMT_ID}/dismiss")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dismiss_calls_api_redirects_to_queue(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """POST dismiss success → calls the dismiss API, redirects to /statements."""
+    respx_mock.post(f"{_API_BASE}/api/v1/statements/{_STMT_ID}/dismiss").mock(
+        return_value=Response(200, json={"id": _STMT_ID, "status": "dismissed"})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/statements/{_STMT_ID}/dismiss")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/statements"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dismiss_error_flash(respx_mock: respx.MockRouter) -> None:
+    """POST dismiss with API error → flash on detail page (redirect back)."""
+    respx_mock.post(f"{_API_BASE}/api/v1/statements/{_STMT_ID}/dismiss").mock(
+        return_value=Response(422, json={"detail": "Cannot dismiss reconciled statement"})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=True,
+    ) as client:
+        resp = await client.post(f"/statements/{_STMT_ID}/dismiss")
+
+    assert resp.status_code == 200
+    assert "Cannot dismiss" in resp.text or "Dismiss failed" in resp.text
+
+
+# --- Confirm ---
+
+
+@pytest.mark.anyio
+async def test_confirm_requires_auth() -> None:
+    """POST /statements/{id}/confirm without session → 303 /login."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/statements/{_STMT_ID}/confirm")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/login"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_confirm_calls_api_redirects_to_detail(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """POST confirm success → calls the confirm API, redirects back to /statements/{id}."""
+    respx_mock.post(f"{_API_BASE}/api/v1/statements/{_STMT_ID}/confirm").mock(
+        return_value=Response(200, json={"id": _STMT_ID, "status": "reconciled"})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/statements/{_STMT_ID}/confirm")
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/statements/{_STMT_ID}"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_confirm_error_flash(respx_mock: respx.MockRouter) -> None:
+    """POST confirm with API error → flash on detail page (redirect back)."""
+    respx_mock.post(f"{_API_BASE}/api/v1/statements/{_STMT_ID}/confirm").mock(
+        return_value=Response(422, json={"detail": "Statement has unresolved exceptions"})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=True,
+    ) as client:
+        resp = await client.post(f"/statements/{_STMT_ID}/confirm")
+
+    assert resp.status_code == 200
+    assert "Statement has unresolved" in resp.text or "Confirm failed" in resp.text
+
+
+# --- Detail button rendering ---
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_detail_shows_draft_bill_button(respx_mock: respx.MockRouter) -> None:
+    """Detail page renders a 'Draft bill' button for missing_in_books lines."""
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/statements/{_STMT_ID}")
+
+    assert resp.status_code == 200
+    body = resp.text
+    # Draft bill button form present
+    assert "draft-missing-bill" in body
+    assert f'name="line_id" value="{_LINE_ID_MISSING}"' in body
+    assert "Draft bill" in body
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_detail_shows_dismiss_and_confirm_buttons(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Detail page renders Dismiss and Mark reviewed buttons for an actionable statement."""
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+        return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/statements/{_STMT_ID}")
+
+    assert resp.status_code == 200
+    body = resp.text
+    assert f"/statements/{_STMT_ID}/dismiss" in body
+    assert f"/statements/{_STMT_ID}/confirm" in body
+    assert "Mark reviewed" in body
+    assert "Dismiss" in body

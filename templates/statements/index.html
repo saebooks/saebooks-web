@@ -54,11 +54,23 @@
   <div class="drafting mt-4"></div>
 </header>
 
-{# ── Status filter ── #}
-<form method="GET" action="/statements" class="mb-4 flex gap-2 items-center flex-wrap">
+{# ── Status filter tabs ── #}
+{#
+   status_filter values:
+     ""            → Needs attention (default — shows only needs_review + extracted)
+     "reconciled"  → Reconciled
+     "dismissed"   → Dismissed
+     "all"         → All statements
+#}
+<div class="mb-4 flex gap-2 items-center flex-wrap">
   <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Filter:</span>
-  {% set statuses = [("", "All"), ("pending", "Pending"), ("reconciled", "Reconciled"), ("exception", "Exception")] %}
-  {% for val, label in statuses %}
+  {% set tabs = [
+    ("",           "Needs attention"),
+    ("reconciled", "Reconciled"),
+    ("dismissed",  "Dismissed"),
+    ("all",        "All"),
+  ] %}
+  {% for val, label in tabs %}
   <a href="/statements{% if val %}?status={{ val }}{% endif %}"
      class="text-xs font-mono px-3 py-1 rounded-full border transition-colors
             {% if status_filter == val %}
@@ -68,7 +80,7 @@
             {% endif %}
      >{{ label }}</a>
   {% endfor %}
-</form>
+</div>
 
 {% if error %}
 <div class="rounded-lg px-4 py-3 text-sm mb-4"
@@ -108,6 +120,12 @@
             {% set s = (stmt.status or "") | lower %}
             {% if s == "reconciled" %}
               <span class="badge-ok">Reconciled</span>
+            {% elif s == "needs_review" %}
+              <span class="badge-warn">Needs Review</span>
+            {% elif s == "extracted" %}
+              <span class="badge-draft">Extracted</span>
+            {% elif s == "dismissed" %}
+              <span class="badge-ink">Dismissed</span>
             {% elif s == "exception" %}
               <span class="badge-warn">Exception</span>
             {% elif s == "pending" %}
@@ -156,8 +174,11 @@
       {% else %}
         <tr>
           <td colspan="8" class="px-4 py-10 text-center ink-4 text-sm">
-            No statements found.
-            {% if status_filter %}
+            {% if status_filter == "" %}
+              No statements need attention right now.
+              <a href="/statements?status=all" class="sae hover:underline ml-1">View all</a>
+            {% else %}
+              No statements found.
               <a href="/statements" class="sae hover:underline ml-1">Clear filter</a>
             {% endif %}
           </td>
