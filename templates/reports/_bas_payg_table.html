@@ -1,0 +1,148 @@
+{# HTMX partial — BAS / PAYG review worksheet. #}
+<div id="report-content">
+
+<div id="bas-payg-spinner" class="htmx-indicator flex items-center gap-2 text-sm ink-3 font-mono mb-4">
+  <svg class="animate-spin h-4 w-4" style="color:var(--sae);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+  </svg>
+  Loading...
+</div>
+
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+{% if report or payg %}
+<div class="space-y-4">
+
+  {# ---- GST section ---- #}
+  <div class="card overflow-hidden">
+    <div class="px-6 py-3 hairline-b" style="background:var(--sae-tint);">
+      <p class="nav-section-label sae">GST — Goods &amp; Services Tax</p>
+    </div>
+    <table class="sae-table w-full">
+      <thead>
+        <tr>
+          <th class="text-left w-20">Label</th>
+          <th class="text-left">Description</th>
+          <th class="text-right">Amount (AUD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="font-semibold ink-1">G1</td>
+          <td class="ink-2">Total sales (GST-inclusive)</td>
+          <td class="text-right num ink-1">{{ "%.2f"|format(report.get("g1_total_sales", 0) | float) }}</td>
+        </tr>
+        <tr>
+          <td class="font-semibold ink-1">G2</td>
+          <td class="ink-2">Export sales</td>
+          <td class="text-right num ink-3">{{ "%.2f"|format(report.get("g2_export_sales", 0) | float) }}</td>
+        </tr>
+        <tr>
+          <td class="font-semibold ink-1">G3</td>
+          <td class="ink-2">Other GST-free sales</td>
+          <td class="text-right num ink-1">{{ "%.2f"|format(report.get("g3_other_gst_free_sales", 0) | float) }}</td>
+        </tr>
+        <tr>
+          <td class="font-semibold ink-1">G10</td>
+          <td class="ink-2">Capital acquisitions</td>
+          <td class="text-right num ink-3">{{ "%.2f"|format(report.get("g10_capital_acquisitions", 0) | float) }}</td>
+        </tr>
+        <tr>
+          <td class="font-semibold ink-1">G11</td>
+          <td class="ink-2">Other (non-capital) acquisitions</td>
+          <td class="text-right num ink-1">{{ "%.2f"|format(report.get("g11_other_acquisitions", 0) | float) }}</td>
+        </tr>
+        <tr class="bg-paper-2"><td colspan="3" class="py-1"></td></tr>
+        <tr>
+          <td class="font-semibold sae">1A</td>
+          <td class="ink-2">GST on sales</td>
+          <td class="text-right num font-medium sae">{{ "%.2f"|format(report.get("label_1a_gst_on_sales", 0) | float) }}</td>
+        </tr>
+        <tr>
+          <td class="font-semibold sae">1B</td>
+          <td class="ink-2">GST on purchases (input tax credits)</td>
+          <td class="text-right num font-medium sae">{{ "%.2f"|format(report.get("label_1b_gst_on_purchases", 0) | float) }}</td>
+        </tr>
+        <tr style="background:var(--sae-tint);">
+          <td class="font-semibold sae hairline-t">Net GST</td>
+          <td class="sae hairline-t">1A minus 1B</td>
+          <td class="text-right num-display font-semibold sae hairline-t">{{ "%.2f"|format(net_gst) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {# ---- PAYG withholding section ---- #}
+  <div class="card overflow-hidden">
+    <div class="px-6 py-3 hairline-b flex items-center justify-between" style="background:var(--sae-tint);">
+      <p class="nav-section-label sae">PAYG Withholding — from pay-runs</p>
+      <span class="text-[10px] font-mono ink-3">{{ payg.get("pay_run_count", 0) }} pay-run(s) in period</span>
+    </div>
+    <table class="sae-table w-full">
+      <thead>
+        <tr>
+          <th class="text-left w-20">Label</th>
+          <th class="text-left">Description</th>
+          <th class="text-right">Amount (AUD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="font-semibold ink-1">W1</td>
+          <td class="ink-2">Total salary, wages and other payments (gross)</td>
+          <td class="text-right num ink-1">{{ "%.2f"|format(payg.get("w1_total_gross", 0) | float) }}</td>
+        </tr>
+        <tr style="background:var(--sae-tint);">
+          <td class="font-semibold sae hairline-t">W2</td>
+          <td class="sae hairline-t">Amount withheld from W1 payments (PAYG)</td>
+          <td class="text-right num-display font-semibold sae hairline-t">{{ "%.2f"|format(payg.get("w2_tax_withheld", 0) | float) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    {% if payg.get("pay_run_count", 0) == 0 %}
+    <div class="px-6 py-2 hairline-t">
+      <p class="text-[11px] ink-3 font-mono">No pay-runs in this period — W1/W2 are zero.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ---- Note: PAYG instalment ---- #}
+  <div class="card p-3 flex items-start gap-2" style="border-color:var(--warm);background:rgba(200,155,60,0.04);">
+    <span class="dot mt-1" style="background:var(--warm);"></span>
+    <p class="text-xs ink-2">
+      <strong>PAYG instalment (5A / T7)</strong> is not derived here — it's an income-tax pre-payment
+      set by the ATO and entered directly on the lodged BAS. Add it to the amount below if your BAS shows one.
+    </p>
+  </div>
+
+  {# ---- Amount payable to ATO ---- #}
+  {% if amount_payable >= 0 %}
+  <div class="card p-5 flex items-center justify-between" style="border-color:var(--warm);background:rgba(200,155,60,0.04);">
+    <div>
+      <span class="text-sm font-semibold" style="color:var(--warm);">Amount payable to ATO</span>
+      <p class="text-xs ink-3 mt-0.5">Net GST ({{ "%.2f"|format(net_gst) }}) + PAYG withheld ({{ "%.2f"|format(payg.get("w2_tax_withheld", 0) | float) }})</p>
+    </div>
+    <span class="font-display text-2xl num-display" style="color:var(--warm);">{{ "%.2f"|format(amount_payable) }}</span>
+  </div>
+  {% else %}
+  <div class="card p-5 flex items-center justify-between" style="border-color:var(--pos);background:rgba(62,122,78,0.04);">
+    <div>
+      <span class="text-sm font-semibold" style="color:var(--pos);">Net refund from ATO</span>
+      <p class="text-xs ink-3 mt-0.5">Net GST ({{ "%.2f"|format(net_gst) }}) + PAYG withheld ({{ "%.2f"|format(payg.get("w2_tax_withheld", 0) | float) }})</p>
+    </div>
+    <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ "%.2f"|format(amount_payable) }}</span>
+  </div>
+  {% endif %}
+
+</div>
+{% elif not error %}
+<p class="text-sm ink-3 font-mono">— no data —</p>
+{% endif %}
+
+</div>
