@@ -43,6 +43,7 @@
   </div>
   <div class="flex items-center gap-3 flex-wrap justify-end">
     {% if po.status == 'DRAFT' %}
+    <a href="/purchase_orders/{{ po.id }}/edit" class="btn-secondary text-sm">Edit</a>
     <form method="post" action="/purchase_orders/{{ po.id }}/send" class="inline"
       onsubmit="return confirm('Send this PO? It will be assigned a number and locked from edits.');">
       {{ csrf_input(request)|safe }}

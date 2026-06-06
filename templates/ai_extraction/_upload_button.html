@@ -11,7 +11,7 @@
 <div id="ai-extract-wrapper" class="mt-4">
   <button
     type="button"
-    class="text-sm text-[#194291] hover:text-[#0c2255] font-medium flex items-center gap-1"
+    class="text-sm sae hover:underline font-medium flex items-center gap-1"
     onclick="document.getElementById('ai-extract-panel').classList.toggle('hidden')"
     aria-expanded="false"
     aria-controls="ai-extract-panel"
@@ -22,8 +22,8 @@
     Extract from document
   </button>
 
-  <div id="ai-extract-panel" class="hidden mt-3 rounded-lg border border-[#194291]/20 bg-[#eaf0fa] px-4 py-4">
-    <p class="text-xs text-[#133372] mb-3">Upload a PDF, JPEG, or PNG invoice/bill and we will pre-fill the form fields.</p>
+  <div id="ai-extract-panel" class="hidden mt-3 rounded-lg px-4 py-4" style="border:1px solid var(--sae-tint);background:var(--sae-tint);">
+    <p class="text-xs sae mb-3">Upload a PDF, JPEG, or PNG invoice/bill and we will pre-fill the form fields.</p>
 
     <form
       id="ai-extract-form"
@@ -41,9 +41,9 @@
           name="document"
           accept=".pdf,.jpg,.jpeg,.png"
           required
-          class="block text-sm text-gray-700 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0
-                 file:text-sm file:font-medium file:bg-white file:text-[#133372] file:border file:border-[#194291]/30
-                 hover:file:bg-[#eaf0fa]"
+          class="block text-sm ink-2 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0
+                 file:text-sm file:font-medium file:bg-[color:var(--surface)] file:text-[color:var(--sae-2)] file:border file:border-[color:var(--sae-tint-2)]
+                 hover:file:bg-[color:var(--sae-tint)]"
         >
         <button
           type="submit"
@@ -54,7 +54,7 @@
         </button>
         <span
           id="ai-extract-spinner"
-          class="htmx-indicator text-xs text-[#194291]"
+          class="htmx-indicator text-xs sae"
         >Analysing document…</span>
       </div>
     </form>

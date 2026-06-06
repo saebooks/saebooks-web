@@ -5,19 +5,19 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-base text-amber-800 mb-6">
+<div class="rounded-md bg-[color:var(--warm-tint)] border border-[color:var(--warm)] px-4 py-3 text-base text-[color:var(--warm)] mb-6">
   {{ flash }}
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-3xl font-semibold text-gray-900">Expenses</h1>
-    <p class="text-base text-gray-500 mt-1">Paid-at-checkout purchases.
+    <h1 class="text-3xl font-semibold ink-1">Expenses</h1>
+    <p class="text-base ink-3 mt-1">Paid-at-checkout purchases.
       For supplier invoices you owe later, use
-      <a href="/bills" class="text-indigo-600 hover:underline">Bills</a>.</p>
+      <a href="/bills" class="sae hover:underline">Bills</a>.</p>
     {% if not error %}
-    <p class="text-base text-gray-500 mt-1">{{ total }} expense{{ "s" if total != 1 else "" }}</p>
+    <p class="text-base ink-3 mt-1">{{ total }} expense{{ "s" if total != 1 else "" }}</p>
     {% endif %}
   </div>
   <a
@@ -36,10 +36,10 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-sm font-medium text-gray-500 mb-1">Status</label>
+    <label for="status" class="block text-sm font-medium ink-3 mb-1">Status</label>
     <select id="status" name="status"
       onchange="this.form.requestSubmit()"
-      class="rounded-md border border-gray-300 text-base px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      class="saebooks-input text-base px-2 py-1.5">
       <option value="" {% if not filter_status %}selected{% endif %}>All</option>
       <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
       <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>Posted</option>
@@ -47,19 +47,20 @@
     </select>
   </div>
   <div>
-    <label for="date_from" class="block text-sm font-medium text-gray-500 mb-1">Date from</label>
+    <label for="date_from" class="block text-sm font-medium ink-3 mb-1">Date from</label>
     <input type="date" id="date_from" name="date_from" value="{{ filter_date_from }}"
-      class="rounded-md border border-gray-300 text-base px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      class="saebooks-input text-base px-2 py-1.5">
   </div>
   <div>
-    <label for="date_to" class="block text-sm font-medium text-gray-500 mb-1">Date to</label>
+    <label for="date_to" class="block text-sm font-medium ink-3 mb-1">Date to</label>
     <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}"
-      class="rounded-md border border-gray-300 text-base px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      class="saebooks-input text-base px-2 py-1.5">
   </div>
   <div class="self-center pb-1">
-    <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer">
+    <label class="inline-flex items-center gap-2 text-sm font-medium ink-2 cursor-pointer">
       <input type="checkbox" name="flagged" value="true" {% if filter_flagged %}checked{% endif %}
         onchange="this.form.requestSubmit()"
+        aria-label="Flagged only"
         class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
       Flagged only
     </label>

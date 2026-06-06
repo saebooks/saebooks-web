@@ -10,7 +10,7 @@
     <div hx-get="/settings/integrations/stripe/status"
          hx-trigger="load"
          hx-swap="innerHTML">
-      <span class="text-gray-400 text-sm">Loading status…</span>
+      <span class="ink-3 text-sm">Loading status…</span>
     </div>
     {% if not stripe_status.get("_unavailable") %}
     {% if not stripe_status.get("connected") %}
@@ -23,7 +23,7 @@
     </form>
     {% endif %}
     {% else %}
-    <p class="text-sm text-gray-500 mt-2">
+    <p class="text-sm ink-3 mt-2">
       Stripe integration requires a Business or higher edition.
     </p>
     {% endif %}

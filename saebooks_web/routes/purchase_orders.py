@@ -314,6 +314,186 @@ async def po_add_line(
 
 
 # ---------------------------------------------------------------------------
+# Edit (DRAFT only)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/purchase_orders/{po_id}/edit", response_class=HTMLResponse, response_model=None)
+async def po_edit_form(
+    request: Request,
+    po_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Pre-populated edit form for a DRAFT purchase order.
+
+    Only DRAFT POs are editable; once a PO is sent it is locked. A non-DRAFT
+    PO redirects back to its detail page with a flash. The current ``version``
+    is carried in a hidden input for the If-Match optimistic lock on POST.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/purchase_orders/{po_id}")
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        request.session["flash"] = "Purchase order not found."
+        return RedirectResponse(url="/purchase_orders", status_code=303)
+    if not resp.is_success:
+        request.session["flash"] = f"Could not load purchase order (HTTP {resp.status_code})."
+        return RedirectResponse(url="/purchase_orders", status_code=303)
+
+    po = resp.json()
+    if (po.get("status") or "").upper() != "DRAFT":
+        request.session["flash"] = "Only draft purchase orders can be edited."
+        return RedirectResponse(url=f"/purchase_orders/{po_id}", status_code=303)
+
+    form: dict[str, object] = {
+        field: po.get(field) or ""
+        for field in ("contact_id", "issue_date", "expected_date", "delivery_address", "notes", "currency")
+    }
+    form["version"] = str(po.get("version", ""))
+    stored_rate = po.get("fx_rate")
+    if stored_rate and str(po.get("currency", "AUD")).upper() != "AUD":
+        form["fx_rate"] = str(stored_rate)
+
+    lines = []
+    for i, ln in enumerate(po.get("lines", [])):
+        lines.append({
+            "index": i,
+            "account_id": str(ln.get("account_id") or ""),
+            "description": ln.get("description", ""),
+            "quantity": str(ln.get("quantity", "1")),
+            "unit_price": str(ln.get("unit_price", "")),
+            "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "project_id": str(ln.get("project_id") or ""),
+        })
+    if not lines:
+        lines = [{"index": 0}]
+
+    async with api_client(request) as client:
+        contacts, accounts, tax_codes, projects = await _fetch_dropdowns(client)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "purchase_orders/edit.html",
+        {
+            "po": po,
+            "form": form,
+            "errors": {},
+            "conflict": False,
+            "idempotency_key": str(uuid.uuid4()),
+            "contacts": contacts,
+            "accounts": accounts,
+            "tax_codes": tax_codes,
+            "projects": projects,
+            "lines": lines,
+            "line_count": len(lines),
+        },
+    )
+
+
+@router.post("/purchase_orders/{po_id}/edit", response_class=HTMLResponse, response_model=None)
+async def po_update(
+    request: Request,
+    po_id: str,
+) -> HTMLResponse | RedirectResponse:
+    """Submit the PO edit — PATCH with If-Match + full lines replace.
+
+    200 -> 303 to detail; 409 -> re-render with conflict banner + server version;
+    422 -> per-field errors; 403 -> flash + redirect; 401 -> login.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+
+    version = form.get("version", "")
+    idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
+
+    payload: dict[str, object] = {}
+    for field in ("contact_id", "issue_date", "expected_date", "delivery_address", "notes"):
+        val = form.get(field, "").strip()
+        if val:
+            payload[field] = val
+    currency = form.get("currency", "").strip().upper() or "AUD"
+    payload["currency"] = currency
+    fx_rate_raw = form.get("fx_rate", "").strip()
+    if fx_rate_raw and currency != "AUD":
+        payload["fx_rate"] = fx_rate_raw
+    payload["lines"] = _parse_lines(form)
+
+    async with api_client(request) as client:
+        resp = await client.patch(
+            f"/api/v1/purchase_orders/{po_id}",
+            json=payload,
+            headers={"If-Match": version, "X-Idempotency-Key": idempotency_key},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 200:
+        return RedirectResponse(url=f"/purchase_orders/{po_id}", status_code=303)
+    if resp.status_code == 403:
+        request.session["flash"] = "You do not have permission to edit this purchase order."
+        return RedirectResponse(url=f"/purchase_orders/{po_id}", status_code=303)
+
+    errors: dict[str, str] = {}
+    conflict = False
+    if resp.status_code == 409:
+        conflict = True
+        errors["__all__"] = "Someone else updated this purchase order. Review and save again."
+        async with api_client(request) as client:
+            latest = await client.get(f"/api/v1/purchase_orders/{po_id}")
+        if latest.is_success:
+            form["version"] = str(latest.json().get("version", version))
+    elif resp.status_code == 422:
+        try:
+            detail = resp.json().get("detail", [])
+            if isinstance(detail, list):
+                for err in detail:
+                    loc = err.get("loc", [])
+                    field_parts = [p for p in loc if p != "body"]
+                    field_key = str(field_parts[0]) if field_parts else "__all__"
+                    errors[field_key] = err.get("msg", "Invalid value")
+            elif isinstance(detail, str):
+                errors["__all__"] = detail
+        except Exception:
+            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
+    else:
+        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+
+    async with api_client(request) as client:
+        contacts, accounts, tax_codes, projects = await _fetch_dropdowns(client)
+
+    raw_lines = _parse_lines(form)
+    lines = [{"index": i, **ln} for i, ln in enumerate(raw_lines)] or [{"index": 0}]
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "purchase_orders/edit.html",
+        {
+            "po": {"id": po_id, **form},
+            "form": form,
+            "errors": errors,
+            "conflict": conflict,
+            "idempotency_key": idempotency_key,
+            "contacts": contacts,
+            "accounts": accounts,
+            "tax_codes": tax_codes,
+            "projects": projects,
+            "lines": lines,
+            "line_count": len(lines),
+        },
+        status_code=resp.status_code if resp.status_code in (409, 422) else 502,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Detail
 # ---------------------------------------------------------------------------
 
