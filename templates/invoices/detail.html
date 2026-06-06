@@ -167,6 +167,14 @@
   </div>
 </section>
 
+{# ── Review flag (Gap 3, 0157) ── #}
+<section class="mb-7">
+  <p class="nav-section-label mb-2">Review</p>
+  {% with flag_base="/invoices", entity_id=invoice.id, flagged=invoice.flagged_for_review, review_note=invoice.review_note, compact=False %}
+    {% include "_partials/review_flag.html" %}
+  {% endwith %}
+</section>
+
 {# ── Notes ── #}
 {% if invoice.notes %}
 <section class="mb-7">

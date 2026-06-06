@@ -11,6 +11,7 @@
 {%- if filter_ref %}{%- set _ = _filter_parts.append("ref=" ~ (filter_ref|urlencode)) %}{%- endif %}
 {%- if filter_posted_by %}{%- set _ = _filter_parts.append("posted_by=" ~ (filter_posted_by|urlencode)) %}{%- endif %}
 {%- if filter_account_id %}{%- set _ = _filter_parts.append("account_id=" ~ filter_account_id) %}{%- endif %}
+{%- if filter_flagged %}{%- set _ = _filter_parts.append("flagged=true") %}{%- endif %}
 {%- set filter_qs_no_sort = ("&" ~ _filter_parts|join("&")) if _filter_parts else "" %}
 {%- if sort %}{%- set _ = _filter_parts.append("sort=" ~ sort) %}{%- endif %}
 {%- if dir %}{%- set _ = _filter_parts.append("dir=" ~ dir) %}{%- endif %}
@@ -54,6 +55,7 @@
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
         <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("total_debit", "Total Debit") }}</th>
         <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("status", "Status") }}</th>
+        <th class="w-8 px-1 py-3 text-center font-medium text-gray-500" title="Flag for review"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
         <th class="w-8"></th>
       </tr>
     </thead>
@@ -95,6 +97,11 @@
               {{ je.status | capitalize }}
             </span>
           </td>
+          <td class="px-1 py-3 text-center" onclick="event.stopPropagation()">
+            {% with flag_base="/journal-entries", entity_id=je.id, flagged=je.flagged_for_review, review_note=je.review_note, compact=True %}
+              {% include "_partials/review_flag.html" %}
+            {% endwith %}
+          </td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (je.status or 'draft')|lower %}
             {%- set actions = [
@@ -115,7 +122,7 @@
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(7, "book-open", "No journal entries yet",
+        {{ empty.row(8, "book-open", "No journal entries yet",
                      "Post your first journal to record a manual transaction.",
                      "New journal", "/journal-entries/new") }}
       {% endif %}

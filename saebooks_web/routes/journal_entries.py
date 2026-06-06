@@ -111,6 +111,7 @@ async def journal_entries_list(
     ref: str | None = None,
     posted_by: str | None = None,
     account_id: str | None = None,
+    flagged: bool | None = None,
     sort: str = "date",
     dir: str = "desc",
     limit: int = 50,
@@ -142,6 +143,9 @@ async def journal_entries_list(
         params["posted_by"] = posted_by
     if account_id:
         params["account_id"] = account_id
+    # Gap 3 (0157) — "Flagged only" filter. Only forward when explicitly set.
+    if flagged:
+        params["flagged"] = "true"
     # Always forward sort/dir so the API is the source of truth for ordering.
     if sort:
         params["sort"] = sort
@@ -201,6 +205,7 @@ async def journal_entries_list(
         "filter_ref": ref or "",
         "filter_posted_by": posted_by or "",
         "filter_account_id": account_id or "",
+        "filter_flagged": bool(flagged),
         "sort": sort,
         "dir": dir,
         # Dropdown source data (full-page renders only; empty on HTMX swap).
@@ -881,6 +886,57 @@ async def journal_entry_reverse(
         detail = f"API error: HTTP {resp.status_code}"
     request.session["flash"] = str(detail)
     return RedirectResponse(url=f"/journal-entries/{entry_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Review flag (Gap 3, 0157) — set/clear via HTMX, swaps the flag control.
+# Desired state rides in the query string (?flagged=&compact=), so the POST
+# carries no form body and bypasses CSRF Layer 3 (same pattern as the Stripe
+# link button). The web base is /journal-entries (hyphen); the API path is
+# /journal_entries (underscore).
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/journal-entries/{entry_id}/review-flag",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def journal_entry_review_flag(
+    request: Request, entry_id: str, flagged: bool = True, compact: bool = False
+) -> HTMLResponse | RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/journal_entries/{entry_id}/review-flag",
+            json={"flagged": flagged},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.is_success:
+        body = resp.json()
+        new_flagged = bool(body.get("flagged_for_review"))
+        review_note = body.get("review_note")
+    else:
+        new_flagged = not flagged
+        review_note = None
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "_partials/review_flag.html",
+        {
+            "flag_base": "/journal-entries",
+            "entity_id": entry_id,
+            "flagged": new_flagged,
+            "review_note": review_note,
+            "compact": compact,
+        },
+    )
 
 
 @router.get("/journal-entries/{entry_id}", response_class=HTMLResponse, response_model=None)

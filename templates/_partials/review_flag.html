@@ -1,0 +1,84 @@
+{#
+  Shared "flag for review" control — Gap 3 (0157 review-flag endpoints).
+
+  Renders a self-contained HTMX toggle that POSTs to the web route
+  ``{{ flag_base }}/{{ entity_id }}/review-flag?flagged=<bool>&compact=<bool>``
+  and swaps itself (outerHTML) with the route's re-render of this same
+  partial in the matching variant.
+
+  The POST carries NO form body (the desired state rides in the query
+  string), so it bypasses CSRF Layer 3 exactly like
+  ``invoices/_stripe_payment_link.html`` — same established pattern.
+
+  Variables (all required unless noted):
+    flag_base       — URL prefix for the web route, e.g. "/invoices",
+                      "/expenses", "/journal-entries"
+    entity_id       — UUID of the row/record
+    flagged         — current flagged_for_review (bool)
+    review_note     — current review note (str|None, optional)
+    compact         — True for the table-cell variant (icon only),
+                      False/absent for the detail-page variant (labelled).
+
+  Dark-theme: uses bg-amber-100/text-amber-800 + icon-btn, both of which
+  have html.dark overrides in assets/tailwind.css. No new fonts.
+#}
+{%- set _note = review_note or "" -%}
+{%- set _compact = "true" if compact else "false" -%}
+{%- set _set_url = flag_base ~ "/" ~ entity_id ~ "/review-flag?flagged=true&compact=" ~ _compact -%}
+{%- set _clear_url = flag_base ~ "/" ~ entity_id ~ "/review-flag?flagged=false&compact=" ~ _compact -%}
+{%- if compact -%}
+<span id="review-flag-{{ entity_id }}" class="inline-flex items-center"
+      onclick="event.stopPropagation()">
+  {%- if flagged -%}
+  <button type="button"
+          hx-post="{{ _clear_url }}"
+          hx-target="#review-flag-{{ entity_id }}"
+          hx-swap="outerHTML"
+          class="icon-btn icon-btn-danger"
+          title="{% if _note %}Flagged: {{ _note }} — click to clear{% else %}Flagged for review — click to clear{% endif %}"
+          aria-label="Clear review flag"
+          aria-pressed="true">
+    <i data-lucide="flag" class="w-4 h-4" style="fill:currentColor;color:var(--warm);"></i>
+  </button>
+  {%- else -%}
+  <button type="button"
+          hx-post="{{ _set_url }}"
+          hx-target="#review-flag-{{ entity_id }}"
+          hx-swap="outerHTML"
+          class="icon-btn"
+          title="Flag for review"
+          aria-label="Flag for review"
+          aria-pressed="false">
+    <i data-lucide="flag" class="w-4 h-4"></i>
+  </button>
+  {%- endif -%}
+</span>
+{%- else -%}
+<div id="review-flag-{{ entity_id }}" class="flex items-center gap-3 flex-wrap">
+  {%- if flagged -%}
+  <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">
+    <i data-lucide="flag" class="w-4 h-4" style="fill:currentColor;"></i>
+    Flagged for review
+  </span>
+  {%- if _note %}<span class="text-sm ink-2">— {{ _note }}</span>{%- endif %}
+  <button type="button"
+          hx-post="{{ _clear_url }}"
+          hx-target="#review-flag-{{ entity_id }}"
+          hx-swap="outerHTML"
+          class="btn-secondary text-sm py-1.5">
+    <i data-lucide="flag-off" class="w-4 h-4"></i>
+    <span>Clear flag</span>
+  </button>
+  {%- else -%}
+  <span class="text-sm ink-3">Not flagged.</span>
+  <button type="button"
+          hx-post="{{ _set_url }}"
+          hx-target="#review-flag-{{ entity_id }}"
+          hx-swap="outerHTML"
+          class="btn-secondary text-sm py-1.5">
+    <i data-lucide="flag" class="w-4 h-4"></i>
+    <span>Flag for review</span>
+  </button>
+  {%- endif -%}
+</div>
+{%- endif -%}

@@ -134,6 +134,14 @@
   </div>
 
   {# carry pagination limit; reset offset to 0 on new filter #}
+  <div class="self-end pb-1.5">
+    <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer">
+      <input type="checkbox" name="flagged" value="true" {% if filter_flagged %}checked{% endif %}
+        class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+      Flagged only
+    </label>
+  </div>
+
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
 
@@ -143,7 +151,7 @@
   >
     Filter
   </button>
-  {% if filter_status or filter_date_from or filter_date_to or filter_ref or filter_posted_by or filter_account_id %}
+  {% if filter_status or filter_date_from or filter_date_to or filter_ref or filter_posted_by or filter_account_id or filter_flagged %}
   <a
     href="/journal-entries"
     class="text-sm text-gray-500 hover:text-gray-700 px-2 py-1.5"
