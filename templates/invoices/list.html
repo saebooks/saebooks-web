@@ -72,6 +72,15 @@
     <input type="text" id="contact_id" name="contact_id" value="{{ filter_contact_id }}" placeholder="optional" class="saebooks-input num text-sm py-1.5 w-full">
   </div>
 
+  <div class="self-center pb-1">
+    <label class="inline-flex items-center gap-2 text-sm ink-2 cursor-pointer">
+      <input type="checkbox" name="flagged" value="true" {% if filter_flagged %}checked{% endif %}
+        onchange="this.form.requestSubmit()"
+        class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+      Flagged only
+    </label>
+  </div>
+
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
 

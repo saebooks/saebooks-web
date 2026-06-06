@@ -5,6 +5,7 @@
 {% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
                   'payment_account_id': filter_payment_account_id,
                   'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'flagged': ('true' if filter_flagged else ''),
                   'limit': limit, 'offset': offset} %}
 <div id="expenses-table">
 {% if error %}
@@ -30,6 +31,7 @@
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('reference',    'Reference', sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-right font-medium text-gray-600">{{ srt.sort_link('total',        'Total',     sort, direction, filters) }}</th>
       <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('status',       'Status',    sort, direction, filters) }}</th>
+      <th class="w-8 px-1 py-2 text-center font-medium text-gray-600" title="Flag for review"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
       <th class="w-8"></th>
     </tr>
   </thead>
@@ -61,6 +63,11 @@
           <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-sm font-medium text-amber-800">Draft</span>
         {% endif %}
       </td>
+      <td class="px-1 py-2 text-center" onclick="event.stopPropagation()">
+        {% with flag_base="/expenses", entity_id=e.id, flagged=e.flagged_for_review, review_note=e.review_note, compact=True %}
+          {% include "_partials/review_flag.html" %}
+        {% endwith %}
+      </td>
       <td class="px-3 py-2 text-right" onclick="event.stopPropagation()">
         {%- set status_lower = (e.status or 'draft')|lower %}
         {%- set actions = [
@@ -86,6 +93,7 @@
 {% set pg_filters = {'status': filter_status, 'contact_id': filter_contact_id,
                      'payment_account_id': filter_payment_account_id,
                      'date_from': filter_date_from, 'date_to': filter_date_to,
+                     'flagged': ('true' if filter_flagged else ''),
                      'sort': sort, 'direction': direction} %}
 {{ pg.page_numbers('/expenses', total, limit, offset, pg_filters, target='#expenses-table') }}
 {% endif %}

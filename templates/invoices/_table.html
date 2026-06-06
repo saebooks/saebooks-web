@@ -7,6 +7,7 @@
 {% import "_components/kebab_menu.html" as km %}
 {% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
                   'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'flagged': ('true' if filter_flagged else ''),
                   'limit': limit, 'offset': offset} %}
 <div id="invoices-table">
 
@@ -32,6 +33,7 @@
         <th class="text-left">{{ srt.sort_link('contact_id', 'Contact', sort, direction, filters) }}</th>
         <th class="text-right">{{ srt.sort_link('total',     'Total',   sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('status',    'Status',  sort, direction, filters) }}</th>
+        <th class="w-8 text-center" title="Flag for review"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
         <th class="w-8"></th>{# kebab column header — intentionally empty #}
       </tr>
     </thead>
@@ -60,6 +62,11 @@
             {{ inv.currency }} {{ "%.2f"|format(inv.total|float) }}
           </td>
           <td class="cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">{{ sb.payment_status_badge(inv, today, due_soon_cutoff) }}</td>
+          <td class="text-center" onclick="event.stopPropagation()">
+            {% with flag_base="/invoices", entity_id=inv.id, flagged=inv.flagged_for_review, review_note=inv.review_note, compact=True %}
+              {% include "_partials/review_flag.html" %}
+            {% endwith %}
+          </td>
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (inv.status or 'draft')|lower %}
             {%- set actions = [
@@ -85,12 +92,12 @@
         </tr>
         {% endfor %}
       {% else %}
-        {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-        {{ empty.row(8, "inbox", "No invoices yet",
+        {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to and not filter_flagged %}
+        {{ empty.row(9, "inbox", "No invoices yet",
                      "Bill your first customer to start the ledger.",
                      "New invoice", "/invoices/new") }}
         {% else %}
-        {{ empty.row(8, "search-x", "No invoices match these filters",
+        {{ empty.row(9, "search-x", "No invoices match these filters",
                      "Try clearing the filters above.") }}
         {% endif %}
       {% endif %}
@@ -103,6 +110,7 @@
 {% import "_pagination_macros.html" as pg %}
 {% set pg_filters = {'status': filter_status, 'contact_id': filter_contact_id,
                      'date_from': filter_date_from, 'date_to': filter_date_to,
+                     'flagged': ('true' if filter_flagged else ''),
                      'sort': sort, 'direction': direction} %}
 {{ pg.page_numbers('/invoices', total, limit, offset, pg_filters, target='#invoices-table') }}
 
