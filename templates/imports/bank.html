@@ -6,59 +6,59 @@
 
 {# ── Flash banner ── #}
 {% if flash %}
-<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
 </div>
 {% endif %}
 
 <div class="flex items-center gap-2 mb-1">
-  <a href="/admin/imports" class="text-sm text-gray-500 hover:text-gray-700">Imports</a>
-  <span class="text-gray-400 text-xs">/</span>
-  <span class="text-sm text-gray-900 font-medium">Bank Statement</span>
+  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">Imports</a>
+  <span class="ink-4 text-xs">/</span>
+  <span class="text-sm ink-1 font-medium">Bank Statement</span>
 </div>
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold text-gray-900">Import Bank Statement</h1>
-  <p class="text-sm text-gray-500 mt-1">Upload a CSV or OFX file — preview before confirming</p>
+  <h1 class="text-2xl font-semibold ink-1">Import Bank Statement</h1>
+  <p class="text-sm ink-3 mt-1">Upload a CSV or OFX file — preview before confirming</p>
 </div>
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-lg">
+<div class="card p-6 max-w-lg">
   <form method="post" action="/admin/imports/bank/preview" enctype="multipart/form-data">
     {{ csrf_input(request)|safe }}
 
 
     <div class="mb-5">
-      <label class="block text-xs font-medium text-gray-700 mb-1" for="account_id">
+      <label class="block text-xs font-medium ink-2 mb-1" for="account_id">
         Bank Account
       </label>
-      <select id="account_id" name="account_id" required
-        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+      <select id="account_id" name="account_id" required class="saebooks-input w-full">
         <option value="">— select account —</option>
         {% for acct in bank_accounts %}
         <option value="{{ acct.id }}">{{ acct.code }} — {{ acct.name }}</option>
         {% endfor %}
       </select>
       {% if not bank_accounts %}
-      <p class="mt-1 text-xs text-amber-600">No bank accounts found. Add one under Bank Accounts first.</p>
+      <p class="mt-1 text-xs" style="color:var(--warm);">No bank accounts found. Add one under Bank Accounts first.</p>
       {% endif %}
     </div>
 
     <div class="mb-5">
-      <label class="block text-xs font-medium text-gray-700 mb-1" for="file">
+      <label class="block text-xs font-medium ink-2 mb-1" for="file">
         Statement File (CSV or OFX)
       </label>
       <input type="file" id="file" name="file" accept=".csv,.ofx,.txt" required
-        class="block w-full text-sm text-gray-600 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#eaf0fa] file:text-[#133372] hover:file:bg-[#eaf0fa]">
+        class="block w-full text-sm ink-2 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[color:var(--sae-tint)] file:text-[color:var(--sae)]">
     </div>
 
-    <button type="submit"
-      class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]">
+    <button type="submit" class="btn-primary text-sm">
       Preview Import
     </button>
   </form>

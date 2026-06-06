@@ -9,15 +9,17 @@
 {% set is_admin = (request.session.get("user_role") == "admin") %}
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
-  {{ error }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
 {# ── Flash message ── #}
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
@@ -27,26 +29,23 @@
 <div class="mb-6 flex items-start justify-between">
   <div>
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-semibold text-gray-900">
+      <h1 class="text-2xl font-semibold ink-1">
         Credit Note {{ credit_note.number or "—" }}
       </h1>
-      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
-        {% if credit_note.status == 'POSTED' %}bg-green-100 text-green-700
-        {% elif credit_note.status == 'DRAFT' %}bg-gray-100 text-gray-600
-        {% elif credit_note.status == 'VOIDED' %}bg-red-100 text-red-600
-        {% else %}bg-gray-100 text-gray-500{% endif %}">
-        {{ credit_note.status | capitalize }}
-      </span>
+      {% if credit_note.status == 'POSTED' %}<span class="badge-pos">{{ credit_note.status | capitalize }}</span>
+      {% elif credit_note.status == 'DRAFT' %}<span class="badge-draft">{{ credit_note.status | capitalize }}</span>
+      {% elif credit_note.status == 'VOIDED' %}<span class="badge-neg">{{ credit_note.status | capitalize }}</span>
+      {% else %}<span class="badge-draft">{{ credit_note.status | capitalize }}</span>{% endif %}
     </div>
-    <p class="text-sm text-gray-500 mt-1">Contact: {{ credit_note.contact_id }}</p>
+    <p class="text-sm ink-3 mt-1">Contact: {{ credit_note.contact_id }}</p>
     {% if credit_note.reason %}
-    <p class="text-sm text-gray-500 mt-0.5">
+    <p class="text-sm ink-3 mt-0.5">
       Reason code:
-      <span class="inline-block rounded-full bg-[#eaf0fa] border border-[#194291]/30 px-2.5 py-0.5 text-xs font-medium text-[#133372]">
+      <span class="badge-sae">
         {{ credit_note.reason }}
       </span>
       {% if credit_note.reason == "GST registration change" %}
-      <span class="ml-1 text-xs text-amber-700 font-medium">— re-issue with GST applied</span>
+      <span class="ml-1 text-xs font-medium" style="color:var(--warm);">— re-issue with GST applied</span>
       {% endif %}
     </p>
     {% endif %}
@@ -55,8 +54,7 @@
     {% if credit_note.status == 'DRAFT' or is_feature_enabled('edit_frozen_state') %}
     <a
       href="/credit-notes/{{ credit_note.id }}/edit"
-      class="rounded-md bg-[#194291] px-4 py-1.5 text-sm font-medium text-white
-             hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+      class="btn-primary text-sm"
     >{% if credit_note.status != 'DRAFT' %}Edit (override){% else %}Edit{% endif %}</a>
     <form
       method="post"
@@ -69,8 +67,7 @@
       <input type="hidden" name="version" value="{{ credit_note.version }}">
       <button
         type="submit"
-        class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white
-               hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+        class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);"
       >Post</button>
     </form>
     <form
@@ -84,8 +81,7 @@
       <input type="hidden" name="version" value="{{ credit_note.version }}">
       <button
         type="submit"
-        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white
-               hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >Archive</button>
     </form>
     {% endif %}
@@ -101,8 +97,7 @@
       <input type="hidden" name="version" value="{{ credit_note.version }}">
       <button
         type="submit"
-        class="rounded-md bg-red-600 px-4 py-1.5 text-sm font-medium text-white
-               hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >Void</button>
     </form>
     {% endif %}
@@ -121,32 +116,32 @@
     >Download PDF</a>
     <a
       href="/credit-notes"
-      class="text-sm text-[#194291] hover:underline"
+      class="text-sm sae hover:underline"
     >← Back to credit notes</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Issue date</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ credit_note.issue_date }}</p>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Issue date</p>
+    <p class="mt-1 text-sm font-medium ink-1">{{ credit_note.issue_date }}</p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Total</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Total</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ "%.2f"|format(credit_note.total|float) }}
     </p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Amount allocated</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Amount allocated</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ "%.2f"|format(credit_note.amount_allocated|float) }}
     </p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Remaining</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Remaining</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ "%.2f"|format((credit_note.total|float) - (credit_note.amount_allocated|float)) }}
     </p>
   </div>
@@ -154,68 +149,68 @@
 
 {# ── Applied-to section ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-3">Applied To</h2>
-  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700">
+  <h2 class="text-base font-semibold ink-1 mb-3">Applied To</h2>
+  <div class="card px-4 py-3 text-sm ink-2">
     {% if credit_note.original_invoice_id %}
-    <span class="text-gray-500">Invoice: </span>
+    <span class="ink-3">Invoice: </span>
     <a
       href="/invoices/{{ credit_note.original_invoice_id }}"
-      class="text-[#194291] hover:underline font-medium"
+      class="sae hover:underline font-medium"
     >{{ credit_note.original_invoice_id }}</a>
     {% else %}
-    <span class="text-gray-400">Unapplied — not linked to an invoice</span>
+    <span class="ink-3">Unapplied — not linked to an invoice</span>
     {% endif %}
   </div>
 </div>
 
 {# ── Lines ── #}
-<h2 class="text-base font-semibold text-gray-900 mb-3">Lines</h2>
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto mb-8" id="lines-table">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<h2 class="text-base font-semibold ink-1 mb-3">Lines</h2>
+<div class="card overflow-x-auto mb-8" id="lines-table">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs w-8">#</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Qty</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Unit price</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Tax</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs w-8">#</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Qty</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Unit price</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Tax</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Total</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody class="divide-y divide-[color:var(--line)]">
       {% if credit_note.lines %}
         {% for line in credit_note.lines %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 text-gray-400">{{ line.line_no }}</td>
-          <td class="px-4 py-3 text-gray-900">{{ line.description }}</td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ line.quantity }}</td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.2f"|format(line.unit_price|float) }}</td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-600">{{ "%.2f"|format(line.line_tax|float) }}</td>
-          <td class="px-4 py-3 text-right tabular-nums font-medium text-gray-900">{{ "%.2f"|format(line.line_total|float) }}</td>
+        <tr class="hover:bg-[color:var(--paper-2)]">
+          <td class="px-4 py-3 ink-3">{{ line.line_no }}</td>
+          <td class="px-4 py-3 ink-1">{{ line.description }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ line.quantity }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ "%.2f"|format(line.unit_price|float) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ "%.2f"|format(line.line_tax|float) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums font-medium ink-1">{{ "%.2f"|format(line.line_total|float) }}</td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-6 text-center text-gray-400">No lines.</td>
+          <td colspan="6" class="px-4 py-6 text-center ink-3">No lines.</td>
         </tr>
       {% endif %}
     </tbody>
-    <tfoot class="bg-gray-50 border-t border-gray-200">
+    <tfoot class="bg-[color:var(--paper-2)] border-t hairline">
       <tr>
-        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-500">Subtotal</td>
-        <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">Subtotal</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
           {{ "%.2f"|format(credit_note.subtotal|float) }}
         </td>
       </tr>
       <tr>
-        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-500">Tax</td>
-        <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">Tax</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
           {{ "%.2f"|format(credit_note.tax_total|float) }}
         </td>
       </tr>
       <tr class="font-semibold">
-        <td colspan="5" class="px-4 py-3 text-right text-sm text-gray-900">Total</td>
-        <td class="px-4 py-3 text-right tabular-nums text-sm text-gray-900">
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-1">Total</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
           {{ "%.2f"|format(credit_note.total|float) }}
         </td>
       </tr>
@@ -226,13 +221,13 @@
 {# ── Notes ── #}
 {% if credit_note.notes %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-2">Notes</h2>
-  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 whitespace-pre-wrap">{{ credit_note.notes }}</div>
+  <h2 class="text-base font-semibold ink-1 mb-2">Notes</h2>
+  <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap">{{ credit_note.notes }}</div>
 </div>
 {% endif %}
 
 {# ── Change log stub ── #}
-<div class="bg-gray-50 rounded-xl border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-400">
+<div class="card px-4 py-6 text-center text-sm ink-3" style="border-style:dashed;">
   Change log view — TODO
 </div>
 

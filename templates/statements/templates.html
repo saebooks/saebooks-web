@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_partials/empty_state.html" as empty %}
 
 {% block title %}Extraction Templates — SAE Books{% endblock %}
 
@@ -48,12 +49,12 @@
   <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
     <thead>
       <tr style="background:var(--paper-2);">
-        <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Supplier</th>
-        <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Hint</th>
-        <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Page scope</th>
-        <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Active</th>
-        <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Created</th>
-        <th class="px-4 py-3"></th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Supplier</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Hint</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Page scope</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Active</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Created</th>
+        <th scope="col" class="px-4 py-3"></th>
       </tr>
     </thead>
     <tbody>
@@ -78,7 +79,7 @@
           </td>
           <td class="px-4 py-3">
             {% if tmpl.active %}
-              <span class="badge-ok">Active</span>
+              <span class="badge-pos">Active</span>
             {% else %}
               <span class="badge-ink">Inactive</span>
             {% endif %}
@@ -100,12 +101,8 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="6" class="px-4 py-10 text-center ink-4 text-sm">
-            No extraction templates yet.
-            Open a statement and use the <strong>Extraction template</strong> section to add one.
-          </td>
-        </tr>
+        {{ empty.row(6, "wand-2", "No extraction templates yet",
+                     "Open a statement and use the Extraction template section to add one.") }}
       {% endif %}
     </tbody>
   </table>

@@ -5,13 +5,14 @@
 {% block content %}
 
 <div class="mb-6">
-  <h1 class="font-display text-3xl text-gray-900">New time entry</h1>
+  <h1 class="font-display text-3xl ink-1">New time entry</h1>
   <p class="text-base ink-3 mt-1">Log hours worked — billable or non-billable.</p>
 </div>
 
 {% if errors._global %}
-<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
-  {{ errors._global }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-base" style="color:var(--neg);">{{ errors._global }}</span>
 </div>
 {% endif %}
 

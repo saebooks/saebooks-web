@@ -5,23 +5,23 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Journal Entries</h1>
+    <h1 class="text-2xl font-semibold ink-1">Journal Entries</h1>
     {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ total }} entr{{ "ies" if total != 1 else "y" }}</p>
+    <p class="text-sm ink-3 mt-1">{{ total }} entr{{ "ies" if total != 1 else "y" }}</p>
     {% endif %}
   </div>
 
   <a
     href="/journal-entries/new"
-    class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
-           hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+    class="btn-primary text-sm"
   >
     + New journal entry
   </a>
@@ -36,11 +36,11 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium ink-3 mb-1">Status</label>
     <select
       id="status"
       name="status"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+      class="saebooks-input text-sm"
     >
       <option value="" {% if not filter_status %}selected{% endif %}>All</option>
       <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
@@ -50,29 +50,29 @@
   </div>
 
   <div>
-    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">Date from</label>
+    <label for="date_from" class="block text-xs font-medium ink-3 mb-1">Date from</label>
     <input
       type="date"
       id="date_from"
       name="date_from"
       value="{{ filter_date_from }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+      class="saebooks-input text-sm"
     >
   </div>
 
   <div>
-    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">Date to</label>
+    <label for="date_to" class="block text-xs font-medium ink-3 mb-1">Date to</label>
     <input
       type="date"
       id="date_to"
       name="date_to"
       value="{{ filter_date_to }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+      class="saebooks-input text-sm"
     >
   </div>
 
   <div>
-    <label for="ref" class="block text-xs font-medium text-gray-500 mb-1">Ref</label>
+    <label for="ref" class="block text-xs font-medium ink-3 mb-1">Ref</label>
     <input
       type="text"
       id="ref"
@@ -80,7 +80,7 @@
       value="{{ filter_ref }}"
       list="ref-prefix-options"
       placeholder="Pick prefix or type"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+      class="saebooks-input text-sm"
     >
     <datalist id="ref-prefix-options">
       {% for p in ref_prefix_options %}
@@ -90,11 +90,11 @@
   </div>
 
   <div>
-    <label for="account_id" class="block text-xs font-medium text-gray-500 mb-1">Account</label>
+    <label for="account_id" class="block text-xs font-medium ink-3 mb-1">Account</label>
     <select
       id="account_id"
       name="account_id"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] min-w-[14rem]"
+      class="saebooks-input text-sm min-w-[14rem]"
     >
       <option value="" {% if not filter_account_id %}selected{% endif %}>All accounts</option>
       {%- set _types = [
@@ -120,11 +120,11 @@
   </div>
 
   <div>
-    <label for="posted_by" class="block text-xs font-medium text-gray-500 mb-1">Posted by</label>
+    <label for="posted_by" class="block text-xs font-medium ink-3 mb-1">Posted by</label>
     <select
       id="posted_by"
       name="posted_by"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+      class="saebooks-input text-sm"
     >
       <option value="" {% if not filter_posted_by %}selected{% endif %}>Anyone</option>
       {%- for who in posted_by_options %}
@@ -135,9 +135,9 @@
 
   {# carry pagination limit; reset offset to 0 on new filter #}
   <div class="self-end pb-1.5">
-    <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer">
+    <label class="inline-flex items-center gap-2 text-sm font-medium ink-2 cursor-pointer">
       <input type="checkbox" name="flagged" value="true" {% if filter_flagged %}checked{% endif %}
-        class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+        class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
       Flagged only
     </label>
   </div>
@@ -147,14 +147,14 @@
 
   <button
     type="submit"
-    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
+    class="btn-primary text-sm"
   >
     Filter
   </button>
   {% if filter_status or filter_date_from or filter_date_to or filter_ref or filter_posted_by or filter_account_id or filter_flagged %}
   <a
     href="/journal-entries"
-    class="text-sm text-gray-500 hover:text-gray-700 px-2 py-1.5"
+    class="text-sm ink-3 hover:underline px-2 py-1.5"
   >Clear</a>
   {% endif %}
 </form>

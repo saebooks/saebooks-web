@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_components/kebab_menu.html" as km %}
+{% import "_partials/empty_state.html" as empty %}
 
 {% block title %}Employees — SAE Books{% endblock %}
 
@@ -7,7 +8,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl text-gray-900">Employees</h1>
+    <h1 class="font-display text-3xl ink-1">Employees</h1>
     <p class="text-base ink-3 mt-1">
       Payroll staff — STP Phase 2 registered.
     </p>
@@ -22,8 +23,9 @@
 </div>
 
 {% if error %}
-<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
-  {{ error }}
+<div class="card px-4 py-3 text-base mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
@@ -61,20 +63,20 @@
   <table class="w-full text-base">
     <thead>
       <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
-        <th class="w-8 px-3 py-2 text-center">
+        <th scope="col" class="w-8 px-3 py-2 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-3 py-2">Number</th>
-        <th class="px-3 py-2">Name</th>
-        <th class="px-3 py-2">Start</th>
-        <th class="px-3 py-2">Basis</th>
-        <th class="px-3 py-2">Pay</th>
-        <th class="px-3 py-2 text-right">Rate</th>
-        <th class="px-3 py-2 text-center">TFN</th>
-        <th class="px-3 py-2 text-center">Status</th>
-        <th class="w-8 px-3 py-2"></th>
+        <th scope="col" class="px-3 py-2">Number</th>
+        <th scope="col" class="px-3 py-2">Name</th>
+        <th scope="col" class="px-3 py-2">Start</th>
+        <th scope="col" class="px-3 py-2">Basis</th>
+        <th scope="col" class="px-3 py-2">Pay</th>
+        <th scope="col" class="px-3 py-2 text-right">Rate</th>
+        <th scope="col" class="px-3 py-2 text-center">TFN</th>
+        <th scope="col" class="px-3 py-2 text-center">Status</th>
+        <th scope="col" class="w-8 px-3 py-2"></th>
       </tr>
     </thead>
     <tbody>
@@ -144,7 +146,9 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="11" class="p-6 text-center ink-3">No employees match these filters.</td></tr>
+      {{ empty.row(10, "users", "No employees match these filters",
+                   "Try clearing the filters above, or add a new employee.",
+                   "New employee", "/employees/new") }}
       {% endfor %}
     </tbody>
   </table>

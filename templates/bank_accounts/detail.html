@@ -7,14 +7,16 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
-  {{ error }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
@@ -23,17 +25,16 @@
 {# ── Header ── #}
 <div class="mb-6 flex items-start justify-between">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">
+    <h1 class="text-2xl font-semibold ink-1">
       {{ account.code }} — {{ account.name }}
     </h1>
-    <p class="text-sm text-gray-500 mt-1">ID: {{ account.id }}</p>
+    <p class="text-sm ink-3 mt-1">ID: {{ account.id }}</p>
   </div>
   <div class="flex items-center gap-3">
     {% if not account.archived_at %}
     <a
       href="/bank-accounts/{{ account.id }}/edit"
-      class="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700
-             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+      class="btn-secondary text-sm"
     >
       Edit
     </a>
@@ -44,76 +45,76 @@
       <button
         type="submit"
         onclick="return confirm('Archive this bank account?')"
-        class="rounded-md border border-red-300 px-4 py-1.5 text-sm font-medium text-red-700
-               hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        class="btn-secondary text-sm"
+        style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
         Archive
       </button>
     </form>
     {% endif %}
-    <a href="/bank-accounts" class="text-sm text-[#194291] hover:underline">← Back to bank accounts</a>
+    <a href="/bank-accounts" class="text-sm sae hover:underline">← Back to bank accounts</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-8">
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">BSB</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 font-mono">{{ account.bsb or "—" }}</p>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">BSB</p>
+    <p class="mt-1 text-sm font-medium ink-1 font-mono">{{ account.bsb or "—" }}</p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Account number</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 font-mono">{{ account.bank_account_number or "—" }}</p>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Account number</p>
+    <p class="mt-1 text-sm font-medium ink-1 font-mono">{{ account.bank_account_number or "—" }}</p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Bank</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ account.bank_abbreviation or "—" }}</p>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Bank</p>
+    <p class="mt-1 text-sm font-medium ink-1">{{ account.bank_abbreviation or "—" }}</p>
   </div>
 </div>
 
 {# ── Account details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-3">Account details</h2>
-  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+  <h2 class="text-base font-semibold ink-1 mb-3">Account details</h2>
+  <div class="card rounded-xl overflow-x-auto">
     <table class="min-w-full text-sm">
-      <tbody class="divide-y divide-gray-100">
+      <tbody class="divide-[color:var(--line)] divide-y">
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500 w-48">Code</td>
-          <td class="px-4 py-3 text-gray-900">{{ account.code }}</td>
+          <td class="px-4 py-3 font-medium ink-3 w-48">Code</td>
+          <td class="px-4 py-3 ink-1">{{ account.code }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Name</td>
-          <td class="px-4 py-3 text-gray-900">{{ account.name }}</td>
+          <td class="px-4 py-3 font-medium ink-3">Name</td>
+          <td class="px-4 py-3 ink-1">{{ account.name }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">BSB</td>
-          <td class="px-4 py-3 text-gray-900 font-mono text-xs">{{ account.bsb or "—" }}</td>
+          <td class="px-4 py-3 font-medium ink-3">BSB</td>
+          <td class="px-4 py-3 ink-1 font-mono text-xs">{{ account.bsb or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Account number</td>
-          <td class="px-4 py-3 text-gray-900 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>
+          <td class="px-4 py-3 font-medium ink-3">Account number</td>
+          <td class="px-4 py-3 ink-1 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Account title</td>
-          <td class="px-4 py-3 text-gray-900">{{ account.bank_account_title or "—" }}</td>
+          <td class="px-4 py-3 font-medium ink-3">Account title</td>
+          <td class="px-4 py-3 ink-1">{{ account.bank_account_title or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Bank abbreviation</td>
-          <td class="px-4 py-3 text-gray-900">{{ account.bank_abbreviation or "—" }}</td>
+          <td class="px-4 py-3 font-medium ink-3">Bank abbreviation</td>
+          <td class="px-4 py-3 ink-1">{{ account.bank_abbreviation or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">APCA user ID</td>
-          <td class="px-4 py-3 text-gray-900 font-mono text-xs">{{ account.apca_user_id or "—" }}</td>
+          <td class="px-4 py-3 font-medium ink-3">APCA user ID</td>
+          <td class="px-4 py-3 ink-1 font-mono text-xs">{{ account.apca_user_id or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Trust account</td>
+          <td class="px-4 py-3 font-medium ink-3">Trust account</td>
           <td class="px-4 py-3">
             {% if account.is_trust_account %}
-            <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+            <span class="badge-warm">
               Trust
             </span>
             {% else %}
-            <span class="text-gray-400 text-sm">—</span>
+            <span class="ink-3 text-sm">—</span>
             {% endif %}
           </td>
         </tr>
@@ -125,10 +126,10 @@
 {# ── Transactions — primary view, fills the bottom of the page. ── #}
 <div class="mb-8">
   <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
-    <h2 class="text-base font-semibold text-gray-900">
+    <h2 class="text-base font-semibold ink-1">
       Transactions
       {% if lines_total %}
-      <span class="ml-2 text-xs font-normal text-gray-400">{{ lines_total }} line{{ "s" if lines_total != 1 else "" }}</span>
+      <span class="ml-2 text-xs font-normal ink-3">{{ lines_total }} line{{ "s" if lines_total != 1 else "" }}</span>
       {% endif %}
     </h2>
 
@@ -139,7 +140,7 @@
         id="status"
         name="status"
         onchange="this.form.submit()"
-        class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+        class="saebooks-input text-sm"
       >
         <option value=""           {% if not filter_status %}selected{% endif %}>All statuses</option>
         <option value="UNMATCHED"  {% if filter_status == 'UNMATCHED'  %}selected{% endif %}>Unmatched</option>
@@ -153,43 +154,44 @@
   </div>
 
   {% if lines_error %}
-  <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-3">
-    {{ lines_error }}
+  <div class="card p-3 mb-3 flex items-center gap-2" style="border-color:var(--neg);">
+    <span class="dot" style="background:var(--neg);"></span>
+    <span class="text-sm" style="color:var(--neg);">{{ lines_error }}</span>
   </div>
   {% endif %}
 
   {% if lines %}
-  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 text-sm">
-      <thead class="bg-gray-50 sticky top-0">
+  <div class="card rounded-xl overflow-x-auto">
+    <table class="min-w-full divide-[color:var(--line)] divide-y text-sm">
+      <thead class="bg-[color:var(--paper-2)] sticky top-0">
         <tr>
           {%- import "_sort_macros.html" as srt -%}
           {%- set _filters = {"status": filter_status} if filter_status else {} -%}
-          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("date",        "Date",        sort, direction, _filters, fragment="transactions") }}</th>
-          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("description", "Description", sort, direction, _filters, fragment="transactions") }}</th>
-          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("reference",   "Ref",         sort, direction, _filters, fragment="transactions") }}</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("amount",      "Amount",      sort, direction, _filters, fragment="transactions") }}</th>
-          <th class="px-4 py-2 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("balance",     "Balance",     sort, direction, _filters, fragment="transactions") }}</th>
-          <th class="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wide text-xs">{{ srt.sort_link("status",      "Status",      sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("date",        "Date",        sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("description", "Description", sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("reference",   "Ref",         sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("amount",      "Amount",      sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("balance",     "Balance",     sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("status",      "Status",      sort, direction, _filters, fragment="transactions") }}</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100">
+      <tbody class="divide-[color:var(--line)] divide-y">
         {% for ln in lines %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-2 text-gray-700 whitespace-nowrap">{{ ln.txn_date }}</td>
-          <td class="px-4 py-2 text-gray-900">{{ ln.description or "—" }}</td>
-          <td class="px-4 py-2 text-gray-500 font-mono text-xs">{{ ln.reference or "" }}</td>
-          <td class="px-4 py-2 text-right font-mono {% if ln.amount and ln.amount|float < 0 %}text-red-600{% else %}text-gray-900{% endif %}">
+        <tr class="hover:bg-[color:var(--paper-2)]">
+          <td class="px-4 py-2 ink-2 whitespace-nowrap">{{ ln.txn_date }}</td>
+          <td class="px-4 py-2 ink-1">{{ ln.description or "—" }}</td>
+          <td class="px-4 py-2 ink-3 font-mono text-xs">{{ ln.reference or "" }}</td>
+          <td class="px-4 py-2 text-right font-mono {% if ln.amount and ln.amount|float < 0 %}text-[color:var(--neg)]{% else %}ink-1{% endif %}">
             {{ ln.amount }}
           </td>
-          <td class="px-4 py-2 text-right font-mono text-gray-500">{{ ln.balance if ln.balance is not none else "—" }}</td>
+          <td class="px-4 py-2 text-right font-mono ink-3">{{ ln.balance if ln.balance is not none else "—" }}</td>
           <td class="px-4 py-2">
             {% set st = ln.status or "" %}
-            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-              {% if st == 'RECONCILED' %}bg-emerald-100 text-emerald-800
-              {% elif st == 'MATCHED' %}bg-blue-100 text-blue-800
-              {% elif st == 'IGNORED' %}bg-gray-100 text-gray-600
-              {% else %}bg-amber-100 text-amber-800{% endif %}">
+            <span class="
+              {% if st == 'RECONCILED' %}badge-pos
+              {% elif st == 'MATCHED' %}badge-sae
+              {% elif st == 'IGNORED' %}badge-ink
+              {% else %}badge-warm{% endif %}">
               {{ st or "UNMATCHED" }}
             </span>
           </td>
@@ -205,11 +207,11 @@
   {%- set _pg_filters = {"status": filter_status, "sort": sort, "direction": direction} -%}
   {{ pg.page_numbers("/bank-accounts/" ~ account.id, lines_total, limit, offset, _pg_filters, fragment="transactions") }}
   {% elif not lines_error %}
-  <div class="bg-white rounded-xl border border-gray-200 px-4 py-8 text-center">
-    <p class="text-sm text-gray-400">
+  <div class="card rounded-xl px-4 py-8 text-center">
+    <p class="text-sm ink-3">
       {% if filter_status %}No {{ filter_status|lower }} transactions for this account.{% else %}No transactions for this account yet.{% endif %}
     </p>
-    <p class="text-xs text-gray-400 mt-1">
+    <p class="text-xs ink-3 mt-1">
       Import a bank statement or connect a feed to see transactions here.
     </p>
   </div>
@@ -217,7 +219,7 @@
 </div>
 
 {# ── Metadata footer ── #}
-<div class="bg-gray-50 rounded-xl border border-gray-200 px-4 py-4 text-xs text-gray-500 grid grid-cols-2 gap-2 sm:grid-cols-3">
+<div class="card rounded-xl px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-3" style="background:var(--paper-2);">
   <div>
     <span class="font-medium">Created</span>
     <p class="mt-0.5">{{ account.created_at[:19] | replace("T", " ") if account.created_at else "—" }}</p>

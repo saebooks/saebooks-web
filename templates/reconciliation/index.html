@@ -6,50 +6,52 @@
 
 {# ── Flash banner ── #}
 {% if flash %}
-<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Bank Reconciliation</h1>
-    <p class="text-sm text-gray-500 mt-1">Select an account to reconcile</p>
+    <h1 class="text-2xl font-semibold ink-1">Bank Reconciliation</h1>
+    <p class="text-sm ink-3 mt-1">Select an account to reconcile</p>
   </div>
 </div>
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account Name</th>
-        <th class="px-4 py-3"></th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account Name</th>
+        <th scope="col" class="px-4 py-3"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody class="divide-y divide-[color:var(--line)]">
       {% if accounts %}
         {% for account in accounts %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ account.code | default("—") }}</td>
-          <td class="px-4 py-3 font-medium text-gray-900">{{ account.name | default("—") }}</td>
+        <tr class="hover:bg-[color:var(--paper-2)]">
+          <td class="px-4 py-3 font-mono text-xs ink-3">{{ account.code | default("—") }}</td>
+          <td class="px-4 py-3 font-medium ink-1">{{ account.name | default("—") }}</td>
           <td class="px-4 py-3 text-right">
             <a
               href="/reconciliation/{{ account.id }}/lines"
-              class="text-xs font-medium text-[#194291] hover:underline"
+              class="text-xs font-medium sae hover:underline"
             >Reconcile</a>
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="3" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="3" class="px-4 py-8 text-center ink-3">
             No reconcilable accounts found. Enable reconciliation on a bank or cash account.
           </td>
         </tr>

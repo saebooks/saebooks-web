@@ -7,13 +7,13 @@
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold text-gray-900">
+  <h1 class="text-2xl font-semibold ink-1">
     {% if credit_note %}Edit Credit Note {{ credit_note.number or "—" }}{% else %}Edit Credit Note{% endif %}
   </h1>
   {% if credit_note %}
-  <a href="/credit-notes/{{ credit_note.id }}" class="text-sm text-[#194291] hover:underline">← Back to credit note</a>
+  <a href="/credit-notes/{{ credit_note.id }}" class="text-sm sae hover:underline">← Back to credit note</a>
   {% else %}
-  <a href="/credit-notes" class="text-sm text-[#194291] hover:underline">← Back to credit notes</a>
+  <a href="/credit-notes" class="text-sm sae hover:underline">← Back to credit notes</a>
   {% endif %}
 </div>
 
@@ -21,7 +21,8 @@
 {% if conflict %}
 <div
   id="conflict-banner"
-  class="rounded-md bg-amber-50 border border-amber-300 px-4 py-4 text-sm text-amber-800 mb-6"
+  class="card p-4 mb-6 text-sm ink-2"
+  style="border-color:var(--warm);"
   role="alert"
 >
   <p class="font-semibold mb-1">
@@ -32,7 +33,7 @@
     number applied — so your next save will use the correct base.
     If you want to start fresh from the server's current state instead,
     {% if credit_note %}
-    <a href="/credit-notes/{{ credit_note.id }}/edit" class="underline hover:text-amber-900">reload the server version</a>.
+    <a href="/credit-notes/{{ credit_note.id }}/edit" class="underline sae">reload the server version</a>.
     {% else %}
     reload the page.
     {% endif %}
@@ -40,7 +41,7 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
+<div class="card px-6 py-6">
   {% if credit_note %}
   <form method="POST" action="/credit-notes/{{ credit_note.id }}/edit" novalidate>
     {{ csrf_input(request)|safe }}
@@ -59,24 +60,21 @@
     <div class="mt-8 flex items-center gap-3">
       <button
         type="submit"
-        class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white
-               hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+        class="btn-primary text-sm"
       >
         Save changes
       </button>
       {% if credit_note %}
       <a
         href="/credit-notes/{{ credit_note.id }}"
-        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
-               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+        class="btn-secondary text-sm"
       >
         Cancel
       </a>
       {% else %}
       <a
         href="/credit-notes"
-        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
-               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+        class="btn-secondary text-sm"
       >
         Cancel
       </a>

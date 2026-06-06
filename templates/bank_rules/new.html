@@ -5,18 +5,18 @@
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold text-gray-900">New Bank Rule</h1>
-  <a href="/bank-rules" class="text-sm text-[#194291] hover:underline">← Back to rules</a>
+  <h1 class="text-2xl font-semibold ink-1">New Bank Rule</h1>
+  <a href="/bank-rules" class="text-sm sae hover:underline">← Back to rules</a>
 </div>
 
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
+<div class="card rounded-xl px-6 py-6 max-w-2xl">
   <form method="POST" action="/bank-rules/new" novalidate>
     {{ csrf_input(request)|safe }}
 
 
     {# ── Non-field error banner ── #}
     {% if errors.get("__all__") %}
-    <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+    <div class="card px-4 py-3 text-sm mb-6" style="border-color:var(--neg);color:var(--neg);">
       {{ errors["__all__"] }}
     </div>
     {% endif %}
@@ -24,8 +24,8 @@
     <div class="space-y-4">
 
       <div>
-        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
-          Name <span class="text-red-500">*</span>
+        <label for="name" class="block text-sm font-medium ink-2 mb-1">
+          Name <span style="color:var(--neg)">*</span>
         </label>
         <input
           type="text"
@@ -34,30 +34,28 @@
           value="{{ form.get('name', '') }}"
           placeholder="e.g. Office supplies"
           required
-          class="block w-full rounded-md border {% if errors.get('name') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-                 px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+          {% if errors.get('name') %}style="border-color:var(--neg)"{% endif %}
+          class="saebooks-input w-full"
         >
         {% if errors.get("name") %}
-        <p class="mt-1 text-xs text-red-600">{{ errors["name"] }}</p>
+        <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["name"] }}</p>
         {% endif %}
       </div>
 
-      <fieldset class="border border-gray-200 rounded-md px-4 py-3">
-        <legend class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">Match criteria</legend>
+      <fieldset class="hairline border rounded-md px-4 py-3">
+        <legend class="text-xs font-semibold ink-3 uppercase tracking-wide px-1">Match criteria</legend>
 
         <div class="space-y-3 mt-2">
 
           <div>
-            <label for="match_field" class="block text-sm font-medium text-gray-700 mb-1">
-              Match field <span class="text-red-500">*</span>
+            <label for="match_field" class="block text-sm font-medium ink-2 mb-1">
+              Match field <span style="color:var(--neg)">*</span>
             </label>
             <select
               id="match_field"
               name="match_field"
-              class="block w-full rounded-md border {% if errors.get('match_field') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-                     px-3 py-2 text-sm text-gray-900
-                     focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+              {% if errors.get('match_field') %}style="border-color:var(--neg)"{% endif %}
+              class="saebooks-input w-full"
             >
               <option value="">— select —</option>
               {% for val in ["narration", "description", "reference", "amount", "payee"] %}
@@ -65,20 +63,19 @@
               {% endfor %}
             </select>
             {% if errors.get("match_field") %}
-            <p class="mt-1 text-xs text-red-600">{{ errors["match_field"] }}</p>
+            <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["match_field"] }}</p>
             {% endif %}
           </div>
 
           <div>
-            <label for="match_operator" class="block text-sm font-medium text-gray-700 mb-1">
-              Operator <span class="text-red-500">*</span>
+            <label for="match_operator" class="block text-sm font-medium ink-2 mb-1">
+              Operator <span style="color:var(--neg)">*</span>
             </label>
             <select
               id="match_operator"
               name="match_operator"
-              class="block w-full rounded-md border {% if errors.get('match_operator') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-                     px-3 py-2 text-sm text-gray-900
-                     focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+              {% if errors.get('match_operator') %}style="border-color:var(--neg)"{% endif %}
+              class="saebooks-input w-full"
             >
               <option value="">— select —</option>
               {% for val in ["contains", "equals", "starts_with", "ends_with", "regex"] %}
@@ -86,13 +83,13 @@
               {% endfor %}
             </select>
             {% if errors.get("match_operator") %}
-            <p class="mt-1 text-xs text-red-600">{{ errors["match_operator"] }}</p>
+            <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["match_operator"] }}</p>
             {% endif %}
           </div>
 
           <div>
-            <label for="match_value" class="block text-sm font-medium text-gray-700 mb-1">
-              Match value <span class="text-red-500">*</span>
+            <label for="match_value" class="block text-sm font-medium ink-2 mb-1">
+              Match value <span style="color:var(--neg)">*</span>
             </label>
             <input
               type="text"
@@ -101,26 +98,25 @@
               value="{{ form.get('match_value', '') }}"
               placeholder="e.g. OFFICEWORKS"
               required
-              class="block w-full rounded-md border {% if errors.get('match_value') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-                     px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-                     focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+              {% if errors.get('match_value') %}style="border-color:var(--neg)"{% endif %}
+              class="saebooks-input w-full"
             >
             {% if errors.get("match_value") %}
-            <p class="mt-1 text-xs text-red-600">{{ errors["match_value"] }}</p>
+            <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["match_value"] }}</p>
             {% endif %}
           </div>
 
         </div>
       </fieldset>
 
-      <fieldset class="border border-gray-200 rounded-md px-4 py-3">
-        <legend class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">Action</legend>
+      <fieldset class="hairline border rounded-md px-4 py-3">
+        <legend class="text-xs font-semibold ink-3 uppercase tracking-wide px-1">Action</legend>
 
         <div class="space-y-3 mt-2">
 
           <div>
-            <label for="action_account_id" class="block text-sm font-medium text-gray-700 mb-1">
-              Account ID <span class="text-red-500">*</span>
+            <label for="action_account_id" class="block text-sm font-medium ink-2 mb-1">
+              Account ID <span style="color:var(--neg)">*</span>
             </label>
             <input
               type="text"
@@ -129,18 +125,17 @@
               value="{{ form.get('action_account_id', '') }}"
               placeholder="UUID of the account to assign"
               required
-              class="block w-full rounded-md border {% if errors.get('action_account_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-                     px-3 py-2 text-sm font-mono text-gray-900 placeholder-gray-400
-                     focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+              {% if errors.get('action_account_id') %}style="border-color:var(--neg)"{% endif %}
+              class="saebooks-input w-full font-mono"
             >
             {% if errors.get("action_account_id") %}
-            <p class="mt-1 text-xs text-red-600">{{ errors["action_account_id"] }}</p>
+            <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["action_account_id"] }}</p>
             {% endif %}
           </div>
 
           <div>
-            <label for="action_tax_code_id" class="block text-sm font-medium text-gray-700 mb-1">
-              Tax code ID <span class="text-gray-400 font-normal">(optional)</span>
+            <label for="action_tax_code_id" class="block text-sm font-medium ink-2 mb-1">
+              Tax code ID <span class="ink-3 font-normal">(optional)</span>
             </label>
             <input
               type="text"
@@ -148,12 +143,11 @@
               name="action_tax_code_id"
               value="{{ form.get('action_tax_code_id', '') }}"
               placeholder="UUID of the tax code (leave blank to inherit)"
-              class="block w-full rounded-md border {% if errors.get('action_tax_code_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-                     px-3 py-2 text-sm font-mono text-gray-900 placeholder-gray-400
-                     focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+              {% if errors.get('action_tax_code_id') %}style="border-color:var(--neg)"{% endif %}
+              class="saebooks-input w-full font-mono"
             >
             {% if errors.get("action_tax_code_id") %}
-            <p class="mt-1 text-xs text-red-600">{{ errors["action_tax_code_id"] }}</p>
+            <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["action_tax_code_id"] }}</p>
             {% endif %}
           </div>
 
@@ -161,8 +155,8 @@
       </fieldset>
 
       <div>
-        <label for="priority" class="block text-sm font-medium text-gray-700 mb-1">
-          Priority <span class="text-gray-400 font-normal">(lower runs first)</span>
+        <label for="priority" class="block text-sm font-medium ink-2 mb-1">
+          Priority <span class="ink-3 font-normal">(lower runs first)</span>
         </label>
         <input
           type="number"
@@ -170,12 +164,11 @@
           name="priority"
           value="{{ form.get('priority', '') }}"
           placeholder="e.g. 10"
-          class="block w-32 rounded-md border {% if errors.get('priority') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-                 px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+          {% if errors.get('priority') %}style="border-color:var(--neg)"{% endif %}
+          class="saebooks-input w-32"
         >
         {% if errors.get("priority") %}
-        <p class="mt-1 text-xs text-red-600">{{ errors["priority"] }}</p>
+        <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["priority"] }}</p>
         {% endif %}
       </div>
 
@@ -184,15 +177,13 @@
     <div class="mt-8 flex items-center gap-3">
       <button
         type="submit"
-        class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white
-               hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+        class="btn-primary text-sm"
       >
         Save rule
       </button>
       <a
         href="/bank-rules"
-        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
-               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+        class="btn-secondary text-sm"
       >
         Cancel
       </a>

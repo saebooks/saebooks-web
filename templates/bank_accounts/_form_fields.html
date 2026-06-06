@@ -10,8 +10,8 @@
 {# Macro: render one labelled text input #}
 {% macro text_input(name, label, required=false, placeholder="", type="text") %}
 <div>
-  <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">
-    {{ label }}{% if required %} <span class="text-red-500">*</span>{% endif %}
+  <label for="{{ name }}" class="block text-sm font-medium ink-2 mb-1">
+    {{ label }}{% if required %} <span style="color:var(--neg)">*</span>{% endif %}
   </label>
   <input
     type="{{ type }}"
@@ -20,42 +20,40 @@
     value="{{ form.get(name, '') }}"
     {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
     {% if required %}required{% endif %}
-    class="block w-full rounded-md border {% if errors.get(name) %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-           px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-           focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+    {% if errors.get(name) %}style="border-color:var(--neg)"{% endif %}
+    class="saebooks-input w-full"
   >
   {% if errors.get(name) %}
-  <p class="mt-1 text-xs text-red-600">{{ errors[name] }}</p>
+  <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors[name] }}</p>
   {% endif %}
 </div>
 {% endmacro %}
 
 {# ── Non-field error banner ── #}
 {% if errors.get("__all__") %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+<div class="card px-4 py-3 text-sm mb-6" style="border-color:var(--neg);color:var(--neg);">
   {{ errors["__all__"] }}
 </div>
 {% endif %}
 
 {# ── Identity ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Identity</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Identity</legend>
 
   {{ text_input("code", "Account code", required=true, placeholder="BNKCBA001") }}
   {{ text_input("name", "Display name", required=true, placeholder="CBA Business Cheque") }}
 
   <div>
-    <label for="account_kind" class="block text-sm font-medium text-gray-700 mb-1">
-      Account kind <span class="text-red-500">*</span>
+    <label for="account_kind" class="block text-sm font-medium ink-2 mb-1">
+      Account kind <span style="color:var(--neg)">*</span>
     </label>
     {% set current_kind = form.get("account_kind") or "BANK_CHECKING" %}
     <select
       id="account_kind"
       name="account_kind"
       required
-      class="block w-full rounded-md border {% if errors.get('account_kind') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      {% if errors.get('account_kind') %}style="border-color:var(--neg)"{% endif %}
+      class="saebooks-input w-full"
     >
       <option value="BANK_CHECKING" {% if current_kind == "BANK_CHECKING" %}selected{% endif %}>Bank — Checking</option>
       <option value="BANK_SAVINGS"  {% if current_kind == "BANK_SAVINGS"  %}selected{% endif %}>Bank — Savings</option>
@@ -63,11 +61,11 @@
       <option value="BANK_LOAN"     {% if current_kind == "BANK_LOAN"     %}selected{% endif %}>Loan</option>
       <option value="CASH"          {% if current_kind == "CASH"          %}selected{% endif %}>Cash</option>
     </select>
-    <p class="mt-1 text-xs text-gray-500">
+    <p class="mt-1 text-xs ink-3">
       Determines which section the account appears under and whether a BSB is required.
     </p>
     {% if errors.get("account_kind") %}
-    <p class="mt-1 text-xs text-red-600">{{ errors["account_kind"] }}</p>
+    <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["account_kind"] }}</p>
     {% endif %}
   </div>
 </fieldset>
@@ -76,7 +74,7 @@
    BSB is only required for BANK_CHECKING / BANK_SAVINGS; server enforces.
    Marked required via JS below so the browser doesn't block CC / loan / cash creation. #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Banking details</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Banking details</legend>
 
   {{ text_input("bsb", "BSB", required=false, placeholder="062-000") }}
   {{ text_input("bank_account_number", "Account number", placeholder="123456789") }}
@@ -95,8 +93,8 @@
       const bsbLabel = bsbEl.previousElementSibling;
       if (bsbLabel && bsbLabel.tagName === "LABEL") {
         bsbLabel.innerHTML = bankKind
-          ? 'BSB <span class="text-red-500">*</span>'
-          : 'BSB <span class="text-gray-400 text-xs">(optional)</span>';
+          ? 'BSB <span style="color:var(--neg)">*</span>'
+          : 'BSB <span class="ink-3 text-xs">(optional)</span>';
       }
     }
     kindEl.addEventListener("change", syncBsbRequired);
@@ -106,14 +104,14 @@
 
 {# ── Direct debit ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Direct debit</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Direct debit</legend>
 
   {{ text_input("apca_user_id", "APCA user ID", placeholder="Optional") }}
 </fieldset>
 
 {# ── Trust account designation ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Designation</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Designation</legend>
 
   <div class="flex items-start gap-3">
     <div class="flex items-center h-5">
@@ -127,16 +125,16 @@
       >
     </div>
     <div>
-      <label for="is_trust_account" class="block text-sm font-medium text-gray-700">
+      <label for="is_trust_account" class="block text-sm font-medium ink-2">
         Trust account
       </label>
-      <p class="text-xs text-gray-500 mt-0.5">
+      <p class="text-xs ink-3 mt-0.5">
         Designates this as a statutory trust account (e.g. sales trust, rental trust).
         Trust funds are kept separate from operating funds.
       </p>
     </div>
   </div>
   {% if errors.get("is_trust_account") %}
-  <p class="mt-1 text-xs text-red-600">{{ errors["is_trust_account"] }}</p>
+  <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["is_trust_account"] }}</p>
   {% endif %}
 </fieldset>

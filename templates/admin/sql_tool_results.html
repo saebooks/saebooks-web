@@ -1,42 +1,43 @@
 {# HTMX fragment — injected into #sql-results by POST /admin/sql-tool/execute #}
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-  <strong>Query error:</strong> {{ error }}
+<div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);"><strong>Query error:</strong> {{ error }}</span>
 </div>
 {% elif proxy_html %}
 {# The upstream API returned rendered HTML with the results table — display it. #}
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-auto">
+<div class="card overflow-auto">
   <div class="sql-proxy-results p-4 text-sm">
     {{ proxy_html | safe }}
   </div>
 </div>
 {% elif columns %}
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-auto">
+<div class="card overflow-auto">
   {% if truncated %}
-  <div class="px-4 py-2 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
+  <div class="px-4 py-2 hairline-b text-xs" style="background:var(--warm-tint);color:var(--warm);">
     Results truncated — showing maximum allowed rows.
   </div>
   {% endif %}
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
       <tr>
         {% for col in columns %}
-        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">{{ col }}</th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ col }}</th>
         {% endfor %}
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100 font-mono text-xs">
+    <tbody class="divide-y divide-[color:var(--line)] font-mono text-xs">
       {% for row in rows %}
-      <tr class="hover:bg-gray-50">
+      <tr class="hover:bg-[color:var(--paper-2)]">
         {% for cell in row %}
-        <td class="px-4 py-2 text-gray-700">{{ cell if cell is not none else "NULL" }}</td>
+        <td class="px-4 py-2 ink-2">{{ cell if cell is not none else "NULL" }}</td>
         {% endfor %}
       </tr>
       {% endfor %}
       {% if not rows %}
       <tr>
-        <td colspan="{{ columns | length }}" class="px-4 py-6 text-center text-gray-400">
+        <td colspan="{{ columns | length }}" class="px-4 py-6 text-center ink-3">
           Query returned 0 rows.
         </td>
       </tr>
@@ -45,5 +46,5 @@
   </table>
 </div>
 {% else %}
-<div class="text-sm text-gray-400 py-4">No results.</div>
+<div class="text-sm ink-3 py-4">No results.</div>
 {% endif %}

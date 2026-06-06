@@ -3,36 +3,37 @@
    the initial full-page load.
 #}
 {% import "_components/kebab_menu.html" as km %}
+{% import "_partials/empty_state.html" as empty %}
 <div id="budgets-table">
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+<div class="card px-4 py-3 text-sm mb-4" style="border-color:var(--neg);color:var(--neg)">
   {{ error }}
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card overflow-x-auto">
+  <table class="sae-table min-w-full divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th class="w-8 px-4 py-3 text-center">
+        <th scope="col" class="w-8 px-4 py-3 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Year</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Month</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Amount</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Notes</th>
-        <th class="w-8"></th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Year</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Month</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Notes</th>
+        <th scope="col" class="w-8"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody class="divide-[color:var(--line)]">
       {% if budgets %}
         {% for budget in budgets %}
         <tr
-          class="hover:bg-gray-50 cursor-pointer"
+          class="hover:bg-[color:var(--paper-2)] cursor-pointer"
           onclick="window.location='/budgets/{{ budget.id }}'"
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
@@ -41,20 +42,20 @@
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="px-4 py-3 text-gray-900">{{ budget.year }}</td>
-          <td class="px-4 py-3 text-gray-900">
+          <td class="px-4 py-3 ink-1">{{ budget.year }}</td>
+          <td class="px-4 py-3 ink-1">
             {{ ["", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][budget.month] }}
           </td>
           <td class="px-4 py-3">
-            <a href="/budgets/{{ budget.id }}" class="hover:underline text-[#194291] text-sm font-medium" onclick="event.stopPropagation()">View</a>
-            <a href="/accounts/{{ budget.account_id }}" class="ml-2 hover:underline text-gray-400 font-mono text-xs" title="{{ budget.account_id }}" onclick="event.stopPropagation()">
+            <a href="/budgets/{{ budget.id }}" class="hover:underline sae text-sm font-medium" onclick="event.stopPropagation()">View</a>
+            <a href="/accounts/{{ budget.account_id }}" class="ml-2 hover:underline ink-3 font-mono text-xs" title="{{ budget.account_id }}" onclick="event.stopPropagation()">
               {{ budget.account_id[:8] }}…
             </a>
           </td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-900">
+          <td class="px-4 py-3 text-right tabular-nums ink-1">
             $ {{ "%.2f"|format(budget.amount | float) }}
           </td>
-          <td class="px-4 py-3 text-gray-500 text-xs">{{ budget.notes or "—" }}</td>
+          <td class="px-4 py-3 ink-3 text-xs">{{ budget.notes or "—" }}</td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
               ("view",    "View",    "/budgets/" ~ budget.id,             "link", false),
@@ -69,21 +70,14 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="7" class="px-4 py-12 text-center">
-            <p class="text-sm font-medium text-gray-500 mb-1">No budget rows found</p>
-            {% if filter_year or filter_month %}
-            <p class="text-xs text-gray-400 mb-4">Try adjusting the year or month filter.</p>
-            <a href="/budgets" class="text-sm text-[#194291] hover:underline">Clear filters</a>
-            {% else %}
-            <p class="text-xs text-gray-400 mb-4">Add a budget to track planned spend against actuals.</p>
-            <a href="/budgets/new"
-               class="inline-flex items-center rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
-              New budget
-            </a>
-            {% endif %}
-          </td>
-        </tr>
+        {% if filter_year or filter_month %}
+        {{ empty.row(7, "search-x", "No budget rows match these filters",
+                     "Try adjusting the year or month filter.") }}
+        {% else %}
+        {{ empty.row(7, "inbox", "No budgets yet",
+                     "Add a budget to track planned spend against actuals.",
+                     "New budget", "/budgets/new") }}
+        {% endif %}
       {% endif %}
     </tbody>
   </table>
@@ -91,7 +85,7 @@
 
 {# Pagination #}
 {% if prev_page is not none or next_page is not none %}
-<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+<div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
     Page {{ page }}{% if total %} — {{ total }} total row{{ "s" if total != 1 else "" }}{% endif %}
   </div>
@@ -103,7 +97,7 @@
       hx-target="#budgets-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+      class="rounded-md border hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
     >Previous</a>
     {% endif %}
     {% if next_page is not none %}
@@ -113,7 +107,7 @@
       hx-target="#budgets-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+      class="rounded-md border hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
     >Next</a>
     {% endif %}
   </div>

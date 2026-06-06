@@ -64,11 +64,11 @@
       <table class="w-full text-sm">
         <thead class="text-[11px] font-mono uppercase ink-3">
           <tr>
-            <th class="text-left py-1">Name</th>
-            <th class="text-left py-1">Customer</th>
-            <th class="text-left py-1">Schedule</th>
-            <th class="text-right py-1">Next run</th>
-            <th class="text-right py-1">Status</th>
+            <th scope="col" class="text-left py-1">Name</th>
+            <th scope="col" class="text-left py-1">Customer</th>
+            <th scope="col" class="text-left py-1">Schedule</th>
+            <th scope="col" class="text-right py-1">Next run</th>
+            <th scope="col" class="text-right py-1">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -86,13 +86,11 @@
             <td class="py-2 text-right">
               {% set st = (r.status or 'ACTIVE')|upper %}
               {% if st == 'ACTIVE' %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono"
-                      style="background: rgba(34,197,94,0.12); color: var(--pos);">Active</span>
+                <span class="badge-pos">Active</span>
               {% elif st == 'PAUSED' %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono"
-                      style="background: rgba(234,179,8,0.12); color: var(--warm);">Paused</span>
+                <span class="badge-warm">Paused</span>
               {% else %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono ink-3">{{ st|title }}</span>
+                <span class="badge-draft">{{ st|title }}</span>
               {% endif %}
             </td>
           </tr>
@@ -117,9 +115,9 @@
       <table class="w-full text-sm">
         <thead class="text-[11px] font-mono uppercase ink-3">
           <tr>
-            <th class="text-left py-1">Name</th>
-            <th class="text-left py-1">Description</th>
-            <th class="text-right py-1">Lines</th>
+            <th scope="col" class="text-left py-1">Name</th>
+            <th scope="col" class="text-left py-1">Description</th>
+            <th scope="col" class="text-right py-1">Lines</th>
           </tr>
         </thead>
         <tbody>

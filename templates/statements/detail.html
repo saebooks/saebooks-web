@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_partials/empty_state.html" as empty %}
 
 {% block title %}
   {% if statement %}{{ statement.supplier_name | default("Statement") }} — {% endif %}Supplier Statement — SAE Books
@@ -51,15 +52,15 @@
     <div class="flex items-center gap-2 flex-wrap justify-end">
       {% set s = (statement.status or "") | lower %}
       {% if s == "reconciled" %}
-        <span class="badge-ok text-sm px-3 py-1">Reconciled</span>
+        <span class="badge-pos text-sm px-3 py-1">Reconciled</span>
       {% elif s == "needs_review" %}
-        <span class="badge-warn text-sm px-3 py-1">Needs Review</span>
+        <span class="badge-warm text-sm px-3 py-1">Needs Review</span>
       {% elif s == "extracted" %}
         <span class="badge-draft text-sm px-3 py-1">Extracted</span>
       {% elif s == "dismissed" %}
         <span class="badge-ink text-sm px-3 py-1">Dismissed</span>
       {% elif s == "exception" %}
-        <span class="badge-warn text-sm px-3 py-1">Exception</span>
+        <span class="badge-warm text-sm px-3 py-1">Exception</span>
       {% elif s == "pending" %}
         <span class="badge-draft text-sm px-3 py-1">Pending</span>
       {% else %}
@@ -201,14 +202,14 @@
   <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
     <thead>
       <tr style="background:var(--paper-2);">
-        <th class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
-        <th class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Date</th>
-        <th class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Type</th>
-        <th class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Reference</th>
-        <th class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Description</th>
-        <th class="px-3 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Amount</th>
-        <th class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Note</th>
-        <th class="px-3 py-3 text-[10px] font-mono uppercase tracking-wider ink-3">Action</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Date</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Type</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Reference</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Description</th>
+        <th scope="col" class="px-3 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Amount</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Note</th>
+        <th scope="col" class="px-3 py-3 text-[10px] font-mono uppercase tracking-wider ink-3">Action</th>
       </tr>
     </thead>
     <tbody>
@@ -330,11 +331,8 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="8" class="px-4 py-10 text-center ink-4 text-sm">
-            No lines found on this statement.
-          </td>
-        </tr>
+        {{ empty.row(8, "list-x", "No lines found on this statement",
+                     "Re-ingest or check the extraction template.") }}
       {% endif %}
     </tbody>
   </table>
@@ -354,9 +352,9 @@
     <table class="min-w-full text-xs" style="border-color:var(--line);">
       <thead>
         <tr style="background:var(--paper-2);">
-          <th class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Hint</th>
-          <th class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Page scope</th>
-          <th class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Active</th>
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Hint</th>
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Page scope</th>
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Active</th>
         </tr>
       </thead>
       <tbody>
@@ -366,7 +364,7 @@
           <td class="px-3 py-2 font-mono ink-3">{{ tmpl.page_scope | default("—") }}</td>
           <td class="px-3 py-2">
             {% if tmpl.active %}
-              <span class="badge-ok">Yes</span>
+              <span class="badge-pos">Yes</span>
             {% else %}
               <span class="badge-ink">No</span>
             {% endif %}
@@ -441,11 +439,11 @@
     <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
       <thead>
         <tr style="background:var(--paper-2);">
-          <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Date</th>
-          <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
-          <th class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Closing Balance</th>
-          <th class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Delta</th>
-          <th class="px-4 py-3"></th>
+          <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Date</th>
+          <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
+          <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Closing Balance</th>
+          <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Delta</th>
+          <th scope="col" class="px-4 py-3"></th>
         </tr>
       </thead>
       <tbody>
@@ -459,9 +457,9 @@
           <td class="px-4 py-3">
             {% set ss = (sib.status or "") | lower %}
             {% if ss == "reconciled" %}
-              <span class="badge-ok">Reconciled</span>
+              <span class="badge-pos">Reconciled</span>
             {% elif ss == "needs_review" %}
-              <span class="badge-warn">Needs Review</span>
+              <span class="badge-warm">Needs Review</span>
             {% elif ss == "extracted" %}
               <span class="badge-draft">Extracted</span>
             {% elif ss == "dismissed" %}

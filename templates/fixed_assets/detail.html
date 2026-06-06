@@ -7,14 +7,16 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
-  {{ error }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
@@ -24,24 +26,22 @@
 <div class="mb-6 flex items-start justify-between">
   <div>
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-semibold text-gray-900">
+      <h1 class="text-2xl font-semibold ink-1">
         {{ asset.code }} — {{ asset.name }}
       </h1>
-      <span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-medium
-        {% if asset.status == 'active' %}bg-green-100 text-green-700
-        {% elif asset.status == 'disposed' %}bg-gray-100 text-gray-500
-        {% else %}bg-gray-100 text-gray-500{% endif %}">
+      <span class="{% if asset.status == 'active' %}badge-pos
+        {% elif asset.status == 'disposed' %}badge-draft
+        {% else %}badge-draft{% endif %}">
         {{ asset.status | replace("_", " ") | title }}
       </span>
     </div>
-    <p class="text-sm text-gray-500 mt-1">ID: {{ asset.id }}</p>
+    <p class="text-sm ink-3 mt-1">ID: {{ asset.id }}</p>
   </div>
   <div class="flex items-center gap-3">
     {% if asset.status == 'active' %}
     <a
       href="/fixed-assets/{{ asset.id }}/edit"
-      class="rounded-md border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700
-             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+      class="btn-secondary text-sm"
     >
       Edit
     </a>
@@ -53,68 +53,67 @@
       <button
         type="submit"
         onclick="return confirm('Archive this fixed asset?')"
-        class="rounded-md border border-red-300 px-4 py-1.5 text-sm font-medium text-red-700
-               hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
         Archive
       </button>
     </form>
     {% endif %}
     {% endif %}
-    <a href="/fixed-assets" class="text-sm text-[#194291] hover:underline">← Back to fixed assets</a>
+    <a href="/fixed-assets" class="text-sm sae hover:underline">← Back to fixed assets</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Cost</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">$ {{ "%.2f"|format(asset.cost | float) }}</p>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Cost</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">$ {{ "%.2f"|format(asset.cost | float) }}</p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Residual value</p>
-    <p class="mt-1 text-sm font-medium text-gray-900 tabular-nums">$ {{ "%.2f"|format(asset.residual_value | float) }}</p>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Residual value</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">$ {{ "%.2f"|format(asset.residual_value | float) }}</p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">Purchase date</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ asset.purchase_date or "—" }}</p>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">Purchase date</p>
+    <p class="mt-1 text-sm font-medium ink-1">{{ asset.purchase_date or "—" }}</p>
   </div>
-  <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <p class="text-xs text-gray-500 uppercase tracking-wide">In service date</p>
-    <p class="mt-1 text-sm font-medium text-gray-900">{{ asset.in_service_date or "—" }}</p>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">In service date</p>
+    <p class="mt-1 text-sm font-medium ink-1">{{ asset.in_service_date or "—" }}</p>
   </div>
 </div>
 
 {# ── Depreciation details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-3">Depreciation</h2>
-  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+  <h2 class="text-base font-semibold ink-1 mb-3">Depreciation</h2>
+  <div class="card overflow-x-auto">
     <table class="min-w-full text-sm">
-      <tbody class="divide-y divide-gray-100">
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500 w-48">Depreciation model</td>
-          <td class="px-4 py-3 text-gray-900">
+      <tbody>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">Depreciation model</th>
+          <td class="px-4 py-3 ink-1">
             {% if asset.depreciation_model and asset.depreciation_model.method %}
               {{ asset.depreciation_model.method | replace("_", " ") | title }}
-              <span class="ml-2 text-gray-400 font-mono text-xs">{{ asset.depreciation_model_id }}</span>
+              <span class="ml-2 ink-4 font-mono text-xs">{{ asset.depreciation_model_id }}</span>
             {% else %}
-              <span class="font-mono text-xs text-gray-500">{{ asset.depreciation_model_id }}</span>
+              <span class="font-mono text-xs ink-3">{{ asset.depreciation_model_id }}</span>
             {% endif %}
           </td>
         </tr>
         {% if asset.depreciation_model %}
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Method</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.depreciation_model.method | replace("_", " ") | title }}</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Method</th>
+          <td class="px-4 py-3 ink-1">{{ asset.depreciation_model.method | replace("_", " ") | title }}</td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Method period</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.depreciation_model.method_period }} month{{ "s" if asset.depreciation_model.method_period != 1 else "" }}</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Method period</th>
+          <td class="px-4 py-3 ink-1">{{ asset.depreciation_model.method_period }} month{{ "s" if asset.depreciation_model.method_period != 1 else "" }}</td>
         </tr>
         {% endif %}
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Last posted through</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.last_depreciation_posted_through or "—" }}</td>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Last posted through</th>
+          <td class="px-4 py-3 ink-1">{{ asset.last_depreciation_posted_through or "—" }}</td>
         </tr>
       </tbody>
     </table>
@@ -123,46 +122,46 @@
 
 {# ── Asset details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-3">Asset details</h2>
-  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+  <h2 class="text-base font-semibold ink-1 mb-3">Asset details</h2>
+  <div class="card overflow-x-auto">
     <table class="min-w-full text-sm">
-      <tbody class="divide-y divide-gray-100">
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500 w-48">Description</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.description or "—" }}</td>
+      <tbody>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">Description</th>
+          <td class="px-4 py-3 ink-1">{{ asset.description or "—" }}</td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Serial number</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.serial_number or "—" }}</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Serial number</th>
+          <td class="px-4 py-3 ink-1">{{ asset.serial_number or "—" }}</td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Manufacturer</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.manufacturer or "—" }}</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Manufacturer</th>
+          <td class="px-4 py-3 ink-1">{{ asset.manufacturer or "—" }}</td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Model number</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.model_number or "—" }}</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Model number</th>
+          <td class="px-4 py-3 ink-1">{{ asset.model_number or "—" }}</td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Location</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.location or "—" }}</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Location</th>
+          <td class="px-4 py-3 ink-1">{{ asset.location or "—" }}</td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Custody person</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.custody_person or "—" }}</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Custody person</th>
+          <td class="px-4 py-3 ink-1">{{ asset.custody_person or "—" }}</td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Warranty end</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.warranty_end or "—" }}</td>
+        <tr{% if asset.disposal_date %} class="hairline-b"{% endif %}>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Warranty end</th>
+          <td class="px-4 py-3 ink-1">{{ asset.warranty_end or "—" }}</td>
         </tr>
         {% if asset.disposal_date %}
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Disposal date</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.disposal_date }}</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Disposal date</th>
+          <td class="px-4 py-3 ink-1">{{ asset.disposal_date }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Disposal proceeds</td>
-          <td class="px-4 py-3 text-gray-900">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Disposal proceeds</th>
+          <td class="px-4 py-3 ink-1">
             {% if asset.disposal_proceeds is not none %}
               {{ "%.2f"|format(asset.disposal_proceeds | float) }}
             {% else %}
@@ -178,32 +177,32 @@
 
 {# ── Account links ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-3">Account links</h2>
-  <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+  <h2 class="text-base font-semibold ink-1 mb-3">Account links</h2>
+  <div class="card overflow-x-auto">
     <table class="min-w-full text-sm">
-      <tbody class="divide-y divide-gray-100">
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500 w-48">Cost account</td>
+      <tbody>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">Cost account</th>
           <td class="px-4 py-3">
-            <a href="/accounts/{{ asset.cost_account_id }}" class="text-[#194291] hover:underline font-mono text-xs">{{ asset.cost_account_id }}</a>
+            <a href="/accounts/{{ asset.cost_account_id }}" class="sae hover:underline font-mono text-xs">{{ asset.cost_account_id }}</a>
           </td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Accum. dep. account</td>
+        <tr class="hairline-b">
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Accum. dep. account</th>
           <td class="px-4 py-3">
-            <a href="/accounts/{{ asset.accum_dep_account_id }}" class="text-[#194291] hover:underline font-mono text-xs">{{ asset.accum_dep_account_id }}</a>
+            <a href="/accounts/{{ asset.accum_dep_account_id }}" class="sae hover:underline font-mono text-xs">{{ asset.accum_dep_account_id }}</a>
           </td>
         </tr>
-        <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Dep. expense account</td>
+        <tr{% if asset.tax_model_id %} class="hairline-b"{% endif %}>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Dep. expense account</th>
           <td class="px-4 py-3">
-            <a href="/accounts/{{ asset.dep_expense_account_id }}" class="text-[#194291] hover:underline font-mono text-xs">{{ asset.dep_expense_account_id }}</a>
+            <a href="/accounts/{{ asset.dep_expense_account_id }}" class="sae hover:underline font-mono text-xs">{{ asset.dep_expense_account_id }}</a>
           </td>
         </tr>
         {% if asset.tax_model_id %}
         <tr>
-          <td class="px-4 py-3 font-medium text-gray-500">Tax model</td>
-          <td class="px-4 py-3 text-gray-900">{{ asset.tax_model_id }}</td>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Tax model</th>
+          <td class="px-4 py-3 ink-1">{{ asset.tax_model_id }}</td>
         </tr>
         {% endif %}
       </tbody>
@@ -213,25 +212,25 @@
 
 {% if asset.extra %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-2">Extra</h2>
-  <div class="bg-white rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 font-mono whitespace-pre-wrap">{{ asset.extra | tojson(indent=2) }}</div>
+  <h2 class="text-base font-semibold ink-1 mb-2">Extra</h2>
+  <div class="card px-4 py-3 text-sm ink-2 font-mono whitespace-pre-wrap">{{ asset.extra | tojson(indent=2) }}</div>
 </div>
 {% endif %}
 
 {# ── Post Depreciation form (only shown when ACTIVE and depreciation method is not no_depreciation) ── #}
 {% if asset.status == 'active' and asset.depreciation_model and asset.depreciation_model.method != 'no_depreciation' %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold text-gray-900 mb-3">Post Depreciation</h2>
-  <div class="bg-white rounded-xl border border-[#194291]/30 px-6 py-5 max-w-2xl">
-    <p class="text-sm text-gray-500 mb-1">
+  <h2 class="text-base font-semibold ink-1 mb-3">Post Depreciation</h2>
+  <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--sae);">
+    <p class="text-sm ink-3 mb-1">
       Post depreciation entries through the selected date.
     </p>
     {% if asset.last_depreciation_posted_through %}
-    <p class="text-xs text-gray-400 mb-4">
+    <p class="text-xs ink-4 mb-4">
       Last posted through: {{ asset.last_depreciation_posted_through }}
     </p>
     {% else %}
-    <p class="text-xs text-gray-400 mb-4">No depreciation posted yet.</p>
+    <p class="text-xs ink-4 mb-4">No depreciation posted yet.</p>
     {% endif %}
     <form method="POST" action="/fixed-assets/{{ asset.id }}/post-depreciation" novalidate>
     {{ csrf_input(request)|safe }}
@@ -240,8 +239,8 @@
 
       <div class="space-y-4">
         <div>
-          <label for="through_date" class="block text-sm font-medium text-gray-700 mb-1">
-            Post through <span class="text-red-500">*</span>
+          <label for="through_date" class="block text-sm font-medium ink-2 mb-1">
+            Post through <span style="color:var(--neg);">*</span>
           </label>
           <input
             type="date"
@@ -249,8 +248,7 @@
             name="through_date"
             value="{{ through_default }}"
             required
-            class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900
-                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291] max-w-xs"
+            class="saebooks-input w-full max-w-xs px-3 py-2 text-sm"
           >
         </div>
       </div>
@@ -258,8 +256,7 @@
       <div class="mt-5">
         <button
           type="submit"
-          class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white
-                 hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+          class="btn-primary text-sm"
         >
           Post Depreciation
         </button>
@@ -280,7 +277,7 @@
 {% endif %}
 
 {# ── Metadata footer ── #}
-<div class="bg-gray-50 rounded-xl border border-gray-200 px-4 py-4 text-xs text-gray-500 grid grid-cols-2 gap-2 sm:grid-cols-4">
+<div class="card px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-4" style="background:var(--paper-2);">
   <div>
     <span class="font-medium">Created</span>
     <p class="mt-0.5">{{ asset.created_at[:19] | replace("T", " ") if asset.created_at else "—" }}</p>

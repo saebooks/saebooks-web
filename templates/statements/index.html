@@ -94,14 +94,14 @@
   <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
     <thead>
       <tr style="background:var(--paper-2);">
-        <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Supplier</th>
-        <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Statement Date</th>
-        <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
-        <th class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Closing Balance</th>
-        <th class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Our AP</th>
-        <th class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Delta</th>
-        <th class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Exceptions</th>
-        <th class="px-4 py-3"></th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Supplier</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Statement Date</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
+        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Closing Balance</th>
+        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Our AP</th>
+        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Delta</th>
+        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Exceptions</th>
+        <th scope="col" class="px-4 py-3"></th>
       </tr>
     </thead>
     <tbody>
@@ -119,15 +119,15 @@
           <td class="px-4 py-3">
             {% set s = (stmt.status or "") | lower %}
             {% if s == "reconciled" %}
-              <span class="badge-ok">Reconciled</span>
+              <span class="badge-pos">Reconciled</span>
             {% elif s == "needs_review" %}
-              <span class="badge-warn">Needs Review</span>
+              <span class="badge-warm">Needs Review</span>
             {% elif s == "extracted" %}
               <span class="badge-draft">Extracted</span>
             {% elif s == "dismissed" %}
               <span class="badge-ink">Dismissed</span>
             {% elif s == "exception" %}
-              <span class="badge-warn">Exception</span>
+              <span class="badge-warm">Exception</span>
             {% elif s == "pending" %}
               <span class="badge-draft">Pending</span>
             {% else %}

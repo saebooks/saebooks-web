@@ -689,6 +689,9 @@
           <a href="/reports" class="nav-item is-sub {% if path == '/reports' %}active{% endif %}">
             <i data-lucide="line-chart" class="nav-ico"></i>All Reports
           </a>
+          <a href="/statements" class="nav-item is-sub {% if path.startswith('/statements') or path.startswith('/statement-templates') %}active{% endif %}">
+            <i data-lucide="file-check-2" class="nav-ico"></i>Statements
+          </a>
         </div>
       </details>
 
@@ -760,6 +763,12 @@
           </a>
           <a href="/admin/license" class="nav-item is-sub {% if path == '/admin/license' %}active{% endif %}">
             <i data-lucide="shield-check" class="nav-ico"></i>License audit
+          </a>
+          <a href="/branches" class="nav-item is-sub {% if path.startswith('/branches') %}active{% endif %}">
+            <i data-lucide="git-branch" class="nav-ico"></i>Branches
+          </a>
+          <a href="/email-log" class="nav-item is-sub {% if path.startswith('/email-log') %}active{% endif %}">
+            <i data-lucide="mail" class="nav-ico"></i>Email log
           </a>
           {% endif %}
         </div>
@@ -1052,9 +1061,9 @@
     { g: 'Reports', i: 'hourglass',    t: 'Aged Receivables',      s: 'Days-sales-outstanding', k: 'R A', href: '/reports/aged-receivables' },
     { g: 'Reports', i: 'alarm-clock',  t: 'Aged Payables',         s: 'Days-payable-outstanding', k: 'R Y', href: '/reports/aged-payables' },
     { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas-summary' },
-    { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll',               href: '/pay-run' },
-    { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG',                       href: '/pay-run' },
-    { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report',     href: '/reports' },
+    { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll · coming soon', href: '/pay-run' },
+    { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG · coming soon',         href: '/pay-run' },
+    { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report · coming soon', href: '/reports' },
     { g: 'Admin',   i: 'cog',          t: 'Company settings',      s: 'ABN · GST · tax codes',              href: '/settings/company' },
     { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/admin/license' },
     { g: 'Admin',   i: 'history',      t: 'Audit log',              s: 'All ledger mutations',               href: '/admin/audit' },

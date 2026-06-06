@@ -5,15 +5,16 @@
 {% block content %}
 
 {% if error and not entry %}
-<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
-  {{ error }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-base" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
 {% if entry %}
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl text-gray-900">
+    <h1 class="font-display text-3xl ink-1">
       <span class="num-display">{{ "%.2f"|format(entry.hours|float) }}h</span>
       on {{ entry.work_date }}
     </h1>
@@ -82,7 +83,7 @@
         {% if entry.rejection_reason %}
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">Rejection reason</dt>
-          <dd class="col-span-2 text-rose-700">{{ entry.rejection_reason }}</dd>
+          <dd class="col-span-2" style="color:var(--neg);">{{ entry.rejection_reason }}</dd>
         </div>
         {% endif %}
         <div class="grid grid-cols-3 gap-2 hairline border-t pt-3">

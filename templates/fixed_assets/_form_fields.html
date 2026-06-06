@@ -15,8 +15,8 @@
 {# Macro: render one labelled text input #}
 {% macro text_input(name, label, required=false, placeholder="", type="text") %}
 <div>
-  <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">
-    {{ label }}{% if required %} <span class="text-red-500">*</span>{% endif %}
+  <label for="{{ name }}" class="block text-sm font-medium ink-2 mb-1">
+    {{ label }}{% if required %} <span style="color:var(--neg);">*</span>{% endif %}
   </label>
   <input
     type="{{ type }}"
@@ -25,12 +25,11 @@
     value="{{ form.get(name, '') }}"
     {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
     {% if required %}required{% endif %}
-    class="block w-full rounded-md border {% if errors.get(name) %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-           px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-           focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+    class="saebooks-input w-full px-3 py-2 text-sm"
+    {% if errors.get(name) %}style="border-color:var(--neg);"{% endif %}
   >
   {% if errors.get(name) %}
-  <p class="mt-1 text-xs text-red-600">{{ errors[name] }}</p>
+  <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors[name] }}</p>
   {% endif %}
 </div>
 {% endmacro %}
@@ -38,16 +37,15 @@
 {# Macro: render an account select dropdown #}
 {% macro account_select(name, label, required=false) %}
 <div>
-  <label for="{{ name }}" class="block text-sm font-medium text-gray-700 mb-1">
-    {{ label }}{% if required %} <span class="text-red-500">*</span>{% endif %}
+  <label for="{{ name }}" class="block text-sm font-medium ink-2 mb-1">
+    {{ label }}{% if required %} <span style="color:var(--neg);">*</span>{% endif %}
   </label>
   <select
     id="{{ name }}"
     name="{{ name }}"
     {% if required %}required{% endif %}
-    class="block w-full rounded-md border {% if errors.get(name) %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-           px-3 py-2 text-sm text-gray-900
-           focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+    class="saebooks-input w-full px-3 py-2 text-sm"
+    {% if errors.get(name) %}style="border-color:var(--neg);"{% endif %}
   >
     <option value="" {% if not form.get(name) %}selected{% endif %}>— select account —</option>
     {% for acct in accounts %}
@@ -57,36 +55,35 @@
     {% endfor %}
   </select>
   {% if errors.get(name) %}
-  <p class="mt-1 text-xs text-red-600">{{ errors[name] }}</p>
+  <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors[name] }}</p>
   {% endif %}
 </div>
 {% endmacro %}
 
 {# ── Non-field error banner ── #}
 {% if errors.get("__all__") %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-6">
+<div class="card px-4 py-3 text-sm mb-6" style="border-color:var(--neg);color:var(--neg);">
   {{ errors["__all__"] }}
 </div>
 {% endif %}
 
 {# ── Identity ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Identity</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Identity</legend>
 
   {{ text_input("name", "Name", required=true, placeholder="Office Server Rack") }}
   {{ text_input("code", "Asset code", placeholder="AST-000001") }}
   {# ── Depreciation model select ── #}
   <div>
-    <label for="depreciation_model_id" class="block text-sm font-medium text-gray-700 mb-1">
-      Depreciation model <span class="text-red-500">*</span>
+    <label for="depreciation_model_id" class="block text-sm font-medium ink-2 mb-1">
+      Depreciation model <span style="color:var(--neg);">*</span>
     </label>
     <select
       id="depreciation_model_id"
       name="depreciation_model_id"
       required
-      class="block w-full rounded-md border {% if errors.get('depreciation_model_id') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      class="saebooks-input w-full px-3 py-2 text-sm"
+      {% if errors.get('depreciation_model_id') %}style="border-color:var(--neg);"{% endif %}
     >
       {% if dep_models %}
         <option value="" {% if not form.get('depreciation_model_id') %}selected{% endif %}>— select depreciation model —</option>
@@ -124,24 +121,23 @@
       {% endif %}
     </select>
     {% if errors.get('depreciation_model_id') %}
-    <p class="mt-1 text-xs text-red-600">{{ errors['depreciation_model_id'] }}</p>
+    <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors['depreciation_model_id'] }}</p>
     {% endif %}
   </div>
   {{ text_input("tax_model_id", "Tax model ID", placeholder="Optional") }}
 
   <div>
-    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+    <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
     <textarea
       id="description"
       name="description"
       rows="2"
-      class="block w-full rounded-md border {% if errors.get('description') %}border-red-400 bg-red-50{% else %}border-gray-300{% endif %}
-             px-3 py-2 text-sm text-gray-900 placeholder-gray-400
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      class="saebooks-input w-full px-3 py-2 text-sm"
+      {% if errors.get('description') %}style="border-color:var(--neg);"{% endif %}
       placeholder="Optional description"
     >{{ form.get("description", "") }}</textarea>
     {% if errors.get("description") %}
-    <p class="mt-1 text-xs text-red-600">{{ errors["description"] }}</p>
+    <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["description"] }}</p>
     {% endif %}
   </div>
 </fieldset>
@@ -149,7 +145,7 @@
 {# ── Financials (create-only fields) ── #}
 {% if not is_edit %}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Financial details</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Financial details</legend>
   {{ text_input("cost", "Cost", required=true, placeholder="0.00") }}
   {{ text_input("residual_value", "Residual value", placeholder="0.00") }}
   {{ text_input("purchase_date", "Purchase date", required=true, placeholder="2024-01-15", type="date") }}
@@ -157,7 +153,7 @@
 </fieldset>
 {% else %}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Financial details</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Financial details</legend>
   {{ text_input("residual_value", "Residual value", placeholder="0.00") }}
   {{ text_input("purchase_date", "Purchase date", placeholder="2024-01-15", type="date") }}
   {{ text_input("in_service_date", "In service date", placeholder="2024-01-20", type="date") }}
@@ -166,7 +162,7 @@
 
 {# ── Physical details ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Physical details</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Physical details</legend>
   {{ text_input("serial_number", "Serial number", placeholder="SN-001") }}
   {{ text_input("manufacturer", "Manufacturer", placeholder="APC") }}
   {{ text_input("model_number", "Model number", placeholder="AR3100") }}
@@ -178,7 +174,7 @@
 {# ── Account links (create-only) ── #}
 {% if not is_edit %}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold text-gray-900 mb-2">Account links</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">Account links</legend>
   {{ account_select("cost_account_id", "Cost account", required=true) }}
   {{ account_select("accum_dep_account_id", "Accumulated depreciation account", required=true) }}
   {{ account_select("dep_expense_account_id", "Depreciation expense account", required=true) }}
