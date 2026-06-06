@@ -481,7 +481,7 @@ async def po_convert(
 
     # Optional per-line quantities. Form keys: qty[<line_no>] = "5"
     quantities: dict[int, str] | None = None
-    qty_keys = [k for k in form.keys() if k.startswith("qty[") and k.endswith("]")]
+    qty_keys = [k for k in form if k.startswith("qty[") and k.endswith("]")]
     if qty_keys:
         quantities = {}
         for k in qty_keys:

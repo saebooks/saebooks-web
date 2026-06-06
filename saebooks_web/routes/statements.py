@@ -198,7 +198,7 @@ async def statements_ingest(request: Request) -> RedirectResponse:
             stmt_id = detail.get("id")
             if stmt_id:
                 return RedirectResponse(url=f"/statements/{stmt_id}", status_code=303)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         request.session["flash"] = "Statement ingested."
         return RedirectResponse(url="/statements", status_code=303)
@@ -206,7 +206,7 @@ async def statements_ingest(request: Request) -> RedirectResponse:
     # Error path — put detail in flash and return to queue
     try:
         msg = resp.json().get("detail", f"Ingest failed: HTTP {resp.status_code}")
-    except Exception:  # noqa: BLE001
+    except Exception:
         msg = f"Ingest failed: HTTP {resp.status_code}"
     request.session["flash"] = str(msg)
     return RedirectResponse(url="/statements", status_code=303)
@@ -259,7 +259,7 @@ async def statements_draft_missing_bill(
             if bill_id:
                 request.session["flash"] = "Draft bill created — code it below."
                 return RedirectResponse(url=f"/bills/{bill_id}", status_code=303)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         request.session["flash"] = "Draft bill created."
         return RedirectResponse(url=f"/statements/{statement_id}", status_code=303)
@@ -267,7 +267,7 @@ async def statements_draft_missing_bill(
     # Error path
     try:
         msg = resp.json().get("detail", f"Draft bill failed: HTTP {resp.status_code}")
-    except Exception:  # noqa: BLE001
+    except Exception:
         msg = f"Draft bill failed: HTTP {resp.status_code}"
     request.session["flash"] = str(msg)
     return RedirectResponse(url=f"/statements/{statement_id}", status_code=303)
@@ -307,7 +307,7 @@ async def statements_dismiss(
 
     try:
         msg = resp.json().get("detail", f"Dismiss failed: HTTP {resp.status_code}")
-    except Exception:  # noqa: BLE001
+    except Exception:
         msg = f"Dismiss failed: HTTP {resp.status_code}"
     request.session["flash"] = str(msg)
     return RedirectResponse(url=f"/statements/{statement_id}", status_code=303)
@@ -347,7 +347,7 @@ async def statements_confirm(
 
     try:
         msg = resp.json().get("detail", f"Confirm failed: HTTP {resp.status_code}")
-    except Exception:  # noqa: BLE001
+    except Exception:
         msg = f"Confirm failed: HTTP {resp.status_code}"
     request.session["flash"] = str(msg)
     return RedirectResponse(url=f"/statements/{statement_id}", status_code=303)
@@ -423,7 +423,7 @@ async def statements_add_template(
 
     try:
         msg = resp.json().get("detail", f"Template save failed: HTTP {resp.status_code}")
-    except Exception:  # noqa: BLE001
+    except Exception:
         msg = f"Template save failed: HTTP {resp.status_code}"
     request.session["flash"] = str(msg)
     return RedirectResponse(url=f"/statements/{statement_id}", status_code=303)

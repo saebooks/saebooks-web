@@ -22,6 +22,10 @@ Or via the helper in pyproject.toml::
 
 Environment variables: see config.py / README.md.
 """
+# ruff: noqa: I001 — import ORDER in this file is load-bearing: importing
+# ``saebooks_web.security`` patches ``Jinja2Templates.__init__`` (registering the
+# csrf_input / is_feature_enabled Jinja globals) and MUST run before any router
+# module constructs its templates env. Do not let the import sorter reorder this.
 from __future__ import annotations
 
 import base64
@@ -50,16 +54,15 @@ from saebooks_web.config import settings
 # routers imported afterwards therefore get the global automatically.
 # The ``ensure_csrf_global`` helper is also exported for the few cases
 # where an env was created earlier and needs retrofitting.
-from saebooks_web.security import (  # noqa: E402,I001 — placement is load-bearing
+from saebooks_web.security import (  # placement is load-bearing — see module note above
     OriginRefererMiddleware,
     CSRFMiddleware,
-    ensure_csrf_global,
 )
-from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware  # noqa: E402
+from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware
 from saebooks_web.cf_access import CFAccessAuthMiddleware
-from saebooks_web.webauthn_sso import router as webauthn_router, webauthn_enabled
+from saebooks_web.webauthn_sso import router as webauthn_router
 from saebooks_web.company_context import CompanyContextMiddleware
-from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware  # noqa: E402
+from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware
 
 from saebooks_web.auth import router as auth_router
 from saebooks_web.discourse_sso import router as discourse_sso_router
@@ -263,7 +266,7 @@ app.add_middleware(_RequestIdMiddleware)
 
 
 class _PreviewBasicAuthMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: Any, credential: str) -> None:  # noqa: ANN401
+    def __init__(self, app: Any, credential: str) -> None:
         super().__init__(app)
         self._user, _, self._password = credential.partition(":")
 
@@ -295,7 +298,7 @@ class _PreviewBasicAuthMiddleware(BaseHTTPMiddleware):
                     password, self._password
                 ):
                     return await call_next(request)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
         return Response(
             status_code=401,

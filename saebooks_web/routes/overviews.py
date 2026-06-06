@@ -49,10 +49,7 @@ def _this_month_range() -> tuple[str, str]:
 
 def _au_fy_range() -> tuple[str, str]:
     today = date.today()
-    if today.month >= 7:
-        fy_start = date(today.year, 7, 1)
-    else:
-        fy_start = date(today.year - 1, 7, 1)
+    fy_start = date(today.year, 7, 1) if today.month >= 7 else date(today.year - 1, 7, 1)
     return fy_start.isoformat(), today.isoformat()
 
 
@@ -521,12 +518,10 @@ async def inventory_overview(request: Request) -> HTMLResponse | RedirectRespons
             items_raw,
             recent_pos,
             recent_invoices,
-            recent_bills,
         ) = await asyncio.gather(
             _fetch_items(client, "/api/v1/items", {"page": 1, "page_size": 500}),
             _fetch_items(client, "/api/v1/purchase_orders", {"page": 1, "page_size": 10}),
             _fetch_items(client, "/api/v1/invoices", {"page": 1, "page_size": 50}),
-            _fetch_items(client, "/api/v1/bills", {"page": 1, "page_size": 50}),
         )
 
     # Classify items by kind (saebooks uses ItemKind enum: PRODUCT / SERVICE)

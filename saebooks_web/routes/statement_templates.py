@@ -104,7 +104,7 @@ async def statement_templates_delete(
     else:
         try:
             msg = resp.json().get("detail", f"Delete failed: HTTP {resp.status_code}")
-        except Exception:  # noqa: BLE001
+        except Exception:
             msg = f"Delete failed: HTTP {resp.status_code}"
         request.session["flash"] = str(msg)
 

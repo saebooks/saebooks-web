@@ -23,11 +23,11 @@ the template receives ``keystore_entries`` (list), ``wizard_status``
 """
 from __future__ import annotations
 
-import urllib.parse
+import contextlib
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
@@ -173,7 +173,7 @@ async def ato_sbr_upload_keystore(request: Request) -> RedirectResponse:
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
-    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    from saebooks_web.security import verify_csrf_form
     await verify_csrf_form(request)
 
     password = str(form_data.get("password", ""))
@@ -384,10 +384,8 @@ async def ato_sbr_wizard_step(
         if key == "csrf_token":
             continue
         if key == "current_step":
-            try:
+            with contextlib.suppress(ValueError):
                 current_step = int(str(val))
-            except ValueError:
-                pass
             continue
         # Checkboxes come through as "on" in HTML forms.
         if str(val).lower() in ("on", "true", "yes", "1"):

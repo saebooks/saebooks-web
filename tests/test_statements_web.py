@@ -1056,7 +1056,7 @@ async def test_detail_no_sibling_section_without_contact_id(
     respx_mock: respx.MockRouter,
 ) -> None:
     """When contact_id is None the sibling section must not appear and no sibling API call is made."""
-    stmt_route = respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
+    respx_mock.get(f"{_API_BASE}/api/v1/statements/{_STMT_ID}").mock(
         return_value=Response(200, json=dict(_MOCK_STMT_DETAIL))  # contact_id: None
     )
     # No statement-templates call expected either since no contact_id

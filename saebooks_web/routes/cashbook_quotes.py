@@ -289,7 +289,7 @@ async def _transition(
     request: Request, quote_id: str, action: str
 ) -> RedirectResponse:
     """POST /api/v1/quotes/{id}/{action} with If-Match. Flashes outcome."""
-    company, redirect = await _guard(request)
+    _company, redirect = await _guard(request)
     if redirect is not None:
         return redirect
 
@@ -346,7 +346,7 @@ async def cashbook_quote_convert(
     request: Request, quote_id: str
 ) -> RedirectResponse:
     """ACCEPTED → INVOICED. Redirect to the resulting invoice in cashbook."""
-    company, redirect = await _guard(request)
+    _company, redirect = await _guard(request)
     if redirect is not None:
         return redirect
 

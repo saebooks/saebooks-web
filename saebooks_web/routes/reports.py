@@ -29,12 +29,12 @@ Auth guard: redirect to /login (303) if no session token.
 from __future__ import annotations
 
 import asyncio
+import calendar
 from datetime import date
 from pathlib import Path
-import calendar
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
@@ -1256,7 +1256,7 @@ async def statement_pack_pdf(
     from_date: str | None = None,
     to_date: str | None = None,
     comparative: bool = True,
-) -> "Response | RedirectResponse":
+) -> Response | RedirectResponse:
     """Proxy the statement pack PDF from the API.
 
     Forwards query params to ``/api/v1/reports/statement_pack.pdf`` and
@@ -1265,7 +1265,6 @@ async def statement_pack_pdf(
     ``saebooks_web.routes.quotes``.
     """
     from fastapi import HTTPException
-    from fastapi.responses import Response
 
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)

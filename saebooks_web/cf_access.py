@@ -35,7 +35,6 @@ import jwt
 from jwt import PyJWKClient
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
 
 from saebooks_web.config import settings
 

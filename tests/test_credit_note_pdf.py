@@ -56,7 +56,7 @@ async def test_credit_note_pdf_proxy_streams_pdf(respx_mock: respx.MockRouter) -
             content=_FAKE_PDF,
             headers={
                 "content-type": "application/pdf",
-                "content-disposition": f'inline; filename="credit-note-CN-001.pdf"',
+                "content-disposition": 'inline; filename="credit-note-CN-001.pdf"',
             },
         )
     )

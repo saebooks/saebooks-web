@@ -111,10 +111,7 @@ async def account_ranges_list(
 
         if ranges_resp.is_success:
             payload = ranges_resp.json()
-            if isinstance(payload, list):
-                ranges = payload
-            else:
-                ranges = payload.get("items", [])
+            ranges = payload if isinstance(payload, list) else payload.get("items", [])
         else:
             error = f"API error: HTTP {ranges_resp.status_code}"
 

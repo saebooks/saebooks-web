@@ -39,6 +39,7 @@ production semantics are unchanged.
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 from base64 import b64decode, b64encode
@@ -105,10 +106,8 @@ def _patch_itsdangerous() -> None:
         if isinstance(value, bytes):
             value = _maybe_inject_csrf(value)
         elif isinstance(value, str):
-            try:
+            with contextlib.suppress(Exception):
                 value = _maybe_inject_csrf(value.encode("ascii"))
-            except Exception:
-                pass
         return _orig_sign(self, value)
 
     _patched_sign._saebooks_csrf_test_patched = True  # type: ignore[attr-defined]

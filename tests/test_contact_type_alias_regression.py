@@ -18,7 +18,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-
 ROUTES_DIR = Path(__file__).resolve().parent.parent / "saebooks_web" / "routes"
 # Match params={"contact_type": ...} — i.e. dict-form starting immediately
 # after params=. POST bodies use json={...} and won't match.

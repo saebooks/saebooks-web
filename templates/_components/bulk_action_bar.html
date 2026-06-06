@@ -28,19 +28,19 @@
 #}
 {% macro bulk_bar(entity, action_endpoint, actions, csrf_token="") %}
 <div id="bulk-bar"
-     class="fixed inset-x-0 bottom-0 z-40 hidden border-t border-gray-200 bg-white shadow-lg"
+     class="fixed inset-x-0 bottom-0 z-40 hidden border-t border-[color:var(--line)] bg-[color:var(--surface)] shadow-lg"
      data-bulk-bar
      data-entity="{{ entity }}"
      data-endpoint="{{ action_endpoint }}"
      role="region"
      aria-label="Bulk actions for selected rows">
   <div class="mx-auto max-w-[1320px] px-4 py-3 flex flex-wrap items-center gap-3">
-    <span class="text-sm text-gray-700">
+    <span class="text-sm ink-2">
       <strong data-bulk-count>0</strong>
       <span data-bulk-noun>{{ entity }}</span> selected
     </span>
     <button type="button"
-            class="text-sm text-[#194291] hover:underline"
+            class="text-sm sae hover:underline"
             onclick="window.__listTable && window.__listTable.clearSelection('{{ entity }}')">
       Clear
     </button>
@@ -51,8 +51,8 @@
               data-destructive="{{ 'true' if destructive else 'false' }}"
               data-action-label="{{ label }}"
               class="rounded-md px-3 py-1.5 text-sm font-medium
-                     {% if destructive %}border border-red-300 text-red-700 hover:bg-red-50
-                     {% else %}border border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}"
+                     {% if destructive %}border border-[color:var(--neg)] text-[color:var(--neg)] hover:bg-[color:var(--neg-tint)]
+                     {% else %}border hairline ink-2 hover:bg-[color:var(--paper-2)]{% endif %}"
               onclick="window.__listTable && window.__listTable.runBulkAction(this)">
         {{ label }}
       </button>
@@ -72,22 +72,22 @@
      class="fixed inset-0 z-50 hidden bg-black/40"
      role="dialog" aria-modal="true" aria-labelledby="bulk-confirm-title"
      onclick="if (event.target === this) window.__listTable && window.__listTable.closeConfirm()">
-  <div class="mx-auto mt-32 max-w-md rounded-xl bg-white shadow-2xl p-6">
-    <h2 id="bulk-confirm-title" class="text-lg font-semibold text-gray-900 mb-2"
+  <div class="mx-auto mt-32 max-w-md rounded-xl bg-[color:var(--surface)] shadow-2xl p-6">
+    <h2 id="bulk-confirm-title" class="text-lg font-semibold ink-1 mb-2"
         data-confirm-title>Confirm action</h2>
-    <p class="text-sm text-gray-600 mb-4" data-confirm-body></p>
+    <p class="text-sm ink-2 mb-4" data-confirm-body></p>
     <div data-confirm-typed class="hidden mb-4">
-      <p class="text-xs text-gray-500 mb-1">
+      <p class="text-xs ink-3 mb-1">
         Type <strong data-typed-word></strong> to confirm.
       </p>
       <input type="text" data-confirm-typed-input
-             class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-red-500"
+             class="saebooks-input w-full text-sm font-mono uppercase focus:ring-2 focus:ring-red-500"
              autocomplete="off" spellcheck="false">
     </div>
     <div class="flex justify-end gap-2">
       <button type="button"
               onclick="window.__listTable && window.__listTable.closeConfirm()"
-              class="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              class="rounded-md border hairline px-4 py-2 text-sm ink-2 hover:bg-[color:var(--paper-2)]">
         Cancel
       </button>
       <button type="button"

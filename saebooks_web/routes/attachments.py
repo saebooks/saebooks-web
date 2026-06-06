@@ -102,7 +102,7 @@ async def attachment_upload(
     request: Request,
     entity_kind: str = Form(...),
     entity_id: str = Form(...),
-    file: UploadFile = File(...),
+    file: UploadFile = File(...),  # noqa: B008 — FastAPI dependency-injection idiom
 ) -> HTMLResponse | RedirectResponse:
     """Receive a file upload, forward to saebooks-api, re-render the panel.
 
@@ -212,13 +212,15 @@ async def attachment_download(
     # We open the client inside the generator so the connection stays
     # alive while chunks are being relayed.
     async def _relay():
-        async with api_client(request) as client:
-            async with client.stream("GET", f"/api/v1/attachments/{file_id}/download") as api_resp:
-                if not api_resp.is_success:
-                    logger.warning("download relay: upstream %s for file %s", api_resp.status_code, file_id)
-                    return
-                async for chunk in api_resp.aiter_bytes(chunk_size=65536):
-                    yield chunk
+        async with (
+            api_client(request) as client,
+            client.stream("GET", f"/api/v1/attachments/{file_id}/download") as api_resp,
+        ):
+            if not api_resp.is_success:
+                logger.warning("download relay: upstream %s for file %s", api_resp.status_code, file_id)
+                return
+            async for chunk in api_resp.aiter_bytes(chunk_size=65536):
+                yield chunk
 
     # We need the filename + mime before starting the stream so we can
     # set headers. Fetch metadata first (one extra round-trip, but small).

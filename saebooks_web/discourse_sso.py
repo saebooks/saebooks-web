@@ -151,7 +151,7 @@ async def callback(
     try:
         decoded = base64.b64decode(sso).decode("utf-8")
         params = dict(urllib.parse.parse_qsl(decoded, keep_blank_values=True))
-    except Exception:  # noqa: BLE001
+    except Exception:
         log.exception("failed to decode SSO payload")
         return _login_error(request, "Malformed SSO payload", 400)
 

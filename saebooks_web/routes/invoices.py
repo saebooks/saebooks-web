@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, timedelta
+from datetime import date as _date
+from datetime import timedelta as _td
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -35,9 +37,6 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
-
-
-from datetime import date as _date, timedelta as _td
 
 _INVOICE_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
 
