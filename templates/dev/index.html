@@ -64,15 +64,21 @@
     <div class="chat-head">
       <div class="orb">&#8984;</div>
       <div>
-        <h1>GUI Dev Console</h1>
-        <div class="sub">agent &middot; mode=dev &middot; edits templates/ + static/ live</div>
+        <h1>{% if full_cli %}Dev Console &middot; full CLI{% else %}GUI Dev Console{% endif %}</h1>
+        <div class="sub">{% if full_cli %}agent &middot; mode=dev &middot; bash + arbitrary file access &middot; dev-edition container{% else %}agent &middot; mode=dev &middot; edits templates/ + static/ live{% endif %}</div>
       </div>
     </div>
     <div class="log" id="log">
       <div class="empty" id="empty">
+        {% if full_cli %}
+        Full Claude-CLI agent in your dev-edition build.<br>
+        Ask me anything — <b>run shell commands</b>, read/write any file, edit the GUI.<br>
+        e.g. <b>&ldquo;run the test suite&rdquo;</b> or &ldquo;make the dashboard cards rounder&rdquo;. &rarr;
+        {% else %}
         Ask me to change the interface.<br>
         e.g. <b>&ldquo;make the dashboard cards rounder and add a teal accent&rdquo;</b><br>
         I edit the GUI files and the preview reloads itself. &rarr;
+        {% endif %}
       </div>
     </div>
     <div class="compose">
@@ -182,7 +188,7 @@
           } else if (ev.type === 'tool_call') {
             if (!toolRow) { toolRow = document.createElement('div'); toolRow.className = 'tools'; log.appendChild(toolRow); }
             const c = document.createElement('span');
-            const isWrite = (ev.name === 'gui_write_file' || ev.name === 'gui_replace');
+            const isWrite = ['gui_write_file', 'gui_replace', 'bash', 'write_file', 'edit_file'].includes(ev.name);
             c.className = 'chip' + (isWrite ? ' write' : '');
             c.textContent = ev.name;
             toolRow.appendChild(c);
