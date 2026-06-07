@@ -33,9 +33,12 @@
     <select id="contact_type" name="contact_type" required class="saebooks-input"
             {% if errors.get('contact_type') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
       <option value="" disabled {% if not form.get("contact_type") %}selected{% endif %}>Select type…</option>
-      <option value="CUSTOMER" {% if form.get("contact_type") == "CUSTOMER" %}selected{% endif %}>Customer</option>
-      <option value="SUPPLIER" {% if form.get("contact_type") == "SUPPLIER" %}selected{% endif %}>Supplier</option>
-      <option value="BOTH"     {% if form.get("contact_type") == "BOTH"     %}selected{% endif %}>Both</option>
+      <option value="CUSTOMER"       {% if form.get("contact_type") == "CUSTOMER"       %}selected{% endif %}>Customer</option>
+      <option value="SUPPLIER"       {% if form.get("contact_type") == "SUPPLIER"       %}selected{% endif %}>Supplier</option>
+      <option value="CONTRACTOR"     {% if form.get("contact_type") == "CONTRACTOR"     %}selected{% endif %}>Contractor</option>
+      <option value="SUB_CONTRACTOR" {% if form.get("contact_type") == "SUB_CONTRACTOR" %}selected{% endif %}>Sub-contractor</option>
+      <option value="BOTH"           {% if form.get("contact_type") == "BOTH"           %}selected{% endif %}>Both</option>
+      <option value="BENEFICIARY"    {% if form.get("contact_type") == "BENEFICIARY"    %}selected{% endif %}>Beneficiary</option>
     </select>
     {% if errors.get("contact_type") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["contact_type"] }}</p>{% endif %}
   </div>
@@ -120,6 +123,32 @@
     {% endif %}
     {% if errors.get("default_account_id") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["default_account_id"] }}</p>{% endif %}
   </div>
+
+  {# ── TPAR (Taxable Payments Annual Report) flag ──
+     Defaults to checked for SUB_CONTRACTOR via the script below; the user can
+     always override. CONTRACTOR and every other type default unchecked. #}
+  <div class="mt-2 flex items-start gap-3">
+    <div class="flex items-center h-5">
+      <input
+        type="checkbox"
+        id="is_tpar_supplier"
+        name="is_tpar_supplier"
+        value="on"
+        {% if form.get("is_tpar_supplier") in ("on", True, "true", "True") %}checked{% endif %}
+        class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]"
+      >
+    </div>
+    <div>
+      <label for="is_tpar_supplier" class="block text-sm font-medium ink-2">Report on TPAR</label>
+      <p class="text-xs ink-3 mt-0.5">
+        Include payments to this contact in the Taxable Payments Annual Report.
+        Auto-ticked for sub-contractors (labour services under a contractor),
+        which are TPAR-reportable by default. Contractors engaged for a whole
+        section of a job are not TPAR-reportable by default — leave unticked
+        unless this one needs reporting.
+      </p>
+    </div>
+  </div>
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
@@ -167,3 +196,23 @@
     </p>
   </div>
 </div>
+
+{# ── TPAR default JS ──
+   When the user picks "Sub-contractor", auto-tick the TPAR checkbox; when they
+   pick "Contractor" (or anything else), auto-untick it — UNLESS the user has
+   manually toggled the checkbox, in which case their choice is respected.
+   On edit, the server pre-renders the stored value, so we only apply the
+   auto-default once the user actively changes the type select. #}
+<script>
+(function () {
+  var typeSel = document.getElementById("contact_type");
+  var tpar = document.getElementById("is_tpar_supplier");
+  if (!typeSel || !tpar) return;
+  var userTouchedTpar = false;
+  tpar.addEventListener("change", function () { userTouchedTpar = true; });
+  typeSel.addEventListener("change", function () {
+    if (userTouchedTpar) return;
+    tpar.checked = (typeSel.value === "SUB_CONTRACTOR");
+  });
+})();
+</script>

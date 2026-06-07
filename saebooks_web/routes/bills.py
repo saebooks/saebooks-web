@@ -33,6 +33,12 @@ from saebooks_web.form_helpers import parse_lines as _parse_lines
 
 router = APIRouter()
 
+# Contact types that can be a payee on a bill. SUPPLIER + BOTH historically;
+# CONTRACTOR (whole-of-job, cost of sales) and SUB_CONTRACTOR (labour under a
+# contractor, TPAR-reportable) were added with engine enum 0163 and are now
+# selectable as bill payees too. The engine does not gate payees by type.
+_PAYEE_CONTACT_TYPES = ("SUPPLIER", "CONTRACTOR", "SUB_CONTRACTOR", "BOTH")
+
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
@@ -193,7 +199,7 @@ async def bills_list(
         # raw UUID. SUPPLIER alone misses contact_type=BOTH (suppliers who
         # are also customers, e.g. General Engineering, Steve's Backhoe),
         # so do a second pass — mirrors invoices.py's CUSTOMER+BOTH.
-        for ctype in ("SUPPLIER", "BOTH"):
+        for ctype in _PAYEE_CONTACT_TYPES:
             c_resp = await client.get(
                 "/api/v1/contacts",
                 params={"type": ctype, "limit": 500, "offset": 0},
@@ -290,7 +296,7 @@ async def bill_new_form(
 
     async with api_client(request) as client:
         contacts = []
-        for _ctype in ("SUPPLIER", "BOTH"):
+        for _ctype in _PAYEE_CONTACT_TYPES:
             _r = await client.get(
                 "/api/v1/contacts",
                 params={"type": _ctype, "limit": 500, "offset": 0},
@@ -400,7 +406,7 @@ async def bill_create(request: Request) -> HTMLResponse | RedirectResponse:
             contacts, accounts, tax_codes, projects = [], [], [], []
             async with api_client(request) as client:
                 contacts = []
-                for _ctype in ("SUPPLIER", "BOTH"):
+                for _ctype in _PAYEE_CONTACT_TYPES:
                     _r = await client.get(
                         "/api/v1/contacts",
                         params={"type": _ctype, "limit": 500, "offset": 0},
@@ -465,7 +471,7 @@ async def bill_create(request: Request) -> HTMLResponse | RedirectResponse:
 
     async with api_client(request) as client:
         contacts = []
-        for _ctype in ("SUPPLIER", "BOTH"):
+        for _ctype in _PAYEE_CONTACT_TYPES:
             _r = await client.get(
                 "/api/v1/contacts",
                 params={"type": _ctype, "limit": 500, "offset": 0},
@@ -570,7 +576,7 @@ async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict], 
     projects: list[dict] = []
 
     contacts = []
-    for _ctype in ("SUPPLIER", "BOTH"):
+    for _ctype in _PAYEE_CONTACT_TYPES:
         _r = await client.get(
             "/api/v1/contacts",
             params={"type": _ctype, "limit": 500, "offset": 0},

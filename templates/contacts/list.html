@@ -48,8 +48,10 @@
               onchange="this.form.requestSubmit()">
         <option value=""            {% if not filter_contact_type %}selected{% endif %}>All</option>
         <option value="CUSTOMER"    {% if filter_contact_type == 'CUSTOMER' %}selected{% endif %}>Customer</option>
-        <option value="SUPPLIER"    {% if filter_contact_type == 'SUPPLIER' %}selected{% endif %}>Supplier</option>
-        <option value="BOTH"        {% if filter_contact_type == 'BOTH' %}selected{% endif %}>Both</option>
+        <option value="SUPPLIER"       {% if filter_contact_type == 'SUPPLIER' %}selected{% endif %}>Supplier</option>
+        <option value="CONTRACTOR"     {% if filter_contact_type == 'CONTRACTOR' %}selected{% endif %}>Contractor</option>
+        <option value="SUB_CONTRACTOR" {% if filter_contact_type == 'SUB_CONTRACTOR' %}selected{% endif %}>Sub-contractor</option>
+        <option value="BOTH"           {% if filter_contact_type == 'BOTH' %}selected{% endif %}>Both</option>
         <option value="BENEFICIARY" {% if filter_contact_type == 'BENEFICIARY' %}selected{% endif %}>Beneficiary</option>
       </select>
     </div>
@@ -96,7 +98,10 @@
             {% set _ct = c.contact_type|lower %}
             {% if _ct == 'customer' %}<span class="badge-paid">Customer</span>
             {% elif _ct == 'supplier' %}<span class="badge-pending">Supplier</span>
+            {% elif _ct == 'contractor' %}<span class="badge-sae">Contractor</span>
+            {% elif _ct == 'sub_contractor' %}<span class="badge-warm">Sub-contractor</span>
             {% elif _ct == 'both' %}<span class="badge-open">Both</span>
+            {% elif _ct == 'beneficiary' %}<span class="badge-ink">Beneficiary</span>
             {% else %}<span class="badge-draft">{{ c.contact_type|capitalize }}</span>{% endif %}
           </td>
           <td class="ink-2">{{ c.email or "—" }}</td>

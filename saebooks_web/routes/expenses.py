@@ -30,6 +30,12 @@ from saebooks_web.form_helpers import parse_lines as _parse_lines
 
 router = APIRouter()
 
+# Contact types that can be a payee on an expense. SUPPLIER + BOTH historically;
+# CONTRACTOR (whole-of-job, cost of sales) and SUB_CONTRACTOR (labour under a
+# contractor, TPAR-reportable) were added with engine enum 0163 and are now
+# selectable as expense payees too. The engine does not gate payees by type.
+_PAYEE_CONTACT_TYPES = ("SUPPLIER", "CONTRACTOR", "SUB_CONTRACTOR", "BOTH")
+
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
@@ -54,7 +60,7 @@ async def _fetch_dropdowns(
     projects: list[dict] = []
 
     contacts = []
-    for _ctype in ("SUPPLIER", "BOTH"):
+    for _ctype in _PAYEE_CONTACT_TYPES:
         _r = await client.get(
             "/api/v1/contacts",
             params={"type": _ctype, "limit": 500, "offset": 0},
@@ -173,7 +179,7 @@ async def expenses_list(
         # supplier NAME (not the raw UUID). SUPPLIER alone misses
         # contact_type=BOTH (suppliers who are also customers), so do a
         # second pass — mirrors invoices.py's CUSTOMER+BOTH.
-        for ctype in ("SUPPLIER", "BOTH"):
+        for ctype in _PAYEE_CONTACT_TYPES:
             c_resp = await client.get(
                 "/api/v1/contacts",
                 params={"type": ctype, "limit": 500, "offset": 0},
