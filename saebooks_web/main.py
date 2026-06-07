@@ -125,6 +125,7 @@ from saebooks_web.routes.overviews import router as overviews_router  # /sales /
 from saebooks_web.routes.recurring import router as recurring_router  # /recurring aggregator hub
 from saebooks_web.routes.cashbook_invoices import router as cashbook_invoices_router
 from saebooks_web.routes.cashbook_quotes import router as cashbook_quotes_router
+from saebooks_web.routes.dev import router as dev_router  # GUI dev console (owner-only)
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -381,6 +382,9 @@ app.include_router(cashbook_quotes_router)
 app.include_router(overviews_router)
 # Recurring transactions hub — /recurring aggregator over invoices + templates
 app.include_router(recurring_router)
+
+# GUI dev console — owner/admin only (gated like the admin SQL tool).
+app.include_router(dev_router)
 
 # Pass B preview — static design mocks (no data wiring, no auth).
 app.include_router(preview_router)
