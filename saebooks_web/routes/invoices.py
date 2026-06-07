@@ -21,7 +21,7 @@ from datetime import timedelta as _td
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
@@ -568,6 +568,25 @@ async def _fetch_dropdowns(client) -> tuple[list[dict], list[dict], list[dict], 
         projects = p_resp.json().get("items", [])
 
     return contacts, accounts, tax_codes, projects
+
+
+@router.get("/invoices/{invoice_id}/pdf", response_model=None)
+async def invoice_pdf(request: Request, invoice_id: str):
+    """Proxy the engine Tax-Invoice PDF (rendered via latex-api) to the browser."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/invoices/{invoice_id}/pdf")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if not resp.is_success:
+        return HTMLResponse(f"Could not generate PDF (HTTP {resp.status_code})", status_code=resp.status_code)
+    return Response(
+        content=resp.content,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="invoice-{invoice_id}.pdf"'},
+    )
 
 
 @router.get("/invoices/{invoice_id}/edit", response_class=HTMLResponse, response_model=None)

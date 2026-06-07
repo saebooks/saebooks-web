@@ -28,6 +28,12 @@
 
 {{ crumb.trail([("Sales", "/invoices"), ("Invoices", "/invoices"), (invoice.number or invoice.id|string, none)]) }}
 
+<div class="mb-4">
+  <a href="/invoices/{{ invoice.id }}/pdf" target="_blank" rel="noopener" class="chip">
+    <i data-lucide="download" class="w-3.5 h-3.5"></i> Download PDF
+  </a>
+</div>
+
 {# ── Header ── #}
 <header class="mb-6 relative">
   <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>

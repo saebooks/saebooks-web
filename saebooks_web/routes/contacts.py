@@ -45,7 +45,7 @@ def _require_auth(request: Request) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-_CONTACT_TYPE_VALUES = {"CUSTOMER", "SUPPLIER", "BOTH", "BENEFICIARY"}
+_CONTACT_TYPE_VALUES = {"CUSTOMER", "SUPPLIER", "CONTRACTOR", "SUB_CONTRACTOR", "BOTH", "BENEFICIARY"}
 
 
 @router.get("/contacts", response_class=HTMLResponse, response_model=None)
@@ -288,6 +288,7 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
             payload[field] = val
 
     payload["is_one_off"] = form.get("is_one_off") == "on"
+    payload["is_tpar_supplier"] = form.get("is_tpar_supplier") == "on"
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -471,6 +472,7 @@ async def contact_update(
     # is_one_off is a checkbox — POST it on every edit (no "leave alone"
     # semantics; the edit form is the source of truth for the flag).
     payload["is_one_off"] = form.get("is_one_off") == "on"
+    payload["is_tpar_supplier"] = form.get("is_tpar_supplier") == "on"
 
     async with api_client(request) as client:
         resp = await client.patch(

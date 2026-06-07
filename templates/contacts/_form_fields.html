@@ -36,6 +36,9 @@
       <option value="CUSTOMER" {% if form.get("contact_type") == "CUSTOMER" %}selected{% endif %}>Customer</option>
       <option value="SUPPLIER" {% if form.get("contact_type") == "SUPPLIER" %}selected{% endif %}>Supplier</option>
       <option value="BOTH"     {% if form.get("contact_type") == "BOTH"     %}selected{% endif %}>Both</option>
+      <option value="CONTRACTOR"     {% if form.get("contact_type") == "CONTRACTOR"     %}selected{% endif %}>Contractor (cost of sales)</option>
+      <option value="SUB_CONTRACTOR" {% if form.get("contact_type") == "SUB_CONTRACTOR" %}selected{% endif %}>Sub-contractor (TPAR)</option>
+      <option value="BENEFICIARY"    {% if form.get("contact_type") == "BENEFICIARY"    %}selected{% endif %}>Beneficiary</option>
     </select>
     {% if errors.get("contact_type") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["contact_type"] }}</p>{% endif %}
   </div>
@@ -164,6 +167,28 @@
       Hide from the main /contacts list. Use this for cash purchases, walk-in
       customers, or any counterparty you created just so a transaction had a
       name but don't want to track as an ongoing relationship.
+    </p>
+  </div>
+</div>
+
+{# TPAR contractor flag #}
+<div class="mt-6 flex items-start gap-3">
+  <div class="flex items-center h-5">
+    <input
+      type="checkbox"
+      id="is_tpar_supplier"
+      name="is_tpar_supplier"
+      value="on"
+      {% if form.get("is_tpar_supplier") in ("on", True, "true", "True") %}checked{% endif %}
+      class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]"
+    >
+  </div>
+  <div>
+    <label for="is_tpar_supplier" class="block text-sm font-medium ink-2">TPAR reportable (Taxable Payments)</label>
+    <p class="text-xs ink-3 mt-0.5">
+      Include payments to this contact in the Taxable Payments Annual Report. Tick for
+      sub-contractors providing labour/services. Leave off for goods suppliers and
+      materials-incidental contractors.
     </p>
   </div>
 </div>

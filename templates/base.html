@@ -463,6 +463,15 @@
         </a>
       </div>
 
+      {% if is_feature_enabled('dev_tools') %}
+      {# AI Dev Console — dev-edition only: the DEV tag -> the AI #}
+      <div class="space-y-0.5">
+        <a href="/dev" class="nav-item {% if path.startswith('/dev') %}active{% endif %}">
+          <i data-lucide="sparkles" class="nav-ico"></i>AI Dev Console
+        </a>
+      </div>
+      {% endif %}
+
       {% set contacts_open = path.startswith('/contacts')
                               or path.startswith('/suppliers')
                               or path.startswith('/customers')
