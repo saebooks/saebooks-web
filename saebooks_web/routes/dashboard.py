@@ -574,6 +574,15 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    # Re-auth if the cached API token is stale (rebuilt/expired) — otherwise
+    # every data call 401s and the dashboard paints zeros. Probe once; on a
+    # stale API token clear + bounce to /login (SSO re-mints transparently).
+    async with api_client(request) as _probe:
+        _pr = await _probe.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+    if _pr.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
     fy_from, fy_to = _au_fy_range()
 
     async with api_client(request) as client:
