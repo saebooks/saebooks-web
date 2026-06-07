@@ -12,6 +12,16 @@ sets from the ``SAE_STAFF_USERNAMES`` allowlist. On the prod instance that
 allowlist is ``richard``. A non-staff session gets 403; an unauthenticated
 request is redirected to /login.
 
+FULL-CLI MODE (dev-edition only)
+--------------------------------
+When the ``DEV_CONSOLE_FULL_CLI`` env flag is truthy, the agent is additionally
+given a normal Claude-CLI surface: ``bash`` plus arbitrary ``read_file`` /
+``write_file`` / ``edit_file``. This is for the owner-gated saebooks-dev-edition
+stack. When the flag is UNSET (how PROD always runs) the agent only sees the
+gui_* tools — exactly as before. The flag is read in exactly one place,
+``saebooks_web.agent.tools.full_cli_enabled()``, which drives both the tool
+schema list the model sees and the dispatcher's hard gate.
+
 This is the ONLY LLM-calling surface in saebooks-web. It talks to the bosun
 LiteLLM gateway via saebooks_web.agent.client. The Claude subscription proxy
 (claude-*-sub) does NOT support stream=True, so we call non-streaming per round
@@ -65,10 +75,10 @@ def _is_sae_staff(request: Request) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# System prompt — single 'dev' mode describing saebooks-web's layout.
+# System prompts — GUI-only vs full-CLI, chosen by the DEV_CONSOLE_FULL_CLI flag.
 # ---------------------------------------------------------------------------
 
-_DEV_SYSTEM_PROMPT = (
+_GUI_SYSTEM_PROMPT = (
     "You are a live GUI developer embedded in THIS web app — SAE Books Web "
     "(books.sauer.com.au), a FastAPI + Jinja2 + HTMX server-rendered frontend. "
     "Richard is in a dev console asking you to change the app's interface, and "
@@ -98,6 +108,45 @@ _DEV_SYSTEM_PROMPT = (
     "questions."
 )
 
+_FULL_CLI_SYSTEM_PROMPT = (
+    "You are a full Claude-CLI-style coding agent running inside Richard's SAE "
+    "Books DEV-EDITION container. This is his dev build, not production. There is "
+    "no memory filter and no GUI-only sandbox — treat this like a normal terminal "
+    "session on a developer's machine.\n"
+    "Tools you have:\n"
+    "  bash(command, timeout=120) — run any shell command inside this container "
+    "(ls, cat, grep, git, python, pip, ruff, pytest, curl, …). Output is captured "
+    "and truncated if huge. This is your primary tool.\n"
+    "  read_file(path) — read ANY file (absolute or repo-relative).\n"
+    "  write_file(path, content) — create/overwrite ANY file (parent dirs made).\n"
+    "  edit_file(path, find, replace, count=1) — exact-substring edit on ANY file.\n"
+    "  gui_list_files / gui_read_file / gui_replace / gui_write_file — the "
+    "templates/+static/-scoped helpers; the live preview iframe hot-reloads after "
+    "these, so prefer them for pure GUI/template edits.\n"
+    "This is the saebooks-web repo (FastAPI + Jinja2 + HTMX). The repo root is the "
+    "working directory; backend Python lives under 'saebooks_web/', tests under "
+    "'tests/', templates under 'templates/', static under 'static/'. Use bash for "
+    "anything beyond editing GUI files: read backend code, run the test suite, "
+    "ruff, git, inspect the environment.\n"
+    "BLAST RADIUS — be deliberate. bash runs with the container's privileges: you "
+    "can touch the entire container filesystem and reach anything on the bosun "
+    "network this container is attached to. This is the dev-edition box, so that is "
+    "acceptable, but it is real power — do not run destructive commands (rm -rf, "
+    "dropping data, mutating shared services) unless Richard explicitly asks. "
+    "Editing app source does NOT hot-reload the running backend; mention if a "
+    "restart would be needed.\n"
+    "Work like a careful engineer: read before you edit, make one focused change at "
+    "a time, verify with bash (run the relevant test / lint), and say briefly what "
+    "you did and where. If a request is ambiguous, make a sensible choice and say "
+    "what you did — Richard wants velocity, not twenty questions."
+)
+
+
+def _system_prompt() -> str:
+    """Pick the system prompt for THIS request based on the full-CLI flag."""
+    return _FULL_CLI_SYSTEM_PROMPT if agent_tools.full_cli_enabled() else _GUI_SYSTEM_PROMPT
+
+
 # How many tool-calling rounds before we force a final text answer.
 _MAX_TOOL_ROUNDS = 25
 
@@ -114,7 +163,11 @@ async def dev_console(request: Request) -> HTMLResponse | RedirectResponse:
         return RedirectResponse(url="/login", status_code=303)
     if not _is_sae_staff(request):
         return HTMLResponse("Forbidden — SAE staff only", status_code=403)
-    return _TEMPLATES.TemplateResponse(request, "dev/index.html", {})
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "dev/index.html",
+        {"full_cli": agent_tools.full_cli_enabled()},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -168,12 +221,17 @@ async def _run_agent(user_message: str, mode: str) -> AsyncGenerator[str, None]:
     saebooks-web has no chat store (it is a thin REST client of saebooks-api),
     so this is single-turn: system prompt + the current user message. Tool
     results are appended in-loop; nothing is persisted.
+
+    The tool schema list is ``agent_tools.tool_definitions()`` — flag-aware, so
+    the full-CLI tools are advertised to the model ONLY when DEV_CONSOLE_FULL_CLI
+    is set. bash can block (subprocess), so tool dispatch runs in a thread.
     """
     model = agent_client.model_for_mode(mode)
     oai = agent_client.get_client()
+    tool_defs = agent_tools.tool_definitions()
 
     messages: list[dict] = [
-        {"role": "system", "content": _DEV_SYSTEM_PROMPT},
+        {"role": "system", "content": _system_prompt()},
         {"role": "user", "content": user_message},
     ]
 
@@ -191,7 +249,7 @@ async def _run_agent(user_message: str, mode: str) -> AsyncGenerator[str, None]:
             completion = await oai.chat.completions.create(
                 model=model,
                 messages=messages,
-                tools=agent_tools.TOOL_DEFINITIONS,
+                tools=tool_defs,
                 tool_choice=forced_tool_choice,
                 stream=False,
                 max_tokens=4000,
@@ -243,8 +301,11 @@ async def _run_agent(user_message: str, mode: str) -> AsyncGenerator[str, None]:
             for tc in tool_calls_buf.values():
                 tool_name = tc["name"]
                 yield _sse({"type": "tool_call", "name": tool_name})
-                # gui_* tools are synchronous (plain disk IO).
-                result_json = agent_tools.dispatch(tool_name, tc["arguments"])
+                # Tools are synchronous; bash/file IO can block, so run off the
+                # event loop to keep the SSE stream responsive.
+                result_json = await asyncio.to_thread(
+                    agent_tools.dispatch, tool_name, tc["arguments"]
+                )
                 messages.append(
                     {"role": "tool", "tool_call_id": tc["id"], "content": result_json}
                 )
