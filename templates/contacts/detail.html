@@ -38,7 +38,10 @@
         {% set _ct = contact.contact_type|upper %}
         {% if _ct == 'CUSTOMER' %}<span class="badge-paid">Customer</span>
         {% elif _ct == 'SUPPLIER' %}<span class="badge-pending">Supplier</span>
+        {% elif _ct == 'CONTRACTOR' %}<span class="badge-sae">Contractor</span>
+        {% elif _ct == 'SUB_CONTRACTOR' %}<span class="badge-warm">Sub-contractor</span>
         {% elif _ct == 'BOTH' %}<span class="badge-open">Both</span>
+        {% elif _ct == 'BENEFICIARY' %}<span class="badge-ink">Beneficiary</span>
         {% else %}<span class="badge-draft">{{ contact.contact_type|capitalize }}</span>{% endif %}
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight">
@@ -148,7 +151,7 @@
 </section>
 {% endif %}
 
-{% if contact.contact_type in ('SUPPLIER', 'BOTH') and not contact.archived_at %}
+{% if contact.contact_type in ('SUPPLIER', 'CONTRACTOR', 'SUB_CONTRACTOR', 'BOTH') and not contact.archived_at %}
 <div class="mb-6">
   <a href="/bills/new?contact_id={{ contact.id }}" class="btn-secondary text-sm">
     + New bill from this supplier
