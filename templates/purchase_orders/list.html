@@ -5,23 +5,23 @@
 {% block content %}
 
 {% if flash %}
-<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
-  <span class="dot" style="background:var(--warm);"></span>
-  <span class="text-sm ink-2">{{ flash }}</span>
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Purchase orders</h1>
+    <h1 class="text-2xl font-semibold text-gray-900">Purchase orders</h1>
     {% if not error %}
-    <p class="text-sm ink-3 mt-1">{{ total }} purchase order{{ "s" if total != 1 else "" }}</p>
+    <p class="text-sm text-gray-500 mt-1">{{ total }} purchase order{{ "s" if total != 1 else "" }}</p>
     {% endif %}
   </div>
 
   <a
     href="/purchase_orders/new"
-    class="btn-primary text-sm"
+    class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
+           hover:bg-[#133372]"
   >
     + New purchase order
   </a>
@@ -36,11 +36,11 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium ink-3 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
     <select
       id="status"
       name="status"
-      class="saebooks-input"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
       <option value="" {% if not filter_status %}selected{% endif %}>All</option>
       <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
@@ -53,36 +53,36 @@
   </div>
 
   <div>
-    <label for="date_from" class="block text-xs font-medium ink-3 mb-1">Date from</label>
+    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">Date from</label>
     <input
       type="date"
       id="date_from"
       name="date_from"
       value="{{ filter_date_from }}"
-      class="saebooks-input"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
   </div>
 
   <div>
-    <label for="date_to" class="block text-xs font-medium ink-3 mb-1">Date to</label>
+    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">Date to</label>
     <input
       type="date"
       id="date_to"
       name="date_to"
       value="{{ filter_date_to }}"
-      class="saebooks-input"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
   </div>
 
   <div>
-    <label for="contact_id" class="block text-xs font-medium ink-3 mb-1">Supplier UUID</label>
+    <label for="contact_id" class="block text-xs font-medium ink-3 mb-1">Supplier</label>
     <input
       type="text"
       id="contact_id"
       name="contact_id"
       value="{{ filter_contact_id }}"
       placeholder="optional"
-      class="saebooks-input w-64"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] w-64"
     >
   </div>
 
@@ -91,7 +91,7 @@
 
   <button
     type="submit"
-    class="btn-primary text-sm"
+    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
   >
     Filter
   </button>

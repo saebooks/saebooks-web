@@ -114,7 +114,7 @@
     </select>
     {% else %}
     <input type="text" id="default_account_id" name="default_account_id"
-           value="{{ form.get('default_account_id', '') }}" placeholder="Account UUID"
+           value="{{ form.get('default_account_id', '') }}" placeholder="Account ID or search" class="saebooks-input"
            class="saebooks-input font-mono"
            {% if errors.get('default_account_id') %}style="border-color:var(--neg);"{% endif %}>
     {% endif %}

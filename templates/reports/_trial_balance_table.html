@@ -95,7 +95,7 @@
       {% for acct in accounts %}
       <tr>
         <td class="num ink-2">{{ acct.get("code", "") }}</td>
-        <td class="ink-1">{{ acct.get("name", "") }}</td>
+        <td class="ink-1"><a href="/accounts/{{ acct.get('id') or acct.get('account_id', '') }}?date_from={{ as_of_date or '' }}" class="sae hover:underline">{{ acct.get("name", "") }}</a></td>
         <td class="ink-3 text-xs uppercase">{{ acct.get("account_type", "") }}</td>
         <td class="text-right num ink-2">{{ "%.2f"|format(acct.get("debit_total", 0) | float) }}</td>
         <td class="text-right num ink-2">{{ "%.2f"|format(acct.get("credit_total", 0) | float) }}</td>
