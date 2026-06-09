@@ -11,20 +11,20 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card overflow-hidden">
+  <table class="sae-table w-full text-sm">
+    <thead>
       <tr>
         <th class="w-8 px-4 py-3 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
-                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                 class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Year</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Month</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Amount</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Notes</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Year</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Month</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
+        <th class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Notes</th>
         <th class="w-8"></th>
       </tr>
     </thead>
@@ -41,20 +41,20 @@
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="px-4 py-3 text-gray-900">{{ budget.year }}</td>
-          <td class="px-4 py-3 text-gray-900">
+          <td class="px-4 py-3 ink-1">{{ budget.year }}</td>
+          <td class="px-4 py-3 ink-1">
             {{ ["", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][budget.month] }}
           </td>
           <td class="px-4 py-3">
-            <a href="/budgets/{{ budget.id }}" class="hover:underline text-[#194291] text-sm font-medium" onclick="event.stopPropagation()">View</a>
-            <a href="/accounts/{{ budget.account_id }}" class="ml-2 hover:underline text-gray-400 font-mono text-xs" title="{{ budget.account_id }}" onclick="event.stopPropagation()">
+            <a href="/budgets/{{ budget.id }}" class="sae hover:underline text-sm font-medium" onclick="event.stopPropagation()">View</a>
+            <a href="/accounts/{{ budget.account_id }}" class="ml-2 sae hover:underline font-mono text-xs" title="{{ budget.account_id }}" onclick="event.stopPropagation()">
               {{ budget.account_id[:8] }}…
             </a>
           </td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-900">
+          <td class="px-4 py-3 text-right tabular-nums ink-1">
             $ {{ "%.2f"|format(budget.amount | float) }}
           </td>
-          <td class="px-4 py-3 text-gray-500 text-xs">{{ budget.notes or "—" }}</td>
+          <td class="px-4 py-3 ink-3 text-xs">{{ budget.notes or "—" }}</td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
               ("view",    "View",    "/budgets/" ~ budget.id,             "link", false),
