@@ -17,7 +17,7 @@
         <span class="reg-mark"></span>
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight">Trial Balance</h1>
-      {% if report %}<p class="text-xs ink-3 font-mono mt-2">As of {{ report.get("as_of_date", as_of_date) }}</p>{% endif %}
+      {% if report %}<p class="text-xs ink-3 font-mono mt-2">As of {{ report.get("as_of_date", as_of_date) }} <a href="/reports/trial-balance?export=csv" class="sae hover:underline text-[10px]">Export CSV</a></p>{% endif %}
     </div>
     <button type="button" onclick="window.print()" class="btn-secondary text-sm">Print</button>
   </div>

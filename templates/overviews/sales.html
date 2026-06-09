@@ -10,6 +10,27 @@
     <div>
       <div class="flex items-center gap-2 mb-1">
         <span class="nav-section-label">Sales</span>
+        <div class="flex items-center gap-2 text-sm">
+          <div class="card p-2"><p class="text-[10px] ink-3">AR owing</p><p class="num-display">{{ '%.0f'|format(overdue_total or 0) }}</p></div>
+          <div class="card p-2"><p class="text-[10px] ink-3">Overdue</p><p class="num-display" style="color:var(--neg)">{{ '%.0f'|format(overdue_total or 0) }}</p></div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
           As of {{ today_iso }}
         </span>

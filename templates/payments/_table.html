@@ -16,7 +16,7 @@
         <th class="w-8 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
-                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                 class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </th>
         <th class="text-left">Date</th>
         <th class="text-left">Reference</th>
@@ -34,7 +34,7 @@
             <input type="checkbox" data-row-select data-id="{{ payment.id }}"
                    aria-label="Select payment {{ payment.reference or payment.id }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
-                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                   class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
           </td>
           <td class="ink-2 num cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">{{ payment.payment_date }}</td>
           <td class="cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">
@@ -88,24 +88,13 @@
   </table>
 </div>
 
-{% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-xs ink-3 font-mono">
-  <div>Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}</div>
-  <div class="flex gap-2">
-    {% if prev_offset is not none %}
-    <a href="/payments?offset={{ prev_offset }}&limit={{ limit }}{% if filter_direction %}&direction={{ filter_direction }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-       hx-get="/payments?offset={{ prev_offset }}&limit={{ limit }}{% if filter_direction %}&direction={{ filter_direction }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-       hx-target="#payments-table" hx-swap="outerHTML" hx-push-url="true"
-       class="btn-secondary text-xs">← Prev</a>
-    {% endif %}
-    {% if next_offset is not none %}
-    <a href="/payments?offset={{ next_offset }}&limit={{ limit }}{% if filter_direction %}&direction={{ filter_direction }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-       hx-get="/payments?offset={{ next_offset }}&limit={{ limit }}{% if filter_direction %}&direction={{ filter_direction }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-       hx-target="#payments-table" hx-swap="outerHTML" hx-push-url="true"
-       class="btn-secondary text-xs">Next →</a>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+{% import "_pagination_macros.html" as pg %}
+{% set pg_filters = {
+  'direction': filter_direction,
+  'contact_id': filter_contact_id,
+  'date_from': filter_date_from,
+  'date_to': filter_date_to
+} %}
+{{ pg.page_numbers('/payments', total, limit, offset, pg_filters, target='#payments-table') }}
 
 </div>

@@ -5,83 +5,75 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-[color:var(--warm-tint)] border border-[color:var(--warm)] px-4 py-3 text-base text-[color:var(--warm)] mb-6">
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-base text-amber-800 mb-6">
   {{ flash }}
 </div>
 {% endif %}
 
 <div class="flex items-start justify-between mb-6">
   <div>
-    <h1 class="text-3xl font-semibold ink-1">Expense {{ expense.number or "(draft)" }}</h1>
-    <p class="text-base ink-3 mt-1">{{ expense.expense_date }} · <span class="ink-1 font-semibold tabular-nums">${{ "%.2f"|format(expense.total|float) }}</span></p>
+    <h1 class="font-display text-3xl">Expense {{ expense.number or "(draft)" }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ expense.expense_date }} · <span class="num-display text-base ink-1 font-semibold">${{ "%.2f"|format(expense.total|float) }}</span></p>
   </div>
   <div>
     {% if expense.status == "POSTED" %}
-      <span class="badge-paid">Posted</span>
+      <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-medium text-green-800">Posted</span>
     {% elif expense.status == "VOIDED" %}
-      <span class="badge-draft">Voided</span>
+      <span class="inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-base font-medium text-gray-600">Voided</span>
     {% else %}
-      <span class="badge-warm">Draft</span>
+      <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-base font-medium text-amber-800">Draft</span>
     {% endif %}
   </div>
 </div>
 
-{# ── Review flag (Gap 3, 0157) ── #}
-<div class="mb-6 flex items-center gap-3">
-  <span class="text-sm font-medium ink-3">Review</span>
-  {% with flag_base="/expenses", entity_id=expense.id, flagged=expense.flagged_for_review, review_note=expense.review_note, compact=False %}
-    {% include "_partials/review_flag.html" %}
-  {% endwith %}
-</div>
-
 <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-base mb-6">
   <div>
-    <dt class="font-medium ink-3">Paid from</dt>
-    <dd class="ink-1">{{ payment_account_name or expense.payment_account_id }}</dd>
+    <dt class="font-medium text-gray-500">Paid from</dt>
+    <dd class="text-gray-900">{{ payment_account_name or expense.payment_account_id }}</dd>
   </div>
   <div>
-    <dt class="font-medium ink-3">Supplier</dt>
-    <dd class="ink-1">{{ contact_name or "—" }}</dd>
+    <dt class="font-medium text-gray-500">Supplier</dt>
+    <dd class="text-gray-900">{{ contact_name or "—" }}</dd>
   </div>
   <div>
-    <dt class="font-medium ink-3">Reference</dt>
-    <dd class="ink-1">{{ expense.reference or "—" }}</dd>
+    <dt class="font-medium text-gray-500">Reference</dt>
+    <dd class="text-gray-900">{{ expense.reference or "—" }}</dd>
   </div>
   <div>
-    <dt class="font-medium ink-3">Notes</dt>
-    <dd class="ink-1 whitespace-pre-wrap">{{ expense.notes or "—" }}</dd>
+    <dt class="font-medium text-gray-500">Notes</dt>
+    <dd class="text-gray-900 whitespace-pre-wrap">{{ expense.notes or "—" }}</dd>
   </div>
 </dl>
 
-<table class="min-w-full divide-y divide-[color:var(--line)] text-base mb-6">
-  <thead class="bg-[color:var(--paper-2)]">
+<table class="min-w-full divide-y divide-gray-200 text-base mb-6">
+  <thead class="bg-gray-50">
     <tr>
-      <th scope="col" class="px-3 py-2 text-left text-sm font-medium ink-3">#</th>
-      <th scope="col" class="px-3 py-2 text-left text-sm font-medium ink-3">Description</th>
-      <th scope="col" class="px-3 py-2 text-right text-sm font-medium ink-3">Qty</th>
-      <th scope="col" class="px-3 py-2 text-right text-sm font-medium ink-3">Unit</th>
-      <th scope="col" class="px-3 py-2 text-right text-sm font-medium ink-3">Subtotal</th>
-      <th scope="col" class="px-3 py-2 text-right text-sm font-medium ink-3">Tax</th>
-      <th scope="col" class="px-3 py-2 text-right text-sm font-medium ink-3">Total</th>
+      <th class="px-3 py-2 text-left text-sm font-medium text-gray-500">#</th>
+      <th class="px-3 py-2 text-left text-sm font-medium text-gray-500">Description</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Qty</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Unit</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Subtotal</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Tax</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Total</th>
     </tr>
   </thead>
-  <tbody class="divide-y divide-[color:var(--line)] bg-[color:var(--surface)]">
+  <tbody class="divide-y divide-gray-100 bg-white">
     {% for line in expense.lines %}
     <tr>
-      <td class="px-3 py-2 ink-3">{{ line.line_no }}</td>
-      <td class="px-3 py-2 ink-1">{{ line.description }}</td>
-      <td class="px-3 py-2 text-right tabular-nums ink-1">{{ "%.4f"|format(line.quantity|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums ink-1">{{ "%.4f"|format(line.unit_price|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums ink-1">${{ "%.2f"|format(line.line_subtotal|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums ink-1">${{ "%.2f"|format(line.line_tax|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums ink-1">${{ "%.2f"|format(line.line_total|float) }}</td>
+      <td class="px-3 py-2 text-gray-500">{{ line.line_no }}</td>
+      <td class="px-3 py-2">{{ line.description }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ "%.4f"|format(line.quantity|float) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ "%.4f"|format(line.unit_price|float) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(line.line_subtotal|float) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(line.line_tax|float) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(line.line_total|float) }}</td>
     </tr>
     {% endfor %}
-    <tr class="border-t-2 border-[color:var(--line)] bg-[color:var(--paper-2)] font-semibold">
-      <td colspan="4" class="px-3 py-2 text-right ink-1">Totals</td>
-      <td class="px-3 py-2 text-right tabular-nums ink-1">${{ "%.2f"|format(expense.subtotal|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums ink-1">${{ "%.2f"|format(expense.tax_total|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums ink-1">${{ "%.2f"|format(expense.total|float) }}</td>
+    <tr class="border-t-2 border-gray-300 bg-gray-50 font-semibold">
+      <td colspan="4" class="px-3 py-2 text-right">Totals</td>
+      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(expense.subtotal|float) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(expense.tax_total|float) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(expense.total|float) }}</td>
     </tr>
   </tbody>
 </table>
@@ -97,7 +89,7 @@
   {% if expense.status != "VOIDED" %}
   <form method="post" action="/expenses/{{ expense.id }}/void" class="inline"
     onsubmit="return confirm('Void this expense? If POSTED, a reversing journal entry will be created.');">
-    <button type="submit" class="btn-secondary text-base px-4 py-2">
+    <button type="submit" class="rounded-md bg-gray-200 px-4 py-2 text-base font-medium text-gray-800 hover:bg-gray-300">
       Void
     </button>
   </form>
@@ -105,19 +97,19 @@
   {% if expense.archived_at is none %}
   <form method="post" action="/expenses/{{ expense.id }}/archive" class="inline"
     onsubmit="return confirm('Archive this expense (soft-delete)?');">
-    <button type="submit" class="btn-secondary text-base px-4 py-2">
+    <button type="submit" class="rounded-md border border-gray-300 px-4 py-2 text-base text-gray-700 hover:bg-gray-50">
       Archive
     </button>
   </form>
   {% endif %}
-  <a href="/expenses" class="text-base ink-3 hover:underline self-center">← Back to list</a>
+  <a href="/expenses" class="text-base text-gray-500 hover:underline self-center">← Back to list</a>
 </div>
 
 {% if expense.journal_entry_id %}
-<p class="mt-4 text-sm ink-3">
-  Posting journal: <a href="/journal/{{ expense.journal_entry_id }}" class="sae hover:underline">{{ expense.journal_entry_id }}</a>
+<p class="mt-4 text-sm text-gray-500">
+  Posting journal: <a href="/journal/{{ expense.journal_entry_id }}" class="text-indigo-600 hover:underline">{{ expense.journal_entry_id }}</a>
   {% if expense.void_journal_entry_id %}
-  · Void reversal: <a href="/journal/{{ expense.void_journal_entry_id }}" class="sae hover:underline">{{ expense.void_journal_entry_id }}</a>
+  · Void reversal: <a href="/journal/{{ expense.void_journal_entry_id }}" class="text-indigo-600 hover:underline">{{ expense.void_journal_entry_id }}</a>
   {% endif %}
 </p>
 {% endif %}

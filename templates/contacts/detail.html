@@ -78,6 +78,11 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
   <div class="card p-5">
     <p class="nav-section-label mb-3">Contact details</p>
+    <div class="mt-2">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Owing / Overdue</p>
+      <p class="font-display text-xl num sae">{% if contact.unpaid_balance %}{{ '%.2f'|format(contact.unpaid_balance|float) }}{% else %}—{% endif %}</p>
+      <p class="text-xs ink-3">{% if contact.overdue_days %}Overdue {{ contact.overdue_days }} days{% else %}Up to date{% endif %}</p>
+    </div>
     <dl class="space-y-2 text-sm">
       <div class="flex gap-3">
         <dt class="w-20 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">Email</dt>

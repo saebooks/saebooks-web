@@ -134,6 +134,12 @@
             {% else %}—{% endif %}
           </td>
           <td class="text-right num-display ink-1">{{ payment.currency }} {{ "%.2f"|format(alloc.amount|float) }}</td>
+          <td class="text-right">
+            <form method="post" action="/payments/{{ payment.id }}/unallocate" class="inline" onsubmit="return confirm('Unmatch this allocation? This will leave a payment-on-account.');">
+              <input type="hidden" name="allocation_id" value="{{ alloc.id }}">
+              <button type="submit" class="text-xs ink-3 hover:text-neg">Unmatch</button>
+            </form>
+          </td>
         </tr>
         {% endfor %}
       {% else %}
