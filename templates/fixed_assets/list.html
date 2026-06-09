@@ -5,15 +5,14 @@
 {% block content %}
 
 {% if flash %}
-<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
-  <span class="dot" style="background:var(--warm);"></span>
-  <span class="text-sm ink-2">{{ flash }}</span>
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Fixed Assets</h1>
+    <h1 class="font-display text-2xl">Fixed Assets</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ total }} asset{{ "s" if total != 1 else "" }}</p>
     {% endif %}
@@ -21,13 +20,13 @@
   <div class="flex items-center gap-3">
     <a
       href="/fixed-assets/depreciation-run"
-      class="btn-secondary text-sm"
+      class="rounded-md border border-[#194291] px-3 py-1.5 text-sm font-medium text-[#194291] hover:bg-[#eaf0fa]"
     >
       Run Batch Depreciation
     </a>
     <a
       href="/fixed-assets/new"
-      class="btn-primary text-sm"
+      class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
     >
       New fixed asset
     </a>
@@ -43,11 +42,11 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium ink-3 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
     <select
       id="status"
       name="status"
-      class="saebooks-input text-sm px-2 py-1.5"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
       <option value="" {% if not filter_status %}selected{% endif %}>All</option>
       <option value="active" {% if filter_status == 'active' %}selected{% endif %}>Active</option>
@@ -56,14 +55,14 @@
   </div>
 
   <div>
-    <label for="search" class="block text-xs font-medium ink-3 mb-1">Search</label>
+    <label for="search" class="block text-xs font-medium text-gray-500 mb-1">Search</label>
     <input
       id="search"
       type="text"
       name="search"
       value="{{ filter_search }}"
       placeholder="Name or code…"
-      class="saebooks-input text-sm px-2 py-1.5"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
   </div>
 
@@ -72,7 +71,7 @@
 
   <button
     type="submit"
-    class="btn-primary text-sm"
+    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
   >
     Filter
   </button>

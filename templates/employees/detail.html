@@ -5,9 +5,8 @@
 {% block content %}
 
 {% if error and not employee %}
-<div class="card px-4 py-3 text-base mb-6 flex items-center gap-2" style="border-color:var(--neg);">
-  <span class="dot" style="background:var(--neg);"></span>
-  <span style="color:var(--neg);">{{ error }}</span>
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
+  {{ error }}
 </div>
 {% endif %}
 
@@ -15,7 +14,7 @@
 
 <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
   <div>
-    <h1 class="font-display text-3xl ink-1">
+    <h1 class="font-display text-3xl">
       {{ contact.name if contact else employee.contact_id }}
       <span class="num text-lg ink-3 ml-2">#{{ employee.employee_number }}</span>
     </h1>
@@ -81,7 +80,7 @@
         {% if employee.end_date %}
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">Termination date</dt>
-          <dd class="col-span-2 num" style="color:var(--neg);">{{ employee.end_date }}</dd>
+          <dd class="col-span-2 num text-rose-700">{{ employee.end_date }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">Termination reason</dt>

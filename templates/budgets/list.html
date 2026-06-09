@@ -5,25 +5,20 @@
 {% block content %}
 
 {% if flash %}
-<div class="card px-4 py-3 text-sm mb-6" style="border-color:var(--warm);color:var(--warm)">
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
   {{ flash }}
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Budgets</h1>
+    <h1 class="font-display text-2xl">Budgets</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ total }} budget row{{ "s" if total != 1 else "" }}</p>
     {% endif %}
   </div>
   <div>
-    <a
-      href="/budgets/new"
-      class="btn-primary text-sm"
-    >
-      New budget
-    </a>
+    <a href="/budgets/new" class="btn-primary text-sm">+ New budget</a>
   </div>
 </div>
 
@@ -45,7 +40,7 @@
       placeholder="e.g. 2026"
       min="1900"
       max="9999"
-      class="saebooks-input text-sm w-28"
+      class="saebooks-input w-28 text-sm py-1.5"
     >
   </div>
 
@@ -54,7 +49,7 @@
     <select
       id="month"
       name="month"
-      class="saebooks-input text-sm"
+      class="saebooks-input text-sm py-1.5"
     >
       <option value="" {% if not filter_month %}selected{% endif %}>All months</option>
       {% for m, label in [
@@ -70,12 +65,7 @@
   <input type="hidden" name="page" value="1">
   <input type="hidden" name="page_size" value="{{ page_size }}">
 
-  <button
-    type="submit"
-    class="btn-primary text-sm"
-  >
-    Filter
-  </button>
+  <button type="submit" class="btn-primary text-sm">Filter</button>
 </form>
 
 {# Table fragment — HTMX replaces this div on filter/pagination #}
