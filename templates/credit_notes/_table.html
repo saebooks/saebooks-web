@@ -105,35 +105,13 @@
   </table>
 </div>
 
-{# Pagination #}
-{% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm ink-2">
-  <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
-  </div>
-  <div class="flex gap-3">
-    {% if prev_offset is not none %}
-    <a
-      href="/credit-notes?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/credit-notes?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#credit-notes-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md border hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Previous</a>
-    {% endif %}
-    {% if next_offset is not none %}
-    <a
-      href="/credit-notes?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/credit-notes?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#credit-notes-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md border hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Next</a>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+{% import "_pagination_macros.html" as pg %}
+{% set pg_filters = {
+  'status': filter_status,
+  'contact_id': filter_contact_id,
+  'date_from': filter_date_from,
+  'date_to': filter_date_to
+} %}
+{{ pg.page_numbers('/credit-notes', total, limit, offset, pg_filters, target='#credit-notes-table') }}
 
 </div>{# end #credit-notes-table #}
