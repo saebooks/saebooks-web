@@ -63,7 +63,7 @@
         <th class="w-8 px-3 py-2 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
-                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                 class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </th>
         <th class="px-3 py-2">Number</th>
         <th class="px-3 py-2">Name</th>
@@ -84,7 +84,7 @@
           <input type="checkbox" data-row-select data-id="{{ emp.id }}"
                  aria-label="Select employee {{ emp.employee_number }}"
                  onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
-                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                 class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </td>
         <td class="px-3 py-2 num">{{ emp.employee_number }}</td>
         <td class="px-3 py-2">{{ emp.contact_name or emp.contact_id }}</td>
