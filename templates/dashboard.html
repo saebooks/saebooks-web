@@ -5,70 +5,51 @@
 {% block content %}
 
 {# ─────────────────────────────────────────────────────────────────────────
-   Hero — drafting masthead. Company / FY / status chips.
+   Grok scratch preview header — distinctly new greeting surface.
+   Airier, command-center feel. Local IP demo only.
    ───────────────────────────────────────────────────────────────────────── #}
-<header class="relative mb-8">
-  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-60"></div>
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+<header class="mb-6">
+  <div class="flex items-center justify-between">
     <div>
-      <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Dashboard</span>
+      <div class="flex items-center gap-2">
+        <span class="nav-section-label">SAE Books · grok scratch</span>
         {% if gst and gst.fy_start %}
-        <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
-          FY&nbsp;{{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}
-        </span>
+        <span class="text-[10px] font-mono uppercase tracking-wider ink-3">FY {{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}</span>
         {% endif %}
+        <span class="text-[10px] px-1.5 py-px rounded bg-[color:var(--sae-tint)] text-[color:var(--sae-2)] font-mono">local preview</span>
       </div>
-      <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight">
-        <span id="greeting" data-username="{{ request.session.get('username') or '' }}">Today at a glance</span>
+      <h1 class="font-display text-3xl sm:text-4xl tracking-[-0.02em] mt-1">
+        <span id="greeting" data-username="{{ request.session.get('username') or '' }}">Good {{ 'morning' if now.hour < 12 else 'afternoon' if now.hour < 17 else 'evening' }}</span>
       </h1>
-      <p class="mt-2 text-sm ink-3">
-        {{ fy_from }} <span class="ink-4">→</span> {{ fy_to }}
-      </p>
+      <p class="text-sm ink-3 mt-1">{{ fy_from }} → {{ fy_to }}</p>
     </div>
 
-    {# Compact status chips replace the loud banners; details below. #}
-    <div class="flex flex-wrap items-center gap-2">
-      <button id="customise-toggle" type="button"
-              class="chip ink-3 hover:bg-[color:var(--paper-2)]"
-              style="border-color:var(--line);"
-              title="Hide/show dashboard widgets">
-        <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
+    <div class="flex items-center gap-2">
+      <button id="customise-toggle" type="button" class="chip" title="Customise dashboard">
+        <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
         <span data-customise-label>Customise</span>
       </button>
-      {% if gst and gst.threshold_crossed %}
-        <a href="#gst-tile" class="chip" style="border-color:var(--neg);color:var(--neg);">
-          <span class="dot" style="background:var(--neg);"></span>
-          GST · register within 21 days
-        </a>
-      {% elif gst and gst.threshold_approaching %}
-        <a href="#gst-tile" class="chip" style="border-color:var(--warm);color:var(--warm);">
-          <span class="dot" style="background:var(--warm);"></span>
-          GST · {{ "%.0f"|format(gst.pct) }}% of threshold
-        </a>
-      {% else %}
-        <span class="chip" style="border-color:var(--pos);color:var(--pos);">
-          <span class="dot" style="background:var(--pos);"></span>
-          GST · under threshold
-        </span>
-      {% endif %}
-
-      {% if concentration_warning %}
-        <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}"
-           class="chip" style="border-color:var(--neg);color:var(--neg);">
-          <span class="dot" style="background:var(--neg);"></span>
-          PSI · {{ "%.0f"|format(top_customer_pct|float) }}% from 1 customer
-        </a>
-      {% elif psi_status == "unsure" %}
-        <a href="/settings/company" class="chip" style="border-color:var(--warm);color:var(--warm);">
-          <span class="dot" style="background:var(--warm);"></span>
-          PSI status · unset
-        </a>
-      {% endif %}
+      <a href="/reconciliation" class="btn-primary">
+        <i data-lucide="git-pull-request" class="w-4 h-4"></i>
+        <span>Reconcile</span>
+      </a>
     </div>
   </div>
-  <div class="drafting mt-5"></div>
 </header>
+
+{# Quick status row (replaces some of the old chip noise) #}
+<div class="flex flex-wrap gap-2 mb-6">
+  {% if gst and gst.threshold_crossed %}
+    <a href="#gst-tile" class="chip" style="border-color:var(--neg);color:var(--neg);"><span class="dot" style="background:var(--neg);"></span>GST: register in 21d</a>
+  {% elif gst and gst.threshold_approaching %}
+    <a href="#gst-tile" class="chip" style="border-color:var(--warm);color:var(--warm);"><span class="dot" style="background:var(--warm);"></span>GST: {{ "%.0f"|format(gst.pct) }}% of threshold</a>
+  {% else %}
+    <span class="chip" style="border-color:var(--pos);color:var(--pos);"><span class="dot" style="background:var(--pos);"></span>GST under threshold</span>
+  {% endif %}
+  {% if concentration_warning %}
+    <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}" class="chip" style="border-color:var(--neg);color:var(--neg);"><span class="dot" style="background:var(--neg);"></span>PSI concentration {{ "%.0f"|format(top_customer_pct|float) }}%</a>
+  {% endif %}
+</div>
 
 
 {# ─────────────────────────────────────────────────────────────────────────

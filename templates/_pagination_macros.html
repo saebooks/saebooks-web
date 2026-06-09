@@ -25,13 +25,13 @@
 {% macro _page_btn(label, page_offset, base_path, limit, filters, target, active=False, disabled=False, label_class='', fragment=None) -%}
   {% set url = _page_url(base_path, page_offset, limit, filters, fragment) %}
   {% if disabled %}
-    <span class="rounded-md border border-gray-200 px-3 py-1.5 text-gray-300 cursor-not-allowed {{ label_class }}">{{ label | safe }}</span>
+    <span class="btn-secondary opacity-50 cursor-not-allowed {{ label_class }}">{{ label | safe }}</span>
   {% elif active %}
-    <span class="rounded-md border border-indigo-600 bg-indigo-600 px-3 py-1.5 text-white font-medium tabular-nums {{ label_class }}">{{ label | safe }}</span>
+    <span class="btn-primary !px-3 !py-1.5 tabular-nums {{ label_class }}">{{ label | safe }}</span>
   {% else %}
     <a href="{{ url }}"
       {% if target %} hx-get="{{ url }}" hx-target="{{ target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}
-      class="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50 tabular-nums {{ label_class }}">{{ label | safe }}</a>
+      class="btn-secondary {{ label_class }}">{{ label | safe }}</a>
   {% endif %}
 {%- endmacro %}
 

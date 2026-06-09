@@ -1,73 +1,65 @@
 {% import "_partials/empty_state.html" as empty %}
 {% import "_components/kebab_menu.html" as km %}
-{# HTMX partial — journal entries table body + pagination.
-   Rendered standalone for HX-Request fragments; embedded by list.html for
-   the initial full-page load.
+{% import "_pagination_macros.html" as pg %}
+{# HTMX partial — journal entries table + full modern pager.
+   Swapped by filters / page size / pager clicks.
 #}
 <div id="journal-entries-table">
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4" style="border-color:var(--neg);">
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card overflow-x-auto">
+  <table class="sae-table w-full">
+    <thead>
       <tr>
-        <th class="w-8 px-4 py-3 text-center">
+        <th class="w-8 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">JE #</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Total Debit</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th>JE #</th>
+        <th>Date</th>
+        <th>Description</th>
+        <th class="text-right">Debit</th>
+        <th>Status</th>
         <th class="w-8"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% if journal_entries %}
         {% for je in journal_entries %}
-        <tr
-          class="hover:bg-gray-50 cursor-pointer"
-          data-status="{{ (je.status or 'draft')|lower }}"
-          onclick="window.location='/journal-entries/{{ je.id }}'"
-        >
-          <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+        <tr data-status="{{ (je.status or 'draft')|lower }}" onclick="window.location='/journal-entries/{{ je.id }}'">
+          <td class="text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ je.id }}"
                    aria-label="Select journal entry {{ je.ref or je.id }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="px-4 py-3 font-medium text-[#194291]">
+          <td class="sae font-medium">
             <a href="/journal-entries/{{ je.id }}" class="hover:underline" onclick="event.stopPropagation()">
               {{ je.ref or "—" }}
             </a>
           </td>
-          <td class="px-4 py-3 text-gray-600">{{ je.entry_date }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ je.description or "—" }}</td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-900 font-medium">
-            {# Sum debit column from lines for list display #}
+          <td class="ink-2 num">{{ je.entry_date }}</td>
+          <td class="ink-2">{{ je.description or "—" }}</td>
+          <td class="text-right num-display ink-1">
             {% set total_dr = namespace(v=0.0) %}
             {% for line in je.lines %}
               {% set total_dr.v = total_dr.v + (line.debit | float) %}
             {% endfor %}
             {{ "%.2f"|format(total_dr.v) }}
           </td>
-          <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if je.status == 'POSTED' %}bg-green-100 text-green-700
-              {% elif je.status == 'DRAFT' %}bg-gray-100 text-gray-600
-              {% elif je.status == 'REVERSED' %}bg-yellow-100 text-yellow-700
-              {% else %}bg-gray-100 text-gray-500{% endif %}">
-              {{ je.status | capitalize }}
-            </span>
+          <td>
+            {% if je.status == 'POSTED' %}<span class="badge-paid">Posted</span>
+            {% elif je.status == 'DRAFT' %}<span class="badge-draft">Draft</span>
+            {% elif je.status == 'REVERSED' %}<span class="badge-warm">Reversed</span>
+            {% else %}<span class="badge-ink">{{ je.status | capitalize }}</span>{% endif %}
           </td>
-          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+          <td class="text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (je.status or 'draft')|lower %}
             {%- set actions = [
               ("view", "View", "/journal-entries/" ~ je.id,       "link", false),
@@ -92,35 +84,8 @@
   </table>
 </div>
 
-{# Pagination #}
-{% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
-  <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
-  </div>
-  <div class="flex gap-3">
-    {% if prev_offset is not none %}
-    <a
-      href="/journal-entries?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/journal-entries?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#journal-entries-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Previous</a>
-    {% endif %}
-    {% if next_offset is not none %}
-    <a
-      href="/journal-entries?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/journal-entries?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#journal-entries-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Next</a>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+{# Full windowed page selector + page size carried in filters #}
+{% set pg_filters = { 'status': filter_status, 'date_from': filter_date_from, 'date_to': filter_date_to, 'limit': limit } %}
+{{ pg.page_numbers('/journal-entries', total, limit, offset, pg_filters, target='#journal-entries-table') }}
 
 </div>{# end #journal-entries-table #}
