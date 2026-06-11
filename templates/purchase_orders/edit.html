@@ -18,6 +18,14 @@
   </h1>
 </div>
 
+{% if po %}
+<div class=mb-4>
+  <a href=/purchase_orders/{{ po.id }}/pdf target=_blank rel=noopener class=chip>
+    <i data-lucide=download class=w-3.5 h-3.5></i> Download PDF
+  </a>
+</div>
+{% endif %}
+
 {% if conflict %}
 <div id="conflict-banner" class="card p-3 mb-5 flex items-start gap-3" style="border-color:var(--warm);" role="alert">
   <span class="dot mt-1.5" style="background:var(--warm);"></span>
