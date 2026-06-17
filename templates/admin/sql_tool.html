@@ -6,12 +6,12 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">SQL Tool</h1>
-    <p class="text-sm text-gray-500 mt-1">Read-only SQL browser — SELECT queries only</p>
+    <h1 class="text-2xl font-semibold ink-1">SQL Tool</h1>
+    <p class="text-sm ink-3 mt-1">Read-only SQL browser — SELECT queries only</p>
   </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-4">
+<div class="card p-5 mb-4">
   <form
     hx-post="/admin/sql-tool/execute"
     hx-target="#sql-results"
@@ -22,23 +22,22 @@
 
 
     <div class="mb-4">
-      <label for="sql" class="block text-xs font-medium text-gray-700 mb-1">SQL Query</label>
+      <label for="sql" class="block text-xs font-medium ink-2 mb-1">SQL Query</label>
       <textarea
         id="sql"
         name="sql"
         rows="6"
         placeholder="SELECT * FROM journal_entries LIMIT 20;"
-        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+        class="saebooks-input w-full text-sm font-mono"
       >{{ sql | default("") }}</textarea>
     </div>
 
     <div class="flex gap-3">
-      <button type="submit"
-        class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]">
+      <button type="submit" class="btn-primary text-sm">
         Execute
       </button>
       <button type="reset"
-        class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        class="rounded-md hairline px-4 py-2 text-sm font-medium ink-2 hover:bg-[color:var(--paper-2)]">
         Clear
       </button>
     </div>
@@ -52,7 +51,7 @@
   {% endif %}
 </div>
 
-<div class="mt-4 text-xs text-gray-400">
+<div class="mt-4 text-xs ink-3">
   Only SELECT statements are permitted. Queries are logged in the audit trail.
 </div>
 

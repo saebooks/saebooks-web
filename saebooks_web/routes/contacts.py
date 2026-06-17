@@ -19,10 +19,11 @@ HTMX extension points (TODO — future cycles):
 from __future__ import annotations
 
 import uuid
+from datetime import date, timedelta
 from pathlib import Path
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
@@ -959,4 +960,51 @@ async def contact_hard_delete(request: Request, contact_id: str) -> RedirectResp
         entity_label=f"Contact {contact_id}",
         list_url="/contacts",
         detail_url=f"/contacts/{contact_id}",
+    )
+
+
+@router.get("/contacts/{contact_id}/statement/pdf", response_model=None)
+async def contact_statement_pdf(
+    request: Request,
+    contact_id: str,
+    period_from: str | None = Query(default=None, alias="from"),
+    period_to: str | None = Query(default=None, alias="to"),
+) -> Response | RedirectResponse:
+    """Stream the customer AR statement PDF from the API.
+
+    The API endpoint (GET /api/v1/contacts/{id}/statement.pdf) requires a
+    bounded period via ``from``/``to``. When the caller omits them we default
+    to the trailing 12 months ending today, which surfaces an opening-balance
+    carry-in plus all recent activity -- the usual shape of a statement. The
+    detail-page link opens this in a new tab (Content-Disposition: inline).
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    today = date.today()
+    pf = period_from or (today - timedelta(days=365)).isoformat()
+    pt = period_to or today.isoformat()
+    async with api_client(request) as client:
+        resp = await client.get(
+            f"/api/v1/contacts/{contact_id}/statement.pdf",
+            params={"from": pf, "to": pt},
+        )
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        raise HTTPException(404, detail="Contact not found")
+    if resp.status_code != 200:
+        raise HTTPException(
+            resp.status_code, detail=f"Upstream returned {resp.status_code}"
+        )
+    return Response(
+        content=resp.content,
+        media_type=resp.headers.get("content-type", "application/pdf"),
+        headers={
+            "Content-Disposition": resp.headers.get(
+                "content-disposition",
+                f'inline; filename="statement-{contact_id}.pdf"',
+            ),
+            "Cache-Control": "private, max-age=0, must-revalidate",
+        },
     )

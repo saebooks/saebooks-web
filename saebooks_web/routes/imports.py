@@ -212,7 +212,7 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
     file_field = form_data.get("file")
 
     # Check for required CSRF token in multipart forms.
-    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    from saebooks_web.security import verify_csrf_form
     await verify_csrf_form(request)
 
     raw: str = ""
@@ -260,7 +260,6 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
             status_code=400,
         )
 
-    state = step_resp.json().get("state", {})
     # Build a simple preview from the raw content (line count, first 10 rows).
     lines_info = [ln.strip() for ln in raw.splitlines() if ln.strip()][:12]
     proxy_html = (
@@ -379,7 +378,7 @@ async def imports_coa_preview(request: Request) -> HTMLResponse | RedirectRespon
         return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     form_data = await request.form()
-    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    from saebooks_web.security import verify_csrf_form
     await verify_csrf_form(request)
 
     file_field = form_data.get("file")

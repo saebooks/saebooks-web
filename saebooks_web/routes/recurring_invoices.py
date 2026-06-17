@@ -28,6 +28,7 @@ Generate calls POST /api/v1/recurring_invoices/{id}/generate.
 """
 from __future__ import annotations
 
+import contextlib
 import uuid
 from datetime import date
 from pathlib import Path
@@ -247,10 +248,8 @@ async def recurring_invoice_create(request: Request) -> HTMLResponse | RedirectR
     for int_field in ("anchor_day", "due_days"):
         val = form.get(int_field, "").strip()
         if val:
-            try:
+            with contextlib.suppress(ValueError):
                 payload[int_field] = int(val)
-            except ValueError:
-                pass
 
     # Boolean auto_post — checkbox: present -> True, absent -> False.
     payload["auto_post"] = bool(form.get("auto_post"))
@@ -516,10 +515,8 @@ async def recurring_invoice_update(
     for int_field in ("anchor_day", "due_days"):
         val = form.get(int_field, "").strip()
         if val:
-            try:
+            with contextlib.suppress(ValueError):
                 payload[int_field] = int(val)
-            except ValueError:
-                pass
 
     # Boolean auto_post — checkbox.
     payload["auto_post"] = bool(form.get("auto_post"))

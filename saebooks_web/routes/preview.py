@@ -293,8 +293,8 @@ async def preview_payment_schedule_09(request: Request) -> HTMLResponse:
     return _TEMPLATES.TemplateResponse(request, "preview/payment_schedule.html", {})
 
 
-@router.get("/preview/compliance/fbt/fy26", response_class=HTMLResponse, response_model=None)
-async def preview_fbt_fy26(request: Request) -> HTMLResponse:
+@router.get("/preview/compliance/fbt/fy26-workpaper", response_class=HTMLResponse, response_model=None)
+async def preview_fbt_fy26_workpaper(request: Request) -> HTMLResponse:
     return _TEMPLATES.TemplateResponse(request, "preview/fbt_workpaper.html", {})
 
 

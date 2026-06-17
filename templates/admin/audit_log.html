@@ -6,28 +6,28 @@
 
 {# ── Flash banner ── #}
 {% if flash %}
-<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Audit Log</h1>
-    <p class="text-sm text-gray-500 mt-1">Immutable record of all data changes</p>
+    <h1 class="text-2xl font-semibold ink-1">Audit Log</h1>
+    <p class="text-sm ink-3 mt-1">Immutable record of all data changes</p>
   </div>
   <a href="/admin/audit/export.csv"
-     class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+     class="rounded-md hairline px-4 py-2 text-sm font-medium ink-2 hover:bg-[color:var(--paper-2)]">
     Export CSV
   </a>
 </div>
 
 {# ── Filters ── #}
-<form method="get" action="/admin/audit" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 grid grid-cols-4 gap-4 items-end">
+<form method="get" action="/admin/audit" class="card p-4 mb-6 grid grid-cols-4 gap-4 items-end">
   <div>
-    <label class="block text-xs font-medium text-gray-700 mb-1" for="entity_type">Entity Type</label>
-    <select id="entity_type" name="entity_type"
-      class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+    <label class="block text-xs font-medium ink-2 mb-1" for="entity_type">Entity Type</label>
+    <select id="entity_type" name="entity_type" class="saebooks-input w-full">
       <option value="">All types</option>
       {% for t in entity_types %}
       <option value="{{ t }}" {% if filters.entity_type == t %}selected{% endif %}>{{ t }}</option>
@@ -38,73 +38,68 @@
     </select>
   </div>
   <div>
-    <label class="block text-xs font-medium text-gray-700 mb-1" for="date_from">From</label>
-    <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}"
-      class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+    <label class="block text-xs font-medium ink-2 mb-1" for="date_from">From</label>
+    <input type="date" id="date_from" name="date_from" value="{{ filters.date_from }}" class="saebooks-input w-full">
   </div>
   <div>
-    <label class="block text-xs font-medium text-gray-700 mb-1" for="date_to">To</label>
-    <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}"
-      class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+    <label class="block text-xs font-medium ink-2 mb-1" for="date_to">To</label>
+    <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}" class="saebooks-input w-full">
   </div>
   <div class="flex gap-2">
-    <button type="submit"
-      class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]">
+    <button type="submit" class="btn-primary text-sm">
       Filter
     </button>
     <a href="/admin/audit"
-      class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+      class="rounded-md hairline px-4 py-2 text-sm font-medium ink-2 hover:bg-[color:var(--paper-2)]">
       Clear
     </a>
   </div>
 </form>
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Timestamp</th>
-        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Action</th>
-        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Entity</th>
-        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">By</th>
-        <th class="px-4 py-2"></th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">Timestamp</th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">Action</th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">Entity</th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">By</th>
+        <th scope="col" class="px-4 py-2"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody class="divide-y divide-[color:var(--line)]">
       {% if snapshots %}
         {% for snap in snapshots %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-2 font-mono text-xs text-gray-500">{{ snap.performed_at | default(snap.created_at) | default("—") }}</td>
+        <tr class="hover:bg-[color:var(--paper-2)]">
+          <td class="px-4 py-2 font-mono text-xs ink-3">{{ snap.performed_at | default(snap.created_at) | default("—") }}</td>
           <td class="px-4 py-2">
-            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-              {% if snap.action == 'CREATE' %}bg-green-100 text-green-700
-              {% elif snap.action == 'UPDATE' %}bg-blue-100 text-blue-700
-              {% elif snap.action == 'DELETE' %}bg-red-100 text-red-700
-              {% else %}bg-gray-100 text-gray-600{% endif %}">
-              {{ snap.action | default("—") }}
-            </span>
+            {% if snap.action == 'CREATE' %}<span class="badge-pos">{{ snap.action }}</span>
+            {% elif snap.action == 'UPDATE' %}<span class="badge-sae">{{ snap.action }}</span>
+            {% elif snap.action == 'DELETE' %}<span class="badge-neg">{{ snap.action }}</span>
+            {% else %}<span class="badge-ink">{{ snap.action | default("—") }}</span>{% endif %}
           </td>
-          <td class="px-4 py-2 text-gray-700">
+          <td class="px-4 py-2 ink-2">
             {{ snap.table_name | default("—") }}
-            {% if snap.row_id %}<span class="font-mono text-xs text-gray-400 ml-1">{{ snap.row_id[:8] }}…</span>{% endif %}
+            {% if snap.row_id %}<span class="font-mono text-xs ink-4 ml-1">{{ snap.row_id[:8] }}…</span>{% endif %}
           </td>
-          <td class="px-4 py-2 text-gray-600 text-xs">{{ snap.performed_by | default("system") }}</td>
+          <td class="px-4 py-2 ink-2 text-xs">{{ snap.performed_by | default("system") }}</td>
           <td class="px-4 py-2 text-right">
             {% if snap.id %}
-            <a href="/admin/audit/{{ snap.id }}" class="text-xs text-[#194291] hover:underline">Detail</a>
+            <a href="/admin/audit/{{ snap.id }}" class="text-xs sae hover:underline">Detail</a>
             {% endif %}
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="5" class="px-4 py-8 text-center ink-3">
             No audit entries found.
           </td>
         </tr>
@@ -115,18 +110,18 @@
 
 {# ── Pagination ── #}
 {% if page > 1 or has_next %}
-<div class="flex items-center justify-between mt-4 text-sm text-gray-600">
+<div class="flex items-center justify-between mt-4 text-sm ink-2">
   <div>
     {% if page > 1 %}
     <a href="?entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&page={{ page - 1 }}"
-       class="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">Previous</a>
+       class="rounded-md hairline px-3 py-1 hover:bg-[color:var(--paper-2)]">Previous</a>
     {% endif %}
   </div>
-  <div class="text-xs text-gray-500">Page {{ page }}</div>
+  <div class="text-xs ink-3">Page {{ page }}</div>
   <div>
     {% if has_next %}
     <a href="?entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&page={{ page + 1 }}"
-       class="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">Next</a>
+       class="rounded-md hairline px-3 py-1 hover:bg-[color:var(--paper-2)]">Next</a>
     {% endif %}
   </div>
 </div>

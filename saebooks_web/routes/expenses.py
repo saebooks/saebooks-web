@@ -121,6 +121,7 @@ async def expenses_list(
     payment_account_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    flagged: bool | None = None,
     sort: str = "expense_date",
     direction: str = "desc",
     limit: int = 50,
@@ -146,6 +147,10 @@ async def expenses_list(
         params["date_from"] = date_from
     if date_to:
         params["date_to"] = date_to
+    # Gap 3 (0157) — "Flagged only" filter. Only forward when explicitly set
+    # so the default list is unaffected.
+    if flagged:
+        params["flagged"] = "true"
 
     error: str | None = None
     expenses: list[dict] = []
@@ -194,6 +199,7 @@ async def expenses_list(
         "filter_payment_account_id": payment_account_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "filter_flagged": bool(flagged),
         "sort": sort,
         "direction": direction,
         "limit": limit,
@@ -411,6 +417,57 @@ async def expense_detail(
             "contact_name": contact_name,
             "payment_account_name": payment_account_name,
             "flash": flash,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Review flag (Gap 3, 0157) — set/clear via HTMX, swaps the flag control.
+# Desired state rides in the query string (?flagged=), so the POST carries
+# no form body and bypasses CSRF Layer 3 (same pattern as the Stripe link
+# button). The API enforces auth via the session bearer token.
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/expenses/{expense_id}/review-flag",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def expense_review_flag(
+    request: Request, expense_id: str, flagged: bool = True, compact: bool = False
+) -> HTMLResponse | RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/expenses/{expense_id}/review-flag",
+            json={"flagged": flagged},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.is_success:
+        body = resp.json()
+        new_flagged = bool(body.get("flagged_for_review"))
+        review_note = body.get("review_note")
+    else:
+        # Render the control in its prior state so the user sees no change.
+        new_flagged = not flagged
+        review_note = None
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "_partials/review_flag.html",
+        {
+            "flag_base": "/expenses",
+            "entity_id": expense_id,
+            "flagged": new_flagged,
+            "review_note": review_note,
+            "compact": compact,
         },
     )
 

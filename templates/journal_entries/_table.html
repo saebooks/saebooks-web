@@ -11,6 +11,7 @@
 {%- if filter_ref %}{%- set _ = _filter_parts.append("ref=" ~ (filter_ref|urlencode)) %}{%- endif %}
 {%- if filter_posted_by %}{%- set _ = _filter_parts.append("posted_by=" ~ (filter_posted_by|urlencode)) %}{%- endif %}
 {%- if filter_account_id %}{%- set _ = _filter_parts.append("account_id=" ~ filter_account_id) %}{%- endif %}
+{%- if filter_flagged %}{%- set _ = _filter_parts.append("flagged=true") %}{%- endif %}
 {%- set filter_qs_no_sort = ("&" ~ _filter_parts|join("&")) if _filter_parts else "" %}
 {%- if sort %}{%- set _ = _filter_parts.append("sort=" ~ sort) %}{%- endif %}
 {%- if dir %}{%- set _ = _filter_parts.append("dir=" ~ dir) %}{%- endif %}
@@ -29,39 +30,41 @@
     hx-target="#journal-entries-table"
     hx-swap="outerHTML"
     hx-push-url="true"
-    class="inline-flex items-center gap-0.5 hover:text-gray-700 {% if is_active %}text-gray-900 font-semibold{% endif %}"
+    class="inline-flex items-center gap-0.5 hover:underline {% if is_active %}ink-1 font-semibold{% endif %}"
   >{{ label }}<span class="tabular-nums">{{ arrow }}</span></a>
 {%- endmacro %}
 <div id="journal-entries-table">
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card rounded-xl shadow-sm overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th class="w-8 px-4 py-3 text-center">
+        <th scope="col" class="w-8 px-4 py-3 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
-                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                 class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("ref", "JE #") }}</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("date", "Date") }}</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("total_debit", "Total Debit") }}</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">{{ sort_header("status", "Status") }}</th>
-        <th class="w-8"></th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("ref", "JE #") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("date", "Date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("total_debit", "Total Debit") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("status", "Status") }}</th>
+        <th scope="col" class="w-8 px-1 py-3 text-center font-medium ink-3" title="Flag for review"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
+        <th scope="col" class="w-8"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody class="divide-y divide-[color:var(--line-soft)]">
       {% if journal_entries %}
         {% for je in journal_entries %}
         <tr
-          class="hover:bg-gray-50 cursor-pointer"
+          class="hover:bg-[color:var(--paper-2)] cursor-pointer"
           data-status="{{ (je.status or 'draft')|lower }}"
           onclick="window.location='/journal-entries/{{ je.id }}'"
         >
@@ -69,16 +72,16 @@
             <input type="checkbox" data-row-select data-id="{{ je.id }}"
                    aria-label="Select journal entry {{ je.ref or je.id }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
-                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                   class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="px-4 py-3 font-medium text-[#194291]">
+          <td class="px-4 py-3 font-medium sae">
             <a href="/journal-entries/{{ je.id }}" class="hover:underline" onclick="event.stopPropagation()">
               {{ je.ref or "—" }}
             </a>
           </td>
-          <td class="px-4 py-3 text-gray-600">{{ je.entry_date }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ je.description or "—" }}</td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-900 font-medium">
+          <td class="px-4 py-3 ink-2">{{ je.entry_date }}</td>
+          <td class="px-4 py-3 ink-2">{{ je.description or "—" }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-1 font-medium">
             {# Sum debit column from lines for list display #}
             {% set total_dr = namespace(v=0.0) %}
             {% for line in je.lines %}
@@ -87,13 +90,18 @@
             {{ "%.2f"|format(total_dr.v) }}
           </td>
           <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if je.status == 'POSTED' %}bg-green-100 text-green-700
-              {% elif je.status == 'DRAFT' %}bg-gray-100 text-gray-600
-              {% elif je.status == 'REVERSED' %}bg-yellow-100 text-yellow-700
-              {% else %}bg-gray-100 text-gray-500{% endif %}">
+            <span class="
+              {% if je.status == 'POSTED' %}badge-pos
+              {% elif je.status == 'DRAFT' %}badge-draft
+              {% elif je.status == 'REVERSED' %}badge-warm
+              {% else %}badge-draft{% endif %}">
               {{ je.status | capitalize }}
             </span>
+          </td>
+          <td class="px-1 py-3 text-center" onclick="event.stopPropagation()">
+            {% with flag_base="/journal-entries", entity_id=je.id, flagged=je.flagged_for_review, review_note=je.review_note, compact=True %}
+              {% include "_partials/review_flag.html" %}
+            {% endwith %}
           </td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (je.status or 'draft')|lower %}
@@ -115,7 +123,7 @@
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(7, "book-open", "No journal entries yet",
+        {{ empty.row(8, "book-open", "No journal entries yet",
                      "Post your first journal to record a manual transaction.",
                      "New journal", "/journal-entries/new") }}
       {% endif %}
@@ -125,7 +133,7 @@
 
 {# Pagination #}
 {% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+<div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
     Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
   </div>
@@ -137,7 +145,7 @@
       hx-target="#journal-entries-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+      class="rounded-md hairline border px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
     >Previous</a>
     {% endif %}
     {% if next_offset is not none %}
@@ -147,7 +155,7 @@
       hx-target="#journal-entries-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+      class="rounded-md hairline border px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
     >Next</a>
     {% endif %}
   </div>

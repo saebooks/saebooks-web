@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% import "_partials/empty_state.html" as empty %}
+
+{% block title %}Extraction Templates — SAE Books{% endblock %}
+
+{% block content %}
+
+{# ── Flash banner ── #}
+{% if flash %}
+<div class="rounded-lg px-4 py-3 text-sm mb-6"
+     style="background:var(--pos-tint);border:1px solid var(--pos);color:var(--pos);">
+  {{ flash }}
+</div>
+{% endif %}
+
+{# ── Back link ── #}
+<div class="mb-4">
+  <a href="/statements" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← statements</a>
+</div>
+
+{# ── Page header ── #}
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="nav-section-label">Payables</span>
+      <span class="reg-mark"></span>
+    </div>
+    <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
+      <i data-lucide="wand-2" class="w-7 h-7 ink-3" aria-hidden="true"></i>
+      <span>Extraction Templates</span>
+    </h1>
+    <p class="text-xs ink-3 font-mono mt-2">
+      AI extraction hints per supplier — {{ templates | length }} template{{ "s" if templates | length != 1 else "" }}
+    </p>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+
+{% if error %}
+<div class="rounded-lg px-4 py-3 text-sm mb-4"
+     style="background:var(--neg-tint);border:1px solid var(--neg);color:var(--neg);">
+  {{ error }}
+</div>
+{% endif %}
+
+{# ── Templates table ── #}
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
+    <thead>
+      <tr style="background:var(--paper-2);">
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Supplier</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Hint</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Page scope</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Active</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Created</th>
+        <th scope="col" class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if templates %}
+        {% for tmpl in templates %}
+        <tr class="transition-colors" style="border-top:1px solid var(--line-soft);"
+            onmouseover="this.style.background='var(--paper-2)'"
+            onmouseout="this.style.background=''">
+          <td class="px-4 py-3 ink-1">
+            <div class="font-medium">{{ tmpl.supplier_name | default("—") }}</div>
+            {% if tmpl.supplier_abn %}
+            <div class="text-xs font-mono ink-4">ABN {{ tmpl.supplier_abn }}</div>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-xs ink-2 max-w-sm">
+            <span class="line-clamp-2" title="{{ tmpl.prompt_hint | default('') }}">
+              {{ tmpl.prompt_hint | default("—") }}
+            </span>
+          </td>
+          <td class="px-4 py-3 font-mono text-xs ink-3">
+            {{ tmpl.page_scope | default("—") }}
+          </td>
+          <td class="px-4 py-3">
+            {% if tmpl.active %}
+              <span class="badge-pos">Active</span>
+            {% else %}
+              <span class="badge-ink">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 font-mono text-xs ink-4 whitespace-nowrap">
+            {{ tmpl.created_at | default("—") }}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <form method="POST" action="/statement-templates/{{ tmpl.id }}/delete"
+                  onsubmit="return confirm('Delete this extraction template? This cannot be undone.');">
+              {{ csrf_input(request)|safe }}
+              <button type="submit"
+                      class="text-xs font-mono px-2 py-1 rounded border transition-colors"
+                      style="background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4);color:#f87171;">
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {{ empty.row(6, "wand-2", "No extraction templates yet",
+                     "Open a statement and use the Extraction template section to add one.") }}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

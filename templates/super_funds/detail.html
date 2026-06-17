@@ -5,8 +5,9 @@
 {% block content %}
 
 {% if error and not fund %}
-<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
-  {{ error }}
+<div class="card px-4 py-3 text-base mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
@@ -14,7 +15,7 @@
 
 <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
   <div>
-    <h1 class="font-display text-3xl text-gray-900">{{ fund.name }}</h1>
+    <h1 class="font-display text-3xl ink-1">{{ fund.name }}</h1>
     <p class="text-base ink-3 mt-1">
       {% if fund.is_smsf %}Self-Managed Super Fund{% else %}APRA-regulated fund{% endif %}
     </p>

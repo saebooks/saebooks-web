@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+{% import "_partials/empty_state.html" as empty %}
+
+{% block title %}
+  {% if statement %}{{ statement.supplier_name | default("Statement") }} — {% endif %}Supplier Statement — SAE Books
+{% endblock %}
+
+{% block content %}
+
+{# ── Flash banner ── #}
+{% if flash %}
+<div class="rounded-lg px-4 py-3 text-sm mb-6"
+     style="background:var(--pos-tint);border:1px solid var(--pos);color:var(--pos);">
+  {{ flash }}
+</div>
+{% endif %}
+
+{# ── Back link ── #}
+<div class="mb-4">
+  <a href="/statements" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← statements</a>
+</div>
+
+{% if error %}
+<div class="rounded-lg px-4 py-3 text-sm mb-4"
+     style="background:var(--neg-tint);border:1px solid var(--neg);color:var(--neg);">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if statement %}
+
+{# ── Page header ── #}
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4 flex-wrap">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">Payables</span>
+        <span class="reg-mark"></span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight">
+        {{ statement.supplier_name | default("Supplier Statement") }}
+      </h1>
+      <p class="text-xs ink-3 font-mono mt-2">
+        Statement date: {{ statement.statement_date | default("—") }}
+        {% if statement.supplier_abn %}· ABN {{ statement.supplier_abn }}{% endif %}
+        {% if statement.customer_ref %}· Ref {{ statement.customer_ref }}{% endif %}
+      </p>
+    </div>
+
+    {# ── Status badge + action buttons ── #}
+    <div class="flex items-center gap-2 flex-wrap justify-end">
+      {% set s = (statement.status or "") | lower %}
+      {% if s == "reconciled" %}
+        <span class="badge-pos text-sm px-3 py-1">Reconciled</span>
+      {% elif s == "needs_review" %}
+        <span class="badge-warm text-sm px-3 py-1">Needs Review</span>
+      {% elif s == "extracted" %}
+        <span class="badge-draft text-sm px-3 py-1">Extracted</span>
+      {% elif s == "dismissed" %}
+        <span class="badge-ink text-sm px-3 py-1">Dismissed</span>
+      {% elif s == "exception" %}
+        <span class="badge-warm text-sm px-3 py-1">Exception</span>
+      {% elif s == "pending" %}
+        <span class="badge-draft text-sm px-3 py-1">Pending</span>
+      {% else %}
+        <span class="badge-ink text-sm px-3 py-1">{{ statement.status | default("—") }}</span>
+      {% endif %}
+
+      {# Confirm / Mark reviewed button — available when not already reconciled #}
+      {% if s not in ("reconciled", "dismissed") %}
+      <form method="POST" action="/statements/{{ statement.id }}/confirm" class="inline">
+        {{ csrf_input(request)|safe }}
+        <button type="submit" class="btn-primary text-sm"
+                style="background:var(--pos);border-color:var(--pos);">
+          Mark reviewed
+        </button>
+      </form>
+      {% endif %}
+
+      {# Dismiss button — available when not already dismissed #}
+      {% if s != "dismissed" %}
+      <form method="POST" action="/statements/{{ statement.id }}/dismiss" class="inline"
+            onsubmit="return confirm('Dismiss this statement? It will be hidden from the default queue.');">
+        {{ csrf_input(request)|safe }}
+        <button type="submit" class="btn-secondary text-sm"
+                style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
+          Dismiss
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+
+{# ── Balance comparison card ── #}
+<div class="card p-5 mb-6 grid grid-cols-2 gap-5 sm:grid-cols-4">
+  <div>
+    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Stmt Closing Balance</div>
+    <div class="font-mono text-xl font-semibold ink-1">
+      {% if statement.closing_balance is not none %}
+        ${{ "%.2f" | format(statement.closing_balance | float) }}
+      {% else %}—{% endif %}
+    </div>
+  </div>
+  <div>
+    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Our AP (books)</div>
+    <div class="font-mono text-xl font-semibold ink-1">
+      {% if statement.our_ap_as_at is not none %}
+        ${{ "%.2f" | format(statement.our_ap_as_at | float) }}
+      {% else %}—{% endif %}
+    </div>
+  </div>
+  <div>
+    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Balance Delta</div>
+    <div class="font-mono text-xl font-semibold">
+      {% if statement.balance_delta is not none %}
+        {% set delta = statement.balance_delta | float %}
+        {% if delta | abs < 0.01 %}
+          <span style="color:var(--pos);">$0.00</span>
+        {% else %}
+          <span style="color:var(--warm);">
+            {% if delta > 0 %}+{% endif %}${{ "%.2f" | format(delta | abs) }}
+          </span>
+        {% endif %}
+      {% else %}—{% endif %}
+    </div>
+  </div>
+  <div>
+    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Opening Balance</div>
+    <div class="font-mono text-xl font-semibold ink-2">
+      {% if statement.opening_balance is not none %}
+        ${{ "%.2f" | format(statement.opening_balance | float) }}
+      {% else %}—{% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Status summary pills ── #}
+{% set line_statuses = lines | map(attribute="match_status") | list %}
+{% set counts = namespace(
+    missing_in_books=0,
+    amount_mismatch=0,
+    not_on_statement=0,
+    matched=0,
+    settled_not_in_books=0,
+    payment_info=0
+) %}
+{% for ln in lines %}
+  {% set ms = (ln.match_status or "") | lower %}
+  {% if ms == "missing_in_books" %}{% set counts.missing_in_books = counts.missing_in_books + 1 %}
+  {% elif ms == "amount_mismatch" %}{% set counts.amount_mismatch = counts.amount_mismatch + 1 %}
+  {% elif ms == "not_on_statement" %}{% set counts.not_on_statement = counts.not_on_statement + 1 %}
+  {% elif ms == "matched" %}{% set counts.matched = counts.matched + 1 %}
+  {% elif ms == "settled_not_in_books" %}{% set counts.settled_not_in_books = counts.settled_not_in_books + 1 %}
+  {% elif ms == "payment_info" %}{% set counts.payment_info = counts.payment_info + 1 %}
+  {% endif %}
+{% endfor %}
+
+<div class="flex flex-wrap gap-2 mb-4">
+  {% if counts.missing_in_books > 0 %}
+    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
+          style="background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.4);color:#f87171;">
+      Missing in books <strong>{{ counts.missing_in_books }}</strong>
+    </span>
+  {% endif %}
+  {% if counts.amount_mismatch > 0 %}
+    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
+          style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#f59e0b;">
+      Amount mismatch <strong>{{ counts.amount_mismatch }}</strong>
+    </span>
+  {% endif %}
+  {% if counts.not_on_statement > 0 %}
+    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
+          style="background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.4);color:#c084fc;">
+      Not on statement <strong>{{ counts.not_on_statement }}</strong>
+    </span>
+  {% endif %}
+  {% if counts.matched > 0 %}
+    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
+          style="background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.4);color:#4ade80;">
+      Matched <strong>{{ counts.matched }}</strong>
+    </span>
+  {% endif %}
+  {% if counts.settled_not_in_books > 0 %}
+    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
+          style="background:rgba(100,116,139,.15);border-color:rgba(100,116,139,.4);color:#94a3b8;">
+      Settled (not in books) <strong>{{ counts.settled_not_in_books }}</strong>
+    </span>
+  {% endif %}
+  {% if counts.payment_info > 0 %}
+    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
+          style="background:rgba(103,232,249,.12);border-color:rgba(103,232,249,.4);color:#67e8f9;">
+      Payment / Credit <strong>{{ counts.payment_info }}</strong>
+    </span>
+  {% endif %}
+</div>
+
+{# ── Lines table ── #}
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
+    <thead>
+      <tr style="background:var(--paper-2);">
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Date</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Type</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Reference</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Description</th>
+        <th scope="col" class="px-3 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Amount</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Note</th>
+        <th scope="col" class="px-3 py-3 text-[10px] font-mono uppercase tracking-wider ink-3">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if lines %}
+        {% for line in lines %}
+        {% set ms = (line.match_status or "") | lower %}
+
+        {# Determine row left-border colour and badge styles by match_status #}
+        {% if ms == "missing_in_books" %}
+          {% set row_accent = "#f87171" %}
+          {% set badge_bg = "rgba(248,113,113,.15)" %}
+          {% set badge_border = "rgba(248,113,113,.4)" %}
+          {% set badge_color = "#f87171" %}
+          {% set badge_label = "Missing in Books" %}
+        {% elif ms == "amount_mismatch" %}
+          {% set row_accent = "#f59e0b" %}
+          {% set badge_bg = "rgba(245,158,11,.15)" %}
+          {% set badge_border = "rgba(245,158,11,.4)" %}
+          {% set badge_color = "#f59e0b" %}
+          {% set badge_label = "Amount Mismatch" %}
+        {% elif ms == "not_on_statement" %}
+          {% set row_accent = "#c084fc" %}
+          {% set badge_bg = "rgba(192,132,252,.15)" %}
+          {% set badge_border = "rgba(192,132,252,.4)" %}
+          {% set badge_color = "#c084fc" %}
+          {% set badge_label = "Not on Statement" %}
+        {% elif ms == "matched" %}
+          {% set row_accent = "#4ade80" %}
+          {% set badge_bg = "rgba(74,222,128,.12)" %}
+          {% set badge_border = "rgba(74,222,128,.4)" %}
+          {% set badge_color = "#4ade80" %}
+          {% set badge_label = "Matched" %}
+        {% elif ms == "settled_not_in_books" %}
+          {% set row_accent = "#64748b" %}
+          {% set badge_bg = "rgba(100,116,139,.15)" %}
+          {% set badge_border = "rgba(100,116,139,.4)" %}
+          {% set badge_color = "#94a3b8" %}
+          {% set badge_label = "Settled (not in books)" %}
+        {% elif ms == "payment_info" %}
+          {% set row_accent = "#67e8f9" %}
+          {% set badge_bg = "rgba(103,232,249,.12)" %}
+          {% set badge_border = "rgba(103,232,249,.4)" %}
+          {% set badge_color = "#67e8f9" %}
+          {% set badge_label = "Payment / Credit" %}
+        {% else %}
+          {% set row_accent = "var(--line)" %}
+          {% set badge_bg = "rgba(148,163,184,.1)" %}
+          {% set badge_border = "rgba(148,163,184,.3)" %}
+          {% set badge_color = "var(--ink-3)" %}
+          {% set badge_label = line.match_status | default("—") %}
+        {% endif %}
+
+        <tr style="border-top:1px solid var(--line-soft);border-left:3px solid {{ row_accent }};"
+            data-match-status="{{ ms }}"
+            onmouseover="this.style.background='var(--paper-2)'"
+            onmouseout="this.style.background=''">
+
+          <td class="px-3 py-3">
+            <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-mono whitespace-nowrap"
+                  style="background:{{ badge_bg }};border-color:{{ badge_border }};color:{{ badge_color }};">
+              {{ badge_label }}
+            </span>
+          </td>
+
+          <td class="px-3 py-3 font-mono text-xs ink-3 whitespace-nowrap">
+            {{ line.line_date | default("—") }}
+          </td>
+
+          <td class="px-3 py-3 text-xs ink-3 whitespace-nowrap">
+            {{ line.line_type | default("—") }}
+          </td>
+
+          <td class="px-3 py-3 font-mono text-xs ink-2 whitespace-nowrap">
+            {% if line.matched_bill_id %}
+              <a href="/bills/{{ line.matched_bill_id }}" class="sae hover:underline">
+                {{ line.reference | default("—") }}
+              </a>
+            {% else %}
+              {{ line.reference | default("—") }}
+            {% endif %}
+          </td>
+
+          <td class="px-3 py-3 text-xs ink-1 max-w-xs truncate">
+            {{ line.description | default("—") }}
+          </td>
+
+          <td class="px-3 py-3 text-right font-mono text-xs font-semibold whitespace-nowrap">
+            {% if line.amount is not none %}
+              {% set amt = line.amount | float %}
+              {% if amt < 0 %}
+                <span style="color:var(--neg);">${{ "%.2f" | format(amt | abs) }}</span>
+              {% else %}
+                <span class="ink-1">${{ "%.2f" | format(amt) }}</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+
+          <td class="px-3 py-3 text-xs ink-3 max-w-[200px] truncate">
+            {{ line.note | default("") }}
+          </td>
+
+          <td class="px-3 py-3">
+            {# Draft Bill button — only for missing_in_books lines #}
+            {% if ms == "missing_in_books" %}
+            <form method="POST" action="/statements/{{ statement.id }}/draft-missing-bill" class="inline">
+              {{ csrf_input(request)|safe }}
+              <input type="hidden" name="line_id" value="{{ line.id }}">
+              <button type="submit"
+                      class="text-xs font-mono px-2 py-1 rounded border transition-colors"
+                      style="background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4);color:#f87171;"
+                      title="Draft a new bill from this missing line">
+                Draft bill
+              </button>
+            </form>
+            {% else %}
+            <span class="ink-4">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {{ empty.row(8, "list-x", "No lines found on this statement",
+                     "Re-ingest or check the extraction template.") }}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Add extraction template ── #}
+<section class="mt-8" id="add-template">
+  <h2 class="font-display text-lg tracking-tight mb-3 flex items-center gap-2">
+    <i data-lucide="wand-2" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+    Extraction template
+  </h2>
+
+  {# Show existing templates for this supplier if any #}
+  {% if supplier_templates %}
+  <div class="card p-4 mb-4 overflow-x-auto">
+    <p class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-2">Existing templates for this supplier</p>
+    <table class="min-w-full text-xs" style="border-color:var(--line);">
+      <thead>
+        <tr style="background:var(--paper-2);">
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Hint</th>
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Page scope</th>
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Active</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tmpl in supplier_templates %}
+        <tr style="border-top:1px solid var(--line-soft);">
+          <td class="px-3 py-2 ink-1 max-w-xs truncate">{{ tmpl.prompt_hint | default("—") }}</td>
+          <td class="px-3 py-2 font-mono ink-3">{{ tmpl.page_scope | default("—") }}</td>
+          <td class="px-3 py-2">
+            {% if tmpl.active %}
+              <span class="badge-pos">Yes</span>
+            {% else %}
+              <span class="badge-ink">No</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-xs ink-4 mt-2">
+      <a href="/statement-templates" class="sae hover:underline">Manage all templates →</a>
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="card p-5">
+    <p class="text-xs ink-3 mb-4">
+      Add an extraction hint for <strong class="ink-1">{{ statement.supplier_name | default("this supplier") }}</strong>.
+      The hint guides the AI parser when ingesting future statements from this supplier.
+      {% if statement.status in ("needs_review", "extracted") %}
+      After saving, re-ingest this statement to apply it immediately.
+      {% endif %}
+    </p>
+    <form method="POST" action="/statements/{{ statement.id }}/template" class="space-y-4">
+      {{ csrf_input(request)|safe }}
+      <div>
+        <label for="prompt_hint"
+               class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+          Prompt hint <span style="color:var(--neg);">*</span>
+        </label>
+        <textarea
+          id="prompt_hint"
+          name="prompt_hint"
+          rows="3"
+          required
+          placeholder="e.g. Statement lines start after the 'Transaction Detail' header. Date format is DD/MM/YYYY."
+          class="saebooks-input w-full text-sm py-2 resize-y"
+        ></textarea>
+      </div>
+      <div>
+        <label for="page_scope"
+               class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+          Page scope <span class="ink-4">(optional — e.g. <code>1</code> or <code>2-4</code>)</span>
+        </label>
+        <input
+          id="page_scope"
+          type="text"
+          name="page_scope"
+          placeholder="e.g. 1"
+          class="saebooks-input text-sm py-1.5 w-32"
+        >
+      </div>
+      <div>
+        <button type="submit" class="btn-primary text-sm">
+          Save template
+        </button>
+        <a href="/statement-templates" class="ml-4 text-xs sae hover:underline font-mono">
+          View all templates
+        </a>
+      </div>
+    </form>
+  </div>
+</section>
+
+{# ── Other statements from this supplier (recon history) ── #}
+{% if sibling_statements %}
+<section class="mt-8" id="supplier-history">
+  <h2 class="font-display text-lg tracking-tight mb-3 flex items-center gap-2">
+    <i data-lucide="history" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+    Other statements from this supplier
+  </h2>
+  <div class="card overflow-x-auto">
+    <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
+      <thead>
+        <tr style="background:var(--paper-2);">
+          <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Date</th>
+          <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
+          <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Closing Balance</th>
+          <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Delta</th>
+          <th scope="col" class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sib in sibling_statements %}
+        <tr style="border-top:1px solid var(--line-soft);"
+            onmouseover="this.style.background='var(--paper-2)'"
+            onmouseout="this.style.background=''">
+          <td class="px-4 py-3 font-mono text-xs ink-3 whitespace-nowrap">
+            {{ sib.statement_date | default("—") }}
+          </td>
+          <td class="px-4 py-3">
+            {% set ss = (sib.status or "") | lower %}
+            {% if ss == "reconciled" %}
+              <span class="badge-pos">Reconciled</span>
+            {% elif ss == "needs_review" %}
+              <span class="badge-warm">Needs Review</span>
+            {% elif ss == "extracted" %}
+              <span class="badge-draft">Extracted</span>
+            {% elif ss == "dismissed" %}
+              <span class="badge-ink">Dismissed</span>
+            {% else %}
+              <span class="badge-ink">{{ sib.status | default("—") }}</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-right font-mono text-xs ink-2 whitespace-nowrap">
+            {% if sib.closing_balance is not none %}
+              ${{ "%.2f" | format(sib.closing_balance | float) }}
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right font-mono text-xs font-semibold whitespace-nowrap">
+            {% if sib.balance_delta is not none %}
+              {% set sd = sib.balance_delta | float %}
+              {% if sd | abs < 0.01 %}
+                <span style="color:var(--pos);">$0.00</span>
+              {% else %}
+                <span style="color:var(--warm);">
+                  {% if sd > 0 %}+{% endif %}${{ "%.2f" | format(sd | abs) }}
+                </span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <a href="/statements/{{ sib.id }}" class="text-xs font-mono sae hover:underline">
+              View →
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+{% if statement.extraction_meta %}
+<div class="mt-4 text-xs ink-4 font-mono">
+  Extracted: {{ statement.extraction_meta | tojson(indent=None) if statement.extraction_meta is mapping else statement.extraction_meta }}
+</div>
+{% endif %}
+
+{% else %}
+{# No statement loaded and no error rendered above — shouldn't normally reach here #}
+<p class="ink-3 text-sm">Statement not found.</p>
+{% endif %}
+
+{% endblock %}

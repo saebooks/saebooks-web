@@ -40,6 +40,12 @@
            class="rounded border-gray-300" style="color:var(--sae);">
     <label for="include_draft" class="text-xs font-mono ink-3">Include drafts</label>
   </div>
+  <div class="flex items-center gap-2 pb-1">
+    <input id="comparative" type="checkbox" name="comparative" value="true"
+           {% if comparative %}checked{% endif %}
+           class="rounded border-gray-300" style="color:var(--sae);">
+    <label for="comparative" class="text-xs font-mono ink-3">Compare to prior year</label>
+  </div>
   <button type="submit" class="btn-primary text-sm">Refresh</button>
   {# ── GST threshold inline callout ── #}
   {% if gst and (gst.threshold_crossed or gst.threshold_approaching) %}

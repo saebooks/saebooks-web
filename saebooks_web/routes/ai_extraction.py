@@ -154,7 +154,7 @@ async def _do_extract(request: Request, form_context: str) -> HTMLResponse:
     # Multipart routes are exempt from the body-parsing CSRFMiddleware; we
     # have to verify the token explicitly after parsing the form.  The
     # template includes {{ csrf_input(request) }} so the field is present.
-    from saebooks_web.security import verify_csrf_form  # noqa: PLC0415
+    from saebooks_web.security import verify_csrf_form
     await verify_csrf_form(request)
     file_field = form_data.get("document")
 

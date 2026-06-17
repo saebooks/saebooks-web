@@ -54,7 +54,7 @@ async def _fetch_contacts_by_types(
                 params["search"] = search
             try:
                 resp = await client.get("/api/v1/contacts", params=params)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 error = f"Upstream error: {exc}"
                 continue
             if resp.status_code != 200:
@@ -90,7 +90,7 @@ async def _fetch_one_off(
     async with api_client(request) as client:
         try:
             resp = await client.get(endpoint, params=params)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return [], 0, f"Upstream error: {exc}"
     if resp.status_code == 404:
         # API endpoint not deployed yet — show empty page with a hint.

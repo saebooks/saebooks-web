@@ -22,8 +22,9 @@ Routes:
 """
 from __future__ import annotations
 
+import contextlib
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -223,10 +224,8 @@ async def time_entry_create(request: Request) -> HTMLResponse | RedirectResponse
         payload["rate"] = str(rate)
     break_minutes = form.get("break_minutes", "").strip()
     if break_minutes:
-        try:
+        with contextlib.suppress(ValueError):
             payload["break_minutes"] = int(break_minutes)
-        except ValueError:
-            pass
     for field in ("start_time", "end_time"):
         val = form.get(field, "").strip()
         if val:
@@ -319,10 +318,8 @@ async def time_entry_week(
     for d_iso, items in by_day.items():
         total = Decimal("0")
         for e in items:
-            try:
+            with contextlib.suppress(InvalidOperation, TypeError):
                 total += Decimal(str(e.get("hours", "0")))
-            except (InvalidOperation, TypeError):
-                pass
         day_totals[d_iso] = total
 
     week_total = sum(day_totals.values(), Decimal("0"))
@@ -489,10 +486,8 @@ async def time_entry_edit_submit(
     payload["billable"] = form.get("billable") in ("on", "true", "1")
     break_minutes = form.get("break_minutes", "").strip()
     if break_minutes:
-        try:
+        with contextlib.suppress(ValueError):
             payload["break_minutes"] = int(break_minutes)
-        except ValueError:
-            pass
 
     headers = {}
     if version := form.get("version", "").strip():
@@ -531,8 +526,8 @@ async def time_entry_edit_submit(
             "entry": {"id": str(entry_id), **form},
             "form": form,
             "errors": errors,
-            "contacts": [],
-            "projects": [],
+            "contacts": contacts,
+            "projects": projects,
         },
     )
 

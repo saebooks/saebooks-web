@@ -30,7 +30,7 @@
 {% macro kebab(row_id, actions, csrf_token="") %}
 <div class="kebab relative inline-block" data-row-id="{{ row_id }}">
   <button type="button"
-          class="kebab-trigger inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+          class="kebab-trigger inline-flex items-center justify-center w-8 h-8 rounded-md ink-3 hover:bg-[color:var(--paper-2)] hover:ink-2 focus:outline-none focus:ring-2 focus:ring-[#194291]"
           aria-haspopup="menu"
           aria-expanded="false"
           aria-label="Row actions"
@@ -41,14 +41,14 @@
       <circle cx="10" cy="16" r="1.5"/>
     </svg>
   </button>
-  <div class="kebab-popover hidden absolute right-0 z-30 mt-1 w-44 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none"
+  <div class="kebab-popover hidden absolute right-0 z-30 mt-1 w-44 origin-top-right rounded-md card shadow-lg focus:outline-none"
        role="menu" tabindex="-1"
        data-popover-for="{{ row_id }}">
     <div class="py-1">
       {% for key, label, target, kind, destructive in actions %}
         {% if kind == "link" %}
           <a href="{{ target }}" role="menuitem" tabindex="-1"
-             class="block px-4 py-2 text-sm {% if destructive %}text-red-700 hover:bg-red-50{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+             class="block px-4 py-2 text-sm {% if destructive %}hover:bg-[color:var(--neg-tint)]{% else %}ink-2 hover:bg-[color:var(--paper-2)]{% endif %}"{% if destructive %} style="color:var(--neg);"{% endif %}>
             {{ label }}
           </a>
         {% else %}
@@ -56,7 +56,7 @@
                 {% if destructive %}data-confirm="{{ label }} this row?"{% endif %}>
             {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
             <button type="submit" role="menuitem" tabindex="-1"
-                    class="w-full text-left block px-4 py-2 text-sm {% if destructive %}text-red-700 hover:bg-red-50{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                    class="w-full text-left block px-4 py-2 text-sm {% if destructive %}hover:bg-[color:var(--neg-tint)]{% else %}ink-2 hover:bg-[color:var(--paper-2)]{% endif %}"{% if destructive %} style="color:var(--neg);"{% endif %}>
               {{ label }}
             </button>
           </form>

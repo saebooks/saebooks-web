@@ -36,7 +36,7 @@ from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
@@ -797,6 +797,38 @@ async def credit_note_archive(
         entity_label=f"Credit note {credit_note_id}",
         list_url="/credit-notes",
         detail_url=f"/credit-notes/{credit_note_id}",
+    )
+
+
+
+@router.get("/credit-notes/{credit_note_id}/pdf", response_model=None)
+async def credit_note_pdf(
+    request: Request, credit_note_id: str
+) -> Response | RedirectResponse:
+    """Stream the rendered credit note PDF from the API."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/credit_notes/{credit_note_id}/pdf")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        from fastapi import HTTPException
+        raise HTTPException(404, detail="Credit note not found")
+    if resp.status_code != 200:
+        from fastapi import HTTPException
+        raise HTTPException(resp.status_code, detail=f"Upstream returned {resp.status_code}")
+    return Response(
+        content=resp.content,
+        media_type=resp.headers.get("content-type", "application/pdf"),
+        headers={
+            "Content-Disposition": resp.headers.get(
+                "content-disposition",
+                f'inline; filename="credit-note-{credit_note_id}.pdf"',
+            ),
+            "Cache-Control": "private, max-age=0, must-revalidate",
+        },
     )
 
 

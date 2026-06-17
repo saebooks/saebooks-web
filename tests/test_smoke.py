@@ -9,15 +9,12 @@ without a live API or database.
 """
 from __future__ import annotations
 
-import json
-
 import pytest
 import respx
 from httpx import ASGITransport, AsyncClient, Response
 
-from saebooks_web.main import app
 from saebooks_web.config import settings
-
+from saebooks_web.main import app
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -61,10 +58,10 @@ _MOCK_CONTACTS_RESPONSE = {
 # itsdangerous exactly as Starlette's SessionMiddleware does:
 #   data = b64encode(json.dumps(session).encode("utf-8"))
 #   cookie_value = signer.sign(data).decode("utf-8")
-import json as _json
-from base64 import b64encode as _b64encode
+import json as _json  # noqa: E402 — intentionally near the cookie-builder helper below
+from base64 import b64encode as _b64encode  # noqa: E402
 
-from itsdangerous import TimestampSigner as _TimestampSigner
+from itsdangerous import TimestampSigner as _TimestampSigner  # noqa: E402
 
 
 def _make_session_cookie(data: dict) -> str:

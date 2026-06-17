@@ -7,13 +7,13 @@
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold text-gray-900">
+  <h1 class="text-2xl font-semibold ink-1">
     {% if account %}Edit {{ account.code }}{% else %}Edit Bank Account{% endif %}
   </h1>
   {% if account %}
-  <a href="/bank-accounts/{{ account.id }}" class="text-sm text-[#194291] hover:underline">← Back to bank account</a>
+  <a href="/bank-accounts/{{ account.id }}" class="text-sm sae hover:underline">← Back to bank account</a>
   {% else %}
-  <a href="/bank-accounts" class="text-sm text-[#194291] hover:underline">← Back to bank accounts</a>
+  <a href="/bank-accounts" class="text-sm sae hover:underline">← Back to bank accounts</a>
   {% endif %}
 </div>
 
@@ -21,7 +21,8 @@
 {% if conflict %}
 <div
   id="conflict-banner"
-  class="rounded-md bg-amber-50 border border-amber-300 px-4 py-4 text-sm text-amber-800 mb-6"
+  class="card px-4 py-4 text-sm ink-2 mb-6"
+  style="border-color:var(--warm);"
   role="alert"
 >
   <p class="font-semibold mb-1">
@@ -32,7 +33,7 @@
     number applied — so your next save will use the correct base.
     If you want to start fresh from the server's current state instead,
     {% if account %}
-    <a href="/bank-accounts/{{ account.id }}/edit" class="underline hover:text-amber-900">reload the server version</a>.
+    <a href="/bank-accounts/{{ account.id }}/edit" class="underline sae">reload the server version</a>.
     {% else %}
     reload the page.
     {% endif %}
@@ -40,7 +41,7 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
+<div class="card rounded-xl px-6 py-6 max-w-2xl">
   {% if account %}
   <form method="POST" action="/bank-accounts/{{ account.id }}/edit" novalidate>
     {{ csrf_input(request)|safe }}
@@ -59,24 +60,21 @@
     <div class="mt-8 flex items-center gap-3">
       <button
         type="submit"
-        class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white
-               hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+        class="btn-primary text-sm"
       >
         Save changes
       </button>
       {% if account %}
       <a
         href="/bank-accounts/{{ account.id }}"
-        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
-               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+        class="btn-secondary text-sm"
       >
         Cancel
       </a>
       {% else %}
       <a
         href="/bank-accounts"
-        class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
-               hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+        class="btn-secondary text-sm"
       >
         Cancel
       </a>

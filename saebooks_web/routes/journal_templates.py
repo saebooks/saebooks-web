@@ -64,10 +64,7 @@ async def journal_templates_list(
         if resp.is_success:
             payload = resp.json()
             # Support both paginated {"items": [...]} and plain list responses.
-            if isinstance(payload, list):
-                templates = payload
-            else:
-                templates = payload.get("items", [])
+            templates = payload if isinstance(payload, list) else payload.get("items", [])
         else:
             error = f"API error: HTTP {resp.status_code}"
 

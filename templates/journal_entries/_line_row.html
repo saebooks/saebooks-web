@@ -13,14 +13,13 @@
     tax_codes  : list  — tax code dicts [{id, name, rate}, ...]
     errors     : dict  — field errors (keyed by flat name, rarely used per-line)
 #}
-<tr class="line-row border-b border-gray-100">
+<tr class="line-row hairline-b">
   {# Account #}
   <td class="px-3 py-2" data-label="Account">
     <select
       name="lines[{{ index }}][account_id]"
       aria-label="Account, row {{ index }}"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      class="saebooks-input w-full text-sm"
     >
       <option value="">— account —</option>
       {% for acct in accounts %}
@@ -40,8 +39,7 @@
       aria-label="Description, row {{ index }}"
       value="{{ line.get('description', '') }}"
       placeholder="Description"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      class="saebooks-input w-full text-sm"
     >
   </td>
 
@@ -50,8 +48,7 @@
     <select
       name="lines[{{ index }}][tax_code_id]"
       aria-label="Tax code, row {{ index }}"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      class="saebooks-input w-full text-sm"
     >
       <option value="">— none —</option>
       {% for tc in tax_codes %}
@@ -75,8 +72,7 @@
       placeholder="0.00"
       inputmode="decimal"
       pattern="[0-9]*\.?[0-9]*"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      class="saebooks-input w-full text-sm text-right"
     >
   </td>
 
@@ -92,8 +88,7 @@
       placeholder="0.00"
       inputmode="decimal"
       pattern="[0-9]*\.?[0-9]*"
-      class="block w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm text-right
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      class="saebooks-input w-full text-sm text-right"
     >
   </td>
 
@@ -102,7 +97,9 @@
     <button
       type="button"
       onclick="this.closest('tr').remove()"
-      class="line-delete-btn text-red-400 hover:text-red-600 text-lg leading-none font-bold"
+      class="line-delete-btn text-lg leading-none font-bold"
+      style="color:var(--neg);"
+      aria-label="Remove line"
       title="Remove line"
     >&times;</button>
   </td>

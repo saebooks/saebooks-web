@@ -5,35 +5,37 @@
 {% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
                   'payment_account_id': filter_payment_account_id,
                   'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'flagged': ('true' if filter_flagged else ''),
                   'limit': limit, 'offset': offset} %}
 <div id="expenses-table">
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-300 px-4 py-3 text-base text-red-800">
+<div class="rounded-md bg-[color:var(--neg-tint)] border border-[color:var(--neg)] px-4 py-3 text-base text-[color:var(--neg)]">
   {{ error }}
 </div>
 {% elif expenses|length == 0 %}
-<div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-8 text-center text-base text-gray-500">
+<div class="rounded-md border border-[color:var(--line)] bg-[color:var(--paper-2)] px-4 py-8 text-center text-base ink-3">
   No expenses match.
 </div>
 {% else %}
-<table class="min-w-full divide-y divide-gray-200 text-base">
-  <thead class="bg-gray-50">
+<table class="min-w-full divide-y divide-[color:var(--line)] text-base">
+  <thead class="bg-[color:var(--paper-2)]">
     <tr>
-      <th class="w-8 px-3 py-2 text-center">
+      <th scope="col" class="w-8 px-3 py-2 text-center">
         <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
       </th>
-      <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('number',       'Number',    sort, direction, filters) }}</th>
-      <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('expense_date', 'Date',      sort, direction, filters) }}</th>
-      <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('contact_id',   'Supplier',  sort, direction, filters) }}</th>
-      <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('reference',    'Reference', sort, direction, filters) }}</th>
-      <th class="px-3 py-2 text-right font-medium text-gray-600">{{ srt.sort_link('total',        'Total',     sort, direction, filters) }}</th>
-      <th class="px-3 py-2 text-left font-medium text-gray-600">{{ srt.sort_link('status',       'Status',    sort, direction, filters) }}</th>
-      <th class="w-8"></th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('number',       'Number',    sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('expense_date', 'Date',      sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('contact_id',   'Supplier',  sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('reference',    'Reference', sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-right font-medium ink-2">{{ srt.sort_link('total',        'Total',     sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('status',       'Status',    sort, direction, filters) }}</th>
+      <th scope="col" class="w-8 px-1 py-2 text-center font-medium ink-2" title="Flag for review"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
+      <th scope="col" class="w-8"></th>
     </tr>
   </thead>
-  <tbody class="divide-y divide-gray-100 bg-white">
+  <tbody class="divide-y divide-[color:var(--line)] bg-[color:var(--surface)]">
     {% for e in expenses %}
     <tr data-status="{{ (e.status or 'draft')|lower }}">
       <td class="px-3 py-2 text-center" onclick="event.stopPropagation()">
@@ -42,24 +44,29 @@
                onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
       </td>
-      <td class="px-3 py-2"><a class="text-indigo-600 hover:underline" href="/expenses/{{ e.id }}">{{ e.number or "(draft)" }}</a></td>
-      <td class="px-3 py-2 text-gray-700">{{ e.expense_date }}</td>
-      <td class="px-3 py-2 text-gray-700">
+      <td class="px-3 py-2"><a class="sae hover:underline" href="/expenses/{{ e.id }}">{{ e.number or "(draft)" }}</a></td>
+      <td class="px-3 py-2 ink-2">{{ e.expense_date }}</td>
+      <td class="px-3 py-2 ink-2">
         {%- set _c = contacts_by_id.get(e.contact_id) if contacts_by_id else None %}
-        {%- if _c %}<a href="/contacts/{{ _c.id }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>
-        {%- elif e.one_off_vendor_name %}<span class="text-gray-700">{{ e.one_off_vendor_name }}</span>
+        {%- if _c %}<a href="/contacts/{{ _c.id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>
+        {%- elif e.one_off_vendor_name %}<span class="ink-2">{{ e.one_off_vendor_name }}</span>
         {%- else %}—{% endif %}
       </td>
-      <td class="px-3 py-2 text-gray-700">{{ e.reference or "—" }}</td>
-      <td class="px-3 py-2 text-right text-gray-900 font-semibold tabular-nums">${{ "%.2f"|format(e.total|float) }}</td>
+      <td class="px-3 py-2 ink-2">{{ e.reference or "—" }}</td>
+      <td class="px-3 py-2 text-right ink-1 font-semibold tabular-nums">${{ "%.2f"|format(e.total|float) }}</td>
       <td class="px-3 py-2">
         {% if e.status == "POSTED" %}
-          <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-sm font-medium text-green-800">Posted</span>
+          <span class="badge-paid">Posted</span>
         {% elif e.status == "VOIDED" %}
-          <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-sm font-medium text-gray-600">Voided</span>
+          <span class="badge-draft">Voided</span>
         {% else %}
-          <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-sm font-medium text-amber-800">Draft</span>
+          <span class="badge-warm">Draft</span>
         {% endif %}
+      </td>
+      <td class="px-1 py-2 text-center" onclick="event.stopPropagation()">
+        {% with flag_base="/expenses", entity_id=e.id, flagged=e.flagged_for_review, review_note=e.review_note, compact=True %}
+          {% include "_partials/review_flag.html" %}
+        {% endwith %}
       </td>
       <td class="px-3 py-2 text-right" onclick="event.stopPropagation()">
         {%- set status_lower = (e.status or 'draft')|lower %}
@@ -86,6 +93,7 @@
 {% set pg_filters = {'status': filter_status, 'contact_id': filter_contact_id,
                      'payment_account_id': filter_payment_account_id,
                      'date_from': filter_date_from, 'date_to': filter_date_to,
+                     'flagged': ('true' if filter_flagged else ''),
                      'sort': sort, 'direction': direction} %}
 {{ pg.page_numbers('/expenses', total, limit, offset, pg_filters, target='#expenses-table') }}
 {% endif %}

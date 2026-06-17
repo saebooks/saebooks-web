@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_components/kebab_menu.html" as km %}
+{% import "_partials/empty_state.html" as empty %}
 
 {% block title %}Super funds — SAE Books{% endblock %}
 
@@ -7,7 +8,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl text-gray-900">Super funds</h1>
+    <h1 class="font-display text-3xl ink-1">Super funds</h1>
     <p class="text-base ink-3 mt-1">
       APRA-regulated funds and SMSFs available for employee super contributions.
     </p>
@@ -22,8 +23,9 @@
 </div>
 
 {% if error %}
-<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6">
-  {{ error }}
+<div class="card px-4 py-3 text-base mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
@@ -31,18 +33,18 @@
   <table class="w-full text-base">
     <thead>
       <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
-        <th class="w-8 px-3 py-2 text-center">
+        <th scope="col" class="w-8 px-3 py-2 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-3 py-2">Fund name</th>
-        <th class="px-3 py-2">Type</th>
-        <th class="px-3 py-2">USI / ABN</th>
-        <th class="px-3 py-2">ESA</th>
-        <th class="px-3 py-2 text-center">Default</th>
-        <th class="px-3 py-2 text-center">Bank</th>
-        <th class="w-8 px-3 py-2"></th>
+        <th scope="col" class="px-3 py-2">Fund name</th>
+        <th scope="col" class="px-3 py-2">Type</th>
+        <th scope="col" class="px-3 py-2">USI / ABN</th>
+        <th scope="col" class="px-3 py-2">ESA</th>
+        <th scope="col" class="px-3 py-2 text-center">Default</th>
+        <th scope="col" class="px-3 py-2 text-center">Bank</th>
+        <th scope="col" class="w-8 px-3 py-2"></th>
       </tr>
     </thead>
     <tbody>
@@ -94,7 +96,9 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="9" class="p-6 text-center ink-3">No super funds configured yet.</td></tr>
+      {{ empty.row(8, "landmark", "No super funds yet",
+                   "Add an APRA fund or SMSF for employee contributions.",
+                   "New fund", "/super-funds/new") }}
       {% endfor %}
     </tbody>
   </table>

@@ -17,6 +17,145 @@
 </div>
 
 {% if report %}
+
+{% if comp_bs is defined and comp_bs %}
+{# ── Comparative two-column rendering ── #}
+<div class="space-y-6" id="balance-sheet-table">
+
+  {# Balanced indicator (current period) #}
+  {% if comp_bs.balanced %}
+  <div class="card p-3 flex items-center gap-2" style="border-color:var(--pos);">
+    <span class="dot" style="background:var(--pos);"></span>
+    <span class="text-sm font-semibold" style="color:var(--pos);">Balance sheet is balanced.</span>
+  </div>
+  {% else %}
+  <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
+    <span class="dot" style="background:var(--neg);"></span>
+    <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ "%.2f"|format(comp_bs.difference) }}</span>
+  </div>
+  {% endif %}
+
+  {# Assets #}
+  <div class="card overflow-hidden mb-0">
+    <div class="px-6 py-3 hairline-b">
+      <p class="nav-section-label">Assets</p>
+    </div>
+    <table class="sae-table w-full">
+      <thead>
+        <tr>
+          <th class="text-left">Account</th>
+          <th class="text-left">Code</th>
+          <th class="text-right">Current</th>
+          <th class="text-right ink-3">Prior year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set asset_lines = comp_bs.assets.get("ASSET", []) %}
+        {% if asset_lines %}
+          {% for line in asset_lines %}
+          <tr>
+            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-3 num text-xs">{{ line.code }}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no asset accounts —</td></tr>
+        {% endif %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" class="font-semibold ink-1">Total Assets</td>
+          <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.assets.total_assets_current) }}</td>
+          <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.assets.total_assets_prior) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  {# Liabilities #}
+  <div class="card overflow-hidden mb-0">
+    <div class="px-6 py-3 hairline-b">
+      <p class="nav-section-label">Liabilities</p>
+    </div>
+    <table class="sae-table w-full">
+      <thead>
+        <tr>
+          <th class="text-left">Account</th>
+          <th class="text-left">Code</th>
+          <th class="text-right">Current</th>
+          <th class="text-right ink-3">Prior year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set liability_lines = comp_bs.liabilities.get("LIABILITY", []) %}
+        {% if liability_lines %}
+          {% for line in liability_lines %}
+          <tr>
+            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-3 num text-xs">{{ line.code }}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no liability accounts —</td></tr>
+        {% endif %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" class="font-semibold ink-1">Total Liabilities</td>
+          <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.liabilities.total_liabilities_current) }}</td>
+          <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.liabilities.total_liabilities_prior) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  {# Equity #}
+  <div class="card overflow-hidden mb-0">
+    <div class="px-6 py-3 hairline-b">
+      <p class="nav-section-label">Equity</p>
+    </div>
+    <table class="sae-table w-full">
+      <thead>
+        <tr>
+          <th class="text-left">Account</th>
+          <th class="text-left">Code</th>
+          <th class="text-right">Current</th>
+          <th class="text-right ink-3">Prior year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set equity_lines = comp_bs.equity.get("EQUITY", []) %}
+        {% if equity_lines %}
+          {% for line in equity_lines %}
+          <tr>
+            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-3 num text-xs">{{ line.code }}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no equity accounts —</td></tr>
+        {% endif %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" class="font-semibold ink-1">Total Equity</td>
+          <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.equity.total_equity_current) }}</td>
+          <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.equity.total_equity_prior) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+
+{% else %}
+{# ── Single-column rendering — unchanged from original ── #}
 {% set assets_section = report.get("assets", {}) %}
 {% set liabilities_section = report.get("liabilities", {}) %}
 {% set equity_section = report.get("equity", {}) %}
@@ -159,6 +298,8 @@
   </div>
 
 </div>
+{% endif %}
+
 {% elif not error %}
 <p class="text-sm ink-3 font-mono">— no data —</p>
 {% endif %}

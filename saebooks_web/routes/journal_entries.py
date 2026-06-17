@@ -111,6 +111,7 @@ async def journal_entries_list(
     ref: str | None = None,
     posted_by: str | None = None,
     account_id: str | None = None,
+    flagged: bool | None = None,
     sort: str = "date",
     dir: str = "desc",
     limit: int = 50,
@@ -142,6 +143,9 @@ async def journal_entries_list(
         params["posted_by"] = posted_by
     if account_id:
         params["account_id"] = account_id
+    # Gap 3 (0157) — "Flagged only" filter. Only forward when explicitly set.
+    if flagged:
+        params["flagged"] = "true"
     # Always forward sort/dir so the API is the source of truth for ordering.
     if sort:
         params["sort"] = sort
@@ -201,6 +205,7 @@ async def journal_entries_list(
         "filter_ref": ref or "",
         "filter_posted_by": posted_by or "",
         "filter_account_id": account_id or "",
+        "filter_flagged": bool(flagged),
         "sort": sort,
         "dir": dir,
         # Dropdown source data (full-page renders only; empty on HTMX swap).
@@ -760,16 +765,26 @@ async def journal_entry_post(
 
     form_data = await request.form()
     version = str(form_data.get("version", ""))
+    override_reason = str(form_data.get("override_reason", "")).strip()
     idempotency_key = str(uuid.uuid4())
 
+    headers = {"If-Match": version, "X-Idempotency-Key": idempotency_key}
     async with api_client(request) as client:
-        resp = await client.post(
-            f"/api/v1/journal_entries/{entry_id}/post",
-            headers={
-                "If-Match": version,
-                "X-Idempotency-Key": idempotency_key,
-            },
-        )
+        # Only send a JSON body when an override reason is supplied — keeps the
+        # ordinary (unlocked-period) post path byte-identical. override_reason
+        # is required by the API to post into a period-locked range (F-04);
+        # the API resolves actor_role from the session itself.
+        if override_reason:
+            resp = await client.post(
+                f"/api/v1/journal_entries/{entry_id}/post",
+                headers=headers,
+                json={"override_reason": override_reason},
+            )
+        else:
+            resp = await client.post(
+                f"/api/v1/journal_entries/{entry_id}/post",
+                headers=headers,
+            )
 
     if resp.status_code == 401:
         request.session.clear()
@@ -821,12 +836,32 @@ async def journal_entry_reverse(
 
     form_data = await request.form()
     version = str(form_data.get("version", ""))
+    reversal_date = str(form_data.get("reversal_date", "")).strip()
+    override_reason = str(form_data.get("override_reason", "")).strip()
+
+    # Only send a JSON body when the user chose a reversal date or supplied an
+    # override reason — keeps the ordinary reverse path byte-identical (reversal
+    # lands on the original entry's date). reversal_date lets an accrual posted
+    # 30-Jun reverse on 1-Jul; override_reason satisfies the period-lock gate if
+    # the reversal date is in a locked range (F-04).
+    body: dict[str, str] = {}
+    if reversal_date:
+        body["reversal_date"] = reversal_date
+    if override_reason:
+        body["override_reason"] = override_reason
 
     async with api_client(request) as client:
-        resp = await client.post(
-            f"/api/v1/journal_entries/{entry_id}/reverse",
-            headers={"If-Match": version},
-        )
+        if body:
+            resp = await client.post(
+                f"/api/v1/journal_entries/{entry_id}/reverse",
+                headers={"If-Match": version},
+                json=body,
+            )
+        else:
+            resp = await client.post(
+                f"/api/v1/journal_entries/{entry_id}/reverse",
+                headers={"If-Match": version},
+            )
 
     if resp.status_code == 401:
         request.session.clear()
@@ -851,6 +886,57 @@ async def journal_entry_reverse(
         detail = f"API error: HTTP {resp.status_code}"
     request.session["flash"] = str(detail)
     return RedirectResponse(url=f"/journal-entries/{entry_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Review flag (Gap 3, 0157) — set/clear via HTMX, swaps the flag control.
+# Desired state rides in the query string (?flagged=&compact=), so the POST
+# carries no form body and bypasses CSRF Layer 3 (same pattern as the Stripe
+# link button). The web base is /journal-entries (hyphen); the API path is
+# /journal_entries (underscore).
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/journal-entries/{entry_id}/review-flag",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def journal_entry_review_flag(
+    request: Request, entry_id: str, flagged: bool = True, compact: bool = False
+) -> HTMLResponse | RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/journal_entries/{entry_id}/review-flag",
+            json={"flagged": flagged},
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.is_success:
+        body = resp.json()
+        new_flagged = bool(body.get("flagged_for_review"))
+        review_note = body.get("review_note")
+    else:
+        new_flagged = not flagged
+        review_note = None
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "_partials/review_flag.html",
+        {
+            "flag_base": "/journal-entries",
+            "entity_id": entry_id,
+            "flagged": new_flagged,
+            "review_note": review_note,
+            "compact": compact,
+        },
+    )
 
 
 @router.get("/journal-entries/{entry_id}", response_class=HTMLResponse, response_model=None)

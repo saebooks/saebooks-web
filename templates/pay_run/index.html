@@ -13,7 +13,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Pay Run</h1>
+    <h1 class="font-display text-2xl">Pay Run</h1>
     <p class="text-sm text-gray-500 mt-1">Select bills to pay and export an ABA file</p>
   </div>
 </div>
@@ -61,11 +61,11 @@
   {# ── Run options ── #}
   <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6 grid grid-cols-3 gap-4">
     <div>
-      <label class="block text-xs font-medium text-gray-700 mb-1" for="bank_account_id">
+      <label class="block text-xs font-medium ink-3 mb-1" for="bank_account_id">
         Remitter Bank Account
       </label>
       <select id="bank_account_id" name="bank_account_id" required
-        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+        class="saebooks-input w-full">
         <option value="">— select account —</option>
         {% for acct in bank_accounts %}
         <option value="{{ acct.id }}">{{ acct.code }} — {{ acct.name }}{% if acct.bsb %} ({{ acct.bsb }}){% endif %}</option>
@@ -76,18 +76,18 @@
       {% endif %}
     </div>
     <div>
-      <label class="block text-xs font-medium text-gray-700 mb-1" for="process_date">
+      <label class="block text-xs font-medium ink-3 mb-1" for="process_date">
         Process Date
       </label>
       <input type="date" id="process_date" name="process_date" value="{{ today }}" required
-        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+        class="saebooks-input w-full">
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-700 mb-1" for="description">
         ABA Description
       </label>
       <input type="text" id="description" name="description" value="CREDITORS" maxlength="12"
-        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+        class="saebooks-input w-full">
     </div>
   </div>
 

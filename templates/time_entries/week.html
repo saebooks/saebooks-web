@@ -6,7 +6,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl text-gray-900">Weekly time grid</h1>
+    <h1 class="font-display text-3xl ink-1">Weekly time grid</h1>
     <p class="text-base ink-3 mt-1">
       Week of {{ monday }} —
       <span class="num-display">{{ week_total }}h</span> total
@@ -22,10 +22,10 @@
 </div>
 
 {% if error %}
-<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6 flex items-center justify-between gap-4">
-  <span>Couldn't load entries. Please try again.</span>
+<div class="card p-3 mb-6 flex items-center justify-between gap-4" style="border-color:var(--neg);">
+  <span class="text-base" style="color:var(--neg);">Couldn't load entries. Please try again.</span>
   <button type="button" onclick="window.location.reload()"
-          class="shrink-0 text-sm font-medium underline hover:no-underline">Retry</button>
+          class="shrink-0 text-sm font-medium underline hover:no-underline" style="color:var(--neg);">Retry</button>
 </div>
 {% endif %}
 

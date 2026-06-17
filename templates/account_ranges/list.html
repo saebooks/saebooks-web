@@ -9,37 +9,36 @@
 
 {# ── Flash banner ── #}
 {% if flash %}
-<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Account Ranges</h1>
+    <h1 class="text-2xl font-semibold ink-1">Account Ranges</h1>
     {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ ranges|length }} range{{ "s" if ranges|length != 1 else "" }}</p>
+    <p class="text-sm ink-3 mt-1">{{ ranges|length }} range{{ "s" if ranges|length != 1 else "" }}</p>
     {% endif %}
   </div>
   <a
     href="/admin/ranges/new"
-    class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
-           hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+    class="btn-primary text-sm"
   >
     New range
   </a>
 </div>
 
 {# ── Prefix mode selector ── #}
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4 mb-6 max-w-md">
-  <h2 class="text-sm font-semibold text-gray-700 mb-3">Prefix mode</h2>
+<div class="card shadow-sm px-5 py-4 mb-6 max-w-md">
+  <h2 class="text-sm font-semibold ink-2 mb-3">Prefix mode</h2>
   <form method="POST" action="/admin/ranges/prefix_mode" class="flex items-center gap-3">
     {{ csrf_input(request)|safe }}
 
     <select
       name="prefix_mode"
-      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-900
-             focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+      class="saebooks-input"
     >
       {% for val, label in prefix_modes %}
       <option value="{{ val }}" {% if prefix_mode == val %}selected{% endif %}>{{ label }}</option>
@@ -47,47 +46,48 @@
     </select>
     <button
       type="submit"
-      class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
+      class="btn-primary text-sm"
     >Update</button>
   </form>
 </div>
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card overflow-x-auto">
+  <table class="sae-table min-w-full w-full text-sm">
+    <thead>
       <tr>
-        <th class="w-8 px-4 py-3 text-center">
+        <th scope="col" class="w-8 px-4 py-3 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
-                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                 class="h-4 w-4 rounded border-[color:var(--line)] text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Prefix</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Account type</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-        <th class="w-8 px-4 py-3"></th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Prefix</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account type</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
+        <th scope="col" class="w-8 px-4 py-3"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% if ranges %}
         {% for rng in ranges %}
-        <tr class="hover:bg-gray-50">
+        <tr class="hover:bg-[color:var(--paper-2)]">
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ rng.id }}"
                    aria-label="Select range {{ rng.name }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
-                   class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                   class="h-4 w-4 rounded border-[color:var(--line)] text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="px-4 py-3 font-medium text-gray-900">{{ rng.name }}</td>
-          <td class="px-4 py-3 font-mono text-gray-700">{{ rng.prefix | default("—") }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ rng.account_type | default("—") }}</td>
-          <td class="px-4 py-3 text-gray-500 text-xs">{{ rng.description | default("") }}</td>
+          <td class="px-4 py-3 font-medium ink-1">{{ rng.name }}</td>
+          <td class="px-4 py-3 font-mono ink-2">{{ rng.prefix | default("—") }}</td>
+          <td class="px-4 py-3 ink-2">{{ rng.account_type | default("—") }}</td>
+          <td class="px-4 py-3 ink-3 text-xs">{{ rng.description | default("") }}</td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
               ("edit",   "Edit",   "/admin/ranges/" ~ rng.id ~ "/edit",   "link", false),
@@ -101,12 +101,10 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="7" class="px-4 py-8 text-center text-gray-400">
-            No account ranges defined.
-            <a href="/admin/ranges/new" class="text-[#194291] hover:underline ml-1">Create one.</a>
-          </td>
-        </tr>
+        {% import "_partials/empty_state.html" as empty %}
+        {{ empty.row(6, "layers", "No account ranges yet",
+                     "Define a range to map account-code prefixes to types.",
+                     "New range", "/admin/ranges/new") }}
       {% endif %}
     </tbody>
   </table>

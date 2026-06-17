@@ -3,36 +3,38 @@
    the initial full-page load.
 #}
 {% import "_components/kebab_menu.html" as km %}
+{% import "_partials/empty_state.html" as empty %}
 <div id="items-table">
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card overflow-x-auto">
+  <table class="min-w-full sae-table text-sm">
+    <thead>
       <tr>
-        <th class="w-8 px-4 py-3 text-center">
+        <th scope="col" class="w-8 px-4 py-3 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">SKU</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Type</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Sale price</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">On hand</th>
-        <th class="w-8"></th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">SKU</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Type</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Sale price</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">On hand</th>
+        <th scope="col" class="w-8"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% if items %}
         {% for item in items %}
         <tr
-          class="hover:bg-gray-50 cursor-pointer"
+          class="hover:bg-[color:var(--paper-2)] cursor-pointer"
           onclick="window.location='/items/{{ item.id }}'"
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
@@ -41,22 +43,22 @@
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="px-4 py-3 font-mono text-gray-700 text-xs">{{ item.sku }}</td>
-          <td class="px-4 py-3 font-medium text-[#194291]">
-            <a href="/items/{{ item.id }}" class="hover:underline" onclick="event.stopPropagation()">{{ item.name }}</a>
+          <td class="px-4 py-3 font-mono ink-2 text-xs">{{ item.sku }}</td>
+          <td class="px-4 py-3 font-medium sae">
+            <a href="/items/{{ item.id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ item.name }}</a>
           </td>
           <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if item.item_type == 'inventory' %}bg-blue-100 text-blue-700
-              {% elif item.item_type == 'service' %}bg-teal-100 text-teal-700
-              {% else %}bg-gray-100 text-gray-600{% endif %}">
+            <span class="
+              {% if item.item_type == 'inventory' %}badge-sae
+              {% elif item.item_type == 'service' %}badge-pos
+              {% else %}badge-draft{% endif %}">
               {{ item.item_type | capitalize }}
             </span>
           </td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-900">
+          <td class="px-4 py-3 text-right tabular-nums ink-1">
             {{ "%.2f"|format(item.default_sale_price|float) }}
           </td>
-          <td class="px-4 py-3 text-right tabular-nums text-gray-600">
+          <td class="px-4 py-3 text-right tabular-nums ink-2">
             {% if item.item_type == 'inventory' %}
               {{ item.on_hand_qty }}
             {% else %}—{% endif %}
@@ -74,11 +76,14 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="7" class="px-4 py-8 text-center text-gray-400">
-            No items found.
-          </td>
-        </tr>
+        {% if not filter_item_type %}
+        {{ empty.row(7, "package", "No items yet",
+                     "Add your first product or service to start invoicing.",
+                     "New item", "/items/new") }}
+        {% else %}
+        {{ empty.row(7, "search-x", "No items match this filter",
+                     "Try clearing the type filter above.") }}
+        {% endif %}
       {% endif %}
     </tbody>
   </table>
@@ -86,7 +91,7 @@
 
 {# Pagination #}
 {% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+<div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
     Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
   </div>
@@ -98,7 +103,7 @@
       hx-target="#items-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+      class="btn-secondary text-sm px-3 py-1.5"
     >Previous</a>
     {% endif %}
     {% if next_offset is not none %}
@@ -108,7 +113,7 @@
       hx-target="#items-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+      class="btn-secondary text-sm px-3 py-1.5"
     >Next</a>
     {% endif %}
   </div>

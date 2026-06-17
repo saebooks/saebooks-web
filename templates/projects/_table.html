@@ -3,36 +3,38 @@
    the initial full-page load.
 #}
 {% import "_components/kebab_menu.html" as km %}
+{% import "_partials/empty_state.html" as empty %}
 <div id="projects-table">
 
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-gray-50">
+<div class="card rounded-xl overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th class="w-8 px-4 py-3 text-center">
+        <th scope="col" class="w-8 px-4 py-3 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Code</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Name</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Start date</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">End date</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
-        <th class="w-8"></th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Start date</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">End date</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="w-8"></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody class="divide-y divide-[color:var(--line)]">
       {% if projects %}
         {% for project in projects %}
         <tr
-          class="hover:bg-gray-50 cursor-pointer"
+          class="hover:bg-[color:var(--paper-2)] cursor-pointer"
           onclick="window.location='/projects/{{ project.id }}'"
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
@@ -41,21 +43,21 @@
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
-          <td class="px-4 py-3 font-medium text-[#194291]">
+          <td class="px-4 py-3 font-medium sae">
             <a href="/projects/{{ project.id }}" class="hover:underline" onclick="event.stopPropagation()">
               {{ project.code }}
             </a>
           </td>
-          <td class="px-4 py-3 text-gray-900">{{ project.name }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ project.start_date or "—" }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ project.end_date or "—" }}</td>
+          <td class="px-4 py-3 ink-1">{{ project.name }}</td>
+          <td class="px-4 py-3 ink-2">{{ project.start_date or "—" }}</td>
+          <td class="px-4 py-3 ink-2">{{ project.end_date or "—" }}</td>
           <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-medium
-              {% if project.status == 'ACTIVE' %}bg-green-100 text-green-700
-              {% elif project.status == 'ON_HOLD' %}bg-amber-100 text-amber-700
-              {% elif project.status == 'COMPLETED' %}bg-blue-100 text-blue-700
-              {% elif project.status == 'ARCHIVED' %}bg-gray-100 text-gray-500
-              {% else %}bg-gray-100 text-gray-500{% endif %}">
+            <span class="inline-block
+              {% if project.status == 'ACTIVE' %}badge-pos
+              {% elif project.status == 'ON_HOLD' %}badge-warm
+              {% elif project.status == 'COMPLETED' %}badge-sae
+              {% elif project.status == 'ARCHIVED' %}badge-draft
+              {% else %}badge-draft{% endif %}">
               {{ project.status | replace("_", " ") | title }}
             </span>
           </td>
@@ -72,11 +74,14 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr>
-          <td colspan="7" class="px-4 py-8 text-center text-gray-400">
-            No projects found.
-          </td>
-        </tr>
+        {% if filter_status %}
+        {{ empty.row(7, "search-x", "No projects match this filter",
+                     "Try clearing the filter above.") }}
+        {% else %}
+        {{ empty.row(7, "folder", "No projects yet",
+                     "Create a project to track work and costs.",
+                     "New project", "/projects/new") }}
+        {% endif %}
       {% endif %}
     </tbody>
   </table>
@@ -84,7 +89,7 @@
 
 {# Pagination #}
 {% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+<div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
     Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
   </div>
@@ -96,7 +101,7 @@
       hx-target="#projects-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+      class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
     >Previous</a>
     {% endif %}
     {% if next_offset is not none %}
@@ -106,7 +111,7 @@
       hx-target="#projects-table"
       hx-swap="outerHTML"
       hx-push-url="true"
-      class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
+      class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
     >Next</a>
     {% endif %}
   </div>

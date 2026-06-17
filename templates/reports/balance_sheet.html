@@ -30,6 +30,12 @@
     <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">As of date</label>
     <input id="as_of_date" type="date" name="as_of_date" value="{{ as_of_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
+  <div class="flex items-center gap-2 pb-1">
+    <input id="comparative" type="checkbox" name="comparative" value="true"
+           {% if comparative %}checked{% endif %}
+           class="rounded border-gray-300" style="color:var(--sae);">
+    <label for="comparative" class="text-xs font-mono ink-3">Compare to prior year</label>
+  </div>
   <button type="submit" class="btn-primary text-sm">Refresh</button>
 </form>
 

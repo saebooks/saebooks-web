@@ -5,31 +5,32 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold text-gray-900">Prorate calculator</h1>
-  <p class="text-sm text-gray-500 mt-1">
+  <h1 class="text-2xl font-semibold ink-1">Prorate calculator</h1>
+  <p class="text-sm ink-3 mt-1">
     Compute pro-rata amounts for partial periods, first sign-ups, and mid-period plan changes.
   </p>
 </div>
 
 {# ── Tabs ── #}
-<div class="border-b border-gray-200 mb-6">
+<div class="hairline-b mb-6">
   <nav class="-mb-px flex gap-6" aria-label="Tabs">
     <button type="button" data-tab="preview"
-      class="prorate-tab whitespace-nowrap border-b-2 border-[#194291] text-[#194291] px-1 py-3 text-sm font-medium">
+      class="prorate-tab whitespace-nowrap border-b-2 border-[color:var(--sae)] sae px-1 py-3 text-sm font-medium">
       Per-line preview
     </button>
     <button type="button" data-tab="first-period"
-      class="prorate-tab whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-3 text-sm font-medium">
+      class="prorate-tab whitespace-nowrap border-b-2 border-transparent ink-3 hover:text-[color:var(--ink-2)] hover:border-[color:var(--line)] px-1 py-3 text-sm font-medium">
       First-period sign-up
     </button>
     <button type="button" data-tab="plan-change"
-      class="prorate-tab whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-3 text-sm font-medium">
+      class="prorate-tab whitespace-nowrap border-b-2 border-transparent ink-3 hover:text-[color:var(--ink-2)] hover:border-[color:var(--line)] px-1 py-3 text-sm font-medium">
       Plan change
     </button>
   </nav>
@@ -40,9 +41,9 @@
 
   {# ── Per-line preview ── #}
   <div class="prorate-panel" data-tab="preview">
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
-      <h2 class="text-base font-semibold text-gray-900 mb-2">Per-line date-range</h2>
-      <p class="text-xs text-gray-500 mb-4">
+    <div class="card rounded-xl px-6 py-6">
+      <h2 class="text-base font-semibold ink-1 mb-2">Per-line date-range</h2>
+      <p class="text-xs ink-3 mb-4">
         Compute a prorated amount for an invoice line covering only part of a billing period.
       </p>
       <form
@@ -53,14 +54,14 @@
       >
         {{ csrf_input(request)|safe }}
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Full period amount</label>
+          <label class="block text-xs font-medium ink-3 mb-1">Full period amount</label>
           <input type="number" name="full_period_amount" step="0.01" min="0" required value="3000"
-            class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+            class="saebooks-input block w-full px-3 py-1.5 text-sm">
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Basis</label>
+          <label class="block text-xs font-medium ink-3 mb-1">Basis</label>
           <select name="basis"
-            class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+            class="saebooks-input block w-full px-3 py-1.5 text-sm">
             <option value="DAILY">Daily</option>
             <option value="WEEKLY">Weekly</option>
             <option value="MONTHLY" selected>Monthly</option>
@@ -70,18 +71,18 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Service start</label>
+            <label class="block text-xs font-medium ink-3 mb-1">Service start</label>
             <input type="date" name="service_start" required
-              class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+              class="saebooks-input block w-full px-3 py-1.5 text-sm">
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Service end</label>
+            <label class="block text-xs font-medium ink-3 mb-1">Service end</label>
             <input type="date" name="service_end" required
-              class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+              class="saebooks-input block w-full px-3 py-1.5 text-sm">
           </div>
         </div>
         <button type="submit"
-          class="rounded-md bg-[#194291] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
+          class="btn-primary px-4 py-1.5 text-sm font-medium">
           Calculate
         </button>
       </form>
@@ -91,9 +92,9 @@
 
   {# ── First-period sign-up ── #}
   <div class="prorate-panel hidden" data-tab="first-period">
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
-      <h2 class="text-base font-semibold text-gray-900 mb-2">First-period sign-up</h2>
-      <p class="text-xs text-gray-500 mb-4">
+    <div class="card rounded-xl px-6 py-6">
+      <h2 class="text-base font-semibold ink-1 mb-2">First-period sign-up</h2>
+      <p class="text-xs ink-3 mb-4">
         Customer signs up partway through their first period. Computes pro-rata charge plus a
         line-description suggestion.
       </p>
@@ -105,14 +106,14 @@
       >
         {{ csrf_input(request)|safe }}
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Full period amount</label>
+          <label class="block text-xs font-medium ink-3 mb-1">Full period amount</label>
           <input type="number" name="full_period_amount" step="0.01" min="0" required value="99"
-            class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+            class="saebooks-input block w-full px-3 py-1.5 text-sm">
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Basis</label>
+          <label class="block text-xs font-medium ink-3 mb-1">Basis</label>
           <select name="basis"
-            class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+            class="saebooks-input block w-full px-3 py-1.5 text-sm">
             <option value="DAILY">Daily</option>
             <option value="WEEKLY">Weekly</option>
             <option value="MONTHLY" selected>Monthly</option>
@@ -122,18 +123,18 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Service start (sign-up)</label>
+            <label class="block text-xs font-medium ink-3 mb-1">Service start (sign-up)</label>
             <input type="date" name="service_start" required
-              class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+              class="saebooks-input block w-full px-3 py-1.5 text-sm">
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Period end</label>
+            <label class="block text-xs font-medium ink-3 mb-1">Period end</label>
             <input type="date" name="service_end" required
-              class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+              class="saebooks-input block w-full px-3 py-1.5 text-sm">
           </div>
         </div>
         <button type="submit"
-          class="rounded-md bg-[#194291] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
+          class="btn-primary px-4 py-1.5 text-sm font-medium">
           Calculate
         </button>
       </form>
@@ -143,9 +144,9 @@
 
   {# ── Plan-change ── #}
   <div class="prorate-panel hidden" data-tab="plan-change">
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6">
-      <h2 class="text-base font-semibold text-gray-900 mb-2">Plan change mid-period</h2>
-      <p class="text-xs text-gray-500 mb-4">
+    <div class="card rounded-xl px-6 py-6">
+      <h2 class="text-base font-semibold ink-1 mb-2">Plan change mid-period</h2>
+      <p class="text-xs ink-3 mb-4">
         Customer switches plans mid-period. Computes credit for unused old plan and pro-rata charge
         for new plan.
       </p>
@@ -158,35 +159,35 @@
         {{ csrf_input(request)|safe }}
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Old plan amount</label>
+            <label class="block text-xs font-medium ink-3 mb-1">Old plan amount</label>
             <input type="number" name="old_period_amount" step="0.01" min="0" required value="99"
-              class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+              class="saebooks-input block w-full px-3 py-1.5 text-sm">
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">New plan amount</label>
+            <label class="block text-xs font-medium ink-3 mb-1">New plan amount</label>
             <input type="number" name="new_period_amount" step="0.01" min="0" required value="149"
-              class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+              class="saebooks-input block w-full px-3 py-1.5 text-sm">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Period start</label>
+            <label class="block text-xs font-medium ink-3 mb-1">Period start</label>
             <input type="date" name="period_start" required
-              class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+              class="saebooks-input block w-full px-3 py-1.5 text-sm">
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Period end</label>
+            <label class="block text-xs font-medium ink-3 mb-1">Period end</label>
             <input type="date" name="period_end" required
-              class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+              class="saebooks-input block w-full px-3 py-1.5 text-sm">
           </div>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1">Change date</label>
+          <label class="block text-xs font-medium ink-3 mb-1">Change date</label>
           <input type="date" name="change_date" required
-            class="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm">
+            class="saebooks-input block w-full px-3 py-1.5 text-sm">
         </div>
         <button type="submit"
-          class="rounded-md bg-[#194291] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
+          class="btn-primary px-4 py-1.5 text-sm font-medium">
           Calculate
         </button>
       </form>
@@ -204,10 +205,10 @@
     const target = t.dataset.tab;
     tabs.forEach(tt => {
       const active = tt.dataset.tab === target;
-      tt.classList.toggle('border-[#194291]', active);
-      tt.classList.toggle('text-[#194291]', active);
+      tt.classList.toggle('border-[color:var(--sae)]', active);
+      tt.classList.toggle('sae', active);
       tt.classList.toggle('border-transparent', !active);
-      tt.classList.toggle('text-gray-500', !active);
+      tt.classList.toggle('ink-3', !active);
     });
     panels.forEach(p => {
       p.classList.toggle('hidden', p.dataset.tab !== target);

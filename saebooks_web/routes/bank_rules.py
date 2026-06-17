@@ -94,10 +94,7 @@ async def bank_rules_list(request: Request) -> HTMLResponse | RedirectResponse:
 
         if resp.is_success:
             payload = resp.json()
-            if isinstance(payload, list):
-                rules = payload
-            else:
-                rules = payload.get("items", [])
+            rules = payload if isinstance(payload, list) else payload.get("items", [])
         else:
             error = f"API error: HTTP {resp.status_code}"
 

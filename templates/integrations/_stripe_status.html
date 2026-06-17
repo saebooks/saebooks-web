@@ -4,9 +4,9 @@
   Connected ({{ stripe_status.get("account_id", "") }})
 </span>
 {% if stripe_status.get("charges_enabled") %}
-  <span class="ml-2 text-xs text-gray-500">Charges enabled</span>
+  <span class="ml-2 text-xs ink-3">Charges enabled</span>
 {% else %}
-  <span class="ml-2 text-xs text-amber-600">Charges not yet enabled — complete onboarding in Stripe</span>
+  <span class="ml-2 text-xs" style="color:var(--warm);">Charges not yet enabled — complete onboarding in Stripe</span>
 {% endif %}
 {% else %}
 <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400 text-sm">

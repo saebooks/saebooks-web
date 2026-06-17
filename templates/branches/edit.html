@@ -8,7 +8,7 @@
   </div>
 
   {% if errors %}
-    <div class="rounded-md border border-red-300 bg-red-50 px-4 py-3 mb-4 text-sm text-red-800">
+    <div class="rounded-md border px-4 py-3 mb-4 text-sm bg-[color:var(--neg-tint)] border-[color:var(--neg)] text-[color:var(--neg)]">
       {{ errors }}
     </div>
   {% endif %}
@@ -23,7 +23,7 @@
       <label class="block text-sm font-medium mb-1" for="name">Display name</label>
       <input type="text" id="name" name="name" required maxlength="255"
              value="{{ branch.name }}"
-             class="w-full border hairline rounded-md px-3 py-2 bg-transparent" />
+             class="saebooks-input w-full" />
     </div>
     <div class="flex items-center gap-2">
       <input type="checkbox" id="is_default" name="is_default" value="true"

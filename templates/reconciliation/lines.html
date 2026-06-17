@@ -13,21 +13,31 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">
+    <h1 class="font-display text-2xl">
       {% if account %}{{ account.name }}{% else %}Account Reconciliation{% endif %}
     </h1>
     {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">
-      {{ lines|length }} unmatched line{{ "s" if lines|length != 1 else "" }}
+    <p class="text-sm ink-3 mt-1">
+      {{ lines|length }} unmatched line{{ "s" if lines|length != 1 else "" }} 
+      · <span class="num-display">Total unmatched: {{ '%.2f'|format( lines | sum(attribute='amount') | float ) }}</span>
     </p>
-    {% endif %}
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+    <div class="card p-3">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Statement balance</p>
+      <p class="font-display text-xl num">{{ '%.2f'|format( (account.balance or 0) | float ) }}</p>
+    </div>
+    <div class="card p-3">
+      <p class="text-[11px] uppercase tracking-wider ink-3">Books balance</p>
+      <p class="font-display text-xl num">{{ '%.2f'|format( (account.ledger_balance or 0) | float ) }}</p>
+    </div>
+    <div class="card p-3 border-sae">
+      <p class="text-[11px] uppercase tracking-wider ink-3">To reconcile</p>
+      <p class="font-display text-xl num sae">{{ lines|length }}</p>
+    </div>
   </div>
   <div class="flex items-center gap-3">
-    <a
-      href="/reconciliation"
-      class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700
-             hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
-    >All Accounts</a>
+    <a href="/reconciliation" class="btn-secondary text-sm">All Accounts</a>
 
     <form method="POST" action="/reconciliation/{{ account_id }}/auto-match">
     {{ csrf_input(request)|safe }}
@@ -49,15 +59,15 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
+<div class="card overflow-hidden">
+  <table class="sae-table w-full">
     <thead class="bg-gray-50">
       <tr>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Date</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Description</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Reference</th>
-        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wide text-xs">Amount</th>
-        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wide text-xs">Status</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Date</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Reference</th>
+        <th class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
         <th class="px-4 py-3"></th>
       </tr>
     </thead>
@@ -80,7 +90,7 @@
           <td class="px-4 py-3 text-right">
             <a
               href="/reconciliation/{{ line.id }}/suggest?account_id={{ account_id }}"
-              class="text-xs font-medium text-[#194291] hover:underline"
+              class="btn-secondary !py-1 !px-3 text-xs"
             >Suggest</a>
           </td>
         </tr>

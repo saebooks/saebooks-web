@@ -7,7 +7,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl text-gray-900">Employees</h1>
+    <h1 class="font-display text-3xl">Employees</h1>
     <p class="text-base ink-3 mt-1">
       Payroll staff — STP Phase 2 registered.
     </p>
@@ -38,8 +38,7 @@
   </div>
   <div>
     <label class="block text-sm ink-3 mb-1">Super fund</label>
-    <select name="super_fund_id" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm"
-            onchange="this.form.requestSubmit()">
+    <select name="super_fund_id" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm">
       <option value="">All</option>
       {% for f in super_funds %}
       <option value="{{ f.id }}" {% if filter_super_fund_id == f.id|string %}selected{% endif %}>{{ f.name }}</option>
@@ -64,7 +63,7 @@
         <th class="w-8 px-3 py-2 text-center">
           <input type="checkbox" data-select-all aria-label="Select all rows on this page"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
-                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                 class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </th>
         <th class="px-3 py-2">Number</th>
         <th class="px-3 py-2">Name</th>
@@ -85,10 +84,10 @@
           <input type="checkbox" data-row-select data-id="{{ emp.id }}"
                  aria-label="Select employee {{ emp.employee_number }}"
                  onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
-                 class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
+                 class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </td>
         <td class="px-3 py-2 num">{{ emp.employee_number }}</td>
-        <td class="px-3 py-2">{{ emp.contact_id }}</td>
+        <td class="px-3 py-2">{{ emp.contact_name or emp.contact_id }}</td>
         <td class="px-3 py-2 num text-sm">{{ emp.start_date }}</td>
         <td class="px-3 py-2">
           <span class="chip chip-ink text-xs">
@@ -136,10 +135,7 @@
             ("view",    "View",    "/employees/" ~ emp.id,           "link", false),
             ("edit",    "Edit",    "/employees/" ~ emp.id ~ "/edit", "link", false),
             ("archive", "Archive", "/employees/" ~ emp.id ~ "/archive","post", true),
-            ] %}
-          {%- if is_feature_enabled("hard_delete") %}
-          {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/employees/" ~ emp.id ~ "/hard-delete", "post", true)) %}
-          {%- endif %}
+          ] %}
           {{ km.kebab(row_id=emp.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
         </td>
       </tr>

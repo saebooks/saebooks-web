@@ -65,14 +65,11 @@ def _this_month_range() -> tuple[str, str]:
 def _au_fy_range() -> tuple[str, str]:
     """Return (from, to) ISO date strings for the current Australian FY.
 
-    Australian FY runs 1 July – 30 June.  If today is before 1 July of the
+    Australian FY runs 1 July - 30 June.  If today is before 1 July of the
     current calendar year the FY started on 1 July of the prior year.
     """
     today = date.today()
-    if today.month >= 7:
-        fy_start = date(today.year, 7, 1)
-    else:
-        fy_start = date(today.year - 1, 7, 1)
+    fy_start = date(today.year, 7, 1) if today.month >= 7 else date(today.year - 1, 7, 1)
     return fy_start.isoformat(), today.isoformat()
 
 
@@ -233,7 +230,8 @@ def _cash_tile(payments: list[dict]) -> dict:
     directly (no client-side synthesis of fake data). Days with no payment
     contribute zero amounts so the series is always 30 elements long.
     """
-    from datetime import date as _date, timedelta as _td
+    from datetime import date as _date
+    from datetime import timedelta as _td
 
     month_start, month_end = _this_month_range()
     today = _date.today()

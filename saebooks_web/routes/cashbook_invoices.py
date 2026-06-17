@@ -442,7 +442,7 @@ async def cashbook_invoice_detail(
 async def cashbook_invoice_send(
     request: Request, invoice_id: str
 ) -> RedirectResponse:
-    company, redirect = await _guard(request)
+    _company, redirect = await _guard(request)
     if redirect is not None:
         return redirect
 
@@ -483,7 +483,7 @@ async def cashbook_invoice_send(
 async def cashbook_invoice_void(
     request: Request, invoice_id: str
 ) -> RedirectResponse:
-    company, redirect = await _guard(request)
+    _company, redirect = await _guard(request)
     if redirect is not None:
         return redirect
 

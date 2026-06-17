@@ -12,6 +12,7 @@ Auth guard: redirect to /login (303) if no session token.
 """
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import Any
 
@@ -84,10 +85,8 @@ async def create_branch(
 
     # Show error banner
     err = "Unknown error"
-    try:
+    with contextlib.suppress(Exception):
         err = resp.json().get("detail", err)
-    except Exception:
-        pass
     return _TEMPLATES.TemplateResponse(
         request,
         "branches/new.html",
@@ -133,10 +132,8 @@ async def update_branch(
     # error
     branch = {"id": branch_id, "code": "?", **payload}
     err = "Unknown error"
-    try:
+    with contextlib.suppress(Exception):
         err = resp.json().get("detail", err)
-    except Exception:
-        pass
     return _TEMPLATES.TemplateResponse(
         request,
         "branches/edit.html",

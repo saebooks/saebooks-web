@@ -5,22 +5,22 @@
 {% block content %}
 
 {% if flash %}
-<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Bank Accounts</h1>
+    <h1 class="text-2xl font-semibold ink-1">Bank Accounts</h1>
     {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ total }} account{{ "s" if total != 1 else "" }}</p>
+    <p class="text-sm ink-3 mt-1">{{ total }} account{{ "s" if total != 1 else "" }}</p>
     {% endif %}
   </div>
   <a
     href="/bank-accounts/new"
-    class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
-           hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+    class="btn-primary text-sm"
   >
     New bank account
   </a>
@@ -35,11 +35,11 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="archived" class="block text-xs font-medium text-gray-500 mb-1">Show archived</label>
+    <label for="archived" class="block text-xs font-medium ink-3 mb-1">Show archived</label>
     <select
       id="archived"
       name="archived"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+      class="saebooks-input text-sm"
     >
       <option value="false" {% if not filter_archived %}selected{% endif %}>Active only</option>
       <option value="true" {% if filter_archived %}selected{% endif %}>Include archived</option>
@@ -51,7 +51,7 @@
 
   <button
     type="submit"
-    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
+    class="btn-primary text-sm"
   >
     Filter
   </button>

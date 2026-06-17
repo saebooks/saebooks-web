@@ -21,9 +21,10 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web.authentik_sso import _button_label as _authentik_button_label
+from saebooks_web.authentik_sso import authentik_enabled
 from saebooks_web.config import settings
 from saebooks_web.discourse_sso import discourse_enabled
-from saebooks_web.authentik_sso import authentik_enabled, _button_label as _authentik_button_label
 from saebooks_web.webauthn_sso import webauthn_enabled
 
 

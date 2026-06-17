@@ -463,48 +463,16 @@
         </a>
       </div>
 
-      {% set contacts_open = path.startswith('/contacts')
-                              or path.startswith('/suppliers')
-                              or path.startswith('/customers')
-                              or path.startswith('/beneficiaries')
-                              or path.startswith('/one-off-suppliers')
-                              or path.startswith('/one-off-customers') %}
-      <details class="group" data-section="contacts" {% if contacts_open %}open{% endif %}>
-        <summary class="nav-section-label">
-          <span>Contacts</span>
-          <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
-        </summary>
-        <div class="space-y-0.5 mt-1">
-          <a href="/customers" class="nav-item is-sub {% if path.startswith('/customers') %}active{% endif %}">
-            <i data-lucide="user-round" class="nav-ico"></i>Customers
-          </a>
-          <a href="/suppliers" class="nav-item is-sub {% if path.startswith('/suppliers') %}active{% endif %}">
-            <i data-lucide="truck" class="nav-ico"></i>Suppliers
-          </a>
-          <a href="/one-off-customers" class="nav-item is-sub {% if path.startswith('/one-off-customers') %}active{% endif %}">
-            <i data-lucide="user-plus" class="nav-ico"></i>One-off customers
-          </a>
-          <a href="/one-off-suppliers" class="nav-item is-sub {% if path.startswith('/one-off-suppliers') %}active{% endif %}">
-            <i data-lucide="package" class="nav-ico"></i>One-off suppliers
-          </a>
-          <a href="/beneficiaries" class="nav-item is-sub {% if path.startswith('/beneficiaries') %}active{% endif %}">
-            <i data-lucide="heart" class="nav-ico"></i>Beneficiaries
-          </a>
-          <a href="/contacts" class="nav-item is-sub {% if path == '/contacts' or (path.startswith('/contacts/') and not path.startswith('/contacts/cleanup')) %}active{% endif %}">
-            <i data-lucide="users" class="nav-ico"></i>All contacts
-          </a>
-        </div>
-      </details>
-
-      <div>
-      </div>
-
+      {# Sales (Customers context) — customers with terms + one-offs live here, not in a top-level Contacts silo.
+         This makes the nav activity-centric (future accounting: work in the flow of sales/purchases, people are part of the relationship). #}
       {% set customers_open = path.startswith('/sales')
                               or path.startswith('/invoices')
                               or path.startswith('/credit-notes')
                               or path.startswith('/recurring-invoices')
                               or path.startswith('/quotes')
-                              or path.startswith('/customer-hub') %}
+                              or path.startswith('/customer-hub')
+                              or path.startswith('/customers')
+                              or path.startswith('/one-off-customers') %}
       <details class="group" data-section="customers" {% if customers_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>Sales</span>
@@ -529,13 +497,22 @@
           <a href="/customer-hub/overview" class="nav-item is-sub {% if path.startswith('/customer-hub') %}active{% endif %}">
             <i data-lucide="users" class="nav-ico"></i>Customer overview
           </a>
+          <a href="/customers" class="nav-item is-sub {% if path.startswith('/customers') %}active{% endif %}">
+            <i data-lucide="user-round" class="nav-ico"></i>Customers (terms)
+          </a>
+          <a href="/one-off-customers" class="nav-item is-sub {% if path.startswith('/one-off-customers') %}active{% endif %}">
+            <i data-lucide="user-plus" class="nav-ico"></i>One-off customers
+          </a>
         </div>
       </details>
 
+      {# Purchases (Suppliers context) — symmetric to Sales. One-offs separated from terms/accounts. #}
       {% set vendors_open = path.startswith('/expenses-overview')
                             or path.startswith('/bills')
                             or path.startswith('/expenses')
-                            or path.startswith('/purchase_orders') %}
+                            or path.startswith('/purchase_orders')
+                            or path.startswith('/suppliers')
+                            or path.startswith('/one-off-suppliers') %}
       <details class="group" data-section="suppliers" {% if vendors_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>Purchases</span>
@@ -553,6 +530,12 @@
           </a>
           <a href="/purchase_orders" class="nav-item is-sub {% if path.startswith('/purchase_orders') %}active{% endif %}">
             <i data-lucide="shopping-cart" class="nav-ico"></i>Purchase Orders
+          </a>
+          <a href="/suppliers" class="nav-item is-sub {% if path.startswith('/suppliers') %}active{% endif %}">
+            <i data-lucide="truck" class="nav-ico"></i>Suppliers (terms)
+          </a>
+          <a href="/one-off-suppliers" class="nav-item is-sub {% if path.startswith('/one-off-suppliers') %}active{% endif %}">
+            <i data-lucide="package" class="nav-ico"></i>One-off suppliers
           </a>
         </div>
       </details>
@@ -689,6 +672,9 @@
           <a href="/reports" class="nav-item is-sub {% if path == '/reports' %}active{% endif %}">
             <i data-lucide="line-chart" class="nav-ico"></i>All Reports
           </a>
+          <a href="/statements" class="nav-item is-sub {% if path.startswith('/statements') or path.startswith('/statement-templates') %}active{% endif %}">
+            <i data-lucide="file-check-2" class="nav-ico"></i>Statements
+          </a>
         </div>
       </details>
 
@@ -760,6 +746,12 @@
           </a>
           <a href="/admin/license" class="nav-item is-sub {% if path == '/admin/license' %}active{% endif %}">
             <i data-lucide="shield-check" class="nav-ico"></i>License audit
+          </a>
+          <a href="/branches" class="nav-item is-sub {% if path.startswith('/branches') %}active{% endif %}">
+            <i data-lucide="git-branch" class="nav-ico"></i>Branches
+          </a>
+          <a href="/email-log" class="nav-item is-sub {% if path.startswith('/email-log') %}active{% endif %}">
+            <i data-lucide="mail" class="nav-ico"></i>Email log
           </a>
           {% endif %}
         </div>
@@ -1052,9 +1044,9 @@
     { g: 'Reports', i: 'hourglass',    t: 'Aged Receivables',      s: 'Days-sales-outstanding', k: 'R A', href: '/reports/aged-receivables' },
     { g: 'Reports', i: 'alarm-clock',  t: 'Aged Payables',         s: 'Days-payable-outstanding', k: 'R Y', href: '/reports/aged-payables' },
     { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas-summary' },
-    { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll',               href: '/pay-run' },
-    { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG',                       href: '/pay-run' },
-    { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report',     href: '/reports' },
+    { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll · coming soon', href: '/pay-run' },
+    { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG · coming soon',         href: '/pay-run' },
+    { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report · coming soon', href: '/reports' },
     { g: 'Admin',   i: 'cog',          t: 'Company settings',      s: 'ABN · GST · tax codes',              href: '/settings/company' },
     { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/admin/license' },
     { g: 'Admin',   i: 'history',      t: 'Audit log',              s: 'All ledger mutations',               href: '/admin/audit' },
