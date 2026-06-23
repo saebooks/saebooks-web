@@ -68,6 +68,7 @@ Auth guard: redirect to /login (303) if no session token.
 from __future__ import annotations
 
 import uuid
+from urllib.parse import urlencode
 from datetime import date
 from pathlib import Path
 
@@ -77,6 +78,7 @@ from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
+from saebooks_web.routes.bad_debt_recovery import detect_recovery_prompt  # Task 11
 
 router = APIRouter()
 
@@ -391,7 +393,44 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
 
     if resp.status_code == 201:
         created = resp.json()
-        return RedirectResponse(url=f"/payments/{created['id']}", status_code=303)
+        payment_id = created["id"]
+        # Task 11 — bad-debt recovery detection. For an INCOMING (AR)
+        # receipt from a payer who has a WRITTEN_OFF invoice, and when the
+        # company is in smart_prompt recovery mode, redirect to the
+        # recovery prompt instead of the payment detail. We resolve the
+        # company's recovery_mode from the active company; any failure here
+        # falls through to the normal redirect (detection is best-effort).
+        contact_id = str(payload.get("contact_id") or "")
+        direction = str(payload.get("direction") or "").upper()
+        is_incoming = direction in ("INCOMING", "IN", "AR", "RECEIPT")
+        if contact_id and is_incoming:
+            try:
+                async with api_client(request) as client:
+                    c_resp = await client.get(
+                        "/api/v1/companies", params={"limit": 1, "offset": 0}
+                    )
+                    recovery_mode = "smart_prompt"
+                    if c_resp.is_success:
+                        items = c_resp.json().get("items", [])
+                        if items:
+                            recovery_mode = items[0].get("recovery_mode") or "smart_prompt"
+                    written_off = await detect_recovery_prompt(
+                        client, contact_id=contact_id, recovery_mode=recovery_mode
+                    )
+                if written_off:
+                    qs = urlencode({
+                        "contact_id": contact_id,
+                        "amount": str(payload.get("amount") or ""),
+                        "bank_account_id": str(payload.get("bank_account_id") or ""),
+                        "payment_id": payment_id,
+                        "recovery_date": str(payload.get("payment_date") or ""),
+                    })
+                    return RedirectResponse(
+                        url=f"/bad-debts/recovery/prompt?{qs}", status_code=303
+                    )
+            except Exception:
+                pass  # detection is best-effort; never block the payment
+        return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
     # Parse errors for re-render.
     errors: dict[str, str] = {}
