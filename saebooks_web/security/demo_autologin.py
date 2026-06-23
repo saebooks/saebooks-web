@@ -220,8 +220,10 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
         if ip:
             headers["X-Forwarded-For"] = ip
         try:
+            # Generous timeout: a fresh tenant + dataset seed (esp. the cashbook
+            # flavour, which posts journal entries) can take several seconds.
             async with httpx.AsyncClient(
-                base_url=settings.api_url, timeout=10.0
+                base_url=settings.api_url, timeout=25.0
             ) as client:
                 resp = await client.post(
                     "/internal/demo/provision", headers=headers, json={}
