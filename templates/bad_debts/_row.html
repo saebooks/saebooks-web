@@ -1,0 +1,30 @@
+{# One bad-debt candidate row. In review mode it carries an HTMX write-off
+   form whose success response swaps this <tr> for the written-off fragment. #}
+{% set _c = contacts_by_id.get(inv.contact_id) if contacts_by_id else None %}
+<tr id="bad-debt-row-{{ inv.id }}" class="border-b border-[var(--line)]">
+  <td class="px-4 py-3">
+    <a href="/invoices/{{ inv.id }}" class="sae hover:underline">{{ inv.number or inv.id[:8] }}</a>
+  </td>
+  <td class="px-4 py-3 ink-2">
+    {% if _c %}{{ _c.name }}{% elif inv.one_off_customer_name %}{{ inv.one_off_customer_name }}{% else %}<span class="ink-3">—</span>{% endif %}
+  </td>
+  <td class="px-4 py-3 ink-3 font-mono text-xs">{{ inv.due_date }}</td>
+  <td class="px-4 py-3 text-right font-mono ink-2">{{ inv._age_days }}</td>
+  <td class="px-4 py-3 text-right font-mono ink">${{ "%.2f"|format(inv._balance) }}</td>
+  {% if writeoff_mode == 'review' %}
+  <td class="px-4 py-3 text-right">
+    <form
+      hx-post="/bad-debts/{{ inv.id }}/write-off"
+      hx-target="#bad-debt-row-{{ inv.id }}"
+      hx-swap="outerHTML"
+      hx-confirm="Write off {{ inv.number or 'this invoice' }} (${{ '%.2f'|format(inv._balance) }}) as a bad debt? The engine reclaims GST and settles the invoice."
+      class="inline"
+    >
+      {{ csrf_input(request) }}
+      <button type="submit" class="btn-danger-sm">
+        <i data-lucide="file-x" class="w-3.5 h-3.5" aria-hidden="true"></i><span>Write off</span>
+      </button>
+    </form>
+  </td>
+  {% endif %}
+</tr>

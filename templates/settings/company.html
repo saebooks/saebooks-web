@@ -211,6 +211,115 @@
 
     </fieldset>
 
+    {# ── Bad-debt write-off & recovery policy (Phase 2 / Task 8) ── #}
+    <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
+      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">Bad-debt write-off &amp; recovery</legend>
+
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+        How SAE Books handles invoices that go unpaid long enough to be treated as
+        a bad debt, and money that later comes in against a debt already written off.
+      </p>
+
+      {# Write-off mode — radio group, mirrors the psi_status pattern. #}
+      <div class="mb-4">
+        <span class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Write-off mode</span>
+        <div class="flex flex-col gap-2">
+          {% for val, label in [
+              ('review', 'Review — flag overdue invoices on a candidate screen; I write each one off manually'),
+              ('auto',   'Auto — a scheduled job writes off invoices past the threshold automatically'),
+              ('manual', 'Manual — no prompts; I write off invoices myself when I choose')] %}
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="writeoff_mode"
+              value="{{ val }}"
+              {% if form.get('writeoff_mode', 'review') == val %}checked{% endif %}
+              class="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
+            >
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% if errors.get('writeoff_mode') %}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['writeoff_mode'] }}</p>
+        {% endif %}
+      </div>
+
+      {# Write-off threshold (days). #}
+      <div class="mb-4">
+        <label for="writeoff_threshold_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Write-off threshold (days past due)
+        </label>
+        <input
+          type="number"
+          id="writeoff_threshold_days"
+          name="writeoff_threshold_days"
+          min="1"
+          step="1"
+          value="{{ form.get('writeoff_threshold_days', '90') }}"
+          class="block w-40 rounded-md border border-gray-300 dark:border-gray-600
+                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                 px-3 py-2 text-sm shadow-sm
+                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+        >
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          An invoice older than this many days past its due date, with a balance owing,
+          becomes a write-off candidate. Default 90.
+        </p>
+        {% if errors.get('writeoff_threshold_days') %}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['writeoff_threshold_days'] }}</p>
+        {% endif %}
+      </div>
+
+      {# Recovery mode — radio group. #}
+      <div class="mb-4">
+        <span class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Recovery mode</span>
+        <div class="flex flex-col gap-2">
+          {% for val, label in [
+              ('smart_prompt', 'Smart prompt — when a receipt matches a customer with a written-off invoice, ask whether to treat it as a bad-debt recovery'),
+              ('manual',       'Manual — never prompt; I record recoveries myself'),
+              ('reopen',       'Reopen — (coming soon) re-open the original invoice instead of posting a recovery')] %}
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="recovery_mode"
+              value="{{ val }}"
+              {% if form.get('recovery_mode', 'smart_prompt') == val %}checked{% endif %}
+              class="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
+            >
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% if errors.get('recovery_mode') %}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['recovery_mode'] }}</p>
+        {% endif %}
+      </div>
+
+      {# Optional recovery account override. #}
+      <div class="mb-1">
+        <label for="bad_debt_recovery_account" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Bad-debt recovery account <span class="text-gray-400 font-normal">(optional)</span>
+        </label>
+        <input
+          type="text"
+          id="bad_debt_recovery_account"
+          name="bad_debt_recovery_account"
+          value="{{ form.get('bad_debt_recovery_account', '') }}"
+          placeholder="leave blank — engine resolves 4-1290 Bad Debt Recovery"
+          class="block w-full rounded-md border border-gray-300 dark:border-gray-600
+                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                 px-3 py-2 text-sm shadow-sm
+                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+        >
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Account code recovered amounts are credited to. Blank lets the engine use
+          the default 4-1290 Bad Debt Recovery account.
+        </p>
+      </div>
+
+    </fieldset>
+
     {# ── Address fieldset ── #}
     <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
       <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">Address</legend>

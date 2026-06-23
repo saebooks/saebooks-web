@@ -422,3 +422,145 @@ async def test_company_settings_psi_update_sends_to_api(respx_mock: respx.MockRo
     assert resp.status_code == 303
     assert captured, "PATCH was not called"
     assert captured[0].get("psi_status") == "yes"
+
+
+# ---------------------------------------------------------------------------
+# Bad-debt write-off & recovery settings (Phase 2 / Task 8) — the four new
+# company columns (writeoff_mode / writeoff_threshold_days / recovery_mode /
+# bad_debt_recovery_account) render in the form and round-trip through PATCH,
+# mirroring the psi_status pattern above.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_bad_debt_fields_render(respx_mock: respx.MockRouter) -> None:
+    """GET /settings/company renders the bad-debt fieldset with current values."""
+    mock = {
+        **_MOCK_COMPANY,
+        "writeoff_mode": "auto",
+        "writeoff_threshold_days": 120,
+        "recovery_mode": "manual",
+        "bad_debt_recovery_account": "4-1290",
+    }
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(200, json={"items": [mock], "total": 1})
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/settings/company")
+
+    assert resp.status_code == 200
+    # All four field names present.
+    assert 'name="writeoff_mode"' in resp.text
+    assert 'name="writeoff_threshold_days"' in resp.text
+    assert 'name="recovery_mode"' in resp.text
+    assert 'name="bad_debt_recovery_account"' in resp.text
+    # Radio values present.
+    assert 'value="review"' in resp.text
+    assert 'value="auto"' in resp.text
+    assert 'value="smart_prompt"' in resp.text
+    # Current values pre-filled.
+    assert 'value="120"' in resp.text
+    assert 'value="4-1290"' in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_bad_debt_defaults_render(respx_mock: respx.MockRouter) -> None:
+    """A company missing the bad-debt keys falls back to documented defaults."""
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(200, json=_MOCK_COMPANIES)  # no bad-debt keys
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/settings/company")
+
+    assert resp.status_code == 200
+    # review radio checked, threshold defaults to 90.
+    assert 'value="90"' in resp.text
+    # The review radio carries `checked` (default writeoff_mode).
+    assert "checked" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_bad_debt_update_sends_to_api(respx_mock: respx.MockRouter) -> None:
+    """POST with the four bad-debt fields forwards them in the PATCH body."""
+    captured: list[dict] = []
+
+    def _capture(request: respx.Request, *_: object) -> Response:
+        import json as _json
+        captured.append(_json.loads(request.content))
+        return Response(200, json={**_MOCK_COMPANY, "version": 4})
+
+    respx_mock.patch(f"{_API_BASE}/api/v1/companies/{_COMPANY_ID}").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/settings/company",
+            data={
+                "company_id": _COMPANY_ID,
+                "name": "Acme Pty Ltd",
+                "version": "3",
+                "writeoff_mode": "auto",
+                "writeoff_threshold_days": "120",
+                "recovery_mode": "manual",
+                "bad_debt_recovery_account": "4-1290",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert captured, "PATCH was not called"
+    body = captured[0]
+    assert body.get("writeoff_mode") == "auto"
+    assert body.get("writeoff_threshold_days") == 120  # coerced to int
+    assert body.get("recovery_mode") == "manual"
+    assert body.get("bad_debt_recovery_account") == "4-1290"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_company_settings_bad_debt_blank_account_clears(respx_mock: respx.MockRouter) -> None:
+    """A blank recovery-account field clears the override (sends null)."""
+    captured: list[dict] = []
+
+    def _capture(request: respx.Request, *_: object) -> Response:
+        import json as _json
+        captured.append(_json.loads(request.content))
+        return Response(200, json={**_MOCK_COMPANY, "version": 4})
+
+    respx_mock.patch(f"{_API_BASE}/api/v1/companies/{_COMPANY_ID}").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/settings/company",
+            data={
+                "company_id": _COMPANY_ID,
+                "name": "Acme Pty Ltd",
+                "version": "3",
+                "bad_debt_recovery_account": "",
+            },
+        )
+
+    assert resp.status_code == 303
+    assert captured, "PATCH was not called"
+    assert captured[0].get("bad_debt_recovery_account") is None

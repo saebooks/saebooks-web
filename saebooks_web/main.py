@@ -115,6 +115,8 @@ from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.search import router as search_router
 from saebooks_web.routes.companies import router as companies_router
 from saebooks_web.routes.settings import router as settings_router
+from saebooks_web.routes.bad_debts import router as bad_debts_router  # Phase 2 / Task 9
+from saebooks_web.routes.bad_debt_recovery import router as bad_debt_recovery_router  # Phase 2 / Task 11
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 from saebooks_web.routes.contact import router as contact_router
 from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
@@ -361,6 +363,8 @@ app.include_router(search_router)
 app.include_router(profile_router)
 app.include_router(companies_router)
 app.include_router(settings_router)
+app.include_router(bad_debts_router)
+app.include_router(bad_debt_recovery_router)
 app.include_router(employees_router)
 app.include_router(super_funds_router)
 app.include_router(pay_run_router)

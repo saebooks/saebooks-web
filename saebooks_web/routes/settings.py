@@ -116,6 +116,11 @@ async def company_settings(
         form["gst_registered"] = "true" if company.get("gst_registered") else ""
         form["gst_effective_date"] = str(company.get("gst_effective_date") or "")
         form["psi_status"] = str(company.get("psi_status") or "unsure")
+        # Bad-debt write-off & recovery policy (Phase 2 / Task 8).
+        form["writeoff_mode"] = str(company.get("writeoff_mode") or "review")
+        form["writeoff_threshold_days"] = str(company.get("writeoff_threshold_days") or 90)
+        form["recovery_mode"] = str(company.get("recovery_mode") or "smart_prompt")
+        form["bad_debt_recovery_account"] = str(company.get("bad_debt_recovery_account") or "")
 
     flash = request.session.pop("flash", None)
 
@@ -196,6 +201,29 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
     psi_status = form.get("psi_status", "").strip()
     if psi_status in ("yes", "no", "unsure"):
         payload["psi_status"] = psi_status
+    # Bad-debt write-off & recovery policy (Phase 2 / Task 8). Mirror the
+    # psi_status passthrough: only include a field when the form submitted a
+    # recognised value, and let the engine schema do the authoritative
+    # validation (returns 422 on bad input, surfaced per-field below).
+    writeoff_mode = form.get("writeoff_mode", "").strip()
+    if writeoff_mode in ("review", "auto", "manual"):
+        payload["writeoff_mode"] = writeoff_mode
+    threshold_raw = form.get("writeoff_threshold_days", "").strip()
+    if threshold_raw:
+        try:
+            payload["writeoff_threshold_days"] = int(threshold_raw)
+        except ValueError:
+            # Non-numeric — forward the raw string so the engine returns 422
+            # and the per-field error renders, rather than swallowing it.
+            payload["writeoff_threshold_days"] = threshold_raw
+    recovery_mode = form.get("recovery_mode", "").strip()
+    if recovery_mode in ("smart_prompt", "manual", "reopen"):
+        payload["recovery_mode"] = recovery_mode
+    # Recovery account: a present-but-empty field clears the override (None);
+    # only send the key when the field was part of the form at all.
+    if "bad_debt_recovery_account" in form:
+        acct = form.get("bad_debt_recovery_account", "").strip()
+        payload["bad_debt_recovery_account"] = acct or None
     gst_date = form.get("gst_effective_date", "").strip()
     backdate_confirmed = form.get("backdate_confirmed", "") == "true"
     if gst_date:
