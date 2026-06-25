@@ -230,16 +230,16 @@ _TURNSTILE_GATE_HTML = """\
     <div class="error-msg">{error_msg}</div>
     <form method="POST" action="{provision_path}">
       <div class="cf-wrap">
-        <div class="cf-turnstile" data-sitekey="{site_key}" data-theme="auto"></div>
+        <div class="cf-turnstile" data-sitekey="{site_key}" data-theme="auto" data-callback="onTurnstileSuccess"></div>
       </div>
       <noscript><p style="color:#991b1b;margin-bottom:1rem">JavaScript must be enabled to use this demo.</p></noscript>
     </form>
     <div class="notice">Your demo is private, isolated and auto-deleted after 2 hours.</div>
   </div>
   <script>
-    // Auto-submit the form once Turnstile resolves (managed/invisible widgets
-    // call the callback; the checkbox widget submits on user click — both work
-    // because the widget's implicit callback triggers on completion).
+    // Auto-submit the form once Turnstile resolves. The widget div wires
+    // data-callback="onTurnstileSuccess"; Turnstile invokes it with the token
+    // on completion (invisible/managed run automatically, the checkbox on click).
     function onTurnstileSuccess(token) {{
       document.querySelector('form').submit();
     }}
