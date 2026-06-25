@@ -102,6 +102,7 @@ COPY --from=tailwind --chown=saebooks:saebooks /css/tailwind.css /app/static/tai
 # tailwind output already exists at /app/static/.
 COPY --chown=saebooks:saebooks static/chart.umd.min.js /app/static/chart.umd.min.js
 COPY --chown=saebooks:saebooks static/sae-books-logo.png /app/static/sae-books-logo.png
+COPY --chown=saebooks:saebooks static/sae-tokens.css /app/static/sae-tokens.css
 # PWA assets — manifest, service worker, icons, splash screens.
 COPY --chown=saebooks:saebooks static/manifest.webmanifest /app/static/manifest.webmanifest
 COPY --chown=saebooks:saebooks static/pwa/ /app/static/pwa/
