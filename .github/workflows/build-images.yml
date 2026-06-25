@@ -28,6 +28,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Lint CSS — assert no @layer overrides block in source
+        run: |
+          if grep -qF '@layer overrides {' assets/tailwind.css; then
+            echo "ERROR: assets/tailwind.css contains '@layer overrides {'" >&2
+            echo "The dark-mode overrides must be unlayered (see comment in file)." >&2
+            echo "Remove the @layer wrapper so unlayered rules win the cascade." >&2
+            exit 1
+          fi
+          echo "OK: no '@layer overrides {' in assets/tailwind.css"
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
