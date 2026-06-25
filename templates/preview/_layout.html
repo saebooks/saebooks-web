@@ -13,69 +13,23 @@
       try {
         var saved = localStorage.getItem('saebooks-theme');
         var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+        var t = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.classList.toggle('dark', t === 'dark');
       } catch (e) {}
     })();
   </script>
   <!-- NOTE: preview uses compiled /static/tailwind.css (same as app shell); Tailwind dev CDN removed -->
   <link rel="stylesheet" href="/static/tailwind.css">
   <!-- lucide pinned to exact version with SRI; was @latest (unpinned) -->
-  <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js" integrity="sha384-xphWpUp6pRlNpM8BxCtyoW96oteA0kPxUX0VP6V32gICuE4ViDFBfaoyj5BS7M4w" crossorigin="anonymous"></script>
-  <!-- chart.js already at /static/chart.umd.min.js; CDN kept with SRI as fallback for preview -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js" integrity="sha384-xphWpUp6pRlNpM8BxCtyoW96oteA0kPxUX0VP6V32gICuE4ViDFBfaoyj5BS7M4w" crossorigin="anonymous" defer></script>
+  <!-- chart.js loaded from local bundle; CDN with SRI kept as onerror fallback -->
+  <script src="/static/chart.umd.min.js" defer onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.integrity='sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g';s.crossOrigin='anonymous';document.head.appendChild(s);"></script>
+  <!-- Shared design tokens + component layer (single source of truth) -->
+  <link rel="stylesheet" href="/static/sae-tokens.css">
   <style>
-    :root {
-      --ink:        #14171c;
-      --ink-2:      #4a4f57;
-      --ink-3:      #8a8f97;
-      --ink-4:      #b4b9c1;
-      --paper:      #faf8f4;
-      --paper-2:    #f3efe7;
-      --line:       #e9e3d6;
-      --line-soft:  #f1ecdf;
-      --brand:      #0f2856;
-      --brand-2:    #194291;
-      /* SAE signature — primary cobalt #194291 + shades/hues */
-      --sae:        #194291;
-      --sae-2:      #102e6b;
-      --sae-3:      #0a1f4d;
-      --sae-tint:   #e7ecf7;
-      --sae-tint-2: #c9d4ec;
-      --pos:        #3e7a4e;
-      --pos-tint:   #e2efe1;
-      --neg:        #a14333;
-      --neg-tint:   #f4dfd8;
-      --warm:       #c89b3c;
-      --warm-tint:  #f7ead0;
-      --surface:    #ffffff;
-      --surface-2:  #fafaf8;
-    }
-    /* Dark theme — navy paper with bright cobalt accent */
-    [data-theme="dark"] {
-      --ink:        #f0ece4;
-      --ink-2:      #b8b3a8;
-      --ink-3:      #767b86;
-      --ink-4:      #565b67;
-      --paper:      #0e1a2a;
-      --paper-2:    #142339;
-      --line:       #25344f;
-      --line-soft:  #1d2c46;
-      --brand:      #0b1828;
-      --brand-2:    #2c6cb8;
-      --sae:        #5c89e0;
-      --sae-2:      #3661b8;
-      --sae-3:      #2c4a91;
-      --sae-tint:   #15264a;
-      --sae-tint-2: #1d3361;
-      --pos:        #5fa872;
-      --pos-tint:   #1a2e1f;
-      --neg:        #d56757;
-      --neg-tint:   #361816;
-      --warm:       #d4a854;
-      --warm-tint:  #2e2510;
-      --surface:    #1a2840;
-      --surface-2:  #21304b;
-    }
+    /* ── Preview-specific rules (_layout.html only) ── */
+    /* Dark-theme component overrides using [data-theme] attribute set by pre-paint script */
     [data-theme="dark"] .card { background: var(--surface); }
     [data-theme="dark"] .chip { background: var(--surface); color: var(--ink-2); }
     [data-theme="dark"] .chip:hover { background: var(--paper-2); }
@@ -98,69 +52,14 @@
     [data-theme="dark"] input::placeholder { color: var(--ink-3); }
     [data-theme="dark"] .preview-banner { background: var(--brand); }
     [data-theme="dark"] .grad-fade-r::after { background: linear-gradient(to right, transparent, var(--paper)); }
-    [data-theme="dark"] .reg-mark { border-color: var(--sae); }
-    [data-theme="dark"] .reg-mark::before, [data-theme="dark"] .reg-mark::after { background: var(--sae); }
-    [data-theme="dark"] .dot-grid, [data-theme="dark"] .dot-grid-soft {
-      background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px);
-    }
     [data-theme="dark"] .drafting { border-top-color: var(--line); border-bottom-color: var(--line); }
 
-    html, body { background: var(--paper); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; transition: background-color .2s ease, color .2s ease; }
-    .font-display { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
-    .font-mono    { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-    .num          { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-    .num-display  { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 1px 2px rgba(20,23,28,.04), 0 4px 12px rgba(20,23,28,.03); }
-    .card-hover { transition: box-shadow .15s ease, transform .15s ease; }
-    .card-hover:hover { box-shadow: 0 2px 4px rgba(20,23,28,.06), 0 8px 24px rgba(20,23,28,.07); transform: translateY(-1px); }
-    .hairline { border-color: var(--line); }
-    .ink-2 { color: var(--ink-2); }
-    .ink-3 { color: var(--ink-3); }
-    .ink-4 { color: var(--ink-4); }
-    .pos { color: var(--pos); }
-    .neg { color: var(--neg); }
-    .sae { color: var(--sae); }
-    .bg-sae { background: var(--sae); }
-    .bg-sae-tint { background: var(--sae-tint); }
-
-    /* SAE drafting line — thin double line for section dividers */
-    .drafting { position: relative; height: 5px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-
-    /* SAE blueprint dot grid — used in hero corners and empty states */
-    .dot-grid {
-      background-image: radial-gradient(rgba(20,23,28,.10) 1px, transparent 1px);
-      background-size: 14px 14px;
-      background-position: 0 0;
-    }
-    .dot-grid-soft {
-      background-image: radial-gradient(rgba(20,23,28,.06) 1px, transparent 1px);
-      background-size: 14px 14px;
-    }
-
-    /* Registration mark for engineering / blueprint feel */
-    .reg-mark { width: 16px; height: 16px; border: 1px solid var(--sae); border-radius: 50%; position: relative; }
-    .reg-mark::before, .reg-mark::after { content: ''; position: absolute; background: var(--sae); }
-    .reg-mark::before { left: 50%; top: -3px; bottom: -3px; width: 1px; transform: translateX(-50%); }
-    .reg-mark::after  { top: 50%; left: -3px; right: -3px; height: 1px; transform: translateY(-50%); }
-
-    .chip { display: inline-flex; align-items: center; gap: .375rem; padding: .375rem .75rem; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: .8125rem; color: var(--ink-2); transition: background .12s ease, color .12s ease, border-color .12s ease; cursor: pointer; }
-    .chip:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink-4); }
-    .chip-active { background: var(--ink); color: #fff; border-color: var(--ink); }
-    .chip-active:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
-
-    .btn-primary { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: 10px; background: var(--sae); color: #fff; font-size: .875rem; font-weight: 500; transition: background .12s ease, box-shadow .12s ease, transform .08s ease; cursor: pointer; box-shadow: 0 1px 0 rgba(25,66,145,.25) inset, 0 2px 6px rgba(25,66,145,.18); }
-    .btn-primary:hover { background: var(--sae-2); }
-    .btn-primary:active { transform: translateY(1px); }
-
-    .btn-secondary { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: 10px; background: #fff; color: var(--ink); font-size: .875rem; font-weight: 500; border: 1px solid var(--line); transition: background .12s ease, border-color .12s ease; cursor: pointer; }
-    .btn-secondary:hover { background: var(--paper-2); border-color: var(--ink-4); }
-
-    .pill-nav { display: inline-flex; align-items: center; gap: .625rem; padding: .375rem .875rem .375rem .375rem; border-radius: 999px; background: #fff; border: 1px solid var(--line); transition: border-color .12s ease, box-shadow .12s ease; }
+    /* Pill nav (preview shell only) */
+    .pill-nav { display: inline-flex; align-items: center; gap: .625rem; padding: .375rem .875rem .375rem .375rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); transition: border-color .12s ease, box-shadow .12s ease; }
     .pill-nav:hover { border-color: var(--ink-4); box-shadow: 0 1px 2px rgba(20,23,28,.05); }
     .pill-ico { width: 30px; height: 30px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
 
-    /* Left rail */
+    /* Left rail (preview shell only) */
     .rail-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: .125rem; padding: .25rem 0; width: 100%; }
     .rail-btn { width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-2); transition: background .12s ease, color .12s ease; }
     .rail-btn:hover { background: var(--paper-2); color: var(--ink); }
@@ -169,58 +68,27 @@
     .rail-label { font-size: 9.5px; color: var(--ink-3); letter-spacing: 0.02em; }
     .rail-item.active .rail-label { color: var(--ink); font-weight: 500; }
 
+    /* Preview-specific utilities */
     .donut-leg { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
     .scroll-x::-webkit-scrollbar { height: 6px; }
     .scroll-x::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
     .grad-fade-r { -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%); mask-image: linear-gradient(to right, black 92%, transparent 100%); }
     .ring-focus:focus { outline: none; box-shadow: 0 0 0 3px rgba(25,66,145,.18); border-color: var(--sae); }
 
-    .pop { position: absolute; z-index: 30; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 24px 48px rgba(20,23,28,.16), 0 4px 12px rgba(20,23,28,.06); display: none; }
+    /* Pop-over */
+    .pop { position: absolute; z-index: 30; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 24px 48px rgba(20,23,28,.16), 0 4px 12px rgba(20,23,28,.06); display: none; }
     .pop.open { display: block; }
 
+    /* Preview banner */
     .preview-banner { background: linear-gradient(135deg, #0a1f4d 0%, #194291 60%, #2c5cb0 140%); }
-
-    .badge { display: inline-flex; align-items: center; gap: .25rem; padding: .125rem .5rem; border-radius: 999px; font-size: 11px; font-weight: 500; line-height: 1.5; }
-    .badge-pos  { background: var(--pos-tint);  color: var(--pos); }
-    .badge-neg  { background: var(--neg-tint);  color: var(--neg); }
-    .badge-warm { background: var(--warm-tint); color: #8a6a1c; }
-    .badge-sae  { background: var(--sae-tint);  color: var(--sae-2); }
-    .badge-ink  { background: rgba(20,23,28,.06); color: var(--ink-2); }
-
-    /* Status dot */
-    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
-
-    /* Status strip on rail bottom */
-    .status-strip { font-family: 'JetBrains Mono', monospace; font-size: 9px; line-height: 1.4; color: var(--ink-3); text-align: center; }
-
-    table.sae-table { width: 100%; border-collapse: collapse; }
-    table.sae-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-3); font-weight: 500; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); }
-    table.sae-table tbody td { padding: 14px 16px; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
-    table.sae-table tbody tr { transition: background .1s ease; }
-    table.sae-table tbody tr:hover { background: rgba(243,239,231,.5); cursor: pointer; }
-    table.sae-table tbody tr:last-child td { border-bottom: 0; }
-
-    /* Cmd-K command palette */
-    .cmdk-backdrop { position: fixed; inset: 0; background: rgba(15,41,64,.30); backdrop-filter: blur(4px); z-index: 90; display: none; align-items: flex-start; justify-content: center; padding-top: 12vh; }
-    .cmdk-backdrop.open { display: flex; }
-    .cmdk { width: min(640px, 92vw); background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 50px rgba(15,41,64,.25), 0 4px 12px rgba(15,41,64,.1); overflow: hidden; }
-    .cmdk-input-row { display: flex; align-items: center; gap: .625rem; padding: 14px 18px; border-bottom: 1px solid var(--line); }
-    .cmdk-input { flex: 1; border: 0; outline: none; font-size: 15px; background: transparent; color: var(--ink); }
-    .cmdk-input::placeholder { color: var(--ink-3); }
-    .cmdk-list { max-height: 52vh; overflow-y: auto; padding: 6px 0; }
-    .cmdk-group { padding: 8px 18px 4px; font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-3); }
-    .cmdk-item { display: flex; align-items: center; gap: 12px; padding: 9px 18px; cursor: pointer; transition: background .08s; font-size: 13.5px; }
-    .cmdk-item:hover, .cmdk-item.cmdk-selected { background: var(--paper-2); }
-    .cmdk-item .cmdk-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--paper); border: 1px solid var(--line); color: var(--ink-2); }
-    .cmdk-item.cmdk-selected .cmdk-icon { border-color: var(--sae); color: var(--sae); background: var(--sae-tint); }
-    .cmdk-item .cmdk-sub { color: var(--ink-3); font-size: 11.5px; }
-    .cmdk-item .cmdk-kbd { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-3); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; background: var(--paper); }
-    .cmdk-footer { display: flex; align-items: center; gap: 14px; padding: 10px 18px; border-top: 1px solid var(--line); background: var(--paper); font-size: 11px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; }
-    .cmdk-footer .kbd { border: 1px solid var(--line); background: #fff; padding: 1px 5px; border-radius: 3px; margin-right: 4px; }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen">
+<div class="preview-mobile-notice" role="alert" aria-live="polite">
+  <strong>Desktop required</strong>
+  <span>This design preview is built for desktop screens (768 px+).<br>Please open it on a wider device.</span>
+</div>
 
 <!-- Preview banner -->
 <div class="preview-banner text-white text-xs px-5 py-2 flex items-center justify-between">
@@ -505,13 +373,13 @@
 
 <!-- Cmd-K command palette -->
 <div id="cmdkBackdrop" class="cmdk-backdrop" onclick="if(event.target===this)closeCmdK()">
-  <div class="cmdk" onclick="event.stopPropagation()">
+  <div class="cmdk" role="dialog" aria-modal="true" aria-label="Command palette" onclick="event.stopPropagation()">
     <div class="cmdk-input-row">
       <i data-lucide="search" class="w-4 h-4 ink-3"></i>
-      <input id="cmdkInput" class="cmdk-input" placeholder="Type a command, page, or contact… (try 'invoice', 'BAS', 'Bunnings')" autocomplete="off">
+      <input id="cmdkInput" class="cmdk-input" role="combobox" aria-autocomplete="list" aria-controls="cmdkList" aria-expanded="false" aria-activedescendant="" placeholder="Type a command, page, or contact… (try 'invoice', 'BAS', 'Bunnings')" autocomplete="off">
       <span class="cmdk-kbd">esc</span>
     </div>
-    <div id="cmdkList" class="cmdk-list"></div>
+    <div id="cmdkList" class="cmdk-list" role="listbox" aria-label="Command results"></div>
     <div class="cmdk-footer">
       <span><span class="kbd">↑↓</span> navigate</span>
       <span><span class="kbd">⏎</span> select</span>
@@ -672,8 +540,19 @@
     );
     cmdkSel = 0; renderCmdK();
   }
-  function openCmdK() { cmdkBackdrop.classList.add('open'); cmdkInput.value=''; cmdkFiltered=CMDK_ITEMS; cmdkSel=0; renderCmdK(); setTimeout(()=>cmdkInput.focus(), 30); }
-  function closeCmdK() { cmdkBackdrop.classList.remove('open'); }
+  var _cmdkPrevFocus = null;
+  function openCmdK() {
+    _cmdkPrevFocus = document.activeElement;
+    cmdkBackdrop.classList.add('open');
+    cmdkInput.setAttribute('aria-expanded', 'true');
+    cmdkInput.value=''; cmdkFiltered=CMDK_ITEMS; cmdkSel=0; renderCmdK();
+    setTimeout(()=>cmdkInput.focus(), 30);
+  }
+  function closeCmdK() {
+    cmdkBackdrop.classList.remove('open');
+    cmdkInput.setAttribute('aria-expanded', 'false');
+    if (_cmdkPrevFocus && typeof _cmdkPrevFocus.focus === 'function') _cmdkPrevFocus.focus();
+  }
   cmdkInput.addEventListener('input', filterCmdK);
   cmdkInput.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); if (cmdkSel < cmdkFiltered.length-1) cmdkSel++; updateCmdKSel(); }
@@ -692,6 +571,7 @@
   // Theme toggle — persisted, also honours system preference on first load.
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark'); // keeps Tailwind dark: class in sync
     document.querySelectorAll('[data-theme-icon]').forEach(el => {
       el.classList.toggle('hidden', el.dataset.themeIcon !== theme);
     });

@@ -11,57 +11,102 @@
 {% set username = request.session.get("username", "") %}
 {% set user_role = request.session.get("user_role", "") %}
 
-{% macro nav_item(href, label, active_prefix=None) %}
-  {% set active = path == href or (active_prefix and path.startswith(active_prefix)) %}
-  <a href="{{ href }}"
-     class="flex items-center px-2 py-1.5 rounded-md {% if active %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    {{ label }}
+{# Top-level items — no section wrapper, no is-sub #}
+<div class="space-y-0.5">
+  <a href="/cashbook" class="nav-item {% if path == '/cashbook' %}active{% endif %}">
+    Cashbook overview
   </a>
-{% endmacro %}
-
-<div>
-  {{ nav_item("/cashbook", "Cashbook overview") }}
-  {{ nav_item("/cashbook/entries", "Money in / out", "/cashbook/entries") }}
+  <a href="/cashbook/entries" class="nav-item {% if path.startswith('/cashbook/entries') %}active{% endif %}">
+    Money in / out
+  </a>
 </div>
 
-<div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">Sales</div>
-  {{ nav_item("/cashbook/invoices", "Invoices", "/cashbook/invoices") }}
-  {{ nav_item("/cashbook/quotes", "Quotes", "/cashbook/quotes") }}
-  {{ nav_item("/contacts", "Contacts", "/contacts") }}
-</div>
+{# Sales #}
+{% set sales_open = path.startswith('/cashbook/invoices') or path.startswith('/cashbook/quotes') or path.startswith('/contacts') %}
+<details class="group" data-section="customers" {% if sales_open %}open{% endif %}>
+  <summary class="nav-section-label">
+    <span>Sales</span>
+    <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
+  </summary>
+  <div class="space-y-0.5 mt-1">
+    <a href="/cashbook/invoices" class="nav-item is-sub {% if path.startswith('/cashbook/invoices') %}active{% endif %}">
+      Invoices
+    </a>
+    <a href="/cashbook/quotes" class="nav-item is-sub {% if path.startswith('/cashbook/quotes') %}active{% endif %}">
+      Quotes
+    </a>
+    <a href="/contacts" class="nav-item is-sub {% if path.startswith('/contacts') %}active{% endif %}">
+      Contacts
+    </a>
+  </div>
+</details>
 
-<div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">Purchases</div>
-  {{ nav_item("/expenses", "Expenses", "/expenses") }}
-</div>
+{# Purchases #}
+{% set purchases_open = path.startswith('/expenses') %}
+<details class="group" data-section="suppliers" {% if purchases_open %}open{% endif %}>
+  <summary class="nav-section-label">
+    <span>Purchases</span>
+    <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
+  </summary>
+  <div class="space-y-0.5 mt-1">
+    <a href="/expenses" class="nav-item is-sub {% if path.startswith('/expenses') %}active{% endif %}">
+      Expenses
+    </a>
+  </div>
+</details>
 
-<div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">People &amp; payroll</div>
-  {{ nav_item("/employees", "Employees", "/employees") }}
-  {{ nav_item("/super-funds", "Super funds", "/super-funds") }}
-  {{ nav_item("/pay-run", "Pay runs", "/pay-run") }}
-  {{ nav_item("/time-entries", "Time tracking", "/time-entries") }}
-</div>
+{# People & payroll #}
+{% set people_open = path.startswith('/employees') or path.startswith('/super-funds') or path.startswith('/pay-run') or path.startswith('/time-entries') %}
+<details class="group" data-section="people" {% if people_open %}open{% endif %}>
+  <summary class="nav-section-label">
+    <span>People &amp; payroll</span>
+    <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
+  </summary>
+  <div class="space-y-0.5 mt-1">
+    <a href="/employees" class="nav-item is-sub {% if path.startswith('/employees') %}active{% endif %}">
+      Employees
+    </a>
+    <a href="/super-funds" class="nav-item is-sub {% if path.startswith('/super-funds') %}active{% endif %}">
+      Super funds
+    </a>
+    <a href="/pay-run" class="nav-item is-sub {% if path.startswith('/pay-run') %}active{% endif %}">
+      Pay runs
+    </a>
+    <a href="/time-entries" class="nav-item is-sub {% if path.startswith('/time-entries') %}active{% endif %}">
+      Time tracking
+    </a>
+  </div>
+</details>
 
-<div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">Reports</div>
-  {{ nav_item("/cashbook/report", "Cashbook report", "/cashbook/report") }}
-  {{ nav_item("/reports/bas-summary", "BAS", "/reports/bas-summary") }}
-  {{ nav_item("/reports/profit-loss", "Profit &amp; loss", "/reports/profit-loss") }}
-</div>
+{# Reports #}
+{% set reports_open = path.startswith('/cashbook/report') or path.startswith('/reports/bas-summary') or path.startswith('/reports/profit-loss') %}
+<details class="group" data-section="reports" {% if reports_open %}open{% endif %}>
+  <summary class="nav-section-label">
+    <span>Reports</span>
+    <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
+  </summary>
+  <div class="space-y-0.5 mt-1">
+    <a href="/cashbook/report" class="nav-item is-sub {% if path.startswith('/cashbook/report') %}active{% endif %}">
+      Cashbook report
+    </a>
+    <a href="/reports/bas-summary" class="nav-item is-sub {% if path.startswith('/reports/bas-summary') %}active{% endif %}">
+      BAS
+    </a>
+    <a href="/reports/profit-loss" class="nav-item is-sub {% if path.startswith('/reports/profit-loss') %}active{% endif %}">
+      Profit &amp; loss
+    </a>
+  </div>
+</details>
 
-<div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <a href="/settings/company"
-     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+{# Footer: settings / about / upgrade — plain nav-items, separated by a token-coloured rule #}
+<div class="space-y-0.5 pt-1 mt-1" style="border-top: 1px solid var(--line);">
+  <a href="/settings/company" class="nav-item {% if path == '/settings/company' %}active{% endif %}">
     Settings
   </a>
-  <a href="/cashbook/about"
-     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/cashbook/about') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+  <a href="/cashbook/about" class="nav-item {% if path.startswith('/cashbook/about') %}active{% endif %}">
     About Cashbook
   </a>
-  <a href="/cashbook/upgrade"
-     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/cashbook/upgrade') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+  <a href="/cashbook/upgrade" class="nav-item {% if path.startswith('/cashbook/upgrade') %}active{% endif %}">
     Upgrade to full
   </a>
 </div>

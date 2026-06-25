@@ -273,6 +273,28 @@ app.add_middleware(_RequestIdMiddleware)
 # ---------------------------------------------------------------------------
 
 
+class _StaticCacheMiddleware(BaseHTTPMiddleware):
+    # tailwind.css has no content hash -- force revalidation so a rebuild is
+    # picked up immediately (ETag/Last-Modified already set by Starlette).
+    # All other /static/ assets are immutable between deploys.
+
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        response = await call_next(request)
+        path = request.url.path
+        if path.startswith("/static/"):
+            if path.endswith("/tailwind.css"):
+                response.headers.setdefault("Cache-Control", "no-cache")
+            else:
+                response.headers.setdefault(
+                    "Cache-Control", "public, max-age=31536000, immutable"
+                )
+        return response
+
+
 class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
     # Allowlist the specific third-party origins this app loads scripts/styles from.
     _CSP_REPORT_ONLY = (
@@ -280,7 +302,7 @@ class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
         "https://unpkg.com https://cdn.jsdelivr.net https://challenges.cloudflare.com; "
         "style-src 'self' 'unsafe-inline' "
-        "https://fonts.googleapis.com https://cdn.tailwindcss.com; "
+        "https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data:; "
         "connect-src 'self'; "
@@ -302,10 +324,20 @@ class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers.setdefault(
             "Content-Security-Policy-Report-Only", self._CSP_REPORT_ONLY
         )
+        # HSTS — only emit on HTTPS connections to avoid downgrading plain-HTTP
+        # internal / dev endpoints.  Upstream proxies (Cloudflare, Caddy) set
+        # X-Forwarded-Proto; fall back to the raw scheme for direct TLS.
+        forwarded_proto = request.headers.get("x-forwarded-proto", "")
+        if forwarded_proto == "https" or request.url.scheme == "https":
+            response.headers.setdefault(
+                "Strict-Transport-Security",
+                "max-age=63072000; includeSubDomains",
+            )
         return response
 
 
 app.add_middleware(_SecurityHeadersMiddleware)
+app.add_middleware(_StaticCacheMiddleware)
 
 
 # ---------------------------------------------------------------------------
@@ -462,6 +494,23 @@ def _filtered_openapi() -> dict[str, Any]:
 
 
 app.openapi = _filtered_openapi  # type: ignore[method-assign]
+
+
+# ---------------------------------------------------------------------------
+# CSP violation report sink
+# ---------------------------------------------------------------------------
+# The Content-Security-Policy-Report-Only header references this endpoint via
+# report-uri /csp-report.  Without a handler here every violation POST 404s
+# and is silently lost.  This stub accepts and discards reports; swap in a
+# real collector (e.g. Sentry, a DB table, or structured logging) when the
+# policy is promoted to enforcing.
+
+
+@app.post("/csp-report", include_in_schema=False)
+async def csp_report(request: Request) -> Response:
+    body = await request.body()
+    logger.debug("CSP violation report: %s", body[:2000])
+    return Response(status_code=204)
 
 
 # ---------------------------------------------------------------------------

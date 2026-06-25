@@ -48,11 +48,11 @@ class Settings(BaseSettings):
 
     session_cookie_name: str = "saebooks_web_session"
     session_max_age: int = 60 * 60 * 8  # 8 hours
-    session_https_only: bool = False
-    """Set True when deployed behind a TLS-terminating reverse proxy (prod).
+    session_https_only: bool = True
+    """Controls the Secure flag on the session cookie.
 
-    Controls the Secure flag on the session cookie.  Default False for local
-    dev (plain HTTP).  Override with SAEBOOKS_WEB_SESSION_HTTPS_ONLY=true.
+    Default True (Secure flag set) for any TLS-terminating deployment.
+    Override with SAEBOOKS_WEB_SESSION_HTTPS_ONLY=false for local HTTP dev only.
     """
 
     # -----------------------------------------------------------------
@@ -74,6 +74,24 @@ class Settings(BaseSettings):
     # is false so we can ship the template before activating the promo.
     # -----------------------------------------------------------------
     launch_promo_enabled: bool = False
+
+
+    # -----------------------------------------------------------------
+    # Startup guard
+    # -----------------------------------------------------------------
+    def model_post_init(self, __context: object) -> None:
+        _INSECURE_PLACEHOLDER = "dev-insecure-change-me-before-prod"
+        if self.secret_key == _INSECURE_PLACEHOLDER:
+            raise ValueError(
+                "SAEBOOKS_WEB_SECRET_KEY is still the insecure default placeholder. "
+                "Set a strong random key (>= 32 bytes) via the env var before starting. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        if len(self.secret_key) < 32:
+            raise ValueError(
+                f"SAEBOOKS_WEB_SECRET_KEY is too short ({len(self.secret_key)} chars). "
+                "Minimum 32 characters required."
+            )
 
 
 settings = Settings()

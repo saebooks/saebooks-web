@@ -212,7 +212,23 @@ _TURNSTILE_GATE_HTML = """\
     .features li {{ padding: .3rem 0; }}
     .features li::before {{ content: "✓ "; color: var(--primary); font-weight: 700; }}
     .cf-wrap {{ display: flex; justify-content: center; margin-bottom: 1rem; }}
+    .demo-submit-btn {{
+      display: block; width: 100%; padding: .65rem 1.5rem; margin-top: .5rem;
+      background: var(--primary); color: var(--primary-fg,#fff);
+      border: none; border-radius: .5rem; font-size: .95rem; font-weight: 600;
+      cursor: pointer; transition: opacity .15s;
+    }}
+    .demo-submit-btn:hover {{ opacity: .88; }}
     .notice {{ font-size: .75rem; opacity: .5; margin-top: 1rem; }}
+    #theme-toggle-gate {{
+      position: fixed; bottom: max(.5rem, env(safe-area-inset-bottom,.5rem)); right: 1rem;
+      z-index: 10; width: 3rem; height: 3rem; border-radius: 9999px;
+      background: var(--primary); color: #fff; border: none; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,.18); transition: opacity .15s;
+    }}
+    #theme-toggle-gate:hover {{ opacity: .88; }}
+    #theme-toggle-gate svg {{ width: 1.25rem; height: 1.25rem; }}
     .error-msg {{
       background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;
       border-radius: .5rem; padding: .75rem 1rem; margin-bottom: 1rem;
@@ -224,7 +240,7 @@ _TURNSTILE_GATE_HTML = """\
 <body>
   <main>
   <div class="card">
-    <h1 class="logo">SAE Books</h1>
+    <h1 class="logo"><img src="/static/sae-books-logo.png" alt="SAE Books" style="height:3.5rem;width:auto;display:inline-block"></h1>
     <div class="tagline">Australian small-business accounting</div>
     <ul class="features">
       <li>Full double-entry ledger</li>
@@ -237,18 +253,54 @@ _TURNSTILE_GATE_HTML = """\
       <div class="cf-wrap">
         <div class="cf-turnstile" data-sitekey="{site_key}" data-theme="auto" data-callback="onTurnstileSuccess"></div>
       </div>
-      <noscript><p style="color:#991b1b;margin-bottom:1rem">JavaScript must be enabled to use this demo.</p></noscript>
+      <button type="submit" id="demo-submit" class="demo-submit-btn" style="display:none" aria-label="Submit and start demo">Start demo &rarr;</button>
+      <noscript><p style="color:var(--fg);margin-bottom:1rem">JavaScript must be enabled to use this demo.</p></noscript>
     </form>
     <div class="notice">Your demo is private, isolated and auto-deleted after 2 hours.</div>
   </div>
   </main>
+  <button id="theme-toggle-gate" title="Toggle theme" aria-label="Toggle dark mode">
+    <!-- moon icon (shown in light mode) -->
+    <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+    <!-- sun icon (shown in dark mode, hidden initially) -->
+    <svg data-theme-icon="dark" style="display:none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/></svg>
+  </button>
   <script>
     // Auto-submit the form once Turnstile resolves. The widget div wires
     // data-callback="onTurnstileSuccess"; Turnstile invokes it with the token
     // on completion (invisible/managed run automatically, the checkbox on click).
     function onTurnstileSuccess(token) {{
+      // Show the manual submit button as a fallback (auto-submit below).
+      var btn = document.getElementById('demo-submit');
+      if (btn) btn.style.display = 'block';
       document.querySelector('form').submit();
     }}
+
+    // Theme toggle — mirrors base.html applyTheme logic.
+    (function () {{
+      var tBtn = document.getElementById('theme-toggle-gate');
+      function isDark() {{
+        var s = localStorage.getItem('saebooks-theme');
+        if (s === 'dark')  return true;
+        if (s === 'light') return false;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }}
+      function applyTheme() {{
+        var dark = isDark();
+        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        document.querySelectorAll('[data-theme-icon]').forEach(function (el) {{
+          el.style.display = el.dataset.themeIcon === (dark ? 'dark' : 'light') ? '' : 'none';
+        }});
+      }}
+      applyTheme();
+      if (tBtn) {{
+        tBtn.addEventListener('click', function () {{
+          localStorage.setItem('saebooks-theme', isDark() ? 'light' : 'dark');
+          applyTheme();
+        }});
+      }}
+    }})();
   </script>
 </body>
 </html>

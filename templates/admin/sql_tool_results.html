@@ -6,11 +6,17 @@
   <span class="text-sm" style="color:var(--neg);"><strong>Query error:</strong> {{ error }}</span>
 </div>
 {% elif proxy_html %}
-{# The upstream API returned rendered HTML with the results table — display it. #}
+{# Upstream engine returned rendered HTML — sandboxed in an iframe so any markup
+   from ledger data cannot execute in the staff DOM.  No allow-scripts, no
+   allow-same-origin: JS is inert and the frame cannot reach parent storage. #}
 <div class="card overflow-auto">
-  <div class="sql-proxy-results p-4 text-sm">
-    {{ proxy_html | safe }}
-  </div>
+  <iframe
+    srcdoc="{{ proxy_html | e }}"
+    sandbox
+    style="width:100%;min-height:20rem;border:none;background:var(--paper);"
+    title="SQL query results"
+    aria-label="SQL query results"
+  ></iframe>
 </div>
 {% elif columns %}
 <div class="card overflow-auto">
