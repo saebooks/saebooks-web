@@ -38,6 +38,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from markupsafe import escape as _html_escape
+
 from saebooks_web.api_client import api_client
 
 router = APIRouter()
@@ -261,10 +263,12 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
         )
 
     # Build a simple preview from the raw content (line count, first 10 rows).
+    # Escape each line so user-supplied CSV cells cannot inject HTML.
     lines_info = [ln.strip() for ln in raw.splitlines() if ln.strip()][:12]
+    escaped_lines = [str(_html_escape(ln)) for ln in lines_info[:10]]
     proxy_html = (
         f"<p><strong>Preview:</strong> {len(lines_info)} rows detected.</p>"
-        f"<pre>{'\\n'.join(lines_info[:10])}</pre>"
+        f"<pre>{chr(10).join(escaped_lines)}</pre>"
     )
 
     return _TEMPLATES.TemplateResponse(
@@ -421,12 +425,14 @@ async def imports_coa_preview(request: Request) -> HTMLResponse | RedirectRespon
         )
 
     # Show a lightweight preview (row count).
+    # Escape header and data rows so user-supplied CSV cells cannot inject HTML.
     lines = [ln for ln in raw.splitlines() if ln.strip()]
-    header = lines[0] if lines else ""
+    header = str(_html_escape(lines[0])) if lines else ""
     data_rows = lines[1:] if len(lines) > 1 else []
+    escaped_rows = [str(_html_escape(ln)) for ln in data_rows[:10]]
     proxy_html = (
         f"<p><strong>Preview:</strong> {len(data_rows)} account rows to import.</p>"
-        f"<pre>{header}\n" + "\n".join(data_rows[:10]) + "</pre>"
+        f"<pre>{header}\n" + "\n".join(escaped_rows) + "</pre>"
     )
 
     return _TEMPLATES.TemplateResponse(

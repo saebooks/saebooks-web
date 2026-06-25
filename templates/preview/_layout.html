@@ -11,15 +11,18 @@
     // Pre-paint theme so dark users don't get a flash of light.
     (function(){
       try {
-        var saved = localStorage.getItem('saebooks_theme');
+        var saved = localStorage.getItem('saebooks-theme');
         var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
       } catch (e) {}
     })();
   </script>
-  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- NOTE: preview uses compiled /static/tailwind.css (same as app shell); Tailwind dev CDN removed -->
+  <link rel="stylesheet" href="/static/tailwind.css">
+  <!-- lucide pinned to exact version with SRI; was @latest (unpinned) -->
+  <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js" integrity="sha384-xphWpUp6pRlNpM8BxCtyoW96oteA0kPxUX0VP6V32gICuE4ViDFBfaoyj5BS7M4w" crossorigin="anonymous"></script>
+  <!-- chart.js already at /static/chart.umd.min.js; CDN kept with SRI as fallback for preview -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g" crossorigin="anonymous"></script>
   <style>
     :root {
       --ink:        #14171c;
@@ -146,7 +149,7 @@
     .chip-active { background: var(--ink); color: #fff; border-color: var(--ink); }
     .chip-active:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
 
-    .btn-primary { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: 10px; background: var(--sae); color: #fff; font-size: .875rem; font-weight: 500; transition: background .12s ease, box-shadow .12s ease, transform .08s ease; cursor: pointer; box-shadow: 0 1px 0 rgba(166,78,21,.4) inset, 0 2px 6px rgba(200,99,31,.25); }
+    .btn-primary { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: 10px; background: var(--sae); color: #fff; font-size: .875rem; font-weight: 500; transition: background .12s ease, box-shadow .12s ease, transform .08s ease; cursor: pointer; box-shadow: 0 1px 0 rgba(25,66,145,.25) inset, 0 2px 6px rgba(25,66,145,.18); }
     .btn-primary:hover { background: var(--sae-2); }
     .btn-primary:active { transform: translateY(1px); }
 
@@ -170,7 +173,7 @@
     .scroll-x::-webkit-scrollbar { height: 6px; }
     .scroll-x::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
     .grad-fade-r { -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%); mask-image: linear-gradient(to right, black 92%, transparent 100%); }
-    .ring-focus:focus { outline: none; box-shadow: 0 0 0 3px rgba(200,99,31,.18); border-color: var(--sae); }
+    .ring-focus:focus { outline: none; box-shadow: 0 0 0 3px rgba(25,66,145,.18); border-color: var(--sae); }
 
     .pop { position: absolute; z-index: 30; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 24px 48px rgba(20,23,28,.16), 0 4px 12px rgba(20,23,28,.06); display: none; }
     .pop.open { display: block; }
@@ -282,19 +285,19 @@
 
     <!-- Actions -->
     <div class="flex items-center gap-1">
-      <a href="/preview/inbox" class="rail-btn !w-9 !h-9" title="Inbox">
+      <a href="/preview/inbox" class="rail-btn !w-9 !h-9" title="Inbox" aria-label="Inbox">
         <i data-lucide="bell" class="w-4 h-4"></i>
         <span class="absolute -mt-3 ml-3 w-1.5 h-1.5 rounded-full" style="background: var(--sae);"></span>
       </a>
-      <button class="rail-btn !w-9 !h-9" title="Help">
+      <button class="rail-btn !w-9 !h-9" title="Help" aria-label="Help">
         <i data-lucide="circle-help" class="w-4 h-4"></i>
       </button>
-      <button id="themeBtn" onclick="toggleTheme()" class="rail-btn !w-9 !h-9" title="Toggle theme (⌘⇧L)">
+      <button id="themeBtn" onclick="toggleTheme()" class="rail-btn !w-9 !h-9" title="Toggle theme (⌘⇧L)" aria-label="Toggle dark mode (⌘⇧L)">
         <i data-lucide="moon" class="w-4 h-4" data-theme-icon="light"></i>
         <i data-lucide="sun" class="w-4 h-4 hidden" data-theme-icon="dark"></i>
       </button>
       <div class="relative">
-        <button id="cogBtn" onclick="togglePop('cogPop')" class="rail-btn !w-9 !h-9" title="Settings">
+        <button id="cogBtn" onclick="togglePop('cogPop')" class="rail-btn !w-9 !h-9" title="Settings" aria-label="Settings">
           <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
         <div id="cogPop" class="pop right-0 mt-2 w-[min(640px,calc(100vw-2rem))] p-6">
@@ -353,7 +356,7 @@
 
     <!-- Create -->
     <div class="relative rail-item">
-      <button id="createBtn" onclick="togglePop('createPop')" class="rail-btn !w-11 !h-11 !rounded-xl text-white" style="background: var(--sae); box-shadow: 0 2px 6px rgba(200,99,31,.3);">
+      <button id="createBtn" onclick="togglePop('createPop')" class="rail-btn !w-11 !h-11 !rounded-xl text-white" style="background: var(--sae); box-shadow: 0 2px 6px rgba(25,66,145,.28);">
         <i data-lucide="plus" class="w-5 h-5"></i>
       </button>
       <span class="rail-label">Create</span>
@@ -477,13 +480,13 @@
 
     <div class="flex-1"></div>
 
-    <!-- SAE engineering status strip -->
+    <!-- Status strip — static mock only; dots are neutral grey (not live health data) -->
     <div class="w-full px-2 pb-1">
       <div class="drafting mb-2"></div>
       <div class="status-strip space-y-1">
-        <div class="flex items-center justify-center gap-1"><span class="dot" style="background: var(--pos);"></span> ATO · live</div>
-        <div class="flex items-center justify-center gap-1"><span class="dot" style="background: var(--pos);"></span> ANZ · synced</div>
-        <div class="flex items-center justify-center gap-1 ink-3">2m ago</div>
+        <div class="flex items-center justify-center gap-1"><span class="dot" style="background: var(--ink-4);"></span> ATO · mock</div>
+        <div class="flex items-center justify-center gap-1"><span class="dot" style="background: var(--ink-4);"></span> ANZ · mock</div>
+        <div class="flex items-center justify-center gap-1 ink-3">static</div>
       </div>
     </div>
   </aside>
@@ -519,7 +522,7 @@
 </div>
 
 <script>
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
   function togglePop(id) {
     document.querySelectorAll('.pop.open').forEach(p => { if (p.id !== id) p.classList.remove('open'); });
     document.getElementById(id)?.classList.toggle('open');
@@ -651,7 +654,7 @@
     });
     if (!cmdkFiltered.length) html = `<div style="padding:24px 18px;text-align:center;color:var(--ink-3);font-size:13px;">No matches. Press <span style="font-family:'JetBrains Mono',monospace;color:var(--ink-2);">esc</span> to close.</div>`;
     cmdkListEl.innerHTML = html;
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
     cmdkListEl.querySelectorAll('.cmdk-item').forEach(el => {
       el.addEventListener('click', () => { const href = el.dataset.href; if (href === '#theme') { toggleTheme(); closeCmdK(); } else if (href && href !== '#') location.href = href; else closeCmdK(); });
       el.addEventListener('mouseenter', () => { cmdkSel = parseInt(el.dataset.idx); updateCmdKSel(); });
@@ -695,12 +698,12 @@
   }
   function toggleTheme() {
     const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    try { localStorage.setItem('saebooks_theme', next); } catch (e) {}
+    try { localStorage.setItem('saebooks-theme', next); } catch (e) {}
     applyTheme(next);
   }
   (function bootstrapTheme() {
     let saved = null;
-    try { saved = localStorage.getItem('saebooks_theme'); } catch (e) {}
+    try { saved = localStorage.getItem('saebooks-theme'); } catch (e) {}
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     applyTheme(saved || (prefersDark ? 'dark' : 'light'));
   })();

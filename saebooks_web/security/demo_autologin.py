@@ -160,7 +160,7 @@ def _source_ip(request: Request) -> str | None:
 
 _TURNSTILE_GATE_HTML = """\
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -172,9 +172,15 @@ _TURNSTILE_GATE_HTML = """\
       if (dark) {{
         document.documentElement.classList.add('dark');
         document.documentElement.setAttribute('data-theme', 'dark');
+      }} else {{
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
       }}
     }})();
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -184,6 +190,7 @@ _TURNSTILE_GATE_HTML = """\
     }}
     html.dark {{
       --bg: #0e1a2a; --fg: #e2e8f0; --card: #1a2a3a; --border: #2d3748;
+      --primary: #5c89e0;
     }}
     body {{
       background: var(--bg); color: var(--fg);
@@ -215,8 +222,9 @@ _TURNSTILE_GATE_HTML = """\
   </style>
 </head>
 <body>
+  <main>
   <div class="card">
-    <div class="logo">SAE Books</div>
+    <h1 class="logo">SAE Books</h1>
     <div class="tagline">Australian small-business accounting</div>
     <ul class="features">
       <li>Full double-entry ledger</li>
@@ -225,7 +233,7 @@ _TURNSTILE_GATE_HTML = """\
       <li>Bank reconciliation</li>
     </ul>
     <div class="error-msg">{error_msg}</div>
-    <form method="POST" action="{provision_path}">
+    <form method="POST" action="{provision_path}" aria-label="Start demo">
       <div class="cf-wrap">
         <div class="cf-turnstile" data-sitekey="{site_key}" data-theme="auto" data-callback="onTurnstileSuccess"></div>
       </div>
@@ -233,6 +241,7 @@ _TURNSTILE_GATE_HTML = """\
     </form>
     <div class="notice">Your demo is private, isolated and auto-deleted after 2 hours.</div>
   </div>
+  </main>
   <script>
     // Auto-submit the form once Turnstile resolves. The widget div wires
     // data-callback="onTurnstileSuccess"; Turnstile invokes it with the token

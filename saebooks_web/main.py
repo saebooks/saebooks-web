@@ -211,7 +211,7 @@ app.add_middleware(
     secret_key=settings.secret_key,
     session_cookie=settings.session_cookie_name,
     max_age=settings.session_max_age,
-    https_only=False,  # TODO: set True behind TLS reverse proxy in prod
+    https_only=settings.session_https_only,  # set SAEBOOKS_WEB_SESSION_HTTPS_ONLY=true in prod
     same_site="strict",
 )
 
@@ -254,6 +254,58 @@ class _RequestIdMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(_RequestIdMiddleware)
+
+
+# ---------------------------------------------------------------------------
+# Security response headers.
+#
+# Adds hardening headers to every response:
+#   X-Frame-Options: SAMEORIGIN  — prevents framing from other origins (clickjacking)
+#   X-Content-Type-Options: nosniff  — prevents MIME-type sniffing
+#   Referrer-Policy: strict-origin-when-cross-origin  — limits referrer leakage
+#   Content-Security-Policy-Report-Only — transitional; logs violations without
+#     blocking.  Heavy inline script/style usage prevents an enforcing CSP until
+#     nonces are threaded through all templates.  Switch to enforcing after that
+#     work is done.
+#
+# This middleware is added AFTER _RequestIdMiddleware so it wraps it and is
+# therefore the absolute outermost layer (stamps headers on every response).
+# ---------------------------------------------------------------------------
+
+
+class _SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    # Allowlist the specific third-party origins this app loads scripts/styles from.
+    _CSP_REPORT_ONLY = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+        "https://unpkg.com https://cdn.jsdelivr.net https://challenges.cloudflare.com; "
+        "style-src 'self' 'unsafe-inline' "
+        "https://fonts.googleapis.com https://cdn.tailwindcss.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "report-uri /csp-report"
+    )
+
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        response = await call_next(request)
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault(
+            "Referrer-Policy", "strict-origin-when-cross-origin"
+        )
+        response.headers.setdefault(
+            "Content-Security-Policy-Report-Only", self._CSP_REPORT_ONLY
+        )
+        return response
+
+
+app.add_middleware(_SecurityHeadersMiddleware)
 
 
 # ---------------------------------------------------------------------------

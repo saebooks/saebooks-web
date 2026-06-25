@@ -3,12 +3,15 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------------------------
-   Dark-mode overrides
-   Wrapped in @layer overrides to sit after 'utilities' in cascade order.
-   Tailwind v3 defines base/components/utilities; declaring 'overrides' after
-   means our html.dark !important rules reliably beat any Tailwind utility.
+   Dark-mode overrides — plain unlayered CSS (NOT inside @layer).
+   Tailwind v3 emits base/components/utilities inside @layer, which means
+   any unlayered rule wins over a layered one regardless of source order.
+   The !important flags below are the belt-AND-suspenders guard against
+   any inline style or specificity edge-case; the unlayered position is the
+   primary win mechanism. Do NOT wrap these in @layer — a layered rule would
+   LOSE to unlayered Tailwind utilities and the !important would be needed
+   for every single case with no cascade fallback.
    --------------------------------------------------------------------------- */
-@layer overrides {
   html.dark .bg-white        { background-color: #1f2937 !important; }
   html.dark .bg-gray-50      { background-color: #111827 !important; }
   html.dark .bg-gray-100     { background-color: #1f2937 !important; }
@@ -55,7 +58,6 @@
   html.dark .border-red-200   { border-color: #7f1d1d !important; }
   html.dark .text-green-700   { color: #34d399 !important; }
   html.dark .text-amber-800   { color: #fbbf24 !important; }
-}
 
 /* Sidebar scrollbar hiding — stays unlayered (no Tailwind collision).
    Content remains scrollable; the visual gutter is just hidden. */

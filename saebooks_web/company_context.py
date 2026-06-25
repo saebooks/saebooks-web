@@ -30,7 +30,13 @@ logger = logging.getLogger("saebooks_web.company_context")
 
 
 class CompanyContextMiddleware(BaseHTTPMiddleware):
+    # Skip static asset paths — they're user-agnostic and must not acquire
+    # a session touch (which stamps Vary: Cookie and fragments the browser cache).
+    _SKIP_PREFIXES = ("/static/", "/healthz", "/manifest.", "/sw.js", "/offline.html")
+
     async def dispatch(self, request, call_next):
+        if request.url.path.startswith(self._SKIP_PREFIXES):
+            return await call_next(request)
         request.state.companies = []
         request.state.active_company_id = None
         request.state.active_company_name = None

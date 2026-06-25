@@ -26,10 +26,10 @@
     </div>
     {% endif %}
 
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 px-8 py-10">
+    <div class="card px-8 py-10">
 
-      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">Create your SAE Books account</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+      <h1 class="text-xl font-semibold ink-1 mb-1">Create your SAE Books account</h1>
+      <p class="text-sm ink-3 mb-6">
         {% if promo and promo.enabled and promo.remaining > 0 %}
         Sign up now and get Pro tier free for 12 months — no credit card needed.
         {% else %}
@@ -51,54 +51,43 @@
         {% endif %}
 
         <div class="mb-4">
-          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <label for="email" class="block text-sm font-medium ink-2 mb-1">Email</label>
           <input id="email" name="email" type="email" required autocomplete="email"
                  value="{{ values.email or '' }}"
-                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
-                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                        focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent"
+                 class="saebooks-input w-full"
                  placeholder="you@example.com">
         </div>
 
         <div class="mb-4">
-          <label for="company_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company name</label>
+          <label for="company_name" class="block text-sm font-medium ink-2 mb-1">Company name</label>
           <input id="company_name" name="company_name" type="text" required
                  value="{{ values.company_name or '' }}"
-                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
-                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                        focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent"
+                 class="saebooks-input w-full"
                  placeholder="Acme Pty Ltd">
         </div>
 
         <div class="mb-4">
-          <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your name <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
+          <label for="name" class="block text-sm font-medium ink-2 mb-1">Your name <span class="ink-4 font-normal">(optional)</span></label>
           <input id="name" name="name" type="text"
                  value="{{ values.name or '' }}"
-                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
-                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                        focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent"
+                 class="saebooks-input w-full"
                  placeholder="Jane Bookkeeper">
         </div>
 
         <div class="mb-6">
-          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+          <label for="password" class="block text-sm font-medium ink-2 mb-1">Password</label>
           <input id="password" name="password" type="password" required minlength="10" autocomplete="new-password"
-                 class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
-                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                        focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent"
+                 class="saebooks-input w-full"
                  placeholder="At least 10 characters">
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">10+ characters with at least one letter and one digit.</p>
+          <p class="text-xs ink-3 mt-1">10+ characters with at least one letter and one digit.</p>
         </div>
 
-        <button type="submit"
-                class="w-full rounded-md bg-[#194291] px-4 py-2 text-sm font-medium
-                       text-white hover:bg-[#133372] focus:outline-none focus:ring-2
-                       focus:ring-[#194291] focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+        <button type="submit" class="btn-primary w-full">
           Create account
         </button>
       </form>
 
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-6 text-center">
+      <p class="text-sm ink-3 mt-6 text-center">
         Already have an account?
         <a href="/login" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">Sign in</a>
       </p>

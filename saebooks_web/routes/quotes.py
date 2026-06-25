@@ -29,6 +29,8 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from markupsafe import escape as _html_escape
+
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines_shared
 
@@ -428,28 +430,30 @@ async def quote_email_send(
 
     result = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
     mode = result.get("mode", "unknown")
+    # Escape all untrusted values from the upstream API response before
+    # interpolating into HTML — prevents reflected/self-XSS via |safe in template.
     if mode == "blocked":
         flash = (
             f"🛑 <b>BLOCKED</b> — nothing was sent. "
-            f"Reason: <code>{result.get('reason', 'unknown')}</code>. "
-            f"Outbox copy: <code>{result.get('outbox_path', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+            f"Reason: <code>{_html_escape(result.get('reason', 'unknown'))}</code>. "
+            f"Outbox copy: <code>{_html_escape(result.get('outbox_path', '?'))}</code>. "
+            f"Audit log id: <code>{_html_escape(result.get('log_id', '?'))}</code>."
         )
         flash_kind = "warm"
     elif mode == "sent":
         flash = (
-            f"✅ Sent. Resend message id: <code>{result.get('message_id', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+            f"✅ Sent. Resend message id: <code>{_html_escape(result.get('message_id', '?'))}</code>. "
+            f"Audit log id: <code>{_html_escape(result.get('log_id', '?'))}</code>."
         )
         flash_kind = "pos"
     elif mode == "failed":
         flash = (
-            f"❌ Failed. Errors: <code>{result.get('errors', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+            f"❌ Failed. Errors: <code>{_html_escape(result.get('errors', '?'))}</code>. "
+            f"Audit log id: <code>{_html_escape(result.get('log_id', '?'))}</code>."
         )
         flash_kind = "neg"
     else:
-        flash = f"Upstream HTTP {resp.status_code}: <code>{(resp.text or '')[:300]}</code>"
+        flash = f"Upstream HTTP {resp.status_code}: <code>{_html_escape((resp.text or '')[:300])}</code>"
         flash_kind = "neg"
 
     return _TEMPLATES.TemplateResponse(

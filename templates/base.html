@@ -54,7 +54,7 @@
     :root {
       --ink:        #14171c;
       --ink-2:      #4a4f57;
-      --ink-3:      #8a8f97;
+      --ink-3:      #666b73;  /* was #8a8f97; darkened for WCAG AA 4.5:1 on white */
       --ink-4:      #b4b9c1;
       --paper:      #faf8f4;
       --paper-2:    #f3efe7;
@@ -79,7 +79,7 @@
     html.dark, [data-theme="dark"] {
       --ink:        #f0ece4;
       --ink-2:      #b8b3a8;
-      --ink-3:      #767b86;
+      --ink-3:      #9aa0ad;  /* was #767b86; lightened for WCAG AA 4.5:1 on dark surface */
       --ink-4:      #565b67;
       --paper:      #0e1a2a;
       --paper-2:    #142339;
@@ -348,6 +348,7 @@
     .cmdk { width: min(640px, 92vw); background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 50px rgba(10,20,40,.30), 0 4px 12px rgba(10,20,40,.12); overflow: hidden; }
     .cmdk-input-row { display: flex; align-items: center; gap: .625rem; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--surface); }
     .cmdk-input { flex: 1; border: 0; outline: none; font-size: 15px; background: transparent; color: var(--ink); }
+    .cmdk-input-row:focus-within { box-shadow: 0 0 0 2px var(--sae); border-radius: 12px 12px 0 0; }
     .cmdk-input::placeholder { color: var(--ink-3); }
     .cmdk-list { max-height: 52vh; overflow-y: auto; padding: 6px 0; background: var(--surface); }
     .cmdk-group { padding: 8px 18px 4px; font-size: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-3); }
@@ -385,13 +386,13 @@
     html.dark .sae-logo-mark { background: var(--sae-2); }
   </style>
 
-  <script src="https://unpkg.com/htmx.org@2" defer></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous" defer></script>
+  <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js" integrity="sha384-xphWpUp6pRlNpM8BxCtyoW96oteA0kPxUX0VP6V32gICuE4ViDFBfaoyj5BS7M4w" crossorigin="anonymous" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
     });
-    document.body && document.body.addEventListener && document.body.addEventListener('htmx:afterSwap', function () {
+    document.addEventListener('htmx:afterSwap', function () {
       if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
     });
 
@@ -767,8 +768,8 @@
     <div class="border-t hairline">
       <div class="px-3 py-2">
         <div class="status-strip flex items-center justify-between gap-2">
-          <span class="flex items-center gap-1.5"><span class="dot" style="background: var(--pos);"></span>ATO · live</span>
-          <span class="flex items-center gap-1.5"><span class="dot" style="background: var(--pos);"></span>API · ok</span>
+          <span class="flex items-center gap-1.5"><span class="dot" style="background: var(--ink-4);"></span>ATO</span>
+          <span class="flex items-center gap-1.5"><span class="dot" style="background: var(--ink-4);"></span>API</span>
         </div>
       </div>
       <div class="px-3 py-2.5 border-t hairline flex items-center gap-2">
@@ -809,7 +810,7 @@
          Falls back to single-name display if the user only belongs to one
          company OR the middleware did not populate request.state.companies
          (e.g. unauthenticated page). #}
-      <div class="absolute left-1/2 -translate-x-1/2 text-base font-semibold whitespace-nowrap"
+      <div class="absolute left-1/2 -translate-x-1/2 text-base font-semibold max-w-[40vw] sm:max-w-[50vw] truncate"
             style="color: var(--ink);">
         {% set _state_companies = (request.state.companies if request is defined and request.state is defined else None) or [] %}
         {% set _active_name = (request.state.active_company_name if request is defined and request.state is defined else None) %}
@@ -838,7 +839,7 @@
       </div>
 
       <div class="flex items-center gap-1">
-        <button onclick="openCmdK()" title="Search (⌘K)" class="p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
+        <button onclick="openCmdK()" title="Search (⌘K)" aria-label="Search (Cmd-K)" class="p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
           <i data-lucide="search" class="w-4 h-4"></i>
         </button>
         {# Create mega-dropdown — 4-column verb picker (renamed from QBO-style). #}
@@ -908,13 +909,14 @@
 
   {# Cmd-K palette #}
   <div id="cmdkBackdrop" class="cmdk-backdrop" onclick="if(event.target===this)closeCmdK()">
-    <div class="cmdk" onclick="event.stopPropagation()">
+    <div class="cmdk" role="dialog" aria-modal="true" aria-label="Command palette" onclick="event.stopPropagation()">
       <div class="cmdk-input-row">
         <i data-lucide="search" class="w-4 h-4 ink-3"></i>
-        <input id="cmdkInput" class="cmdk-input" placeholder="Type a command, page, or transaction…" autocomplete="off">
+        <input id="cmdkInput" class="cmdk-input" placeholder="Type a command, page, or transaction…" autocomplete="off"
+               role="combobox" aria-expanded="false" aria-controls="cmdkList" aria-autocomplete="list">
         <span class="cmdk-kbd font-mono text-[10.5px] ink-3 border hairline px-1.5 py-0.5 rounded" style="background: var(--paper);">esc</span>
       </div>
-      <div id="cmdkList" class="cmdk-list"></div>
+      <div id="cmdkList" class="cmdk-list" role="listbox" aria-label="Command results"></div>
       <div class="cmdk-footer">
         <span><span class="kbd">↑↓</span> navigate</span>
         <span><span class="kbd">⏎</span> select</span>
@@ -939,8 +941,8 @@
 <button id="theme-toggle"
         title="Toggle theme (⌘⇧L)"
         aria-label="Toggle dark mode"
-        class="fixed bottom-2 right-4 z-50 inline-flex items-center justify-center w-14 h-14 rounded-full text-white shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 transition"
-        style="background: var(--brand-2); --tw-ring-color: var(--brand-2);">
+        class="fixed bottom-2 right-4 z-10 inline-flex items-center justify-center w-14 h-14 rounded-full text-white shadow-xl hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 transition"
+        style="background: var(--brand-2); --tw-ring-color: var(--brand-2); bottom: max(.5rem, env(safe-area-inset-bottom, .5rem));">
   <i data-lucide="moon" class="w-6 h-6" data-theme-icon="light"></i>
   <i data-lucide="sun"  class="w-6 h-6 hidden" data-theme-icon="dark"></i>
 </button>
@@ -1091,7 +1093,7 @@
     let html = '', lastG = '';
     cmdkFiltered.forEach((it, idx) => {
       if (it.g !== lastG) { html += `<div class="cmdk-group">${it.g}</div>`; lastG = it.g; }
-      html += `<div class="cmdk-item ${idx===cmdkSel?'cmdk-selected':''}" data-idx="${idx}" data-href="${it.href}">
+      html += `<div class="cmdk-item ${idx===cmdkSel?'cmdk-selected':''}" role="option" id="cmdk-opt-${idx}" aria-selected="${idx===cmdkSel}" data-idx="${idx}" data-href="${it.href}">
         <span class="cmdk-icon"><i data-lucide="${it.i}" class="w-4 h-4"></i></span>
         <div><div>${it.t}</div><div class="cmdk-sub">${it.s}</div></div>
         ${it.k?`<span class="cmdk-kbd">${it.k}</span>`:''}
@@ -1111,9 +1113,16 @@
     });
   }
   function updateCmdKSel() {
-    cmdkListEl.querySelectorAll('.cmdk-item').forEach(el => el.classList.toggle('cmdk-selected', parseInt(el.dataset.idx) === cmdkSel));
+    cmdkListEl.querySelectorAll('.cmdk-item').forEach(el => {
+      const isSelected = parseInt(el.dataset.idx) === cmdkSel;
+      el.classList.toggle('cmdk-selected', isSelected);
+      el.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    });
     const sel = cmdkListEl.querySelector('.cmdk-selected');
-    if (sel) sel.scrollIntoView({ block: 'nearest' });
+    if (sel) {
+      sel.scrollIntoView({ block: 'nearest' });
+      cmdkInput && cmdkInput.setAttribute('aria-activedescendant', sel.id);
+    }
   }
   function filterCmdK() {
     const q = cmdkInput.value.toLowerCase().trim();
@@ -1127,9 +1136,14 @@
     }
     cmdkSel = 0; renderCmdK();
   }
+  var _cmdkPrevFocus = null;
   function openCmdK() {
     if (!cmdkBackdrop) return;
+    _cmdkPrevFocus = document.activeElement;
     cmdkBackdrop.classList.add('open');
+    cmdkInput.setAttribute('aria-expanded', 'true');
+    document.body.setAttribute('inert', '');
+    cmdkBackdrop.removeAttribute('inert');
     cmdkInput.value = '';
     const recent = getRecentItems();
     cmdkFiltered = recent.length ? [...recent, ...CMDK_ITEMS] : CMDK_ITEMS;
@@ -1137,10 +1151,17 @@
     renderCmdK();
     setTimeout(() => cmdkInput.focus(), 30);
   }
-  function closeCmdK() { cmdkBackdrop && cmdkBackdrop.classList.remove('open'); }
+  function closeCmdK() {
+    if (!cmdkBackdrop) return;
+    cmdkBackdrop.classList.remove('open');
+    cmdkInput.setAttribute('aria-expanded', 'false');
+    document.body.removeAttribute('inert');
+    if (_cmdkPrevFocus && _cmdkPrevFocus.focus) _cmdkPrevFocus.focus();
+  }
   cmdkInput && cmdkInput.addEventListener('input', filterCmdK);
   cmdkInput && cmdkInput.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); if (cmdkSel < cmdkFiltered.length-1) cmdkSel++; updateCmdKSel(); }
+    if (e.key === 'Tab') { e.preventDefault(); /* trap focus inside dialog */ }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); if (cmdkSel < cmdkFiltered.length-1) cmdkSel++; updateCmdKSel(); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); if (cmdkSel > 0) cmdkSel--; updateCmdKSel(); }
     else if (e.key === 'Enter') {
       const it = cmdkFiltered[cmdkSel];
