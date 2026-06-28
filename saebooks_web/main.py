@@ -36,6 +36,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+import httpx
 import pathlib
 
 from fastapi import FastAPI
@@ -43,7 +44,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 from saebooks_web.config import settings
 
@@ -276,6 +277,7 @@ class _PreviewBasicAuthMiddleware(BaseHTTPMiddleware):
     # can fetch its own manifest/icons without triggering an offline-page hijack.
     _BYPASS_PREFIXES = (
         "/healthz",
+        "/readyz",
         "/manifest.webmanifest",
         "/manifest.json",
         "/sw.js",
@@ -421,3 +423,23 @@ app.openapi = _filtered_openapi  # type: ignore[method-assign]
 async def healthz() -> dict[str, str]:
     """Liveness probe — returns 200 if the process is up."""
     return {"status": "ok"}
+
+
+@app.get("/readyz", include_in_schema=False)
+async def readyz() -> Response:
+    """Readiness probe — 200 when the engine is reachable, 503 otherwise."""
+    engine_url = f"{settings.api_url}/api/v1/healthz"
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            resp = await client.get(engine_url)
+        if resp.status_code == 200:
+            return JSONResponse({"status": "ready"})
+        return JSONResponse(
+            {"status": "degraded", "engine_status": resp.status_code},
+            status_code=503,
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {"status": "degraded", "engine_status": str(exc)},
+            status_code=503,
+        )

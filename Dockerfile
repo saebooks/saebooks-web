@@ -98,14 +98,12 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=tailwind --chown=saebooks:saebooks /css/tailwind.css /app/static/tailwind.css
 
-# Static vendor assets and branding. Copied AFTER the tailwind stage so the
-# tailwind output already exists at /app/static/.
-COPY --chown=saebooks:saebooks static/chart.umd.min.js /app/static/chart.umd.min.js
-COPY --chown=saebooks:saebooks static/sae-books-logo.png /app/static/sae-books-logo.png
-# PWA assets — manifest, service worker, icons, splash screens.
-COPY --chown=saebooks:saebooks static/manifest.webmanifest /app/static/manifest.webmanifest
-COPY --chown=saebooks:saebooks static/pwa/ /app/static/pwa/
-COPY --chown=saebooks:saebooks static/js/ /app/static/js/
+# Static assets — blanket copy of the whole static/ directory.
+# static/tailwind.css is listed in .dockerignore so the build context never
+# includes the stale source copy; the generated tailwind.css from the tailwind
+# stage (copied above) therefore wins.  Any new static asset automatically
+# ships without needing an explicit COPY line added here.
+COPY --chown=saebooks:saebooks static/ /app/static/
 
 COPY --chown=saebooks:saebooks saebooks_web/ ./saebooks_web/
 # Top-level templates/ directory — Jinja2 ChoiceLoader looks here first,

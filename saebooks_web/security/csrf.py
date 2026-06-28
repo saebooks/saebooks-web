@@ -110,7 +110,8 @@ _STATE_CHANGING = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 #               (browsers cannot set Authorization cross-origin without
 #               preflight, and preflight blocks unsafe content-types).
 #   /healthz — liveness probe, never authenticated.
-_CSRF_SKIP_PREFIXES: tuple[str, ...] = ("/api/v1/", "/healthz")
+#   /readyz   — readiness probe, never authenticated.
+_CSRF_SKIP_PREFIXES: tuple[str, ...] = ("/api/v1/", "/healthz", "/readyz")
 
 
 def _path_is_skipped(path: str) -> bool:
