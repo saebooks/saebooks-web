@@ -121,7 +121,7 @@
         {# GST checkbox #}
         <label class="mt-5 flex items-center gap-3 cursor-pointer select-none">
           <input type="checkbox" id="include_gst" name="include_gst" value="on"
-                 {% if form_values and form_values.include_gst == 'on' %}checked{% endif %}
+                 {% if not form_values or form_values.include_gst == 'on' %}checked{% endif %}
                  onchange="updateGstHint()"
                  class="h-5 w-5 rounded border-2 accent-[#194291]"
                  style="border-color:var(--line);">
