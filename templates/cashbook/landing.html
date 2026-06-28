@@ -282,7 +282,7 @@
 
 <script>
 (function () {
-  var currentDirection = {{ '"' + default_direction + '"' | safe }};
+  var currentDirection = {{ default_direction | tojson }};
 
   function setDirection(dir) {
     currentDirection = dir;
