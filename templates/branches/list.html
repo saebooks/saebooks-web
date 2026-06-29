@@ -47,6 +47,7 @@
                   {% if not b.is_default %}
                     <form method="post" action="/branches/{{ b.id }}/archive" class="inline ml-3"
                           onsubmit="return confirm('Archive branch {{ b.code }}?');">
+  {{ csrf_input(request) | safe }}
                       <button type="submit" class="text-sm underline hover:no-underline ink-2">Archive</button>
                     </form>
                   {% endif %}

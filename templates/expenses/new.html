@@ -16,6 +16,7 @@
 {% endif %}
 
 <form method="post" action="/expenses/new" class="space-y-6 max-w-3xl">
+  {{ csrf_input(request) | safe }}
   <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
