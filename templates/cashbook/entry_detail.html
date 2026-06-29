@@ -31,7 +31,7 @@
       </p>
     </div>
     <span class="chip
-      {% if entry.status == 'voided' %}badge-overdue{% elif entry.status == 'posted' %}badge-paid{% else %}badge-draft{% endif %}">
+      {% if entry.status|lower == 'voided' %}badge-overdue{% elif entry.status|lower == 'posted' %}badge-paid{% else %}badge-draft{% endif %}">
       {{ (entry.status or 'draft')|capitalize }}
     </span>
   </div>
@@ -67,7 +67,7 @@
     {% endif %}
   </dl>
 
-  {% if entry.status != 'voided' %}
+  {% if entry.status|lower != 'voided' %}
   <div class="mt-7 hairline pt-5 space-y-2">
     <a href="/cashbook/entries/{{ entry.id }}/edit" class="btn-primary w-full justify-center">
       Edit
