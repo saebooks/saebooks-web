@@ -81,6 +81,7 @@
 <div class="flex flex-wrap gap-3">
   {% if expense.status == "DRAFT" %}
   <form method="post" action="/expenses/{{ expense.id }}/post" class="inline">
+  {{ csrf_input(request) | safe }}
     <button type="submit" class="rounded-md bg-green-600 px-4 py-2 text-base font-medium text-white hover:bg-green-700">
       Post
     </button>
@@ -89,6 +90,7 @@
   {% if expense.status != "VOIDED" %}
   <form method="post" action="/expenses/{{ expense.id }}/void" class="inline"
     onsubmit="return confirm('Void this expense? If POSTED, a reversing journal entry will be created.');">
+  {{ csrf_input(request) | safe }}
     <button type="submit" class="rounded-md bg-gray-200 px-4 py-2 text-base font-medium text-gray-800 hover:bg-gray-300">
       Void
     </button>
@@ -97,6 +99,7 @@
   {% if expense.archived_at is none %}
   <form method="post" action="/expenses/{{ expense.id }}/archive" class="inline"
     onsubmit="return confirm('Archive this expense (soft-delete)?');">
+  {{ csrf_input(request) | safe }}
     <button type="submit" class="rounded-md border border-gray-300 px-4 py-2 text-base text-gray-700 hover:bg-gray-50">
       Archive
     </button>
