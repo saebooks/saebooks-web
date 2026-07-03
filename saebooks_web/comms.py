@@ -1,43 +1,45 @@
-"""Internal outbound-email service — the web app owns customer comms.
+"""Internal outbound-email service — the web app owns comms policy + transport.
 
 Two-repo extraction (Gitea saebooks/saebooks #31/#32): the accounting engine
-is the *accountant* (it owns facts — journals, balances, tax) and the web app
-is the *bookkeeper* (it owns presentation and the human-facing side).  This
-module is the app side of the outbound-email split.  It ports, behaviourally
-verbatim from the engine, three things:
+is the *accountant* (it produces facts — recipients, subject, assembled HTML,
+attachment bytes, the per-tenant outbound flag, and records the audit rows)
+and this app module is the *bookkeeper* — it owns POLICY (send/draft/block)
+and TRANSPORT.  The engine reaches it over HTTP via
+``saebooks/services/comms_client.py``; the two engine facades
+(``services.customer_email`` and ``services.email``) are the fixed contract
+this module conforms to.
 
-* the outbound-email POLICY — the SACRED two-key kill switch + Outlook draft
-  mode from ``saebooks/services/customer_email.py``;
-* the SMTP transport from ``saebooks/services/mailer.py`` (the "sent" path);
+Ported, behaviourally verbatim from the engine's pre-#32 code:
+
+* the customer-email POLICY — the two-key kill switch + per-tenant FROM
+  allowlist + Outlook draft mode, from the ORIGINAL
+  ``saebooks/services/customer_email.py`` (git d3a052e);
+* the Resend API transport (customer_doc "sent" path);
+* the SMTP transport from ``saebooks/services/mailer.py`` (non-customer send);
 * the Microsoft Graph draft transport from
-  ``saebooks/services/outlook_drafts.py`` (the "drafted" path);
+  ``saebooks/services/outlook_drafts.py`` (customer_doc draft mode);
+* the Jinja email templates (``templates/emails/``).
 
-plus the magic-link email template + assembly from
-``saebooks/services/email.py`` + ``templates/emails/magic_link_email.html``.
+PER-KIND POLICY SCOPING (the critical rule)
+-------------------------------------------
+The customer kill switch is scoped to customer documents ONLY:
 
-What DID NOT come across (deliberate — it belongs to the accounting engine,
-which owns the database and the tenant model):
+* ``kind == "customer_doc"`` → the FULL customer policy: draft mode (Graph),
+  the two-key kill switch (``SAEBOOKS_EMAIL_SEND_ENABLED`` env AND the
+  per-tenant ``tenant_outbound_enabled`` fact passed in ``meta``), the
+  per-tenant FROM allowlist, and the Resend send.  Default-closed: an
+  un-configured deployment BLOCKS.
 
-* ``email_send_log`` audit rows and the .eml audit outbox writes — the engine
-  facade records the outcome this endpoint returns;
-* the per-tenant ``tenants.outbound_email_enabled`` DB flag and the per-tenant
-  FROM allowlist — tenant policy stays in the engine.  This module is
-  stateless and DB-free.
-
-The two-key kill switch therefore reduces, in this DB-less module, to its two
-ENV keys — exactly the pair the extraction brief names:
-
-* ``SAEBOOKS_EMAIL_SEND_ENABLED`` — key 1, must be explicitly true to send;
-* ``SAEBOOKS_EMAIL_DRAFT_MODE``   — key 2, when true parks everything as a
-  Graph draft (overrides key 1: while draft mode is on, nothing is sent).
-
-Default for both is false → default-closed: an un-configured deployment
-BLOCKS every message (writes nothing to the wire).
+* ``kind in {"magic_link", "raw", "billing_receipt"}`` → LEGACY MAILER
+  semantics: send via SMTP whenever ``SMTP_HOST`` is configured; ``blocked``
+  ("SMTP_HOST is empty") when it is not.  These are NEVER drafted and are
+  NEVER gated by the customer kill switch — login links and receipts must keep
+  delivering even while customer email is in draft mode.
 
 Public surface
 --------------
 ``POST /internal/comms/send`` — the server-to-server endpoint the engine's
-new comms facades call.  Contract (do not deviate — the engine depends on it):
+comms facades call.  Contract (do not deviate — the engine depends on it):
 
 * If ``COMMS_TOKEN`` is set, header ``X-Comms-Token`` must match it
   (constant-time), else 401.  Empty token → dev mode, open.
@@ -45,31 +47,34 @@ new comms facades call.  Contract (do not deviate — the engine depends on it):
 
       {
         "kind": "customer_doc" | "magic_link" | "billing_receipt" | "raw",
-        "to": "a@x" | ["a@x", "b@y"],          # required
-        "subject": "...",                        # required (magic_link defaults)
-        "body_html": "<p>...</p>",               # required except magic_link
-        "body_text": "..." | null,               # optional plaintext alt
-        "attachments": [                          # optional
+        "to": ["a@x", ...],                       # always a list
+        "subject": "...",
+        "body_html": "<p>...</p>" | null,          # null for magic_link
+        "body_text": "..." | null,
+        "attachments": [
           {"filename": "...", "content_b64": "...", "content_type": "..."}
         ],
-        "meta": {                                 # optional
-          "from": "admin@saee.com.au",            # sender; falls back to SMTP_FROM
-          "cc": ["..."], "bcc": ["..."],          # optional
-          "magic_link": "https://...",            # magic_link kind: the URL
-          "expires_minutes": 15                    # magic_link kind: link TTL
-        }
+        "meta": { ... kind-specific ... }
       }
 
-  ``kind`` only affects body assembly: ``magic_link`` renders the ported
-  template from ``meta.magic_link`` + ``meta.expires_minutes``; every other
-  kind uses the supplied ``body_html``.  ALL kinds then run the SAME policy.
-* 200 → ``{"outcome": "sent"|"drafted"|"blocked", "provider_id": str|None,
-  "detail": str}``.  ``sent`` = delivered via SMTP; ``drafted`` = parked as a
-  Graph draft; ``blocked`` = kill switch refused it (nothing left the box).
+  ``meta`` per kind (matches the engine facades exactly):
+    - customer_doc: ``{tenant_id, doc_type, doc_id, doc_version,
+      sent_by_user_id, from_addr, cc:[], bcc:[], tenant_outbound_enabled}``
+    - magic_link:   ``{template, context:{}, sender}`` — body_html null; the
+      module renders the whitelisted Jinja ``template`` name with ``context``.
+    - raw / billing_receipt: ``{sender}`` — body_html pre-assembled.
+* 200 → ``{"outcome": "sent"|"drafted"|"blocked"|"failed", "provider_id":
+  str|None, "detail": str|None}``.  customer_doc: ``sent`` via Resend,
+  ``drafted`` via Graph, ``blocked`` by the kill switch/allowlist/tenant flag,
+  ``failed`` on a Resend/Graph transport error (mirrors the original, which
+  returned mode='failed' rather than raising).  non-customer: ``sent`` via
+  SMTP, ``blocked`` on empty ``SMTP_HOST``.
 * 400 → malformed request (bad kind / no recipient / empty subject-or-body /
-  bad attachment base64).
-* 502 → ``{"detail": ...}`` transport failure (SMTP delivery error, or Graph
-  draft creation failed while in draft mode).
+  unknown magic_link template / bad attachment base64).
+* 502 → ``{"detail": ...}`` transport failure on the SMTP (non-customer) path
+  only (the old mailer raised ``EmailError`` on delivery failure; the engine's
+  ``email`` facade re-raises it).  customer_doc never returns 502 — its
+  transport failures are 200 ``failed``.
 """
 from __future__ import annotations
 
@@ -409,11 +414,80 @@ async def create_outlook_draft(
 
 
 # ---------------------------------------------------------------------------
-# Magic-link template  (ported from saebooks/services/email.py)
+# Resend API transport  (ported from the original customer_email.py, d3a052e)
+# ---------------------------------------------------------------------------
+#
+# The customer_doc "sent" path.  A real Resend call happens ONLY after the
+# two-key kill switch + FROM allowlist all pass (see run_customer_email_policy)
+# AND the API key is set — an empty key blocks, exactly like the original.
+
+
+async def _post_to_resend(
+    *,
+    api_key: str,
+    api_url: str,
+    from_addr: str,
+    to: list[str],
+    cc: list[str],
+    bcc: list[str],
+    subject: str,
+    body_html: str,
+    body_text: str | None,
+    attachments: list[Attachment],
+) -> tuple[str | None, str | None]:
+    """Make the actual Resend network call.  Returns ``(message_id, error)``."""
+    payload: dict = {
+        "from": from_addr,
+        "to": to,
+        "subject": subject,
+        "html": body_html,
+    }
+    if body_text:
+        payload["text"] = body_text
+    if cc:
+        payload["cc"] = cc
+    if bcc:
+        payload["bcc"] = bcc
+    if attachments:
+        payload["attachments"] = [
+            {
+                "filename": att.filename,
+                "content": base64.b64encode(att.content).decode("ascii"),
+            }
+            for att in attachments
+        ]
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            resp = await client.post(
+                f"{api_url}/emails",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+            )
+        except httpx.HTTPError as exc:
+            return None, f"Resend network error: {exc!r}"
+
+    if 200 <= resp.status_code < 300:
+        return resp.json().get("id"), None
+    return None, f"Resend {resp.status_code}: {resp.text[:500]}"
+
+
+# ---------------------------------------------------------------------------
+# Email templates  (ported from saebooks/services/email.py + templates/emails/)
 # ---------------------------------------------------------------------------
 
 # comms.py lives in saebooks_web/; templates/emails/ is at the repo root.
 _EMAIL_TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "emails"
+
+# Template-name whitelist: bare name (as the engine passes in meta.template) →
+# the .html file this module owns.  Membership doubles as the anti-arbitrary-
+# render gate: only these names reach the loader (400 otherwise).
+_EMAIL_TEMPLATES: dict[str, str] = {
+    "magic_link_email": "magic_link_email.html",
+}
 
 _email_env: jinja2.Environment | None = None
 
@@ -433,19 +507,36 @@ def get_email_env() -> jinja2.Environment:
     return _email_env
 
 
-def render_magic_link(*, magic_link: str, expires_minutes: int) -> str:
-    """Render the magic-link login email HTML from the ported template."""
-    tmpl = get_email_env().get_template("magic_link_email.html")
-    return tmpl.render(magic_link=magic_link, expires_minutes=expires_minutes)
+def render_email_template(template: str, context: dict) -> str:
+    """Render a whitelisted email template with ``context``.
+
+    ``template`` is the bare name the engine sends (e.g. ``"magic_link_email"``,
+    no extension).  Raises ``KeyError`` for a name outside the whitelist — the
+    route maps that to HTTP 400.
+    """
+    filename = _EMAIL_TEMPLATES[template]  # KeyError → 400 at the route
+    tmpl = get_email_env().get_template(filename)
+    return tmpl.render(**context)
 
 
 # ---------------------------------------------------------------------------
-# Policy  (ported from saebooks/services/customer_email.py)
+# Policy
 # ---------------------------------------------------------------------------
 
+# Per-tenant FROM allowlist — ported verbatim from the original
+# customer_email.py (git d3a052e).  Phase-0 hardcode; anything not in the
+# allowlist for its tenant is BLOCKED.  Only consulted for kind=customer_doc.
+_TENANT_FROM_ALLOWLIST: dict[str, set[str]] = {
+    "f6c01a9d-0d41-426c-aa61-e9e60e8a7995": {  # Sauer Pty Ltd ATF Saueesti Trust
+        "admin@saee.com.au",
+        "accounts@saee.com.au",
+    },
+}
 
-async def run_email_policy(
+
+async def run_customer_email_policy(
     *,
+    tenant_id: str | None,
     from_addr: str,
     to: list[str],
     cc: list[str],
@@ -454,24 +545,25 @@ async def run_email_policy(
     body_html: str,
     body_text: str | None,
     attachments: list[Attachment],
-) -> tuple[str, str | None, str]:
-    """Apply the two-key kill switch and route to the chosen transport.
+    tenant_outbound_enabled: bool,
+) -> tuple[str, str | None, str | None]:
+    """The customer_doc policy — ported from the original ``send_customer_email``.
 
-    Returns ``(outcome, provider_id, detail)`` where outcome is one of
-    ``"sent"`` | ``"drafted"`` | ``"blocked"``.  Raises ``TransportError`` on
-    an infrastructure failure (mapped to HTTP 502 by the route).
+    Returns ``(outcome, provider_id, detail)``, outcome ∈ ``sent`` | ``drafted``
+    | ``blocked`` | ``failed``.  Never raises: a transport failure is reported
+    as ``failed`` (200), mirroring the original which returned mode='failed'
+    rather than raising.  The engine facade records that outcome verbatim.
 
-    Decision order — ported faithfully from ``send_customer_email``:
+    Decision order (faithful to the original):
 
-    1. DRAFT MODE overrides everything.  When ``SAEBOOKS_EMAIL_DRAFT_MODE`` is
-       on, the message is parked as a Graph draft; the send kill switch is not
-       even consulted.  A draft-creation failure is a transport failure (502).
-    2. Otherwise the send kill switch: a real send happens ONLY when
-       ``SAEBOOKS_EMAIL_SEND_ENABLED`` is true.  Not enabled → blocked.
-    3. Even when enabled, an empty ``SMTP_HOST`` is "not configured" → blocked
-       (mirrors the engine's "RESEND_API_KEY empty → blocked"; never a false
-       "sent" that silently lands in a dev outbox).
-    4. Past the gates → the actual SMTP send.
+    1. DRAFT MODE overrides everything — park as a Graph draft; the two-key
+       kill switch is not even consulted.  Draft failure → ``failed``.
+    2. Two-key kill switch + FROM allowlist, AND'd — any failing gate blocks:
+       * ``SAEBOOKS_EMAIL_SEND_ENABLED`` env key false;
+       * per-tenant ``tenant_outbound_enabled`` fact (from meta) false;
+       * ``from_addr`` not in the tenant's FROM allowlist.
+    3. Empty ``RESEND_API_KEY`` → blocked.
+    4. Past all gates → the actual Resend send (``sent`` / ``failed``).
     """
     # ── DRAFT MODE — park in the operator's Outlook drafts for review ──
     if settings.customer_email_draft_mode:
@@ -486,24 +578,77 @@ async def run_email_policy(
         )
         if draft.draft_id:
             reason = f"draft mode: saved to Outlook drafts in {settings.graph_draft_mailbox}"
-            logger.info("comms DRAFTED: %s", reason)
+            logger.info("comms customer_doc DRAFTED: %s", reason)
             return "drafted", draft.draft_id, reason
-        logger.error("comms DRAFT FAILED: %s", draft.error)
-        raise TransportError(f"draft mode: {draft.error}")
+        logger.error("comms customer_doc DRAFT FAILED: %s", draft.error)
+        return "failed", None, f"draft mode: {draft.error}"
 
-    # ── Kill switch — key 1 ──
+    # ── Two-key kill switch + FROM allowlist (AND'd) ──
+    allowlist = _TENANT_FROM_ALLOWLIST.get(str(tenant_id), set())
+    block_reasons: list[str] = []
     if not settings.customer_email_send_enabled:
-        reason = "env SAEBOOKS_EMAIL_SEND_ENABLED is not true"
-        logger.warning("comms BLOCKED: %s", reason)
+        block_reasons.append("env SAEBOOKS_EMAIL_SEND_ENABLED is not true")
+    if not tenant_outbound_enabled:
+        block_reasons.append(
+            f"tenants.outbound_email_enabled is false for tenant {tenant_id}"
+        )
+    if from_addr not in allowlist:
+        block_reasons.append(
+            f"from_addr {from_addr!r} not in tenant allowlist {sorted(allowlist) or '[]'}"
+        )
+    if block_reasons:
+        reason = "; ".join(block_reasons)
+        logger.warning("comms customer_doc BLOCKED: %s", reason)
         return "blocked", None, reason
 
-    # ── Transport must be configured — else block, never a false "sent" ──
+    # ── Transport must be configured — empty key blocks (as in the original) ──
+    if not settings.resend_api_key:
+        return "blocked", None, "RESEND_API_KEY is empty"
+
+    # ── Past all gates — make the actual Resend send ──
+    provider_id, resend_error = await _post_to_resend(
+        api_key=settings.resend_api_key,
+        api_url=settings.resend_api_url,
+        from_addr=from_addr,
+        to=to,
+        cc=cc,
+        bcc=bcc,
+        subject=subject,
+        body_html=body_html,
+        body_text=body_text,
+        attachments=attachments,
+    )
+    if provider_id:
+        return "sent", provider_id, "sent via Resend"
+    logger.error("comms customer_doc SEND FAILED: %s", resend_error)
+    return "failed", None, resend_error
+
+
+async def run_legacy_mailer_policy(
+    *,
+    sender: str,
+    to: list[str],
+    cc: list[str],
+    bcc: list[str],
+    subject: str,
+    body_html: str,
+    body_text: str | None,
+    attachments: list[Attachment],
+) -> tuple[str, str | None, str]:
+    """The non-customer policy (magic_link / raw / billing_receipt).
+
+    LEGACY MAILER semantics — NO customer kill switch, NEVER drafted: send via
+    SMTP whenever ``SMTP_HOST`` is configured, ``blocked`` otherwise.  Login
+    links and receipts keep delivering even while customer email is in draft
+    mode.  Raises ``TransportError`` on an SMTP delivery failure (the old
+    mailer raised ``EmailError``; the engine ``email`` facade re-raises it →
+    HTTP 502).
+    """
     if not settings.smtp_host:
         reason = "SMTP_HOST is empty"
-        logger.warning("comms BLOCKED: %s", reason)
+        logger.warning("comms legacy BLOCKED: %s", reason)
         return "blocked", None, reason
 
-    # ── Past all gates — make the actual SMTP send ──
     try:
         result = await send_smtp(
             to=to,
@@ -513,10 +658,10 @@ async def run_email_policy(
             html=body_html,
             text=body_text,
             attachments=attachments,
-            sender=from_addr,
+            sender=sender,
         )
     except EmailError as exc:
-        logger.error("comms SEND FAILED: %s", exc)
+        logger.error("comms legacy SEND FAILED: %s", exc)
         raise TransportError(str(exc)) from exc
 
     detail = f"sent via SMTP host={settings.smtp_host} ({result.mode})"
@@ -532,9 +677,6 @@ router = APIRouter()
 _VALID_KINDS: frozenset[str] = frozenset(
     {"customer_doc", "magic_link", "billing_receipt", "raw"}
 )
-
-_DEFAULT_MAGIC_LINK_SUBJECT = "Your SAE Books Login Link"
-_DEFAULT_MAGIC_LINK_EXPIRES = 15
 
 
 def _token_ok(request: Request) -> bool:
@@ -605,18 +747,16 @@ async def send_comms(request: Request) -> Response:
 
     # ── Body assembly — kind only affects this step ──
     if kind == "magic_link":
-        magic_link = meta.get("magic_link")
-        if not magic_link:
+        template = meta.get("template")
+        if not isinstance(template, str) or template not in _EMAIL_TEMPLATES:
             return JSONResponse(
-                {"detail": "magic_link kind requires meta.magic_link"},
+                {"detail": f"unknown email template: {template!r}"},
                 status_code=400,
             )
-        expires_minutes = meta.get("expires_minutes", _DEFAULT_MAGIC_LINK_EXPIRES)
-        body_html = render_magic_link(
-            magic_link=str(magic_link), expires_minutes=expires_minutes
-        )
-        if not subject:
-            subject = _DEFAULT_MAGIC_LINK_SUBJECT
+        context = meta.get("context")
+        if not isinstance(context, dict):
+            context = {}
+        body_html = render_email_template(template, context)
     else:
         body_html = str(payload.get("body_html") or "")
 
@@ -648,22 +788,43 @@ async def send_comms(request: Request) -> Response:
             )
         )
 
-    from_addr = str(meta.get("from") or settings.smtp_from)
     cc = [str(v) for v in (meta.get("cc") or []) if isinstance(v, str)]
     bcc = [str(v) for v in (meta.get("bcc") or []) if isinstance(v, str)]
 
-    # ── Run the policy ──
+    # ── Dispatch on kind — the customer kill switch is customer_doc ONLY ──
     try:
-        outcome, provider_id, detail = await run_email_policy(
-            from_addr=from_addr,
-            to=to,
-            cc=cc,
-            bcc=bcc,
-            subject=subject,
-            body_html=body_html,
-            body_text=body_text,
-            attachments=attachments,
-        )
+        if kind == "customer_doc":
+            # sender: meta.from_addr (engine's field), meta.from fallback alias.
+            from_addr = str(
+                meta.get("from_addr") or meta.get("from") or settings.smtp_from
+            )
+            outcome, provider_id, detail = await run_customer_email_policy(
+                tenant_id=meta.get("tenant_id"),
+                from_addr=from_addr,
+                to=to,
+                cc=cc,
+                bcc=bcc,
+                subject=subject,
+                body_html=body_html,
+                body_text=body_text,
+                attachments=attachments,
+                tenant_outbound_enabled=bool(meta.get("tenant_outbound_enabled")),
+            )
+        else:
+            # sender: meta.sender (engine's field), meta.from fallback alias.
+            sender = str(
+                meta.get("sender") or meta.get("from") or settings.smtp_from
+            )
+            outcome, provider_id, detail = await run_legacy_mailer_policy(
+                sender=sender,
+                to=to,
+                cc=cc,
+                bcc=bcc,
+                subject=subject,
+                body_html=body_html,
+                body_text=body_text,
+                attachments=attachments,
+            )
     except TransportError as exc:
         return JSONResponse({"detail": str(exc)}, status_code=502)
 

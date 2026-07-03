@@ -128,6 +128,15 @@ class Settings(BaseSettings):
     )
     """Dev outbox dir used by the SMTP transport when smtp_host is empty."""
 
+    # --- Resend API transport (the customer_doc "sent" path) ---
+    resend_api_key: str = Field(default="", alias="RESEND_API_KEY")
+    """Resend API key.  Empty → customer_doc sends are BLOCKED (exactly like
+    the engine's original customer_email: no key, no send)."""
+    resend_api_url: str = Field(
+        default="https://api.resend.com", alias="RESEND_API_URL"
+    )
+    """Resend API base URL (no trailing slash)."""
+
     # --- Microsoft Graph draft transport (the "drafted" path) ---
     graph_tenant_id: str = Field(default="", alias="GRAPH_TENANT_ID")
     graph_client_id: str = Field(default="", alias="GRAPH_CLIENT_ID")
