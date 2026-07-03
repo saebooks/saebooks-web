@@ -19,6 +19,7 @@ SAEBOOKS_WEB_HOST
 """
 from __future__ import annotations
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -68,6 +69,31 @@ class Settings(BaseSettings):
     # is false so we can ship the template before activating the promo.
     # -----------------------------------------------------------------
     launch_promo_enabled: bool = False
+
+    # -----------------------------------------------------------------
+    # LaTeX / PDF rendering (owned by the web app as of engine #31/#32).
+    #
+    # The web app renders the six battle-tested LaTeX/Jinja templates
+    # (templates/latex/*.tex.j2) and POSTs the .tex to the latex-api
+    # microservice.  Env var names are deliberately UNPREFIXED (bare
+    # LATEX_API_URL / LATEX_LOGO_PATH / RENDER_TOKEN) via ``alias`` so they
+    # match the accounting engine's own latex settings and the shared
+    # compose environment — the engine used the same names before the
+    # extraction.
+    # -----------------------------------------------------------------
+    latex_api_url: str = Field(default="http://latex-api:8000", alias="LATEX_API_URL")
+    """Base URL of the latex-api compile service (no trailing slash)."""
+
+    latex_logo_path: str = Field(default="", alias="LATEX_LOGO_PATH")
+    """Absolute path (as seen INSIDE the latex-api container) to the
+    letterhead logo PNG.  Empty → templates fall back to the text
+    letterhead.  Injected into every render ctx as ``logo_path``."""
+
+    render_token: str = Field(default="", alias="RENDER_TOKEN")
+    """Shared secret for the /internal/render endpoint.  When non-empty the
+    engine must present it as the ``X-Render-Token`` header (constant-time
+    compared).  Empty → dev mode, endpoint is open (rely on network
+    isolation)."""
 
 
 settings = Settings()

@@ -49,7 +49,10 @@ from saebooks_web.config import settings
 
 _log = logging.getLogger("saebooks_web.trusted_header")
 
-_SKIP_PREFIXES = ("/static/", "/healthz", "/favicon.ico", "/logout", "/sw.js", "/manifest.webmanifest", "/manifest.json")
+# ``/internal/`` is server-to-server (e.g. /internal/render, called by the
+# accounting engine). It carries no Authentik forward-auth headers and must NOT
+# be default-denied here; it is protected by its own X-Render-Token gate.
+_SKIP_PREFIXES = ("/static/", "/healthz", "/favicon.ico", "/logout", "/sw.js", "/manifest.webmanifest", "/manifest.json", "/internal/")
 
 
 def _enabled() -> bool:

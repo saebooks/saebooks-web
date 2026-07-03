@@ -38,6 +38,9 @@ _SKIP_PREFIXES = (
     "/login",
     "/logout",
     "/oauth/",
+    # Server-to-server (engine → /internal/render); must not trigger a demo
+    # auto-login / provision round-trip.
+    "/internal/",
 )
 
 

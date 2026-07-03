@@ -128,6 +128,9 @@ from saebooks_web.routes.overviews import router as overviews_router  # /sales /
 from saebooks_web.routes.recurring import router as recurring_router  # /recurring aggregator hub
 from saebooks_web.routes.cashbook_invoices import router as cashbook_invoices_router
 from saebooks_web.routes.cashbook_quotes import router as cashbook_quotes_router
+# Internal server-to-server PDF rendering (engine #31/#32) — token-gated,
+# exempt from session auth (see /internal/ in the middleware skip lists).
+from saebooks_web.render import router as render_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -387,6 +390,12 @@ app.include_router(cashbook_quotes_router)
 app.include_router(overviews_router)
 # Recurring transactions hub — /recurring aggregator over invoices + templates
 app.include_router(recurring_router)
+
+# Internal PDF rendering — POST /internal/render/{template}. Called
+# server-to-server by the accounting engine; gated by X-Render-Token, NOT by
+# a browser session (see the /internal/ entries in the auth-middleware skip
+# lists and the CSRF skip prefixes).
+app.include_router(render_router)
 
 # Pass B preview — static design mocks (no data wiring, no auth).
 app.include_router(preview_router)
