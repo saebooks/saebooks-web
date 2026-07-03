@@ -32,6 +32,7 @@
 
 {% if candidates %}
 <form method="post" action="/contacts/cleanup" class="space-y-4">
+  {{ csrf_input(request) | safe }}
   <div class="card overflow-x-auto">
     <table class="sae-table min-w-full w-full text-base">
       <thead>

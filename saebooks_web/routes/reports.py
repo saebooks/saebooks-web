@@ -1249,6 +1249,109 @@ async def revenue_by_customer(
     return _TEMPLATES.TemplateResponse(request, template, ctx)
 
 
+# ---------------------------------------------------------------------------
+# BAS / PAYG review worksheet — GUI-rebuild (BAS/PAYG review screens)
+# ---------------------------------------------------------------------------
+
+
+def _detail_or_status(resp) -> str:
+    """Best-effort error detail string from a non-2xx API response."""
+    try:
+        return str(resp.json().get("detail", "")) or f"HTTP {resp.status_code}"
+    except Exception:
+        return f"HTTP {resp.status_code}"
+
+
+@router.get("/reports/bas-payg", response_class=HTMLResponse, response_model=None)
+async def bas_payg_review(
+    request: Request,
+    from_date: str | None = None,
+    to_date: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """BAS/PAYG review worksheet for a period.
+
+    Consolidates the GST labels (G1..G11, 1A, 1B, net GST) from
+    ``/api/v1/reports/bas_summary`` with PAYG withholding (W1 total gross,
+    W2 tax withheld) derived from finalised pay-runs whose payment date falls
+    in the period, and totals the amount payable to the ATO.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    from_ = from_date or _quarter_start()
+    to_ = to_date or _today()
+    report: dict = {}
+    payg = {"w1_total_gross": 0.0, "w2_tax_withheld": 0.0, "pay_run_count": 0}
+    error: str | None = None
+
+    async with api_client(request) as client:
+        # --- GST labels (BAS summary, with mid-period registration split) ---
+        gst_effective_date: str | None = None
+        clist = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+        if clist.is_success:
+            items = clist.json().get("items", [])
+            if items:
+                gst_effective_date = items[0].get("gst_effective_date") or None
+
+        params: dict = {"from_date": from_, "to_date": to_}
+        if gst_effective_date:
+            params["registration_effective_date"] = gst_effective_date
+        resp = await client.get("/api/v1/reports/bas_summary", params=params)
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.is_success:
+            report = resp.json()
+        else:
+            error = f"GST API error: {_detail_or_status(resp)}"
+
+        # --- PAYG withholding from pay-runs in the period ---
+        pr = await client.get("/api/v1/pay-runs", params={"limit": 500, "offset": 0})
+        if pr.is_success:
+            w1 = 0.0
+            w2 = 0.0
+            count = 0
+            for run in pr.json().get("items", []):
+                pay_date = run.get("payment_date") or run.get("period_end")
+                if not (pay_date and from_ <= pay_date <= to_):
+                    continue
+                count += 1
+                for line in run.get("lines", []):
+                    try:
+                        w1 += float(line.get("gross") or 0)
+                        w2 += float(line.get("tax") or 0)
+                    except (TypeError, ValueError):
+                        continue
+            payg = {
+                "w1_total_gross": round(w1, 2),
+                "w2_tax_withheld": round(w2, 2),
+                "pay_run_count": count,
+            }
+
+    # Amount payable to ATO = net GST (1A - 1B) + PAYG withheld (W2).
+    # PAYG instalment (5A/T7) is not modelled in the engine — entered on the
+    # ATO BAS directly; surfaced as a note on the worksheet.
+    try:
+        net_gst = float(report.get("net_gst", 0) or 0)
+    except (TypeError, ValueError):
+        net_gst = 0.0
+    amount_payable = round(net_gst + payg["w2_tax_withheld"], 2)
+
+    ctx = {
+        "report": report,
+        "payg": payg,
+        "from_date": from_,
+        "to_date": to_,
+        "net_gst": net_gst,
+        "amount_payable": amount_payable,
+        "error": error,
+    }
+    template = (
+        "reports/_bas_payg_table.html"
+        if _is_htmx(request)
+        else "reports/bas_payg.html"
+    )
+    return _TEMPLATES.TemplateResponse(request, template, ctx)
 @router.get("/reports/statement-pack/pdf", response_model=None)
 async def statement_pack_pdf(
     request: Request,

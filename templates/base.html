@@ -491,6 +491,9 @@
           <a href="/credit-notes" class="nav-item is-sub {% if path.startswith('/credit-notes') %}active{% endif %}">
             <i data-lucide="file-minus" class="nav-ico"></i>Credit Notes
           </a>
+          <a href="/bad-debts" class="nav-item is-sub {% if path.startswith('/bad-debts') %}active{% endif %}">
+            <i data-lucide="file-x" class="nav-ico"></i>Bad debts
+          </a>
           <a href="/recurring-invoices" class="nav-item is-sub {% if path.startswith('/recurring-invoices') %}active{% endif %}">
             <i data-lucide="repeat" class="nav-ico"></i>Recurring
           </a>
@@ -1039,7 +1042,7 @@
     { g: 'Go to',   i: 'clock',        t: 'Time entries',          s: 'Hours per project · billable',       href: '/time-entries' },
     { g: 'Go to',   i: 'landmark',     t: 'Bank accounts',         s: 'Cleared balances',                   href: '/bank-accounts' },
     { g: 'Go to',   i: 'git-pull-request', t: 'Reconciliation',    s: 'Match · Create · Transfer · Discuss', href: '/reconciliation' },
-    { g: 'Reports', i: 'line-chart',   t: 'Profit &amp; Loss',     s: 'FY26 to date',           k: 'R P', href: '/reports/profit-loss' },
+    { g: 'Reports', i: 'line-chart',   t: 'Profit & Loss',     s: 'FY26 to date',           k: 'R P', href: '/reports/profit-loss' },
     { g: 'Reports', i: 'scale',        t: 'Balance Sheet',         s: 'As at today',            k: 'R B', href: '/reports/balance-sheet' },
     { g: 'Reports', i: 'hourglass',    t: 'Aged Receivables',      s: 'Days-sales-outstanding', k: 'R A', href: '/reports/aged-receivables' },
     { g: 'Reports', i: 'alarm-clock',  t: 'Aged Payables',         s: 'Days-payable-outstanding', k: 'R Y', href: '/reports/aged-payables' },

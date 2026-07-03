@@ -36,6 +36,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+import httpx
 import pathlib
 
 from fastapi import FastAPI
@@ -43,7 +44,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 from saebooks_web.config import settings
 
@@ -115,6 +116,8 @@ from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.search import router as search_router
 from saebooks_web.routes.companies import router as companies_router
 from saebooks_web.routes.settings import router as settings_router
+from saebooks_web.routes.bad_debts import router as bad_debts_router  # Phase 2 / Task 9
+from saebooks_web.routes.bad_debt_recovery import router as bad_debt_recovery_router  # Phase 2 / Task 11
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 from saebooks_web.routes.contact import router as contact_router
 from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
@@ -125,6 +128,9 @@ from saebooks_web.routes.overviews import router as overviews_router  # /sales /
 from saebooks_web.routes.recurring import router as recurring_router  # /recurring aggregator hub
 from saebooks_web.routes.cashbook_invoices import router as cashbook_invoices_router
 from saebooks_web.routes.cashbook_quotes import router as cashbook_quotes_router
+# Internal server-to-server PDF rendering (engine #31/#32) — token-gated,
+# exempt from session auth (see /internal/ in the middleware skip lists).
+from saebooks_web.render import router as render_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -274,6 +280,7 @@ class _PreviewBasicAuthMiddleware(BaseHTTPMiddleware):
     # can fetch its own manifest/icons without triggering an offline-page hijack.
     _BYPASS_PREFIXES = (
         "/healthz",
+        "/readyz",
         "/manifest.webmanifest",
         "/manifest.json",
         "/sw.js",
@@ -361,6 +368,8 @@ app.include_router(search_router)
 app.include_router(profile_router)
 app.include_router(companies_router)
 app.include_router(settings_router)
+app.include_router(bad_debts_router)
+app.include_router(bad_debt_recovery_router)
 app.include_router(employees_router)
 app.include_router(super_funds_router)
 app.include_router(pay_run_router)
@@ -381,6 +390,12 @@ app.include_router(cashbook_quotes_router)
 app.include_router(overviews_router)
 # Recurring transactions hub — /recurring aggregator over invoices + templates
 app.include_router(recurring_router)
+
+# Internal PDF rendering — POST /internal/render/{template}. Called
+# server-to-server by the accounting engine; gated by X-Render-Token, NOT by
+# a browser session (see the /internal/ entries in the auth-middleware skip
+# lists and the CSRF skip prefixes).
+app.include_router(render_router)
 
 # Pass B preview — static design mocks (no data wiring, no auth).
 app.include_router(preview_router)
@@ -417,3 +432,23 @@ app.openapi = _filtered_openapi  # type: ignore[method-assign]
 async def healthz() -> dict[str, str]:
     """Liveness probe — returns 200 if the process is up."""
     return {"status": "ok"}
+
+
+@app.get("/readyz", include_in_schema=False)
+async def readyz() -> Response:
+    """Readiness probe — 200 when the engine is reachable, 503 otherwise."""
+    engine_url = f"{settings.api_url}/api/v1/healthz"
+    try:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            resp = await client.get(engine_url)
+        if resp.status_code == 200:
+            return JSONResponse({"status": "ready"})
+        return JSONResponse(
+            {"status": "degraded", "engine_status": resp.status_code},
+            status_code=503,
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {"status": "degraded", "engine_status": str(exc)},
+            status_code=503,
+        )

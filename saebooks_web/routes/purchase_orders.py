@@ -4,6 +4,7 @@ GET  /purchase_orders                — list page (paginated, HTMX-aware)
 GET  /purchase_orders/new            — empty create form
 POST /purchase_orders/new            — submit to API
 GET  /purchase_orders/_add_line      — HTMX partial: blank line row
+GET  /purchase_orders/{id}/pdf        — proxy engine PDF to browser
 GET  /purchase_orders/{id}           — detail view (with state-transition buttons)
 POST /purchase_orders/{id}/send      — DRAFT → OPEN
 POST /purchase_orders/{id}/cancel    — non-terminal → CANCELLED
@@ -20,7 +21,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
@@ -490,6 +491,41 @@ async def po_update(
             "line_count": len(lines),
         },
         status_code=resp.status_code if resp.status_code in (409, 422) else 502,
+    )
+
+
+# ---------------------------------------------------------------------------
+# PDF proxy — GET /purchase_orders/{po_id}/pdf
+# Proxies engine GET /api/v1/purchase_orders/{po_id}/pdf to the browser.
+# MUST appear before the catch-all /{po_id} GET (sub-path literal, so
+# FastAPI resolves it correctly regardless, but keep it here for clarity).
+# ---------------------------------------------------------------------------
+
+
+@router.get("/purchase_orders/{po_id}/pdf", response_model=None)
+async def po_pdf(request: Request, po_id: str) -> Response | RedirectResponse:
+    """Proxy the engine purchase-order PDF to the browser."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/purchase_orders/{po_id}/pdf")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if not resp.is_success:
+        return HTMLResponse(
+            f"Could not generate PDF (HTTP {resp.status_code})",
+            status_code=resp.status_code,
+        )
+    # Engine sends the PO number in its Content-Disposition — pass it
+    # through; fall back to the UUID only if the header is absent.
+    disposition = resp.headers.get(
+        "content-disposition", f'inline; filename="po-{po_id}.pdf"'
+    )
+    return Response(
+        content=resp.content,
+        media_type="application/pdf",
+        headers={"Content-Disposition": disposition},
     )
 
 

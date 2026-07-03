@@ -110,7 +110,13 @@ _STATE_CHANGING = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 #               (browsers cannot set Authorization cross-origin without
 #               preflight, and preflight blocks unsafe content-types).
 #   /healthz — liveness probe, never authenticated.
-_CSRF_SKIP_PREFIXES: tuple[str, ...] = ("/api/v1/", "/healthz")
+#   /readyz   — readiness probe, never authenticated.
+#   /internal/ — server-to-server endpoints (e.g. /internal/render) called by
+#               the accounting engine, not a browser. They carry no session
+#               cookie and are protected by their own token gate
+#               (X-Render-Token), so both Origin/Referer (Layer 2) and the
+#               per-form CSRF token (Layer 3) are inapplicable.
+_CSRF_SKIP_PREFIXES: tuple[str, ...] = ("/api/v1/", "/healthz", "/readyz", "/internal/")
 
 
 def _path_is_skipped(path: str) -> bool:

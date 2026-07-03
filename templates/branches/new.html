@@ -15,6 +15,7 @@
 
   <form method="post" action="/branches/new" class="space-y-4 rounded-xl border hairline p-6"
         style="background: var(--surface);">
+  {{ csrf_input(request) | safe }}
     <div>
       <label class="block text-sm font-medium mb-1" for="code">Code</label>
       <input type="text" id="code" name="code" required maxlength="32"

@@ -43,6 +43,8 @@ _log = logging.getLogger("saebooks_web.cf_access")
 _SKIP_PREFIXES = (
     "/static/", "/healthz", "/favicon.ico", "/logout",
     "/sw.js", "/manifest.webmanifest", "/manifest.json",
+    # Server-to-server (engine → /internal/render); no CF Access JWT, own token gate.
+    "/internal/",
 )
 
 _JWKS_CACHE: dict[str, tuple[PyJWKClient, float]] = {}
