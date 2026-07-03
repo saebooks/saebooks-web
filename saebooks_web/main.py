@@ -131,6 +131,9 @@ from saebooks_web.routes.cashbook_quotes import router as cashbook_quotes_router
 # Internal server-to-server PDF rendering (engine #31/#32) — token-gated,
 # exempt from session auth (see /internal/ in the middleware skip lists).
 from saebooks_web.render import router as render_router
+# Internal server-to-server outbound email (engine #32) — token-gated,
+# exempt from session auth (same /internal/ skip lists as render).
+from saebooks_web.comms import router as comms_router
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -396,6 +399,12 @@ app.include_router(recurring_router)
 # a browser session (see the /internal/ entries in the auth-middleware skip
 # lists and the CSRF skip prefixes).
 app.include_router(render_router)
+
+# Internal outbound email — POST /internal/comms/send. Called
+# server-to-server by the accounting engine's comms facades; gated by
+# X-Comms-Token, NOT by a browser session (same /internal/ skip lists as
+# render). Carries the ported two-key kill switch + SMTP/Graph transports.
+app.include_router(comms_router)
 
 # Pass B preview — static design mocks (no data wiring, no auth).
 app.include_router(preview_router)
