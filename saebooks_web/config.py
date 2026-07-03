@@ -95,5 +95,57 @@ class Settings(BaseSettings):
     compared).  Empty → dev mode, endpoint is open (rely on network
     isolation)."""
 
+    # -----------------------------------------------------------------
+    # Outbound email / customer comms (owned by the web app as of engine
+    # #32).  The accounting engine's outbound-email POLICY (two-key kill
+    # switch + Outlook draft mode) and its two transports (SMTP send,
+    # Microsoft Graph draft) are ported into ``saebooks_web.comms``.
+    #
+    # Env var names are deliberately UNPREFIXED (bare, via ``alias``) so
+    # they match the accounting engine's own email settings and the shared
+    # compose environment — the engine used the same names before the
+    # extraction.  Everything defaults CLOSED: no token (dev-open like
+    # render), send disabled, draft mode off, no transport configured.
+    # -----------------------------------------------------------------
+    comms_token: str = Field(default="", alias="COMMS_TOKEN")
+    """Shared secret for the /internal/comms/send endpoint.  When non-empty
+    the engine must present it as ``X-Comms-Token`` (constant-time compared).
+    Empty → dev mode, endpoint is open (rely on network isolation)."""
+
+    # --- SMTP transport (the "sent" path) — ported from mailer.py ---
+    smtp_host: str = Field(default="", alias="SMTP_HOST")
+    """SMTP relay host.  Empty → the SMTP transport falls back to writing
+    an .eml into ``mail_outbox_dir`` (dev), and the send policy treats an
+    empty host as "not configured" → blocked (never a false "sent")."""
+    smtp_port: int = Field(default=587, alias="SMTP_PORT")
+    smtp_user: str = Field(default="", alias="SMTP_USER")
+    smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
+    smtp_from: str = Field(default="", alias="SMTP_FROM")
+    """Default envelope From when the caller does not supply meta.from."""
+    smtp_tls: bool = Field(default=True, alias="SMTP_TLS")
+    mail_outbox_dir: str = Field(
+        default="/tmp/saebooks-comms-outbox", alias="SAEBOOKS_MAIL_OUTBOX_DIR"
+    )
+    """Dev outbox dir used by the SMTP transport when smtp_host is empty."""
+
+    # --- Microsoft Graph draft transport (the "drafted" path) ---
+    graph_tenant_id: str = Field(default="", alias="GRAPH_TENANT_ID")
+    graph_client_id: str = Field(default="", alias="GRAPH_CLIENT_ID")
+    graph_client_secret: str = Field(default="", alias="GRAPH_CLIENT_SECRET")
+    graph_draft_mailbox: str = Field(default="", alias="GRAPH_DRAFT_MAILBOX")
+
+    # --- Two-key kill switch (the POLICY) ---
+    customer_email_send_enabled: bool = Field(
+        default=False, alias="SAEBOOKS_EMAIL_SEND_ENABLED"
+    )
+    """Key 1 — a real SMTP send happens ONLY when this is explicitly true
+    AND draft mode is off.  Default false (fail-closed)."""
+    customer_email_draft_mode: bool = Field(
+        default=False, alias="SAEBOOKS_EMAIL_DRAFT_MODE"
+    )
+    """Key 2 — when true, EVERY message is parked as a Microsoft Graph draft
+    for human review instead of being sent.  Overrides the send key: while
+    draft mode is on, nothing is ever sent.  Default false."""
+
 
 settings = Settings()
