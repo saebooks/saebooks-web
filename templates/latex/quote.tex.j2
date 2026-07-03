@@ -150,11 +150,13 @@
     {\small\color{saegrey} {{ customer.contact | latex_escape }}}\\
     {%- endif %}
     {% if customer.phone or customer.mobile -%}
+    {# every inner tag left-trims: an empty branch must not leave a blank
+       line inside the group — LaTeX reads it as \par and the closing \\
+       then dies with "There's no line here to end". #}
     {\small\color{saegrey}
-      {% if customer.phone %}\textbf{P:}~{{ customer.phone | latex_escape }}{% endif %}
-      {% if customer.phone and customer.mobile %}\quad{% endif %}
-      {% if customer.mobile %}\textbf{M:}~{{ customer.mobile | latex_escape }}{% endif %}
-    }\\
+      {%- if customer.phone %} \textbf{P:}~{{ customer.phone | latex_escape }}{% endif %}
+      {%- if customer.phone and customer.mobile %}\quad{% endif %}
+      {%- if customer.mobile %} \textbf{M:}~{{ customer.mobile | latex_escape }}{% endif %} }\\
     {%- endif %}
     {% if customer.email -%}
     {\small\color{saegrey} \textbf{E:}~{{ customer.email | latex_escape }}}\\

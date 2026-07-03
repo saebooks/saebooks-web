@@ -279,3 +279,32 @@ async def test_document_template_smoke_render() -> None:
     assert "Sauer Pty Ltd" in tex  # account_name
     # The reference field echoes the invoice number.
     assert "INV-000042" in tex
+
+
+def test_quote_phone_no_mobile_leaves_no_blank_line_in_group():
+    """Regression (found live 2026-07-03): customer.phone set + mobile empty
+    left whitespace-only lines inside the ESTIMATE-TO brace group; LaTeX
+    reads a blank line as \\par and the group's closing ``\\\\`` then fails
+    with "There's no line here to end". Assert the killer pattern is gone
+    for every branch combination.
+    """
+    import itertools
+    import re
+
+    from saebooks_web.render import get_env
+
+    env = get_env()
+    tmpl = env.get_template("quote.tex.j2")
+    killer = re.compile(r"\n[ \t]*\n[ \t]*\}?\\\\")
+    for phone, mobile, contact, email in itertools.product(["", "07 4243 3488"], ["", "0457 704 373"], ["", "Bob"], ["", "x@y.z"]):
+        tex = tmpl.render(
+            number="1025", title="T", scope="S", issue_date="2026-07-03",
+            expiry_date="", validity_days=30, deposit_pct="0",
+            subtotal="1.00", total="1.10",
+            customer={"name": "X", "email": email, "phone": phone, "mobile": mobile, "contact": contact},
+            lines=[{"line_no": 1, "description": "d", "quantity": "1", "line_total": "1.00",
+                    "section_label": None, "material": None, "length_note": None, "drawing_ref": None}],
+            logo_path="",
+        )
+        m = killer.search(tex)
+        assert not m, f"blank line before \\\\ with phone={phone!r} mobile={mobile!r} contact={contact!r} email={email!r}: ...{tex[max(0,m.start()-80):m.end()]!r}"
