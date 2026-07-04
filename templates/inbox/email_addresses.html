@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Email-in addresses — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-[color:var(--warm-tint)] border border-[color:var(--warm)] px-4 py-3 text-base mb-6" style="color: var(--warm);">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <p class="text-sm ink-3"><a href="/inbox" class="sae hover:underline">Inbox</a> / settings</p>
+    <h1 class="text-3xl font-semibold ink-1">Email-in addresses</h1>
+    <p class="text-base ink-3 mt-1">Forward supplier invoices to a private address and they land in the document inbox. The address is the credential — treat it like a password and revoke it if it leaks.</p>
+  </div>
+</div>
+
+{% if not available %}
+<div class="max-w-xl">
+  <div class="card px-8 py-10 text-center">
+    <i data-lucide="mail-x" class="w-10 h-10 mx-auto ink-4"></i>
+    <h2 class="mt-4 text-2xl font-semibold ink-1">Email-in is not available on this edition</h2>
+    <p class="mt-2 text-base ink-2">
+      Capturing documents by email is a Business-tier feature. Uploads and
+      mobile camera capture on the <a href="/inbox" class="sae underline">inbox page</a>
+      remain available.
+    </p>
+    <a href="/inbox" class="btn-secondary mt-6 inline-flex">Back to inbox</a>
+  </div>
+</div>
+{% else %}
+
+{# ── Mint a new address ─────────────────────────────────────────────────── #}
+<form method="post" action="/inbox/email-addresses/mint" class="card px-5 py-4 mb-6 flex flex-wrap items-end gap-3">
+  {{ csrf_input(request) | safe }}
+  <div>
+    <label for="mint-company" class="block text-sm font-medium ink-3">Default company routing</label>
+    <select id="mint-company" name="company_id" class="saebooks-input">
+      <option value="">— none (route at review) —</option>
+      {% for co in companies %}
+      <option value="{{ co.id }}">{{ co.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn-primary">
+    Mint new address
+  </button>
+  <p class="basis-full text-xs ink-3 m-0">The token is server-generated and unguessable. Mint one address per company on a multi-entity tenant.</p>
+</form>
+
+{# ── Address list ───────────────────────────────────────────────────────── #}
+{% if addresses %}
+<div class="card overflow-x-auto">
+  <table class="min-w-full text-base sae-table">
+    <thead>
+      <tr class="text-sm ink-3 text-left">
+        <th class="px-4 py-2">Address</th>
+        <th class="px-4 py-2">Company routing</th>
+        <th class="px-4 py-2">Status</th>
+        <th class="px-4 py-2">Created</th>
+        <th class="px-4 py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for addr in addresses %}
+      <tr class="border-t hairline {% if not addr.active %}opacity-60{% endif %}">
+        <td class="px-4 py-2 font-mono">
+          {% if addr.address %}
+            <span id="inbox-addr-{{ addr.id }}">{{ addr.address }}</span>
+            {% if addr.active %}
+            <button type="button" class="ml-2 text-sm sae hover:underline align-middle"
+                    data-copy-target="inbox-addr-{{ addr.id }}"
+                    onclick="inboxCopyAddress(this)">
+              <i data-lucide="copy" class="w-3.5 h-3.5 inline-block"></i> Copy
+            </button>
+            {% endif %}
+          {% else %}
+            <span id="inbox-addr-{{ addr.id }}">{{ addr.token }}</span>
+            <span class="text-xs ink-3">(mail domain not configured yet)</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-2">
+          {% set company = (companies | selectattr('id', 'equalto', addr.company_id) | list | first) if addr.company_id else None %}
+          {{ company.name if company else '—' }}
+        </td>
+        <td class="px-4 py-2">
+          {% if addr.active %}
+          <span class="badge badge-pos font-mono">ACTIVE</span>
+          {% else %}
+          <span class="badge badge-neg font-mono" title="{{ addr.revoked_at or '' }}">REVOKED</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-2 font-mono text-sm ink-3">{{ (addr.created_at or '')[:10] }}</td>
+        <td class="px-4 py-2 text-right">
+          {% if addr.active %}
+          <form method="post" action="/inbox/email-addresses/{{ addr.id }}/revoke" class="inline"
+                onsubmit="return confirm('Revoke this address? Mail sent to it will be quarantined from the next poll.');">
+            {{ csrf_input(request) | safe }}
+            <button type="submit" class="text-sm hover:underline" style="color: var(--neg);">Revoke</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card px-6 py-8 text-center">
+  <i data-lucide="mail-plus" class="w-8 h-8 mx-auto ink-4"></i>
+  <p class="mt-3 text-base ink-2">No email-in addresses yet — mint one above and forward a supplier invoice to it.</p>
+</div>
+{% endif %}
+
+<script>
+  function inboxCopyAddress(btn) {
+    var el = document.getElementById(btn.getAttribute('data-copy-target'));
+    if (!el) return;
+    var text = el.textContent.trim();
+    function done() {
+      var original = btn.innerHTML;
+      btn.textContent = 'Copied ✓';
+      setTimeout(function () {
+        btn.innerHTML = original;
+        if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
+      }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done);
+    } else {
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      sel.removeAllRanges();
+    }
+  }
+</script>
+
+{% endif %}
+{% endblock %}

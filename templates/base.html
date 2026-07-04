@@ -461,6 +461,12 @@
         <a href="/" class="nav-item {% if path == '/' %}active{% endif %}">
           <i data-lucide="home" class="nav-ico"></i>Dashboard
         </a>
+        {# Document Inbox (#33) — badge lazy-loads so nav render never blocks
+           on the stats call; empty response = no badge (flag off / inbox zero). #}
+        <a href="/inbox" class="nav-item {% if path.startswith('/inbox') %}active{% endif %}">
+          <i data-lucide="inbox" class="nav-ico"></i>Inbox
+          <span hx-get="/inbox/_badge" hx-trigger="load" hx-swap="innerHTML" class="ml-auto"></span>
+        </a>
       </div>
 
       {# Sales (Customers context) — customers with terms + one-offs live here, not in a top-level Contacts silo.
