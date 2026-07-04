@@ -94,6 +94,7 @@ from saebooks_web.routes.dashboard import router as dashboard_router
 from saebooks_web.routes.switch_company import router as switch_company_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.imports import router as imports_router
+from saebooks_web.routes.inbox import router as inbox_router  # Document Inbox (#33)
 from saebooks_web.routes.invoices import router as invoices_router
 from saebooks_web.routes.email_log import router as email_log_router
 from saebooks_web.routes.quotes import router as quotes_router
@@ -378,6 +379,7 @@ app.include_router(super_funds_router)
 app.include_router(pay_run_router)
 app.include_router(admin_router)
 app.include_router(imports_router)
+app.include_router(inbox_router)
 app.include_router(ato_sbr_router)
 # Cat-C W6: integrations dashboard + Stripe Connect + LEI/CH HTMX fragments.
 app.include_router(integrations_router)

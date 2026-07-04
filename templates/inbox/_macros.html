@@ -1,0 +1,45 @@
+{#
+  Document Inbox chip macros — statuses are UPPERCASE TEXT end to end
+  and are rendered verbatim (no Capitalize): the chip text IS the state.
+  Colours ride the theme-aware .badge-* classes from base.html.
+#}
+
+{%- macro status_chip(status) -%}
+  {%- set s = (status or '')|upper -%}
+  {%- if s == 'READY' or s == 'PUBLISHED' -%}
+    <span class="badge badge-pos font-mono">{{ s }}</span>
+  {%- elif s == 'NEEDS_REVIEW' or s == 'DUPLICATE' -%}
+    <span class="badge badge-warm font-mono">{{ s }}</span>
+  {%- elif s == 'FAILED' -%}
+    <span class="badge badge-neg font-mono">{{ s }}</span>
+  {%- elif s == 'EXTRACTING' -%}
+    <span class="badge badge-sae font-mono">{{ s }}</span>
+  {%- else -%}
+    <span class="badge badge-ink font-mono">{{ s }}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{%- macro confidence_chip(confidence) -%}
+  {%- set c = (confidence or '')|upper -%}
+  {%- if c == 'OK' -%}
+    <span class="badge badge-pos font-mono" title="Extraction confidence">OK</span>
+  {%- elif c == 'PARTIAL' -%}
+    <span class="badge badge-warm font-mono" title="Extraction incomplete — review carefully">PARTIAL</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{#
+  Field-provenance marker: where did this prefilled value come from?
+    model  → the vision model's extract        (blue "AI")
+    rule   → a supplier rule suggestion         (amber "RULE", phase 2)
+    edited → the reviewer's extraction_override (grey "EDITED")
+#}
+{%- macro provenance_badge(source) -%}
+  {%- if source == 'model' -%}
+    <span class="badge badge-sae font-mono !text-[9px] !px-1.5" title="Filled by the vision model — verify before publishing">AI</span>
+  {%- elif source == 'rule' -%}
+    <span class="badge badge-warm font-mono !text-[9px] !px-1.5" title="Filled by a supplier rule">RULE</span>
+  {%- elif source == 'edited' -%}
+    <span class="badge badge-ink font-mono !text-[9px] !px-1.5" title="Edited by a reviewer">EDITED</span>
+  {%- endif -%}
+{%- endmacro %}

@@ -1,0 +1,61 @@
+{% import "inbox/_macros.html" as chips %}
+{% import "_pagination_macros.html" as pg %}
+
+<div id="inbox-table">
+
+  {% if error %}
+  <div class="rounded-md bg-[color:var(--neg-tint)] border border-[color:var(--neg)] px-4 py-3 text-base mb-4" style="color: var(--neg);">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  {% if docs %}
+  <div class="card overflow-hidden">
+    <table class="sae-table">
+      <thead>
+        <tr>
+          <th>Document</th>
+          <th>Vendor</th>
+          <th>Date</th>
+          <th class="text-right">Total</th>
+          <th>Confidence</th>
+          <th>Status</th>
+          <th>Source</th>
+          <th class="text-right">Age</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in docs %}
+        <tr data-status="{{ doc.status|lower }}" onclick="window.location='/inbox/{{ doc.id }}'">
+          <td>
+            <a href="/inbox/{{ doc.id }}" class="sae hover:underline font-medium" onclick="event.stopPropagation()">
+              {{ doc.filename }}
+            </a>
+          </td>
+          <td>{{ doc._vendor or '—' }}</td>
+          <td class="num">{{ doc._date or '—' }}</td>
+          <td class="num text-right">{% if doc._total %}${{ doc._total }}{% else %}—{% endif %}</td>
+          <td>{{ chips.confidence_chip(doc.extraction_confidence) }}</td>
+          <td>{{ chips.status_chip(doc.status) }}</td>
+          <td><span class="font-mono text-xs ink-3">{{ doc.source }}</span></td>
+          <td class="num text-right ink-3">{{ doc._age }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% set filters = {'status': filter_status, 'source': filter_source} %}
+  {{ pg.page_numbers('/inbox', total, limit, offset, filters, target='#inbox-table') }}
+
+  {% else %}
+  <div class="card px-6 py-12 text-center">
+    <i data-lucide="inbox" class="w-8 h-8 mx-auto ink-4"></i>
+    <p class="mt-3 text-base ink-2">
+      {% if filter_status %}No {{ filter_status }} documents.{% else %}Inbox zero — nothing waiting for review.{% endif %}
+    </p>
+    <p class="mt-1 text-sm ink-3">Photograph a receipt or drop a PDF above to capture it.</p>
+  </div>
+  {% endif %}
+
+</div>
