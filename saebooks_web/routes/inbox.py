@@ -524,7 +524,18 @@ async def _render_review(
 ) -> HTMLResponse:
     dropdowns = await _fetch_dropdowns(client)
     merged = _merged_extract(doc)
+    # Supplier-rule suggestions (suggested_*) count toward the engine's
+    # READY completeness — fold them into the form defaults so a
+    # rule-promoted READY document really is one-click-publishable
+    # (otherwise the selects render empty and publish 422s).
+    if not merged.get("contact_id") and doc.get("suggested_contact_id"):
+        merged["contact_id"] = doc["suggested_contact_id"]
     lines = _normalise_lines(merged)
+    for line in lines:
+        if not line["account_id"] and doc.get("suggested_account_id"):
+            line["account_id"] = doc["suggested_account_id"]
+        if not line["tax_code_id"] and doc.get("suggested_tax_code_id"):
+            line["tax_code_id"] = doc["suggested_tax_code_id"]
     if not lines:
         lines = [{"description": "", "quantity": "1", "unit_price": "",
                   "account_id": "", "tax_code_id": ""}]
@@ -559,6 +570,11 @@ async def _render_review(
             "reject_reasons": _REJECT_REASONS,
             "reviewable": doc.get("status")
             in ("NEEDS_REVIEW", "READY", "FAILED", "RECEIVED"),
+            # The engine's state machine forbids RECEIVED → PUBLISHED —
+            # a RECEIVED document can be saved/rejected/re-extracted but
+            # not published until extraction has run (or FAILED).
+            "publishable": doc.get("status")
+            in ("NEEDS_REVIEW", "READY", "FAILED"),
             **dropdowns,
         },
         status_code=status_code,
@@ -728,11 +744,26 @@ async def inbox_review_submit(
         # ── Publish ────────────────────────────────────────────────────
         record_kind = (form.get("record_kind") or "EXPENSE").strip().upper()
         errors: dict[str, str] = {}
+        if doc.get("status") == "RECEIVED":
+            # Engine state machine: RECEIVED → PUBLISHED is illegal.
+            return await _render_review(
+                request, client, doc,
+                errors={"__all__": (
+                    "This document hasn't been extracted yet — re-run "
+                    "extraction (or wait for the sweep) before publishing. "
+                    "Saving and rejecting still work."
+                )},
+                status_code=409, form_values=form,
+            )
         if not company_id:
             errors["company_id"] = "Company is required to publish."
         if not (form.get("contact_id") or "").strip():
             errors["contact_id"] = "Contact is required to publish."
-        if not (form.get("payment_account_id") or "").strip():
+        if record_kind == "EXPENSE" and not (
+            form.get("payment_account_id") or ""
+        ).strip():
+            # The engine requires a payment account for EXPENSE only —
+            # bills and credit notes don't take one.
             errors["payment_account_id"] = "Payment account is required."
         if not (form.get("date") or "").strip():
             errors["date"] = "Date is required."
@@ -767,9 +798,10 @@ async def inbox_review_submit(
             "company_id": company_id,
             "contact_id": form["contact_id"].strip(),
             "date": form["date"].strip(),
-            "payment_account_id": form["payment_account_id"].strip(),
             "lines": publish_lines,
         }
+        if record_kind == "EXPENSE":
+            payload["payment_account_id"] = form["payment_account_id"].strip()
         reference = (form.get("invoice_number") or "").strip()
         if reference:
             payload["reference"] = reference
@@ -788,10 +820,26 @@ async def inbox_review_submit(
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
         if pub_resp.status_code == 409:
+            # A publish 409 is an illegal state transition (the engine's
+            # version conflicts surface on the PATCH above, never here) —
+            # e.g. another window already published/rejected the document.
+            # Surface the engine's own diagnosis, not a version banner.
+            detail = (
+                "This document can no longer be published — its status "
+                "changed (perhaps in another window)."
+            )
+            try:
+                engine_detail = pub_resp.json().get("detail")
+                if isinstance(engine_detail, str) and engine_detail:
+                    detail = engine_detail
+            except Exception:
+                pass
             fresh = await client.get(f"/api/v1/inbox/documents/{document_id}")
             doc = fresh.json() if fresh.is_success else doc
             return await _render_review(
-                request, client, doc, conflict=True, status_code=409
+                request, client, doc,
+                errors={"__all__": detail},
+                status_code=409, form_values=form,
             )
         if pub_resp.status_code in (404, 503):
             # 503 here can also be the idempotency in-flight response —
@@ -990,6 +1038,7 @@ async def inbox_quick_contact(
         {
             "contacts": contacts,
             "selected_contact_id": selected_id,
+            "quick_created": bool(selected_id),
             "quick_create_error": error,
             "doc_id": str(document_id),
         },

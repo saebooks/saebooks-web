@@ -122,7 +122,7 @@
         <label for="record_kind" class="block text-base font-medium ink-3">Publish as</label>
         <select id="record_kind" name="record_kind" class="saebooks-input w-full">
           {% for kind in record_kinds %}
-          <option value="{{ kind }}" {% if kind == 'EXPENSE' %}selected{% endif %}>{{ kind.replace('_', ' ')|title }}{% if kind != 'EXPENSE' %} (soon){% endif %}</option>
+          <option value="{{ kind }}" {% if kind == 'EXPENSE' %}selected{% endif %}>{{ kind.replace('_', ' ')|title }}</option>
           {% endfor %}
         </select>
         <p class="mt-1 text-xs ink-3">Always created as a DRAFT — posting stays a deliberate second step on the record.</p>
@@ -179,10 +179,12 @@
         <input type="text" id="invoice_number" name="invoice_number" value="{{ merged.invoice_number or '' }}"
                class="saebooks-input w-full" placeholder="optional">
       </div>
-      <div>
+      <div id="payment-account-field">
         <label for="payment_account_id" class="block text-base font-medium ink-3">
           Paid from {{ chips.provenance_badge(provenance.payment_account_id) }}
         </label>
+        {# required only for EXPENSE — bills/credit notes take no payment
+           account; inboxKindSync() toggles it with the record_kind. #}
         <select id="payment_account_id" name="payment_account_id" class="saebooks-input w-full" required>
           <option value="">— bank / card / cash account —</option>
           {% for a in payment_accounts %}
@@ -284,7 +286,14 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
+      {% if publishable %}
       <button type="submit" name="action" value="publish" class="btn-primary">Publish as draft</button>
+      {% else %}
+      <span class="text-sm ink-3" title="The engine forbids publishing before extraction has run.">
+        Extraction hasn't run yet — re-run extraction below (or wait for the
+        sweep) before publishing.
+      </span>
+      {% endif %}
       <button type="submit" name="action" value="save" class="btn-secondary">Save review</button>
       <button type="button" class="text-base hover:underline" style="color: var(--neg);"
               onclick="document.getElementById('inbox-reject-modal').classList.remove('hidden')">
@@ -331,10 +340,14 @@
 
   <script>
     // ── Add-line: clone from a template row, re-indexing the field names. ──
+    // Monotonic counter — NEVER the current row count: after removing a
+    // middle row the count collides with a surviving row's index and the
+    // server-side lines[N] parse silently drops one of them.
+    var inboxLineIdx = {{ line_count }};
     function inboxAddLine() {
       var body = document.getElementById('inbox-lines-body');
       var tpl = document.getElementById('inbox-line-template');
-      var idx = body.querySelectorAll('.inbox-line-row').length;
+      var idx = inboxLineIdx++;
       var frag = tpl.content.cloneNode(true);
       frag.querySelectorAll('[name]').forEach(function (el) {
         el.name = el.name.replace('__INDEX__', idx);
@@ -373,6 +386,19 @@
     }
     document.getElementById('inbox-review-form').addEventListener('input', inboxVariance);
     inboxVariance();
+
+    // ── Paid-from is an EXPENSE concept: bills/credit notes take none. ──
+    function inboxKindSync() {
+      var kind = document.getElementById('record_kind').value;
+      var pay = document.getElementById('payment_account_id');
+      var wrap = document.getElementById('payment-account-field');
+      var isExpense = kind === 'EXPENSE';
+      pay.required = isExpense;
+      pay.disabled = !isExpense;
+      wrap.style.opacity = isExpense ? '' : '0.45';
+    }
+    document.getElementById('record_kind').addEventListener('change', inboxKindSync);
+    inboxKindSync();
   </script>
 
   {# Template row for client-side add-line (kept outside the table). #}

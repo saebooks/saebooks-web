@@ -869,3 +869,194 @@ async def test_manifest_has_inbox_shortcut() -> None:
     # Standalone display + icons — the installability baseline.
     assert manifest["display"] == "standalone"
     assert manifest["icons"]
+
+
+# ---------------------------------------------------------------------------
+# Adversarial-review fix pass — RECEIVED gating, BILL payment account,
+# publish-409 messaging, rule-suggestion prefill, line-index counter
+# ---------------------------------------------------------------------------
+
+_BILL_ID = "77777777-7777-7777-7777-777777777777"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_review_received_hides_publish_button(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """RECEIVED → PUBLISHED is illegal engine-side — the form must not
+    offer a publish that can only 409. Save/reject stay available."""
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc(status="RECEIVED"))
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with _client() as client:
+        resp = await client.get(f"/inbox/{_DOC_ID}")
+
+    assert resp.status_code == 200
+    assert 'value="publish"' not in resp.text
+    assert 'value="save"' in resp.text  # review edits still saveable
+    assert "re-run extraction" in resp.text.lower()
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_publish_received_blocked_before_engine(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """A forced publish POST on a RECEIVED document is answered with the
+    real diagnosis — no engine publish call (respx would 500 on an
+    unmocked route), no misleading 'changed in another window' banner."""
+    respx_mock.patch(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc(version=2, status="RECEIVED"))
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with _client() as client:
+        resp = await client.post(
+            f"/inbox/{_DOC_ID}/review", data=_review_form(action="publish")
+        )
+
+    assert resp.status_code == 409
+    assert "hasn&#39;t been extracted yet" in resp.text or "hasn't been extracted yet" in resp.text
+    assert "changed in another window" not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_publish_bill_sends_no_payment_account(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """The engine wants payment_account_id for EXPENSE only — a BILL
+    publish must pass web validation without one and must not smuggle a
+    meaningless 'Paid from' into the payload."""
+    respx_mock.patch(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc(version=2, status="READY"))
+    )
+    publish_route = respx_mock.post(
+        f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}/publish"
+    ).mock(
+        return_value=Response(
+            201,
+            json={
+                "document": _doc(version=3, status="PUBLISHED",
+                                 published_record_kind="BILL",
+                                 published_record_id=_BILL_ID),
+                "record": {"kind": "BILL", "id": _BILL_ID, "status": "DRAFT"},
+            },
+        )
+    )
+
+    async with _client() as client:
+        resp = await client.post(
+            f"/inbox/{_DOC_ID}/review",
+            data=_review_form(
+                action="publish", record_kind="BILL", payment_account_id=""
+            ),
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/bills/{_BILL_ID}"
+    body = _json.loads(publish_route.calls.last.request.content)
+    assert body["record_kind"] == "BILL"
+    assert "payment_account_id" not in body
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_publish_409_shows_engine_detail_not_version_banner(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """A publish 409 is an illegal state transition, not an optimistic-
+    lock miss — surface the engine's message, not the reload banner."""
+    respx_mock.patch(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc(version=2, status="READY"))
+    )
+    respx_mock.post(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}/publish").mock(
+        return_value=Response(
+            409,
+            json={"detail": "illegal transition PUBLISHED -> PUBLISHED"},
+        )
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(
+            200,
+            json=_doc(version=3, status="PUBLISHED",
+                      published_record_kind="EXPENSE",
+                      published_record_id=_EXPENSE_ID),
+        )
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with _client() as client:
+        resp = await client.post(
+            f"/inbox/{_DOC_ID}/review", data=_review_form(action="publish")
+        )
+
+    assert resp.status_code == 409
+    assert "illegal transition" in resp.text
+    assert "changed in another window" not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_review_prefills_rule_suggestions(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """A document promoted to READY purely by a supplier rule renders
+    with the suggested contact/account/tax preselected, so READY really
+    is one-click-publishable."""
+    doc = _doc(
+        status="READY",
+        extract={
+            "vendor_name": "Acme Supplies Pty Ltd",
+            "invoice_number": "INV-0042",
+            "date": "2026-06-20",
+            "total": "220.00",
+            "currency": "AUD",
+            "line_items": [
+                {"description": "Widgets", "qty": 2, "unit_price": "100.00",
+                 "amount": "200.00"},
+            ],
+        },
+        suggested_contact_id=_CONTACT_ID,
+        suggested_account_id=_ACCOUNT_ID,
+        suggested_tax_code_id=_TAX_CODE_ID,
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=doc)
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with _client() as client:
+        resp = await client.get(f"/inbox/{_DOC_ID}")
+
+    assert resp.status_code == 200
+    assert f'value="{_CONTACT_ID}" selected' in resp.text
+    assert f'value="{_ACCOUNT_ID}" selected' in resp.text
+    assert f'value="{_TAX_CODE_ID}" selected' in resp.text
+    # No stray quick-create confirmation on a plain review render.
+    assert "Supplier created and selected" not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_review_line_index_is_monotonic_counter(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Client-side add-line must never reuse the row COUNT as the index
+    (remove middle row + add → collision silently drops a coded line);
+    the page seeds a monotonic counter from the rendered line count."""
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc())
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with _client() as client:
+        resp = await client.get(f"/inbox/{_DOC_ID}")
+
+    assert resp.status_code == 200
+    assert "var inboxLineIdx = 1;" in resp.text  # one extracted line
+    assert "inboxLineIdx++" in resp.text
+    assert ".inbox-line-row').length" not in resp.text
