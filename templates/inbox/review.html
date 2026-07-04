@@ -68,6 +68,30 @@
 </div>
 {% endif %}
 
+{# ── Advisory near-duplicate banner (phase 4) — same contact/vendor +
+     invoice number as another OPEN document. A re-scan defeats byte-level
+     dedupe; this warns. Advisory only: publishing is still allowed. #}
+{% if doc.advisory_duplicates %}
+<div id="inbox-advisory-duplicates"
+     class="rounded-md bg-[color:var(--warm-tint)] border border-[color:var(--warm)] px-4 py-3 text-base mb-4" style="color: var(--warm);">
+  <strong>Possible duplicate.</strong>
+  {{ doc.advisory_duplicates | length }} other open
+  document{{ 's' if doc.advisory_duplicates | length != 1 else '' }} in the inbox
+  {{ 'share' if doc.advisory_duplicates | length != 1 else 'shares' }} this vendor and
+  invoice number — check before publishing (publishing is still allowed):
+  <ul class="mt-1 list-disc list-inside">
+    {% for dup in doc.advisory_duplicates %}
+    <li>
+      <a href="/inbox/{{ dup.id }}" class="underline">{{ dup.filename }}</a>
+      <span class="font-mono text-xs">{{ dup.status }}</span>
+      {% if dup.invoice_number %}· ref {{ dup.invoice_number }}{% endif %}
+      {% if dup.total %}· ${{ dup.total }}{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
   {# ── Left: document preview, streamed through the web proxy ─────────── #}

@@ -646,3 +646,226 @@ async def test_inbox_quick_contact_empty_vendor_is_an_error(
         )
     assert resp.status_code == 422
     assert "No vendor name" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# Advisory near-duplicate banner (phase 4)
+# ---------------------------------------------------------------------------
+
+_SIBLING_ID = "dddddddd-1111-2222-3333-444444444444"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_review_shows_advisory_duplicate_banner(
+    respx_mock: respx.MockRouter,
+) -> None:
+    doc = _doc(
+        advisory_duplicates=[
+            {
+                "id": _SIBLING_ID,
+                "status": "READY",
+                "source": "EMAIL",
+                "filename": "invoice-rescan.pdf",
+                "vendor_name": "Acme Supplies Pty Ltd",
+                "invoice_number": "INV-0042",
+                "total": "220.00",
+                "created_at": "2026-07-03T22:00:00+00:00",
+            }
+        ]
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=doc)
+    )
+    _mock_dropdowns(respx_mock)
+
+    async with _client() as client:
+        resp = await client.get(f"/inbox/{_DOC_ID}")
+
+    assert resp.status_code == 200
+    assert "inbox-advisory-duplicates" in resp.text
+    assert "Possible duplicate" in resp.text
+    assert f'href="/inbox/{_SIBLING_ID}"' in resp.text
+    assert "invoice-rescan.pdf" in resp.text
+    # Advisory only — the publish button is still rendered.
+    assert 'value="publish"' in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_review_no_banner_without_advisory(
+    respx_mock: respx.MockRouter,
+) -> None:
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc(advisory_duplicates=[]))
+    )
+    _mock_dropdowns(respx_mock)
+    async with _client() as client:
+        resp = await client.get(f"/inbox/{_DOC_ID}")
+    assert resp.status_code == 200
+    assert "inbox-advisory-duplicates" not in resp.text
+
+
+# ---------------------------------------------------------------------------
+# Email-in address settings page (phase 4)
+# ---------------------------------------------------------------------------
+
+_ADDR_ID = "eeeeeeee-1111-2222-3333-444444444444"
+_ADDR_ID_2 = "eeeeeeee-2222-3333-4444-555555555555"
+
+
+def _email_address(**overrides) -> dict:
+    base = {
+        "id": _ADDR_ID,
+        "token": "k7m2p9q4w8x3zr5t",
+        "address": "k7m2p9q4w8x3zr5t@in.saebooks.com.au",
+        "company_id": None,
+        "active": True,
+        "revoked_at": None,
+        "created_at": "2026-07-04T01:00:00+00:00",
+        "updated_at": "2026-07-04T01:00:00+00:00",
+    }
+    base.update(overrides)
+    return base
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_email_addresses_page_lists_with_copy_button(
+    respx_mock: respx.MockRouter,
+) -> None:
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/email-addresses").mock(
+        return_value=Response(
+            200,
+            json={
+                "items": [
+                    _email_address(),
+                    _email_address(
+                        id=_ADDR_ID_2,
+                        token="a1b2c3d4e5f6g7h8",
+                        address="a1b2c3d4e5f6g7h8@in.saebooks.com.au",
+                        active=False,
+                        revoked_at="2026-07-03T00:00:00+00:00",
+                    ),
+                ]
+            },
+        )
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(
+            200, json={"items": [{"id": _COMPANY_ID, "name": "SAE Engineering"}]}
+        )
+    )
+
+    async with _client() as client:
+        resp = await client.get("/inbox/email-addresses")
+
+    assert resp.status_code == 200
+    assert "k7m2p9q4w8x3zr5t@in.saebooks.com.au" in resp.text
+    assert "inboxCopyAddress" in resp.text  # copy button wiring
+    assert ">ACTIVE<" in resp.text
+    assert ">REVOKED<" in resp.text
+    # Mint form + revoke form (active row only) + CSRF everywhere.
+    assert 'action="/inbox/email-addresses/mint"' in resp.text
+    assert f'action="/inbox/email-addresses/{_ADDR_ID}/revoke"' in resp.text
+    assert f'action="/inbox/email-addresses/{_ADDR_ID_2}/revoke"' not in resp.text
+    assert 'name="csrf_token"' in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_email_addresses_flag_off_hides_gracefully(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """FLAG_INBOX_EMAIL off (route 404) but the inbox itself alive
+    (stats 200) → in-page explainer, no mint form, HTTP 200."""
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/email-addresses").mock(
+        return_value=Response(404, json={"detail": "Not found"})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/stats").mock(
+        return_value=Response(200, json=_STATS)
+    )
+
+    async with _client() as client:
+        resp = await client.get("/inbox/email-addresses")
+
+    assert resp.status_code == 200
+    assert "Email-in is not available" in resp.text
+    assert 'action="/inbox/email-addresses/mint"' not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_email_addresses_whole_inbox_off_renders_disabled_page(
+    respx_mock: respx.MockRouter,
+) -> None:
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/email-addresses").mock(
+        return_value=Response(404, json={"detail": "Not found"})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/stats").mock(
+        return_value=Response(404, json={"detail": "Not found"})
+    )
+
+    async with _client() as client:
+        resp = await client.get("/inbox/email-addresses")
+
+    assert resp.status_code == 404
+    assert "Document Inbox is not enabled" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_email_address_mint_posts_and_redirects(
+    respx_mock: respx.MockRouter,
+) -> None:
+    mint_route = respx_mock.post(f"{_API_BASE}/api/v1/inbox/email-addresses").mock(
+        return_value=Response(201, json=_email_address(company_id=_COMPANY_ID))
+    )
+    async with _client() as client:
+        resp = await client.post(
+            "/inbox/email-addresses/mint", data={"company_id": _COMPANY_ID}
+        )
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/inbox/email-addresses"
+    body = _json.loads(mint_route.calls.last.request.content)
+    assert body == {"company_id": _COMPANY_ID}
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_email_address_revoke_posts_and_redirects(
+    respx_mock: respx.MockRouter,
+) -> None:
+    revoke_route = respx_mock.post(
+        f"{_API_BASE}/api/v1/inbox/email-addresses/{_ADDR_ID}/revoke"
+    ).mock(
+        return_value=Response(
+            200, json=_email_address(active=False, revoked_at="2026-07-04T02:00:00+00:00")
+        )
+    )
+    async with _client() as client:
+        resp = await client.post(f"/inbox/email-addresses/{_ADDR_ID}/revoke")
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/inbox/email-addresses"
+    assert revoke_route.called
+
+
+# ---------------------------------------------------------------------------
+# Progressive-web-app manifest (phase 4) — /inbox pins to a home screen
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_manifest_has_inbox_shortcut() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        resp = await client.get("/manifest.webmanifest")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("application/manifest+json")
+    manifest = _json.loads(resp.content)
+    shortcut_urls = [s["url"] for s in manifest.get("shortcuts", [])]
+    assert "/inbox" in shortcut_urls
+    # Standalone display + icons — the installability baseline.
+    assert manifest["display"] == "standalone"
+    assert manifest["icons"]

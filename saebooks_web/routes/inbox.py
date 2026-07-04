@@ -15,6 +15,10 @@ POST /inbox/{id}/extract             — manual extraction retry
 POST /inbox/{id}/reject              — reject with reason + note
 POST /inbox/{id}/quick-contact       — inline supplier quick-create from vendor_name
                                        (HTMX swap of the contact select fragment)
+GET  /inbox/email-addresses          — email-in settings page (phase 4: list/mint/
+                                       revoke the tenant's ingestion addresses)
+POST /inbox/email-addresses/mint     — mint a new server-tokened address
+POST /inbox/email-addresses/{id}/revoke — kill a leaked/retired address
 
 Engine gate semantics surfaced here:
 * 404 from the engine — FLAG_DOCUMENT_INBOX off → "not enabled" page.
@@ -297,6 +301,133 @@ async def inbox_badge(request: Request) -> HTMLResponse:
         'px-1.5 min-w-[1.25rem] h-5 text-[10px] font-semibold text-white" '
         f'style="background: var(--sae);">{count}</span>'
     )
+
+
+# ---------------------------------------------------------------------------
+# Email-in addresses — settings page (list / mint / revoke, copy button)
+#
+# Dual-gated engine-side (FLAG_DOCUMENT_INBOX router 404 + FLAG_INBOX_EMAIL
+# route 404). Both gates surface as 404 here, so /inbox/stats is probed to
+# tell them apart: stats 404 → the whole inbox is off (disabled page);
+# stats alive → only email-in is off (graceful in-page explainer).
+#
+# Registered BEFORE /inbox/{document_id} — the literal path must win over
+# the UUID route.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/inbox/email-addresses", response_class=HTMLResponse, response_model=None)
+async def inbox_email_addresses(
+    request: Request,
+) -> HTMLResponse | RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.get(
+            "/api/v1/inbox/email-addresses", params={"include_revoked": "true"}
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+
+        available = resp.is_success
+        addresses: list[dict] = []
+        if available:
+            addresses = resp.json().get("items", [])
+        elif resp.status_code == 404:
+            # Which flag is off? A dead inbox 404s on stats too.
+            probe = await client.get("/api/v1/inbox/stats")
+            if probe.status_code == 404:
+                return _gate_page(request, 404)
+            # stats alive (200, or 503 vault-off — addresses are pure DB
+            # and vault-independent) → email-in itself is below this
+            # edition; hide gracefully with the explainer.
+        elif resp.status_code == 503:
+            return _gate_page(request, 503)
+        else:
+            request.session["flash"] = f"API error: HTTP {resp.status_code}"
+
+        companies: list[dict] = []
+        if available:
+            c_resp = await client.get(
+                "/api/v1/companies", params={"limit": 100, "offset": 0}
+            )
+            if c_resp.is_success:
+                payload = c_resp.json()
+                companies = (
+                    payload.get("items", []) if isinstance(payload, dict) else payload
+                )
+
+    flash = request.session.pop("flash", None)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "inbox/email_addresses.html",
+        {
+            "available": available,
+            "addresses": addresses,
+            "companies": companies,
+            "flash": flash,
+        },
+    )
+
+
+@router.post(
+    "/inbox/email-addresses/mint", response_class=HTMLResponse, response_model=None
+)
+async def inbox_email_address_mint(request: Request) -> RedirectResponse:
+    """Mint a new ingestion address (the token is server-minted engine-side
+    — the address is the credential)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form = await request.form()
+    company_id = str(form.get("company_id") or "").strip()
+    payload: dict[str, Any] = {"company_id": company_id or None}
+
+    async with api_client(request) as client:
+        resp = await client.post("/api/v1/inbox/email-addresses", json=payload)
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 201:
+        addr = resp.json()
+        shown = addr.get("address") or addr.get("token") or "new address"
+        request.session["flash"] = f"Minted {shown} — documents emailed there land in this inbox."
+    elif resp.status_code == 404:
+        request.session["flash"] = "Email-in is not available on this edition."
+    else:
+        request.session["flash"] = f"Mint failed: HTTP {resp.status_code}"
+    return RedirectResponse(url="/inbox/email-addresses", status_code=303)
+
+
+@router.post(
+    "/inbox/email-addresses/{address_id}/revoke",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def inbox_email_address_revoke(
+    request: Request, address_id: uuid.UUID
+) -> RedirectResponse:
+    """Kill a (leaked/retired) address — idempotent; the row stays as the
+    audit record and the token stops routing on the next poll."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.post(f"/api/v1/inbox/email-addresses/{address_id}/revoke")
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.is_success:
+        request.session["flash"] = "Address revoked — it stops routing on the next mail poll."
+    elif resp.status_code == 404:
+        request.session["flash"] = "Address not found (or email-in is not available)."
+    else:
+        request.session["flash"] = f"Revoke failed: HTTP {resp.status_code}"
+    return RedirectResponse(url="/inbox/email-addresses", status_code=303)
 
 
 # ---------------------------------------------------------------------------
