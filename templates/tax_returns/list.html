@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Deklaratsioonid — SAE Books{% endblock %}
+
+{% block content %}
+
+{% macro status_badge(status) -%}
+  {%- set s = (status or '')|lower -%}
+  {%- if s == 'filed' -%}
+    <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Filed</span>
+  {%- elif s == 'lodged' or s == 'accepted' -%}
+    <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">{{ s|capitalize }}</span>
+  {%- elif s == 'rejected' -%}
+    <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">Rejected</span>
+  {%- elif s == 'ready' -%}
+    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Ready</span>
+  {%- elif s == 'amended' -%}
+    <span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Amended</span>
+  {%- else -%}
+    <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ s|capitalize }}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{# ── Flash banners ── #}
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if flash_error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ flash_error }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">Deklaratsioonid</h1>
+  <p class="text-sm ink-3 mt-1">
+    Tax returns — {{ total }} return{{ "s" if total != 1 else "" }} on file.
+  </p>
+</div>
+
+{# ── Generate-for-period ── #}
+<div class="card p-5 mb-6">
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Generate a return</h2>
+  <form method="POST" action="/tax-returns/generate" class="flex flex-wrap items-end gap-3">
+    {{ csrf_input(request)|safe }}
+    <div>
+      <label for="gen_return_type" class="block text-sm font-medium ink-2 mb-1">Return type</label>
+      <select id="gen_return_type" name="return_type" required class="saebooks-input">
+        {% for rt in generatable_types %}
+        <option value="{{ rt }}">{{ rt }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="gen_period_id" class="block text-sm font-medium ink-2 mb-1">Period ID</label>
+      <input
+        type="text"
+        id="gen_period_id"
+        name="period_id"
+        required
+        placeholder="tax period UUID"
+        list="known-period-ids"
+        class="saebooks-input font-mono text-xs"
+        style="min-width:22rem;"
+      >
+      <datalist id="known-period-ids">
+        {% for pid in known_period_ids %}
+        <option value="{{ pid }}"></option>
+        {% endfor %}
+      </datalist>
+    </div>
+    <button type="submit" class="btn-primary text-sm">Generate</button>
+  </form>
+  <p class="mt-2 text-xs ink-3">
+    Only box-vector return types (KMD) can be generated here — the engine has no
+    self-service tax-period picker yet, so pick a period ID already on file above
+    or paste one from elsewhere. TSD returns are produced by the payroll flow and
+    appear in the list below once generated.
+  </p>
+</div>
+
+{# ── Filters ── #}
+<form method="GET" action="/tax-returns" class="flex flex-wrap items-end gap-3 mb-4">
+  <div>
+    <label for="filter_return_type" class="block text-xs font-medium ink-3 mb-1">Return type</label>
+    <select id="filter_return_type" name="return_type" class="saebooks-input text-sm" onchange="this.form.submit()">
+      <option value="" {% if not filter_return_type %}selected{% endif %}>All types</option>
+      {% for rt in return_types %}
+      <option value="{{ rt }}" {% if filter_return_type == rt %}selected{% endif %}>{{ rt }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="filter_status" class="block text-xs font-medium ink-3 mb-1">Status</label>
+    <select id="filter_status" name="status" class="saebooks-input text-sm" onchange="this.form.submit()">
+      <option value="" {% if not filter_status %}selected{% endif %}>All statuses</option>
+      {% for s in statuses %}
+      <option value="{{ s }}" {% if filter_status == s %}selected{% endif %}>{{ s|capitalize }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</form>
+
+{% import "_partials/empty_state.html" as empty %}
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-[color:var(--line)] divide-y text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Return type</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Period ID</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Generated</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Filed</th>
+        <th scope="col" class="w-8"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-[color:var(--line)] divide-y">
+      {% if returns %}
+        {% for r in returns %}
+        <tr class="hover:bg-[color:var(--paper-2)] cursor-pointer" onclick="window.location='/tax-returns/{{ r.id }}'">
+          <td class="px-4 py-3 font-medium ink-1">
+            <a href="/tax-returns/{{ r.id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ r.return_type }}</a>
+          </td>
+          <td class="px-4 py-3 ink-3 font-mono text-xs">{{ r.period_id[:8] }}…</td>
+          <td class="px-4 py-3">{{ status_badge(r.status) }}</td>
+          <td class="px-4 py-3 ink-2">{{ r.generated_at[:10] if r.generated_at else '—' }}</td>
+          <td class="px-4 py-3 ink-2">{{ r.filed_at[:10] if r.filed_at else '—' }}</td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            <a href="/tax-returns/{{ r.id }}" class="text-sm sae hover:underline">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {{ empty.row(6, "file-text", "No tax returns yet",
+                     "Generate a KMD above, or one will appear here once payroll produces a TSD.") }}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

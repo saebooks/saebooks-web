@@ -653,11 +653,17 @@
          rail (BAS/IAS via SBR) and don't apply to a non-AU company. GST
          overview is also AU-GST-registration-threshold specific (see
          routes/overviews.py docstring). Tax Codes stays for every
-         jurisdiction — it's just the engine's own tax-code list. #}
+         jurisdiction — it's just the engine's own tax-code list.
+         Deklaratsioonid (/tax-returns) is the non-AU equivalent of the
+         BAS worksheet + ATO SBR rail — KMD/TSD generate+download+
+         mark-filed against the engine's tax_returns surface (Packet 2).
+         AU keeps its existing BAS/ATO SBR flow unchanged; this link only
+         shows for a non-AU active company. #}
       {% set gst_open = (jurisdiction == 'AU' and (path.startswith('/gst')
                         or path.startswith('/admin/ato-sbr')
                         or path == '/reports/bas-summary'))
-                        or path.startswith('/tax-codes') %}
+                        or path.startswith('/tax-codes')
+                        or (jurisdiction != 'AU' and path.startswith('/tax-returns')) %}
       <details class="group" data-section="gst" {% if gst_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>{% if jurisdiction == 'AU' %}GST{% else %}Tax{% endif %}</span>
@@ -678,6 +684,11 @@
           {% if user_role == 'admin' and jurisdiction == 'AU' %}
           <a href="/admin/ato-sbr" class="nav-item is-sub {% if path.startswith('/admin/ato-sbr') %}active{% endif %}">
             <i data-lucide="landmark" class="nav-ico"></i>ATO SBR
+          </a>
+          {% endif %}
+          {% if jurisdiction != 'AU' %}
+          <a href="/tax-returns" class="nav-item is-sub {% if path.startswith('/tax-returns') %}active{% endif %}">
+            <i data-lucide="file-check" class="nav-ico"></i>Deklaratsioonid
           </a>
           {% endif %}
         </div>
