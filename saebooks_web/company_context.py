@@ -16,6 +16,22 @@ Writes (request.state only — does not mutate session here):
   - request.state.companies — list of {id, name} for the dropdown
   - request.state.active_company_id — uuid string or None
   - request.state.active_company_name — display name or None
+  - request.state.active_company_jurisdiction — jurisdiction code
+    ("AU", "EE", ...) or None if it couldn't be resolved
+
+Jurisdiction resolution note: ``CompanyOut`` does not expose
+``Company.jurisdiction`` (verified against the engine's
+saebooks/api/v1/schemas.py — the field exists on the model but was
+never added to the API schema), so it cannot be read directly off the
+``/api/v1/companies`` response fetched above. Instead this proxies off
+``/api/v1/tax_codes``, whose list endpoint (as of the engine's Packet 4a
+change) defaults its jurisdiction filter to the requesting company's own
+``Company.jurisdiction``. A one-row fetch with no explicit jurisdiction
+param therefore returns codes stamped with the active company's real
+jurisdiction. This is a workaround for a genuine gap in the engine's
+public schema — the engine should expose ``jurisdiction`` directly on
+CompanyOut so callers don't need to infer it from a side effect of
+another endpoint.
 """
 from __future__ import annotations
 
@@ -34,6 +50,7 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
         request.state.companies = []
         request.state.active_company_id = None
         request.state.active_company_name = None
+        request.state.active_company_jurisdiction = None
         try:
             token = request.session.get("api_token") if "session" in request.scope else None
         except Exception:
@@ -80,6 +97,39 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                     if active is not None:
                         request.state.active_company_id = active["id"]
                         request.state.active_company_name = active["name"]
+                        # Resolve jurisdiction — see module docstring: CompanyOut
+                        # doesn't expose Company.jurisdiction, so proxy off the
+                        # default (no explicit ``jurisdiction`` param) response
+                        # of /api/v1/tax_codes, which the engine now resolves
+                        # per-company. One extra low-cost call, same pattern as
+                        # the /api/v1/companies call above.
+                        try:
+                            juris_headers = dict(headers)
+                            juris_headers["X-Company-Id"] = active["id"]
+                            async with httpx.AsyncClient(
+                                base_url=settings.api_url,
+                                headers=juris_headers,
+                                timeout=5.0,
+                            ) as juris_client:
+                                jr = await juris_client.get(
+                                    "/api/v1/tax_codes",
+                                    params={"page_size": 1},
+                                )
+                            if jr.status_code == 200:
+                                juris_items = jr.json().get("items") or []
+                                if juris_items:
+                                    request.state.active_company_jurisdiction = (
+                                        juris_items[0].get("jurisdiction") or "AU"
+                                    )
+                                else:
+                                    # No tax codes at all for this company yet —
+                                    # matches the engine's own AU fallback.
+                                    request.state.active_company_jurisdiction = "AU"
+                        except Exception as juris_exc:
+                            logger.debug(
+                                "CompanyContextMiddleware: jurisdiction lookup skipped (%s)",
+                                juris_exc,
+                            )
             except Exception as exc:
                 logger.debug("CompanyContextMiddleware: skipped (%s)", exc)
         return await call_next(request)
