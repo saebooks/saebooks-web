@@ -120,6 +120,7 @@ from saebooks_web.routes.settings import router as settings_router
 from saebooks_web.routes.bad_debts import router as bad_debts_router  # Phase 2 / Task 9
 from saebooks_web.routes.bad_debt_recovery import router as bad_debt_recovery_router  # Phase 2 / Task 11
 from saebooks_web.routes.tax_codes import router as tax_codes_router
+from saebooks_web.routes.tax_returns import router as tax_returns_router
 from saebooks_web.routes.contact import router as contact_router
 from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
 from saebooks_web.routes.attachments import router as attachments_router  # Phase 1.5
@@ -381,6 +382,7 @@ app.include_router(admin_router)
 app.include_router(imports_router)
 app.include_router(inbox_router)
 app.include_router(ato_sbr_router)
+app.include_router(tax_returns_router)
 # Cat-C W6: integrations dashboard + Stripe Connect + LEI/CH HTMX fragments.
 app.include_router(integrations_router)
 # Phase 1.5: attachment panel (upload / delete / download relay).
