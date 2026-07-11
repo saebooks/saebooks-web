@@ -451,6 +451,11 @@
       {% set path = request.url.path %}
       {% set username = request.session.get("username", "") %}
       {% set user_role = request.session.get("user_role", "") %}
+      {# Active company jurisdiction ("AU", "EE", ...) — set by
+         CompanyContextMiddleware. Falls back to "AU" (unresolved / not yet
+         populated, e.g. logged out) so AU behaviour is unchanged when the
+         signal is unavailable. #}
+      {% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}
 
       {% if bookkeeping_mode == "cashbook" %}
         {% include "_partials/sidebar_cashbook.html" %}
@@ -644,26 +649,33 @@
         </div>
       </details>
 
-      {% set gst_open = path.startswith('/gst')
-                        or path.startswith('/tax-codes')
+      {# AU-only: BAS worksheet + ATO SBR are the Australian activity-statement
+         rail (BAS/IAS via SBR) and don't apply to a non-AU company. GST
+         overview is also AU-GST-registration-threshold specific (see
+         routes/overviews.py docstring). Tax Codes stays for every
+         jurisdiction — it's just the engine's own tax-code list. #}
+      {% set gst_open = (jurisdiction == 'AU' and (path.startswith('/gst')
                         or path.startswith('/admin/ato-sbr')
-                        or path == '/reports/bas-summary' %}
+                        or path == '/reports/bas-summary'))
+                        or path.startswith('/tax-codes') %}
       <details class="group" data-section="gst" {% if gst_open %}open{% endif %}>
         <summary class="nav-section-label">
-          <span>GST</span>
+          <span>{% if jurisdiction == 'AU' %}GST{% else %}Tax{% endif %}</span>
           <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
         </summary>
         <div class="space-y-0.5 mt-1">
+          {% if jurisdiction == 'AU' %}
           <a href="/gst/overview" class="nav-item is-sub {% if path == '/gst/overview' %}active{% endif %}">
             <i data-lucide="layout-dashboard" class="nav-ico"></i>Overview
           </a>
           <a href="/reports/bas-summary" class="nav-item is-sub {% if path == '/reports/bas-summary' %}active{% endif %}">
             <i data-lucide="file-check" class="nav-ico"></i>BAS worksheet
           </a>
+          {% endif %}
           <a href="/tax-codes" class="nav-item is-sub {% if path.startswith('/tax-codes') %}active{% endif %}">
             <i data-lucide="percent" class="nav-ico"></i>Tax Codes
           </a>
-          {% if user_role == 'admin' %}
+          {% if user_role == 'admin' and jurisdiction == 'AU' %}
           <a href="/admin/ato-sbr" class="nav-item is-sub {% if path.startswith('/admin/ato-sbr') %}active{% endif %}">
             <i data-lucide="landmark" class="nav-ico"></i>ATO SBR
           </a>
@@ -1031,7 +1043,9 @@
     { g: 'Go to',   i: 'layout-dashboard', t: 'Sales overview',     s: 'AR · MTD · top customers',           href: '/sales/overview' },
     { g: 'Go to',   i: 'layout-dashboard', t: 'Expenses overview',  s: 'AP · MTD · bills',                   href: '/expenses-overview' },
     { g: 'Go to',   i: 'layout-dashboard', t: 'Inventory overview', s: 'Items · low stock',                  href: '/inventory/overview' },
+    {% if jurisdiction == 'AU' %}
     { g: 'Go to',   i: 'layout-dashboard', t: 'GST overview',       s: 'BAS quarter · turnover',             href: '/gst/overview' },
+    {% endif %}
     { g: 'Go to',   i: 'users',        t: 'Customer overview',     s: 'Quotes · projects · overdue',        href: '/customer-hub/overview' },
     // (Route path /customer-hub kept; sidebar label is "Customer overview" — no QBO trade-dress.)
     { g: 'Go to',   i: 'repeat',       t: 'Recurring transactions',s: 'Invoices · templates · bills',       href: '/recurring' },
@@ -1052,7 +1066,9 @@
     { g: 'Reports', i: 'scale',        t: 'Balance Sheet',         s: 'As at today',            k: 'R B', href: '/reports/balance-sheet' },
     { g: 'Reports', i: 'hourglass',    t: 'Aged Receivables',      s: 'Days-sales-outstanding', k: 'R A', href: '/reports/aged-receivables' },
     { g: 'Reports', i: 'alarm-clock',  t: 'Aged Payables',         s: 'Days-payable-outstanding', k: 'R Y', href: '/reports/aged-payables' },
+    {% if jurisdiction == 'AU' %}
     { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas-summary' },
+    {% endif %}
     { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll · coming soon', href: '/pay-run' },
     { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG · coming soon',         href: '/pay-run' },
     { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report · coming soon', href: '/reports' },
