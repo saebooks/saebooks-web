@@ -25,10 +25,17 @@ Six tests:
 6. test_nav_ee_hides_bas_and_ato_sbr_shows_tax_codes          — EE: sidebar
    section relabelled "Tax", BAS worksheet + ATO SBR links absent, Tax Codes
    link still present.
-7. test_tax_codes_list_sends_no_explicit_jurisdiction_param   — regression
-   guard: the web app's tax-code dropdown fetch never sends an explicit
-   ``jurisdiction`` query param, so it always gets the engine's own
-   per-company default.
+7. test_invoice_new_tax_code_dropdown_sends_no_jurisdiction_param — regression
+   guard on the actual dropdown surface (invoice line tax-code select): the
+   fetch never sends an explicit ``jurisdiction`` query param, so it always
+   gets the engine's own per-company default.
+8. test_invoice_new_ee_dropdown_shows_engine_tax_code_name         — an EE
+   company's invoice-new form renders the tax code's engine-provided
+   ``name``/``tax_system`` verbatim (VAT), not a hand-localised label.
+9. test_jurisdiction_lookup_uses_limit_not_page_size               — the
+   middleware's own tax_codes probe call uses tax_codes' actual
+   ``limit``/``offset`` params, not companies' ``page``/``page_size`` (which
+   FastAPI would silently ignore, falling back to the 200-row default).
 """
 from __future__ import annotations
 
@@ -266,30 +273,121 @@ async def test_nav_ee_hides_bas_and_ato_sbr_shows_tax_codes(
 
 
 # ---------------------------------------------------------------------------
-# 7. Tax-code dropdown fetch never overrides jurisdiction
+# 7-8. Invoice-new tax-code dropdown — no jurisdiction override, EE names
+#      come through verbatim from the engine
 # ---------------------------------------------------------------------------
+
+
+def _mock_invoice_new_dropdowns(
+    respx_mock: respx.MockRouter, *, tax_codes_mock
+) -> None:
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/contacts(\?.*)?$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/accounts(\?.*)?$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/projects(\?.*)?$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_codes(\?.*)?$").mock(
+        side_effect=tax_codes_mock
+    )
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_tax_codes_list_sends_no_explicit_jurisdiction_param(
+async def test_invoice_new_tax_code_dropdown_sends_no_jurisdiction_param(
     respx_mock: respx.MockRouter,
 ) -> None:
-    """Regression guard: /tax-codes must not send jurisdiction=AU (or any
-    other explicit override) to the engine, so a non-AU company's own
-    default (Packet 4a) is what actually comes back."""
+    """Regression guard on the actual dropdown surface: the invoice-line
+    tax-code fetch must not send jurisdiction=AU (or any other explicit
+    override), so a non-AU company's own default (engine Packet 4a) is
+    what actually comes back."""
     captured: dict = {}
 
     def _capture(request):
         captured["params"] = dict(request.url.params)
         return Response(200, json={"items": [], "total": 0})
 
+    _mock_invoice_new_dropdowns(respx_mock, tax_codes_mock=_capture)
+
+    async with _client() as client:
+        resp = await client.get("/invoices/new")
+
+    assert resp.status_code == 200
+    assert "params" in captured, "tax_codes endpoint was never called"
+    assert "jurisdiction" not in captured["params"]
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_new_ee_dropdown_shows_engine_tax_code_name(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """An EE company's invoice-new form renders the engine-provided tax
+    code name/tax_system verbatim (e.g. VAT) rather than a hand-localised
+    label — the app must not invent "käibemaks" or similar itself."""
+
+    def _ee_tax_codes(request):
+        return Response(
+            200,
+            json={
+                "items": [
+                    {
+                        "id": "bbbbbbbb-0000-0000-0000-000000000002",
+                        "code": "KM24",
+                        "name": "Käibemaks 24%",
+                        "rate": "24.000",
+                        "tax_system": "VAT",
+                        "jurisdiction": "EE",
+                    }
+                ],
+                "total": 1,
+            },
+        )
+
+    _mock_invoice_new_dropdowns(respx_mock, tax_codes_mock=_ee_tax_codes)
+
+    async with _client() as client:
+        resp = await client.get("/invoices/new")
+
+    assert resp.status_code == 200
+    # The engine's own name comes through untouched — the web app doesn't
+    # hand-localise or substitute its own "VAT"/"GST" business-term copy.
+    assert "Käibemaks 24%" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 9. Middleware jurisdiction probe uses tax_codes' real params
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_jurisdiction_lookup_uses_limit_not_page_size(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """CompanyContextMiddleware's own tax_codes probe (used to resolve
+    jurisdiction, see module docstring) must use tax_codes' real
+    limit/offset params, not companies' page/page_size — the latter would
+    be silently dropped by FastAPI, falling back to a 200-row default
+    fetch on every request instead of a cheap 1-row probe."""
+    captured: dict = {}
+
+    def _capture(request):
+        captured["params"] = dict(request.url.params)
+        return Response(200, json={"items": [], "total": 0})
+
+    _mock_companies(respx_mock, _AU_COMPANY)
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_codes(\?.*)?$").mock(
         side_effect=_capture
     )
+    _register_mocks(respx_mock)
 
     async with _client() as client:
-        resp = await client.get("/tax-codes")
+        resp = await client.get("/")
 
     assert resp.status_code == 200
-    assert "jurisdiction" not in captured["params"]
+    assert captured["params"].get("limit") == "1"
+    assert "page_size" not in captured["params"]

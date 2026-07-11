@@ -113,7 +113,10 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                             ) as juris_client:
                                 jr = await juris_client.get(
                                     "/api/v1/tax_codes",
-                                    params={"page_size": 1},
+                                    # tax_codes takes limit/offset (not
+                                    # companies' page/page_size) — see
+                                    # saebooks/api/v1/tax_codes.py.
+                                    params={"limit": 1},
                                 )
                             if jr.status_code == 200:
                                 juris_items = jr.json().get("items") or []
