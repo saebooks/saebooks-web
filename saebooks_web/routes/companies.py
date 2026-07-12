@@ -225,16 +225,32 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
     errors: dict[str, str] = {}
     if resp.status_code == 422:
         try:
-            detail = resp.json().get("detail", [])
-            if isinstance(detail, list):
-                for err in detail:
+            body = resp.json()
+            # The engine's RFC 7807 handler (saebooks/api/errors.py) fires
+            # whenever the caller's Accept header satisfies its _wants_json
+            # check -- true by default for httpx.AsyncClient (it sends
+            # "Accept: */*" unless overridden, which is exactly what
+            # api_client() uses). In that shape "detail" is always a fixed
+            # human string ("Request body or query parameters failed
+            # validation.") and the real per-field pydantic error list
+            # lives under "errors". Only a caller that suppresses Accept
+            # negotiation gets FastAPI's bare default handler, where the
+            # list lives under "detail" instead -- so prefer "errors" and
+            # fall back to "detail" only when it is itself a list.
+            field_errors = body.get("errors")
+            if not isinstance(field_errors, list):
+                fallback = body.get("detail", [])
+                field_errors = fallback if isinstance(fallback, list) else None
+            if field_errors is not None:
+                for err in field_errors:
                     loc = err.get("loc", [])
                     parts = [p for p in loc if p != "body"]
                     key = str(parts[0]) if parts else "__all__"
                     key = _ENGINE_FIELD_TO_FORM_FIELD.get(key, key)
                     errors[key] = err.get("msg", "Invalid value")
-            elif isinstance(detail, str):
-                errors["__all__"] = detail
+            else:
+                detail = body.get("detail", f"Validation error (HTTP {resp.status_code})")
+                errors["__all__"] = detail if isinstance(detail, str) else str(detail)
         except Exception:
             errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
     else:

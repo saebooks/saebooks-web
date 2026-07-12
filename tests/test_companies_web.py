@@ -484,18 +484,30 @@ async def test_companies_create_ee_engine_422_renders_on_form(respx_mock: respx.
     """A 422 from the engine (not caught by client-side validation) is
     surfaced inline on the form rather than a bare API-error message, and
     the engine's `kmv_number` field name maps back to this form's `kmv`
-    field for the error to land next to the right input."""
+    field for the error to land next to the right input.
+
+    Fixer round 4: mocked in the engine's REAL response shape, not a
+    fabricated one. api_client() uses a bare httpx.AsyncClient, which sends
+    "Accept: */*" by default -- that satisfies the engine's RFC 7807
+    _wants_json check (saebooks/api/errors.py), so field-scoped pydantic
+    errors live under top-level "errors", and "detail" is always a fixed
+    human string, never the per-field list."""
     respx_mock.post(f"{_API_BASE}/api/v1/companies").mock(
         return_value=Response(
             422,
             json={
-                "detail": [
+                "type": "https://saebooks.io/problems/validation_failed",
+                "title": "Validation Failed",
+                "status": 422,
+                "code": "validation_failed",
+                "detail": "Request body or query parameters failed validation.",
+                "errors": [
                     {
                         "loc": ["body", "kmv_number"],
                         "msg": "kmv_number must be 'EE' followed by 9 digits",
                         "type": "value_error",
                     }
-                ]
+                ],
             },
         )
     )
