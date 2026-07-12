@@ -23,6 +23,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
+import pytest
 from babel.messages.catalog import Catalog
 from babel.messages.mofile import write_mo
 
@@ -46,16 +47,36 @@ def _write_fixture_catalog(locales_dir: Path) -> None:
             write_mo(fh, catalog)
 
 
-def _install_fixture_locales(monkeypatch, tmp_path: Path) -> None:
+@pytest.fixture
+def fixture_locale_cache(tmp_path: Path):
+    """Point i18n at a throwaway fixture catalog, then restore + evict.
+
+    Deliberately does NOT use monkeypatch.setattr for LOCALES_DIR: pytest
+    fixture teardown is LIFO, so a finalizer registered *inside* this test
+    (including monkeypatch's own undo, which is queued when the built-in
+    ``monkeypatch`` fixture is set up, before this fixture's body runs)
+    would run monkeypatch's revert-of-LOCALES_DIR AFTER any reset we did
+    here — leaving the process-lifetime ``_translations_cache`` holding
+    this test's fixture Translations objects (keyed "et"/"ru") even once
+    LOCALES_DIR is back to the real app catalog. The next test to call
+    ``i18n.gettext`` for "et"/"ru" would silently get this fixture's
+    "Sign in" -> "Logi sisse" entry instead of the real catalog — a
+    cross-test leak. Manual save/restore here guarantees the reset happens
+    strictly *after* LOCALES_DIR is back to the real path.
+    """
     _write_fixture_catalog(tmp_path)
-    monkeypatch.setattr(i18n, "LOCALES_DIR", tmp_path)
+    original_dir = i18n.LOCALES_DIR
+    i18n.LOCALES_DIR = tmp_path
     i18n.reset_translations_cache()
+    try:
+        yield
+    finally:
+        i18n.LOCALES_DIR = original_dir
+        i18n.reset_translations_cache()
 
 
-def test_gettext_resolves_per_locale(monkeypatch, tmp_path):
+def test_gettext_resolves_per_locale(fixture_locale_cache):
     """Sanity check outside concurrency: each locale gets its own string."""
-    _install_fixture_locales(monkeypatch, tmp_path)
-
     token = i18n.current_locale.set("et")
     try:
         assert i18n.gettext(FIXTURE_MSGID) == "Logi sisse"
@@ -69,7 +90,7 @@ def test_gettext_resolves_per_locale(monkeypatch, tmp_path):
         i18n.current_locale.reset(token)
 
 
-async def test_concurrent_requests_different_locales_same_env(monkeypatch, tmp_path):
+async def test_concurrent_requests_different_locales_same_env(fixture_locale_cache):
     """Two simulated concurrent requests, different locales, same shared
     gettext/ngettext callables (as registered on a single Jinja env by
     register_i18n_global) — must not cross-contaminate.
@@ -80,8 +101,6 @@ async def test_concurrent_requests_different_locales_same_env(monkeypatch, tmp_p
     on the way out — all inside one shared process/event loop, exactly
     the deployment topology the landmine warns about.
     """
-    _install_fixture_locales(monkeypatch, tmp_path)
-
     results: dict[str, list[str]] = {"et": [], "ru": []}
 
     async def simulate_request(locale: str, n_calls: int = 5) -> None:
@@ -109,14 +128,12 @@ async def test_concurrent_requests_different_locales_same_env(monkeypatch, tmp_p
     assert i18n.current_locale.get() == i18n.DEFAULT_LOCALE
 
 
-async def test_concurrent_requests_share_one_cached_translations_object(monkeypatch, tmp_path):
+async def test_concurrent_requests_share_one_cached_translations_object(fixture_locale_cache):
     """Confirms the isolation comes from the contextvar, not from each
     "request" accidentally getting its own Translations instance — the
     per-locale cache (scope requirement: "cached Translations") really is
     shared and reused across concurrent callers of the same locale.
     """
-    _install_fixture_locales(monkeypatch, tmp_path)
-
     seen_ids: set[int] = set()
 
     async def simulate_request(locale: str) -> None:
