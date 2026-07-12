@@ -140,21 +140,30 @@ def _client() -> AsyncClient:
 @respx.mock
 async def test_jurisdiction_defaults_to_au_when_tax_codes_empty(
     respx_mock: respx.MockRouter,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A company with zero own-jurisdiction tax codes yet resolves to 'AU' —
     the web app's last-resort default, not an engine fallback (see
     company_context.py's inline comment: this is a genuinely ambiguous
-    case the web app can't disambiguate from CompanyOut/tax_codes alone)."""
+    case the web app can't disambiguate from CompanyOut/tax_codes alone).
+    The ambiguity is now loud (a logged warning), not silent."""
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction=None)
     _register_mocks(respx_mock)
 
-    async with _client() as client:
-        resp = await client.get("/")
+    with caplog.at_level("WARNING", logger="saebooks_web.company_context"):
+        async with _client() as client:
+            resp = await client.get("/")
 
     assert resp.status_code == 200
     # AU-only nav affordance still present -> jurisdiction resolved "AU".
     assert "BAS worksheet" in resp.text
+    # The ambiguous resolution is flagged in logs, not masqueraded as a
+    # confirmed jurisdiction lookup.
+    assert any(
+        "no tax_codes rows tagged with its own jurisdiction" in rec.message
+        for rec in caplog.records
+    )
 
 
 @pytest.mark.anyio
