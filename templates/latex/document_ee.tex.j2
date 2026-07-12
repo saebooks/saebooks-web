@@ -1,0 +1,249 @@
+{#
+  document_ee.tex.j2 — SAE Books Estonian Tax Invoice ("Arve").
+
+  Packet 3 (feat/ee-app-surface). Sibling of document.tex.j2, scoped to
+  invoices only (the AU template also serves Credit Note / Bill; EE's does
+  not yet — extend when EE credit notes/bills need a rendered PDF).
+
+  Context keys (all data values MUST be latex_escape'd before interpolation
+  — same rule as document.tex.j2). Superset of document.tex.j2's ctx, plus:
+    vat_breakdown  list  dicts from invoice_pdf_ee.build_vat_rate_breakdown:
+                        rate_label, code, taxable_amount, tax_amount,
+                        unclassified (bool)
+    seller_registration_number  str or ""  (registrikood — see
+                        invoice_pdf_ee.py module docstring: this is
+                        company.abn by convention, the engine has no
+                        dedicated column; omit row when "")
+    buyer_registration_number   str or ""  (Contact.registration_number —
+                        NOT wired end-to-end yet, engine schema gap; omit
+                        row when "". Flagged, not fabricated.)
+
+  Label provenance — READ BEFORE EDITING
+  ---------------------------------------
+  "Käibemaks" (VAT) is taken verbatim from the engine's own EE reference
+  data (saebooks-m1 saebooks/seeds/jurisdictions/EE/tax_codes.yaml). Every
+  other Estonian label below (Arve, Müüja, Ostja, Kuupäev, Maksetähtaeg,
+  Vahesumma, Kokku, Maksmine, Registrikood, KMD box-layout column headers,
+  etc.) is hand-translated for this packet, NOT sourced from an engine
+  i18n table (none exists yet) — mark for native-speaker review before
+  this goes in front of a real EE customer. Same caveat for the € amount
+  formatting: this reuses the AU template's plain "1234.56" decimal-point
+  convention rather than the et-EE comma-decimal ("1234,56 €") convention;
+  a native reviewer may want that changed.
+
+  All string interpolations use |latex_escape. Bare % in LaTeX source is a
+  comment: all literal % signs MUST be \%.
+#}
+{%- macro fmt_money(v) -%}
+  {%- if v is not none -%}{{ "%.2f"|format(v|float) | latex_escape }}{%- else -%}0.00{%- endif -%}
+{%- endmacro -%}
+{%- set balance_due = (total|float - amount_paid|float) -%}
+{%- set show_paid = amount_paid and amount_paid not in ("0.00", "0", "") -%}
+{% include '_preamble.tex.j2' %}
+
+%% Override header/footer for the EE invoice (not statements).
+\fancyhead[L]{\small\color{midgrey}Arve}
+\fancyhead[R]{\small\color{midgrey}{{ number | latex_escape }}}
+
+\begin{document}
+
+{% if logo_path -%}
+%% Letterhead logo (LATEX_LOGO_PATH via render_latex; text-only when unset)
+\noindent\includegraphics[height=14mm]{{ "{" }}{{ logo_path }}{{ "}" }}\par
+\vspace{2mm}
+{%- endif %}
+
+%% =====================================================================
+%% DOCUMENT HEADER
+%% =====================================================================
+\vspace*{2mm}
+\begin{minipage}[t]{0.52\textwidth}
+  {\LARGE\bfseries\color{saegreen} Arve }\\[2mm]
+  {\large\color{midgrey} nr\,{{ number | latex_escape }}}\\[3mm]
+  \begin{tabular}{@{}ll@{}}
+    \textbf{Kuupäev:} & {{ issue_date | latex_escape }} \\
+    {% if due_date -%}
+    \textbf{Maksetähtaeg:}   & {{ due_date | latex_escape }} \\
+    {%- endif %}
+    {% if currency -%}
+    \textbf{Valuuta:}   & {{ currency | latex_escape }} \\
+    {%- endif %}
+  \end{tabular}
+\end{minipage}
+
+
+\vspace{3mm}
+\color{saegreen}\rule{\linewidth}{0.6pt}\color{black}
+\vspace{4mm}
+
+%% =====================================================================
+%% SELLER / BUYER BLOCKS — Müüja / Ostja
+%% =====================================================================
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{saegreen}Müüja}\\[1mm]
+  {{ company.name | latex_escape }}\\
+  {% if seller_registration_number -%}
+  {\small Registrikood {{ seller_registration_number | latex_escape }}}\\
+  {%- endif %}
+  {% set addr = company.address or {} %}
+  {% if addr.get('address_line1') -%}
+  {\small {{ addr.get('address_line1') | latex_escape }}}\\
+  {%- endif %}
+  {%- set city_line = [addr.get('city',''), addr.get('state',''), addr.get('postcode','')] | select | join(' ') -%}
+  {% if city_line -%}
+  {\small {{ city_line | latex_escape }}}\\
+  {%- endif %}
+  {% if company.phone -%}
+  {\small {{ company.phone | latex_escape }}}\\
+  {%- endif %}
+  {% if company.email -%}
+  {\small {{ company.email | latex_escape }}}\\
+  {%- endif %}
+  {% if company.website -%}
+  {\small {{ company.website | latex_escape }}}\\
+  {%- endif %}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{saegreen}Ostja}\\[1mm]
+  {{ contact.name | latex_escape }}\\
+  {% if buyer_registration_number -%}
+  {\small Registrikood {{ buyer_registration_number | latex_escape }}}\\
+  {%- endif %}
+  {% if contact.email -%}
+  {\small {{ contact.email | latex_escape }}}\\
+  {%- endif %}
+  {% if contact.phone -%}
+  {\small {{ contact.phone | latex_escape }}}\\
+  {%- endif %}
+  {% if contact.address_line1 -%}
+  {\small {{ contact.address_line1 | latex_escape }}}\\
+  {%- endif %}
+  {%- set cn_city_line = [contact.get('city',''), contact.get('state',''), contact.get('postcode','')] | select | join(' ') -%}
+  {% if cn_city_line -%}
+  {\small {{ cn_city_line | latex_escape }}}\\
+  {%- endif %}
+\end{minipage}
+
+\vspace{3mm}
+
+%% =====================================================================
+%% LINE ITEMS TABLE
+%% =====================================================================
+\begin{longtable}{>{\raggedright\arraybackslash}p{70mm} r r r r}
+  \toprule
+  \rowcolor{lightgrey}
+  \textbf{Kirjeldus} &
+  \textbf{Kogus} &
+  \textbf{Ühiku hind} &
+  \textbf{Käibemaks} &
+  \textbf{Summa} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{5}{l}{\textit{(järgneb)}} \\
+  \toprule
+  \rowcolor{lightgrey}
+  \textbf{Kirjeldus} &
+  \textbf{Kogus} &
+  \textbf{Ühiku hind} &
+  \textbf{Käibemaks} &
+  \textbf{Summa} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  {% if lines %}
+    {% for line in lines %}
+  {{ line.description | latex_escape }} &
+  {{ line.quantity | latex_escape }} &
+  {{ fmt_money(line.unit_price) }} &
+  {{ fmt_money(line.line_tax) }} &
+  {{ fmt_money(line.line_total) }} \\
+    {% endfor %}
+  {% else %}
+  \multicolumn{5}{c}{\textit{\color{midgrey}Kirjeid ei ole}} \\
+  {% endif %}
+  \bottomrule
+\end{longtable}
+
+\vspace{2mm}
+
+%% =====================================================================
+%% TOTALS BLOCK — right-aligned
+%% =====================================================================
+\begin{flushright}
+\begin{tabular}{@{}lr@{}}
+  Vahesumma & {{ fmt_money(subtotal) }}~€ \\
+  Käibemaks kokku & {{ fmt_money(tax_total) }}~€ \\
+  \midrule
+  \textbf{Kokku} & \textbf{{{ fmt_money(total) }}~€} \\
+  {% if show_paid %}
+  Makstud           & {{ fmt_money(amount_paid) }}~€ \\
+  \midrule
+  \textbf{Tasumisele kuulub} & \textbf{{{ "%.2f"|format(balance_due) | latex_escape }}~€} \\
+  {% endif %}
+\end{tabular}
+\end{flushright}
+
+%% =====================================================================
+%% VAT BREAKDOWN BY RATE — KMD box layout needs taxable + VAT amount
+%% per rate, not just the blended tax_total above.
+%% =====================================================================
+{% if vat_breakdown %}
+\vspace{4mm}
+\textbf{\color{saegreen}Käibemaksu jaotus määrade kaupa}\\[1mm]
+\begin{longtable}{l r r}
+  \toprule
+  \rowcolor{lightgrey}
+  \textbf{Määr} & \textbf{Maksustatav summa} & \textbf{Käibemaks} \\
+  \midrule
+  \endfirsthead
+  \bottomrule
+  \endfoot
+  {% for row in vat_breakdown %}
+  {{ row.rate_label | latex_escape }}{% if row.unclassified %} \textit{\small(liigitamata)}{% endif %} &
+  {{ row.taxable_amount | latex_escape }}~€ &
+  {{ row.tax_amount | latex_escape }}~€ \\
+  {% endfor %}
+  \bottomrule
+\end{longtable}
+{% endif %}
+
+%% =====================================================================
+%% MAKSMINE — how-to-pay panel (mirrors the AU How-to-Pay panel; no BSB
+%% concept in Estonia, so this shows only IBAN + bank name).
+%% =====================================================================
+{% if company.bank and company.bank.account_number %}
+\vspace{3mm}
+\noindent\fcolorbox{saegreen}{lightgrey}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
+  \vspace{1mm}
+  {\large\bfseries\color{saegreen}Maksmine}\\[2mm]
+  \begin{tabular}{@{}ll@{}}
+    \textbf{Konto omanik:} & {{ company.bank.account_name | latex_escape }} \\[1mm]
+    \textbf{Kontonumber (IBAN):} & {\large\bfseries {{ company.bank.account_number | latex_escape }}} \\[1mm]
+    {% if company.bank.name %}\textbf{Pank:} & {{ company.bank.name | latex_escape }} \\[1mm]{% endif %}
+    \textbf{Viide:} & {{ number | latex_escape }} \\[2mm]
+    \textbf{Tasumisele kuuluv summa:} & {\large\bfseries {{ "%.2f"|format(balance_due) | latex_escape }}~€} \\[1mm]
+    {% if due_date %}\textbf{Maksetähtaeg:} & {{ due_date | latex_escape }}{% endif %}
+  \end{tabular}
+  \vspace{1mm}
+}}
+{% endif %}
+
+%% =====================================================================
+%% PAYMENT TERMS + NOTES (only when present)
+%% =====================================================================
+{% if payment_terms %}
+\vspace{6mm}
+\textbf{\color{saegreen}Maksetingimused}\\[1mm]
+{{ payment_terms | latex_escape }}
+{% endif %}
+
+{% if notes %}
+\vspace{4mm}
+\textbf{\color{saegreen}Märkused}\\[1mm]
+{{ notes | latex_escape }}
+{% endif %}
+
+
+\end{document}
