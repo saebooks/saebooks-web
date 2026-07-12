@@ -1,0 +1,63 @@
+{# Shared Smart-ID / Mobiil-ID start forms.
+   Context: providers (list of enabled provider keys), mode ("login"|"link").
+   Both forms post to /auth/eid/start and swap the surrounding #eid-flow. #}
+<div id="eid-flow" class="space-y-4">
+  {% if "smart-id" in providers %}
+  <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Smart-ID</h2>
+    <form hx-post="/auth/eid/start" hx-target="#eid-flow" hx-swap="outerHTML">
+      {{ csrf_input(request) }}
+      <input type="hidden" name="provider" value="smart-id">
+      <input type="hidden" name="mode" value="{{ mode }}">
+      <label for="eid-sid-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        {{ _("Personal code") }}
+      </label>
+      <input id="eid-sid-code" name="personal_code" type="text" inputmode="numeric"
+             required minlength="11" maxlength="17" autocomplete="off"
+             class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
+                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent"
+             placeholder="38001085718">
+      <button type="submit"
+              class="mt-3 w-full rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
+                     hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291]">
+        {{ _("Continue with Smart-ID") }}
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if "mobile-id" in providers %}
+  <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Mobiil-ID</h2>
+    <form hx-post="/auth/eid/start" hx-target="#eid-flow" hx-swap="outerHTML">
+      {{ csrf_input(request) }}
+      <input type="hidden" name="provider" value="mobile-id">
+      <input type="hidden" name="mode" value="{{ mode }}">
+      <label for="eid-mid-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        {{ _("Personal code") }}
+      </label>
+      <input id="eid-mid-code" name="personal_code" type="text" inputmode="numeric"
+             required minlength="11" maxlength="17" autocomplete="off"
+             class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
+                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent"
+             placeholder="38001085718">
+      <label for="eid-mid-phone" class="mt-3 block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        {{ _("Phone number") }}
+      </label>
+      <input id="eid-mid-phone" name="phone_number" type="tel" required autocomplete="tel"
+             class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
+                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                    focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent"
+             placeholder="+372 5xxx xxxx">
+      <button type="submit"
+              class="mt-3 w-full rounded-md border border-[#194291] px-4 py-2 text-sm font-medium
+                     text-[#194291] dark:text-[#8aa9d8] bg-white dark:bg-gray-900
+                     hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#194291]">
+        {{ _("Continue with Mobiil-ID") }}
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>

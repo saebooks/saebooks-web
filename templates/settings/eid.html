@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Estonian eID") }} · {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto p-6">
+  <h1 class="text-2xl font-semibold ink-1 mb-2">{{ _("Estonian eID") }}</h1>
+  <p class="ink-2 mb-6">
+    {{ _("Link your Estonian personal code to this account to sign in with Smart-ID or Mobiil-ID. Linking requires one eID authentication to prove the code is yours.") }}
+  </p>
+
+  {% if link %}
+  <section class="rounded-2xl border hairline bg-[color:var(--surface)] p-5 mb-6" data-testid="eid-linked">
+    <h2 class="text-lg font-medium ink-1 mb-1">{{ _("Linked personal code") }}</h2>
+    <p class="text-sm ink-2 mb-4">
+      <span class="font-mono">{{ link.masked }}</span>
+      · {{ link.provider }}
+      · {{ _("linked %(when)s") % {"when": link.linked_at} }}
+    </p>
+    <form method="post" action="/settings/eid/unlink">
+      {{ csrf_input(request) }}
+      <button type="submit"
+              class="px-4 py-2 rounded-lg border border-red-300 dark:border-red-800 text-sm font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950">
+        {{ _("Remove link") }}
+      </button>
+    </form>
+  </section>
+  {% else %}
+  <section class="mb-6" data-testid="eid-not-linked">
+    {% include "auth/_eid_forms.html" %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
