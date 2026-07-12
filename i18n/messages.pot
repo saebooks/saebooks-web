@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-12 12:28+0300\n"
+"POT-Creation-Date: 2026-07-12 20:28+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,62 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#: saebooks_web/eid_sso.py:93
+msgid "You declined the sign-in request on your device."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:94 saebooks_web/eid_sso.py:220
+msgid "The request expired before it was confirmed. Please try again."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:95
+msgid "The wrong verification code was chosen. Please try again."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:96
+msgid "No active Smart-ID or Mobiil-ID account was found for these details."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:97
+msgid "The eID service is temporarily unavailable. Please try again shortly."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:98
+msgid "The authentication response could not be verified."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:99
+msgid "eID sign-in is not configured on this server."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:100
+msgid "eID sign-in failed. Please try again."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:172
+msgid "That does not look like a valid Estonian personal code."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:213
+msgid "This sign-in attempt has expired. Please start again."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:271
+msgid "Could not resolve your account email. Please re-login and retry."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:279
+msgid "This personal code is already linked to a different account."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:315
+msgid "Your identity was verified, but no account is linked to this personal code yet. Sign in with your password first, then link your eID under Settings."
+msgstr ""
+
+#: saebooks_web/eid_sso.py:325
+msgid "Sign-in failed on the server. Please try again."
+msgstr ""
 
 #: saebooks_web/routes/companies.py:177
 msgid "Registrikood is required for an Estonian company."
@@ -33,8 +89,57 @@ msgstr ""
 msgid "Company created. Estonian jurisdiction, registrikood and KMV/VAT number were captured but could not be saved yet — the engine does not accept these fields on company creation. This is tracked separately; the values above were not persisted."
 msgstr ""
 
-#: templates/base.html:879
+#: templates/base.html:887
 msgid "Language"
+msgstr ""
+
+#: templates/auth/_eid_error.html:10
+msgid "Try again"
+msgstr ""
+
+#: templates/auth/_eid_forms.html:13 templates/auth/_eid_forms.html:38
+msgid "Personal code"
+msgstr ""
+
+#: templates/auth/_eid_forms.html:24
+msgid "Continue with Smart-ID"
+msgstr ""
+
+#: templates/auth/_eid_forms.html:47
+msgid "Phone number"
+msgstr ""
+
+#: templates/auth/_eid_forms.html:58
+msgid "Continue with Mobiil-ID"
+msgstr ""
+
+#: templates/auth/_eid_link_success.html:5
+msgid "eID linked"
+msgstr ""
+
+#: templates/auth/_eid_link_success.html:7
+#, python-format
+msgid "Your account is now linked to personal code %(masked)s. You can sign in with Smart-ID or Mobiil-ID from the login page."
+msgstr ""
+
+#: templates/auth/_eid_pending.html:11
+msgid "Check your device and confirm only if you see this code:"
+msgstr ""
+
+#: templates/auth/_eid_pending.html:16
+msgid "Waiting for confirmation…"
+msgstr ""
+
+#: templates/auth/eid_login.html:3 templates/auth/eid_login.html:10
+msgid "Sign in with eID"
+msgstr ""
+
+#: templates/auth/eid_login.html:13
+msgid "Use your Estonian Smart-ID or Mobiil-ID. Your account must already be linked to your personal code."
+msgstr ""
+
+#: templates/auth/eid_login.html:20
+msgid "Sign in with email and password instead"
 msgstr ""
 
 #: templates/auth/login.html:13
@@ -42,7 +147,11 @@ msgstr ""
 msgid "Enter your %(brand)s email address and password."
 msgstr ""
 
-#: templates/auth/login.html:125
+#: templates/auth/login.html:101
+msgid "Sign in with Smart-ID / Mobiil-ID"
+msgstr ""
+
+#: templates/auth/login.html:137
 #, python-format
 msgid "New to %(brand)s?"
 msgstr ""
@@ -52,59 +161,80 @@ msgstr ""
 msgid "Create your %(brand)s account"
 msgstr ""
 
-#: templates/companies/new.html:83
+#: templates/companies/new.html:102
 msgid "Jurisdiction"
 msgstr ""
 
-#: templates/companies/new.html:91
+#: templates/companies/new.html:110
 msgid "Australia (AU)"
 msgstr ""
 
-#: templates/companies/new.html:92
+#: templates/companies/new.html:111
 msgid "Estonia (EE)"
 msgstr ""
 
-#: templates/companies/new.html:131
+#: templates/companies/new.html:154
 msgid "Estonian company creation is in progress. These fields are captured here but the server does not yet persist them — see the note after you submit."
 msgstr ""
 
-#: templates/companies/new.html:136
+#: templates/companies/new.html:159
 msgid "Registrikood"
 msgstr ""
 
-#: templates/companies/new.html:150
+#: templates/companies/new.html:173
 msgid "8-digit Estonian business registry code (äriregistri kood)."
 msgstr ""
 
-#: templates/companies/new.html:159
+#: templates/companies/new.html:182
 msgid "KMV / VAT number"
 msgstr ""
 
-#: templates/companies/new.html:171
+#: templates/companies/new.html:194
 msgid "Format: EE followed by 9 digits. Optional — leave blank if not yet VAT-registered."
 msgstr ""
 
-#: templates/companies/new.html:180
+#: templates/companies/new.html:203
 msgid "Currency"
 msgstr ""
 
-#: templates/companies/new.html:187
+#: templates/companies/new.html:210
 msgid "Euro (EUR)"
 msgstr ""
 
-#: templates/companies/new.html:188
+#: templates/companies/new.html:211
 msgid "Australian Dollar (AUD)"
 msgstr ""
 
-#: templates/companies/new.html:194
+#: templates/companies/new.html:217
 msgid "Chart of accounts template"
 msgstr ""
 
-#: templates/companies/new.html:201
+#: templates/companies/new.html:224
 msgid "Estonian standard chart (ee/default)"
 msgstr ""
 
-#: templates/companies/new.html:204
+#: templates/companies/new.html:227
 msgid "The engine's Estonian chart template is registered but not yet implemented — this selector is future-ready, not active."
+msgstr ""
+
+#: templates/settings/eid.html:3 templates/settings/eid.html:7
+msgid "Estonian eID"
+msgstr ""
+
+#: templates/settings/eid.html:9
+msgid "Link your Estonian personal code to this account to sign in with Smart-ID or Mobiil-ID. Linking requires one eID authentication to prove the code is yours."
+msgstr ""
+
+#: templates/settings/eid.html:14
+msgid "Linked personal code"
+msgstr ""
+
+#: templates/settings/eid.html:18
+#, python-format
+msgid "linked %(when)s"
+msgstr ""
+
+#: templates/settings/eid.html:24
+msgid "Remove link"
 msgstr ""
 
