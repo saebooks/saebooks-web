@@ -869,6 +869,33 @@
       </div>
 
       <div class="flex items-center gap-1">
+        {# Language switcher — POST /set-locale, CSRF per repo pattern.
+           Language names are endonyms (English/Eesti/Русский) and are
+           deliberately NOT run through gettext; only the "Language" label
+           itself is translatable chrome. #}
+        {% set _active_locale = (request.state.locale if request is defined and request.state is defined else None) or "en" %}
+        <details class="relative inline-block" id="locale-switcher">
+          <summary class="list-none cursor-pointer select-none inline-flex items-center gap-1 p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2"
+                   title="{{ _('Language') }}" aria-label="{{ _('Language') }}">
+            <i data-lucide="languages" class="w-4 h-4"></i>
+            <span class="hidden sm:inline text-xs font-mono uppercase">{{ _active_locale }}</span>
+          </summary>
+          <div class="absolute right-0 top-full mt-2 min-w-[10rem] rounded-xl border hairline shadow-lg z-50 p-1"
+               style="background: var(--surface);">
+            {% for _code, _label in [("en", "English"), ("et", "Eesti"), ("ru", "Русский")] %}
+            <form method="POST" action="/set-locale">
+              {{ csrf_input(request)|safe }}
+              <input type="hidden" name="locale" value="{{ _code }}">
+              <input type="hidden" name="next" value="{{ request.url.path }}">
+              <button type="submit"
+                      class="w-full text-left flex items-center px-3 py-2 rounded-md text-sm font-normal hover:bg-[color:var(--paper-2)] {% if _active_locale == _code %}font-semibold{% endif %}">
+                {% if _active_locale == _code %}<i data-lucide="check" class="w-3 h-3 inline-block mr-1"></i>{% endif %}
+                {{ _label }}
+              </button>
+            </form>
+            {% endfor %}
+          </div>
+        </details>
         <button onclick="openCmdK()" title="Search (⌘K)" class="p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
           <i data-lucide="search" class="w-4 h-4"></i>
         </button>
