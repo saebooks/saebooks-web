@@ -44,7 +44,7 @@
           <p class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ s.label }}</p>
         </div>
         <p class="num-display text-xl" style="color: {{ _tone_color(s.tone) }};">
-          ${{ "{:,.0f}".format(s.total|float) }}
+          {{ money(s.total|float) }}
         </p>
         {% if s.count is not none %}
         <p class="text-[11px] ink-3 mt-1 font-mono">
@@ -81,19 +81,19 @@
     <a href="{{ unpaid_href }}" class="bg-paper p-5 block hover:bg-paper-2">
       <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Unpaid · last 365 days</p>
       <p class="num-display text-2xl mt-1" style="color: var(--sae);">
-        ${{ "{:,.2f}".format(pane.unpaid_total|float) }}
+        {{ money(pane.unpaid_total|float) }}
       </p>
       <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div>
           <p class="text-[10px] font-mono uppercase ink-3">Overdue</p>
           <p class="num-display text-lg" style="color: var(--neg);">
-            ${{ "{:,.0f}".format(pane.overdue_total|float) }}
+            {{ money(pane.overdue_total|float) }}
           </p>
         </div>
         <div>
           <p class="text-[10px] font-mono uppercase ink-3">Not due yet</p>
           <p class="num-display text-lg ink">
-            ${{ "{:,.0f}".format(pane.not_due_total|float) }}
+            {{ money(pane.not_due_total|float) }}
           </p>
         </div>
       </div>
@@ -108,13 +108,13 @@
     <a href="{{ paid_href }}" class="bg-paper p-5 block hover:bg-paper-2">
       <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Paid · last 30 days</p>
       <p class="num-display text-2xl mt-1" style="color: var(--pos);">
-        ${{ "{:,.2f}".format(pane.paid_total|float) }}
+        {{ money(pane.paid_total|float) }}
       </p>
       <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div>
           <p class="text-[10px] font-mono uppercase ink-3">Deposited</p>
           <p class="num-display text-lg" style="color: var(--pos);">
-            ${{ "{:,.0f}".format(pane.paid_total|float) }}
+            {{ money(pane.paid_total|float) }}
           </p>
         </div>
         <div>

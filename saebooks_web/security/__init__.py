@@ -98,6 +98,15 @@ def _patch_jinja_templates() -> None:
             register_i18n_global(self)
         except Exception:
             pass
+        # Also register money/num/fmt_date (Packet 4) — see
+        # i18n/format.py. Same call-time-resolving-against-a-contextvar
+        # pattern as the gettext callables above, for the same reason
+        # (these 61 envs are shared singletons).
+        try:
+            from saebooks_web.i18n.format import register_format_globals
+            register_format_globals(self)
+        except Exception:
+            pass
 
     _patched_init._saebooks_csrf_patched = True  # type: ignore[attr-defined]
     Jinja2Templates.__init__ = _patched_init  # type: ignore[method-assign]
