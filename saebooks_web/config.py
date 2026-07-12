@@ -49,6 +49,12 @@ class Settings(BaseSettings):
 
     session_cookie_name: str = "saebooks_web_session"
     session_max_age: int = 60 * 60 * 8  # 8 hours
+    session_https_only: bool = False
+    """Set True when deployed behind a TLS-terminating reverse proxy (prod).
+
+    Controls the Secure flag on the session cookie.  Default False for local
+    dev (plain HTTP).  Override with SAEBOOKS_WEB_SESSION_HTTPS_ONLY=true.
+    """
 
     # -----------------------------------------------------------------
     # Server
