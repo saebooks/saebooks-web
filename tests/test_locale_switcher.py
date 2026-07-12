@@ -80,11 +80,20 @@ async def test_cross_origin_next_falls_back_to_root() -> None:
 
 
 @pytest.mark.anyio
-async def test_logged_in_switch_persists_to_session_round_trip() -> None:
+async def test_logged_in_switch_persists_to_session_round_trip(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """POST /set-locale as a logged-in user, then use the resulting session
     cookie on a fresh request and confirm the dashboard header actually
     renders in the new locale — the round trip the deliverable asks for,
-    not just a claimed 303."""
+    not just a claimed 303.
+
+    SAEBOOKS_BRAND=tasur: the switcher itself (whose own "Language"/"Keel"
+    chrome string this test reads back) is gated to the Tasur/EE brand —
+    see fixer round 1 — so it must be exercised under that brand, not the
+    stock AU/SAE Books default where the switcher no longer renders.
+    """
+    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur")
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",

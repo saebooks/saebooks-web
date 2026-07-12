@@ -158,6 +158,43 @@ async def test_sidebar_wordmark_and_footer_tasur(
 
 
 @pytest.mark.anyio
+@respx.mock
+async def test_locale_switcher_hidden_default_shown_tasur(
+    respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fixer round 1 regression: the header language switcher (`id=
+    "locale-switcher"`) is a Tasur/EE-launch affordance and must not render
+    on the stock AU/SAE Books deployment — it shipped ungated in the P4
+    packet and appeared on every page of the default product."""
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS_RESPONSE)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        default_resp = await client.get("/accounts")
+
+    assert default_resp.status_code == 200
+    assert 'id="locale-switcher"' not in default_resp.text
+    assert "Русский" not in default_resp.text
+
+    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur")
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        tasur_resp = await client.get("/accounts")
+
+    assert tasur_resp.status_code == 200
+    assert 'id="locale-switcher"' in tasur_resp.text
+    assert "Русский" in tasur_resp.text
+
+
+@pytest.mark.anyio
 async def test_unknown_brand_falls_back_to_saebooks(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SAEBOOKS_BRAND", "not-a-real-brand")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

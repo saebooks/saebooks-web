@@ -872,7 +872,15 @@
         {# Language switcher — POST /set-locale, CSRF per repo pattern.
            Language names are endonyms (English/Eesti/Русский) and are
            deliberately NOT run through gettext; only the "Language" label
-           itself is translatable chrome. #}
+           itself is translatable chrome.
+
+           Gated on brand: this is a Tasur/EE-launch affordance. Left
+           unconditional it rendered on every page of the stock AU/SAE
+           Books deployment (SAEBOOKS_BRAND unset -> "saebooks"), which
+           breaks the AU pixel-equivalence requirement — the default
+           product never shipped a language switcher or an EN/ET/RU
+           chooser before this packet. #}
+        {% if brand.key != "saebooks" %}
         {% set _active_locale = (request.state.locale if request is defined and request.state is defined else None) or "en" %}
         <details class="relative inline-block" id="locale-switcher">
           <summary class="list-none cursor-pointer select-none inline-flex items-center gap-1 p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2"
@@ -896,6 +904,7 @@
             {% endfor %}
           </div>
         </details>
+        {% endif %}
         <button onclick="openCmdK()" title="Search (⌘K)" class="p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2">
           <i data-lucide="search" class="w-4 h-4"></i>
         </button>
