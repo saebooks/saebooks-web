@@ -7,7 +7,7 @@
     <div class="font-mono tabular-nums text-right ink-1">{{ result.factor }}</div>
     <div class="ink-2 font-semibold">Prorated amount</div>
     <div class="font-mono tabular-nums text-right font-semibold" style="color:var(--pos)">
-      {{ "%.2f"|format(result.prorated_amount|float) }}
+      {{ num(result.prorated_amount|float, 2) }}
     </div>
   </div>
   {% if result.line_description_suggestion %}

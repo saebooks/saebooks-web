@@ -7,6 +7,7 @@ GET  /settings/companies   -- redirect to /companies
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -14,6 +15,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.i18n import gettext as _
 
 router = APIRouter()
 
@@ -21,6 +23,26 @@ _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 _TOP_FIELDS = ("name", "legal_name", "trading_name", "abn")
+
+# EE onboarding (P3). registrikood = 8-digit Estonian business registry
+# code; kmv = Estonian VAT number, "EE" + 9 digits, optional.
+_REGISTRIKOOD_RE = re.compile(r"^\d{8}$")
+_KMV_RE = re.compile(r"^EE\d{9}$")
+
+# Prerequisite gap verified against the engine (saebooks/api/v1/schemas.py,
+# CompanyCreate): jurisdiction/registrikood/kmv/coa_template_key are not
+# accepted there today — registrikood/kmv have no Company column at all,
+# jurisdiction and coa_template_key exist as columns but aren't exposed on
+# CompanyCreate, and services/templates.py's "ee/default" applier is a
+# NotImplementedError stub ("M3"). Sent for real below (nothing is faked
+# client-side) so the wiring is ready the day the engine lands this, but
+# until then the engine's pydantic model silently drops these extra keys
+# (no ``extra="forbid"`` set) — so the flash set in ``companies_create``
+# below is the honest signal that replaces the silence, not an optional
+# nicety. Built with ``_()`` INSIDE the route (not as a module-level
+# constant) — ``gettext`` resolves the active request's locale from a
+# contextvar at call time; freezing it at import time would defeat that
+# and always serve the process-start locale to every user.
 
 
 def _require_auth(request: Request) -> str | None:
@@ -127,11 +149,54 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
     form_data = await request.form()
     form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
 
+    # Jurisdiction axis (P3). Defaults AU so an unset/blank/unknown value
+    # behaves exactly like the pre-P3 form — no jurisdiction key at all
+    # goes into the payload, keeping the AU path's request body identical
+    # to before this packet.
+    jurisdiction = (form.get("jurisdiction", "AU") or "AU").strip().upper()
+
     payload: dict[str, object] = {}
     for field in _TOP_FIELDS:
         val = form.get(field, "").strip() or None
         if val is not None:
             payload[field] = val
+
+    if jurisdiction == "EE":
+        # AU's abn field is meaningless for an EE company — drop it even
+        # if a stale value survived a form re-render after switching
+        # jurisdiction client-side.
+        payload.pop("abn", None)
+
+        registrikood = form.get("registrikood", "").strip()
+        kmv_raw = form.get("kmv", "").strip().upper()
+        base_currency = (form.get("base_currency", "").strip() or "EUR").upper()
+        coa_template_key = form.get("coa_template_key", "").strip() or "ee/default"
+
+        errors: dict[str, str] = {}
+        if not registrikood:
+            errors["registrikood"] = _("Registrikood is required for an Estonian company.")
+        elif not _REGISTRIKOOD_RE.match(registrikood):
+            errors["registrikood"] = _("Registrikood must be exactly 8 digits.")
+        if kmv_raw and not _KMV_RE.match(kmv_raw):
+            errors["kmv"] = _("KMV/VAT number must be \"EE\" followed by 9 digits, e.g. EE123456789.")
+
+        if errors:
+            return _TEMPLATES.TemplateResponse(
+                request,
+                "companies/new.html",
+                {"form": form, "errors": errors},
+                status_code=422,
+            )
+
+        # Sent for real — see the module-level note above on why these
+        # keys are included even though the engine does not accept them
+        # yet (verified against saebooks/api/v1/schemas.py::CompanyCreate).
+        payload["jurisdiction"] = jurisdiction
+        payload["registrikood"] = registrikood
+        if kmv_raw:
+            payload["kmv"] = kmv_raw
+        payload["base_currency"] = base_currency
+        payload["coa_template_key"] = coa_template_key
 
     async with api_client(request) as client:
         resp = await client.post("/api/v1/companies", json=payload)
@@ -141,7 +206,16 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.status_code == 201:
-        request.session["flash"] = "Company created."
+        if jurisdiction == "EE":
+            request.session["flash"] = _(
+                "Company created. Estonian jurisdiction, registrikood and "
+                "KMV/VAT number were captured but could not be saved yet "
+                "— the engine does not accept these fields on company "
+                "creation. This is tracked separately; the values above "
+                "were not persisted."
+            )
+        else:
+            request.session["flash"] = "Company created."
         return RedirectResponse(url="/companies", status_code=303)
 
     if resp.status_code == 404:

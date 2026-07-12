@@ -19,17 +19,17 @@
     {% if not error %}
     <p class="text-sm ink-3 mt-1">
       {{ lines|length }} unmatched line{{ "s" if lines|length != 1 else "" }} 
-      · <span class="num-display">Total unmatched: {{ '%.2f'|format( lines | sum(attribute='amount') | float ) }}</span>
+      · <span class="num-display">Total unmatched: {{ num( lines | sum(attribute='amount') | float, 2 ) }}</span>
     </p>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
     <div class="card p-3">
       <p class="text-[11px] uppercase tracking-wider ink-3">Statement balance</p>
-      <p class="font-display text-xl num">{{ '%.2f'|format( (account.balance or 0) | float ) }}</p>
+      <p class="font-display text-xl num">{{ num( (account.balance or 0) | float, 2 ) }}</p>
     </div>
     <div class="card p-3">
       <p class="text-[11px] uppercase tracking-wider ink-3">Books balance</p>
-      <p class="font-display text-xl num">{{ '%.2f'|format( (account.ledger_balance or 0) | float ) }}</p>
+      <p class="font-display text-xl num">{{ num( (account.ledger_balance or 0) | float, 2 ) }}</p>
     </div>
     <div class="card p-3 border-sae">
       <p class="text-[11px] uppercase tracking-wider ink-3">To reconcile</p>

@@ -54,7 +54,7 @@
             {% if _c %}<a href="/contacts/{{ _c.id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>{% else %}—{% endif %}
           </td>
           <td class="px-4 py-3 text-right ink-1 font-medium tabular-nums">
-            {{ po.currency }} {{ "%.2f"|format(po.total|float) }}
+            {{ po.currency }} {{ num(po.total|float, 2) }}
           </td>
           <td class="px-4 py-3">
             <span class="

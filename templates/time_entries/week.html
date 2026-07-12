@@ -44,7 +44,7 @@
       <li class="rounded-md hairline p-2 hover:bg-paper-2 text-sm">
         <a href="/time-entries/{{ e.id }}" class="block">
           <div class="flex items-center justify-between">
-            <span class="num-display">{{ "%.2f"|format(e.hours|float) }}h</span>
+            <span class="num-display">{{ num(e.hours|float, 2) }}h</span>
             <span class="chip text-[10px]
               {% if e.approval_status == 'APPROVED' %}chip-pos
               {% elif e.approval_status == 'REJECTED' %}chip-neg
@@ -66,8 +66,8 @@
           </p>
           {% if e.billable %}
           <p class="text-xs sae mt-0.5">
-            {% if e.rate %}${{ "%.2f"|format(e.rate|float) }}/h
-              · <span class="num-display">${{ "%.2f"|format((e.rate|float) * (e.hours|float)) }}</span>
+            {% if e.rate %}{{ money(e.rate|float, grouping=False) }}/h
+              · <span class="num-display">{{ money((e.rate|float) * (e.hours|float), grouping=False) }}</span>
             {% else %}billable{% endif %}
             {% if e.invoice_line_id %} → on invoice{% endif %}
           </p>

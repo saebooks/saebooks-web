@@ -56,7 +56,7 @@
             </span>
           </td>
           <td class="px-4 py-3 text-right tabular-nums ink-1">
-            {{ "%.2f"|format(item.default_sale_price|float) }}
+            {{ num(item.default_sale_price|float, 2) }}
           </td>
           <td class="px-4 py-3 text-right tabular-nums ink-2">
             {% if item.item_type == 'inventory' %}

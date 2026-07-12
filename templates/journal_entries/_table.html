@@ -87,7 +87,7 @@
             {% for line in je.lines %}
               {% set total_dr.v = total_dr.v + (line.debit | float) %}
             {% endfor %}
-            {{ "%.2f"|format(total_dr.v) }}
+            {{ num(total_dr.v, 2) }}
           </td>
           <td class="px-4 py-3">
             <span class="

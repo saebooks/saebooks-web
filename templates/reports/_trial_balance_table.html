@@ -58,18 +58,18 @@
         <td class="num ink-2">{{ acct.get("code", "") }}</td>
         <td class="ink-1">{{ acct.get("name", "") }}</td>
         <td class="ink-3 text-xs uppercase">{{ acct.get("account_type", "") }}</td>
-        <td class="text-right num ink-2">{{ "%.2f"|format(acct.get("debit_total", 0) | float) }}</td>
-        <td class="text-right num ink-2">{{ "%.2f"|format(acct.get("credit_total", 0) | float) }}</td>
-        <td class="text-right num-display ink-1 font-medium">{{ "%.2f"|format(acct.get("balance", 0) | float) }}</td>
-        <td class="text-right num ink-3">{% if acct.get("prior_balance") %}{{ "%.2f"|format(acct.prior_balance) }}{% else %}—{% endif %}</td>
+        <td class="text-right num ink-2">{{ num(acct.get("debit_total", 0) | float, 2) }}</td>
+        <td class="text-right num ink-2">{{ num(acct.get("credit_total", 0) | float, 2) }}</td>
+        <td class="text-right num-display ink-1 font-medium">{{ num(acct.get("balance", 0) | float, 2) }}</td>
+        <td class="text-right num ink-3">{% if acct.get("prior_balance") %}{{ num(acct.prior_balance, 2) }}{% else %}—{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>
     <tfoot>
       <tr>
         <td colspan="3" class="font-semibold ink-1">Totals</td>
-        <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total_debits) }}</td>
-        <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total_credits) }}</td>
+        <td class="text-right num-display font-semibold ink-1">{{ num(total_debits, 2) }}</td>
+        <td class="text-right num-display font-semibold ink-1">{{ num(total_credits, 2) }}</td>
         <td></td>
         <td class="text-right num ink-3 font-semibold">Prior year</td>
       </tr>
@@ -97,17 +97,17 @@
         <td class="num ink-2">{{ acct.get("code", "") }}</td>
         <td class="ink-1"><a href="/accounts/{{ acct.get('id') or acct.get('account_id', '') }}?date_from={{ as_of_date or '' }}" class="sae hover:underline">{{ acct.get("name", "") }}</a></td>
         <td class="ink-3 text-xs uppercase">{{ acct.get("account_type", "") }}</td>
-        <td class="text-right num ink-2">{{ "%.2f"|format(acct.get("debit_total", 0) | float) }}</td>
-        <td class="text-right num ink-2">{{ "%.2f"|format(acct.get("credit_total", 0) | float) }}</td>
-        <td class="text-right num-display ink-1 font-medium">{{ "%.2f"|format(acct.get("balance", 0) | float) }}</td>
+        <td class="text-right num ink-2">{{ num(acct.get("debit_total", 0) | float, 2) }}</td>
+        <td class="text-right num ink-2">{{ num(acct.get("credit_total", 0) | float, 2) }}</td>
+        <td class="text-right num-display ink-1 font-medium">{{ num(acct.get("balance", 0) | float, 2) }}</td>
       </tr>
       {% endfor %}
     </tbody>
     <tfoot>
       <tr>
         <td colspan="3" class="font-semibold ink-1">Totals</td>
-        <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total_debits) }}</td>
-        <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total_credits) }}</td>
+        <td class="text-right num-display font-semibold ink-1">{{ num(total_debits, 2) }}</td>
+        <td class="text-right num-display font-semibold ink-1">{{ num(total_credits, 2) }}</td>
         <td></td>
       </tr>
     </tfoot>

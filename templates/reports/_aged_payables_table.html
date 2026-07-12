@@ -38,18 +38,18 @@
         <tr>
           <td class="ink-1">{{ contact.get("contact_name", "—") }}</td>
           {% for bucket in buckets %}
-          <td class="text-right num ink-2">{{ "%.2f"|format(contact.get(bucket, 0) | float) }}</td>
+          <td class="text-right num ink-2">{{ num(contact.get(bucket, 0) | float, 2) }}</td>
           {% endfor %}
-          <td class="text-right num-display font-medium ink-1">{{ "%.2f"|format(contact.get("total", 0) | float) }}</td>
+          <td class="text-right num-display font-medium ink-1">{{ num(contact.get("total", 0) | float, 2) }}</td>
         </tr>
         {% endfor %}
         {# Totals row #}
         <tr class="bg-paper-2 font-semibold hairline-t">
           <td class="ink-1">Total</td>
           {% for bucket in buckets %}
-          <td class="text-right num ink-1">{{ "%.2f"|format(totals.get(bucket, 0) | float) }}</td>
+          <td class="text-right num ink-1">{{ num(totals.get(bucket, 0) | float, 2) }}</td>
           {% endfor %}
-          <td class="text-right num-display ink-1">{{ "%.2f"|format(totals.get("total", 0) | float) }}</td>
+          <td class="text-right num-display ink-1">{{ num(totals.get("total", 0) | float, 2) }}</td>
         </tr>
       {% else %}
         <tr>

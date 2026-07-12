@@ -48,7 +48,7 @@
           </td>
           <td class="px-4 py-3 ink-2">{{ tc.name }}</td>
           <td class="px-4 py-3 text-right tabular-nums ink-1 font-medium">
-            {{ "%.1f"|format(tc.rate|float) }}%
+            {{ num(tc.rate|float, 1) }}%
           </td>
           <td class="px-4 py-3 ink-2">{{ tc.tax_system }}</td>
           <td class="px-4 py-3 ink-2">{{ tc.reporting_type | replace("_", " ") | title }}</td>

@@ -63,6 +63,7 @@ from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware
 from saebooks_web.cf_access import CFAccessAuthMiddleware
 from saebooks_web.webauthn_sso import router as webauthn_router
 from saebooks_web.company_context import CompanyContextMiddleware
+from saebooks_web.i18n.middleware import LocaleMiddleware
 from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware
 
 from saebooks_web.auth import router as auth_router
@@ -92,6 +93,7 @@ from saebooks_web.routes.parties import router as parties_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.dashboard import router as dashboard_router
 from saebooks_web.routes.switch_company import router as switch_company_router
+from saebooks_web.routes.locale import router as locale_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.imports import router as imports_router
 from saebooks_web.routes.inbox import router as inbox_router  # Document Inbox (#33)
@@ -192,13 +194,40 @@ else:
 #   add_middleware(OriginRefererMiddleware) — wraps Session
 #   add_middleware(_RequestIdMiddleware)  — outermost (added last)
 #
-# Final request flow (outside in): RequestId -> OriginReferer ->
-# Session -> CSRF -> route.
+# Final request flow (outside in): RequestId -> OriginReferer -> Session ->
+# CFAccess -> DemoAutoLogin -> TrustedHeaderAuth -> CompanyContext ->
+# Locale -> CSRF -> route. (CompanyContext/Locale sit INSIDE the
+# session-minting auth middleware — critic round 2 fix, see the
+# CompanyContextMiddleware comment below.)
 app.add_middleware(CSRFMiddleware)
 
+# LocaleMiddleware must run INSIDE CompanyContextMiddleware (added
+# BEFORE it here — see the ordering note above: add_middleware inserts
+# at index 0, so an earlier add_middleware call ends up more inward /
+# executes later) so request.state.active_company_jurisdiction is
+# already populated when LocaleMiddleware reads it for the jurisdiction
+# negotiation fallback (session/cookie -> Accept-Language -> jurisdiction).
+app.add_middleware(LocaleMiddleware)
+
+# CompanyContextMiddleware must run INSIDE (i.e. be added BEFORE, here)
+# TrustedHeaderAuthMiddleware and DemoAutoLoginMiddleware — critic round 2
+# fix. Both of those mint request.session["api_token"] on the very first
+# request of a new SSO/demo session; CompanyContextMiddleware reads that
+# same key at the TOP of its dispatch, before call_next(). If
+# CompanyContextMiddleware were more outer than the minting middleware (as
+# it was previously), that first request would always see no token yet ->
+# active_company_jurisdiction stuck at None -> LocaleMiddleware falls
+# through to the "en"/AUD default even for an EE company's first
+# authenticated page view. Added here (before TrustedHeaderAuth/
+# DemoAutoLogin below) so it runs AFTER them and sees the just-minted
+# token on the same request.
+app.add_middleware(CompanyContextMiddleware)
+
 # Authentik forward-auth: mint a session from x-authentik-* headers when
-# SAEBOOKS_WEB_TRUSTED_HEADERS=1. Added after CSRF (so it wraps CSRF) and
-# before SessionMiddleware (so it runs INSIDE Session and can write to it).
+# SAEBOOKS_WEB_TRUSTED_HEADERS=1. Added after CSRF/Locale/CompanyContext
+# (so it wraps them and runs first, minting the session token before they
+# read it) and before SessionMiddleware (so it runs INSIDE Session and can
+# write to it).
 app.add_middleware(TrustedHeaderAuthMiddleware)
 
 # Demo auto-login: cashbook-demo public-demo only — env-gated. Sits
@@ -206,8 +235,6 @@ app.add_middleware(TrustedHeaderAuthMiddleware)
 # request, mints a session if creds env vars are set, and lets the
 # rest of the stack proceed as if the user manually logged in.
 app.add_middleware(DemoAutoLoginMiddleware)
-
-app.add_middleware(CompanyContextMiddleware)
 
 # CF Access JWT trust — runs INSIDE SessionMiddleware (added before it in
 # source) and OUTSIDE CompanyContextMiddleware (added after it in source) so
@@ -337,6 +364,7 @@ app.include_router(contact_router)
 app.include_router(billing_router)
 app.include_router(dashboard_router)
 app.include_router(switch_company_router)
+app.include_router(locale_router)
 app.include_router(contacts_router)
 app.include_router(parties_router)
 app.include_router(ai_extraction_router)

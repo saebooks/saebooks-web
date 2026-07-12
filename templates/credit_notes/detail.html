@@ -130,19 +130,19 @@
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Total</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
-      {{ "%.2f"|format(credit_note.total|float) }}
+      {{ num(credit_note.total|float, 2) }}
     </p>
   </div>
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Amount allocated</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
-      {{ "%.2f"|format(credit_note.amount_allocated|float) }}
+      {{ num(credit_note.amount_allocated|float, 2) }}
     </p>
   </div>
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Remaining</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
-      {{ "%.2f"|format((credit_note.total|float) - (credit_note.amount_allocated|float)) }}
+      {{ num((credit_note.total|float) - (credit_note.amount_allocated|float), 2) }}
     </p>
   </div>
 </div>
@@ -184,9 +184,9 @@
           <td class="px-4 py-3 ink-3">{{ line.line_no }}</td>
           <td class="px-4 py-3 ink-1">{{ line.description }}</td>
           <td class="px-4 py-3 text-right tabular-nums ink-2">{{ line.quantity }}</td>
-          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ "%.2f"|format(line.unit_price|float) }}</td>
-          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ "%.2f"|format(line.line_tax|float) }}</td>
-          <td class="px-4 py-3 text-right tabular-nums font-medium ink-1">{{ "%.2f"|format(line.line_total|float) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(line.unit_price|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(line.line_tax|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums font-medium ink-1">{{ num(line.line_total|float, 2) }}</td>
         </tr>
         {% endfor %}
       {% else %}
@@ -199,19 +199,19 @@
       <tr>
         <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">Subtotal</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
-          {{ "%.2f"|format(credit_note.subtotal|float) }}
+          {{ num(credit_note.subtotal|float, 2) }}
         </td>
       </tr>
       <tr>
         <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">Tax</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
-          {{ "%.2f"|format(credit_note.tax_total|float) }}
+          {{ num(credit_note.tax_total|float, 2) }}
         </td>
       </tr>
       <tr class="font-semibold">
         <td colspan="5" class="px-4 py-3 text-right text-sm ink-1">Total</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
-          {{ "%.2f"|format(credit_note.total|float) }}
+          {{ num(credit_note.total|float, 2) }}
         </td>
       </tr>
     </tfoot>

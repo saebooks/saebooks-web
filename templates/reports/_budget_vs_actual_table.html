@@ -40,18 +40,18 @@
       <tr>
         <td class="num ink-2">{{ line.get("account_code", "") }}</td>
         <td class="ink-1">{{ line.get("account_name", "") }}</td>
-        <td class="text-right num ink-2">{{ "%.2f"|format(line.get("budget", 0) | float) }}</td>
-        <td class="text-right num ink-2">{{ "%.2f"|format(line.get("actual", 0) | float) }}</td>
+        <td class="text-right num ink-2">{{ num(line.get("budget", 0) | float, 2) }}</td>
+        <td class="text-right num ink-2">{{ num(line.get("actual", 0) | float, 2) }}</td>
         {% if variance >= 0 %}
-        <td class="text-right num font-medium" style="color:var(--pos);">{{ "%.2f"|format(variance) }}</td>
+        <td class="text-right num font-medium" style="color:var(--pos);">{{ num(variance, 2) }}</td>
         {% else %}
-        <td class="text-right num font-medium" style="color:var(--neg);">{{ "%.2f"|format(variance) }}</td>
+        <td class="text-right num font-medium" style="color:var(--neg);">{{ num(variance, 2) }}</td>
         {% endif %}
         {% set variance_pct = line.get("variance_pct", 0) | float %}
         {% if variance_pct >= 0 %}
-        <td class="text-right num" style="color:var(--pos);">{{ "%.1f"|format(variance_pct) }}%</td>
+        <td class="text-right num" style="color:var(--pos);">{{ num(variance_pct, 1) }}%</td>
         {% else %}
-        <td class="text-right num" style="color:var(--neg);">{{ "%.1f"|format(variance_pct) }}%</td>
+        <td class="text-right num" style="color:var(--neg);">{{ num(variance_pct, 1) }}%</td>
         {% endif %}
       </tr>
       {% endfor %}
@@ -59,12 +59,12 @@
     <tfoot>
       <tr>
         <td colspan="2" class="font-semibold ink-1">Totals</td>
-        <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total_budget) }}</td>
-        <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total_actual) }}</td>
+        <td class="text-right num-display font-semibold ink-1">{{ num(total_budget, 2) }}</td>
+        <td class="text-right num-display font-semibold ink-1">{{ num(total_actual, 2) }}</td>
         {% if total_variance >= 0 %}
-        <td class="text-right num-display font-semibold" style="color:var(--pos);">{{ "%.2f"|format(total_variance) }}</td>
+        <td class="text-right num-display font-semibold" style="color:var(--pos);">{{ num(total_variance, 2) }}</td>
         {% else %}
-        <td class="text-right num-display font-semibold" style="color:var(--neg);">{{ "%.2f"|format(total_variance) }}</td>
+        <td class="text-right num-display font-semibold" style="color:var(--neg);">{{ num(total_variance, 2) }}</td>
         {% endif %}
         <td class="text-right num ink-3">—</td>
       </tr>

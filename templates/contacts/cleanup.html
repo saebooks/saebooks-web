@@ -68,7 +68,7 @@
           <td class="px-3 py-2 ink-2 tabular-nums">{{ c.posted_date or "—" }}</td>
           <td class="px-3 py-2 ink-2">{{ c.kind or "—" }}</td>
           <td class="px-3 py-2 text-right ink-1 font-semibold tabular-nums">
-            {% if c.posted_total %}${{ "%.2f"|format(c.posted_total|float) }}{% else %}—{% endif %}
+            {% if c.posted_total %}{{ money(c.posted_total|float, grouping=False) }}{% else %}—{% endif %}
           </td>
           <td class="px-3 py-2 ink-3 tabular-nums">{{ c.last_seen or "—" }}</td>
         </tr>

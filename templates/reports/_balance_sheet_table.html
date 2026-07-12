@@ -31,7 +31,7 @@
   {% else %}
   <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
     <span class="dot" style="background:var(--neg);"></span>
-    <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ "%.2f"|format(comp_bs.difference) }}</span>
+    <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ num(comp_bs.difference, 2) }}</span>
   </div>
   {% endif %}
 
@@ -56,8 +56,8 @@
           <tr>
             <td class="ink-1">{{ line.account_name }}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
-            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
-            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -67,8 +67,8 @@
       <tfoot>
         <tr>
           <td colspan="2" class="font-semibold ink-1">Total Assets</td>
-          <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.assets.total_assets_current) }}</td>
-          <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.assets.total_assets_prior) }}</td>
+          <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.assets.total_assets_current, 2) }}</td>
+          <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.assets.total_assets_prior, 2) }}</td>
         </tr>
       </tfoot>
     </table>
@@ -95,8 +95,8 @@
           <tr>
             <td class="ink-1">{{ line.account_name }}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
-            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
-            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -106,8 +106,8 @@
       <tfoot>
         <tr>
           <td colspan="2" class="font-semibold ink-1">Total Liabilities</td>
-          <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.liabilities.total_liabilities_current) }}</td>
-          <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.liabilities.total_liabilities_prior) }}</td>
+          <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.liabilities.total_liabilities_current, 2) }}</td>
+          <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.liabilities.total_liabilities_prior, 2) }}</td>
         </tr>
       </tfoot>
     </table>
@@ -134,8 +134,8 @@
           <tr>
             <td class="ink-1">{{ line.account_name }}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
-            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
-            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -145,8 +145,8 @@
       <tfoot>
         <tr>
           <td colspan="2" class="font-semibold ink-1">Total Equity</td>
-          <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(comp_bs.equity.total_equity_current) }}</td>
-          <td class="text-right num ink-3 font-semibold">{{ "%.2f"|format(comp_bs.equity.total_equity_prior) }}</td>
+          <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.equity.total_equity_current, 2) }}</td>
+          <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.equity.total_equity_prior, 2) }}</td>
         </tr>
       </tfoot>
     </table>
@@ -173,7 +173,7 @@
   {% else %}
   <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
     <span class="dot" style="background:var(--neg);"></span>
-    <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ "%.2f"|format(difference) }}</span>
+    <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ num(difference, 2) }}</span>
   </div>
   {% endif %}
 
@@ -197,7 +197,7 @@
           <tr>
             <td class="ink-1">{{ line.get("account_name", "—") }}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(line.get("balance", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(line.get("balance", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -210,7 +210,7 @@
         <tr>
           <td colspan="2" class="font-semibold ink-1">Total Assets</td>
           <td class="text-right num-display font-semibold ink-1">
-            {{ "%.2f"|format(assets_section.get("total_assets", 0) | float) }}
+            {{ num(assets_section.get("total_assets", 0) | float, 2) }}
           </td>
         </tr>
       </tfoot>
@@ -237,7 +237,7 @@
           <tr>
             <td class="ink-1">{{ line.get("account_name", "—") }}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(line.get("balance", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(line.get("balance", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -250,7 +250,7 @@
         <tr>
           <td colspan="2" class="font-semibold ink-1">Total Liabilities</td>
           <td class="text-right num-display font-semibold ink-1">
-            {{ "%.2f"|format(liabilities_section.get("total_liabilities", 0) | float) }}
+            {{ num(liabilities_section.get("total_liabilities", 0) | float, 2) }}
           </td>
         </tr>
       </tfoot>
@@ -277,7 +277,7 @@
           <tr>
             <td class="ink-1">{{ line.get("account_name", "—") }}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(line.get("balance", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(line.get("balance", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -290,7 +290,7 @@
         <tr>
           <td colspan="2" class="font-semibold ink-1">Total Equity</td>
           <td class="text-right num-display font-semibold ink-1">
-            {{ "%.2f"|format(equity_section.get("total_equity", 0) | float) }}
+            {{ num(equity_section.get("total_equity", 0) | float, 2) }}
           </td>
         </tr>
       </tfoot>

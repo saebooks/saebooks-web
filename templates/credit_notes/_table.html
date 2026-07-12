@@ -69,7 +69,7 @@
             {% endif %}
           </td>
           <td class="px-4 py-3 text-right ink-1 font-medium tabular-nums">
-            {{ "%.2f"|format(cn.total|float) }}
+            {{ num(cn.total|float, 2) }}
           </td>
           <td class="px-4 py-3">
             {% if cn.status == 'POSTED' %}<span class="badge-pos">{{ cn.status | capitalize }}</span>

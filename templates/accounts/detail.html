@@ -88,7 +88,7 @@
       <div class="flex gap-2">
         <dt class="w-36 shrink-0 ink-3">Balance</dt>
         <dd class="tabular-nums {% if account.balance is defined and account.balance is not none and (account.balance|float) < 0 %}text-[color:var(--neg)]{% else %}ink-1{% endif %}">
-          {% if account.balance is not defined or account.balance is none or (account.balance|float) == 0 %}—{% else %}{{ "%.2f"|format(account.balance|float) }}{% endif %}
+          {% if account.balance is not defined or account.balance is none or (account.balance|float) == 0 %}—{% else %}{{ num(account.balance|float, 2) }}{% endif %}
         </dd>
       </div>
       {% endif %}

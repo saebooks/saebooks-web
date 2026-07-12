@@ -35,10 +35,10 @@
   </svg>
   <div>
     <p class="text-sm font-semibold" style="color:var(--neg);">
-      Revenue concentration risk — {{ "%.0f"|format(top_pct) }}% from one customer
+      Revenue concentration risk — {{ num(top_pct, 0) }}% from one customer
     </p>
     <p class="mt-1 text-xs ink-2">
-      <strong>{{ top_name }}</strong> accounts for {{ "%.1f"|format(top_pct) }}% of your revenue
+      <strong>{{ top_name }}</strong> accounts for {{ num(top_pct, 1) }}% of your revenue
       in this period. The ATO's 80/20 rule means income may be classified as Personal Services
       Income (PSI) if &ge;80% comes from one source. Diversifying your client base or obtaining
       a Personal Services Business (PSB) determination can affect which deductions you can claim.
@@ -64,9 +64,9 @@
       {% set pct = row.get("pct_of_total", 0) | float %}
       <tr {% if pct >= 80 %}style="background:rgba(161,67,51,0.04);"{% endif %}>
         <td class="ink-1 font-medium">{{ row.get("contact_name", "") }}</td>
-        <td class="text-right num ink-2">{{ "%.2f"|format(row.get("revenue", 0) | float) }}</td>
+        <td class="text-right num ink-2">{{ num(row.get("revenue", 0) | float, 2) }}</td>
         <td class="text-right num {% if pct >= 80 %}font-semibold{% endif %}" style="{% if pct >= 80 %}color:var(--neg);{% endif %}">
-          {{ "%.1f"|format(pct) }}%
+          {{ num(pct, 1) }}%
         </td>
       </tr>
       {% endfor %}
@@ -74,7 +74,7 @@
     <tfoot>
       <tr>
         <td class="font-semibold ink-1">Total</td>
-        <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total) }}</td>
+        <td class="text-right num-display font-semibold ink-1">{{ num(total, 2) }}</td>
         <td class="text-right num font-semibold ink-2">100.0%</td>
       </tr>
     </tfoot>

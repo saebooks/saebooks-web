@@ -39,18 +39,18 @@
         <tr>
           <td class="ink-1">{{ contact.get("contact_name", "—") }}</td>
           {% for bucket in buckets %}
-          <td class="text-right num ink-2">{{ "%.2f"|format(contact.get(bucket, 0) | float) }}</td>
+          <td class="text-right num ink-2">{{ num(contact.get(bucket, 0) | float, 2) }}</td>
           {% endfor %}
-          <td class="text-right num-display font-medium ink-1">{{ "%.2f"|format(contact.get("total", 0) | float) }}</td>
+          <td class="text-right num-display font-medium ink-1">{{ num(contact.get("total", 0) | float, 2) }}</td>
         </tr>
         {% endfor %}
         {# Trade Debtors totals row #}
         <tr class="bg-paper-2 font-semibold hairline-t">
           <td class="ink-1">Trade Debtors</td>
           {% for bucket in buckets %}
-          <td class="text-right num ink-1">{{ "%.2f"|format(totals.get(bucket, 0) | float) }}</td>
+          <td class="text-right num ink-1">{{ num(totals.get(bucket, 0) | float, 2) }}</td>
           {% endfor %}
-          <td class="text-right num-display ink-1">{{ "%.2f"|format(totals.get("total", 0) | float) }}</td>
+          <td class="text-right num-display ink-1">{{ num(totals.get("total", 0) | float, 2) }}</td>
         </tr>
         {# Retentions Receivable row — only shown when retentions exist #}
         {% if retentions_receivable %}
@@ -59,11 +59,11 @@
           {% for bucket in buckets %}
           <td class="text-right num" style="color:var(--warm);">
             {% set val = retentions_receivable.get(bucket, 0) | float %}
-            {% if val %}{{ "%.2f"|format(val) }}{% else %}—{% endif %}
+            {% if val %}{{ num(val, 2) }}{% else %}—{% endif %}
           </td>
           {% endfor %}
           <td class="text-right num-display" style="color:var(--warm);">
-            {{ "%.2f"|format(retentions_receivable.get("total", 0) | float) }}
+            {{ num(retentions_receivable.get("total", 0) | float, 2) }}
           </td>
         </tr>
         {% endif %}

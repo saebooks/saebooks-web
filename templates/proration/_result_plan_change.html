@@ -6,13 +6,13 @@
     <div class="ink-2">Days on new plan</div>
     <div class="font-mono tabular-nums text-right ink-1">{{ result.days_remaining }} of {{ result.days_total }}</div>
     <div class="ink-2">Credit (old plan unused)</div>
-    <div class="font-mono tabular-nums text-right text-[color:var(--neg)]">−{{ "%.2f"|format(result.credit|float) }}</div>
+    <div class="font-mono tabular-nums text-right text-[color:var(--neg)]">−{{ num(result.credit|float, 2) }}</div>
     <div class="ink-2">Charge (new plan)</div>
-    <div class="font-mono tabular-nums text-right ink-1">{{ "%.2f"|format(result.charge|float) }}</div>
+    <div class="font-mono tabular-nums text-right ink-1">{{ num(result.charge|float, 2) }}</div>
     <div class="ink-2 font-semibold hairline-t pt-2">Net adjustment</div>
     <div class="font-mono tabular-nums text-right font-semibold hairline-t pt-2
       {% if result.net|float < 0 %}text-[color:var(--neg)]{% else %}ink-1{% endif %}">
-      {{ "%.2f"|format(result.net|float) }}
+      {{ num(result.net|float, 2) }}
     </div>
   </div>
 </div>

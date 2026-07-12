@@ -13,7 +13,7 @@
 <div class="flex items-start justify-between mb-6">
   <div>
     <h1 class="font-display text-3xl">Expense {{ expense.number or "(draft)" }}</h1>
-    <p class="text-sm ink-3 mt-1">{{ expense.expense_date }} · <span class="num-display text-base ink-1 font-semibold">${{ "%.2f"|format(expense.total|float) }}</span></p>
+    <p class="text-sm ink-3 mt-1">{{ expense.expense_date }} · <span class="num-display text-base ink-1 font-semibold">{{ money(expense.total|float, grouping=False) }}</span></p>
   </div>
   <div>
     {% if expense.status == "POSTED" %}
@@ -62,18 +62,18 @@
     <tr>
       <td class="px-3 py-2 text-gray-500">{{ line.line_no }}</td>
       <td class="px-3 py-2">{{ line.description }}</td>
-      <td class="px-3 py-2 text-right tabular-nums">{{ "%.4f"|format(line.quantity|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums">{{ "%.4f"|format(line.unit_price|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(line.line_subtotal|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(line.line_tax|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(line.line_total|float) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ num(line.quantity|float, 4) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ num(line.unit_price|float, 4) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ money(line.line_subtotal|float, grouping=False) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ money(line.line_tax|float, grouping=False) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ money(line.line_total|float, grouping=False) }}</td>
     </tr>
     {% endfor %}
     <tr class="border-t-2 border-gray-300 bg-gray-50 font-semibold">
       <td colspan="4" class="px-3 py-2 text-right">Totals</td>
-      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(expense.subtotal|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(expense.tax_total|float) }}</td>
-      <td class="px-3 py-2 text-right tabular-nums">${{ "%.2f"|format(expense.total|float) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ money(expense.subtotal|float, grouping=False) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ money(expense.tax_total|float, grouping=False) }}</td>
+      <td class="px-3 py-2 text-right tabular-nums">{{ money(expense.total|float, grouping=False) }}</td>
     </tr>
   </tbody>
 </table>

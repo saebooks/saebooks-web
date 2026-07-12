@@ -57,12 +57,12 @@
             <td class="num ink-2 text-xs">{{ item.get("entity_ref") or "—" }}</td>
             <td class="ink-1">{{ item.get("contact_name") or "—" }}</td>
             <td class="font-semibold ink-1">{{ item.get("currency", "—") }}</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(item.get("original_amount", 0) | float) }}</td>
-            <td class="text-right num ink-2">{{ "%.2f"|format(item.get("amount_paid", 0) | float) }}</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(item.get("outstanding_foreign", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(item.get("original_amount", 0) | float, 2) }}</td>
+            <td class="text-right num ink-2">{{ num(item.get("amount_paid", 0) | float, 2) }}</td>
+            <td class="text-right num ink-1">{{ num(item.get("outstanding_foreign", 0) | float, 2) }}</td>
             <td class="text-right num ink-3">
               {% if item.get("outstanding_base") is not none %}
-              {{ "%.2f"|format(item.get("outstanding_base") | float) }}
+              {{ num(item.get("outstanding_base") | float, 2) }}
               {% else %}
               &mdash;
               {% endif %}
@@ -84,7 +84,7 @@
             {% set total_gl = report.get("total_revaluation_gain_loss") %}
             {% if total_gl is not none %}
             <span style="color:{% if total_gl | float >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
-              {{ "%.2f"|format(total_gl | float) }}
+              {{ num(total_gl | float, 2) }}
             </span>
             {% else %}
             <span class="ink-3">&mdash;</span>

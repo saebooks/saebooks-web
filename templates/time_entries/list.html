@@ -140,12 +140,12 @@
           {{ contact_by_id[e.contact_id].name }}
           {% else %}—{% endif %}
         </td>
-        <td class="px-2 py-2 text-right num-display whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">{{ "%.2f"|format(e.hours|float) }}</td>
+        <td class="px-2 py-2 text-right num-display whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">{{ num(e.hours|float, 2) }}</td>
         <td class="px-2 py-2 text-right num whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">
-          {% if e.rate %}${{ "%.2f"|format(e.rate|float) }}{% else %}—{% endif %}
+          {% if e.rate %}{{ money(e.rate|float, grouping=False) }}{% else %}—{% endif %}
         </td>
         <td class="px-2 py-2 text-right num-display whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">
-          {% if e.rate %}${{ "%.2f"|format((e.rate|float) * (e.hours|float)) }}{% else %}—{% endif %}
+          {% if e.rate %}{{ money((e.rate|float) * (e.hours|float), grouping=False) }}{% else %}—{% endif %}
         </td>
         <td class="px-2 py-2 text-center whitespace-nowrap cursor-pointer" onclick="window.location='/time-entries/{{ e.id }}'">
           <span class="chip

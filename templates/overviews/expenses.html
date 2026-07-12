@@ -61,7 +61,7 @@
   <a href="/bills?status=POSTED" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
     <p class="nav-section-label mb-2">AP · outstanding</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
-      ${{ "{:,.0f}".format(outstanding_total|float) }}
+      {{ money(outstanding_total|float, decimals=0) }}
     </p>
     <p class="mt-1 text-xs ink-3">
       {{ outstanding_count }} bill{{ '' if outstanding_count == 1 else 's' }}
@@ -73,21 +73,21 @@
   <a href="/bills?status=POSTED" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
     <p class="nav-section-label mb-2">Due ≤ 7 days</p>
     <p class="num-display text-2xl" style="color:var(--warm);">
-      ${{ "{:,.0f}".format(due_soon_total|float) }}
+      {{ money(due_soon_total|float, decimals=0) }}
     </p>
     <p class="mt-1 text-xs ink-3">{{ due_soon_count }} bill{{ '' if due_soon_count == 1 else 's' }}</p>
   </a>
   <a href="/bills?from_date={{ month_start }}&to_date={{ month_end }}" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
     <p class="nav-section-label mb-2">Spend · MTD</p>
     <p class="num-display text-2xl" style="color:var(--neg);">
-      ${{ "{:,.0f}".format(spend_mtd|float) }}
+      {{ money(spend_mtd|float, decimals=0) }}
     </p>
     <p class="mt-1 text-xs ink-3">{{ month_start }} → today</p>
   </a>
   <a href="/bills?status=DRAFT" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
     <p class="nav-section-label mb-2">Drafts</p>
     <p class="num-display text-2xl" style="color:var(--warm);">
-      ${{ "{:,.0f}".format(draft_total|float) }}
+      {{ money(draft_total|float, decimals=0) }}
     </p>
     <p class="mt-1 text-xs ink-3">{{ draft_count }} draft{{ '' if draft_count == 1 else 's' }}</p>
   </a>
@@ -113,13 +113,13 @@
         <div>
           <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Spend YTD</p>
           <p class="num-display text-xl mt-1" style="color:var(--neg);">
-            ${{ "{:,.2f}".format(spend_ytd|float) }}
+            {{ money(spend_ytd|float) }}
           </p>
         </div>
         <div class="border-l hairline pl-4">
           <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Spend MTD</p>
           <p class="num-display text-xl mt-1" style="color:var(--sae-2);">
-            ${{ "{:,.2f}".format(spend_mtd|float) }}
+            {{ money(spend_mtd|float) }}
           </p>
         </div>
       </div>
@@ -133,23 +133,23 @@
       <div class="grid grid-cols-5 gap-2 text-center">
         <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">Current</p>
-          <p class="num-display text-lg mt-1">${{ "{:,.0f}".format(aging.current|float) }}</p>
+          <p class="num-display text-lg mt-1">{{ money(aging.current|float, decimals=0) }}</p>
         </a>
         <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">1–30 d</p>
-          <p class="num-display text-lg mt-1" style="color:var(--warm);">${{ "{:,.0f}".format(aging.d_1_30|float) }}</p>
+          <p class="num-display text-lg mt-1" style="color:var(--warm);">{{ money(aging.d_1_30|float, decimals=0) }}</p>
         </a>
         <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">31–60 d</p>
-          <p class="num-display text-lg mt-1" style="color:var(--warm);">${{ "{:,.0f}".format(aging.d_31_60|float) }}</p>
+          <p class="num-display text-lg mt-1" style="color:var(--warm);">{{ money(aging.d_31_60|float, decimals=0) }}</p>
         </a>
         <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">61–90 d</p>
-          <p class="num-display text-lg mt-1" style="color:var(--neg);">${{ "{:,.0f}".format(aging.d_61_90|float) }}</p>
+          <p class="num-display text-lg mt-1" style="color:var(--neg);">{{ money(aging.d_61_90|float, decimals=0) }}</p>
         </a>
         <a href="/bills?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">90+ d</p>
-          <p class="num-display text-lg mt-1" style="color:var(--neg);">${{ "{:,.0f}".format(aging.d_90_plus|float) }}</p>
+          <p class="num-display text-lg mt-1" style="color:var(--neg);">{{ money(aging.d_90_plus|float, decimals=0) }}</p>
         </a>
       </div>
     </section>
@@ -179,7 +179,7 @@
               </td>
               <td class="py-2">{{ _c or '—' }}</td>
               <td class="py-2 font-mono ink-3">{{ b.bill_date }}</td>
-              <td class="py-2 text-right num-display">${{ "{:,.2f}".format(b.total|float) }}</td>
+              <td class="py-2 text-right num-display">{{ money(b.total|float) }}</td>
               <td class="py-2 text-right">{{ payment_status_badge(b, today=today_iso, due_soon_cutoff=due_soon_cutoff_iso) }}</td>
             </tr>
             {% endfor %}
@@ -198,7 +198,7 @@
         <div>
           <p class="nav-section-label">Top vendors</p>
           <p class="num-display text-xl mt-1 ink">
-            ${{ "{:,.0f}".format(top_suppliers_total|float) }}
+            {{ money(top_suppliers_total|float, decimals=0) }}
           </p>
           <p class="text-[11px] font-mono ink-3 mt-0.5">YTD · top {{ top_suppliers|length }} vendors</p>
         </div>
@@ -228,7 +228,7 @@
               </td>
               <td class="py-2 text-right num-display ink-3">{{ s.count }}</td>
               <td class="py-2 text-right font-mono text-xs ink-3">{{ s.last_date or '—' }}</td>
-              <td class="py-2 text-right num-display">${{ "{:,.0f}".format(s.total|float) }}</td>
+              <td class="py-2 text-right num-display">{{ money(s.total|float, decimals=0) }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -252,7 +252,7 @@
               <span class="font-mono sae">{{ e.number or e.id[:8] }}</span>
               <span class="ink-3"> · {{ _c or '—' }}</span>
             </a>
-            <span class="num-display ink">${{ "{:,.0f}".format(e.total|float) }}</span>
+            <span class="num-display ink">{{ money(e.total|float, decimals=0) }}</span>
           </li>
           {% endfor %}
         </ul>
@@ -275,7 +275,7 @@
               <span class="font-mono sae">{{ po.number or po.id[:8] }}</span>
               <span class="ink-3"> · {{ _c or '—' }}</span>
             </a>
-            <span class="num-display ink">${{ "{:,.0f}".format(po.total|float) }}</span>
+            <span class="num-display ink">{{ money(po.total|float, decimals=0) }}</span>
           </li>
           {% endfor %}
         </ul>

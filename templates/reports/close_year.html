@@ -53,7 +53,7 @@
 {% if preview %}
   {% if preview.get("has_anything_to_close") %}
   <div class="card p-4 mb-4">
-    <p class="text-sm ink-1 mb-3">Net profit to close: <span class="num font-display">{{ "%.2f"|format(preview.get("net_profit", 0) | float) }}</span></p>
+    <p class="text-sm ink-1 mb-3">Net profit to close: <span class="num font-display">{{ num(preview.get("net_profit", 0) | float, 2) }}</span></p>
     <table class="w-full text-sm">
       <thead><tr class="ink-3 text-xs uppercase tracking-wider">
         <th class="text-left py-1">Account</th><th class="text-right py-1">Debit</th><th class="text-right py-1">Credit</th>
@@ -62,8 +62,8 @@
       {% for line in preview.get("lines", []) %}
         <tr class="border-t" style="border-color:var(--rule,#e5e7eb);">
           <td class="py-1 ink-2">{{ line.get("description") or line.get("account_id") }}</td>
-          <td class="py-1 text-right num">{% if line.get("debit") %}{{ "%.2f"|format(line.get("debit") | float) }}{% endif %}</td>
-          <td class="py-1 text-right num">{% if line.get("credit") %}{{ "%.2f"|format(line.get("credit") | float) }}{% endif %}</td>
+          <td class="py-1 text-right num">{% if line.get("debit") %}{{ num(line.get("debit") | float, 2) }}{% endif %}</td>
+          <td class="py-1 text-right num">{% if line.get("credit") %}{{ num(line.get("credit") | float, 2) }}{% endif %}</td>
         </tr>
       {% endfor %}
       </tbody>

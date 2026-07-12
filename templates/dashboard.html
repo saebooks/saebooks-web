@@ -53,7 +53,7 @@
       {% elif gst and gst.threshold_approaching %}
         <a href="#gst-tile" class="chip" style="border-color:var(--warm);color:var(--warm);">
           <span class="dot" style="background:var(--warm);"></span>
-          GST · {{ "%.0f"|format(gst.pct) }}% of threshold
+          GST · {{ num(gst.pct, 0) }}% of threshold
         </a>
       {% else %}
         <span class="chip" style="border-color:var(--pos);color:var(--pos);">
@@ -67,7 +67,7 @@
         <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}"
            class="chip" style="border-color:var(--neg);color:var(--neg);">
           <span class="dot" style="background:var(--neg);"></span>
-          PSI · {{ "%.0f"|format(top_customer_pct|float) }}% from 1 customer
+          PSI · {{ num(top_customer_pct|float, 0) }}% from 1 customer
         </a>
       {% elif psi_status == "unsure" %}
         <a href="/settings/company" class="chip" style="border-color:var(--warm);color:var(--warm);">
@@ -89,8 +89,8 @@
   <section data-widget="kpi-ar" data-widget-title="AR · outstanding" data-widget-href="/invoices" class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">AR · outstanding</p>
     <p class="num-display text-2xl sae">
-      ${{ "{:,.0f}".format(ar.paid_total|float) }}
-      {% if ar.delta_pct is defined and ar.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ar.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ar.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ "%.1f"|format(ar.delta_pct|abs) }}%</span>{% endif %}
+      {{ money(ar.paid_total|float, decimals=0) }}
+      {% if ar.delta_pct is defined and ar.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ar.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ar.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(ar.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
       {{ ar.paid_count }} invoice{{ '' if ar.paid_count == 1 else 's' }}
@@ -103,8 +103,8 @@
   <section data-widget="kpi-ap" data-widget-title="AP · outstanding" data-widget-href="/bills" class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">AP · outstanding</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
-      ${{ "{:,.0f}".format(ap.paid_total|float) }}
-      {% if ap.delta_pct is defined and ap.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ap.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ap.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ "%.1f"|format(ap.delta_pct|abs) }}%</span>{% endif %}
+      {{ money(ap.paid_total|float, decimals=0) }}
+      {% if ap.delta_pct is defined and ap.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ap.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ap.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(ap.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
       {{ ap.paid_count }} bill{{ '' if ap.paid_count == 1 else 's' }}
@@ -117,13 +117,13 @@
   <section data-widget="kpi-cash" data-widget-title="Cash · this month" data-widget-href="/payments" class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">Cash · this month</p>
     <p class="num-display text-2xl" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
-      {% if cash.net < 0 %}−{% endif %}${{ "{:,.0f}".format(cash.net|abs|float) }}
-      {% if cash.delta_pct is defined and cash.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if cash.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if cash.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ "%.1f"|format(cash.delta_pct|abs) }}%</span>{% endif %}
+      {% if cash.net < 0 %}−{% endif %}{{ money(cash.net|abs|float, decimals=0) }}
+      {% if cash.delta_pct is defined and cash.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if cash.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if cash.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(cash.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
-      <span class="pos">▲ ${{ "{:,.0f}".format(cash.in_total|float) }}</span>
+      <span class="pos">▲ {{ money(cash.in_total|float, decimals=0) }}</span>
       <span class="ink-4">·</span>
-      <span class="neg">▼ ${{ "{:,.0f}".format(cash.out_total|float) }}</span>
+      <span class="neg">▼ {{ money(cash.out_total|float, decimals=0) }}</span>
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkCash" data-seed="{{ (cash.in_total + cash.out_total)|round|int }}" data-tint="var(--pos)"></canvas></div>
   </section>
@@ -137,12 +137,12 @@
     <p class="nav-section-label mb-2">GST turnover · YTD</p>
     <p class="num-display text-2xl"
        style="color: {% if gst and gst.threshold_crossed %}var(--neg){% elif gst and gst.threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
-      ${{ "{:,.0f}".format((gst.ytd_turnover if gst else 0)|float) }}
-      {% if gst.delta_pct is defined and gst.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if gst.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if gst.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ "%.1f"|format(gst.delta_pct|abs) }}%</span>{% endif %}
+      {{ money((gst.ytd_turnover if gst else 0)|float, decimals=0) }}
+      {% if gst.delta_pct is defined and gst.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if gst.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if gst.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(gst.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
       of $75,000 threshold
-      {% if gst %} · <span class="num">{{ "%.0f"|format(gst.pct) }}%</span>{% endif %}
+      {% if gst %} · <span class="num">{{ num(gst.pct, 0) }}%</span>{% endif %}
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkGst" data-seed="{{ (gst.ytd_turnover if gst else 0)|round|int }}" data-tint="var(--warm)"></canvas></div>
   </section>
@@ -167,7 +167,7 @@
           <p class="nav-section-label">Cash flow · this month</p>
           <h2 class="font-display text-2xl mt-1">
             Net <span class="num-display" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
-              {% if cash.net < 0 %}−{% endif %}${{ "{:,.2f}".format(cash.net|abs|float) }}
+              {% if cash.net < 0 %}−{% endif %}{{ money(cash.net|abs|float) }}
             </span>
           </h2>
         </div>
@@ -180,13 +180,13 @@
         <div>
           <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Payments in</p>
           <p class="num-display text-xl pos mt-1">
-            ${{ "{:,.2f}".format(cash.in_total|float) }}
+            {{ money(cash.in_total|float) }}
           </p>
         </div>
         <div class="border-l hairline pl-4">
           <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Payments out</p>
           <p class="num-display text-xl neg mt-1">
-            ${{ "{:,.2f}".format(cash.out_total|float) }}
+            {{ money(cash.out_total|float) }}
           </p>
         </div>
       </div>
@@ -219,7 +219,7 @@
               <span class="badge-draft">Draft</span>
             </td>
             <td class="text-right num">{{ ar.draft_count }}</td>
-            <td class="text-right num">${{ "{:,.2f}".format(ar.draft_total|float) }}</td>
+            <td class="text-right num">{{ money(ar.draft_total|float) }}</td>
           </tr>
           <tr data-widget-href="/invoices?status=overdue" {% if ar.overdue_count > 0 %}style="background:rgba(161,67,51,0.04);"{% endif %}>
             <td>
@@ -233,7 +233,7 @@
               {{ ar.overdue_count }}
             </td>
             <td class="text-right num" {% if ar.overdue_count > 0 %}style="color:var(--neg);font-weight:600;"{% endif %}>
-              ${{ "{:,.2f}".format(ar.overdue_total|float) }}
+              {{ money(ar.overdue_total|float) }}
             </td>
           </tr>
           <tr data-widget-href="/invoices?status=open">
@@ -241,7 +241,7 @@
               <span class="badge-open">Open</span>
             </td>
             <td class="text-right num">{{ ar.paid_count }}</td>
-            <td class="text-right num">${{ "{:,.2f}".format(ar.paid_total|float) }}</td>
+            <td class="text-right num">{{ money(ar.paid_total|float) }}</td>
           </tr>
         </tbody>
       </table>
@@ -274,7 +274,7 @@
               <span class="badge-draft">Draft</span>
             </td>
             <td class="text-right num">{{ ap.draft_count }}</td>
-            <td class="text-right num">${{ "{:,.2f}".format(ap.draft_total|float) }}</td>
+            <td class="text-right num">{{ money(ap.draft_total|float) }}</td>
           </tr>
           <tr data-widget-href="/bills?status=due-soon" {% if ap.due_soon_count > 0 %}style="background:rgba(200,155,60,0.05);"{% endif %}>
             <td>
@@ -288,7 +288,7 @@
               {{ ap.due_soon_count }}
             </td>
             <td class="text-right num" {% if ap.due_soon_count > 0 %}style="color:var(--warm);font-weight:600;"{% endif %}>
-              ${{ "{:,.2f}".format(ap.due_soon_total|float) }}
+              {{ money(ap.due_soon_total|float) }}
             </td>
           </tr>
           <tr data-widget-href="/bills?status=open">
@@ -296,7 +296,7 @@
               <span class="badge-open">Open</span>
             </td>
             <td class="text-right num">{{ ap.paid_count }}</td>
-            <td class="text-right num">${{ "{:,.2f}".format(ap.paid_total|float) }}</td>
+            <td class="text-right num">{{ money(ap.paid_total|float) }}</td>
           </tr>
         </tbody>
       </table>
@@ -318,18 +318,18 @@
         {% if takings.change_pct is not none %}
         <span class="num-display text-2xl"
               style="color: {% if takings.change_pct > 0 %}var(--pos){% elif takings.change_pct < 0 %}var(--neg){% else %}var(--ink-3){% endif %};">
-          {% if takings.change_pct > 0 %}+{% endif %}{{ "%.1f"|format(takings.change_pct) }}%
+          {% if takings.change_pct > 0 %}+{% endif %}{{ num(takings.change_pct, 1) }}%
         </span>
         {% endif %}
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="hairline rounded-md p-3">
           <p class="text-[10px] font-mono uppercase tracking-wider ink-3">This week</p>
-          <p class="num-display text-xl mt-1">${{ "{:,.2f}".format(takings.this_week|float) }}</p>
+          <p class="num-display text-xl mt-1">{{ money(takings.this_week|float) }}</p>
         </div>
         <div class="hairline rounded-md p-3">
           <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Prior week</p>
-          <p class="num-display text-xl mt-1 ink-2">${{ "{:,.2f}".format(takings.last_week|float) }}</p>
+          <p class="num-display text-xl mt-1 ink-2">{{ money(takings.last_week|float) }}</p>
           <p class="text-[10px] font-mono ink-4 mt-1">{{ takings.last_start }} – {{ takings.last_end }}</p>
         </div>
       </div>
@@ -369,7 +369,7 @@
         <div class="absolute inset-x-0 bottom-0 text-center">
           <p class="num-display text-2xl"
              style="color: {% if gst and gst.threshold_crossed %}var(--neg){% elif gst and gst.threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
-            {% if gst %}{{ "%.0f"|format(gst.pct) }}%{% else %}0%{% endif %}
+            {% if gst %}{{ num(gst.pct, 0) }}%{% else %}0%{% endif %}
           </p>
         </div>
       </div>
@@ -378,7 +378,7 @@
         <div class="flex justify-between hairline-b pb-2">
           <dt class="text-xs ink-3">YTD turnover</dt>
           <dd class="num text-sm" style="font-weight:600;">
-            ${{ "{:,.2f}".format((gst.ytd_turnover if gst else 0)|float) }}
+            {{ money((gst.ytd_turnover if gst else 0)|float) }}
           </dd>
         </div>
         <div class="flex justify-between">
@@ -468,7 +468,7 @@
       <div>
         <p class="font-medium ink-1">GST registration threshold crossed</p>
         <p class="ink-3 mt-1">
-          Your YTD turnover is <span class="num" style="color:var(--neg);font-weight:600;">${{ "{:,.2f}".format(gst.ytd_turnover|float) }}</span>,
+          Your YTD turnover is <span class="num" style="color:var(--neg);font-weight:600;">{{ money(gst.ytd_turnover|float) }}</span>,
           above the $75,000 GST registration threshold. You must register with the ATO within 21 days.
           <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
              target="_blank" rel="noopener" class="sae hover:underline">Register with ATO →</a>
@@ -481,7 +481,7 @@
       <div>
         <p class="font-medium ink-1">Approaching GST registration threshold</p>
         <p class="ink-3 mt-1">
-          YTD turnover <span class="num" style="font-weight:600;">${{ "{:,.2f}".format(gst.ytd_turnover|float) }}</span> ({{ "%.0f"|format(gst.pct) }}% of $75k).
+          YTD turnover <span class="num" style="font-weight:600;">{{ money(gst.ytd_turnover|float) }}</span> ({{ num(gst.pct, 0) }}% of $75k).
           Once you exceed the threshold you have 21 days to register.
           <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
              target="_blank" rel="noopener" class="sae hover:underline">ATO registration info →</a>
@@ -497,7 +497,7 @@
         <p class="font-medium ink-1">Revenue concentration · PSI 80/20 rule</p>
         <p class="ink-3 mt-1">
           {% if top_customer_name %}<strong class="ink-1">{{ top_customer_name }}</strong> accounts{% else %}A single customer accounts{% endif %}
-          for <span class="num" style="color:var(--neg);font-weight:600;">{{ "%.1f"|format(top_customer_pct|float) }}%</span>
+          for <span class="num" style="color:var(--neg);font-weight:600;">{{ num(top_customer_pct|float, 1) }}%</span>
           of invoiced revenue ({{ fy_from }} – {{ fy_to }}). The ATO's 80/20 rule may apply.
           <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}" class="sae hover:underline">Breakdown →</a>
           <span class="ink-4">·</span>
@@ -567,7 +567,7 @@
           <a href="/contacts/{{ v.contact_id }}" class="ink-1 hover:underline">{{ v.name }}</a>
         </td>
         <td class="py-2 text-right ink-3 num">{{ v.count }}</td>
-        <td class="py-2 text-right num-display">${{ "{:,.0f}".format(v.total|float) }}</td>
+        <td class="py-2 text-right num-display">{{ money(v.total|float, decimals=0) }}</td>
       </tr>
       {% endfor %}
     </tbody>

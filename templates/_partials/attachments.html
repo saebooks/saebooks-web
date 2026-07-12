@@ -15,9 +15,9 @@
   {%- elif size < 1024 -%}
     {{ size }} B
   {%- elif size < 1048576 -%}
-    {{ "%.1f"|format(size / 1024) }} kB
+    {{ num(size / 1024, 1) }} kB
   {%- else -%}
-    {{ "%.1f"|format(size / 1048576) }} MB
+    {{ num(size / 1048576, 1) }} MB
   {%- endif -%}
 {% endmacro %}
 

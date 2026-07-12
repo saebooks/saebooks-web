@@ -52,7 +52,7 @@
             {% elif a.balance is not defined or a.balance is none or (a.balance|float) == 0 %}
               <span class="ink-3">—</span>
             {% else %}
-              {{ "%.2f"|format(a.balance|float) }}
+              {{ num(a.balance|float, 2) }}
             {% endif %}
           </td>
           <td class="px-4 py-3 ink-3 text-xs">

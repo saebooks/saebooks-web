@@ -236,7 +236,7 @@
           <td class="px-4 py-3 text-right tabular-nums
             {% if line.debit|float > 0 %}ink-1 font-medium{% else %}ink-4{% endif %}">
             {% if line.debit|float > 0 %}
-              {{ "%.2f"|format(line.debit|float) }}
+              {{ num(line.debit|float, 2) }}
             {% else %}
               —
             {% endif %}
@@ -244,7 +244,7 @@
           <td class="px-4 py-3 text-right tabular-nums
             {% if line.credit|float > 0 %}ink-1 font-medium{% else %}ink-4{% endif %}">
             {% if line.credit|float > 0 %}
-              {{ "%.2f"|format(line.credit|float) }}
+              {{ num(line.credit|float, 2) }}
             {% else %}
               —
             {% endif %}
@@ -268,11 +268,11 @@
         </td>
         <td class="px-4 py-3 text-right tabular-nums text-sm
           {% if not balanced %}{% else %}ink-1{% endif %}" {% if not balanced %}style="color:var(--neg);"{% endif %}>
-          {{ "%.2f"|format(total_debit.v) }}
+          {{ num(total_debit.v, 2) }}
         </td>
         <td class="px-4 py-3 text-right tabular-nums text-sm
           {% if not balanced %}{% else %}ink-1{% endif %}" {% if not balanced %}style="color:var(--neg);"{% endif %}>
-          {{ "%.2f"|format(total_credit.v) }}
+          {{ num(total_credit.v, 2) }}
         </td>
       </tr>
     </tfoot>
