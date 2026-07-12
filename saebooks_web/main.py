@@ -93,6 +93,7 @@ from saebooks_web.routes.parties import router as parties_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.dashboard import router as dashboard_router
 from saebooks_web.routes.switch_company import router as switch_company_router
+from saebooks_web.routes.locale import router as locale_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.imports import router as imports_router
 from saebooks_web.routes.inbox import router as inbox_router  # Document Inbox (#33)
@@ -346,6 +347,7 @@ app.include_router(contact_router)
 app.include_router(billing_router)
 app.include_router(dashboard_router)
 app.include_router(switch_company_router)
+app.include_router(locale_router)
 app.include_router(contacts_router)
 app.include_router(parties_router)
 app.include_router(ai_extraction_router)

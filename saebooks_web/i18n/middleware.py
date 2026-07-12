@@ -95,6 +95,7 @@ class LocaleMiddleware(BaseHTTPMiddleware):
         locale = resolve_locale(request)
         token = current_locale.set(locale)
         request.state.active_locale = locale
+        request.state.locale = locale
         try:
             return await call_next(request)
         finally:
