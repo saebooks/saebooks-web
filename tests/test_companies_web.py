@@ -25,6 +25,12 @@ EE onboarding (P3, ee-gui-prep scope):
 13. POST /companies jurisdiction=AU (default/unset) -- payload sent to the
     engine is byte-identical to the pre-P3 shape (no jurisdiction key at
     all) -- AU path stays pixel/behaviour-equivalent.
+
+Fixer round 4:
+14. GET /companies/new -- stock SAE Books brand renders no "Jurisdiction"
+    select and no EE fieldset markup at all (not just hidden) -- the
+    affordance must be brand-gated like every other EE-only UI surface.
+15. GET /companies/new -- Tasur brand DOES render the jurisdiction select.
 """
 from __future__ import annotations
 
@@ -499,3 +505,48 @@ async def test_companies_create_au_payload_unchanged(respx_mock: respx.MockRoute
 
     assert resp.status_code == 303
     assert captured[0] == {"name": "Apex Fitness", "abn": "11 111 111 111"}
+
+
+# ---------------------------------------------------------------------------
+# 14-15. Fixer round 4 -- jurisdiction selector / EE fieldset brand-gated
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_companies_new_form_stock_brand_hides_jurisdiction_selector() -> None:
+    """GET /companies/new on the stock (default, SAEBOOKS_BRAND unset) SAE
+    Books brand must not render the EE-onboarding jurisdiction select or
+    the EE fieldset at all -- not even as hidden markup. AU pixel
+    equivalence means the default deployment gains no new form field."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _ADMIN_COOKIE},
+    ) as client:
+        resp = await client.get("/companies/new")
+
+    assert resp.status_code == 200
+    assert 'id="jurisdiction"' not in resp.text
+    assert 'id="registrikood"' not in resp.text
+    assert 'id="ee-fields"' not in resp.text
+    # AU's own field is unaffected.
+    assert 'name="abn"' in resp.text
+
+
+@pytest.mark.anyio
+async def test_companies_new_form_tasur_brand_shows_jurisdiction_selector(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Same route under the Tasur/EE brand DOES render the selector -- the
+    gate hides it for stock only, it doesn't remove the feature."""
+    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur")
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _ADMIN_COOKIE},
+    ) as client:
+        resp = await client.get("/companies/new")
+
+    assert resp.status_code == 200
+    assert 'id="jurisdiction"' in resp.text
+    assert 'id="registrikood"' in resp.text

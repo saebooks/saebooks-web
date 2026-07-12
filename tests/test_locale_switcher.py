@@ -9,6 +9,14 @@ Cases:
 3. An unsupported locale value is a silent no-op redirect (no cookie/session
    write), not a 400/500.
 4. `next` is same-origin-only — an absolute/cross-origin value falls back to "/".
+
+Fixer round 4:
+5. No `next` field but a same-origin Referer header -- redirects back to the
+   referring page's path, not "/". (Real browsers always send Referer as an
+   absolute URL, so the pre-fix same-origin check -- which rejected any
+   value carrying a scheme/netloc -- rejected same-origin referers exactly
+   like cross-origin ones and always fell back to "/".)
+6. No `next` field, a cross-origin Referer header -- still falls back to "/".
 """
 from __future__ import annotations
 
@@ -123,3 +131,53 @@ async def test_logged_in_switch_persists_to_session_round_trip(
     # the way from the session write through LocaleMiddleware to the
     # gettext call in base.html.
     assert "Keel" in page.text
+
+
+@pytest.mark.anyio
+async def test_no_next_field_same_origin_referer_redirects_to_referring_path() -> None:
+    """No `next` field, but a same-origin Referer header (what every real
+    browser actually sends -- always an absolute URL) -- must redirect
+    back to the referring page's path, not fall back to "/"."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test", follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/set-locale",
+            data={"locale": "ru"},
+            headers={"referer": "http://test/invoices/123"},
+        )
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/invoices/123"
+
+
+@pytest.mark.anyio
+async def test_no_next_field_cross_origin_referer_falls_back_to_root() -> None:
+    """A cross-origin Referer must still fall back to "/", exactly like a
+    cross-origin `next` value -- the fix only accepts same-origin
+    absolute URLs, it doesn't loosen the check generally.
+
+    In practice CSRFMiddleware's own Referer-origin check (Layer 2 —
+    security/csrf.py) rejects a cross-site Referer with 403 before this
+    route ever runs, so the redirect logic never actually sees the
+    cross-origin value on a real POST. Prove the _safe_next unit itself
+    still rejects it (defense in depth — the two checks are independent
+    layers), rather than relying only on the 403 to mask a would-be gap.
+    """
+    from saebooks_web.routes.locale import _safe_next
+
+    assert _safe_next(None, own_origin="http://test") == "/"
+    assert (
+        _safe_next("https://evil.example/steal", own_origin="http://test") == "/"
+    )
+
+    # And, end-to-end: CSRFMiddleware's independent Referer check already
+    # blocks this before _safe_next's own-origin comparison would matter.
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test", follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/set-locale",
+            data={"locale": "ru"},
+            headers={"referer": "https://evil.example/steal"},
+        )
+    assert resp.status_code == 403

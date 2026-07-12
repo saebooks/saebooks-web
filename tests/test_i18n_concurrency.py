@@ -17,17 +17,42 @@ A self-contained fixture catalog (not the real, still-empty app catalog —
 the string sweep is a later gated packet) is compiled into a temp
 locales dir so this test asserts on real, differing translated output
 rather than an identity no-op.
+
+Fixer round 4: the tests above only prove contextvar isolation under a
+bare ``asyncio.gather`` of sibling coroutines — a stdlib guarantee, not a
+proof of anything specific to this app. They never construct a real
+Request, never call ``LocaleMiddleware.dispatch``, and never go through
+Starlette's ``BaseHTTPMiddleware.call_next`` — which is where the
+task-spawn-and-context-copy behaviour this design actually relies on
+lives (``call_next`` runs downstream code via
+``task_group.start_soon(coro)``, a genuinely separate anyio task, not the
+same coroutine — see the module docstring fix in
+``saebooks_web/i18n/middleware.py``). The two tests at the bottom of this
+file close that gap: concurrent *real* HTTP requests through the actual
+ASGI app (``httpx.ASGITransport`` + ``asyncio.gather``), exercising
+``LocaleMiddleware`` and ``CompanyContextMiddleware`` for real, with
+different locales/jurisdictions in flight at once.
 """
 from __future__ import annotations
 
 import asyncio
+import json as _json
+from base64 import b64encode as _b64encode
 from pathlib import Path
 
 import pytest
+import respx
 from babel.messages.catalog import Catalog
 from babel.messages.mofile import write_mo
+from httpx import ASGITransport, AsyncClient, Response
+from itsdangerous import TimestampSigner as _TimestampSigner
 
 import saebooks_web.i18n as i18n
+from saebooks_web.config import settings
+from saebooks_web.main import app
+
+from tests.test_dashboard import _register_mocks
+from tests.test_jurisdiction_gating import _AU_COMPANY, _EE_COMPANY
 
 FIXTURE_MSGID = "Sign in"
 FIXTURE_TRANSLATIONS = {
@@ -151,3 +176,117 @@ async def test_concurrent_requests_share_one_cached_translations_object(fixture_
     )
 
     assert len(seen_ids) == 1, "expected one cached Translations object reused across requests"
+
+
+# ---------------------------------------------------------------------------
+# Real end-to-end proof (fixer round 4): actual ASGI requests through the
+# real app, actual LocaleMiddleware/CompanyContextMiddleware, actual
+# Starlette BaseHTTPMiddleware.call_next task-spawn path — not a simulated
+# coroutine. This is the mechanism the module docstrings above only
+# *describe*; these tests are the thing that would fail if the wiring
+# regressed (e.g. LocaleMiddleware reordered, or its .set() calls moved to
+# no longer run synchronously immediately before call_next).
+# ---------------------------------------------------------------------------
+
+_API_BASE = settings.api_url.rstrip("/")
+
+
+def _session_cookie(token: str) -> str:
+    signer = _TimestampSigner(settings.secret_key)
+    payload = _b64encode(_json.dumps({"api_token": token}).encode("utf-8"))
+    return signer.sign(payload).decode("utf-8")
+
+
+@pytest.mark.anyio
+async def test_concurrent_real_requests_login_different_accept_language() -> None:
+    """20 interleaved real GET /login requests, alternating et/ru
+    Accept-Language, fired together via asyncio.gather over one shared
+    AsyncClient/ASGITransport (i.e. one shared event loop + one shared
+    app, exactly the deployment topology the landmine warns about). Each
+    response must contain only its own locale's real .po translation of
+    the login subtitle and never the other locale's — proving isolation
+    through the actual LocaleMiddleware.dispatch -> call_next -> anyio
+    task-spawn path, not a simulated one.
+    """
+    et_text = "Sisesta oma"  # "Enter your %(brand)s email address and password."
+    ru_text = "Введите свой адрес"
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test",
+    ) as client:
+        async def _get(locale: str):
+            return locale, await client.get(
+                "/login?form=1", headers={"Accept-Language": f"{locale}-EE,{locale};q=0.9"}
+            )
+
+        results = await asyncio.gather(*[
+            _get("et" if i % 2 == 0 else "ru") for i in range(20)
+        ])
+
+    for locale, resp in results:
+        assert resp.status_code == 200
+        if locale == "et":
+            assert et_text in resp.text
+            assert ru_text not in resp.text
+        else:
+            assert ru_text in resp.text
+            assert et_text not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_concurrent_real_requests_dashboard_au_vs_ee_jurisdiction(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Concurrent real GET / for two different logged-in sessions — one an
+    AU company, one an EE company — fired together via asyncio.gather.
+    The upstream /companies and /tax_codes mocks are keyed off the
+    Authorization bearer header (each session's own api_token), exactly
+    like company_context.py's real per-request upstream calls, so this
+    proves the whole chain (LocaleMiddleware + CompanyContextMiddleware +
+    money()/nav rendering) doesn't cross-contaminate two requests in
+    flight at once — not just that contextvars are isolated in isolation.
+    """
+    au_token, ee_token = "concurrency-au-token", "concurrency-ee-token"
+
+    def _companies(request: respx.Request) -> Response:
+        auth = request.headers.get("authorization", "")
+        company = _EE_COMPANY if ee_token in auth else _AU_COMPANY
+        return Response(200, json={"items": [company], "total": 1})
+
+    def _tax_codes(request: respx.Request) -> Response:
+        auth = request.headers.get("authorization", "")
+        jurisdiction = "EE" if ee_token in auth else "AU"
+        items = [{
+            "id": "aaaaaaaa-0000-0000-0000-000000000001",
+            "code": "T1", "name": "Test code", "rate": "10.000",
+            "tax_system": "VAT" if jurisdiction == "EE" else "GST",
+            "jurisdiction": jurisdiction,
+        }]
+        return Response(200, json={"items": items, "total": 1})
+
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/companies(\?.*)?$").mock(side_effect=_companies)
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_codes(\?.*)?$").mock(side_effect=_tax_codes)
+    _register_mocks(respx_mock)
+
+    au_cookie = _session_cookie(au_token)
+    ee_cookie = _session_cookie(ee_token)
+
+    async def _get(cookie: str):
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+            cookies={settings.session_cookie_name: cookie},
+        ) as client:
+            return await client.get("/")
+
+    results = await asyncio.gather(*[
+        _get(au_cookie if i % 2 == 0 else ee_cookie) for i in range(10)
+    ])
+
+    for i, resp in enumerate(results):
+        assert resp.status_code == 200
+        if i % 2 == 0:
+            assert "BAS worksheet" in resp.text
+        else:
+            assert "BAS worksheet" not in resp.text

@@ -65,6 +65,16 @@ BATCH = 20
 #: Protect-list per the scope's named terms. Order matters: nothing here
 #: is a substring of another entry, but keep longest-first as a habit
 #: carried over from tasur-site's catalog.py in case terms are added later.
+#:
+#: Fixer round 4: KMV was entirely absent (only KMD was listed — a
+#: different statutory term) and matching was case-sensitive literal
+#: substring, so capitalised sentence-start occurrences of "Registrikood"
+#: (the field label, the two validation errors) went through TartuNLP
+#: unprotected and came back mistranslated (verified: messages.mo's ru
+#: catalog had msgid "Registrikood" -> msgstr "Регистрация"). protect()/
+#: unprotect() below now match case-insensitively and restore whichever
+#: casing was actually present (see _CAP_SUFFIX), so both "registrikood"
+#: and "Registrikood" round-trip untranslated.
 PROTECTED: list[tuple[str, str]] = [
     ("SAE Books", "NX1"),
     ("Tasur", "NX2"),
@@ -77,6 +87,7 @@ PROTECTED: list[tuple[str, str]] = [
     # used in a msgid; a plain word token round-trips through MT intact
     # where the punctuation-heavy "%(name)s" does not.
     ("%(brand)s", "NX6"),
+    ("KMV", "NX7"),
 ]
 
 #: Locales sent to TartuNLP as MT targets.
@@ -110,14 +121,35 @@ def api_translate(texts: list[str], src: str, tgt: str) -> list[str]:
     raise RuntimeError("unreachable")  # pragma: no cover
 
 
+#: Suffix appended to a term's token when the matched occurrence was
+#: Title-cased (first letter upper) but the PROTECTED entry itself is
+#: lowercase — e.g. "Registrikood" at a sentence start vs the entry
+#: "registrikood". unprotect() strips the suffix and re-capitalises the
+#: restored term accordingly. A suffix (not a distinct numeric token) so
+#: tokens_lost()'s plain ``token in text`` substring check still finds the
+#: base token inside "NX3CAP" without needing its own PROTECTED entry.
+_CAP_SUFFIX = "CAP"
+
+
 def protect(text: str) -> str:
     for term, token in PROTECTED:
-        text = text.replace(term, token)
+        pattern = re.compile(re.escape(term), re.IGNORECASE)
+
+        def _sub(match: re.Match[str], term: str = term, token: str = token) -> str:
+            matched = match.group(0)
+            if term[:1].islower() and matched[:1].isupper():
+                return token + _CAP_SUFFIX
+            return token
+
+        text = pattern.sub(_sub, text)
     return text
 
 
 def unprotect(text: str) -> str:
     for term, token in PROTECTED:
+        capitalised = term[:1].upper() + term[1:] if term else term
+        # Longer/suffixed form first — token is a substring of token+CAP.
+        text = text.replace(token + _CAP_SUFFIX, capitalised)
         text = text.replace(token, term)
     return text
 

@@ -31,12 +31,25 @@ router = APIRouter()
 _COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 
-def _safe_next(next_value: str | None) -> str:
-    """Same-origin-only redirect target; default '/' on anything else."""
+def _safe_next(next_value: str | None, own_origin: str | None = None) -> str:
+    """Same-origin-only redirect target; default '/' on anything else.
+
+    ``own_origin`` (``"scheme://host[:port]"``, no trailing slash/path) is
+    the current request's own origin. Without it, any value carrying a
+    scheme/netloc is rejected outright -- fine for an explicit relative
+    ``next`` field, but wrong for a browser's ``Referer`` header, which is
+    *always* sent as an absolute URL. A same-origin Referer used to be
+    rejected exactly like a cross-origin one and silently fall back to
+    "/" every time (fixer round 4) -- pass ``own_origin`` so a same-origin
+    absolute URL is normalised down to its path+query instead of thrown
+    away, while a genuinely cross-origin value still falls back to "/".
+    """
     if not next_value:
         return "/"
     parsed = urlparse(next_value)
     if parsed.scheme or parsed.netloc:
+        if own_origin and f"{parsed.scheme}://{parsed.netloc}" == own_origin:
+            return parsed.path + (f"?{parsed.query}" if parsed.query else "") or "/"
         return "/"
     return next_value if next_value.startswith("/") else "/"
 
@@ -45,7 +58,11 @@ def _safe_next(next_value: str | None) -> str:
 async def set_locale(request: Request) -> RedirectResponse:
     form = await request.form()
     requested = str(form.get("locale") or "")
-    redirect_to = _safe_next(str(form.get("next") or request.headers.get("referer") or "/"))
+    own_origin = f"{request.url.scheme}://{request.url.netloc}"
+    redirect_to = _safe_next(
+        str(form.get("next") or request.headers.get("referer") or "/"),
+        own_origin=own_origin,
+    )
 
     # Reject unsupported locales silently (no-op redirect) rather than 400 —
     # a stale/tampered form value shouldn't break navigation.

@@ -24,11 +24,27 @@ already populated when this middleware reads it for the jurisdiction
 fallback.
 
 Sets both contextvars via ``.set()`` and restores the previous values in a
-``finally`` block using the returned Tokens — this keeps the contextvars
-correctly scoped even though Starlette's BaseHTTPMiddleware runs
-downstream code inside the same coroutine (belt-and-braces on top of the
-per-task isolation contextvars already provide; see i18n/__init__.py
-concurrency note).
+``finally`` block using the returned Tokens. This reset is belt-and-braces,
+not the thing that makes concurrent requests safe: Starlette's
+BaseHTTPMiddleware actually runs downstream code in a *separate* anyio
+task (``call_next`` does ``task_group.start_soon(coro)`` — see
+starlette/middleware/base.py), not the same coroutine as this dispatch
+call. Isolation instead comes from two facts together: (1) anyio/asyncio
+copies the caller's ``contextvars.Context`` when it spawns a task, so the
+downstream task inherits the locale/currency values set immediately above
+because the ``.set()`` calls happen synchronously *before* ``call_next``
+is invoked; and (2) each request's task then has its own copy of the
+context, so mutations in one task's copy never leak into another's (see
+i18n/__init__.py concurrency note). The ``finally``-block reset matters
+for a different reason: without it, the *outer* dispatch task's context
+(this one) would keep the request's locale/currency bound to its own
+ContextVar slot for the remainder of the process if that slot is later
+read outside a fresh middleware invocation (e.g. code running after
+``call_next`` returns in this same task). Do not restructure this
+dispatch so the ``.set()`` calls no longer happen synchronously
+immediately before ``call_next`` — e.g. moving them to run concurrently
+with or after it — as that would break the context-copy timing this
+design relies on and reintroduce cross-request locale leakage.
 """
 from __future__ import annotations
 
