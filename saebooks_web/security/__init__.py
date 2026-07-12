@@ -81,6 +81,13 @@ def _patch_jinja_templates() -> None:
             register_feature_global(self)
         except Exception:
             pass
+        # Also register the brand-config Jinja global (current_brand()) —
+        # see brand.py. Same injection hook, deployment-level SAEBOOKS_BRAND.
+        try:
+            from saebooks_web.brand import register_brand_global
+            register_brand_global(self)
+        except Exception:
+            pass
 
     _patched_init._saebooks_csrf_patched = True  # type: ignore[attr-defined]
     Jinja2Templates.__init__ = _patched_init  # type: ignore[method-assign]

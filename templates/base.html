@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  {% set brand = current_brand() -%}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}SAE Books{% endblock %}</title>
+  <title>{% block title %}{{ current_brand().name }}{% endblock %}</title>
 
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#194291" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0e1a2a" media="(prefers-color-scheme: dark)">
-  <meta name="application-name" content="SAE Books">
-  <meta name="description" content="API-first accounting for Australian small business.">
+  <meta name="application-name" content="{{ brand.application_name }}">
+  <meta name="description" content="{{ brand.meta_description }}">
 
-  <link rel="icon" type="image/png" sizes="32x32" href="/static/pwa/icons/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/static/pwa/icons/favicon-16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/pwa/icons/apple-touch-icon-180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ brand.favicon_32 }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ brand.favicon_16 }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ brand.apple_touch_icon }}">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="SAE Books">
+  <meta name="apple-mobile-web-app-title" content="{{ brand.application_name }}">
   <meta name="mobile-web-app-capable" content="yes">
 
   <link rel="apple-touch-startup-image" href="/static/pwa/splash/apple-splash-640x1136.png"
@@ -427,12 +428,13 @@
                 fixed inset-y-0 left-0 z-30 -translate-x-full transition-transform duration-200
                 sm:relative sm:translate-x-0 sm:transition-none">
 
-    {# Brand — official SAE Books wordmark PNG from marketing repo.
-       Replaced master's SVG monogram at user request 2026-05-21 with the
-       actual logo at /static/sae-books-logo.png. #}
+    {# Brand — official wordmark PNG from the marketing repo, deployment-
+       selected via SAEBOOKS_BRAND (see saebooks_web/brand.py). Default
+       (saebooks) replaced master's SVG monogram at user request 2026-05-21
+       with the actual logo at /static/sae-books-logo.png. #}
     <a href="/" class="flex flex-col items-start gap-1 px-4 py-4 border-b hairline group">
-      <img src="/static/sae-books-logo.png"
-           alt="SAE Books"
+      <img src="{{ brand.wordmark_src }}"
+           alt="{{ brand.wordmark_alt }}"
            class="h-14"
            style="max-width: 240px;">
       {% set _edition = current_edition() %}
@@ -948,7 +950,7 @@
         <span><span class="kbd">↑↓</span> navigate</span>
         <span><span class="kbd">⏎</span> select</span>
         <span><span class="kbd">esc</span> close</span>
-        <span style="margin-left:auto;color:var(--sae);">SAE Books · ⌘K</span>
+        <span style="margin-left:auto;color:var(--sae);">{{ brand.name }} · ⌘K</span>
       </div>
     </div>
   </div>
