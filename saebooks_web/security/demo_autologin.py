@@ -47,6 +47,7 @@ direct provision on keyless visits (safe for dev / staging).
 """
 from __future__ import annotations
 
+import html as _html
 import logging
 import os
 import urllib.parse
@@ -56,6 +57,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse
 
+from saebooks_web.brand import current_brand
 from saebooks_web.config import settings
 
 _log = logging.getLogger("saebooks_web.demo_autologin")
@@ -167,7 +169,7 @@ _TURNSTILE_GATE_HTML = """\
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAE Books — Demo</title>
+  <title>{brand_name} — Demo</title>
   <script>
     (function () {{
       var stored = localStorage.getItem('saebooks-theme');
@@ -219,14 +221,9 @@ _TURNSTILE_GATE_HTML = """\
 </head>
 <body>
   <div class="card">
-    <div class="logo">SAE Books</div>
-    <div class="tagline">Australian small-business accounting</div>
-    <ul class="features">
-      <li>Full double-entry ledger</li>
-      <li>Invoices, bills &amp; payments</li>
-      <li>GST &amp; BAS ready</li>
-      <li>Bank reconciliation</li>
-    </ul>
+    <div class="logo">{brand_name}</div>
+    <div class="tagline">{tagline}</div>
+    <ul class="features">{features_html}</ul>
     <div class="error-msg">{error_msg}</div>
     <form method="POST" action="{provision_path}">
       <div class="cf-wrap">
@@ -460,14 +457,26 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
             return False
 
     def _turnstile_gate_response(self, error_msg: str = "") -> HTMLResponse:
-        """Return the Turnstile landing page HTML response."""
-        html = _TURNSTILE_GATE_HTML.format(
+        """Return the Turnstile landing page HTML response.
+
+        Brand name, tagline and feature bullets are pulled from the active
+        brand (``SAEBOOKS_BRAND``) so a Tasur (EE) deployment renders Estonian
+        copy with no code edit — see ``saebooks_web/brand.py``.
+        """
+        brand = current_brand()
+        features_html = "".join(
+            f"<li>{_html.escape(feat)}</li>" for feat in brand.demo_features
+        )
+        rendered = _TURNSTILE_GATE_HTML.format(
+            brand_name=_html.escape(brand.name),
+            tagline=_html.escape(brand.demo_tagline),
+            features_html=features_html,
             site_key=_turnstile_site_key(),
             provision_path=_TURNSTILE_PROVISION_PATH,
             error_msg=error_msg,
             error_display="block" if error_msg else "none",
         )
-        return HTMLResponse(content=html, status_code=200)
+        return HTMLResponse(content=rendered, status_code=200)
 
     async def _dispatch_ephemeral(self, request: Request, call_next):
         path = request.url.path
