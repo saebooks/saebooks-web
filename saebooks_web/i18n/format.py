@@ -83,6 +83,28 @@ def _format_locale() -> str:
     return _FORMAT_LOCALE_MAP.get(current_locale.get(), "en_AU")
 
 
+def _money_locale(currency_code: str) -> str:
+    """Babel formatting locale for ``money()`` specifically — currency-aware.
+
+    Critic round 2 fix. ``_format_locale()``'s "en" -> "en_AU" mapping exists
+    solely to get a bare "$" for AUD (see module docstring), but "en_AU"'s
+    CLDR data has no symbol mapping for any *other* currency: every
+    non-AUD currency silently falls back to an ugly bare ISO-code prefix
+    under "en_AU" (verified live: ``format_currency(1234.5, "EUR",
+    locale="en_AU")`` == ``"EUR1,234.50"``, not ``"€1,234.50"`` — and the
+    same is true of USD/GBP/etc, not just EUR). That broke every KPI tile
+    and overview amount for an EE (EUR home-currency) company whenever the
+    UI language is English, which decision 2 explicitly allows. Route
+    through "en_AU" only when the currency being rendered is actually AUD;
+    every other currency renders correctly under the bare "en" tag. et/ru
+    are unaffected (their CLDR data carries the AUD symbol fine either way
+    — see test_money_ee_operator_viewing_au_company_still_gets_aud_symbol).
+    """
+    if current_locale.get() == "en":
+        return "en_AU" if currency_code.upper() == "AUD" else "en"
+    return _format_locale()
+
+
 def resolve_currency(jurisdiction: str | None) -> str:
     """Pure negotiation logic, exposed separately for tests.
 
@@ -149,7 +171,7 @@ def money(value: float | int | str | None, ccy: str | None = None, decimals: int
     """
     amount = float(value or 0)
     currency_code = (ccy or current_currency.get()).upper()
-    locale = _format_locale()
+    locale = _money_locale(currency_code)
     try:
         if decimals is not None:
             pattern = _currency_pattern_with_decimals(locale, decimals)

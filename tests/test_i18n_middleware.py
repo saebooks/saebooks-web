@@ -57,3 +57,61 @@ def test_unsupported_accept_language_falls_through_to_jurisdiction():
     # via normalize_locale's fallback; must fall through to jurisdiction.
     req = _FakeRequest(headers={"accept-language": "fr-FR,fr;q=0.9"}, jurisdiction="EE")
     assert resolve_locale(req) == "et"
+
+
+# ---------------------------------------------------------------------------
+# Real middleware-stack ordering (critic round 2 regression).
+#
+# The tests above all inject request.state.active_company_jurisdiction
+# directly, bypassing CompanyContextMiddleware entirely — they cannot catch
+# an ordering bug between real middleware instances. This test asserts the
+# actual invariant against the actual app: CompanyContextMiddleware (and,
+# transitively, LocaleMiddleware) must run AFTER the session-minting auth
+# middleware (TrustedHeaderAuthMiddleware / DemoAutoLoginMiddleware), so
+# that request.session["api_token"] minted by auth on the FIRST request of
+# a new SSO/demo session is already visible when CompanyContextMiddleware
+# reads it — otherwise active_company_jurisdiction stays None on that
+# request and LocaleMiddleware's jurisdiction fallback never fires for an
+# EE company's very first authenticated page view.
+# ---------------------------------------------------------------------------
+
+
+def test_company_context_runs_after_session_minting_auth_middleware():
+    from saebooks_web.company_context import CompanyContextMiddleware
+    from saebooks_web.i18n.middleware import LocaleMiddleware
+    from saebooks_web.main import app
+    from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware
+    from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware
+
+    # app.user_middleware is stored in Starlette's insert(0, ...) order:
+    # index 0 is the most-recently-added middleware, which is also the
+    # OUTERMOST wrapper and therefore executes FIRST per request (verified
+    # live against this exact app — see saebooks_web/main.py's ordering
+    # note). A LOWER index here means "executes earlier".
+    names = [m.cls for m in app.user_middleware]
+
+    def _index(cls):
+        return names.index(cls)
+
+    company_context_idx = _index(CompanyContextMiddleware)
+    locale_idx = _index(LocaleMiddleware)
+    trusted_header_idx = _index(TrustedHeaderAuthMiddleware)
+    demo_autologin_idx = _index(DemoAutoLoginMiddleware)
+
+    # Auth (token-minting) middleware must execute BEFORE CompanyContext
+    # reads the session -> lower index = more outer = executes first, so
+    # the minting middleware's index must be LOWER than CompanyContext's.
+    assert trusted_header_idx < company_context_idx, (
+        "TrustedHeaderAuthMiddleware must mint the session token before "
+        "CompanyContextMiddleware reads it on the same request"
+    )
+    assert demo_autologin_idx < company_context_idx, (
+        "DemoAutoLoginMiddleware must mint the session token before "
+        "CompanyContextMiddleware reads it on the same request"
+    )
+    # Existing invariant (unchanged by this fix): CompanyContext still
+    # resolves jurisdiction before LocaleMiddleware reads it.
+    assert company_context_idx < locale_idx, (
+        "CompanyContextMiddleware must set active_company_jurisdiction "
+        "before LocaleMiddleware reads it for its jurisdiction fallback"
+    )

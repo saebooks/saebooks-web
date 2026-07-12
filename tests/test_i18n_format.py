@@ -80,14 +80,23 @@ def test_money_ru_locale_uses_comma_decimal_too():
 
 def test_money_explicit_ccy_overrides_current_currency():
     # Foreign-currency bill/PO/invoice display: company is AU/AUD but the
-    # specific document is in EUR. Real babel output for this combination
-    # is the ugly "EUR1,234.56" (en_AU locale data has no EUR symbol
-    # mapping) — verified live, not assumed. This is exactly why P4 leaves
-    # the existing `{{ bill.currency }} {{ "%.2f"|format(x) }}` FX display
-    # convention on bills/POs/invoices unconverted (see the packet report):
-    # money() is correct for the home-currency case this packet sweeps,
-    # not yet a drop-in replacement for the FX case.
-    assert _run_as("en", "AUD", money, 1234.56, ccy="EUR") == "EUR1,234.56"
+    # specific document is in EUR. Critic round 2 fix: money() now routes
+    # non-AUD currencies through the bare "en" babel locale instead of
+    # "en_AU" (whose CLDR data has no symbol mapping for any currency but
+    # AUD), so this renders the correct "€1,234.56" rather than the
+    # previously-accepted ugly "EUR1,234.56" bare-code fallback.
+    assert _run_as("en", "AUD", money, 1234.56, ccy="EUR") == "€1,234.56"
+
+
+def test_money_en_locale_ee_company_home_currency_renders_euro_symbol():
+    # Critic round 2 regression: the scope's own headline scenario — an EE
+    # company (home currency EUR) with an English-preferring operator
+    # (decision 2 explicitly allows language != jurisdiction). Every
+    # dashboard KPI tile and overviews/*.html amount calls money() with no
+    # ccy= override, so current_currency alone (not ccy) drives this path.
+    # Previously rendered the ugly "EUR1,234.56"; must render "€1,234.56".
+    assert _run_as("en", "EUR", money, 1234.56) == "€1,234.56"
+    assert _run_as("en", "EUR", money, 0) == "€0.00"
 
 
 def test_money_decimals_override_preserves_precision_au():
@@ -99,6 +108,12 @@ def test_money_decimals_override_preserves_precision_au():
 
 def test_money_decimals_override_ee():
     assert _run_as("et", "EUR", money, 28.8462, decimals=4) == f"28,8462{_NBSP}€"
+
+
+def test_money_decimals_override_en_locale_eur_currency():
+    # Same EE-company/en-operator combination as the home-currency test
+    # above, exercised through the decimals= override path (payroll rate).
+    assert _run_as("en", "EUR", money, 28.8462, decimals=4) == "€28.8462"
 
 
 def test_money_decimals_override_negative():
@@ -124,6 +139,17 @@ def test_money_decimals_zero_rounds_and_groups():
     # happens to carry), and must keep thousands grouping.
     assert _run_as("en", "AUD", money, 1234.6, decimals=0) == "$1,235"
     assert _run_as("en", "AUD", money, 999.4, decimals=0) == "$999"
+
+
+def test_money_decimals_zero_en_locale_eur_currency():
+    # Critic round 2 regression, exact path: dashboard whole-dollar KPI
+    # tiles (money(x, decimals=0), per the P4 sweep) for an EE company
+    # viewed by an English-preferring operator. This goes through
+    # _currency_pattern_with_decimals(), a different code path from the
+    # natural-2dp and decimals=4 cases already covered above — must not
+    # regress back to "EUR1,235" or put the symbol on the wrong side.
+    assert _run_as("en", "EUR", money, 1234.6, decimals=0) == "€1,235"
+    assert _run_as("en", "EUR", money, 999.4, decimals=0) == "€999"
 
 
 def test_money_ee_operator_viewing_au_company_still_gets_aud_symbol():
