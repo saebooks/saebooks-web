@@ -81,14 +81,14 @@
               <a href="/quotes/{{ q.id }}" class="sae hover:underline">{{ q.number or q.id[:8] }}</a>
             </td>
             <td class="py-2">{{ _c or '—' }}</td>
-            <td class="py-2 text-right num-display">${{ "{:,.2f}".format(q.total|float) }}</td>
+            <td class="py-2 text-right num-display">{{ money(q.total|float) }}</td>
           </tr>
           {% endfor %}
         </tbody>
         <tfoot>
           <tr class="hairline-t">
             <td colspan="2" class="py-2 text-[11px] font-mono uppercase ink-3">Total</td>
-            <td class="py-2 text-right num-display sae">${{ "{:,.2f}".format(quotes_open_total|float) }}</td>
+            <td class="py-2 text-right num-display sae">{{ money(quotes_open_total|float) }}</td>
           </tr>
         </tfoot>
       </table>
@@ -106,7 +106,7 @@
       <div>
         <p class="nav-section-label">Overdue invoices</p>
         <p class="num-display text-2xl mt-1" style="color: var(--neg);">
-          ${{ "{:,.2f}".format(overdue_total|float) }}
+          {{ money(overdue_total|float) }}
         </p>
         <p class="text-xs ink-3 mt-0.5">{{ overdue_count }} overdue</p>
       </div>
@@ -131,7 +131,7 @@
             </td>
             <td class="py-2 font-mono ink-3">{{ inv.due_date }}</td>
             <td class="py-2 text-right num-display" style="color: var(--neg);">
-              ${{ "{:,.2f}".format(owed) }}
+              {{ money(owed) }}
             </td>
           </tr>
           {% endfor %}

@@ -79,7 +79,7 @@
               <td class="py-2"><a href="/items/{{ s.id }}" class="sae hover:underline">{{ s.name }}</a></td>
               <td class="py-2 font-mono ink-3">{{ s.sku }}</td>
               <td class="py-2 text-right num-display">{{ s.count }}</td>
-              <td class="py-2 text-right num-display">${{ "{:,.2f}".format(s.revenue|float) }}</td>
+              <td class="py-2 text-right num-display">{{ money(s.revenue|float) }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -134,7 +134,7 @@
               <span class="sae">{{ i.name }}</span>
               {% if i.sku %}<span class="ink-3 font-mono"> · {{ i.sku }}</span>{% endif %}
             </a>
-            <span class="num-display ink-3">${{ "{:,.2f}".format(i.sales_price|float if i.sales_price else 0) }}</span>
+            <span class="num-display ink-3">{{ money(i.sales_price|float if i.sales_price else 0) }}</span>
           </li>
           {% endfor %}
         </ul>
@@ -155,7 +155,7 @@
             <a href="/purchase_orders/{{ po.id }}" class="truncate" style="max-width:65%;">
               <span class="font-mono sae">{{ po.number or po.id[:8] }}</span>
             </a>
-            <span class="num-display ink">${{ "{:,.0f}".format(po.total|float) }}</span>
+            <span class="num-display ink">{{ money(po.total|float) }}</span>
           </li>
           {% endfor %}
         </ul>

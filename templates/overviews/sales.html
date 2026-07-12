@@ -87,7 +87,7 @@
   <a href="/invoices?status=POSTED" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
     <p class="nav-section-label mb-2">AR · outstanding</p>
     <p class="num-display text-2xl sae">
-      ${{ "{:,.0f}".format(outstanding_total|float) }}
+      {{ money(outstanding_total|float) }}
     </p>
     <p class="mt-1 text-xs ink-3">
       {{ outstanding_count }} invoice{{ '' if outstanding_count == 1 else 's' }}
@@ -99,21 +99,21 @@
   <a href="/invoices?status=DRAFT" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
     <p class="nav-section-label mb-2">Drafts</p>
     <p class="num-display text-2xl" style="color:var(--warm);">
-      ${{ "{:,.0f}".format(draft_total|float) }}
+      {{ money(draft_total|float) }}
     </p>
     <p class="mt-1 text-xs ink-3">{{ draft_count }} draft{{ '' if draft_count == 1 else 's' }}</p>
   </a>
   <a href="/invoices?from_date={{ month_start }}&to_date={{ month_end }}" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
     <p class="nav-section-label mb-2">Sales · MTD</p>
     <p class="num-display text-2xl" style="color:var(--pos);">
-      ${{ "{:,.0f}".format(sales_mtd|float) }}
+      {{ money(sales_mtd|float) }}
     </p>
     <p class="mt-1 text-xs ink-3">{{ month_start }} → today</p>
   </a>
   <a href="/payments?direction=INCOMING&from_date={{ month_start }}&to_date={{ month_end }}" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
     <p class="nav-section-label mb-2">Receipts · MTD</p>
     <p class="num-display text-2xl" style="color:var(--pos);">
-      ${{ "{:,.0f}".format(receipts_mtd|float) }}
+      {{ money(receipts_mtd|float) }}
     </p>
     <p class="mt-1 text-xs ink-3">cash collected</p>
   </a>
@@ -141,13 +141,13 @@
         <div>
           <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Sales YTD</p>
           <p class="num-display text-xl mt-1" style="color:var(--pos);">
-            ${{ "{:,.2f}".format(sales_ytd|float) }}
+            {{ money(sales_ytd|float) }}
           </p>
         </div>
         <div class="border-l hairline pl-4">
           <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Sales MTD</p>
           <p class="num-display text-xl mt-1" style="color:var(--sae);">
-            ${{ "{:,.2f}".format(sales_mtd|float) }}
+            {{ money(sales_mtd|float) }}
           </p>
         </div>
       </div>
@@ -163,23 +163,23 @@
       <div class="grid grid-cols-5 gap-2 text-center">
         <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">Current</p>
-          <p class="num-display text-lg mt-1">${{ "{:,.0f}".format(aging.current|float) }}</p>
+          <p class="num-display text-lg mt-1">{{ money(aging.current|float) }}</p>
         </a>
         <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">1–30 d</p>
-          <p class="num-display text-lg mt-1" style="color:var(--warm);">${{ "{:,.0f}".format(aging.d_1_30|float) }}</p>
+          <p class="num-display text-lg mt-1" style="color:var(--warm);">{{ money(aging.d_1_30|float) }}</p>
         </a>
         <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">31–60 d</p>
-          <p class="num-display text-lg mt-1" style="color:var(--warm);">${{ "{:,.0f}".format(aging.d_31_60|float) }}</p>
+          <p class="num-display text-lg mt-1" style="color:var(--warm);">{{ money(aging.d_31_60|float) }}</p>
         </a>
         <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">61–90 d</p>
-          <p class="num-display text-lg mt-1" style="color:var(--neg);">${{ "{:,.0f}".format(aging.d_61_90|float) }}</p>
+          <p class="num-display text-lg mt-1" style="color:var(--neg);">{{ money(aging.d_61_90|float) }}</p>
         </a>
         <a href="/invoices?status=POSTED" class="block p-3 rounded-md hairline hover:bg-paper-2">
           <p class="text-[10px] font-mono uppercase ink-3">90+ d</p>
-          <p class="num-display text-lg mt-1" style="color:var(--neg);">${{ "{:,.0f}".format(aging.d_90_plus|float) }}</p>
+          <p class="num-display text-lg mt-1" style="color:var(--neg);">{{ money(aging.d_90_plus|float) }}</p>
         </a>
       </div>
     </section>
@@ -210,7 +210,7 @@
               </td>
               <td class="py-2">{{ _c or '—' }}</td>
               <td class="py-2 font-mono ink-3">{{ inv.invoice_date }}</td>
-              <td class="py-2 text-right num-display">${{ "{:,.2f}".format(inv.total|float) }}</td>
+              <td class="py-2 text-right num-display">{{ money(inv.total|float) }}</td>
               <td class="py-2 text-right">{{ payment_status_badge(inv, today=today_iso) }}</td>
             </tr>
             {% endfor %}
@@ -236,7 +236,7 @@
             <a href="/contacts/{{ c.contact_id }}" class="sae hover:underline truncate" style="max-width: 60%;">
               {{ c.contact_name or '—' }}
             </a>
-            <span class="num-display ink">${{ "{:,.0f}".format(c.revenue|float) }}</span>
+            <span class="num-display ink">{{ money(c.revenue|float) }}</span>
           </li>
           {% endfor %}
         </ul>
@@ -259,7 +259,7 @@
               <span class="font-mono sae">{{ q.number or q.id[:8] }}</span>
               <span class="ink-3"> · {{ _c or '—' }}</span>
             </a>
-            <span class="num-display ink">${{ "{:,.0f}".format(q.total|float) }}</span>
+            <span class="num-display ink">{{ money(q.total|float) }}</span>
           </li>
           {% endfor %}
         </ul>
@@ -282,7 +282,7 @@
               <span class="font-mono sae">{{ n.number or n.id[:8] }}</span>
               <span class="ink-3"> · {{ _c or '—' }}</span>
             </a>
-            <span class="num-display ink">${{ "{:,.0f}".format(n.total|float) }}</span>
+            <span class="num-display ink">{{ money(n.total|float) }}</span>
           </li>
           {% endfor %}
         </ul>

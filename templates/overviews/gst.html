@@ -52,7 +52,7 @@
 <div class="rounded-md p-4 mb-6"
      style="background: rgba(234,179,8,0.08); border: 1px solid var(--warm);">
   <p class="text-sm" style="color:var(--warm);">
-    <strong>Approaching GST threshold</strong> — {{ "%.0f"|format(pct) }}% of $75,000 reached.
+    <strong>Approaching GST threshold</strong> — {{ num(pct, 0) }}% of $75,000 reached.
   </p>
 </div>
 {% endif %}
@@ -63,29 +63,29 @@
     <p class="nav-section-label mb-2">Turnover · YTD</p>
     <p class="num-display text-2xl"
        style="color: {% if threshold_crossed %}var(--neg){% elif threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
-      ${{ "{:,.0f}".format(ytd_turnover|float) }}
+      {{ money(ytd_turnover|float) }}
     </p>
-    <p class="mt-1 text-xs ink-3">of ${{ "{:,.0f}".format(threshold|float) }} · {{ "%.0f"|format(pct) }}%</p>
+    <p class="mt-1 text-xs ink-3">of {{ money(threshold|float) }} · {{ num(pct, 0) }}%</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">GST collected · {{ q_label }}</p>
     <p class="num-display text-2xl" style="color:var(--pos);">
-      ${{ "{:,.2f}".format(gst_out|float) }}
+      {{ money(gst_out|float) }}
     </p>
-    <p class="mt-1 text-xs ink-3">on ${{ "{:,.0f}".format(sales_excl|float) }} sales</p>
+    <p class="mt-1 text-xs ink-3">on {{ money(sales_excl|float) }} sales</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">GST paid · {{ q_label }}</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
-      ${{ "{:,.2f}".format(gst_in|float) }}
+      {{ money(gst_in|float) }}
     </p>
-    <p class="mt-1 text-xs ink-3">on ${{ "{:,.0f}".format(purchases_excl|float) }} purchases</p>
+    <p class="mt-1 text-xs ink-3">on {{ money(purchases_excl|float) }} purchases</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">Net GST · {{ q_label }}</p>
     <p class="num-display text-2xl"
        style="color: {% if net_gst >= 0 %}var(--neg){% else %}var(--pos){% endif %};">
-      {% if net_gst < 0 %}−{% endif %}${{ "{:,.2f}".format(net_gst|abs|float) }}
+      {% if net_gst < 0 %}−{% endif %}{{ money(net_gst|abs|float) }}
     </p>
     <p class="mt-1 text-xs ink-3">
       {% if net_gst >= 0 %}owed to ATO{% else %}refund expected{% endif %}
@@ -107,7 +107,7 @@
   </div>
   <div class="flex items-center justify-between mt-2 text-xs ink-3 font-mono">
     <span>$0</span>
-    <span>${{ "{:,.0f}".format(threshold|float) }}</span>
+    <span>{{ money(threshold|float) }}</span>
   </div>
 </section>
 
@@ -120,24 +120,24 @@
     <ul class="space-y-3 text-sm">
       <li class="flex justify-between hairline-t pt-3">
         <span class="ink-3">Sales (excl. GST)</span>
-        <span class="num-display">${{ "{:,.2f}".format(sales_excl|float) }}</span>
+        <span class="num-display">{{ money(sales_excl|float) }}</span>
       </li>
       <li class="flex justify-between hairline-t pt-3">
         <span class="ink-3">GST on sales (1A)</span>
-        <span class="num-display" style="color:var(--pos);">${{ "{:,.2f}".format(gst_out|float) }}</span>
+        <span class="num-display" style="color:var(--pos);">{{ money(gst_out|float) }}</span>
       </li>
       <li class="flex justify-between hairline-t pt-3">
         <span class="ink-3">Purchases (excl. GST)</span>
-        <span class="num-display">${{ "{:,.2f}".format(purchases_excl|float) }}</span>
+        <span class="num-display">{{ money(purchases_excl|float) }}</span>
       </li>
       <li class="flex justify-between hairline-t pt-3">
         <span class="ink-3">GST on purchases (1B)</span>
-        <span class="num-display" style="color:var(--sae-2);">${{ "{:,.2f}".format(gst_in|float) }}</span>
+        <span class="num-display" style="color:var(--sae-2);">{{ money(gst_in|float) }}</span>
       </li>
       <li class="flex justify-between hairline-t pt-3 font-semibold">
         <span>Net GST (1A − 1B)</span>
         <span class="num-display" style="color: {% if net_gst >= 0 %}var(--neg){% else %}var(--pos){% endif %};">
-          {% if net_gst < 0 %}−{% endif %}${{ "{:,.2f}".format(net_gst|abs|float) }}
+          {% if net_gst < 0 %}−{% endif %}{{ money(net_gst|abs|float) }}
         </span>
       </li>
     </ul>
@@ -165,7 +165,7 @@
           <tr class="hairline-t">
             <td class="py-2 font-mono sae">{{ tc.code }}</td>
             <td class="py-2">{{ tc.name }}</td>
-            <td class="py-2 text-right num-display">{{ "%.1f"|format((tc.rate or 0)|float) }}%</td>
+            <td class="py-2 text-right num-display">{{ num((tc.rate or 0)|float, 1) }}%</td>
           </tr>
           {% endfor %}
         </tbody>
