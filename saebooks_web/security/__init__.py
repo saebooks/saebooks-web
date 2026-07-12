@@ -88,6 +88,16 @@ def _patch_jinja_templates() -> None:
             register_brand_global(self)
         except Exception:
             pass
+        # Also register the gettext callables (_ / gettext / ngettext) —
+        # see i18n/__init__.py. Same injection hook; call-time-resolving
+        # against a request-scoped contextvar, NEVER
+        # install_gettext_translations on this shared env (see that
+        # module's docstring for the concurrency landmine it avoids).
+        try:
+            from saebooks_web.i18n import register_i18n_global
+            register_i18n_global(self)
+        except Exception:
+            pass
 
     _patched_init._saebooks_csrf_patched = True  # type: ignore[attr-defined]
     Jinja2Templates.__init__ = _patched_init  # type: ignore[method-assign]

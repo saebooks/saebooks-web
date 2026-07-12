@@ -63,6 +63,7 @@ from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware
 from saebooks_web.cf_access import CFAccessAuthMiddleware
 from saebooks_web.webauthn_sso import router as webauthn_router
 from saebooks_web.company_context import CompanyContextMiddleware
+from saebooks_web.i18n.middleware import LocaleMiddleware
 from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware
 
 from saebooks_web.auth import router as auth_router
@@ -206,6 +207,14 @@ app.add_middleware(TrustedHeaderAuthMiddleware)
 # request, mints a session if creds env vars are set, and lets the
 # rest of the stack proceed as if the user manually logged in.
 app.add_middleware(DemoAutoLoginMiddleware)
+
+# LocaleMiddleware must run INSIDE CompanyContextMiddleware (added
+# BEFORE it here — see the ordering note above: add_middleware inserts
+# at index 0, so an earlier add_middleware call ends up more inward /
+# executes later) so request.state.active_company_jurisdiction is
+# already populated when LocaleMiddleware reads it for the jurisdiction
+# negotiation fallback (session/cookie -> Accept-Language -> jurisdiction).
+app.add_middleware(LocaleMiddleware)
 
 app.add_middleware(CompanyContextMiddleware)
 
