@@ -18,6 +18,15 @@ Thin proxy over the engine's ``/api/v1/tax_returns`` surface (Packet 4c —
                                             raw error page
 11. test_tax_returns_nav_hidden_for_au   — AU company: no Deklaratsioonid link
 12. test_tax_returns_nav_shown_for_ee    — EE company: Deklaratsioonid link present
+13. test_tax_returns_list_network_error  — engine unreachable -> inline error,
+                                            not a raw 500
+14. test_tax_returns_generate_network_error — engine unreachable -> flash +
+                                            redirect, not a raw 500
+15. test_tax_returns_generate_duplicate_blocked_then_confirmed — a second
+                                            generate for the same
+                                            period/return_type is blocked
+                                            with a warning; explicit confirm
+                                            proceeds
 """
 from __future__ import annotations
 
@@ -190,6 +199,9 @@ async def test_tax_returns_list_renders(respx_mock: respx.MockRouter) -> None:
 @pytest.mark.anyio
 @respx.mock
 async def test_tax_returns_generate_success(respx_mock: respx.MockRouter) -> None:
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_returns(\?.*)?$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
     respx_mock.post(f"{_API_BASE}/api/v1/tax_returns/generate").mock(
         return_value=Response(201, json={
             "id": _KMD_ID, "jurisdiction": "EE", "period_id": _PERIOD_ID,
@@ -414,3 +426,109 @@ async def test_tax_returns_nav_shown_for_ee(respx_mock: respx.MockRouter) -> Non
     assert resp.status_code == 200
     assert "Deklaratsioonid" in resp.text
     assert "BAS worksheet" not in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 13-14. Network-level failure — not swallowed to a raw 500
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_tax_returns_list_network_error(respx_mock: respx.MockRouter) -> None:
+    """Engine unreachable while listing -> the page still renders 200 with
+    an inline error, not an unhandled 500."""
+    import httpx as _httpx
+
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_returns(\?.*)?$").mock(
+        side_effect=_httpx.ConnectError("refused")
+    )
+
+    async with _client() as client:
+        resp = await client.get("/tax-returns")
+
+    assert resp.status_code == 200
+    assert "reach the tax service" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_tax_returns_generate_network_error(respx_mock: respx.MockRouter) -> None:
+    """Engine unreachable on Generate -> flash + redirect, not a raw 500."""
+    import httpx as _httpx
+
+    respx_mock.post(f"{_API_BASE}/api/v1/tax_returns/generate").mock(
+        side_effect=_httpx.ConnectError("refused")
+    )
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_returns(\?.*)?$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with _client() as client:
+        gen_resp = await client.post(
+            "/tax-returns/generate",
+            data={"return_type": "KMD", "period_id": _PERIOD_ID},
+            follow_redirects=False,
+        )
+        assert gen_resp.status_code == 303
+        list_resp = await client.get("/tax-returns")
+
+    assert "reach the tax service" in list_resp.text
+
+
+# ---------------------------------------------------------------------------
+# 15. Duplicate-generate guard
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_tax_returns_generate_duplicate_blocked_then_confirmed(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Generating for a period/return_type that already has a return on
+    file is blocked with a warning + a way to confirm; the actual engine
+    /generate call only fires once ``confirm_duplicate=1`` is sent."""
+    dup_check = respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/tax_returns(\?.*)?$"
+    ).mock(
+        return_value=Response(200, json={
+            "items": [_kmd_return(status="ready")], "total": 1,
+        })
+    )
+    generate_route = respx_mock.post(f"{_API_BASE}/api/v1/tax_returns/generate").mock(
+        return_value=Response(201, json={
+            "id": _KMD_ID, "jurisdiction": "EE", "period_id": _PERIOD_ID,
+            "return_type": "KMD", "status": "ready", "figures": {},
+        })
+    )
+
+    async with _client() as client:
+        # First attempt: blocked, engine /generate never called.
+        gen_resp = await client.post(
+            "/tax-returns/generate",
+            data={"return_type": "KMD", "period_id": _PERIOD_ID},
+            follow_redirects=False,
+        )
+        assert gen_resp.status_code == 303
+        assert generate_route.call_count == 0
+
+        list_resp = await client.get("/tax-returns")
+        assert "already exist for this period" in list_resp.text
+        assert "Generate anyway" in list_resp.text
+
+        # Confirmed resubmit: engine /generate is now called.
+        confirm_resp = await client.post(
+            "/tax-returns/generate",
+            data={
+                "return_type": "KMD",
+                "period_id": _PERIOD_ID,
+                "confirm_duplicate": "1",
+            },
+            follow_redirects=False,
+        )
+
+    assert confirm_resp.status_code == 303
+    assert confirm_resp.headers["location"] == f"/tax-returns/{_KMD_ID}"
+    assert generate_route.call_count == 1
+    assert dup_check.call_count >= 1

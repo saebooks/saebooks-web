@@ -9,9 +9,16 @@ default to the requesting company's own jurisdiction. See
 saebooks_web/company_context.py module docstring for the full rationale.
 
 Six tests:
-1. test_jurisdiction_defaults_to_au_when_tax_codes_empty   — no tax codes at
-   all yet -> jurisdiction resolves to "AU" (matches the engine's own
-   fallback), same as an unresolved/logged-out request.
+1. test_jurisdiction_defaults_to_au_when_tax_codes_empty   — no tax codes
+   currently tagged with the company's own jurisdiction -> resolves to "AU"
+   as a last-resort default. NOT an engine fallback: Company.jurisdiction is
+   NOT NULL (default 'AU') at the model level, so the engine's own
+   ``or "AU"`` in tax_codes.py only guards a company that can't be found at
+   all. This case is genuinely ambiguous from the web app's side (see
+   company_context.py's module docstring + inline comment) — it cannot
+   distinguish "brand-new/legitimately-AU company" from "real EE company
+   with no matching tax codes yet". Logs a warning; "AU" is kept only
+   because it's the app's historical default and least behavioural change.
 2. test_jurisdiction_resolves_from_tax_codes_response       — tax_codes item
    carries jurisdiction="EE" -> request.state.active_company_jurisdiction
    picks it up.
@@ -134,8 +141,10 @@ def _client() -> AsyncClient:
 async def test_jurisdiction_defaults_to_au_when_tax_codes_empty(
     respx_mock: respx.MockRouter,
 ) -> None:
-    """A company with zero tax codes yet resolves to 'AU', matching the
-    engine's own fallback (Company.jurisdiction defaults to 'AU')."""
+    """A company with zero own-jurisdiction tax codes yet resolves to 'AU' —
+    the web app's last-resort default, not an engine fallback (see
+    company_context.py's inline comment: this is a genuinely ambiguous
+    case the web app can't disambiguate from CompanyOut/tax_codes alone)."""
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction=None)
     _register_mocks(respx_mock)

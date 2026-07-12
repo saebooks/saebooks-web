@@ -1290,10 +1290,24 @@ async def invoice_pdf(request: Request, invoice_id: str) -> Response | RedirectR
         async with api_client(request) as client:
             inv_resp = await client.get(f"/api/v1/invoices/{invoice_id}")
             tax_resp = await client.get("/api/v1/tax_codes", params={"limit": 1000})
-        lines = (inv_resp.json().get("lines") or []) if inv_resp.is_success else []
+        # Both calls feed the mandatory VAT-breakdown table (Käibemaksu
+        # jaotus määrade kaupa) — a failure here must not fall through to
+        # an empty breakdown and a silently-incomplete 200 PDF. Surface it
+        # the same way the render-context fetch above does.
+        if not inv_resp.is_success:
+            raise HTTPException(
+                inv_resp.status_code,
+                detail=f"Could not load invoice lines for VAT breakdown (upstream {inv_resp.status_code})",
+            )
+        if not tax_resp.is_success:
+            raise HTTPException(
+                tax_resp.status_code,
+                detail=f"Could not load tax codes for VAT breakdown (upstream {tax_resp.status_code})",
+            )
+        lines = inv_resp.json().get("lines") or []
         tax_codes_by_id = {
             str(item["id"]): item for item in (tax_resp.json().get("items") or [])
-        } if tax_resp.is_success else {}
+        }
         vat_breakdown = build_vat_rate_breakdown(lines, tax_codes_by_id)
         ctx = build_ee_invoice_ctx(
             ctx,

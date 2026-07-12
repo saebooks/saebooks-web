@@ -461,3 +461,29 @@ async def test_invoice_pdf_ee_compile_error_maps_to_422(respx_mock: respx.MockRo
         resp = await client.get(f"/invoices/{_INV_ID}/pdf", cookies={settings.session_cookie_name: _SESSION_COOKIE})
 
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_invoice_pdf_ee_invoice_detail_failure_surfaces_error(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """If the secondary invoice-detail fetch (lines, for the VAT breakdown)
+    fails, the route must not silently render a 200 PDF missing its
+    statutory VAT-breakdown table — it should surface the upstream failure."""
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, "EE")
+    _mock_render_context(respx_mock, currency="EUR")
+    respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INV_ID}").mock(
+        return_value=Response(500, json={"detail": "boom"})
+    )
+
+    async with _client() as client:
+        resp = await client.get(
+            f"/invoices/{_INV_ID}/pdf",
+            cookies={settings.session_cookie_name: _SESSION_COOKIE},
+            headers={"X-Company-Id": _EE_COMPANY["id"]},
+        )
+
+    assert resp.status_code == 500
+    assert "VAT breakdown" in resp.text

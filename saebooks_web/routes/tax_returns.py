@@ -47,17 +47,23 @@ display.
 """
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 from uuid import UUID
 
+import httpx
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
 
+logger = logging.getLogger("saebooks_web.tax_returns")
+
 router = APIRouter()
+
+_UNREACHABLE_MESSAGE = "Couldn't reach the tax service. Try again in a moment."
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
@@ -109,8 +115,13 @@ async def tax_returns_list(
     returns: list[dict] = []
     error: str | None = None
 
-    async with api_client(request) as client:
-        resp = await client.get("/api/v1/tax_returns", params=params)
+    try:
+        async with api_client(request) as client:
+            resp = await client.get("/api/v1/tax_returns", params=params)
+    except httpx.RequestError as exc:
+        logger.error("tax-returns/list: API unreachable: %s", exc)
+        error = _UNREACHABLE_MESSAGE
+    else:
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
@@ -127,6 +138,7 @@ async def tax_returns_list(
 
     flash = request.session.pop("flash", None)
     flash_error = request.session.pop("flash_error", None)
+    pending_duplicate_generate = request.session.pop("pending_duplicate_generate", None)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -137,6 +149,7 @@ async def tax_returns_list(
             "error": error,
             "flash": flash,
             "flash_error": flash_error,
+            "pending_duplicate_generate": pending_duplicate_generate,
             "filter_return_type": return_type or "",
             "filter_status": status_filter or "",
             "return_types": _RETURN_TYPES,
@@ -172,20 +185,60 @@ async def tax_returns_generate(request: Request) -> RedirectResponse:
         request.session["flash_error"] = f"'{period_id}' is not a valid period ID."
         return RedirectResponse(url="/tax-returns", status_code=303)
 
+    confirm_duplicate = str(form.get("confirm_duplicate") or "").strip() == "1"
+
+    # No engine-side uniqueness guard on (company, period, return_type) —
+    # the engine unconditionally inserts a new row on every /generate call
+    # (see saebooks/services/tax_return_generator.py::persist_return), and
+    # each row can independently be marked filed. This is a web-side-only
+    # guard against the common double-generate/double-click case; a real
+    # constraint belongs in the engine (out of scope here — flagged, not
+    # fabricated).
+    if not confirm_duplicate:
+        try:
+            async with api_client(request) as client:
+                dup_resp = await client.get(
+                    "/api/v1/tax_returns",
+                    params={"period_id": period_id, "return_type": return_type},
+                )
+        except httpx.RequestError as exc:
+            logger.warning("tax-returns/generate: duplicate check unreachable: %s", exc)
+        else:
+            if dup_resp.is_success:
+                existing = dup_resp.json().get("items", [])
+                if existing:
+                    statuses = ", ".join(sorted({it.get("status", "?") for it in existing}))
+                    request.session["flash_error"] = (
+                        f"{len(existing)} {return_type} return(s) already exist for this "
+                        f"period (status: {statuses}). Generating again will create a "
+                        f"duplicate."
+                    )
+                    request.session["pending_duplicate_generate"] = {
+                        "return_type": return_type,
+                        "period_id": period_id,
+                    }
+                    return RedirectResponse(url="/tax-returns", status_code=303)
+
     payload = {
         "jurisdiction": _jurisdiction(request),
         "period_id": period_id,
         "return_type": return_type,
     }
 
-    async with api_client(request) as client:
-        resp = await client.post("/api/v1/tax_returns/generate", json=payload)
+    try:
+        async with api_client(request) as client:
+            resp = await client.post("/api/v1/tax_returns/generate", json=payload)
+    except httpx.RequestError as exc:
+        logger.error("tax-returns/generate: API unreachable: %s", exc)
+        request.session["flash_error"] = _UNREACHABLE_MESSAGE
+        return RedirectResponse(url="/tax-returns", status_code=303)
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.status_code == 201:
+        request.session.pop("pending_duplicate_generate", None)
         body = resp.json()
         request.session["flash"] = (
             f"{return_type} generated for this period — status "
@@ -219,23 +272,39 @@ async def tax_returns_detail(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    async with api_client(request) as client:
-        resp = await client.get(f"/api/v1/tax_returns/{return_id}")
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.status_code == 404:
-            return HTMLResponse("Tax return not found", status_code=404)
-        if not resp.is_success:
-            request.session["flash_error"] = f"API error: HTTP {resp.status_code}"
-            return RedirectResponse(url="/tax-returns", status_code=303)
-        tax_return = resp.json()
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(f"/api/v1/tax_returns/{return_id}")
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.status_code == 404:
+                return HTMLResponse("Tax return not found", status_code=404)
+            if not resp.is_success:
+                request.session["flash_error"] = f"API error: HTTP {resp.status_code}"
+                return RedirectResponse(url="/tax-returns", status_code=303)
+            tax_return = resp.json()
 
-        lodgement: dict | None = None
-        if tax_return.get("lodgement_record_id"):
-            lg_resp = await client.get(f"/api/v1/tax_returns/{return_id}/lodgement")
-            if lg_resp.is_success:
-                lodgement = lg_resp.json()
+            lodgement: dict | None = None
+            if tax_return.get("lodgement_record_id"):
+                try:
+                    lg_resp = await client.get(
+                        f"/api/v1/tax_returns/{return_id}/lodgement"
+                    )
+                except httpx.RequestError as exc:
+                    # Secondary data — the return itself loaded fine, so
+                    # degrade to "no lodgement shown" rather than failing
+                    # the whole detail page.
+                    logger.warning(
+                        "tax-returns/detail: lodgement fetch unreachable: %s", exc
+                    )
+                else:
+                    if lg_resp.is_success:
+                        lodgement = lg_resp.json()
+    except httpx.RequestError as exc:
+        logger.error("tax-returns/detail: API unreachable: %s", exc)
+        request.session["flash_error"] = _UNREACHABLE_MESSAGE
+        return RedirectResponse(url="/tax-returns", status_code=303)
 
     figures = tax_return.get("figures") or {}
     return_type = tax_return.get("return_type") or ""
@@ -297,8 +366,13 @@ async def tax_returns_export(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    async with api_client(request) as client:
-        resp = await client.get(f"/api/v1/tax_returns/{return_id}/export")
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(f"/api/v1/tax_returns/{return_id}/export")
+    except httpx.RequestError as exc:
+        logger.error("tax-returns/export: API unreachable: %s", exc)
+        request.session["flash_error"] = _UNREACHABLE_MESSAGE
+        return RedirectResponse(url=f"/tax-returns/{return_id}", status_code=303)
 
     if resp.status_code == 401:
         request.session.clear()
@@ -350,8 +424,15 @@ async def tax_returns_mark_filed(
     if reference:
         payload["reference"] = reference
 
-    async with api_client(request) as client:
-        resp = await client.post(f"/api/v1/tax_returns/{return_id}/file", json=payload)
+    try:
+        async with api_client(request) as client:
+            resp = await client.post(
+                f"/api/v1/tax_returns/{return_id}/file", json=payload
+            )
+    except httpx.RequestError as exc:
+        logger.error("tax-returns/file: API unreachable: %s", exc)
+        request.session["flash_error"] = _UNREACHABLE_MESSAGE
+        return RedirectResponse(url=f"/tax-returns/{return_id}", status_code=303)
 
     if resp.status_code == 401:
         request.session.clear()

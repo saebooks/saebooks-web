@@ -125,8 +125,41 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                                         juris_items[0].get("jurisdiction") or "AU"
                                     )
                                 else:
-                                    # No tax codes at all for this company yet —
-                                    # matches the engine's own AU fallback.
+                                    # Ambiguous, NOT an unset-jurisdiction case:
+                                    # Company.jurisdiction is NOT NULL (default
+                                    # 'AU') at the model level, so the engine's
+                                    # own ``or "AU"`` in tax_codes.py's default
+                                    # filter only guards a company row that
+                                    # can't be found at all — it never fires
+                                    # for a real company. An empty ``items``
+                                    # here just means zero TaxCode rows are
+                                    # currently tagged with this company's own
+                                    # (real, already-resolved) jurisdiction —
+                                    # e.g. a brand-new company mid-seed, or one
+                                    # whose only rows are stale/legacy-tagged.
+                                    # CompanyOut still doesn't expose
+                                    # jurisdiction directly (see module
+                                    # docstring), so we genuinely cannot tell
+                                    # AU-by-default from misresolved-EE here.
+                                    # "AU" is kept as the last-resort default
+                                    # (least behavioural change; matches the
+                                    # web app's historical AU-first default),
+                                    # but this is a known blind spot — flagged
+                                    # loudly rather than silently, so it's
+                                    # visible in logs instead of masquerading
+                                    # as a confirmed resolution. Real fix:
+                                    # engine should expose Company.jurisdiction
+                                    # on CompanyOut so this proxy isn't needed.
+                                    logger.warning(
+                                        "CompanyContextMiddleware: company %s has "
+                                        "no tax_codes rows tagged with its own "
+                                        "jurisdiction — defaulting to 'AU', but "
+                                        "this cannot be distinguished from a "
+                                        "real EE (or other non-AU) company with "
+                                        "no matching tax codes yet. See "
+                                        "company_context.py module docstring.",
+                                        active["id"],
+                                    )
                                     request.state.active_company_jurisdiction = "AU"
                         except Exception as juris_exc:
                             logger.debug(

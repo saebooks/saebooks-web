@@ -34,6 +34,18 @@
   <span class="text-sm" style="color:var(--neg);">{{ flash_error }}</span>
 </div>
 {% endif %}
+{% if pending_duplicate_generate %}
+<div class="card p-3 mb-6 flex items-center gap-3">
+  <span class="text-sm ink-2">Generate anyway, creating a duplicate return?</span>
+  <form method="POST" action="/tax-returns/generate" class="flex items-center gap-2">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="return_type" value="{{ pending_duplicate_generate.return_type }}">
+    <input type="hidden" name="period_id" value="{{ pending_duplicate_generate.period_id }}">
+    <input type="hidden" name="confirm_duplicate" value="1">
+    <button type="submit" class="btn-secondary text-sm">Generate anyway</button>
+  </form>
+</div>
+{% endif %}
 {% if error %}
 <div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
   <span class="dot" style="background:var(--neg);"></span>
