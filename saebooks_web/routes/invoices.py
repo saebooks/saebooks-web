@@ -1329,6 +1329,23 @@ async def invoice_pdf(request: Request, invoice_id: str) -> Response | RedirectR
                     if tc_resp.is_success:
                         item = tc_resp.json()
                         tax_codes_by_id[str(item["id"])] = item
+                    elif tc_resp.status_code != 404:
+                        # Critic round 4: a genuine 404 means the code truly
+                        # doesn't exist for this tenant (get_tax_code's own
+                        # not-found case) — falling through to the
+                        # unclassified bucket below is the correct, already-
+                        # covered behaviour. Anything else (transient 5xx,
+                        # timeout-mapped 502/503, RLS/permission edge case)
+                        # must not be swallowed the same way — that's the
+                        # silently-incomplete-200 outcome inv_resp/tax_resp
+                        # above are already careful to avoid.
+                        raise HTTPException(
+                            tc_resp.status_code,
+                            detail=(
+                                "Could not resolve tax code for VAT breakdown "
+                                f"(upstream {tc_resp.status_code})"
+                            ),
+                        )
         vat_breakdown = build_vat_rate_breakdown(lines, tax_codes_by_id)
         ctx = build_ee_invoice_ctx(
             ctx,
@@ -1343,10 +1360,30 @@ async def invoice_pdf(request: Request, invoice_id: str) -> Response | RedirectR
             buyer_registration_number=None,
         )
 
+    import jinja2
+
     from saebooks_web.render import LatexCompileError, LatexServiceError, render_latex
 
     try:
         pdf_bytes = await render_latex(template_name, ctx)
+    except jinja2.TemplateNotFound as exc:
+        # Critic round 4: render_latex() resolves the template via
+        # env.get_template() before ever reaching latex-api — a deploy-time
+        # drift where document_ee.tex.j2 is absent from the image would
+        # otherwise propagate unhandled past this route's own
+        # LatexCompileError/LatexServiceError sanitisation, hitting
+        # Starlette's default 500 handler instead of the deliberate
+        # generic-message pattern used for the other render failure
+        # classes below.
+        import logging as _logging
+
+        _logging.getLogger(__name__).error(
+            "invoice %s pdf render: template %r missing from deployed image: %s",
+            invoice_id,
+            template_name,
+            exc,
+        )
+        raise HTTPException(500, detail="invoice PDF template unavailable") from exc
     except LatexCompileError as exc:
         # Critic round 3: the compile log tail can contain internal
         # container file paths / template internals. This route is

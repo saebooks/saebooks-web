@@ -642,3 +642,125 @@ async def test_invoice_pdf_ee_service_unavailable_hides_internal_url(
     assert resp.status_code == 503
     assert "latex-api" not in resp.text
     assert resp.json() == {"detail": "latex service unavailable"}
+
+
+# ---------------------------------------------------------------------------
+# 5. Critic round 4 — per-id tax_code lookup must raise on non-404 failure,
+#    fall through (unclassified) only on a genuine 404, and a missing
+#    document_ee.tex.j2 template must not leak an unhandled 500.
+# ---------------------------------------------------------------------------
+
+_UNRESOLVED_TAX_CODE_ID = "aaaaaaaa-0000-0000-0000-000000000098"
+
+
+def _mock_invoice_detail_unresolved(respx_mock: respx.MockRouter) -> None:
+    respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INV_ID}").mock(
+        return_value=Response(
+            200,
+            json={
+                "id": _INV_ID,
+                "lines": [
+                    {
+                        "line_no": 1,
+                        "tax_code_id": _UNRESOLVED_TAX_CODE_ID,
+                        "line_subtotal": "100.00",
+                        "line_tax": "24.00",
+                        "line_total": "124.00",
+                    }
+                ],
+            },
+        )
+    )
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_invoice_pdf_ee_per_id_tax_code_5xx_surfaces_error(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """A line's tax code is missing from the list response and the per-id
+    fallback GET returns a transient 500 (not a genuine not-found) — the
+    route must not swallow this into the unclassified/0% bucket the way
+    it does for a real 404. Must surface as an error, same posture as the
+    inv_resp/tax_resp guards above it."""
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, "EE")
+    _mock_render_context(respx_mock, currency="EUR")
+    _mock_invoice_detail_unresolved(respx_mock)
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes/{_UNRESOLVED_TAX_CODE_ID}").mock(
+        return_value=Response(500, json={"detail": "boom"})
+    )
+
+    async with _client() as client:
+        resp = await client.get(
+            f"/invoices/{_INV_ID}/pdf",
+            cookies={settings.session_cookie_name: _SESSION_COOKIE},
+            headers={"X-Company-Id": _EE_COMPANY["id"]},
+        )
+
+    assert resp.status_code == 500
+    assert "VAT breakdown" in resp.text
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_invoice_pdf_ee_per_id_tax_code_404_falls_through_unclassified(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """A genuine 404 on the per-id lookup (the code truly doesn't exist for
+    this tenant — get_tax_code's own not-found case, a can't-happen data
+    state for a real referenced code) is the one non-2xx outcome that's
+    deliberately allowed to fall through to the unclassified bucket rather
+    than raising — pinned so the 404 carve-out stays intentional."""
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, "EE")
+    _mock_render_context(respx_mock, currency="EUR")
+    _mock_invoice_detail_unresolved(respx_mock)
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes/{_UNRESOLVED_TAX_CODE_ID}").mock(
+        return_value=Response(404, json={"detail": "not found"})
+    )
+    compile_route = _mock_latex_compile(respx_mock)
+
+    async with _client() as client:
+        resp = await client.get(
+            f"/invoices/{_INV_ID}/pdf",
+            cookies={settings.session_cookie_name: _SESSION_COOKIE},
+            headers={"X-Company-Id": _EE_COMPANY["id"]},
+        )
+
+    assert resp.status_code == 200, resp.text
+    posted = _json.loads(compile_route.calls.last.request.content)
+    assert "unclassified" in posted["latex"].lower() or "0%" in posted["latex"] or r"0\%" in posted["latex"]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_invoice_pdf_ee_missing_template_returns_sanitized_500(
+    respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """If document_ee.tex.j2 is absent from the deployed image (packaging
+    drift), render_latex()'s env.get_template() raises jinja2.TemplateNotFound
+    before ever reaching latex-api — the route must catch it and return the
+    same sanitized-error posture as LatexCompileError/LatexServiceError,
+    not let it propagate to Starlette's default unhandled-exception 500."""
+    import jinja2
+
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, "EE")
+    _mock_render_context(respx_mock, currency="EUR")
+    _mock_invoice_detail(respx_mock)
+
+    async def _raise_template_not_found(template: str, ctx: dict) -> bytes:
+        raise jinja2.TemplateNotFound(f"{template}.tex.j2")
+
+    monkeypatch.setattr("saebooks_web.render.render_latex", _raise_template_not_found)
+
+    async with _client() as client:
+        resp = await client.get(
+            f"/invoices/{_INV_ID}/pdf",
+            cookies={settings.session_cookie_name: _SESSION_COOKIE},
+            headers={"X-Company-Id": _EE_COMPANY["id"]},
+        )
+
+    assert resp.status_code == 500
+    assert resp.json() == {"detail": "invoice PDF template unavailable"}
