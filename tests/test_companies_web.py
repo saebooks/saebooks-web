@@ -555,6 +555,41 @@ async def test_companies_create_au_payload_unchanged(respx_mock: respx.MockRoute
     assert captured[0] == {"name": "Apex Fitness", "abn": "11 111 111 111"}
 
 
+@pytest.mark.anyio
+@respx.mock
+async def test_companies_create_blank_jurisdiction_falls_back_to_au(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """A present-but-whitespace jurisdiction value (e.g. a stale form
+    re-render) normalizes to AU rather than "" -- "" fails the == "EE"
+    check and used to fall through to the AU path silently dropping any
+    registrikood/kmv the caller also sent (critic round 1, finding 7).
+    The AU-path payload never carries a jurisdiction key (matches
+    test_companies_create_au_payload_unchanged), so this also proves the
+    EE-only fields didn't leak through."""
+    captured: list[dict] = []
+
+    def _capture(request: respx.Request) -> Response:
+        captured.append(_json.loads(request.content))
+        return Response(201, json=_MOCK_COMPANY)
+
+    respx_mock.post(f"{_API_BASE}/api/v1/companies").mock(side_effect=_capture)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _ADMIN_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/companies",
+            data={"name": "Apex Fitness", "jurisdiction": "  ", "registrikood": "12345678"},
+        )
+
+    assert resp.status_code == 303
+    assert captured[0] == {"name": "Apex Fitness"}
+
+
 # ---------------------------------------------------------------------------
 # 14-15. Fixer round 4 -- jurisdiction selector / EE fieldset brand-gated
 # ---------------------------------------------------------------------------

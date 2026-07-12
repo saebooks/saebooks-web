@@ -151,8 +151,11 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
     # Jurisdiction axis (P3). Defaults AU so an unset/blank/unknown value
     # behaves exactly like the pre-P3 form — no jurisdiction key at all
     # goes into the payload, keeping the AU path's request body identical
-    # to before this packet.
-    jurisdiction = (form.get("jurisdiction", "AU") or "AU").strip().upper()
+    # to before this packet. Strip BEFORE the "or AU" fallback — a
+    # present-but-whitespace value (e.g. a stale re-rendered form) is
+    # truthy and would otherwise survive the fallback as "" (critic
+    # round 1, finding 7).
+    jurisdiction = ((form.get("jurisdiction", "AU") or "AU").strip().upper()) or "AU"
 
     payload: dict[str, object] = {}
     for field in _TOP_FIELDS:
