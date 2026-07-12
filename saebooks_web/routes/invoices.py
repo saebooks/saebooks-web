@@ -20,13 +20,18 @@ from datetime import date as _date
 from datetime import timedelta as _td
 from pathlib import Path
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines_shared
+from saebooks_web.invoice_pdf_ee import (
+    build_ee_invoice_ctx,
+    build_vat_rate_breakdown,
+    select_invoice_template,
+)
 
 router = APIRouter()
 
@@ -1241,6 +1246,84 @@ async def invoice_detail(
             "vault_enabled": vault_enabled,
         },
     )
+
+# ---------------------------------------------------------------------------
+# PDF — Packet 3 (feat/ee-app-surface). Unlike quotes/credit-notes (thin
+# proxies to the engine's own /pdf route, which itself POSTs to this app's
+# /internal/render/document), the engine's invoice ctx builder has no
+# jurisdiction awareness at all today (read against saebooks-m1 branch
+# feat/m1-m15-global: template is hardcoded "document" in
+# saebooks/api/v1/invoices.py). Template selection is a presentation
+# decision — this app owns presentation (see render.py's module docstring)
+# — so this route fetches the engine's *facts* (render-context, and for EE
+# companies the tax codes needed for a per-rate VAT breakdown), picks the
+# template here, and renders in-process via saebooks_web.render. No engine
+# change required or made.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/invoices/{invoice_id}/pdf", response_model=None)
+async def invoice_pdf(request: Request, invoice_id: str) -> Response | RedirectResponse:
+    """Render an invoice PDF — AU ``document`` template by default, the EE
+    ``document_ee`` variant for EE companies (see invoice_pdf_ee.py)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        ctx_resp = await client.get(f"/api/v1/invoices/{invoice_id}/render-context")
+    if ctx_resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if ctx_resp.status_code == 404:
+        raise HTTPException(404, detail="Invoice not found")
+    if not ctx_resp.is_success:
+        raise HTTPException(ctx_resp.status_code, detail=f"Upstream returned {ctx_resp.status_code}")
+
+    body = ctx_resp.json()
+    ctx: dict = dict(body.get("ctx") or {})
+    ctx.setdefault("kind", body.get("kind") or "Tax Invoice")
+
+    jurisdiction = getattr(request.state, "active_company_jurisdiction", None) or "AU"
+    template_name = select_invoice_template(jurisdiction)
+
+    if template_name == "document_ee":
+        async with api_client(request) as client:
+            inv_resp = await client.get(f"/api/v1/invoices/{invoice_id}")
+            tax_resp = await client.get("/api/v1/tax_codes", params={"limit": 1000})
+        lines = (inv_resp.json().get("lines") or []) if inv_resp.is_success else []
+        tax_codes_by_id = {
+            str(item["id"]): item for item in (tax_resp.json().get("items") or [])
+        } if tax_resp.is_success else {}
+        vat_breakdown = build_vat_rate_breakdown(lines, tax_codes_by_id)
+        ctx = build_ee_invoice_ctx(
+            ctx,
+            vat_breakdown=vat_breakdown,
+            # Registrikood convention — see invoice_pdf_ee.py module
+            # docstring: no dedicated Company column, same fallback the
+            # engine's own einvoice generator uses.
+            seller_registration_number=(ctx.get("company") or {}).get("abn"),
+            # Contact.registration_number exists on the engine model but
+            # ContactOut never exposes it — genuine engine API gap, not
+            # fabricated here. Revisit once the engine adds it.
+            buyer_registration_number=None,
+        )
+
+    from saebooks_web.render import LatexCompileError, LatexServiceError, render_latex
+
+    try:
+        pdf_bytes = await render_latex(template_name, ctx)
+    except LatexCompileError as exc:
+        raise HTTPException(422, detail=f"latex compile failed: {exc.log_tail}") from exc
+    except LatexServiceError as exc:
+        raise HTTPException(503, detail=f"latex service unavailable: {exc}") from exc
+
+    filename = f"invoice-{ctx.get('number') or invoice_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
+
 
 # ---------------------------------------------------------------------------
 # Hard-delete: developer-tier only. Client-side gated via the kebab,

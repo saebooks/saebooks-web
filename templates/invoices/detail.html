@@ -53,6 +53,9 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
+      <a href="/invoices/{{ invoice.id }}/pdf" target="_blank" rel="noopener" class="btn-secondary text-sm">
+        Preview PDF
+      </a>
       {% if invoice.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
       <a href="/invoices/{{ invoice.id }}/edit" class="btn-secondary text-sm">{% if invoice.status in ('POSTED', 'PAID', 'VOIDED') %}Edit (override){% else %}Edit{% endif %}</a>
       {% endif %}

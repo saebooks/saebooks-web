@@ -176,11 +176,11 @@
   Vahesumma & {{ fmt_money(subtotal) }}~€ \\
   Käibemaks kokku & {{ fmt_money(tax_total) }}~€ \\
   \midrule
-  \textbf{Kokku} & \textbf{{{ fmt_money(total) }}~€} \\
+  \textbf{Kokku} & \textbf{ {{ fmt_money(total) }}~€} \\
   {% if show_paid %}
   Makstud           & {{ fmt_money(amount_paid) }}~€ \\
   \midrule
-  \textbf{Tasumisele kuulub} & \textbf{{{ "%.2f"|format(balance_due) | latex_escape }}~€} \\
+  \textbf{Tasumisele kuulub} & \textbf{ {{ "%.2f"|format(balance_due) | latex_escape }}~€} \\
   {% endif %}
 \end{tabular}
 \end{flushright}
