@@ -527,3 +527,118 @@ async def test_invoice_pdf_ee_invoice_detail_failure_surfaces_error(
 
     assert resp.status_code == 500
     assert "VAT breakdown" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 4. Critic round 3 — archived tax code + internal-error-detail leaks
+# ---------------------------------------------------------------------------
+
+_ARCHIVED_TAX_CODE_ID = "aaaaaaaa-0000-0000-0000-000000000099"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_invoice_pdf_ee_resolves_archived_tax_code_by_id(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """A line's tax code has since been archived, so it's absent from
+    GET /api/v1/tax_codes' list (engine filters archived_at IS NULL) —
+    the route must fall back to GET /api/v1/tax_codes/{id} (no archived
+    filter) rather than silently bucketing the line as unclassified/0%
+    on a statutory VAT document."""
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, "EE")  # list -> only the live code, id=_TAX_CODE_ID
+    _mock_render_context(respx_mock, currency="EUR")
+    respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INV_ID}").mock(
+        return_value=Response(
+            200,
+            json={
+                "id": _INV_ID,
+                "lines": [
+                    {
+                        "line_no": 1,
+                        "tax_code_id": _ARCHIVED_TAX_CODE_ID,
+                        "line_subtotal": "100.00",
+                        "line_tax": "24.00",
+                        "line_total": "124.00",
+                    }
+                ],
+            },
+        )
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/tax_codes/{_ARCHIVED_TAX_CODE_ID}").mock(
+        return_value=Response(
+            200,
+            json={
+                "id": _ARCHIVED_TAX_CODE_ID,
+                "code": "STD24",
+                "rate": "24.000",
+                "archived_at": "2026-06-01T00:00:00Z",
+            },
+        )
+    )
+    compile_route = _mock_latex_compile(respx_mock)
+
+    async with _client() as client:
+        resp = await client.get(
+            f"/invoices/{_INV_ID}/pdf",
+            cookies={settings.session_cookie_name: _SESSION_COOKIE},
+            headers={"X-Company-Id": _EE_COMPANY["id"]},
+        )
+
+    assert resp.status_code == 200, resp.text
+    posted = _json.loads(compile_route.calls.last.request.content)
+    tex = posted["latex"]
+    assert r"24\%" in tex  # resolved from the archived-code lookup, not "unclassified"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_invoice_pdf_ee_compile_error_hides_log_tail(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """The 422 latex-compile-failure response must not leak the raw
+    xelatex log tail (internal container paths/template internals) to the
+    browser — generic message only."""
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, "EE")
+    _mock_render_context(respx_mock, currency="EUR")
+    _mock_invoice_detail(respx_mock)
+    respx_mock.post(f"{_LATEX_API_BASE}/compile").mock(
+        return_value=Response(
+            422, json={"detail": "! Undefined control sequence. /srv/latex/job123.log:42: ..."}
+        )
+    )
+
+    async with _client() as client:
+        resp = await client.get(f"/invoices/{_INV_ID}/pdf", cookies={settings.session_cookie_name: _SESSION_COOKIE})
+
+    assert resp.status_code == 422
+    assert "job123" not in resp.text
+    assert "/srv/latex" not in resp.text
+    assert resp.json() == {"detail": "latex compile failed"}
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_invoice_pdf_ee_service_unavailable_hides_internal_url(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """The 503 latex-service-unavailable response must not leak the
+    internal latex-api URL/exception text to the browser — generic
+    message only, matching render.py's own internal/render pattern for
+    this exception class."""
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, "EE")
+    _mock_render_context(respx_mock, currency="EUR")
+    _mock_invoice_detail(respx_mock)
+    import httpx as _httpx
+
+    respx_mock.post(f"{_LATEX_API_BASE}/compile").mock(side_effect=_httpx.ConnectError("refused"))
+
+    async with _client() as client:
+        resp = await client.get(f"/invoices/{_INV_ID}/pdf", cookies={settings.session_cookie_name: _SESSION_COOKIE})
+
+    assert resp.status_code == 503
+    assert "latex-api" not in resp.text
+    assert resp.json() == {"detail": "latex service unavailable"}

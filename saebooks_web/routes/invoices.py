@@ -1308,6 +1308,27 @@ async def invoice_pdf(request: Request, invoice_id: str) -> Response | RedirectR
         tax_codes_by_id = {
             str(item["id"]): item for item in (tax_resp.json().get("items") or [])
         }
+        # Critic round 3: list_tax_codes excludes archived rows (engine's
+        # TaxCode.archived_at.is_(None) filter — saebooks/api/v1/tax_codes.py
+        # has no include-archived param). A line posted against a code
+        # since archived would otherwise fall into build_vat_rate_breakdown's
+        # "unclassified 0%" bucket below, silently misreporting its real
+        # rate on a statutory VAT document. GET /api/v1/tax_codes/{id} has
+        # no archived filter (plain id lookup), so resolve any line's
+        # missing tax code that way instead of widening the engine's list
+        # filter (engine repo out of scope for this packet).
+        missing_ids = {
+            str(line["tax_code_id"])
+            for line in lines
+            if line.get("tax_code_id") and str(line["tax_code_id"]) not in tax_codes_by_id
+        }
+        if missing_ids:
+            async with api_client(request) as client:
+                for tax_code_id in missing_ids:
+                    tc_resp = await client.get(f"/api/v1/tax_codes/{tax_code_id}")
+                    if tc_resp.is_success:
+                        item = tc_resp.json()
+                        tax_codes_by_id[str(item["id"])] = item
         vat_breakdown = build_vat_rate_breakdown(lines, tax_codes_by_id)
         ctx = build_ee_invoice_ctx(
             ctx,
@@ -1327,9 +1348,29 @@ async def invoice_pdf(request: Request, invoice_id: str) -> Response | RedirectR
     try:
         pdf_bytes = await render_latex(template_name, ctx)
     except LatexCompileError as exc:
-        raise HTTPException(422, detail=f"latex compile failed: {exc.log_tail}") from exc
+        # Critic round 3: the compile log tail can contain internal
+        # container file paths / template internals. This route is
+        # reached directly by an authenticated browser, unlike
+        # render.py's internal/render endpoint (server-to-server, bearer
+        # token) which returns the same log_tail to a trusted caller —
+        # log the detail server-side, return only a generic message here.
+        import logging as _logging
+
+        _logging.getLogger(__name__).warning(
+            "invoice %s pdf render: latex compile failed: %s", invoice_id, exc.log_tail
+        )
+        raise HTTPException(422, detail="latex compile failed") from exc
     except LatexServiceError as exc:
-        raise HTTPException(503, detail=f"latex service unavailable: {exc}") from exc
+        # Same reasoning — exc's message embeds the internal latex-api URL
+        # (e.g. "http://latex-api:8000") and the raw httpx exception text;
+        # matches render.py's own internal/render generic-message pattern
+        # for this exception class instead of diverging from it.
+        import logging as _logging
+
+        _logging.getLogger(__name__).warning(
+            "invoice %s pdf render: latex service unavailable: %s", invoice_id, exc
+        )
+        raise HTTPException(503, detail="latex service unavailable") from exc
 
     filename = f"invoice-{ctx.get('number') or invoice_id}.pdf"
     return Response(

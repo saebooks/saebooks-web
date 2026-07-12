@@ -100,7 +100,18 @@ def _au_gate(request: Request) -> HTMLResponse | None:
     crawler could reach it directly for a company we know is AU. Only an
     explicitly-resolved "AU" is blocked; an unresolved (None) jurisdiction
     fails open, same posture as the rest of this packet (see _jurisdiction
-    above and company_context.py's "ambiguous" branch)."""
+    above and company_context.py's "ambiguous" branch).
+
+    Critic round 3 raised this as a divergence from _jurisdiction()'s
+    None -> "AU" default and asked to flip it closed. Deliberately NOT
+    changed: reviewed and kept as a documented tradeoff, not a defect —
+    see the round-3 fixer's report. Flipping this would lock out a
+    legitimate EE user (this screen's actual audience) on every transient
+    jurisdiction-probe blip, in exchange for hiding a cosmetic wrong-screen
+    view from an AU company in the same rare window — and _jurisdiction()
+    already keeps the data this screen writes (the generate payload)
+    AU-safe regardless of this gate's posture. Symmetric tradeoff, not
+    worth relitigating without new evidence of actual harm."""
     if getattr(request.state, "active_company_jurisdiction", None) == "AU":
         return HTMLResponse("Not found", status_code=404)
     return None

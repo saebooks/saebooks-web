@@ -507,7 +507,12 @@ async def test_tax_returns_list_still_reachable_when_jurisdiction_unresolved(
     unresolved (None) jurisdiction (e.g. the middleware's probe call
     failed) fails open, same posture as the rest of this packet. This is
     a regression guard: it pins that the new gate doesn't accidentally
-    lock everyone out when jurisdiction can't be determined."""
+    lock everyone out when jurisdiction can't be determined.
+
+    Critic round 3 flagged this fail-open posture as a divergence from
+    _jurisdiction()'s None -> "AU" default and asked to flip it closed —
+    deliberately kept as-is; see _au_gate's docstring and the round-3
+    fixer's report for why."""
     # No _mock_companies/_mock_tax_codes registered -> the middleware's own
     # calls go unmocked, get swallowed by its try/except, and
     # active_company_jurisdiction stays None (see company_context.py).
