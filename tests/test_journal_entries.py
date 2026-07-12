@@ -195,7 +195,7 @@ async def test_journal_entries_detail_renders(respx_mock: respx.MockRouter) -> N
     # Line descriptions.
     assert "Consulting revenue accrual" in resp.text
     # Totals row — both sides should show 1000.00.
-    assert "1,000.00" in resp.text
+    assert "1000.00" in resp.text
     # Totals label.
     assert "Totals" in resp.text
 

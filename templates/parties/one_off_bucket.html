@@ -63,7 +63,7 @@
           <td class="ink-2 num">{{ r.abn or "—" }}</td>
           <td class="ink-2 num text-right">{{ r.use_count|default(0) }}</td>
           <td class="ink-2 num text-right">
-            {{ num(r[amount_column]|float, 2) if r.get(amount_column) is not none else "—" }}
+            {{ num(r[amount_column]|float, 2, grouping=True) if r.get(amount_column) is not none else "—" }}
           </td>
           <td class="ink-2 num">{{ (r.last_used_at or "")[:10] or "—" }}</td>
         </tr>

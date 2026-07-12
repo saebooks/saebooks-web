@@ -109,7 +109,7 @@ async def test_fx_revaluation_get_200(respx_mock: respx.MockRouter) -> None:
     assert "INV-000001" in resp.text
     assert "Acme Corp" in resp.text
     assert "USD" in resp.text
-    assert "1,000.00" in resp.text
+    assert "1000.00" in resp.text
     # Bill item
     assert "BILL-000042" in resp.text
     assert "Overseas Supplier" in resp.text

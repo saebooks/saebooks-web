@@ -262,7 +262,7 @@ async def test_profit_loss_get_200(respx_mock: respx.MockRouter) -> None:
     assert "Profit" in resp.text
     assert "Consulting Revenue" in resp.text
     assert "Office Supplies" in resp.text
-    assert "9,750.00" in resp.text
+    assert "9750.00" in resp.text
     # Net profit section (positive → green highlight)
     assert "Net Profit" in resp.text
 
@@ -286,7 +286,7 @@ async def test_balance_sheet_get_200(respx_mock: respx.MockRouter) -> None:
     assert "<html" in resp.text
     assert "Balance Sheet" in resp.text
     assert "Business Bank Account" in resp.text
-    assert "15,000.00" in resp.text
+    assert "15000.00" in resp.text
     # Balanced indicator: green check
     assert "balanced" in resp.text.lower()
 
@@ -543,8 +543,8 @@ async def test_depreciation_schedule_get_200(respx_mock: respx.MockRouter) -> No
     assert "FA-001" in resp.text
     assert "Office Laptop" in resp.text
     assert "linear" in resp.text
-    assert "2,000.00" in resp.text
-    assert "1,400.00" in resp.text
+    assert "2000.00" in resp.text
+    assert "1400.00" in resp.text
     assert "50.00" in resp.text
 
 
@@ -570,7 +570,7 @@ async def test_depreciation_schedule_method_filter(respx_mock: respx.MockRouter)
     assert "FA-002" in resp.text
     assert "Delivery Van" in resp.text
     assert "diminishing_value" in resp.text
-    assert "45,000.00" in resp.text
+    assert "45000.00" in resp.text
     # Verify the API was called with the method param
     called_url = str(respx_mock.calls[0].request.url)
     assert "method=diminishing_value" in called_url

@@ -153,8 +153,23 @@ def money(value: float | int | str | None, ccy: str | None = None, decimals: int
     try:
         if decimals is not None:
             pattern = _currency_pattern_with_decimals(locale, decimals)
+            # currency_digits defaults True and (per babel's own docs) then
+            # "favours [the currency's natural precision] over the given
+            # format" — silently overriding our custom decimals count back
+            # to 2dp for AUD/EUR. decimal_quantization must stay True here
+            # (not False) so the pattern's digit count is actually enforced
+            # (rounded/padded to `decimals`) rather than merely capping the
+            # value's own incidental float precision — verified live: with
+            # quantization off, money(25.0, decimals=4) rendered "$25.00"
+            # instead of "$25.0000" because 25.0 has no natural 4th decimal
+            # digit to preserve.
             return _babel_format_currency(
-                amount, currency_code, format=pattern, locale=locale, decimal_quantization=False
+                amount,
+                currency_code,
+                format=pattern,
+                locale=locale,
+                decimal_quantization=True,
+                currency_digits=False,
             )
         return _babel_format_currency(amount, currency_code, locale=locale)
     except Exception:  # pragma: no cover — defensive, bad currency code etc.
@@ -162,17 +177,33 @@ def money(value: float | int | str | None, ccy: str | None = None, decimals: int
         return f"{amount:.{decimals if decimals is not None else 2}f}"
 
 
-def num(value: float | int | str | None, decimals: int = 2) -> str:
-    """Locale-aware plain number: grouping + decimal separator, no currency.
+def num(value: float | int | str | None, decimals: int = 2, grouping: bool = False) -> str:
+    """Locale-aware plain number: decimal separator, no currency.
 
     Used for percentages (keep the literal ``%`` in the template) and for
     non-currency counts. ``decimals`` mirrors the ``%.Nf`` precision of the
     call site being replaced.
+
+    ``grouping`` defaults to ``False`` because that's what every bare
+    (non-``$``) numeric call site being replaced across the app actually
+    used — plain ``"%.Nf"|format(x)``/``"{:,.Nf}".format(x)`` without a
+    thousands separator (verified against every pre-P4 template: P&L,
+    Balance Sheet, Trial Balance, Cashflow, Budget-vs-Actual, Depreciation
+    Schedule, BAS, aged receivables/payables, dashboard KPI deltas, etc.).
+    babel's ``format_decimal`` always groups by default, which is what
+    introduced comma-grouped bare numbers here as a regression; passing
+    ``group_separator=False`` restores the prior no-grouping look. The one
+    known exception — ``templates/parties/one_off_bucket.html``, which
+    *did* originally use ``"{:,.2f}".format(...)`` on a bare number — opts
+    back in with ``grouping=True`` at that call site.
     """
     amount = float(value or 0)
     try:
         return _babel_format_decimal(
-            amount, format=_decimal_pattern(decimals), locale=_format_locale()
+            amount,
+            format=_decimal_pattern(decimals),
+            locale=_format_locale(),
+            group_separator=grouping,
         )
     except Exception:  # pragma: no cover — defensive
         _logger.warning("num(): format_decimal failed for %r", amount, exc_info=True)

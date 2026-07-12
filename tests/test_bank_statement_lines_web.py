@@ -158,5 +158,5 @@ async def test_bank_statement_lines_detail_renders(respx_mock: respx.MockRouter)
     assert resp.status_code == 200
     assert "2026-04-15" in resp.text
     assert "PAYROLL TRANSFER" in resp.text
-    assert "-4,500.00" in resp.text
+    assert "-4500.00" in resp.text
     assert "Unmatched" in resp.text

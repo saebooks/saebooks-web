@@ -356,14 +356,14 @@ async def test_statement_pack_comparative_renders_prior_column(
     body = resp.text
 
     # Current-year amounts must be visible.
-    assert "12,000.00" in body, "Current P&L income (12000) not found"
-    assert "9,000.00" in body, "Current P&L net profit (9000) not found"
-    assert "50,000.00" in body, "Current BS asset (50000) not found"
+    assert "12000.00" in body, "Current P&L income (12000) not found"
+    assert "9000.00" in body, "Current P&L net profit (9000) not found"
+    assert "50000.00" in body, "Current BS asset (50000) not found"
 
     # Prior-year amounts must also be visible.
-    assert "8,000.00" in body, "Prior P&L income (8000) not found"
-    assert "5,500.00" in body, "Prior P&L net profit (5500) not found"
-    assert "35,000.00" in body, "Prior BS asset (35000) not found"
+    assert "8000.00" in body, "Prior P&L income (8000) not found"
+    assert "5500.00" in body, "Prior P&L net profit (5500) not found"
+    assert "35000.00" in body, "Prior BS asset (35000) not found"
 
     # Prior-year column header / label must appear.
     assert "Prior" in body or "prior" in body, "No 'Prior' label found in comparative output"

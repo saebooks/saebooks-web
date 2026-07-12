@@ -105,6 +105,27 @@ def test_money_decimals_override_negative():
     assert _run_as("en", "AUD", money, -28.8462, decimals=4) == "-$28.8462"
 
 
+def test_money_decimals_override_pads_trailing_zeros():
+    # Regression: the previously-shipped test only exercised a value that
+    # happened to carry exactly 4 nonzero decimal digits (28.8462), which
+    # masked a real bug — decimal_quantization=False (combined with the
+    # default currency_digits=True, which babel docs say "favours [the
+    # currency's natural precision] over the given format") silently
+    # truncated any employee base_rate without 4 natural decimal digits
+    # (i.e. the overwhelming majority: $25/hr, $30.50/hr) back to 2dp.
+    assert _run_as("en", "AUD", money, 25.0, decimals=4) == "$25.0000"
+    assert _run_as("en", "AUD", money, 30.5, decimals=4) == "$30.5000"
+    assert _run_as("en", "AUD", money, 28.75, decimals=4) == "$28.7500"
+
+
+def test_money_decimals_zero_rounds_and_groups():
+    # The KPI-tile whole-dollar case: decimals=0 must actually round/pad to
+    # zero decimal places (not just cap at whatever precision the float
+    # happens to carry), and must keep thousands grouping.
+    assert _run_as("en", "AUD", money, 1234.6, decimals=0) == "$1,235"
+    assert _run_as("en", "AUD", money, 999.4, decimals=0) == "$999"
+
+
 def test_money_ee_operator_viewing_au_company_still_gets_aud_symbol():
     # Locale (UI language) and currency (company jurisdiction) are
     # independent axes — an et-speaking user on an AU company sees AUD
@@ -118,11 +139,15 @@ def test_money_ee_operator_viewing_au_company_still_gets_aud_symbol():
 
 
 def test_num_au_default_two_decimals():
-    assert _run_as("en", "AUD", num, 1234.5) == "1,234.50"
+    # No thousands separator: every bare (non-$) `num()` call site being
+    # replaced across the report tables (P&L/Balance Sheet/Trial
+    # Balance/Cashflow/Budget-vs-Actual/Depreciation Schedule/BAS/etc.) used
+    # plain `"%.2f"|format(x)` with no grouping — see grouping=False below.
+    assert _run_as("en", "AUD", num, 1234.5) == "1234.50"
 
 
 def test_num_au_zero_decimals_for_whole_number_tiles():
-    assert _run_as("en", "AUD", num, 1234.6, decimals=0) == "1,235"
+    assert _run_as("en", "AUD", num, 1234.6, decimals=0) == "1235"
 
 
 def test_num_au_one_decimal_for_percentage_sites():
@@ -130,11 +155,22 @@ def test_num_au_one_decimal_for_percentage_sites():
 
 
 def test_num_ee_uses_comma_decimal():
-    assert _run_as("et", "EUR", num, 1234.5) == f"1{_NBSP}234,50"
+    assert _run_as("et", "EUR", num, 1234.5) == "1234,50"
 
 
 def test_num_none_treated_as_zero():
     assert _run_as("en", "AUD", num, None, decimals=0) == "0"
+
+
+def test_num_grouping_true_opt_in():
+    # templates/parties/one_off_bucket.html is the one real bare-number call
+    # site that originally used `"{:,.2f}".format(x)` (grouped) rather than
+    # the ungrouped default every other num() site was replacing.
+    assert _run_as("en", "AUD", num, 1234.5, decimals=2, grouping=True) == "1,234.50"
+
+
+def test_num_grouping_true_ee():
+    assert _run_as("et", "EUR", num, 1234.5, decimals=2, grouping=True) == f"1{_NBSP}234,50"
 
 
 # ---------------------------------------------------------------------------
