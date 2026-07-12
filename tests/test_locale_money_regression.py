@@ -23,6 +23,15 @@ i18n/format.py module docstring).
    company (jurisdiction resolved via the tax_codes proxy per
    company_context.py) renders "1 234,56 €" (real babel bytes, U+00A0
    separators) and contains no "$" from the converted call sites.
+4/5. test_invoice_detail_{au,ee}_num_path — the OTHER conversion this
+   packet made: bare/currency-code-prefixed sites (the bulk of the sweep,
+   ~276 sites) went to `num()`, not `money()`, keeping the existing
+   `{{ invoice.currency }} {{ ... }}` convention untouched (see the P4
+   report on why money() is deliberately not used there — babel's en_AU
+   locale has no clean foreign-currency symbol). These two prove that path
+   end-to-end on invoices/detail.html: AU keeps its literal "AUD" prefix
+   byte-exact with the number gaining locale-correct grouping, EE gets a
+   comma-decimal number after its own currency code.
 """
 from __future__ import annotations
 
@@ -124,3 +133,89 @@ async def test_ee_dashboard_renders_euro_comma_decimal_format(
     # The AR draft tile must not fall back to a hardcoded "$" for an EE
     # company — that would be exactly the bug this packet exists to fix.
     assert "$1,234.56" not in resp.text
+
+
+_INVOICE_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+_CONTACT_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+
+
+def _mock_invoice(currency: str, total: str) -> dict:
+    return {
+        "id": _INVOICE_ID,
+        "company_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+        "tenant_id": "00000000-0000-0000-0000-000000000001",
+        "contact_id": _CONTACT_ID,
+        "number": "INV-0042",
+        "issue_date": "2026-04-01",
+        "due_date": "2026-04-30",
+        "status": "POSTED",
+        "subtotal": "1000.00",
+        "tax_total": "234.56",
+        "total": total,
+        "amount_paid": "0.00",
+        "currency": currency,
+        "fx_rate": "1.0",
+        "notes": None,
+        "payment_terms": "Net 30",
+        "posted_at": "2026-04-01T10:00:00Z",
+        "posted_by": "api:testuser",
+        "version": 1,
+        "created_at": "2026-04-01T09:00:00Z",
+        "updated_at": "2026-04-01T10:00:00Z",
+        "archived_at": None,
+        "lines": [],
+    }
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_detail_au_num_path_grouped_currency_code_kept(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """invoices/detail.html's `{{ invoice.currency }} {{ num(...) }}` site
+    (untouched currency-code prefix, locale-aware number) end-to-end: AU
+    keeps the literal "AUD" prefix — that convention is deliberately not
+    replaced by money() (see module docstring) — while the number itself
+    gains the thousands grouping this packet's AU target format requires.
+    """
+    respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
+        return_value=Response(200, json=_mock_invoice("AUD", "1234.56"))
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(return_value=Response(200, json=[]))
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/invoices/{_INVOICE_ID}")
+
+    assert resp.status_code == 200
+    assert "AUD 1,234.56" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_detail_ee_num_path_comma_decimal(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Same call site, EE company — the currency code becomes "EUR" (still
+    the document's own currency, untouched) and the number switches to
+    comma-decimal grouping.
+    """
+    respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
+        return_value=Response(200, json=_mock_invoice("EUR", "1234.56"))
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(return_value=Response(200, json=[]))
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, jurisdiction="EE")
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get(f"/invoices/{_INVOICE_ID}")
+
+    assert resp.status_code == 200
+    assert f"EUR 1{_NBSP}234,56" in resp.text
