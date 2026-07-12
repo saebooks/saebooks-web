@@ -137,23 +137,12 @@
     {# ── EE fields — registrikood, KMV/VAT, currency, chart template ──
        Fixer round 4: gated on `_show_ee_onboarding` along with the
        jurisdiction select above — see that comment.
-       Prerequisite gap (verified against the engine, not assumed): the
-       engine's CompanyCreate schema does not accept jurisdiction,
-       registrikood or kmv today (registrikood/kmv have no column on
-       Company at all — only Contact has a free-text registrikood field);
-       jurisdiction and coa_template_key exist as columns but aren't on
-       CompanyCreate; and the "ee/default" chart template is a registered
-       key that currently raises NotImplementedError (stub, "M3"). This
-       fieldset is wired for real (values are sent to the engine so
-       nothing here is faked), but until the engine ships that work these
-       values will not be saved — see the notice below and the honest
-       flash after submit. #}
+       Packet 2: the engine's CompanyCreate now accepts jurisdiction,
+       registrikood, kmv_number (posted from this form's `kmv` field) and
+       coa_template_key, and the "ee/default" chart template applier is
+       implemented — creation persists for real, no stopgap notice. #}
     {% if _show_ee_onboarding %}
     <div id="ee-fields" {% if jurisdiction != 'EE' %}style="display:none"{% endif %}>
-      <div class="mb-4 rounded-md bg-[color:var(--warn-tint,#fff8e1)] border border-[color:var(--warn,#c8890a)] px-4 py-3 text-xs text-[color:var(--warn,#8a5a00)]">
-        {{ _("Estonian company creation is in progress. These fields are captured here but the server does not yet persist them — see the note after you submit.") }}
-      </div>
-
       <div class="mb-5">
         <label for="registrikood" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           {{ _("Registrikood") }} <span class="text-[color:var(--neg)]">*</span>
@@ -224,7 +213,7 @@
           <option value="ee/default" selected>{{ _("Estonian standard chart (ee/default)") }}</option>
         </select>
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {{ _("The engine's Estonian chart template is registered but not yet implemented — this selector is future-ready, not active.") }}
+          {{ _("The Estonian standard chart of accounts is applied automatically when the company is created.") }}
         </p>
       </div>
     </div>

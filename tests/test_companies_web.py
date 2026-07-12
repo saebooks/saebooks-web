@@ -278,29 +278,29 @@ async def test_admin_license_forbidden_for_bookkeeper() -> None:
 
 
 # ---------------------------------------------------------------------------
-# EE onboarding (P3, ee-gui-prep scope)
+# EE onboarding (P3 GUI + Packet 2 wiring)
 #
-# Prerequisite gap verified against the engine (saebooks/api/v1/schemas.py,
-# CompanyCreate): jurisdiction/registrikood/kmv/coa_template_key are not
-# accepted there today. These tests mock the engine returning 201 as if it
-# already accepted them (real wiring, future-ready) -- see companies.py's
-# module-level note and the flash caveat asserted in test 9 below, which is
-# the honest signal that these values are not actually persisted yet.
+# Packet 2: the engine's CompanyCreate now accepts jurisdiction/
+# registrikood/kmv_number/coa_template_key for real (verified against
+# saebooks/api/v1/schemas.py in the engine repo) and implements the
+# ee/default chart applier. These tests mock the engine returning 201/422
+# and assert the exact payload this route sends -- note the form's `kmv`
+# field is posted to the engine as `kmv_number`.
 # ---------------------------------------------------------------------------
 
 
 # ---------------------------------------------------------------------------
-# 9. POST /companies jurisdiction=EE -- valid -> 201, payload wired, honest
-#    flash caveat
+# 9. POST /companies jurisdiction=EE -- valid -> 201, payload wired, plain
+#    success flash
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_companies_create_ee_success_wires_payload(respx_mock: respx.MockRouter) -> None:
-    """Valid EE submission -> 201; engine payload carries the new EE
-    fields (real wiring, not faked); redirect flash is the honest
-    not-yet-persisted caveat, not a bare "Company created."."""
+    """Valid EE submission -> 201; engine payload carries the EE fields
+    under the engine's own field names; redirect flash is the plain
+    success message, same as AU."""
     captured: list[dict] = []
 
     def _capture(request: respx.Request) -> Response:
@@ -332,15 +332,14 @@ async def test_companies_create_ee_success_wires_payload(respx_mock: respx.MockR
         sent = captured[0]
         assert sent["jurisdiction"] == "EE"
         assert sent["registrikood"] == "12345678"
-        assert sent["kmv"] == "EE123456789"  # normalised to uppercase
+        assert sent["kmv_number"] == "EE123456789"  # normalised to uppercase
         assert sent["base_currency"] == "EUR"
         assert sent["coa_template_key"] == "ee/default"
         assert "abn" not in sent
+        assert "kmv" not in sent  # form field name, not the engine's
 
         # Follow the redirect (reusing the same client so the updated
-        # session cookie from the POST's Set-Cookie carries the flash)
-        # and check it renders the honest caveat rather than papering
-        # over the unmet engine prerequisite.
+        # session cookie from the POST's Set-Cookie carries the flash).
         respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
             return_value=Response(200, json=_MOCK_COMPANIES)
         )
@@ -348,8 +347,7 @@ async def test_companies_create_ee_success_wires_payload(respx_mock: respx.MockR
             return_value=Response(200, json=_LICENSE_ENTERPRISE)
         )
         resp2 = await client.get(resp.headers["location"])
-        assert "could not be saved" in resp2.text
-        assert "not persisted" in resp2.text
+        assert "Company created." in resp2.text
 
 
 # ---------------------------------------------------------------------------
@@ -469,7 +467,57 @@ async def test_companies_create_ee_kmv_optional(respx_mock: respx.MockRouter) ->
         )
 
     assert resp.status_code == 303
+    assert "kmv_number" not in captured[0]
     assert "kmv" not in captured[0]
+
+
+# ---------------------------------------------------------------------------
+# 12b. POST /companies jurisdiction=EE -- engine-side 422 (e.g. a
+#      registrikood the client regex passed but the engine still rejects)
+#      renders inline on the form, mapped back to the `kmv` field name.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_companies_create_ee_engine_422_renders_on_form(respx_mock: respx.MockRouter) -> None:
+    """A 422 from the engine (not caught by client-side validation) is
+    surfaced inline on the form rather than a bare API-error message, and
+    the engine's `kmv_number` field name maps back to this form's `kmv`
+    field for the error to land next to the right input."""
+    respx_mock.post(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(
+            422,
+            json={
+                "detail": [
+                    {
+                        "loc": ["body", "kmv_number"],
+                        "msg": "kmv_number must be 'EE' followed by 9 digits",
+                        "type": "value_error",
+                    }
+                ]
+            },
+        )
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _ADMIN_COOKIE},
+    ) as client:
+        resp = await client.post(
+            "/companies",
+            data={
+                "name": "Tasur OÜ",
+                "jurisdiction": "EE",
+                "registrikood": "12345678",
+                "kmv": "EE123456789",
+            },
+        )
+
+    assert resp.status_code == 422
+    assert "kmv_number must be" in resp.text
+    assert 'id="kmv"' in resp.text
 
 
 # ---------------------------------------------------------------------------
