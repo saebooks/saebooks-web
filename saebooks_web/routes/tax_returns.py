@@ -84,7 +84,26 @@ def _require_auth(request: Request) -> str | None:
 
 
 def _jurisdiction(request: Request) -> str:
-    return getattr(request.state, "active_company_jurisdiction", None) or "EE"
+    # "AU" (not "EE") — matches the fallback used everywhere else this
+    # packet reads active_company_jurisdiction (company_context.py,
+    # templates/base.html, invoice_pdf_ee.py). If the middleware's probe
+    # ever fails to resolve for a company that reached this screen, the
+    # payload we send the engine must default the same safe direction as
+    # every other consumer, not diverge to "EE".
+    return getattr(request.state, "active_company_jurisdiction", None) or "AU"
+
+
+def _au_gate(request: Request) -> HTMLResponse | None:
+    """This screen is EE-only (see module docstring) — templates/base.html
+    hides its nav link for an AU company, but the route itself had no
+    matching server-side check, so a bookmark/autocomplete/shared link/
+    crawler could reach it directly for a company we know is AU. Only an
+    explicitly-resolved "AU" is blocked; an unresolved (None) jurisdiction
+    fails open, same posture as the rest of this packet (see _jurisdiction
+    above and company_context.py's "ambiguous" branch)."""
+    if getattr(request.state, "active_company_jurisdiction", None) == "AU":
+        return HTMLResponse("Not found", status_code=404)
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -100,6 +119,9 @@ async def tax_returns_list(
 ) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    gate = _au_gate(request)
+    if gate is not None:
+        return gate
 
     return_type = (return_type or "").strip().upper() or None
     status_filter = (status or "").strip().lower() or None
@@ -167,9 +189,12 @@ async def tax_returns_list(
 
 
 @router.post("/tax-returns/generate", response_class=HTMLResponse, response_model=None)
-async def tax_returns_generate(request: Request) -> RedirectResponse:
+async def tax_returns_generate(request: Request) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    gate = _au_gate(request)
+    if gate is not None:
+        return gate
 
     form = await request.form()
     return_type = str(form.get("return_type") or "").strip().upper()
@@ -271,6 +296,9 @@ async def tax_returns_detail(
 ) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    gate = _au_gate(request)
+    if gate is not None:
+        return gate
 
     try:
         async with api_client(request) as client:
@@ -365,6 +393,9 @@ async def tax_returns_export(
 ) -> Response | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    gate = _au_gate(request)
+    if gate is not None:
+        return gate
 
     try:
         async with api_client(request) as client:
@@ -414,9 +445,12 @@ async def tax_returns_export(
 )
 async def tax_returns_mark_filed(
     request: Request, return_id: UUID
-) -> RedirectResponse:
+) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+    gate = _au_gate(request)
+    if gate is not None:
+        return gate
 
     form = await request.form()
     reference = str(form.get("reference") or "").strip()

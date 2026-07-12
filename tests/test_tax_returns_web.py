@@ -222,6 +222,40 @@ async def test_tax_returns_generate_success(respx_mock: respx.MockRouter) -> Non
 
 @pytest.mark.anyio
 @respx.mock
+async def test_tax_returns_generate_defaults_jurisdiction_to_au_when_unresolved(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """_jurisdiction() falls back to 'AU', not 'EE', matching every other
+    active_company_jurisdiction fallback in this packet (company_context.py,
+    templates/base.html, invoice_pdf_ee.py). If the middleware's probe
+    fails for a company that reached this screen, the generated return
+    must not be silently tagged 'EE' against what may be real AU ledger
+    data — this is the client-supplied value the engine persists verbatim
+    (see saebooks-m1's generate_tax_return)."""
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_returns(\?.*)?$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+    generate_route = respx_mock.post(f"{_API_BASE}/api/v1/tax_returns/generate").mock(
+        return_value=Response(201, json={
+            "id": _KMD_ID, "jurisdiction": "AU", "period_id": _PERIOD_ID,
+            "return_type": "KMD", "status": "ready", "figures": {},
+        })
+    )
+
+    async with _client() as client:
+        resp = await client.post(
+            "/tax-returns/generate",
+            data={"return_type": "KMD", "period_id": _PERIOD_ID},
+            follow_redirects=False,
+        )
+
+    assert resp.status_code == 303
+    posted = _json.loads(generate_route.calls.last.request.content)
+    assert posted["jurisdiction"] == "AU"
+
+
+@pytest.mark.anyio
+@respx.mock
 async def test_tax_returns_generate_422_surfaced(respx_mock: respx.MockRouter) -> None:
     """The engine's 422 'no box definitions' detail is shown, not swallowed
     into a generic error — TSD isn't generatable via this action."""
@@ -426,6 +460,65 @@ async def test_tax_returns_nav_shown_for_ee(respx_mock: respx.MockRouter) -> Non
     assert resp.status_code == 200
     assert "Deklaratsioonid" in resp.text
     assert "BAS worksheet" not in resp.text
+
+
+# ---------------------------------------------------------------------------
+# 16. Route-level gate — AU company can't reach the screen directly
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_tax_returns_routes_404_for_au_company(respx_mock: respx.MockRouter) -> None:
+    """The nav link is hidden for AU (tests 11/12), but the routes
+    themselves had no server-side check — reachable by bookmark/
+    autocomplete/shared link/crawler even for a company we know is AU.
+    Every tax-returns route now 404s once jurisdiction resolves to 'AU',
+    matching the nav-hide instead of diverging from it."""
+    _mock_companies(respx_mock, _AU_COMPANY)
+    _mock_tax_codes(respx_mock, "AU")
+    # No /api/v1/tax_returns* mocks registered at all — if the gate didn't
+    # fire first, these calls would raise inside respx's strict mode and
+    # the assertions below would fail loudly rather than silently passing.
+
+    async with _client() as client:
+        list_resp = await client.get("/tax-returns")
+        detail_resp = await client.get(f"/tax-returns/{_KMD_ID}")
+        export_resp = await client.get(f"/tax-returns/{_KMD_ID}/export")
+        generate_resp = await client.post(
+            "/tax-returns/generate",
+            data={"return_type": "KMD", "period_id": _PERIOD_ID},
+        )
+        file_resp = await client.post(f"/tax-returns/{_KMD_ID}/file", data={})
+
+    assert list_resp.status_code == 404
+    assert detail_resp.status_code == 404
+    assert export_resp.status_code == 404
+    assert generate_resp.status_code == 404
+    assert file_resp.status_code == 404
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_tax_returns_list_still_reachable_when_jurisdiction_unresolved(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """The AU gate only fires on an explicitly-resolved 'AU' — an
+    unresolved (None) jurisdiction (e.g. the middleware's probe call
+    failed) fails open, same posture as the rest of this packet. This is
+    a regression guard: it pins that the new gate doesn't accidentally
+    lock everyone out when jurisdiction can't be determined."""
+    # No _mock_companies/_mock_tax_codes registered -> the middleware's own
+    # calls go unmocked, get swallowed by its try/except, and
+    # active_company_jurisdiction stays None (see company_context.py).
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_returns(\?.*)?$").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+
+    async with _client() as client:
+        resp = await client.get("/tax-returns")
+
+    assert resp.status_code == 200
 
 
 # ---------------------------------------------------------------------------

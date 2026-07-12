@@ -448,6 +448,46 @@ async def test_invoice_pdf_ee_company_uses_document_ee_template_with_vat_breakdo
 
 @pytest.mark.asyncio
 @respx.mock
+async def test_invoice_pdf_ee_company_with_stale_au_tax_codes_misresolves_to_au_template(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Known blind spot, pinned rather than left untested (critic round 2):
+    a real EE company whose tax_codes rows are all still legacy/stale-
+    tagged 'AU' (or simply empty) makes the middleware's tax_codes-based
+    jurisdiction probe return zero items for that company's own
+    jurisdiction. company_context.py's 'ambiguous' branch then defaults
+    request.state.active_company_jurisdiction to 'AU' (logging a
+    server-side warning) because CompanyOut doesn't expose
+    Company.jurisdiction directly and the engine (feat/m1-m15-global) has
+    no other endpoint that does either — there is no fix available on the
+    web-app side alone. The consequence: this EE company's invoice PDF
+    silently renders the AU 'document' template (English wording, no VAT
+    breakdown, no registrikood) as a 200 success, not an error. This test
+    exists so that behaviour is visible and intentional, not an untested
+    gap — if the engine ever exposes Company.jurisdiction on CompanyOut
+    and company_context.py is updated to use it, this test should start
+    failing and needs to be flipped to assert the EE template instead."""
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, None)  # no tax_codes rows tagged 'EE' -> ambiguous -> "AU"
+    _mock_render_context(respx_mock, currency="AUD")
+    compile_route = _mock_latex_compile(respx_mock)
+
+    async with _client() as client:
+        resp = await client.get(
+            f"/invoices/{_INV_ID}/pdf",
+            cookies={settings.session_cookie_name: _SESSION_COOKIE},
+            headers={"X-Company-Id": _EE_COMPANY["id"]},
+        )
+
+    assert resp.status_code == 200, resp.text
+    posted = _json.loads(compile_route.calls.last.request.content)
+    tex = posted["latex"]
+    assert "Arve" not in tex  # EE template NOT used, despite this being an EE company
+    assert "Käibemaksu jaotus määrade kaupa" not in tex
+
+
+@pytest.mark.asyncio
+@respx.mock
 async def test_invoice_pdf_ee_compile_error_maps_to_422(respx_mock: respx.MockRouter) -> None:
     _mock_companies(respx_mock, _EE_COMPANY)
     _mock_tax_codes(respx_mock, "EE")
