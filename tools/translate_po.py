@@ -71,6 +71,12 @@ PROTECTED: list[tuple[str, str]] = [
     ("registrikood", "NX3"),
     ("KMD", "NX4"),
     ("TSD", "NX5"),
+    # gettext %-format placeholders — MT mangles "%(brand)s" (spaces get
+    # inserted, "brand" gets partially translated) unless it's protected
+    # exactly like a statutory term. Add one entry per placeholder name
+    # used in a msgid; a plain word token round-trips through MT intact
+    # where the punctuation-heavy "%(name)s" does not.
+    ("%(brand)s", "NX6"),
 ]
 
 #: Locales sent to TartuNLP as MT targets.
