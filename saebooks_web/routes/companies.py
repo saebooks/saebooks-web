@@ -24,22 +24,21 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 _TOP_FIELDS = ("name", "legal_name", "trading_name", "abn")
 
-# EE onboarding (P3). registrikood = 8-digit Estonian business registry
-# code; kmv = Estonian VAT number, "EE" + 9 digits, optional.
+# EE onboarding (P3/Packet 2). registrikood = 8-digit Estonian business
+# registry code; kmv (this form's field name) = Estonian VAT number,
+# "EE" + 9 digits, optional -- sent to the engine as ``kmv_number``
+# (CompanyCreate's field name; see the engine's saebooks/api/v1/schemas.py).
 _REGISTRIKOOD_RE = re.compile(r"^\d{8}$")
 _KMV_RE = re.compile(r"^EE\d{9}$")
 
-# Prerequisite gap verified against the engine (saebooks/api/v1/schemas.py,
-# CompanyCreate): jurisdiction/registrikood/kmv/coa_template_key are not
-# accepted there today — registrikood/kmv have no Company column at all,
-# jurisdiction and coa_template_key exist as columns but aren't exposed on
-# CompanyCreate, and services/templates.py's "ee/default" applier is a
-# NotImplementedError stub ("M3"). Sent for real below (nothing is faked
-# client-side) so the wiring is ready the day the engine lands this, but
-# until then the engine's pydantic model silently drops these extra keys
-# (no ``extra="forbid"`` set) — so the flash set in ``companies_create``
-# below is the honest signal that replaces the silence, not an optional
-# nicety. Built with ``_()`` INSIDE the route (not as a module-level
+# Maps an engine 422 error-detail field name back to this form's field
+# name, for the one case where they differ.
+_ENGINE_FIELD_TO_FORM_FIELD = {"kmv_number": "kmv"}
+
+# Packet 2: the engine now accepts jurisdiction/registrikood/kmv_number/
+# coa_template_key on CompanyCreate and applies the ee/default chart on
+# create -- the P3 stopgap (fields captured but silently not persisted)
+# is gone. Built with ``_()`` INSIDE the route (not as a module-level
 # constant) — ``gettext`` resolves the active request's locale from a
 # contextvar at call time; freezing it at import time would defeat that
 # and always serve the process-start locale to every user.
@@ -152,8 +151,11 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
     # Jurisdiction axis (P3). Defaults AU so an unset/blank/unknown value
     # behaves exactly like the pre-P3 form — no jurisdiction key at all
     # goes into the payload, keeping the AU path's request body identical
-    # to before this packet.
-    jurisdiction = (form.get("jurisdiction", "AU") or "AU").strip().upper()
+    # to before this packet. Strip BEFORE the "or AU" fallback — a
+    # present-but-whitespace value (e.g. a stale re-rendered form) is
+    # truthy and would otherwise survive the fallback as "" (critic
+    # round 1, finding 7).
+    jurisdiction = ((form.get("jurisdiction", "AU") or "AU").strip().upper()) or "AU"
 
     payload: dict[str, object] = {}
     for field in _TOP_FIELDS:
@@ -170,7 +172,6 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
         registrikood = form.get("registrikood", "").strip()
         kmv_raw = form.get("kmv", "").strip().upper()
         base_currency = (form.get("base_currency", "").strip() or "EUR").upper()
-        coa_template_key = form.get("coa_template_key", "").strip() or "ee/default"
 
         errors: dict[str, str] = {}
         if not registrikood:
@@ -188,15 +189,14 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
                 status_code=422,
             )
 
-        # Sent for real — see the module-level note above on why these
-        # keys are included even though the engine does not accept them
-        # yet (verified against saebooks/api/v1/schemas.py::CompanyCreate).
         payload["jurisdiction"] = jurisdiction
         payload["registrikood"] = registrikood
         if kmv_raw:
-            payload["kmv"] = kmv_raw
+            payload["kmv_number"] = kmv_raw
         payload["base_currency"] = base_currency
-        payload["coa_template_key"] = coa_template_key
+        # Only template offered for EE today; forced server-side rather
+        # than trusted from the (single-option) form select.
+        payload["coa_template_key"] = "ee/default"
 
     async with api_client(request) as client:
         resp = await client.post("/api/v1/companies", json=payload)
@@ -206,16 +206,7 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.status_code == 201:
-        if jurisdiction == "EE":
-            request.session["flash"] = _(
-                "Company created. Estonian jurisdiction, registrikood and "
-                "KMV/VAT number were captured but could not be saved yet "
-                "— the engine does not accept these fields on company "
-                "creation. This is tracked separately; the values above "
-                "were not persisted."
-            )
-        else:
-            request.session["flash"] = "Company created."
+        request.session["flash"] = _("Company created.")
         return RedirectResponse(url="/companies", status_code=303)
 
     if resp.status_code == 404:
@@ -234,15 +225,32 @@ async def companies_create(request: Request) -> HTMLResponse | RedirectResponse:
     errors: dict[str, str] = {}
     if resp.status_code == 422:
         try:
-            detail = resp.json().get("detail", [])
-            if isinstance(detail, list):
-                for err in detail:
+            body = resp.json()
+            # The engine's RFC 7807 handler (saebooks/api/errors.py) fires
+            # whenever the caller's Accept header satisfies its _wants_json
+            # check -- true by default for httpx.AsyncClient (it sends
+            # "Accept: */*" unless overridden, which is exactly what
+            # api_client() uses). In that shape "detail" is always a fixed
+            # human string ("Request body or query parameters failed
+            # validation.") and the real per-field pydantic error list
+            # lives under "errors". Only a caller that suppresses Accept
+            # negotiation gets FastAPI's bare default handler, where the
+            # list lives under "detail" instead -- so prefer "errors" and
+            # fall back to "detail" only when it is itself a list.
+            field_errors = body.get("errors")
+            if not isinstance(field_errors, list):
+                fallback = body.get("detail", [])
+                field_errors = fallback if isinstance(fallback, list) else None
+            if field_errors is not None:
+                for err in field_errors:
                     loc = err.get("loc", [])
                     parts = [p for p in loc if p != "body"]
                     key = str(parts[0]) if parts else "__all__"
+                    key = _ENGINE_FIELD_TO_FORM_FIELD.get(key, key)
                     errors[key] = err.get("msg", "Invalid value")
-            elif isinstance(detail, str):
-                errors["__all__"] = detail
+            else:
+                detail = body.get("detail", f"Validation error (HTTP {resp.status_code})")
+                errors["__all__"] = detail if isinstance(detail, str) else str(detail)
         except Exception:
             errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
     else:
