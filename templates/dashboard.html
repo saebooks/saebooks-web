@@ -4,6 +4,14 @@
 
 {% block content %}
 
+{# Active company jurisdiction ("AU", "EE", ...) — see company_context.py.
+   The GST-registration-threshold widgets below ($75,000 / 21-day ATO
+   registration rule) are Australian-specific; a non-AU company gets none
+   of them. Falls back to "AU" when unresolved so existing AU behaviour
+   (including the "gst" ctx var, still computed server-side either way)
+   is unchanged. #}
+{% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}
+
 {# ─────────────────────────────────────────────────────────────────────────
    Hero — drafting masthead. Company / FY / status chips.
    ───────────────────────────────────────────────────────────────────────── #}
@@ -36,6 +44,7 @@
         <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
         <span data-customise-label>Customise</span>
       </button>
+      {% if jurisdiction == 'AU' %}
       {% if gst and gst.threshold_crossed %}
         <a href="#gst-tile" class="chip" style="border-color:var(--neg);color:var(--neg);">
           <span class="dot" style="background:var(--neg);"></span>
@@ -51,6 +60,7 @@
           <span class="dot" style="background:var(--pos);"></span>
           GST · under threshold
         </span>
+      {% endif %}
       {% endif %}
 
       {% if concentration_warning %}
@@ -117,6 +127,7 @@
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkCash" data-seed="{{ (cash.in_total + cash.out_total)|round|int }}" data-tint="var(--pos)"></canvas></div>
   </section>
+  {% if jurisdiction == 'AU' %}
   {# GST turnover tile — default HIDDEN. Under-$75k orgs belong on Cashbook;
      this only resurfaces if a user explicitly adds it via Customise. #}
   <section data-widget="kpi-gst" data-widget-title="GST turnover · YTD"
@@ -135,6 +146,7 @@
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkGst" data-seed="{{ (gst.ytd_turnover if gst else 0)|round|int }}" data-tint="var(--warm)"></canvas></div>
   </section>
+  {% endif %}
 </div>
 
 
@@ -328,6 +340,7 @@
   {# ─── RIGHT (1 col) ─────────────────────────────────────────────── #}
   <aside class="space-y-6">
 
+    {% if jurisdiction == 'AU' %}
     {# GST gauge — DEFAULT HIDDEN. Under-$75k orgs belong on Cashbook;
        this only resurfaces if a user explicitly adds it via Customise. #}
     <section id="gst-tile" data-widget="gst-tile" data-widget-title="GST turnover · YTD"
@@ -392,6 +405,7 @@
         {% endif %}
       </div>
     </section>
+    {% endif %}
 
     {# Recent activity #}
     <section data-widget="recent-activity" data-widget-title="Recent activity" class="card p-6">
@@ -443,12 +457,12 @@
    Detail strips — only render if there's something to say. Replaces the
    loud red/amber banners with prose under hairlines.
    ───────────────────────────────────────────────────────────────────────── #}
-{% if (gst and (gst.threshold_crossed or gst.threshold_approaching)) or concentration_warning or psi_status == "unsure" %}
+{% if (jurisdiction == 'AU' and gst and (gst.threshold_crossed or gst.threshold_approaching)) or concentration_warning or psi_status == "unsure" %}
 <section data-widget="compliance" data-widget-title="Compliance notes" class="card-hero p-6">
   <p class="nav-section-label mb-4">Compliance notes</p>
   <div class="space-y-4 text-sm">
 
-    {% if gst and gst.threshold_crossed %}
+    {% if jurisdiction == 'AU' and gst and gst.threshold_crossed %}
     <div class="flex gap-3">
       <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full" style="background:var(--neg);"></span>
       <div>
@@ -461,7 +475,7 @@
         </p>
       </div>
     </div>
-    {% elif gst and gst.threshold_approaching %}
+    {% elif jurisdiction == 'AU' and gst and gst.threshold_approaching %}
     <div class="flex gap-3">
       <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full" style="background:var(--warm);"></span>
       <div>

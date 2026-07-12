@@ -16,6 +16,22 @@ Writes (request.state only — does not mutate session here):
   - request.state.companies — list of {id, name} for the dropdown
   - request.state.active_company_id — uuid string or None
   - request.state.active_company_name — display name or None
+  - request.state.active_company_jurisdiction — jurisdiction code
+    ("AU", "EE", ...) or None if it couldn't be resolved
+
+Jurisdiction resolution note: ``CompanyOut`` does not expose
+``Company.jurisdiction`` (verified against the engine's
+saebooks/api/v1/schemas.py — the field exists on the model but was
+never added to the API schema), so it cannot be read directly off the
+``/api/v1/companies`` response fetched above. Instead this proxies off
+``/api/v1/tax_codes``, whose list endpoint (as of the engine's Packet 4a
+change) defaults its jurisdiction filter to the requesting company's own
+``Company.jurisdiction``. A one-row fetch with no explicit jurisdiction
+param therefore returns codes stamped with the active company's real
+jurisdiction. This is a workaround for a genuine gap in the engine's
+public schema — the engine should expose ``jurisdiction`` directly on
+CompanyOut so callers don't need to infer it from a side effect of
+another endpoint.
 """
 from __future__ import annotations
 
@@ -34,6 +50,7 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
         request.state.companies = []
         request.state.active_company_id = None
         request.state.active_company_name = None
+        request.state.active_company_jurisdiction = None
         try:
             token = request.session.get("api_token") if "session" in request.scope else None
         except Exception:
@@ -80,6 +97,75 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                     if active is not None:
                         request.state.active_company_id = active["id"]
                         request.state.active_company_name = active["name"]
+                        # Resolve jurisdiction — see module docstring: CompanyOut
+                        # doesn't expose Company.jurisdiction, so proxy off the
+                        # default (no explicit ``jurisdiction`` param) response
+                        # of /api/v1/tax_codes, which the engine now resolves
+                        # per-company. One extra low-cost call, same pattern as
+                        # the /api/v1/companies call above.
+                        try:
+                            juris_headers = dict(headers)
+                            juris_headers["X-Company-Id"] = active["id"]
+                            async with httpx.AsyncClient(
+                                base_url=settings.api_url,
+                                headers=juris_headers,
+                                timeout=5.0,
+                            ) as juris_client:
+                                jr = await juris_client.get(
+                                    "/api/v1/tax_codes",
+                                    # tax_codes takes limit/offset (not
+                                    # companies' page/page_size) — see
+                                    # saebooks/api/v1/tax_codes.py.
+                                    params={"limit": 1},
+                                )
+                            if jr.status_code == 200:
+                                juris_items = jr.json().get("items") or []
+                                if juris_items:
+                                    request.state.active_company_jurisdiction = (
+                                        juris_items[0].get("jurisdiction") or "AU"
+                                    )
+                                else:
+                                    # Ambiguous, NOT an unset-jurisdiction case:
+                                    # Company.jurisdiction is NOT NULL (default
+                                    # 'AU') at the model level, so the engine's
+                                    # own ``or "AU"`` in tax_codes.py's default
+                                    # filter only guards a company row that
+                                    # can't be found at all — it never fires
+                                    # for a real company. An empty ``items``
+                                    # here just means zero TaxCode rows are
+                                    # currently tagged with this company's own
+                                    # (real, already-resolved) jurisdiction —
+                                    # e.g. a brand-new company mid-seed, or one
+                                    # whose only rows are stale/legacy-tagged.
+                                    # CompanyOut still doesn't expose
+                                    # jurisdiction directly (see module
+                                    # docstring), so we genuinely cannot tell
+                                    # AU-by-default from misresolved-EE here.
+                                    # "AU" is kept as the last-resort default
+                                    # (least behavioural change; matches the
+                                    # web app's historical AU-first default),
+                                    # but this is a known blind spot — flagged
+                                    # loudly rather than silently, so it's
+                                    # visible in logs instead of masquerading
+                                    # as a confirmed resolution. Real fix:
+                                    # engine should expose Company.jurisdiction
+                                    # on CompanyOut so this proxy isn't needed.
+                                    logger.warning(
+                                        "CompanyContextMiddleware: company %s has "
+                                        "no tax_codes rows tagged with its own "
+                                        "jurisdiction — defaulting to 'AU', but "
+                                        "this cannot be distinguished from a "
+                                        "real EE (or other non-AU) company with "
+                                        "no matching tax codes yet. See "
+                                        "company_context.py module docstring.",
+                                        active["id"],
+                                    )
+                                    request.state.active_company_jurisdiction = "AU"
+                        except Exception as juris_exc:
+                            logger.debug(
+                                "CompanyContextMiddleware: jurisdiction lookup skipped (%s)",
+                                juris_exc,
+                            )
             except Exception as exc:
                 logger.debug("CompanyContextMiddleware: skipped (%s)", exc)
         return await call_next(request)

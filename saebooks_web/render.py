@@ -114,12 +114,18 @@ def latex_escape(value: Any) -> str:
 # render.py lives in saebooks_web/; templates/latex/ is at the repo root.
 _TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "latex"
 
-# The six known template names.  Membership doubles as the anti-path-traversal
+# The known template names.  Membership doubles as the anti-path-traversal
 # gate: only these bare names reach the loader.
+#
+# "document_ee" (Packet 3, feat/ee-app-surface) is the Estonian invoice
+# variant of "document" — selected by saebooks_web.invoice_pdf_ee based on
+# the active company's jurisdiction, NOT by the engine (which still only
+# ever asks for "document"; see invoice_pdf_ee.py's module docstring).
 TEMPLATE_NAMES: frozenset[str] = frozenset(
     {
         "_preamble",
         "document",
+        "document_ee",
         "quote",
         "purchase_order",
         "contact_statement",

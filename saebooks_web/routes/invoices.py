@@ -20,13 +20,18 @@ from datetime import date as _date
 from datetime import timedelta as _td
 from pathlib import Path
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines_shared
+from saebooks_web.invoice_pdf_ee import (
+    build_ee_invoice_ctx,
+    build_vat_rate_breakdown,
+    select_invoice_template,
+)
 
 router = APIRouter()
 
@@ -1241,6 +1246,176 @@ async def invoice_detail(
             "vault_enabled": vault_enabled,
         },
     )
+
+# ---------------------------------------------------------------------------
+# PDF — Packet 3 (feat/ee-app-surface). Unlike quotes/credit-notes (thin
+# proxies to the engine's own /pdf route, which itself POSTs to this app's
+# /internal/render/document), the engine's invoice ctx builder has no
+# jurisdiction awareness at all today (read against saebooks-m1 branch
+# feat/m1-m15-global: template is hardcoded "document" in
+# saebooks/api/v1/invoices.py). Template selection is a presentation
+# decision — this app owns presentation (see render.py's module docstring)
+# — so this route fetches the engine's *facts* (render-context, and for EE
+# companies the tax codes needed for a per-rate VAT breakdown), picks the
+# template here, and renders in-process via saebooks_web.render. No engine
+# change required or made.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/invoices/{invoice_id}/pdf", response_model=None)
+async def invoice_pdf(request: Request, invoice_id: str) -> Response | RedirectResponse:
+    """Render an invoice PDF — AU ``document`` template by default, the EE
+    ``document_ee`` variant for EE companies (see invoice_pdf_ee.py)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        ctx_resp = await client.get(f"/api/v1/invoices/{invoice_id}/render-context")
+    if ctx_resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if ctx_resp.status_code == 404:
+        raise HTTPException(404, detail="Invoice not found")
+    if not ctx_resp.is_success:
+        raise HTTPException(ctx_resp.status_code, detail=f"Upstream returned {ctx_resp.status_code}")
+
+    body = ctx_resp.json()
+    ctx: dict = dict(body.get("ctx") or {})
+    ctx.setdefault("kind", body.get("kind") or "Tax Invoice")
+
+    jurisdiction = getattr(request.state, "active_company_jurisdiction", None) or "AU"
+    template_name = select_invoice_template(jurisdiction)
+
+    if template_name == "document_ee":
+        async with api_client(request) as client:
+            inv_resp = await client.get(f"/api/v1/invoices/{invoice_id}")
+            tax_resp = await client.get("/api/v1/tax_codes", params={"limit": 1000})
+        # Both calls feed the mandatory VAT-breakdown table (Käibemaksu
+        # jaotus määrade kaupa) — a failure here must not fall through to
+        # an empty breakdown and a silently-incomplete 200 PDF. Surface it
+        # the same way the render-context fetch above does.
+        if not inv_resp.is_success:
+            raise HTTPException(
+                inv_resp.status_code,
+                detail=f"Could not load invoice lines for VAT breakdown (upstream {inv_resp.status_code})",
+            )
+        if not tax_resp.is_success:
+            raise HTTPException(
+                tax_resp.status_code,
+                detail=f"Could not load tax codes for VAT breakdown (upstream {tax_resp.status_code})",
+            )
+        lines = inv_resp.json().get("lines") or []
+        tax_codes_by_id = {
+            str(item["id"]): item for item in (tax_resp.json().get("items") or [])
+        }
+        # Critic round 3: list_tax_codes excludes archived rows (engine's
+        # TaxCode.archived_at.is_(None) filter — saebooks/api/v1/tax_codes.py
+        # has no include-archived param). A line posted against a code
+        # since archived would otherwise fall into build_vat_rate_breakdown's
+        # "unclassified 0%" bucket below, silently misreporting its real
+        # rate on a statutory VAT document. GET /api/v1/tax_codes/{id} has
+        # no archived filter (plain id lookup), so resolve any line's
+        # missing tax code that way instead of widening the engine's list
+        # filter (engine repo out of scope for this packet).
+        missing_ids = {
+            str(line["tax_code_id"])
+            for line in lines
+            if line.get("tax_code_id") and str(line["tax_code_id"]) not in tax_codes_by_id
+        }
+        if missing_ids:
+            async with api_client(request) as client:
+                for tax_code_id in missing_ids:
+                    tc_resp = await client.get(f"/api/v1/tax_codes/{tax_code_id}")
+                    if tc_resp.is_success:
+                        item = tc_resp.json()
+                        tax_codes_by_id[str(item["id"])] = item
+                    elif tc_resp.status_code != 404:
+                        # Critic round 4: a genuine 404 means the code truly
+                        # doesn't exist for this tenant (get_tax_code's own
+                        # not-found case) — falling through to the
+                        # unclassified bucket below is the correct, already-
+                        # covered behaviour. Anything else (transient 5xx,
+                        # timeout-mapped 502/503, RLS/permission edge case)
+                        # must not be swallowed the same way — that's the
+                        # silently-incomplete-200 outcome inv_resp/tax_resp
+                        # above are already careful to avoid.
+                        raise HTTPException(
+                            tc_resp.status_code,
+                            detail=(
+                                "Could not resolve tax code for VAT breakdown "
+                                f"(upstream {tc_resp.status_code})"
+                            ),
+                        )
+        vat_breakdown = build_vat_rate_breakdown(lines, tax_codes_by_id)
+        ctx = build_ee_invoice_ctx(
+            ctx,
+            vat_breakdown=vat_breakdown,
+            # Registrikood convention — see invoice_pdf_ee.py module
+            # docstring: no dedicated Company column, same fallback the
+            # engine's own einvoice generator uses.
+            seller_registration_number=(ctx.get("company") or {}).get("abn"),
+            # Contact.registration_number exists on the engine model but
+            # ContactOut never exposes it — genuine engine API gap, not
+            # fabricated here. Revisit once the engine adds it.
+            buyer_registration_number=None,
+        )
+
+    import jinja2
+
+    from saebooks_web.render import LatexCompileError, LatexServiceError, render_latex
+
+    try:
+        pdf_bytes = await render_latex(template_name, ctx)
+    except jinja2.TemplateNotFound as exc:
+        # Critic round 4: render_latex() resolves the template via
+        # env.get_template() before ever reaching latex-api — a deploy-time
+        # drift where document_ee.tex.j2 is absent from the image would
+        # otherwise propagate unhandled past this route's own
+        # LatexCompileError/LatexServiceError sanitisation, hitting
+        # Starlette's default 500 handler instead of the deliberate
+        # generic-message pattern used for the other render failure
+        # classes below.
+        import logging as _logging
+
+        _logging.getLogger(__name__).error(
+            "invoice %s pdf render: template %r missing from deployed image: %s",
+            invoice_id,
+            template_name,
+            exc,
+        )
+        raise HTTPException(500, detail="invoice PDF template unavailable") from exc
+    except LatexCompileError as exc:
+        # Critic round 3: the compile log tail can contain internal
+        # container file paths / template internals. This route is
+        # reached directly by an authenticated browser, unlike
+        # render.py's internal/render endpoint (server-to-server, bearer
+        # token) which returns the same log_tail to a trusted caller —
+        # log the detail server-side, return only a generic message here.
+        import logging as _logging
+
+        _logging.getLogger(__name__).warning(
+            "invoice %s pdf render: latex compile failed: %s", invoice_id, exc.log_tail
+        )
+        raise HTTPException(422, detail="latex compile failed") from exc
+    except LatexServiceError as exc:
+        # Same reasoning — exc's message embeds the internal latex-api URL
+        # (e.g. "http://latex-api:8000") and the raw httpx exception text;
+        # matches render.py's own internal/render generic-message pattern
+        # for this exception class instead of diverging from it.
+        import logging as _logging
+
+        _logging.getLogger(__name__).warning(
+            "invoice %s pdf render: latex service unavailable: %s", invoice_id, exc
+        )
+        raise HTTPException(503, detail="latex service unavailable") from exc
+
+    filename = f"invoice-{ctx.get('number') or invoice_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
+
 
 # ---------------------------------------------------------------------------
 # Hard-delete: developer-tier only. Client-side gated via the kebab,

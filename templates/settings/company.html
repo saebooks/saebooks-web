@@ -111,6 +111,15 @@
       >
     </div>
 
+    {# Active company jurisdiction ("AU", "EE", ...) — see company_context.py.
+       ABN and the GST-registration fieldset are Australian-specific: ABN is
+       the Australian Business Number, and the $75k GST-registration
+       threshold/backdate workflow below only applies under AU GST law.
+       Falls back to "AU" when unresolved so existing AU behaviour is
+       unchanged. #}
+    {% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}
+
+    {% if jurisdiction == 'AU' %}
     {# ── ABN ── #}
     <div class="mb-5">
       <label for="abn" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ABN</label>
@@ -177,6 +186,7 @@
         {% endif %}
       </div>
     </fieldset>
+    {% endif %}{# jurisdiction == 'AU' — ABN + GST registration fieldset #}
 
 
     {# ── PSI (Personal Services Income) classification ── #}
