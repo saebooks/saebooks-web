@@ -155,7 +155,7 @@
             <a href="/purchase_orders/{{ po.id }}" class="truncate" style="max-width:65%;">
               <span class="font-mono sae">{{ po.number or po.id[:8] }}</span>
             </a>
-            <span class="num-display ink">{{ money(po.total|float) }}</span>
+            <span class="num-display ink">{{ money(po.total|float, decimals=0) }}</span>
           </li>
           {% endfor %}
         </ul>

@@ -63,23 +63,23 @@
     <p class="nav-section-label mb-2">Turnover · YTD</p>
     <p class="num-display text-2xl"
        style="color: {% if threshold_crossed %}var(--neg){% elif threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
-      {{ money(ytd_turnover|float) }}
+      {{ money(ytd_turnover|float, decimals=0) }}
     </p>
-    <p class="mt-1 text-xs ink-3">of {{ money(threshold|float) }} · {{ num(pct, 0) }}%</p>
+    <p class="mt-1 text-xs ink-3">of {{ money(threshold|float, decimals=0) }} · {{ num(pct, 0) }}%</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">GST collected · {{ q_label }}</p>
     <p class="num-display text-2xl" style="color:var(--pos);">
       {{ money(gst_out|float) }}
     </p>
-    <p class="mt-1 text-xs ink-3">on {{ money(sales_excl|float) }} sales</p>
+    <p class="mt-1 text-xs ink-3">on {{ money(sales_excl|float, decimals=0) }} sales</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">GST paid · {{ q_label }}</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
       {{ money(gst_in|float) }}
     </p>
-    <p class="mt-1 text-xs ink-3">on {{ money(purchases_excl|float) }} purchases</p>
+    <p class="mt-1 text-xs ink-3">on {{ money(purchases_excl|float, decimals=0) }} purchases</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">Net GST · {{ q_label }}</p>
@@ -106,8 +106,8 @@
     </div>
   </div>
   <div class="flex items-center justify-between mt-2 text-xs ink-3 font-mono">
-    <span>{{ money(0) }}</span>
-    <span>{{ money(threshold|float) }}</span>
+    <span>{{ money(0, decimals=0) }}</span>
+    <span>{{ money(threshold|float, decimals=0) }}</span>
   </div>
 </section>
 

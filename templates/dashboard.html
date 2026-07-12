@@ -89,7 +89,7 @@
   <section data-widget="kpi-ar" data-widget-title="AR · outstanding" data-widget-href="/invoices" class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">AR · outstanding</p>
     <p class="num-display text-2xl sae">
-      {{ money(ar.paid_total|float) }}
+      {{ money(ar.paid_total|float, decimals=0) }}
       {% if ar.delta_pct is defined and ar.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ar.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ar.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(ar.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
@@ -103,7 +103,7 @@
   <section data-widget="kpi-ap" data-widget-title="AP · outstanding" data-widget-href="/bills" class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">AP · outstanding</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
-      {{ money(ap.paid_total|float) }}
+      {{ money(ap.paid_total|float, decimals=0) }}
       {% if ap.delta_pct is defined and ap.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ap.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ap.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(ap.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
@@ -117,13 +117,13 @@
   <section data-widget="kpi-cash" data-widget-title="Cash · this month" data-widget-href="/payments" class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">Cash · this month</p>
     <p class="num-display text-2xl" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
-      {% if cash.net < 0 %}−{% endif %}{{ money(cash.net|abs|float) }}
+      {% if cash.net < 0 %}−{% endif %}{{ money(cash.net|abs|float, decimals=0) }}
       {% if cash.delta_pct is defined and cash.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if cash.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if cash.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(cash.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
-      <span class="pos">▲ {{ money(cash.in_total|float) }}</span>
+      <span class="pos">▲ {{ money(cash.in_total|float, decimals=0) }}</span>
       <span class="ink-4">·</span>
-      <span class="neg">▼ {{ money(cash.out_total|float) }}</span>
+      <span class="neg">▼ {{ money(cash.out_total|float, decimals=0) }}</span>
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkCash" data-seed="{{ (cash.in_total + cash.out_total)|round|int }}" data-tint="var(--pos)"></canvas></div>
   </section>
@@ -137,7 +137,7 @@
     <p class="nav-section-label mb-2">GST turnover · YTD</p>
     <p class="num-display text-2xl"
        style="color: {% if gst and gst.threshold_crossed %}var(--neg){% elif gst and gst.threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
-      {{ money((gst.ytd_turnover if gst else 0)|float) }}
+      {{ money((gst.ytd_turnover if gst else 0)|float, decimals=0) }}
       {% if gst.delta_pct is defined and gst.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if gst.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if gst.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(gst.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
@@ -567,7 +567,7 @@
           <a href="/contacts/{{ v.contact_id }}" class="ink-1 hover:underline">{{ v.name }}</a>
         </td>
         <td class="py-2 text-right ink-3 num">{{ v.count }}</td>
-        <td class="py-2 text-right num-display">{{ money(v.total|float) }}</td>
+        <td class="py-2 text-right num-display">{{ money(v.total|float, decimals=0) }}</td>
       </tr>
       {% endfor %}
     </tbody>

@@ -44,7 +44,7 @@
           <p class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ s.label }}</p>
         </div>
         <p class="num-display text-xl" style="color: {{ _tone_color(s.tone) }};">
-          {{ money(s.total|float) }}
+          {{ money(s.total|float, decimals=0) }}
         </p>
         {% if s.count is not none %}
         <p class="text-[11px] ink-3 mt-1 font-mono">
@@ -87,13 +87,13 @@
         <div>
           <p class="text-[10px] font-mono uppercase ink-3">Overdue</p>
           <p class="num-display text-lg" style="color: var(--neg);">
-            {{ money(pane.overdue_total|float) }}
+            {{ money(pane.overdue_total|float, decimals=0) }}
           </p>
         </div>
         <div>
           <p class="text-[10px] font-mono uppercase ink-3">Not due yet</p>
           <p class="num-display text-lg ink">
-            {{ money(pane.not_due_total|float) }}
+            {{ money(pane.not_due_total|float, decimals=0) }}
           </p>
         </div>
       </div>
@@ -114,12 +114,12 @@
         <div>
           <p class="text-[10px] font-mono uppercase ink-3">Deposited</p>
           <p class="num-display text-lg" style="color: var(--pos);">
-            {{ money(pane.paid_total|float) }}
+            {{ money(pane.paid_total|float, decimals=0) }}
           </p>
         </div>
         <div>
           <p class="text-[10px] font-mono uppercase ink-3">Not deposited</p>
-          <p class="num-display text-lg ink-3">{{ money(0) }}</p>
+          <p class="num-display text-lg ink-3">{{ money(0, decimals=0) }}</p>
         </div>
       </div>
       <div class="mt-3 flex h-2 w-full overflow-hidden rounded-full"

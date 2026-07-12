@@ -113,6 +113,38 @@ async def test_au_dashboard_cash_tile_negative_uses_existing_minus_convention(
 
 @pytest.mark.anyio
 @respx.mock
+async def test_au_dashboard_kpi_ar_tile_renders_whole_dollars(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Fixer round 1 regression: the top "AR · outstanding" KPI strip tile
+    (`ar.paid_total`, the widest-blast-radius whole-dollar site the P4 sweep
+    broke) must render rounded whole dollars — "$1,235" — not the currency's
+    natural 2dp, matching the pre-8ff3a95 `${{ "{:,.0f}".format(x) }}`.
+    """
+    open_invoices = [
+        _inv(id_="o001", number="INV-O001", status="POSTED", total="1234.56"),
+    ]
+    _register_mocks(respx_mock, open_invoices=open_invoices)
+    _mock_companies(respx_mock, _AU_COMPANY)
+    _mock_tax_codes(respx_mock, jurisdiction="AU")
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    # The KPI strip tile (top of page) renders whole dollars; the expanded
+    # detail panel further down the same page still shows the 2dp amount
+    # (that call site was never `.0f` — see the P4 report), so this only
+    # asserts the whole-dollar string is present, not that 2dp is absent.
+    assert "$1,235" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
 async def test_ee_dashboard_renders_euro_comma_decimal_format(
     respx_mock: respx.MockRouter,
 ) -> None:
