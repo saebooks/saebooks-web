@@ -209,9 +209,9 @@
           <td class="px-4 py-3 ink-3">{{ line.line_no }}</td>
           <td class="px-4 py-3 ink-1">{{ line.description }}</td>
           <td class="px-4 py-3 ink-3 font-mono text-xs">{{ line.account_id }}</td>
-          <td class="px-4 py-3 ink-1 text-right tabular-nums">{{ "%.2f"|format(line.quantity | float) }}</td>
-          <td class="px-4 py-3 ink-1 text-right tabular-nums">{{ "%.2f"|format(line.unit_price | float) }}</td>
-          <td class="px-4 py-3 ink-2 text-right tabular-nums">{{ "%.2f"|format(line.discount_pct | float) }}</td>
+          <td class="px-4 py-3 ink-1 text-right tabular-nums">{{ num(line.quantity | float, 2) }}</td>
+          <td class="px-4 py-3 ink-1 text-right tabular-nums">{{ num(line.unit_price | float, 2) }}</td>
+          <td class="px-4 py-3 ink-2 text-right tabular-nums">{{ num(line.discount_pct | float, 2) }}</td>
         </tr>
         {% endfor %}
       </tbody>

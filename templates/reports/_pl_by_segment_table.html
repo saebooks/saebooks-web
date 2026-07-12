@@ -30,9 +30,9 @@
     <div class="px-6 py-3 hairline-b flex items-center justify-between" style="background:var(--sae-tint);">
       <p class="nav-section-label sae">{{ seg.get("segment_label", "Segment") }}</p>
       {% if net_profit >= 0 %}
-      <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit: {{ "%.2f"|format(net_profit) }}</span>
+      <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit: {{ num(net_profit, 2) }}</span>
       {% else %}
-      <span class="text-sm font-semibold" style="color:var(--neg);">Net Profit: {{ "%.2f"|format(net_profit) }}</span>
+      <span class="text-sm font-semibold" style="color:var(--neg);">Net Profit: {{ num(net_profit, 2) }}</span>
       {% endif %}
     </div>
 
@@ -48,14 +48,14 @@
           <tr>
             <td class="num ink-3 w-24">{{ line.get("code", "") }}</td>
             <td class="ink-1">{{ line.get("name", line.get("account_name", "")) }}</td>
-            <td class="text-right num ink-2 w-32">{{ "%.2f"|format(line.get("amount", 0) | float) }}</td>
+            <td class="text-right num ink-2 w-32">{{ num(line.get("amount", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
         </tbody>
         <tfoot>
           <tr>
             <td colspan="2" class="font-semibold ink-1">Total {{ section.get("account_type", "") }}</td>
-            <td class="text-right num-display font-semibold ink-1 w-32">{{ "%.2f"|format(section.get("total", 0) | float) }}</td>
+            <td class="text-right num-display font-semibold ink-1 w-32">{{ num(section.get("total", 0) | float, 2) }}</td>
           </tr>
         </tfoot>
       </table>
@@ -66,12 +66,12 @@
     {% if net_profit >= 0 %}
     <div class="px-6 py-3 hairline-t flex items-center justify-between" style="background:rgba(62,122,78,0.04);">
       <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit — {{ seg.get("segment_label", "") }}</span>
-      <span class="font-display text-lg num-display" style="color:var(--pos);">{{ "%.2f"|format(net_profit) }}</span>
+      <span class="font-display text-lg num-display" style="color:var(--pos);">{{ num(net_profit, 2) }}</span>
     </div>
     {% else %}
     <div class="px-6 py-3 hairline-t flex items-center justify-between" style="background:rgba(161,67,51,0.04);">
       <span class="text-sm font-semibold" style="color:var(--neg);">Net Profit — {{ seg.get("segment_label", "") }}</span>
-      <span class="font-display text-lg num-display" style="color:var(--neg);">{{ "%.2f"|format(net_profit) }}</span>
+      <span class="font-display text-lg num-display" style="color:var(--neg);">{{ num(net_profit, 2) }}</span>
     </div>
     {% endif %}
 

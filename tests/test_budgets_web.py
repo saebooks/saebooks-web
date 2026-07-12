@@ -82,7 +82,7 @@ async def test_budgets_list_renders(respx_mock: respx.MockRouter) -> None:
     assert resp.status_code == 200
     assert "<html" in resp.text
     assert "2026" in resp.text
-    assert "15000" in resp.text
+    assert "15,000.00" in resp.text
 
 
 @pytest.mark.anyio
@@ -127,5 +127,5 @@ async def test_budgets_detail_renders(respx_mock: respx.MockRouter) -> None:
     assert resp.status_code == 200
     assert "2026" in resp.text
     assert "June" in resp.text
-    assert "15000" in resp.text
+    assert "15,000.00" in resp.text
     assert _ACCOUNT_ID in resp.text

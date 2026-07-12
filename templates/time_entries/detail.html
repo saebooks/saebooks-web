@@ -15,7 +15,7 @@
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="font-display text-3xl ink-1">
-      <span class="num-display">{{ "%.2f"|format(entry.hours|float) }}h</span>
+      <span class="num-display">{{ num(entry.hours|float, 2) }}h</span>
       on {{ entry.work_date }}
     </h1>
     <p class="text-base ink-3 mt-1">
@@ -54,7 +54,7 @@
         </div>
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">Hours</dt>
-          <dd class="col-span-2 num-display">{{ "%.2f"|format(entry.hours|float) }}</dd>
+          <dd class="col-span-2 num-display">{{ num(entry.hours|float, 2) }}</dd>
         </div>
         {% if entry.start_time or entry.end_time %}
         <div class="grid grid-cols-3 gap-2">
@@ -68,8 +68,8 @@
           <dt class="ink-3">Billable</dt>
           <dd class="col-span-2">
             {% if entry.billable %}Yes
-              {% if entry.rate %}@ ${{ "%.2f"|format(entry.rate|float) }}/h
-                · <span class="num-display">${{ "%.2f"|format((entry.rate|float) * (entry.hours|float)) }}</span>
+              {% if entry.rate %}@ {{ money(entry.rate|float) }}/h
+                · <span class="num-display">{{ money((entry.rate|float) * (entry.hours|float)) }}</span>
               {% endif %}
             {% else %}No{% endif %}
           </dd>

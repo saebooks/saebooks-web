@@ -43,8 +43,8 @@
           <tr>
             <td class="ink-1">{{ line.account_name }}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
-            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
-            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -57,10 +57,10 @@
         <tr>
           <td colspan="2" class="font-semibold" style="color:var(--pos);">Total Income</td>
           <td class="text-right num-display font-semibold" style="color:var(--pos);">
-            {{ "%.2f"|format(comp_pl.income.total_income_current) }}
+            {{ num(comp_pl.income.total_income_current, 2) }}
           </td>
           <td class="text-right num ink-3 font-semibold">
-            {{ "%.2f"|format(comp_pl.income.total_income_prior) }}
+            {{ num(comp_pl.income.total_income_prior, 2) }}
           </td>
         </tr>
       </tfoot>
@@ -88,8 +88,8 @@
           <tr>
             <td class="ink-1">{{ line.account_name }}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
-            <td class="text-right num ink-1">{% if line.current_amount %}{{ "%.2f"|format(line.current_amount) }}{% else %}—{% endif %}</td>
-            <td class="text-right num ink-3">{% if line.prior_amount %}{{ "%.2f"|format(line.prior_amount) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
+            <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -102,10 +102,10 @@
         <tr>
           <td colspan="2" class="font-semibold" style="color:var(--neg);">Total Expenses</td>
           <td class="text-right num-display font-semibold" style="color:var(--neg);">
-            {{ "%.2f"|format(comp_pl.expenses.total_expenses_current) }}
+            {{ num(comp_pl.expenses.total_expenses_current, 2) }}
           </td>
           <td class="text-right num ink-3 font-semibold">
-            {{ "%.2f"|format(comp_pl.expenses.total_expenses_prior) }}
+            {{ num(comp_pl.expenses.total_expenses_prior, 2) }}
           </td>
         </tr>
       </tfoot>
@@ -119,16 +119,16 @@
   <div class="card p-5 flex items-center justify-between gap-6" style="border-color:var(--pos);background:rgba(62,122,78,0.04);">
     <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit</span>
     <div class="flex items-center gap-8">
-      <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ "%.2f"|format(net_cur) }}</span>
-      <span class="num ink-3 text-sm">Prior: {{ "%.2f"|format(net_pri) }}</span>
+      <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ num(net_cur, 2) }}</span>
+      <span class="num ink-3 text-sm">Prior: {{ num(net_pri, 2) }}</span>
     </div>
   </div>
   {% else %}
   <div class="card p-5 flex items-center justify-between gap-6" style="border-color:var(--neg);background:rgba(161,67,51,0.04);">
     <span class="text-sm font-semibold" style="color:var(--neg);">Net Loss</span>
     <div class="flex items-center gap-8">
-      <span class="font-display text-2xl num-display" style="color:var(--neg);">{{ "%.2f"|format(net_cur) }}</span>
-      <span class="num ink-3 text-sm">Prior: {{ "%.2f"|format(net_pri) }}</span>
+      <span class="font-display text-2xl num-display" style="color:var(--neg);">{{ num(net_cur, 2) }}</span>
+      <span class="num ink-3 text-sm">Prior: {{ num(net_pri, 2) }}</span>
     </div>
   </div>
   {% endif %}
@@ -165,7 +165,7 @@
             <td class="ink-1">{{ line.get("account_name", "—") }}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">Income</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(line.get("amount", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
           {% for line in income.get("OTHER_INCOME", []) %}
@@ -173,7 +173,7 @@
             <td class="ink-1">{{ line.get("account_name", "—") }}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">Other Income</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(line.get("amount", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -186,7 +186,7 @@
         <tr>
           <td colspan="3" class="font-semibold" style="color:var(--pos);">Total Income</td>
           <td class="text-right num-display font-semibold" style="color:var(--pos);">
-            {{ "%.2f"|format(income.get("total_income", 0) | float) }}
+            {{ num(income.get("total_income", 0) | float, 2) }}
           </td>
         </tr>
       </tfoot>
@@ -215,7 +215,7 @@
             <td class="ink-1">{{ line.get("account_name", "—") }}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">Expense</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(line.get("amount", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
           {% for line in expenses.get("COST_OF_SALES", []) %}
@@ -223,7 +223,7 @@
             <td class="ink-1">{{ line.get("account_name", "—") }}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">Cost of Sales</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(line.get("amount", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
           {% for line in expenses.get("OTHER_EXPENSE", []) %}
@@ -231,7 +231,7 @@
             <td class="ink-1">{{ line.get("account_name", "—") }}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">Other Expense</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(line.get("amount", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
           </tr>
           {% endfor %}
         {% else %}
@@ -244,7 +244,7 @@
         <tr>
           <td colspan="3" class="font-semibold" style="color:var(--neg);">Total Expenses</td>
           <td class="text-right num-display font-semibold" style="color:var(--neg);">
-            {{ "%.2f"|format(expenses.get("total_expenses", 0) | float) }}
+            {{ num(expenses.get("total_expenses", 0) | float, 2) }}
           </td>
         </tr>
       </tfoot>
@@ -255,12 +255,12 @@
   {% if net_profit >= 0 %}
   <div class="card p-5 flex items-center justify-between" style="border-color:var(--pos);background:rgba(62,122,78,0.04);">
     <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit</span>
-    <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ "%.2f"|format(net_profit) }}</span>
+    <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ num(net_profit, 2) }}</span>
   </div>
   {% else %}
   <div class="card p-5 flex items-center justify-between" style="border-color:var(--neg);background:rgba(161,67,51,0.04);">
     <span class="text-sm font-semibold" style="color:var(--neg);">Net Loss</span>
-    <span class="font-display text-2xl num-display" style="color:var(--neg);">{{ "%.2f"|format(net_profit) }}</span>
+    <span class="font-display text-2xl num-display" style="color:var(--neg);">{{ num(net_profit, 2) }}</span>
   </div>
   {% endif %}
 

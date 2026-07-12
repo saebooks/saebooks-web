@@ -312,12 +312,12 @@ async def test_pl_standalone_comparative_renders_prior_column(
     body = resp.text
 
     # Current-year amounts
-    assert "15000.00" in body, "Current income (15000) not found"
-    assert "11000.00" in body, "Current net profit (11000) not found"
+    assert "15,000.00" in body, "Current income (15000) not found"
+    assert "11,000.00" in body, "Current net profit (11000) not found"
 
     # Prior-year amounts
-    assert "9000.00" in body, "Prior income (9000) not found"
-    assert "6200.00" in body, "Prior net profit (6200) not found"
+    assert "9,000.00" in body, "Prior income (9000) not found"
+    assert "6,200.00" in body, "Prior net profit (6200) not found"
 
     # Prior column label
     assert "prior" in body.lower() or "Prior" in body, "No prior-year label in comparative output"
@@ -392,7 +392,7 @@ async def test_pl_standalone_no_comparative_single_column(
     )
     body = resp.text
     # Current amount present
-    assert "15000.00" in body
+    assert "15,000.00" in body
 
     # Prior amounts must NOT appear
     assert "9000.00" not in body, "Prior income must not appear when comparative=false"
@@ -436,8 +436,8 @@ async def test_pl_standalone_htmx_comparative(
     assert resp.status_code == 200, resp.text
     assert "<html" not in resp.text, "HTMX response must be fragment, not full page"
     body = resp.text
-    assert "15000.00" in body
-    assert "9000.00" in body
+    assert "15,000.00" in body
+    assert "9,000.00" in body
 
 
 # ===========================================================================
@@ -507,12 +507,12 @@ async def test_bs_standalone_comparative_renders_prior_column(
     body = resp.text
 
     # Current amounts
-    assert "60000.00" in body, "Current BS asset (60000) not found"
-    assert "58500.00" in body, "Current BS equity (58500) not found"
+    assert "60,000.00" in body, "Current BS asset (60000) not found"
+    assert "58,500.00" in body, "Current BS equity (58500) not found"
 
     # Prior amounts
-    assert "40000.00" in body, "Prior BS asset (40000) not found"
-    assert "39100.00" in body, "Prior BS equity (39100) not found"
+    assert "40,000.00" in body, "Prior BS asset (40000) not found"
+    assert "39,100.00" in body, "Prior BS equity (39100) not found"
 
     # Prior label
     assert "prior" in body.lower() or "Prior" in body, "No prior-year label in comparative output"
@@ -545,7 +545,7 @@ async def test_bs_standalone_no_comparative_single_column(
     )
     body = resp.text
     # Current amount present
-    assert "60000.00" in body
+    assert "60,000.00" in body
     # Prior amounts absent
     assert "40000.00" not in body, "Prior BS asset must not appear when comparative=false"
 
@@ -578,8 +578,8 @@ async def test_bs_standalone_htmx_comparative(
     assert resp.status_code == 200, resp.text
     assert "<html" not in resp.text, "HTMX response must be fragment"
     body = resp.text
-    assert "60000.00" in body
-    assert "40000.00" in body
+    assert "60,000.00" in body
+    assert "40,000.00" in body
 
 
 # ===========================================================================
@@ -649,11 +649,11 @@ async def test_tb_standalone_comparative_renders_prior_column(
     body = resp.text
 
     # Current amounts
-    assert "55000.00" in body, "Current TB balance (55000) not found"
-    assert "60000.00" in body, "Current TB debit total (60000) not found"
+    assert "55,000.00" in body, "Current TB balance (55000) not found"
+    assert "60,000.00" in body, "Current TB debit total (60000) not found"
 
     # Prior amounts — the comparative column shows prior_balance only
-    assert "37000.00" in body, "Prior TB balance (37000) not found"
+    assert "37,000.00" in body, "Prior TB balance (37000) not found"
 
     # Prior label
     assert "prior" in body.lower() or "Prior" in body, "No prior-year label in comparative output"
@@ -686,7 +686,7 @@ async def test_tb_standalone_no_comparative_single_column(
     )
     body = resp.text
     # Current amount present
-    assert "55000.00" in body
+    assert "55,000.00" in body
     # Prior amounts absent
     assert "37000.00" not in body, "Prior TB balance must not appear when comparative=false"
 
@@ -719,5 +719,5 @@ async def test_tb_standalone_htmx_comparative(
     assert resp.status_code == 200, resp.text
     assert "<html" not in resp.text, "HTMX response must be fragment"
     body = resp.text
-    assert "55000.00" in body
-    assert "37000.00" in body
+    assert "55,000.00" in body
+    assert "37,000.00" in body

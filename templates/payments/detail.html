@@ -92,7 +92,7 @@
   </div>
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">Amount</p>
-    <p class="num-display ink-1 text-lg">{{ payment.currency }} {{ "%.2f"|format(payment.amount|float) }}</p>
+    <p class="num-display ink-1 text-lg">{{ payment.currency }} {{ num(payment.amount|float, 2) }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">Method</p>
@@ -133,7 +133,7 @@
               <span class="ink-3 font-mono text-xs">{{ alloc.credit_note_id }}</span>
             {% else %}—{% endif %}
           </td>
-          <td class="text-right num-display ink-1">{{ payment.currency }} {{ "%.2f"|format(alloc.amount|float) }}</td>
+          <td class="text-right num-display ink-1">{{ payment.currency }} {{ num(alloc.amount|float, 2) }}</td>
           <td class="text-right">
             <form method="post" action="/payments/{{ payment.id }}/unallocate" class="inline" onsubmit="return confirm('Unmatch this allocation? This will leave a payment-on-account.');">
               <input type="hidden" name="allocation_id" value="{{ alloc.id }}">

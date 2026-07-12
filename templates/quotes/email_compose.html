@@ -15,7 +15,7 @@
     {{ quote.title or quote.number }}
   </h1>
   <p class="text-xs ink-3 font-mono mt-2">
-    SAE-2026-{{ quote.number }} · subtotal {{ quote.currency }} {{ "%.2f"|format(quote.subtotal|float) }}
+    SAE-2026-{{ quote.number }} · subtotal {{ quote.currency }} {{ num(quote.subtotal|float, 2) }}
   </p>
 </header>
 

@@ -122,7 +122,7 @@
            class="sae hover:underline">{{ att.filename }}</a>
         <span class="ink-3 text-[10px]">
           {{ att.content_type }} ·
-          {% if att.size_bytes %}{{ "%.1f"|format(att.size_bytes/1024) }} KB{% endif %}
+          {% if att.size_bytes %}{{ num(att.size_bytes/1024, 1) }} KB{% endif %}
         </span>
         {% if att.sha256 %}
         <span class="ink-4 text-[10px]" title="SHA-256 of the exact bytes that {{ entry.resend_status }}">

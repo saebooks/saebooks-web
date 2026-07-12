@@ -56,10 +56,10 @@
       {% if gst.threshold_crossed %}
         GST threshold crossed — register within 21 days
       {% else %}
-        Approaching $75k GST threshold ({{ "%.0f"|format(gst.pct) }}%)
+        Approaching $75k GST threshold ({{ num(gst.pct, 0) }}%)
       {% endif %}
     </span>
-    <span class="text-xs num ink-3">AUD {{ "%.2f"|format(gst.ytd_turnover|float) }} YTD</span>
+    <span class="text-xs num ink-3">AUD {{ num(gst.ytd_turnover|float, 2) }} YTD</span>
     <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
        target="_blank" rel="noopener"
        class="text-xs sae hover:underline font-mono">ATO →</a>

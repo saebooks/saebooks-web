@@ -44,10 +44,10 @@
             <td class="num ink-3 text-xs">{{ asset.get("asset_number", "—") }}</td>
             <td class="ink-1">{{ asset.get("description") or "—" }}</td>
             <td class="ink-2">{{ asset.get("depreciation_method", "—") }}</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(asset.get("cost", 0) | float) }}</td>
-            <td class="text-right num ink-2">{{ "%.2f"|format(asset.get("residual_value", 0) | float) }}</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(asset.get("current_book_value", 0) | float) }}</td>
-            <td class="text-right num ink-1">{{ "%.2f"|format(asset.get("next_month_depreciation", 0) | float) }}</td>
+            <td class="text-right num ink-1">{{ num(asset.get("cost", 0) | float, 2) }}</td>
+            <td class="text-right num ink-2">{{ num(asset.get("residual_value", 0) | float, 2) }}</td>
+            <td class="text-right num ink-1">{{ num(asset.get("current_book_value", 0) | float, 2) }}</td>
+            <td class="text-right num ink-1">{{ num(asset.get("next_month_depreciation", 0) | float, 2) }}</td>
             <td class="text-center">
               {% if asset.get("fully_depreciated") %}
               <span class="font-semibold" style="color:var(--pos);" title="Fully depreciated">&#10003;</span>
@@ -66,9 +66,9 @@
       <tfoot>
         <tr>
           <td colspan="3" class="font-semibold ink-1">Totals</td>
-          <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total_cost) }}</td>
+          <td class="text-right num-display font-semibold ink-1">{{ num(total_cost, 2) }}</td>
           <td></td>
-          <td class="text-right num-display font-semibold ink-1">{{ "%.2f"|format(total_book_value) }}</td>
+          <td class="text-right num-display font-semibold ink-1">{{ num(total_book_value, 2) }}</td>
           <td></td>
           <td></td>
         </tr>

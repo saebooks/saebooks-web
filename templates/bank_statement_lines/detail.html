@@ -56,13 +56,13 @@
       {% set amt = line.amount | float %}
       {% if amt >= 0 %}text-[color:var(--pos)]{% else %}text-[color:var(--neg)]{% endif %}
       tabular-nums">
-      {{ "%.2f"|format(line.amount | float) }}
+      {{ num(line.amount | float, 2) }}
     </p>
   </div>
   <div class="card rounded-xl p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Balance</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
-      {% if line.balance is not none %}{{ "%.2f"|format(line.balance | float) }}{% else %}—{% endif %}
+      {% if line.balance is not none %}{{ num(line.balance | float, 2) }}{% else %}—{% endif %}
     </p>
   </div>
   <div class="card rounded-xl p-4">

@@ -56,7 +56,7 @@
             {%- elif bill.one_off_vendor_name %}<span class="ink-2">{{ bill.one_off_vendor_name }}</span>
             {%- else %}—{% endif %}
           </td>
-          <td class="text-right num-display ink-1 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.currency }} {{ "%.2f"|format(bill.total|float) }}</td>
+          <td class="text-right num-display ink-1 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.currency }} {{ num(bill.total|float, 2) }}</td>
           <td class="cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ sb.payment_status_badge(bill, today, due_soon_cutoff) }}</td>
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (bill.status or 'draft')|lower %}

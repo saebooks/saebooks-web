@@ -46,39 +46,39 @@
             </span>
             {% endif %}
           </td>
-          <td class="text-right num ink-1">{{ "%.2f"|format(report.get("g1_total_sales", 0) | float) }}</td>
+          <td class="text-right num ink-1">{{ num(report.get("g1_total_sales", 0) | float, 2) }}</td>
         </tr>
         {% if reg_date %}
         <tr style="background:rgba(200,155,60,0.04);">
           <td class="pl-8 text-xs ink-3">G1 pre-reg</td>
           <td class="text-xs ink-3">Sales before GST registration (not included in 1A)</td>
-          <td class="text-right num text-xs ink-3">{{ "%.2f"|format(report.get("g1_pre_registration", 0) | float) }}</td>
+          <td class="text-right num text-xs ink-3">{{ num(report.get("g1_pre_registration", 0) | float, 2) }}</td>
         </tr>
         <tr style="background:rgba(200,155,60,0.04);">
           <td class="pl-8 text-xs ink-3">G1 post-reg</td>
           <td class="text-xs ink-3">Sales from {{ reg_date }} onwards (feeds 1A)</td>
-          <td class="text-right num text-xs ink-3">{{ "%.2f"|format(report.get("g1_post_registration", 0) | float) }}</td>
+          <td class="text-right num text-xs ink-3">{{ num(report.get("g1_post_registration", 0) | float, 2) }}</td>
         </tr>
         {% endif %}
         <tr>
           <td class="font-semibold ink-1">G2</td>
           <td class="ink-2">Export Sales (always 0 — not tracked in v1)</td>
-          <td class="text-right num ink-3">{{ "%.2f"|format(report.get("g2_export_sales", 0) | float) }}</td>
+          <td class="text-right num ink-3">{{ num(report.get("g2_export_sales", 0) | float, 2) }}</td>
         </tr>
         <tr>
           <td class="font-semibold ink-1">G3</td>
           <td class="ink-2">Other GST-Free Sales</td>
-          <td class="text-right num ink-1">{{ "%.2f"|format(report.get("g3_other_gst_free_sales", 0) | float) }}</td>
+          <td class="text-right num ink-1">{{ num(report.get("g3_other_gst_free_sales", 0) | float, 2) }}</td>
         </tr>
         <tr>
           <td class="font-semibold ink-1">G10</td>
           <td class="ink-2">Capital Acquisitions (always 0 — not tracked in v1)</td>
-          <td class="text-right num ink-3">{{ "%.2f"|format(report.get("g10_capital_acquisitions", 0) | float) }}</td>
+          <td class="text-right num ink-3">{{ num(report.get("g10_capital_acquisitions", 0) | float, 2) }}</td>
         </tr>
         <tr>
           <td class="font-semibold ink-1">G11</td>
           <td class="ink-2">Other Acquisitions (taxable expenses, GST-inclusive)</td>
-          <td class="text-right num ink-1">{{ "%.2f"|format(report.get("g11_other_acquisitions", 0) | float) }}</td>
+          <td class="text-right num ink-1">{{ num(report.get("g11_other_acquisitions", 0) | float, 2) }}</td>
         </tr>
         {# Separator #}
         <tr class="bg-paper-2">
@@ -93,18 +93,18 @@
             GST on Sales (G1 x 10%)
             {% endif %}
           </td>
-          <td class="text-right num font-medium sae">{{ "%.2f"|format(report.get("label_1a_gst_on_sales", 0) | float) }}</td>
+          <td class="text-right num font-medium sae">{{ num(report.get("label_1a_gst_on_sales", 0) | float, 2) }}</td>
         </tr>
         <tr>
           <td class="font-semibold sae">1B</td>
           <td class="ink-2">GST on Purchases / Input Tax Credits (G11 x 1/11)</td>
-          <td class="text-right num font-medium sae">{{ "%.2f"|format(report.get("label_1b_gst_on_purchases", 0) | float) }}</td>
+          <td class="text-right num font-medium sae">{{ num(report.get("label_1b_gst_on_purchases", 0) | float, 2) }}</td>
         </tr>
         {# Net GST row #}
         <tr style="background:var(--sae-tint);">
           <td class="font-semibold sae hairline-t">Net GST</td>
           <td class="sae hairline-t">1A minus 1B</td>
-          <td class="text-right num-display font-semibold sae hairline-t">{{ "%.2f"|format(net_gst) }}</td>
+          <td class="text-right num-display font-semibold sae hairline-t">{{ num(net_gst, 2) }}</td>
         </tr>
       </tbody>
     </table>
@@ -117,7 +117,7 @@
       <span class="text-sm font-semibold" style="color:var(--warm);">REMIT to ATO</span>
       <p class="text-xs ink-3 mt-0.5">Net GST is positive — you owe this amount to the ATO.</p>
     </div>
-    <span class="font-display text-2xl num-display" style="color:var(--warm);">{{ "%.2f"|format(net_gst) }}</span>
+    <span class="font-display text-2xl num-display" style="color:var(--warm);">{{ num(net_gst, 2) }}</span>
   </div>
   {% elif remit_or_refund == "REFUND" %}
   <div class="card p-5 flex items-center justify-between" style="border-color:var(--pos);background:rgba(62,122,78,0.04);">
@@ -125,7 +125,7 @@
       <span class="text-sm font-semibold" style="color:var(--pos);">REFUND from ATO</span>
       <p class="text-xs ink-3 mt-0.5">Net GST is negative — the ATO owes you a refund.</p>
     </div>
-    <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ "%.2f"|format(net_gst) }}</span>
+    <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ num(net_gst, 2) }}</span>
   </div>
   {% endif %}
 

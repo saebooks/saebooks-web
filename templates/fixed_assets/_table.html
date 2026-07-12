@@ -52,10 +52,10 @@
           </td>
           <td class="px-4 py-3 ink-1">{{ asset.name }}</td>
           <td class="px-4 py-3 ink-1 text-right tabular-nums">
-            {{ "%.2f"|format(asset.cost | float) }}
+            {{ num(asset.cost | float, 2) }}
           </td>
           <td class="px-4 py-3 ink-2 text-right tabular-nums">
-            {{ "%.2f"|format(asset.residual_value | float) }}
+            {{ num(asset.residual_value | float, 2) }}
           </td>
           <td class="px-4 py-3 ink-2">{{ asset.purchase_date or "—" }}</td>
           <td class="px-4 py-3">

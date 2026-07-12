@@ -59,7 +59,7 @@
             {%- else %}—{% endif %}
           </td>
           <td class="text-right num-display ink-1 cursor-pointer" style="font-weight:500;" onclick="window.location='/invoices/{{ inv.id }}'">
-            {{ inv.currency }} {{ "%.2f"|format(inv.total|float) }}
+            {{ inv.currency }} {{ num(inv.total|float, 2) }}
           </td>
           <td class="cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">{{ sb.payment_status_badge(inv, today, due_soon_cutoff) }}</td>
           <td class="text-center" onclick="event.stopPropagation()">

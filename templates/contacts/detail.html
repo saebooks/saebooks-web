@@ -251,7 +251,7 @@
         </td>
         <td class="px-3 py-2"><a href="{{ t.url }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ t.number }}</a></td>
         <td class="px-3 py-2 ink-3">{{ t.ref or "—" }}</td>
-        <td class="px-3 py-2 text-right ink-1 font-semibold tabular-nums">${{ "%.2f"|format(t.amount|float) }}</td>
+        <td class="px-3 py-2 text-right ink-1 font-semibold tabular-nums">{{ money(t.amount|float) }}</td>
         <td class="px-3 py-2">
           {% if t.status == "POSTED" %}
             <span class="badge-pos">Posted</span>

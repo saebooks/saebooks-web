@@ -169,4 +169,4 @@ async def test_pl_by_segment_htmx_partial(respx_mock: respx.MockRouter) -> None:
     assert "report-content" in resp.text
     # Data still present
     assert "Project Alpha" in resp.text
-    assert "3200.00" in resp.text
+    assert "3,200.00" in resp.text

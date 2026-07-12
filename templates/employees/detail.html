@@ -217,11 +217,11 @@
         </div>
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">Base rate</dt>
-          <dd class="col-span-2 num-display">${{ "%.4f"|format(employee.base_rate|float) }}</dd>
+          <dd class="col-span-2 num-display">{{ money(employee.base_rate|float, decimals=4) }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">Weekly hours</dt>
-          <dd class="col-span-2 num">{{ "%.2f"|format(employee.weekly_hours|float) }}h</dd>
+          <dd class="col-span-2 num">{{ num(employee.weekly_hours|float, 2) }}h</dd>
         </div>
         {% if employee.payslip_email %}
         <div class="grid grid-cols-3 gap-2">

@@ -69,7 +69,7 @@
   </div>
   <div class="card rounded-xl p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Amount</p>
-    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">$&nbsp;{{ "%.2f"|format(budget.amount | float) }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">$&nbsp;{{ num(budget.amount | float, 2) }}</p>
   </div>
   <div class="card rounded-xl p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Version</p>
@@ -102,7 +102,7 @@
         </tr>
         <tr>
           <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Amount</th>
-          <td class="px-4 py-3 ink-1 tabular-nums">$ {{ "%.2f"|format(budget.amount | float) }}</td>
+          <td class="px-4 py-3 ink-1 tabular-nums">{{ money(budget.amount | float) }}</td>
         </tr>
         <tr>
           <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Notes</th>

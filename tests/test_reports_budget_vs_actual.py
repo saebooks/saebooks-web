@@ -125,4 +125,4 @@ async def test_budget_vs_actual_htmx_partial(respx_mock: respx.MockRouter) -> No
     assert "report-content" in resp.text
     # Data still present
     assert "Salaries" in resp.text
-    assert "10000.00" in resp.text
+    assert "10,000.00" in resp.text

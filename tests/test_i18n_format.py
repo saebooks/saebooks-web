@@ -90,6 +90,21 @@ def test_money_explicit_ccy_overrides_current_currency():
     assert _run_as("en", "AUD", money, 1234.56, ccy="EUR") == "EUR1,234.56"
 
 
+def test_money_decimals_override_preserves_precision_au():
+    # employees/detail.html + employees/list.html base_rate — payroll needs
+    # 4dp, not the currency's natural 2dp (see i18n/format.py money()
+    # docstring: this is why decimals exists at all).
+    assert _run_as("en", "AUD", money, 28.8462, decimals=4) == "$28.8462"
+
+
+def test_money_decimals_override_ee():
+    assert _run_as("et", "EUR", money, 28.8462, decimals=4) == f"28,8462{_NBSP}€"
+
+
+def test_money_decimals_override_negative():
+    assert _run_as("en", "AUD", money, -28.8462, decimals=4) == "-$28.8462"
+
+
 def test_money_ee_operator_viewing_au_company_still_gets_aud_symbol():
     # Locale (UI language) and currency (company jurisdiction) are
     # independent axes — an et-speaking user on an AU company sees AUD

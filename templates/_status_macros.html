@@ -34,7 +34,7 @@
       <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Paid</span>
     {%- elif paid > 0 -%}
       <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-        Partial · ${{ "%.2f"|format(paid) }} / ${{ "%.2f"|format(total) }}
+        Partial · {{ money(paid) }} / {{ money(total) }}
       </span>
     {%- elif today and item.due_date and item.due_date < today -%}
       <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">Overdue</span>

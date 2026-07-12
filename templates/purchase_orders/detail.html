@@ -123,13 +123,13 @@
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Subtotal</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
-      {{ po.currency }} {{ "%.2f"|format(po.subtotal|float) }}
+      {{ po.currency }} {{ num(po.subtotal|float, 2) }}
     </p>
   </div>
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Total</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
-      {{ po.currency }} {{ "%.2f"|format(po.total|float) }}
+      {{ po.currency }} {{ num(po.total|float, 2) }}
     </p>
   </div>
 </div>
@@ -168,13 +168,13 @@
           <tr class="hover:bg-paper-2">
             <td class="px-4 py-3 ink-4">{{ line.line_no }}</td>
             <td class="px-4 py-3 ink-1">{{ line.description }}</td>
-            <td class="px-4 py-3 text-right tabular-nums ink-2">{{ "%.3f"|format(ordered) }}</td>
-            <td class="px-4 py-3 text-right tabular-nums ink-2">{{ "%.3f"|format(received) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(ordered, 3) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(received, 3) }}</td>
             <td class="px-4 py-3 text-right tabular-nums {% if outstanding > 0 %}font-medium{% else %}ink-4{% endif %}"{% if outstanding > 0 %} style="color:var(--warm);"{% endif %}>
-              {{ "%.3f"|format(outstanding) }}
+              {{ num(outstanding, 3) }}
             </td>
-            <td class="px-4 py-3 text-right tabular-nums ink-2">{{ "%.2f"|format(line.unit_price|float) }}</td>
-            <td class="px-4 py-3 text-right tabular-nums font-medium ink-1">{{ "%.2f"|format(line.line_total|float) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(line.unit_price|float, 2) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums font-medium ink-1">{{ num(line.line_total|float, 2) }}</td>
             {% if can_convert %}
             <td class="px-4 py-3 text-right">
               <input
@@ -183,7 +183,7 @@
                 step="0.001"
                 min="0"
                 max="{{ outstanding }}"
-                placeholder="{{ "%.3f"|format(outstanding) }}"
+                placeholder="{{ num(outstanding, 3) }}"
                 aria-label="Receipt quantity for line {{ line.line_no }}"
                 class="saebooks-input w-24 text-right"
               >
@@ -200,18 +200,18 @@
       <tfoot class="bg-paper-2 hairline-t">
         <tr>
           <td colspan="{% if can_convert %}6{% else %}5{% endif %}" class="px-4 py-3 text-right text-sm ink-3">Subtotal</td>
-          <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">{{ "%.2f"|format(po.subtotal|float) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">{{ num(po.subtotal|float, 2) }}</td>
           {% if can_convert %}<td></td>{% endif %}
         </tr>
         <tr>
           <td colspan="{% if can_convert %}6{% else %}5{% endif %}" class="px-4 py-3 text-right text-sm ink-3">Tax</td>
-          <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">{{ "%.2f"|format(po.tax_total|float) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">{{ num(po.tax_total|float, 2) }}</td>
           {% if can_convert %}<td></td>{% endif %}
         </tr>
         <tr class="font-semibold">
           <td colspan="{% if can_convert %}6{% else %}5{% endif %}" class="px-4 py-3 text-right text-sm ink-1">Total</td>
           <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
-            {{ po.currency }} {{ "%.2f"|format(po.total|float) }}
+            {{ po.currency }} {{ num(po.total|float, 2) }}
           </td>
           {% if can_convert %}<td></td>{% endif %}
         </tr>

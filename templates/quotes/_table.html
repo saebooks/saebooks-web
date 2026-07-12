@@ -50,7 +50,7 @@
           {% set _c = contacts_by_id.get(q.customer_id) if contacts_by_id else None %}
           <td class="ink-1">{{ _c.name if _c else (q.customer_name or "—") }}</td>
           <td class="text-right num-display ink-1" style="font-weight:500;">
-            {{ q.currency }} {{ "%.2f"|format(q.total|float) }}
+            {{ q.currency }} {{ num(q.total|float, 2) }}
           </td>
           <td>
             {% if q.status == 'ACCEPTED' %}

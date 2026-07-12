@@ -41,9 +41,9 @@
   <td class="px-4 py-3 text-right font-mono text-sm ink-1 tabular-nums">
     {% if account.balance is not none %}
       {% if account.account_type == "LIABILITY" %}
-        {{ "%.2f"|format(-(account.balance|float)) }}
+        {{ num(-(account.balance|float), 2) }}
       {% else %}
-        {{ "%.2f"|format(account.balance|float) }}
+        {{ num(account.balance|float, 2) }}
       {% endif %}
     {% else %}
       —
@@ -52,9 +52,9 @@
   <td class="px-4 py-3 text-right font-mono text-sm ink-1 tabular-nums">
     {% if account.statement_balance is not none %}
       {% if account.account_type == "LIABILITY" %}
-        {{ "%.2f"|format(-(account.statement_balance|float)) }}
+        {{ num(-(account.statement_balance|float), 2) }}
       {% else %}
-        {{ "%.2f"|format(account.statement_balance|float) }}
+        {{ num(account.statement_balance|float, 2) }}
       {% endif %}
     {% else %}
       —

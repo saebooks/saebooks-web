@@ -108,7 +108,7 @@ async def test_trial_balance_get_200(respx_mock: respx.MockRouter) -> None:
     assert "Business Bank Account" in resp.text
     assert "Consulting Revenue" in resp.text
     assert "1000" in resp.text
-    assert "15000.00" in resp.text
+    assert "15,000.00" in resp.text
     # Balanced indicator present
     assert "Balanced" in resp.text
     assert "balanced" in resp.text.lower()
@@ -138,4 +138,4 @@ async def test_trial_balance_htmx_partial(respx_mock: respx.MockRouter) -> None:
     assert "report-content" in resp.text
     # Data still present
     assert "Business Bank Account" in resp.text
-    assert "15000.00" in resp.text
+    assert "15,000.00" in resp.text

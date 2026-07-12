@@ -38,6 +38,7 @@ import datetime as _dt
 import logging
 from contextvars import ContextVar
 
+from babel import Locale as _Locale
 from babel.dates import format_date as _babel_format_date
 from babel.numbers import format_currency as _babel_format_currency
 from babel.numbers import format_decimal as _babel_format_decimal
@@ -111,30 +112,54 @@ def _decimal_pattern(decimals: int) -> str:
     return "#,##0." + "0" * decimals
 
 
-def money(value: float | int | str | None, ccy: str | None = None) -> str:
+def _currency_pattern_with_decimals(locale: str, decimals: int) -> str:
+    """Locale's standard currency pattern with the fraction-digit count
+    swapped to ``decimals``, symbol placement/spacing untouched.
+
+    Needed for the rare non-2dp money site (e.g. an hourly pay rate shown
+    to 4dp) — babel's ``format_currency`` quantizes to the *currency's*
+    CLDR minor-unit count regardless of a custom pattern **unless** that
+    pattern already contains a decimal point (verified live): a
+    decimal-point-free override like ``"¤#,##0"`` is silently ignored and
+    still renders 2dp, but ``"¤#,##0.0000"`` + ``decimal_quantization=False``
+    correctly renders 4dp. This helper always emits a pattern with a
+    decimal point (or none at all for decimals<=0), matching that
+    constraint.
+    """
+    base = _Locale.parse(locale).currency_formats["standard"].pattern
+    frac = "." + "0" * decimals if decimals > 0 else ""
+    return base.replace(".00", frac)
+
+
+def money(value: float | int | str | None, ccy: str | None = None, decimals: int | None = None) -> str:
     """Locale-aware currency amount: symbol + grouping + decimal separator.
 
     ``ccy`` overrides the active company's home currency (current_currency)
     for foreign-currency displays (bills/POs/invoices in a non-home
     currency); omit it for the normal case.
 
-    Deliberately always renders at the currency's natural precision (2dp
-    for AUD/EUR) rather than accepting a decimals override — see the
-    P4 commit notes: several existing whole-dollar tiles (`%.0f` with no
-    cents) get cents added by this normalisation. That's a disclosed,
-    intentional standardisation onto the same 2dp convention already used
-    by other money tiles in this app (e.g. templates/overviews/expenses.html
-    `{:,.2f}` sites), not a silent behaviour change — money should not be
-    display-truncated. See the P4 report for the exact list of sites this
-    affects.
+    ``decimals`` overrides the currency's natural precision (2dp for
+    AUD/EUR). Omit it for ordinary money amounts — this exists for the one
+    real non-2dp money site the P4 sweep found: employee hourly base_rate,
+    previously ``${{ "%.4f"|format(x) }}`` (payroll needs the extra
+    precision; truncating it to 2dp the way this packet's other `.0f`
+    whole-dollar-tile normalisation does would be a real precision loss,
+    not just a cosmetic change — so it's explicitly preserved rather than
+    swept the same way). See the P4 report.
     """
     amount = float(value or 0)
     currency_code = (ccy or current_currency.get()).upper()
+    locale = _format_locale()
     try:
-        return _babel_format_currency(amount, currency_code, locale=_format_locale())
+        if decimals is not None:
+            pattern = _currency_pattern_with_decimals(locale, decimals)
+            return _babel_format_currency(
+                amount, currency_code, format=pattern, locale=locale, decimal_quantization=False
+            )
+        return _babel_format_currency(amount, currency_code, locale=locale)
     except Exception:  # pragma: no cover — defensive, bad currency code etc.
         _logger.warning("money(): format_currency failed for %r %r", amount, currency_code, exc_info=True)
-        return f"{amount:.2f}"
+        return f"{amount:.{decimals if decimals is not None else 2}f}"
 
 
 def num(value: float | int | str | None, decimals: int = 2) -> str:

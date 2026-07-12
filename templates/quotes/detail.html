@@ -158,7 +158,7 @@
   </div>
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">Total</p>
-    <p class="num-display ink-1 text-lg">{{ quote.currency }} {{ "%.2f"|format(quote.total|float) }}</p>
+    <p class="num-display ink-1 text-lg">{{ quote.currency }} {{ num(quote.total|float, 2) }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">Deposit</p>
@@ -208,8 +208,8 @@
           <td class="ink-4 num">{{ line.line_no }}</td>
           <td class="ink-1">{{ line.description }}</td>
           <td class="text-right num ink-2">{{ line.quantity }}</td>
-          <td class="text-right num ink-2">{{ "%.2f"|format(line.unit_price|float) }}</td>
-          <td class="text-right num-display ink-1">{{ "%.2f"|format(line.line_total|float) }}</td>
+          <td class="text-right num ink-2">{{ num(line.unit_price|float, 2) }}</td>
+          <td class="text-right num-display ink-1">{{ num(line.line_total|float, 2) }}</td>
         </tr>
         {% endfor %}
       {% else %}
@@ -220,11 +220,11 @@
     </tbody>
   </table>
   <div class="hairline-t px-6 py-4 space-y-2 text-sm">
-    <div class="flex justify-between"><span class="ink-2">Subtotal</span><span class="num ink-1">{{ "%.2f"|format(quote.subtotal|float) }}</span></div>
-    <div class="flex justify-between"><span class="ink-2">Tax</span><span class="num ink-1">{{ "%.2f"|format(quote.tax_total|float) }}</span></div>
+    <div class="flex justify-between"><span class="ink-2">Subtotal</span><span class="num ink-1">{{ num(quote.subtotal|float, 2) }}</span></div>
+    <div class="flex justify-between"><span class="ink-2">Tax</span><span class="num ink-1">{{ num(quote.tax_total|float, 2) }}</span></div>
     <div class="flex justify-between hairline-t pt-2">
       <span class="font-semibold ink-1">Total</span>
-      <span class="num-display text-lg ink-1">{{ quote.currency }} {{ "%.2f"|format(quote.total|float) }}</span>
+      <span class="num-display text-lg ink-1">{{ quote.currency }} {{ num(quote.total|float, 2) }}</span>
     </div>
   </div>
 </section>

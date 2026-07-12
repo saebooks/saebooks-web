@@ -93,8 +93,8 @@ async def test_revenue_by_customer_200(respx_mock: respx.MockRouter) -> None:
     # Customer rows
     assert "Big Corp Pty Ltd" in resp.text
     assert "Small Client" in resp.text
-    assert "90000.00" in resp.text
-    assert "10000.00" in resp.text
+    assert "90,000.00" in resp.text
+    assert "10,000.00" in resp.text
     # Concentration warning rendered
     assert "concentration" in resp.text.lower() or "80/20" in resp.text or "90" in resp.text
     # PSI language
@@ -123,7 +123,7 @@ async def test_revenue_by_customer_htmx_partial(respx_mock: respx.MockRouter) ->
     assert "<html" not in resp.text
     assert "report-content" in resp.text
     assert "Big Corp Pty Ltd" in resp.text
-    assert "90000.00" in resp.text
+    assert "90,000.00" in resp.text
 
 
 @pytest.mark.anyio
