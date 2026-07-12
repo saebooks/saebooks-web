@@ -17,7 +17,7 @@ The personal code is **never stored at all** — not even encrypted:
 
 * lookups key on ``HMAC-SHA256(k, personal_code)`` where ``k`` is derived
   from the web session secret via HKDF-style domain separation. A keyed
-  MAC (not a bare hash) because the isikukood space is tiny (~date ×
+  MAC (not a bare hash) because the isikukood space is tiny (~date x
   serial — trivially enumerable offline); without the key an attacker who
   steals the file cannot reverse or brute-force the codes.
 * the UI shows a masked form (first 3 + last 2 digits) stored alongside.

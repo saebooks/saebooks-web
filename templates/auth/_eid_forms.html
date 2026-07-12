@@ -6,7 +6,7 @@
   <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
     <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Smart-ID</h2>
     <form hx-post="/auth/eid/start" hx-target="#eid-flow" hx-swap="outerHTML">
-      {{ csrf_input(request) }}
+      {{ csrf_input(request)|safe }}
       <input type="hidden" name="provider" value="smart-id">
       <input type="hidden" name="mode" value="{{ mode }}">
       <label for="eid-sid-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -31,7 +31,7 @@
   <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
     <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Mobiil-ID</h2>
     <form hx-post="/auth/eid/start" hx-target="#eid-flow" hx-swap="outerHTML">
-      {{ csrf_input(request) }}
+      {{ csrf_input(request)|safe }}
       <input type="hidden" name="provider" value="mobile-id">
       <input type="hidden" name="mode" value="{{ mode }}">
       <label for="eid-mid-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

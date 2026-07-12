@@ -58,7 +58,8 @@ from saebooks_web.eid_providers import (
     normalize_personal_code,
 )
 from saebooks_web.features import is_feature_enabled
-from saebooks_web.i18n import current_locale, gettext as _
+from saebooks_web.i18n import current_locale
+from saebooks_web.i18n import gettext as _
 from saebooks_web.security.csrf import ensure_csrf_token
 
 logger = logging.getLogger("saebooks_web.eid_sso")
