@@ -51,6 +51,7 @@ import html as _html
 import logging
 import os
 import urllib.parse
+from datetime import datetime, timezone
 
 import httpx
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -411,7 +412,15 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
             return None
 
     def _apply_provision_to_session(self, request: Request, data: dict) -> None:
-        """Write provisioned tenant credentials into the session cookie."""
+        """Write provisioned tenant credentials into the session cookie.
+
+        Also records the provisioned company/tenant identity + a UTC
+        timestamp so the passive demo badge (see ``_partials/demo_banner``)
+        and the live isolation-proof card (``routes/demo_isolation``) can
+        render the visitor's own tenant identity without a further API call.
+        Presence of ``demo_tenant_id`` in the session is the single marker
+        that a request belongs to a provisioned ephemeral demo (both the
+        banner and the isolation route gate on it)."""
         request.session.pop("csrf_token", None)
         request.session.pop("active_company_id", None)
         request.session["api_token"] = data["access_token"]
@@ -423,6 +432,17 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
             or data.get("demo_user_email", "")
         )
         request.session["user_role"] = profile.get("role", "")
+        # Demo-identity markers for the isolation surface. company_id/tenant_id
+        # come straight off the provision payload (a strict superset of
+        # /auth/login — see the engine's POST /internal/demo/provision); the
+        # profile is a best-effort fallback for company_id only.
+        company_id = data.get("company_id") or profile.get("company_id") or ""
+        tenant_id = data.get("tenant_id") or profile.get("tenant_id") or ""
+        request.session["demo_company_id"] = str(company_id)
+        request.session["demo_tenant_id"] = str(tenant_id)
+        request.session["demo_provisioned_at"] = (
+            datetime.now(timezone.utc).strftime("%H:%M")
+        )
 
     async def _verify_turnstile(self, token: str, ip: str | None) -> bool:
         """Verify a Turnstile response token via the Cloudflare siteverify API.

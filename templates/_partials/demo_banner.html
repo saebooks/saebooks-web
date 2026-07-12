@@ -1,0 +1,35 @@
+{#
+  Passive ephemeral-demo badge (Packet A1, §6b).
+
+  Renders ONLY when the session carries a provisioned ephemeral-demo tenant
+  (the `demo_tenant_id` marker written by _apply_provision_to_session). It
+  surfaces the honest engineering fact: this visitor is a separate RLS
+  tenant. Two side-by-side browsers show different company names + tenant
+  suffixes.
+
+  Company name comes from request.state.active_company_name
+  (CompanyContextMiddleware, already resolved per request). Created time is
+  pre-formatted "HH:MM" UTC at provision time (a template can't format a
+  timestamp). All visible strings are gettext-wrapped for et/ru.
+#}
+{% set _demo_tenant = request.session.get("demo_tenant_id") %}
+{% if _demo_tenant %}
+{% set _demo_company = request.state.active_company_name or request.session.get("demo_company_id") or "" %}
+<div class="mb-6 rounded-lg border px-4 py-2.5 text-xs sm:text-sm flex flex-wrap items-center gap-x-2 gap-y-1"
+     style="border-color: var(--warm); background: var(--warm-tint); color: var(--ink);"
+     role="status" aria-live="polite">
+  <i data-lucide="flask-conical" class="w-4 h-4 shrink-0" aria-hidden="true"></i>
+  <span class="font-semibold">{{ _("Private sandbox") }}</span>
+  {% if _demo_company %}<span>— <strong>{{ _demo_company }}</strong></span>{% endif %}
+  <span class="ink-3">·</span>
+  <span>{{ _("tenant") }} <span class="font-mono">…{{ _demo_tenant[-6:] }}</span></span>
+  {% if request.session.get("demo_provisioned_at") %}
+  <span class="ink-3">·</span>
+  <span>{{ _("created") }} {{ request.session.get("demo_provisioned_at") }} UTC</span>
+  {% endif %}
+  <span class="ink-3">·</span>
+  <span>{{ _("self-destructs after 30 minutes idle") }}</span>
+  <a href="/demo/isolation" class="underline font-medium ml-auto shrink-0"
+     style="color: var(--sae);">{{ _("View isolation proof") }}</a>
+</div>
+{% endif %}
