@@ -217,7 +217,7 @@
         </div>
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">Base rate</dt>
-          <dd class="col-span-2 num-display">{{ money(employee.base_rate|float, decimals=4) }}</dd>
+          <dd class="col-span-2 num-display">{{ money(employee.base_rate|float, decimals=4, grouping=False) }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">Weekly hours</dt>

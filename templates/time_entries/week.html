@@ -66,8 +66,8 @@
           </p>
           {% if e.billable %}
           <p class="text-xs sae mt-0.5">
-            {% if e.rate %}{{ money(e.rate|float) }}/h
-              · <span class="num-display">{{ money((e.rate|float) * (e.hours|float)) }}</span>
+            {% if e.rate %}{{ money(e.rate|float, grouping=False) }}/h
+              · <span class="num-display">{{ money((e.rate|float) * (e.hours|float), grouping=False) }}</span>
             {% else %}billable{% endif %}
             {% if e.invoice_line_id %} → on invoice{% endif %}
           </p>

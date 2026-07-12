@@ -100,7 +100,7 @@
     <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Stmt Closing Balance</div>
     <div class="font-mono text-xl font-semibold ink-1">
       {% if statement.closing_balance is not none %}
-        {{ money(statement.closing_balance | float) }}
+        {{ money(statement.closing_balance | float, grouping=False) }}
       {% else %}—{% endif %}
     </div>
   </div>
@@ -108,7 +108,7 @@
     <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Our AP (books)</div>
     <div class="font-mono text-xl font-semibold ink-1">
       {% if statement.our_ap_as_at is not none %}
-        {{ money(statement.our_ap_as_at | float) }}
+        {{ money(statement.our_ap_as_at | float, grouping=False) }}
       {% else %}—{% endif %}
     </div>
   </div>
@@ -118,10 +118,10 @@
       {% if statement.balance_delta is not none %}
         {% set delta = statement.balance_delta | float %}
         {% if delta | abs < 0.01 %}
-          <span style="color:var(--pos);">{{ money(0) }}</span>
+          <span style="color:var(--pos);">{{ money(0, grouping=False) }}</span>
         {% else %}
           <span style="color:var(--warm);">
-            {% if delta > 0 %}+{% endif %}{{ money(delta | abs) }}
+            {% if delta > 0 %}+{% endif %}{{ money(delta | abs, grouping=False) }}
           </span>
         {% endif %}
       {% else %}—{% endif %}
@@ -131,7 +131,7 @@
     <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Opening Balance</div>
     <div class="font-mono text-xl font-semibold ink-2">
       {% if statement.opening_balance is not none %}
-        {{ money(statement.opening_balance | float) }}
+        {{ money(statement.opening_balance | float, grouping=False) }}
       {% else %}—{% endif %}
     </div>
   </div>
@@ -300,9 +300,9 @@
             {% if line.amount is not none %}
               {% set amt = line.amount | float %}
               {% if amt < 0 %}
-                <span style="color:var(--neg);">{{ money(amt | abs) }}</span>
+                <span style="color:var(--neg);">{{ money(amt | abs, grouping=False) }}</span>
               {% else %}
-                <span class="ink-1">{{ money(amt) }}</span>
+                <span class="ink-1">{{ money(amt, grouping=False) }}</span>
               {% endif %}
             {% else %}—{% endif %}
           </td>
@@ -470,17 +470,17 @@
           </td>
           <td class="px-4 py-3 text-right font-mono text-xs ink-2 whitespace-nowrap">
             {% if sib.closing_balance is not none %}
-              {{ money(sib.closing_balance | float) }}
+              {{ money(sib.closing_balance | float, grouping=False) }}
             {% else %}—{% endif %}
           </td>
           <td class="px-4 py-3 text-right font-mono text-xs font-semibold whitespace-nowrap">
             {% if sib.balance_delta is not none %}
               {% set sd = sib.balance_delta | float %}
               {% if sd | abs < 0.01 %}
-                <span style="color:var(--pos);">{{ money(0) }}</span>
+                <span style="color:var(--pos);">{{ money(0, grouping=False) }}</span>
               {% else %}
                 <span style="color:var(--warm);">
-                  {% if sd > 0 %}+{% endif %}{{ money(sd | abs) }}
+                  {% if sd > 0 %}+{% endif %}{{ money(sd | abs, grouping=False) }}
                 </span>
               {% endif %}
             {% else %}—{% endif %}

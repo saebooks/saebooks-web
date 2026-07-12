@@ -68,11 +68,11 @@
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Cost</p>
-    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(asset.cost | float) }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(asset.cost | float, grouping=False) }}</p>
   </div>
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Residual value</p>
-    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(asset.residual_value | float) }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(asset.residual_value | float, grouping=False) }}</p>
   </div>
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">Purchase date</p>

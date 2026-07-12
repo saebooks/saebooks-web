@@ -153,7 +153,12 @@ def _currency_pattern_with_decimals(locale: str, decimals: int) -> str:
     return base.replace(".00", frac)
 
 
-def money(value: float | int | str | None, ccy: str | None = None, decimals: int | None = None) -> str:
+def money(
+    value: float | int | str | None,
+    ccy: str | None = None,
+    decimals: int | None = None,
+    grouping: bool = True,
+) -> str:
     """Locale-aware currency amount: symbol + grouping + decimal separator.
 
     ``ccy`` overrides the active company's home currency (current_currency)
@@ -168,6 +173,19 @@ def money(value: float | int | str | None, ccy: str | None = None, decimals: int
     whole-dollar-tile normalisation does would be a real precision loss,
     not just a cosmetic change — so it's explicitly preserved rather than
     swept the same way). See the P4 report.
+
+    ``grouping`` defaults to ``True`` because that's what the pre-8ff3a95
+    call sites this packet targeted first (dashboard/_funnel_macros/
+    overviews) already rendered — they used ``"{:,.Nf}".format(x)``, so
+    babel's default thousands-grouping matches them byte-for-byte (see
+    test_locale_money_regression.py). Critic round 3 fix: a *later* sweep
+    pass (budgets/fixed_assets/expenses/employees/contacts/statements/
+    time_entries/_status_macros) converted a different pre-existing
+    convention — bare ``"%.Nf"|format(x)`` with NO thousands separator —
+    to ``money()`` without noticing money() has no no-grouping mode (unlike
+    ``num()``, which already defaults ``grouping=False`` for exactly this
+    reason). Those call sites now pass ``grouping=False`` explicitly to
+    restore their pre-existing ungrouped AU output.
     """
     amount = float(value or 0)
     currency_code = (ccy or current_currency.get()).upper()
@@ -192,8 +210,11 @@ def money(value: float | int | str | None, ccy: str | None = None, decimals: int
                 locale=locale,
                 decimal_quantization=True,
                 currency_digits=False,
+                group_separator=grouping,
             )
-        return _babel_format_currency(amount, currency_code, locale=locale)
+        return _babel_format_currency(
+            amount, currency_code, locale=locale, group_separator=grouping
+        )
     except Exception:  # pragma: no cover — defensive, bad currency code etc.
         _logger.warning("money(): format_currency failed for %r %r", amount, currency_code, exc_info=True)
         return f"{amount:.{decimals if decimals is not None else 2}f}"

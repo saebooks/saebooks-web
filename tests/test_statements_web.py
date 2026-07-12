@@ -365,10 +365,12 @@ async def test_statements_detail_renders(respx_mock: respx.MockRouter) -> None:
     assert resp.status_code == 200
     body = resp.text
 
-    # Header card fields
+    # Header card fields. AU pixel-equivalence: pre-8ff3a95 these cells were
+    # bare "%.2f" (no thousands separator) — money(..., grouping=False)
+    # restores that byte-exact (critic round 3 fix).
     assert "Acme Supplies Pty Ltd" in body
-    assert "12,345.67" in body or "12345.67" in body  # closing balance
-    assert "11,245.67" in body or "11245.67" in body  # our AP
+    assert "12345.67" in body  # closing balance
+    assert "11245.67" in body  # our AP
 
     # Lines table
     assert "INV-9999" in body          # missing_in_books line

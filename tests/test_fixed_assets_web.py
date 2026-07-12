@@ -159,8 +159,10 @@ async def test_fixed_assets_detail_renders(respx_mock: respx.MockRouter) -> None
     assert "Office Server Rack" in resp.text
     # Depreciation model details
     assert "SL-10Y" in resp.text
-    # Cost and residual value
-    assert "12,500.00" in resp.text
+    # Cost and residual value — AU pixel-equivalence: pre-8ff3a95 these
+    # cells were bare "%.2f" (no thousands separator); money(...,
+    # grouping=False) restores that.
+    assert "12500.00" in resp.text
     assert "500" in resp.text
 
 

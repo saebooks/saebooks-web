@@ -52,7 +52,7 @@
             </a>
           </td>
           <td class="px-4 py-3 text-right tabular-nums ink-1">
-            {{ money(budget.amount | float) }}
+            {{ money(budget.amount | float, grouping=False) }}
           </td>
           <td class="px-4 py-3 ink-3 text-xs">{{ budget.notes or "—" }}</td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
