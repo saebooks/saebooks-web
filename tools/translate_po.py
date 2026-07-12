@@ -73,9 +73,17 @@ PROTECTED: list[tuple[str, str]] = [
     ("TSD", "NX5"),
 ]
 
-#: Locales this script writes to. "en" is the source language, never a
-#: translation target.
+#: Locales sent to TartuNLP as MT targets.
 TARGET_LOCALES: tuple[str, ...] = ("et", "ru")
+
+#: "en" is the source language — never machine-translated, but its own
+#: catalog still needs msgstr filled (identity: msgstr == msgid) so the
+#: compiled .mo carries every msgid the .po does. Without this, an empty
+#: msgstr compiles to NO entry at all (pybabel drops empty translations),
+#: which breaks the po/mo msgid-set parity check in test_i18n_compile.py.
+#: Never flagged fuzzy — an identity translation isn't a draft needing
+#: review, it's definitionally correct.
+IDENTITY_LOCALE = "en"
 
 
 def api_translate(texts: list[str], src: str, tgt: str) -> list[str]:
@@ -204,9 +212,32 @@ def translate_locale(locale: str) -> tuple[dict[str, str], list[tuple[str, str]]
     return dict(zip(ids, translated)), leaks
 
 
+def fill_identity_locale(locale: str) -> int:
+    """Set msgstr = msgid for every untranslated entry in ``locale``'s catalog.
+
+    Returns the number of entries filled. Not machine translation — this is
+    the source language, so "translation" is the string itself.
+    """
+    catalog = _load_catalog(locale)
+    ids = _untranslated_ids(catalog)
+    for msgid in ids:
+        message = catalog.get(msgid)
+        if message is not None:
+            message.string = msgid
+    if ids:
+        _write_catalog(locale, catalog)
+    return len(ids)
+
+
 def main() -> None:
     all_leaks: list[tuple[str, str]] = []
     qa: dict[str, dict[str, str]] = {}
+
+    filled = fill_identity_locale(IDENTITY_LOCALE)
+    if filled:
+        print(f"[{IDENTITY_LOCALE}] filled {filled} identity msgstr(s)")
+    else:
+        print(f"[{IDENTITY_LOCALE}] nothing untranslated")
 
     for locale in TARGET_LOCALES:
         fresh, leaks = translate_locale(locale)

@@ -38,4 +38,9 @@ i18n-update: i18n-extract
 	done
 
 i18n-compile:
-	pybabel compile -d $(LOCALES_DIR) -D messages --statistics
+	# --use-fuzzy: tools/translate_po.py writes MT drafts flagged "fuzzy" (the
+	# QA-pending marker) — without this flag pybabel silently DROPS fuzzy
+	# entries from the .mo, which (a) serves English instead of the MT draft
+	# and (b) breaks the po/mo msgid-set parity check in test_i18n_compile.py.
+	# Ship the MT draft; the fuzzy flag stays in .po as the review todo.
+	pybabel compile -d $(LOCALES_DIR) -D messages --use-fuzzy --statistics
