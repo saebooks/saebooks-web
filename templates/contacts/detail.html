@@ -141,6 +141,32 @@
 </div>
 {% endif %}
 
+{# ── E-invoicing (EE only) ── #}
+{% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}
+{% if jurisdiction == 'EE' %}
+<div class="card p-5 mb-6">
+  <p class="nav-section-label mb-3">{{ _("E-invoicing") }}</p>
+  <dl class="space-y-2 text-sm">
+    <div class="flex gap-3 items-center">
+      <dt class="w-28 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider">{{ _("Recipient") }}</dt>
+      <dd>
+        {% if contact.e_invoice_recipient %}
+          <span class="badge-paid">{{ _("E-invoice recipient") }}</span>
+        {% else %}
+          <span class="ink-4">{{ _("Not registered") }}</span>
+        {% endif %}
+      </dd>
+    </div>
+    {% if contact.peppol_participant_id %}
+    <div class="flex gap-3">
+      <dt class="w-28 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">{{ _("Peppol ID") }}</dt>
+      <dd class="ink-1 font-mono text-xs">{{ contact.peppol_participant_id }}</dd>
+    </div>
+    {% endif %}
+  </dl>
+</div>
+{% endif %}
+
 {% if contact.notes %}
 <section class="mb-6">
   <p class="nav-section-label mb-2">{{ _("Notes") }}</p>
