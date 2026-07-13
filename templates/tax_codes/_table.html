@@ -18,15 +18,15 @@
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Rate</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Tax system</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Reporting type</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Code") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Rate") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Tax system") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Reporting type") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -39,7 +39,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ tc.id }}"
-                   aria-label="Select tax code {{ tc.code }}"
+                   aria-label="{{ _('Select tax code %(code)s') % {'code': tc.code} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -54,21 +54,21 @@
           <td class="px-4 py-3 ink-2">{{ tc.reporting_type | replace("_", " ") | title }}</td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
-              ("view",    "View",    "/tax-codes/" ~ tc.id,             "link", false),
-              ("edit",    "Edit",    "/tax-codes/" ~ tc.id ~ "/edit",   "link", false),
-              ("archive", "Archive", "/tax-codes/" ~ tc.id ~ "/archive","post", true),
+              ("view",    _("View"),    "/tax-codes/" ~ tc.id,             "link", false),
+              ("edit",    _("Edit"),    "/tax-codes/" ~ tc.id ~ "/edit",   "link", false),
+              ("archive", _("Archive"), "/tax-codes/" ~ tc.id ~ "/archive","post", true),
               ] %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/tax-codes/" ~ tc.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/tax-codes/" ~ tc.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=tc.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(7, "percent", "No tax codes yet",
-                     "Add a tax code to classify GST and other rates.",
-                     "New tax code", "/tax-codes/new") }}
+        {{ empty.row(7, "percent", _("No tax codes yet"),
+                     _("Add a tax code to classify GST and other rates."),
+                     _("New tax code"), "/tax-codes/new") }}
       {% endif %}
     </tbody>
   </table>

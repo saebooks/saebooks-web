@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Tax Codes — SAE Books{% endblock %}
+{% block title %}{{ _("Tax Codes") }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -14,7 +14,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Tax Codes</h1>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Tax Codes") }}</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ total }} tax code{{ "s" if total != 1 else "" }}</p>
     {% endif %}
@@ -23,7 +23,7 @@
     href="/tax-codes/new"
     class="btn-primary text-sm"
   >
-    New tax code
+    {{ _("New tax code") }}
   </a>
 </div>
 
@@ -36,7 +36,7 @@
      entity="tax_codes",
      action_endpoint="/tax-codes/bulk",
      actions=[
-       ("archive", "Archive", true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
