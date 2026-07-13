@@ -40,6 +40,28 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+def _apply_einvoice_recipient_fields(
+    request: Request, form: dict[str, str], payload: dict[str, object]
+) -> None:
+    """Add the EE e-invoice-recipient fields to a contact write payload.
+
+    No-op unless the active company's jurisdiction is EE — the form controls
+    only render for EE (see contacts/_form_fields.html), so an AU submit
+    never carries them and the payload stays byte-identical to before.
+
+    Round-trips ``e_invoice_recipient`` (bool checkbox, source-of-truth on
+    every submit like ``is_one_off``) and ``peppol_participant_id`` (str|null,
+    max 64 — a blank field clears it to null). No format validation beyond
+    length: none exists engine-side.
+    """
+    jurisdiction = getattr(request.state, "active_company_jurisdiction", None) or "AU"
+    if jurisdiction != "EE":
+        return
+    payload["e_invoice_recipient"] = form.get("e_invoice_recipient") == "on"
+    peppol = form.get("peppol_participant_id", "").strip()
+    payload["peppol_participant_id"] = peppol or None
+
+
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
@@ -289,6 +311,12 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
 
     payload["is_one_off"] = form.get("is_one_off") == "on"
 
+    # E-invoice recipient flag (EE only). The fields only appear in the EE
+    # form, and touching them for AU companies would be a silent behaviour
+    # change, so gate on the active company's jurisdiction — AU payloads are
+    # byte-identical to before.
+    _apply_einvoice_recipient_fields(request, form, payload)
+
     async with api_client(request) as client:
         resp = await client.post(
             "/api/v1/contacts",
@@ -419,6 +447,10 @@ async def contact_edit_form(
     # Pre-populate the form dict from the API response.
     form: dict[str, str] = {field: str(contact.get(field) or "") for field in _EDIT_FIELDS}
     form["version"] = str(contact.get("version", ""))
+    # EE e-invoice-recipient fields (EE-gated in the template). "on"/"" keeps
+    # the checkbox check trivial and matches the submit form's semantics.
+    form["e_invoice_recipient"] = "on" if contact.get("e_invoice_recipient") else ""
+    form["peppol_participant_id"] = str(contact.get("peppol_participant_id") or "")
 
     accounts, tax_codes = await _fetch_contact_dropdowns(request)
 
@@ -471,6 +503,10 @@ async def contact_update(
     # is_one_off is a checkbox — POST it on every edit (no "leave alone"
     # semantics; the edit form is the source of truth for the flag).
     payload["is_one_off"] = form.get("is_one_off") == "on"
+
+    # E-invoice recipient flag (EE only) — same source-of-truth-on-submit
+    # semantics as is_one_off. See _apply_einvoice_recipient_fields.
+    _apply_einvoice_recipient_fields(request, form, payload)
 
     async with api_client(request) as client:
         resp = await client.patch(

@@ -9,6 +9,8 @@
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}
+{# Active company jurisdiction ("AU", "EE", ...) — set by CompanyContextMiddleware; see company_context.py. #}
+{% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}
 
 {% if flash %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
@@ -56,6 +58,11 @@
       <a href="/invoices/{{ invoice.id }}/pdf" target="_blank" rel="noopener" class="btn-secondary text-sm">
         Preview PDF
       </a>
+      {% if jurisdiction == 'EE' %}
+      <a href="/invoices/{{ invoice.id }}/einvoice.xml" class="btn-secondary text-sm">
+        {{ _("Download e-invoice (XML)") }}
+      </a>
+      {% endif %}
       {% if invoice.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
       <a href="/invoices/{{ invoice.id }}/edit" class="btn-secondary text-sm">{% if invoice.status in ('POSTED', 'PAID', 'VOIDED') %}Edit (override){% else %}Edit{% endif %}</a>
       {% endif %}
