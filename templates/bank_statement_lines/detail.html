@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if line %}{{ line.txn_date }} — Bank Statement Line — SAE Books{% else %}Bank Statement Line Not Found — SAE Books{% endif %}
+  {% if line %}{{ line.txn_date }} — {{ _("Bank Statement Line") }} — SAE Books{% else %}{{ _("Bank Statement Line Not Found") }} — SAE Books{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -27,7 +27,7 @@
   <div>
     <div class="flex items-center gap-3">
       <h1 class="text-2xl font-semibold ink-1">
-        {{ line.txn_date }} — {{ line.description or "No description" }}
+        {{ line.txn_date }} — {{ line.description or _("No description") }}
       </h1>
       <span class="
         {% if line.status == 'RECONCILED' %}badge-pos
@@ -37,21 +37,21 @@
         {{ line.status | replace("_", " ") | title }}
       </span>
     </div>
-    <p class="text-sm ink-3 mt-1">ID: {{ line.id }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("ID:") }} {{ line.id }}</p>
   </div>
   <div class="flex items-center gap-3">
-    <a href="/bank-statement-lines" class="text-sm sae hover:underline">← Back to bank statement lines</a>
+    <a href="/bank-statement-lines" class="text-sm sae hover:underline">{{ _("← Back to bank statement lines") }}</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Date</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ line.txn_date }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Amount</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Amount") }}</p>
     <p class="mt-1 text-sm font-medium
       {% set amt = line.amount | float %}
       {% if amt >= 0 %}text-[color:var(--pos)]{% else %}text-[color:var(--neg)]{% endif %}
@@ -60,38 +60,38 @@
     </p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Balance</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Balance") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {% if line.balance is not none %}{{ num(line.balance | float, 2) }}{% else %}—{% endif %}
     </p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Status</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Status") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ line.status | replace("_", " ") | title }}</p>
   </div>
 </div>
 
 {# ── Line details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Line details</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Line details") }}</h2>
   <div class="card rounded-xl overflow-x-auto">
     <table class="min-w-full text-sm">
       <tbody class="divide-[color:var(--line)] divide-y">
         <tr>
-          <td class="px-4 py-3 font-medium ink-3 w-48">Description</td>
+          <td class="px-4 py-3 font-medium ink-3 w-48">{{ _("Description") }}</td>
           <td class="px-4 py-3 ink-1">{{ line.description or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Reference</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Reference") }}</td>
           <td class="px-4 py-3 ink-1">{{ line.reference or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Account ID</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Account ID") }}</td>
           <td class="px-4 py-3 ink-3 font-mono text-xs">{{ line.account_id }}</td>
         </tr>
         {% if line.contact_id %}
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Contact</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Contact") }}</td>
           <td class="px-4 py-3 ink-1">
             {% if contact_name %}<a href="/contacts/{{ line.contact_id }}" class="sae hover:underline">{{ contact_name }}</a>{% else %}—{% endif %}
           </td>
@@ -99,21 +99,21 @@
         {% endif %}
         {% if line.matched_entry_id %}
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Matched entry</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Matched entry") }}</td>
           <td class="px-4 py-3 ink-3 font-mono text-xs">{{ line.matched_entry_id }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Matched at</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Matched at") }}</td>
           <td class="px-4 py-3 ink-1">{{ line.matched_at or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Matched by</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Matched by") }}</td>
           <td class="px-4 py-3 ink-1">{{ line.matched_by or "—" }}</td>
         </tr>
         {% endif %}
         {% if line.external_id %}
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">External ID</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("External ID") }}</td>
           <td class="px-4 py-3 ink-3 font-mono text-xs">{{ line.external_id }}</td>
         </tr>
         {% endif %}
@@ -124,12 +124,12 @@
 
 {# ── Reconciliation section ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Reconciliation</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Reconciliation") }}</h2>
 
   {% if line.status == 'IGNORED' %}
   {# ── Ignored ── #}
   <div class="card rounded-xl px-4 py-4 text-sm ink-3" style="background:var(--paper-2);">
-    This line is ignored.
+    {{ _("This line is ignored.") }}
   </div>
 
   {% elif line.status == 'MATCHED' or line.status == 'RECONCILED' %}
@@ -138,15 +138,15 @@
     <table class="min-w-full text-sm">
       <tbody class="divide-[color:var(--line)] divide-y">
         <tr>
-          <td class="px-4 py-3 font-medium ink-3 w-48">Matched type</td>
+          <td class="px-4 py-3 font-medium ink-3 w-48">{{ _("Matched type") }}</td>
           <td class="px-4 py-3 ink-1">{{ line.matched_to_type or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Matched ID</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Matched ID") }}</td>
           <td class="px-4 py-3 ink-3 font-mono text-xs">{{ line.matched_to_id or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Matched at</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Matched at") }}</td>
           <td class="px-4 py-3 ink-1">
             {% if line.matched_at %}
               {{ line.matched_at[:19] | replace("T", " ") }}
@@ -166,7 +166,7 @@
       class="btn-primary text-sm"
       style="background:var(--neg);border-color:var(--neg);box-shadow:none;"
     >
-      Unmatch
+      {{ _("Unmatch") }}
     </button>
   </form>
   {% endif %}
@@ -180,7 +180,7 @@
 
       <div>
         <label for="matched_to_type" class="block text-sm font-medium ink-2 mb-1">
-          Match type
+          {{ _("Match type") }}
         </label>
         <select
           id="matched_to_type"
@@ -188,22 +188,22 @@
           required
           class="saebooks-input text-sm w-56"
         >
-          <option value="" {% if not match_form or not match_form.matched_to_type %}selected{% endif %} disabled>Select type…</option>
-          <option value="PAYMENT" {% if match_form and match_form.matched_to_type == 'PAYMENT' %}selected{% endif %}>Payment</option>
-          <option value="JOURNAL_ENTRY" {% if match_form and match_form.matched_to_type == 'JOURNAL_ENTRY' %}selected{% endif %}>Journal Entry</option>
+          <option value="" {% if not match_form or not match_form.matched_to_type %}selected{% endif %} disabled>{{ _("Select type…") }}</option>
+          <option value="PAYMENT" {% if match_form and match_form.matched_to_type == 'PAYMENT' %}selected{% endif %}>{{ _("Payment") }}</option>
+          <option value="JOURNAL_ENTRY" {% if match_form and match_form.matched_to_type == 'JOURNAL_ENTRY' %}selected{% endif %}>{{ _("Journal Entry") }}</option>
         </select>
       </div>
 
       <div>
         <label for="matched_to_id" class="block text-sm font-medium ink-2 mb-1">
-          Payment or Journal Entry ID
+          {{ _("Payment or Journal Entry ID") }}
         </label>
         <input
           id="matched_to_id"
           type="text"
           name="matched_to_id"
           value="{{ match_form.matched_to_id if match_form else '' }}"
-          placeholder="Enter payment or JE ID"
+          placeholder="{{ _('Enter payment or JE ID') }}"
           required
           class="saebooks-input text-sm w-full max-w-md font-mono"
         >
@@ -214,7 +214,7 @@
           type="submit"
           class="btn-primary text-sm"
         >
-          Match
+          {{ _("Match") }}
         </button>
       </div>
 
@@ -227,15 +227,15 @@
 {# ── Metadata footer ── #}
 <div class="card rounded-xl px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-3" style="background:var(--paper-2);">
   <div>
-    <span class="font-medium">Created</span>
+    <span class="font-medium">{{ _("Created") }}</span>
     <p class="mt-0.5">{{ line.created_at[:19] | replace("T", " ") if line.created_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Version</span>
+    <span class="font-medium">{{ _("Version") }}</span>
     <p class="mt-0.5">{{ line.version }}</p>
   </div>
   <div>
-    <span class="font-medium">Archived</span>
+    <span class="font-medium">{{ _("Archived") }}</span>
     <p class="mt-0.5">{{ line.archived_at[:19] | replace("T", " ") if line.archived_at else "—" }}</p>
   </div>
 </div>
