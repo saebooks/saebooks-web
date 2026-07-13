@@ -3,7 +3,7 @@
 {% import "_components/kebab_menu.html" as km %}
 {% import "_partials/empty_state.html" as empty %}
 
-{% block title %}Journal Templates — SAE Books{% endblock %}
+{% block title %}{{ _("Journal Templates") }} — SAE Books{% endblock %}
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}
@@ -18,7 +18,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Journal Templates</h1>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Journal Templates") }}</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ templates|length }} template{{ "s" if templates|length != 1 else "" }}</p>
     {% endif %}
@@ -27,7 +27,7 @@
     href="/journal-templates/new"
     class="btn-primary text-sm"
   >
-    New template
+    {{ _("New template") }}
   </a>
 </div>
 
@@ -43,13 +43,13 @@
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Lines</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Created</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Lines") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Created") }}</th>
         <th scope="col" class="w-8 px-4 py-3"></th>
       </tr>
     </thead>
@@ -59,7 +59,7 @@
         <tr class="hover:bg-[color:var(--paper-2)]">
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ tmpl.id }}"
-                   aria-label="Select template {{ tmpl.name }}"
+                   aria-label="{{ _('Select template %(name)s') % {'name': tmpl.name} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
           </td>
@@ -72,20 +72,20 @@
           </td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
-              ("apply",  "Apply",  "/journal-templates/" ~ tmpl.id ~ "/apply",  "post", false),
-              ("delete", "Delete", "/journal-templates/" ~ tmpl.id ~ "/delete", "post", true),
+              ("apply",  _("Apply"),  "/journal-templates/" ~ tmpl.id ~ "/apply",  "post", false),
+              ("delete", _("Delete"), "/journal-templates/" ~ tmpl.id ~ "/delete", "post", true),
               ] %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/journal-templates/" ~ tmpl.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/journal-templates/" ~ tmpl.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=tmpl.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(5, "layout-template", "No journal templates yet",
-                     "Save a reusable line layout to speed up recurring entries.",
-                     "New template", "/journal-templates/new") }}
+        {{ empty.row(5, "layout-template", _("No journal templates yet"),
+                     _("Save a reusable line layout to speed up recurring entries."),
+                     _("New template"), "/journal-templates/new") }}
       {% endif %}
     </tbody>
   </table>
@@ -98,7 +98,7 @@
      entity="journal_templates",
      action_endpoint="/journal-templates/bulk",
      actions=[
-       ("delete", "Delete", true),
+       ("delete", _("Delete"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
