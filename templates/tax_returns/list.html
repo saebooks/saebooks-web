@@ -94,7 +94,7 @@
     <button type="submit" class="btn-primary text-sm">{{ _("Generate") }}</button>
   </form>
   <p class="mt-2 text-xs ink-3">
-    {{ _("Only box-vector return types (KMD) can be generated here — the engine has no self-service tax-period picker yet, so pick a period ID already on file above or paste one from elsewhere. TSD returns are produced by the payroll flow and appear in the list below once generated.") }}
+    {{ _("Pick a return type and a period, then generate: KMD is computed from the posted ledger, TSD from the finalized pay runs of that month (an empty month produces a valid nil declaration). Both download as the e-MTA upload file once generated.") }}
   </p>
 </div>
 
@@ -151,7 +151,7 @@
         {% endfor %}
       {% else %}
         {{ empty.row(6, "file-text", _("No tax returns yet"),
-                     _("Generate a KMD above, or one will appear here once payroll produces a TSD.")) }}
+                     _("Generate a KMD or TSD above to get started.")) }}
       {% endif %}
     </tbody>
   </table>
