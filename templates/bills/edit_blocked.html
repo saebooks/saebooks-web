@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Bill — SAE Books{% endblock %}
+{% block title %}{{ _("Cannot Edit Bill") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="mb-5 flex items-center gap-3">
   {% if bill %}
-  <a href="/bills/{{ bill.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← bill</a>
+  <a href="/bills/{{ bill.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("bill") }}</a>
   {% else %}
-  <a href="/bills" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← bills</a>
+  <a href="/bills" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("bills") }}</a>
   {% endif %}
   <span class="ink-4">/</span>
-  <h1 class="font-display text-xl ink-1">Cannot edit bill</h1>
+  <h1 class="font-display text-xl ink-1">{{ _("Cannot edit bill") }}</h1>
 </div>
 
 <div class="card p-5 max-w-xl flex items-start gap-3" style="border-color:var(--warm);">
   <span class="dot mt-1.5" style="background:var(--warm);"></span>
   <div class="text-sm ink-2 flex-1">
-    <p class="font-semibold ink-1 mb-2">This bill is {{ bill.status|capitalize }} and cannot be edited.</p>
-    <p>Void and recreate if changes are needed.</p>
+    <p class="font-semibold ink-1 mb-2">{{ _("This bill is %(status)s and cannot be edited.") % {"status": bill.status|capitalize} }}</p>
+    <p>{{ _("Void and recreate if changes are needed.") }}</p>
   </div>
 </div>
 
