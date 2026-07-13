@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if payment %}Payment {{ payment.reference or payment.number or payment.id }} — SAE Books{% else %}Payment Not Found — SAE Books{% endif %}
+  {% if payment %}{{ _("Payment %(reference)s") % {"reference": payment.reference or payment.number or payment.id} }} — SAE Books{% else %}{{ _("Payment Not Found") }} — SAE Books{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -25,7 +25,7 @@
 {% if payment %}
 
 <div class="mb-4">
-  <a href="/payments" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← payments</a>
+  <a href="/payments" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← {{ _("payments") }}</a>
 </div>
 
 <header class="mb-6 relative">
@@ -33,44 +33,44 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1 flex-wrap">
-        <span class="nav-section-label">Payment</span>
+        <span class="nav-section-label">{{ _("Payment") }}</span>
         <span class="reg-mark"></span>
-        {% if payment.direction == 'INCOMING' %}<span class="badge-paid">Incoming</span>
-        {% elif payment.direction == 'OUTGOING' %}<span class="badge-pending">Outgoing</span>
+        {% if payment.direction == 'INCOMING' %}<span class="badge-paid">{{ _("Incoming") }}</span>
+        {% elif payment.direction == 'OUTGOING' %}<span class="badge-pending">{{ _("Outgoing") }}</span>
         {% else %}<span class="badge-draft">{{ payment.direction|capitalize }}</span>{% endif %}
-        {% if payment.status == 'POSTED' %}<span class="badge-open">Posted</span>
-        {% elif payment.status == 'DRAFT' %}<span class="badge-draft">Draft</span>
-        {% elif payment.status == 'VOIDED' %}<span class="badge-overdue">Voided</span>
+        {% if payment.status == 'POSTED' %}<span class="badge-open">{{ _("Posted") }}</span>
+        {% elif payment.status == 'DRAFT' %}<span class="badge-draft">{{ _("Draft") }}</span>
+        {% elif payment.status == 'VOIDED' %}<span class="badge-overdue">{{ _("Voided") }}</span>
         {% else %}<span class="badge-draft">{{ payment.status|capitalize }}</span>{% endif %}
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight num-display">
         {{ payment.reference or payment.number or "—" }}
       </h1>
-      <p class="text-xs ink-3 font-mono mt-2">contact · <span class="ink-2">{{ payment.contact_id }}</span></p>
+      <p class="text-xs ink-3 font-mono mt-2">{{ _("contact") }} · <span class="ink-2">{{ payment.contact_id }}</span></p>
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
       {% if payment.status == 'DRAFT' or is_feature_enabled('edit_frozen_state') %}
-      <a href="/payments/{{ payment.id }}/edit" class="btn-secondary text-sm">{% if payment.status != 'DRAFT' %}Edit (override){% else %}Edit{% endif %}</a>
+      <a href="/payments/{{ payment.id }}/edit" class="btn-secondary text-sm">{% if payment.status != 'DRAFT' %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
       <form method="post" action="/payments/{{ payment.id }}/post"
-            onsubmit="return confirm('Post this payment? This cannot be undone easily.');" class="inline">
+            onsubmit="return confirm('{{ _('Post this payment? This cannot be undone easily.') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ payment.version }}">
-        <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">Post</button>
+        <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">{{ _("Post") }}</button>
       </form>
       <form method="post" action="/payments/{{ payment.id }}/archive"
-            onsubmit="return confirm('Archive this payment? This cannot be undone.');" class="inline">
+            onsubmit="return confirm('{{ _('Archive this payment? This cannot be undone.') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ payment.version }}">
-        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">Archive</button>
+        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Archive") }}</button>
       </form>
       {% endif %}
       {% if payment.status == 'POSTED' %}
       <form method="post" action="/payments/{{ payment.id }}/void"
-            onsubmit="return confirm('Void this payment?');" class="inline">
+            onsubmit="return confirm('{{ _('Void this payment?') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ payment.version }}">
-        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">Void</button>
+        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
       </form>
       {% endif %}
       {% if is_admin %}
@@ -87,31 +87,31 @@
 
 <section class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-7 hairline">
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Date</p>
+    <p class="nav-section-label mb-1">{{ _("Date") }}</p>
     <p class="num ink-1 text-sm">{{ payment.payment_date }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Amount</p>
+    <p class="nav-section-label mb-1">{{ _("Amount") }}</p>
     <p class="num-display ink-1 text-lg">{{ payment.currency }} {{ num(payment.amount|float, 2) }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Method</p>
+    <p class="nav-section-label mb-1">{{ _("Method") }}</p>
     <p class="ink-1 text-sm font-mono uppercase tracking-wider">{{ payment.method | upper }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Reference</p>
+    <p class="nav-section-label mb-1">{{ _("Reference") }}</p>
     <p class="ink-1 text-sm">{{ payment.reference or "—" }}</p>
   </div>
 </section>
 
 <section class="card overflow-hidden mb-7">
-  <div class="px-6 py-3 hairline-b"><p class="nav-section-label">Allocated against</p></div>
+  <div class="px-6 py-3 hairline-b"><p class="nav-section-label">{{ _("Allocated against") }}</p></div>
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th class="text-left">Type</th>
-        <th class="text-left">Document</th>
-        <th class="text-right">Allocated amount</th>
+        <th class="text-left">{{ _("Type") }}</th>
+        <th class="text-left">{{ _("Document") }}</th>
+        <th class="text-right">{{ _("Allocated amount") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -119,9 +119,9 @@
         {% for alloc in payment.allocations %}
         <tr>
           <td class="ink-2">
-            {% if alloc.invoice_id %}Invoice
-            {% elif alloc.bill_id %}Bill
-            {% elif alloc.credit_note_id %}Credit note
+            {% if alloc.invoice_id %}{{ _("Invoice") }}
+            {% elif alloc.bill_id %}{{ _("Bill") }}
+            {% elif alloc.credit_note_id %}{{ _("Credit note") }}
             {% else %}—{% endif %}
           </td>
           <td>
@@ -135,15 +135,15 @@
           </td>
           <td class="text-right num-display ink-1">{{ payment.currency }} {{ num(alloc.amount|float, 2) }}</td>
           <td class="text-right">
-            <form method="post" action="/payments/{{ payment.id }}/unallocate" class="inline" onsubmit="return confirm('Unmatch this allocation? This will leave a payment-on-account.');">
+            <form method="post" action="/payments/{{ payment.id }}/unallocate" class="inline" onsubmit="return confirm('{{ _('Unmatch this allocation? This will leave a payment-on-account.') }}');">
               <input type="hidden" name="allocation_id" value="{{ alloc.id }}">
-              <button type="submit" class="text-xs ink-3 hover:text-neg">Unmatch</button>
+              <button type="submit" class="text-xs ink-3 hover:text-neg">{{ _("Unmatch") }}</button>
             </form>
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        <tr><td colspan="3" class="text-center ink-3 font-mono text-sm py-6">— no allocations —</td></tr>
+        <tr><td colspan="3" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no allocations —") }}</td></tr>
       {% endif %}
     </tbody>
   </table>
@@ -151,14 +151,14 @@
 
 {% if payment.notes %}
 <section class="mb-7">
-  <p class="nav-section-label mb-2">Notes</p>
+  <p class="nav-section-label mb-2">{{ _("Notes") }}</p>
   <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap leading-relaxed">{{ payment.notes }}</div>
 </section>
 {% endif %}
 
 {# ── Attachments ── #}
 <section class="mb-7">
-  <p class="nav-section-label mb-2">Attachments</p>
+  <p class="nav-section-label mb-2">{{ _("Attachments") }}</p>
   {% include "_partials/attachments.html" with context %}
 </section>
 
