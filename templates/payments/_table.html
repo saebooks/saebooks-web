@@ -14,15 +14,15 @@
     <thead>
       <tr>
         <th class="w-8 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </th>
-        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">Date</th>
-        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">Reference</th>
-        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">Direction</th>
-        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">Contact</th>
-        <th class="text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
+        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Reference") }}</th>
+        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Direction") }}</th>
+        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Contact") }}</th>
+        <th class="text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
         <th class="w-8"></th>
       </tr>
     </thead>
@@ -32,7 +32,7 @@
         <tr class="hover:bg-paper-2" data-status="{{ (payment.status or 'draft')|lower }}">
           <td class="text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ payment.id }}"
-                   aria-label="Select payment {{ payment.reference or payment.id }}"
+                   aria-label="{{ _('Select payment %(reference)s') % {'reference': payment.reference or payment.id} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
           </td>
@@ -41,8 +41,8 @@
             <a href="/payments/{{ payment.id }}" class="sae hover:underline font-medium" onclick="event.stopPropagation()">{{ payment.reference or payment.number or "—" }}</a>
           </td>
           <td class="cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">
-            {% if payment.direction == 'INCOMING' %}<span class="badge-paid">Incoming</span>
-            {% elif payment.direction == 'OUTGOING' %}<span class="badge-pending">Outgoing</span>
+            {% if payment.direction == 'INCOMING' %}<span class="badge-paid">{{ _("Incoming") }}</span>
+            {% elif payment.direction == 'OUTGOING' %}<span class="badge-pending">{{ _("Outgoing") }}</span>
             {% else %}<span class="badge-draft">{{ payment.direction|capitalize }}</span>{% endif %}
           </td>
           <td class="cursor-pointer" onclick="window.location='/payments/{{ payment.id }}'">
@@ -56,17 +56,17 @@
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (payment.status or 'draft')|lower %}
             {%- set actions = [
-              ("view", "View", "/payments/" ~ payment.id,       "link", false),
-              ("edit", "Edit", "/payments/" ~ payment.id ~ "/edit", "link", false),
+              ("view", _("View"), "/payments/" ~ payment.id,       "link", false),
+              ("edit", _("Edit"), "/payments/" ~ payment.id ~ "/edit", "link", false),
             ] %}
             {%- if status_lower == 'draft' %}
-              {%- set _ = actions.append(("post",    "Post",    "/payments/" ~ payment.id ~ "/post",    "post", false)) %}
-              {%- set _ = actions.append(("archive", "Archive", "/payments/" ~ payment.id ~ "/archive", "post", true)) %}
+              {%- set _x = actions.append(("post",    _("Post"),    "/payments/" ~ payment.id ~ "/post",    "post", false)) %}
+              {%- set _x = actions.append(("archive", _("Archive"), "/payments/" ~ payment.id ~ "/archive", "post", true)) %}
             {%- elif status_lower == 'posted' %}
-              {%- set _ = actions.append(("void",    "Void",    "/payments/" ~ payment.id ~ "/void",    "post", true)) %}
+              {%- set _x = actions.append(("void",    _("Void"),    "/payments/" ~ payment.id ~ "/void",    "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/payments/" ~ payment.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/payments/" ~ payment.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=payment.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -75,11 +75,11 @@
       {% else %}
         <tr>
           <td colspan="7" class="text-center ink-3 font-mono text-sm py-10">
-            <p class="mb-2">— no payments found —</p>
+            <p class="mb-2">{{ _("— no payments found —") }}</p>
             {% if not filter_direction and not filter_contact_id and not filter_date_from and not filter_date_to %}
-            <a href="/payments/new" class="sae hover:underline">Record your first payment →</a>
+            <a href="/payments/new" class="sae hover:underline">{{ _("Record your first payment →") }}</a>
             {% else %}
-            <p class="text-xs">Try clearing your filters.</p>
+            <p class="text-xs">{{ _("Try clearing your filters.") }}</p>
             {% endif %}
           </td>
         </tr>

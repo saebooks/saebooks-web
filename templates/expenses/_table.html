@@ -14,24 +14,24 @@
 </div>
 {% elif expenses|length == 0 %}
 <div class="rounded-md border border-[color:var(--line)] bg-[color:var(--paper-2)] px-4 py-8 text-center text-base ink-3">
-  No expenses match.
+  {{ _("No expenses match.") }}
 </div>
 {% else %}
 <table class="min-w-full divide-y divide-[color:var(--line)] text-base">
   <thead class="bg-[color:var(--paper-2)]">
     <tr>
       <th scope="col" class="w-8 px-3 py-2 text-center">
-        <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+        <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
       </th>
-      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('number',       'Number',    sort, direction, filters) }}</th>
-      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('expense_date', 'Date',      sort, direction, filters) }}</th>
-      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('contact_id',   'Supplier',  sort, direction, filters) }}</th>
-      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('reference',    'Reference', sort, direction, filters) }}</th>
-      <th scope="col" class="px-3 py-2 text-right font-medium ink-2">{{ srt.sort_link('total',        'Total',     sort, direction, filters) }}</th>
-      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('status',       'Status',    sort, direction, filters) }}</th>
-      <th scope="col" class="w-8 px-1 py-2 text-center font-medium ink-2" title="Flag for review"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('number',       _('Number'),    sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('expense_date', _('Date'),      sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('contact_id',   _('Supplier'),  sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('reference',    _('Reference'), sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-right font-medium ink-2">{{ srt.sort_link('total',        _('Total'),     sort, direction, filters) }}</th>
+      <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ srt.sort_link('status',       _('Status'),    sort, direction, filters) }}</th>
+      <th scope="col" class="w-8 px-1 py-2 text-center font-medium ink-2" title="{{ _('Flag for review') }}"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
       <th scope="col" class="w-8"></th>
     </tr>
   </thead>
@@ -40,7 +40,7 @@
     <tr data-status="{{ (e.status or 'draft')|lower }}">
       <td class="px-3 py-2 text-center" onclick="event.stopPropagation()">
         <input type="checkbox" data-row-select data-id="{{ e.id }}"
-               aria-label="Select expense {{ e.number or e.id }}"
+               aria-label="{{ _('Select expense %(number)s') % {'number': e.number or e.id} }}"
                onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
       </td>
@@ -56,11 +56,11 @@
       <td class="px-3 py-2 text-right ink-1 font-semibold tabular-nums">{{ money(e.total|float, grouping=False) }}</td>
       <td class="px-3 py-2">
         {% if e.status == "POSTED" %}
-          <span class="badge-paid">Posted</span>
+          <span class="badge-paid">{{ _("Posted") }}</span>
         {% elif e.status == "VOIDED" %}
-          <span class="badge-draft">Voided</span>
+          <span class="badge-draft">{{ _("Voided") }}</span>
         {% else %}
-          <span class="badge-warm">Draft</span>
+          <span class="badge-warm">{{ _("Draft") }}</span>
         {% endif %}
       </td>
       <td class="px-1 py-2 text-center" onclick="event.stopPropagation()">
@@ -71,16 +71,16 @@
       <td class="px-3 py-2 text-right" onclick="event.stopPropagation()">
         {%- set status_lower = (e.status or 'draft')|lower %}
         {%- set actions = [
-          ("view", "View", "/expenses/" ~ e.id, "link", false),
+          ("view", _("View"), "/expenses/" ~ e.id, "link", false),
         ] %}
         {%- if status_lower == 'draft' %}
-          {%- set _ = actions.append(("post",    "Post",    "/expenses/" ~ e.id ~ "/post",    "post", false)) %}
-          {%- set _ = actions.append(("archive", "Archive", "/expenses/" ~ e.id ~ "/archive", "post", true)) %}
+          {%- set _x = actions.append(("post",    _("Post"),    "/expenses/" ~ e.id ~ "/post",    "post", false)) %}
+          {%- set _x = actions.append(("archive", _("Archive"), "/expenses/" ~ e.id ~ "/archive", "post", true)) %}
         {%- elif status_lower == 'posted' %}
-          {%- set _ = actions.append(("void",    "Void",    "/expenses/" ~ e.id ~ "/void",    "post", true)) %}
+          {%- set _x = actions.append(("void",    _("Void"),    "/expenses/" ~ e.id ~ "/void",    "post", true)) %}
         {%- endif %}
         {%- if is_feature_enabled("hard_delete") %}
-        {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/expenses/" ~ e.id ~ "/hard-delete", "post", true)) %}
+        {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/expenses/" ~ e.id ~ "/hard-delete", "post", true)) %}
         {%- endif %}
         {{ km.kebab(row_id=e.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
       </td>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Bills — SAE Books{% endblock %}
+{% block title %}{{ _("Bills") }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -16,18 +16,18 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Payables</span>
+        <span class="nav-section-label">{{ _("Payables") }}</span>
         <span class="reg-mark"></span>
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="receipt" class="w-7 h-7 ink-3" aria-hidden="true"></i>
-        <span>Bills</span>
+        <span>{{ _("Bills") }}</span>
       </h1>
       {% if not error %}
-      <p class="text-xs ink-3 font-mono mt-2">{{ total }} bill{{ "s" if total != 1 else "" }}</p>
+      <p class="text-xs ink-3 font-mono mt-2">{{ ngettext("%(count)s bill", "%(count)s bills", total) % {"count": total} }}</p>
       {% endif %}
     </div>
-    <a href="/bills/new" class="btn-primary text-sm"><i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i><span>New bill</span></a>
+    <a href="/bills/new" class="btn-primary text-sm"><i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("New bill") }}</span></a>
   </div>
   <div class="drafting mt-4"></div>
 </header>
@@ -35,35 +35,35 @@
 <form hx-get="/bills" hx-target="#bills-table" hx-swap="outerHTML" hx-push-url="true"
       class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
   <div>
-    <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Status</label>
+    <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Status") }}</label>
     <select id="status" name="status" class="saebooks-input text-sm py-1.5"
             onchange="this.form.requestSubmit()">
-      <option value=""         {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="draft"    {% if filter_status == "draft" %}selected{% endif %}>Draft</option>
-      <option value="open"     {% if filter_status == "open" %}selected{% endif %}>Open</option>
-      <option value="due-soon" {% if filter_status == "due-soon" %}selected{% endif %}>Due soon</option>
-      <option value="overdue"  {% if filter_status == "overdue" %}selected{% endif %}>Overdue</option>
-      <option value="partial"  {% if filter_status == "partial" %}selected{% endif %}>Partial</option>
-      <option value="paid"     {% if filter_status == "paid" %}selected{% endif %}>Paid</option>
-      <option value="voided"   {% if filter_status == "voided" %}selected{% endif %}>Voided</option>
+      <option value=""         {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="draft"    {% if filter_status == "draft" %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="open"     {% if filter_status == "open" %}selected{% endif %}>{{ _("Open") }}</option>
+      <option value="due-soon" {% if filter_status == "due-soon" %}selected{% endif %}>{{ _("Due soon") }}</option>
+      <option value="overdue"  {% if filter_status == "overdue" %}selected{% endif %}>{{ _("Overdue") }}</option>
+      <option value="partial"  {% if filter_status == "partial" %}selected{% endif %}>{{ _("Partial") }}</option>
+      <option value="paid"     {% if filter_status == "paid" %}selected{% endif %}>{{ _("Paid") }}</option>
+      <option value="voided"   {% if filter_status == "voided" %}selected{% endif %}>{{ _("Voided") }}</option>
     </select>
   </div>
   <div>
-    <label for="date_from" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Date from</label>
+    <label for="date_from" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Date from") }}</label>
     <input type="date" id="date_from" name="date_from" value="{{ filter_date_from }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="date_to" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Date to</label>
+    <label for="date_to" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Date to") }}</label>
     <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Supplier</label>
+    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Supplier") }}</label>
     <input type="text" id="contact_id" name="contact_id" value="{{ filter_contact_id }}" placeholder="optional"
            class="saebooks-input text-sm py-1.5 w-64">
   </div>
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
-  <button type="submit" class="btn-primary text-sm">Filter</button>
+  <button type="submit" class="btn-primary text-sm">{{ _("Filter") }}</button>
 </form>
 
 {% include "bills/_table.html" %}
@@ -74,9 +74,9 @@
      entity="bills",
      action_endpoint="/bills/bulk",
      actions=[
-       ("post",    "Post",    false),
-       ("void",    "Void",    true),
-       ("archive", "Archive", true),
+       ("post",    _("Post"),    false),
+       ("void",    _("Void"),    true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

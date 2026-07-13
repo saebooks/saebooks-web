@@ -1,46 +1,44 @@
 {% extends "base.html" %}
 {% import "_partials/empty_state.html" as empty %}
 
-{% block title %}Email send log — SAE Books{% endblock %}
+{% block title %}{{ _("Email send log") }} — SAE Books{% endblock %}
 
 {% block content %}
 <header class="mb-6 flex items-start justify-between gap-4">
   <div>
     <div class="flex items-center gap-2 mb-1">
-      <span class="nav-section-label">Audit</span>
+      <span class="nav-section-label">{{ _("Audit") }}</span>
     </div>
-    <h1 class="font-display text-2xl leading-none tracking-tight">Email send log</h1>
+    <h1 class="font-display text-2xl leading-none tracking-tight">{{ _("Email send log") }}</h1>
     <p class="text-xs ink-3 font-mono mt-2">
-      Every outbound email attempt — blocked or actual — for this tenant.
-      Tamper-evident: DB-level trigger blocks UPDATE on locked columns + all
-      DELETE. Bytes of each attached PDF stored inline + SHA-256 verified.
+      {{ _("Every outbound email attempt — blocked or actual — for this tenant. Tamper-evident: DB-level trigger blocks UPDATE on locked columns + all DELETE. Bytes of each attached PDF stored inline + SHA-256 verified.") }}
     </p>
   </div>
   <a href="/email-log/export.csv{% if filter_doc_type or filter_status %}?{% endif %}{% if filter_doc_type %}doc_type={{ filter_doc_type }}{% endif %}{% if filter_doc_type and filter_status %}&{% endif %}{% if filter_status %}status={{ filter_status }}{% endif %}"
      class="btn-secondary text-sm whitespace-nowrap">
-    Download CSV
+    {{ _("Download CSV") }}
   </a>
 </header>
 
 {# ─── Filter chips ─── #}
 <div class="card p-3 mb-4 flex flex-wrap items-center gap-2">
-  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Status:</span>
+  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Status:") }}</span>
   {% for s in ['', 'sent', 'queued', 'blocked', 'failed'] %}
     {% set is_active = (filter_status == s) %}
     <a href="/email-log?{% if filter_doc_type %}doc_type={{ filter_doc_type }}&{% endif %}{% if s %}status={{ s }}{% endif %}"
        class="text-xs font-mono px-2 py-1 rounded
               {% if is_active %}sae bg-paper-2 ring-1 ring-line{% else %}ink-2 hover:bg-paper-2{% endif %}">
-      {{ s or 'all' }}
+      {{ s or _('all') }}
     </a>
   {% endfor %}
   <span class="mx-2 ink-4">·</span>
-  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Doc:</span>
+  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Doc:") }}</span>
   {% for d in ['', 'quote', 'invoice', 'bill', 'credit_note', 'remittance', 'letterhead'] %}
     {% set is_active = (filter_doc_type == d) %}
     <a href="/email-log?{% if filter_status %}status={{ filter_status }}&{% endif %}{% if d %}doc_type={{ d }}{% endif %}"
        class="text-xs font-mono px-2 py-1 rounded
               {% if is_active %}sae bg-paper-2 ring-1 ring-line{% else %}ink-2 hover:bg-paper-2{% endif %}">
-      {{ d or 'all' }}
+      {{ d or _('all') }}
     </a>
   {% endfor %}
 </div>
@@ -49,13 +47,13 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th scope="col" class="text-left">Sent at</th>
-        <th scope="col" class="text-left">Doc</th>
-        <th scope="col" class="text-left">From</th>
-        <th scope="col" class="text-left">To</th>
-        <th scope="col" class="text-left">Subject</th>
-        <th scope="col" class="text-left">Status</th>
-        <th scope="col" class="text-left">Reason</th>
+        <th scope="col" class="text-left">{{ _("Sent at") }}</th>
+        <th scope="col" class="text-left">{{ _("Doc") }}</th>
+        <th scope="col" class="text-left">{{ _("From") }}</th>
+        <th scope="col" class="text-left">{{ _("To") }}</th>
+        <th scope="col" class="text-left">{{ _("Subject") }}</th>
+        <th scope="col" class="text-left">{{ _("Status") }}</th>
+        <th scope="col" class="text-left">{{ _("Reason") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -90,8 +88,8 @@
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(7, "inbox", "No send attempts yet",
-                     "Once an email is sent (or blocked), it'll show up here.") }}
+        {{ empty.row(7, "inbox", _("No send attempts yet"),
+                     _("Once an email is sent (or blocked), it'll show up here.")) }}
       {% endif %}
     </tbody>
   </table>
@@ -100,16 +98,16 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm">
   <div class="ink-3 font-mono text-xs">
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-2">
     {% if prev_offset is not none %}
     <a href="/email-log?offset={{ prev_offset }}&limit={{ limit }}{% if filter_doc_type %}&doc_type={{ filter_doc_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
-       class="btn-secondary text-sm py-1.5">← Previous</a>
+       class="btn-secondary text-sm py-1.5">← {{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a href="/email-log?offset={{ next_offset }}&limit={{ limit }}{% if filter_doc_type %}&doc_type={{ filter_doc_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
-       class="btn-secondary text-sm py-1.5">Next →</a>
+       class="btn-secondary text-sm py-1.5">{{ _("Next") }} →</a>
     {% endif %}
   </div>
 </div>

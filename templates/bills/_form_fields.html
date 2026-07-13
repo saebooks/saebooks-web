@@ -10,26 +10,26 @@
 <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
 <fieldset class="space-y-4">
-  <legend class="nav-section-label mb-3">Bill details</legend>
+  <legend class="nav-section-label mb-3">{{ _("Bill details") }}</legend>
 
   {# Supplier — picker OR one-off inline name. Styling matches master's
      saebooks-input chrome; behaviour adds the one-off toggle from feat. #}
   <div data-supplier-picker>
     <div class="flex items-center justify-between mb-1">
       <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block">
-        Supplier <span style="color:var(--neg);">*</span>
+        {{ _("Supplier") }} <span style="color:var(--neg);">*</span>
       </label>
       <label class="inline-flex items-center gap-1.5 text-xs ink-3 cursor-pointer">
         <input type="checkbox" id="one_off_toggle" name="one_off_toggle" value="on"
                {% if form.get("one_off_toggle") in ("on", True, "true", "True") or form.get("one_off_name") %}checked{% endif %}
                class="h-3.5 w-3.5 rounded">
-        One-off supplier
+        {{ _("One-off supplier") }}
       </label>
     </div>
     {# Picker — visible when toggle off #}
     <select id="contact_id" name="contact_id" data-supplier-select class="saebooks-input"
             {% if errors.get('contact_id') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
-      <option value="" {% if not form.get("contact_id") %}selected{% endif %}>Select supplier…</option>
+      <option value="" {% if not form.get("contact_id") %}selected{% endif %}>{{ _("Select supplier…") }}</option>
       {% for contact in contacts %}
       <option value="{{ contact.id }}" {% if form.get("contact_id") == contact.id %}selected{% endif %}>
         {{ contact.name }}
@@ -82,7 +82,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div>
       <label for="number" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Bill number <span class="ink-4 font-normal normal-case">(optional)</span>
+        {{ _("Bill number") }} <span class="ink-4 font-normal normal-case">({{ _("optional") }})</span>
       </label>
       <input type="text" id="number" name="number" value="{{ form.get('number', '') }}"
              placeholder="Auto-assigned if blank" class="saebooks-input"
@@ -92,7 +92,7 @@
 
     <div>
       <label for="issue_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Issue date <span style="color:var(--neg);">*</span>
+        {{ _("Issue date") }} <span style="color:var(--neg);">*</span>
       </label>
       <input type="date" id="issue_date" name="issue_date" value="{{ form.get('issue_date', '') }}"
              required class="saebooks-input num"
@@ -102,7 +102,7 @@
 
     <div>
       <label for="due_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Due date <span style="color:var(--neg);">*</span>
+        {{ _("Due date") }} <span style="color:var(--neg);">*</span>
       </label>
       <input type="date" id="due_date" name="due_date" value="{{ form.get('due_date', '') }}"
              required class="saebooks-input num"
@@ -113,7 +113,7 @@
 
   <div>
     <label for="supplier_reference" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Supplier reference <span class="ink-4 font-normal normal-case">(optional)</span>
+      {{ _("Supplier reference") }} <span class="ink-4 font-normal normal-case">({{ _("optional") }})</span>
     </label>
     <input type="text" id="supplier_reference" name="supplier_reference"
            value="{{ form.get('supplier_reference', '') }}"
@@ -124,7 +124,7 @@
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
-      <label for="currency" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Currency</label>
+      <label for="currency" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Currency") }}</label>
       <select id="currency" name="currency" class="saebooks-input num"
               onchange="document.getElementById('fx-rate-row').style.display = this.value !== 'AUD' ? '' : 'none'"
               {% if errors.get('currency') %}style="border-color:var(--neg);"{% endif %}>
@@ -138,7 +138,7 @@
 
     <div id="fx-rate-row" {% if form.get('currency', 'AUD') | upper == 'AUD' %}style="display:none"{% endif %}>
       <label for="fx_rate" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Exchange rate <span class="ink-4 font-normal normal-case">(1 foreign = ? AUD)</span>
+        {{ _("Exchange rate") }} <span class="ink-4 font-normal normal-case">({{ _("1 foreign = ? AUD") }})</span>
       </label>
       <input type="number" id="fx_rate" name="fx_rate" value="{{ form.get('fx_rate', '') }}"
              placeholder="e.g. 0.0089 for JPY→AUD" step="any" min="0.000001"
@@ -150,7 +150,7 @@
 </fieldset>
 
 <fieldset class="mt-7">
-  <legend class="nav-section-label mb-3">Line items</legend>
+  <legend class="nav-section-label mb-3">{{ _("Line items") }}</legend>
 
   <input type="hidden" id="line-count" value="{{ line_count }}">
 
@@ -158,13 +158,13 @@
     <table class="sae-table line-items-table w-full text-sm">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
-          <th class="text-left">Description</th>
-          <th class="text-right w-24">Qty</th>
-          <th class="text-right w-28">Unit price</th>
-          <th class="text-left w-32">Tax</th>
-          <th class="text-left w-36">Project</th>
-          <th class="text-left w-32">Vehicle / VIN</th>
+          <th class="text-left">{{ _("Account") }}</th>
+          <th class="text-left">{{ _("Description") }}</th>
+          <th class="text-right w-24">{{ _("Qty") }}</th>
+          <th class="text-right w-28">{{ _("Unit price") }}</th>
+          <th class="text-left w-32">{{ _("Tax") }}</th>
+          <th class="text-left w-36">{{ _("Project") }}</th>
+          <th class="text-left w-32">{{ _("Vehicle / VIN") }}</th>
           <th class="w-10"></th>
         </tr>
       </thead>
@@ -185,12 +185,12 @@
           hx-include="#line-count"
           hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
           onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1">
-    + Add line
+    + {{ _("Add line") }}
   </button>
 </fieldset>
 
 <div class="mt-7">
-  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Notes</label>
+  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Notes") }}</label>
   <textarea id="notes" name="notes" rows="3" class="saebooks-input"
             placeholder="Optional notes"
             {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("notes", "") }}</textarea>

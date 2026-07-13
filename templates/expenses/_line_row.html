@@ -9,7 +9,7 @@
   <td class="px-2 py-1">
     <select name="lines[{{ index }}]_account_id" required
       class="saebooks-input w-full px-2 py-1 text-base">
-      <option value="">— expense account —</option>
+      <option value="">{{ _("— expense account —") }}</option>
       {% for a in accounts %}
       <option value="{{ a.id }}" {% if line.account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
       {% endfor %}
@@ -18,7 +18,7 @@
   <td class="px-2 py-1">
     <select name="lines[{{ index }}]_tax_code_id"
       class="saebooks-input w-full px-2 py-1 text-base">
-      <option value="">none</option>
+      <option value="">{{ _("none") }}</option>
       {% for t in tax_codes %}
       <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>
       {% endfor %}
