@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}SQL Tool — Admin — SAE Books{% endblock %}
+{% block title %}{{ _("SQL Tool") }} — {{ _("Admin") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">SQL Tool</h1>
-    <p class="text-sm ink-3 mt-1">Read-only SQL browser — SELECT queries only</p>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("SQL Tool") }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ _("Read-only SQL browser — SELECT queries only") }}</p>
   </div>
 </div>
 
@@ -22,7 +22,7 @@
 
 
     <div class="mb-4">
-      <label for="sql" class="block text-xs font-medium ink-2 mb-1">SQL Query</label>
+      <label for="sql" class="block text-xs font-medium ink-2 mb-1">{{ _("SQL Query") }}</label>
       <textarea
         id="sql"
         name="sql"
@@ -34,11 +34,11 @@
 
     <div class="flex gap-3">
       <button type="submit" class="btn-primary text-sm">
-        Execute
+        {{ _("Execute") }}
       </button>
       <button type="reset"
         class="rounded-md hairline px-4 py-2 text-sm font-medium ink-2 hover:bg-[color:var(--paper-2)]">
-        Clear
+        {{ _("Clear") }}
       </button>
     </div>
   </form>
@@ -52,7 +52,7 @@
 </div>
 
 <div class="mt-4 text-xs ink-3">
-  Only SELECT statements are permitted. Queries are logged in the audit trail.
+  {{ _("Only SELECT statements are permitted. Queries are logged in the audit trail.") }}
 </div>
 
 {% endblock %}

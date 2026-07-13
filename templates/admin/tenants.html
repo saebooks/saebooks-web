@@ -1,16 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Tenant switcher — SAE Books{% endblock %}
+{% block title %}{{ _("Tenant switcher") }} — SAE Books{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl">
   <header class="mb-6">
-    <p class="text-[10px] font-mono uppercase tracking-wider mb-2" style="color:var(--neg);">Developer · Tenant Switcher</p>
-    <h1 class="font-display text-3xl">Active tenant</h1>
+    <p class="text-[10px] font-mono uppercase tracking-wider mb-2" style="color:var(--neg);">{{ _("Developer · Tenant Switcher") }}</p>
+    <h1 class="font-display text-3xl">{{ _("Active tenant") }}</h1>
     <p class="text-base ink-3 mt-2">
-      The active tenant scopes every API query this session makes. Switching
-      sends an <code class="font-mono text-xs">X-Active-Tenant</code> header on
-      every outbound request; clearing reverts to your user's bound tenant.
+      {{ _("The active tenant scopes every API query this session makes. Switching sends an") }} <code class="font-mono text-xs">X-Active-Tenant</code> {{ _("header on every outbound request; clearing reverts to your user's bound tenant.") }}
     </p>
   </header>
 
@@ -24,12 +22,12 @@
   {% if active_override %}
   <div class="card p-3 mb-4 flex items-center justify-between" style="border-color:var(--neg);">
     <div class="text-sm">
-      <p class="font-medium" style="color:var(--neg);">Override active</p>
+      <p class="font-medium" style="color:var(--neg);">{{ _("Override active") }}</p>
       <p class="font-mono text-xs ink-2 mt-1">{{ active_override }}</p>
     </div>
     <form method="POST" action="/admin/tenants/reset">
       {{ csrf_input(request)|safe }}
-      <button type="submit" class="btn btn-secondary text-sm">Clear override</button>
+      <button type="submit" class="btn btn-secondary text-sm">{{ _("Clear override") }}</button>
     </form>
   </div>
   {% endif %}
@@ -38,10 +36,10 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
-          <th scope="col" class="px-4 py-2">Tenant</th>
-          <th scope="col" class="px-4 py-2">Slug</th>
-          <th scope="col" class="px-4 py-2 font-mono">ID</th>
-          <th scope="col" class="px-4 py-2 text-right">Action</th>
+          <th scope="col" class="px-4 py-2">{{ _("Tenant") }}</th>
+          <th scope="col" class="px-4 py-2">{{ _("Slug") }}</th>
+          <th scope="col" class="px-4 py-2 font-mono">{{ _("ID") }}</th>
+          <th scope="col" class="px-4 py-2 text-right">{{ _("Action") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -52,18 +50,18 @@
           <td class="px-4 py-3 font-mono text-xs ink-3">{{ t.id }}</td>
           <td class="px-4 py-3 text-right">
             {% if t.id == active_override %}
-            <span class="chip">Active</span>
+            <span class="chip">{{ _("Active") }}</span>
             {% else %}
             <form method="POST" action="/admin/tenants/switch" class="inline">
               {{ csrf_input(request)|safe }}
               <input type="hidden" name="tenant_id" value="{{ t.id }}">
-              <button type="submit" class="btn btn-secondary text-sm">Switch</button>
+              <button type="submit" class="btn btn-secondary text-sm">{{ _("Switch") }}</button>
             </form>
             {% endif %}
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="4" class="px-4 py-6 text-center ink-3">No tenants visible (admin role required).</td></tr>
+        <tr><td colspan="4" class="px-4 py-6 text-center ink-3">{{ _("No tenants visible (admin role required).") }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
