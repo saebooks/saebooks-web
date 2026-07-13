@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}{{ invoice.number or "Draft" }} — Cashbook — SAE Books{% endblock %}
+{% block title %}{{ invoice.number or _("Draft") }} — {{ _("Cashbook") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="mb-4">
   <a href="/cashbook/invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
-    ← invoices
+    {{ _("← invoices") }}
   </a>
 </div>
 
@@ -23,19 +23,19 @@
     <div class="dot-grid-soft absolute inset-0 -z-10 opacity-40"></div>
     <div class="flex items-center justify-between gap-3 mb-1">
       <div class="flex items-center gap-2">
-        <span class="nav-section-label">Invoice</span>
+        <span class="nav-section-label">{{ _("Invoice") }}</span>
         <span class="reg-mark"></span>
       </div>
       {% if invoice.status|lower == 'voided' %}
-        <span class="badge-overdue">Voided</span>
+        <span class="badge-overdue">{{ _("Voided") }}</span>
       {% elif invoice.status|lower == 'posted' %}
-        <span class="badge-paid">Sent</span>
+        <span class="badge-paid">{{ _("Sent") }}</span>
       {% else %}
-        <span class="badge-draft">Draft</span>
+        <span class="badge-draft">{{ _("Draft") }}</span>
       {% endif %}
     </div>
     <h1 class="font-display text-3xl leading-none tracking-tight num-display">
-      {{ invoice.number or "Draft" }}
+      {{ invoice.number or _("Draft") }}
     </h1>
     <div class="drafting mt-4"></div>
   </header>
@@ -43,21 +43,21 @@
   <div class="card p-6 mb-5">
     <dl class="space-y-3 text-sm">
       <div class="flex items-baseline gap-3 hairline-b pb-2">
-        <dt class="w-28 nav-section-label">Customer</dt>
+        <dt class="w-28 nav-section-label">{{ _("Customer") }}</dt>
         <dd class="ink-1 flex-1">{{ contact.name if contact else (invoice.one_off_customer_name or "—") }}</dd>
       </div>
       {% if contact and contact.email %}
       <div class="flex items-baseline gap-3 hairline-b pb-2">
-        <dt class="w-28 nav-section-label">Email</dt>
+        <dt class="w-28 nav-section-label">{{ _("Email") }}</dt>
         <dd class="ink-1 flex-1 num">{{ contact.email }}</dd>
       </div>
       {% endif %}
       <div class="flex items-baseline gap-3 hairline-b pb-2">
-        <dt class="w-28 nav-section-label">Issued</dt>
+        <dt class="w-28 nav-section-label">{{ _("Issued") }}</dt>
         <dd class="ink-1 num">{{ invoice.issue_date }}</dd>
       </div>
       <div class="flex items-baseline gap-3">
-        <dt class="w-28 nav-section-label">Due</dt>
+        <dt class="w-28 nav-section-label">{{ _("Due") }}</dt>
         <dd class="ink-1 num">{{ invoice.due_date }}</dd>
       </div>
     </dl>
@@ -65,7 +65,7 @@
 
   <div class="card overflow-hidden mb-5">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Lines</p>
+      <p class="nav-section-label">{{ _("Lines") }}</p>
     </div>
     <table class="sae-table w-full">
       <tbody>
@@ -79,17 +79,17 @@
     </table>
     <div class="hairline-t px-6 py-4 space-y-2 text-sm">
       <div class="flex justify-between">
-        <span class="ink-2">Subtotal</span>
+        <span class="ink-2">{{ _("Subtotal") }}</span>
         <span class="num ink-1">${{ "%.2f"|format(invoice.subtotal|float) }}</span>
       </div>
       {% if invoice.gst_total and invoice.gst_total|float > 0 %}
       <div class="flex justify-between">
-        <span class="ink-2">GST</span>
+        <span class="ink-2">{{ _("GST") }}</span>
         <span class="num ink-1">${{ "%.2f"|format(invoice.gst_total|float) }}</span>
       </div>
       {% endif %}
       <div class="flex justify-between hairline-t pt-2">
-        <span class="font-semibold ink-1">Total</span>
+        <span class="font-semibold ink-1">{{ _("Total") }}</span>
         <span class="num-display text-lg ink-1">${{ "%.2f"|format(invoice.total|float) }}</span>
       </div>
     </div>
@@ -100,27 +100,27 @@
     <form method="post" action="/cashbook/invoices/{{ invoice.id }}/send">
       {{ csrf_input(request) | safe }}
       <input type="hidden" name="version" value="{{ invoice.version }}">
-      <button type="submit" class="btn-primary w-full justify-center">Send invoice</button>
+      <button type="submit" class="btn-primary w-full justify-center">{{ _("Send invoice") }}</button>
     </form>
-    <a href="/cashbook/invoices/{{ invoice.id }}/edit" class="btn-secondary w-full justify-center">Edit draft</a>
+    <a href="/cashbook/invoices/{{ invoice.id }}/edit" class="btn-secondary w-full justify-center">{{ _("Edit draft") }}</a>
   </div>
   {% elif invoice.status|lower == 'posted' %}
   <div class="card p-5">
     <form method="post" action="/cashbook/invoices/{{ invoice.id }}/void"
-          onsubmit="return confirm('Void this invoice? An audit record is preserved.');">
+          onsubmit="return confirm('{{ _('Void this invoice? An audit record is preserved.') }}');">
       {{ csrf_input(request) | safe }}
       <input type="hidden" name="version" value="{{ invoice.version }}">
       <button type="submit" class="btn-secondary w-full justify-center" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
-        Void invoice
+        {{ _("Void invoice") }}
       </button>
     </form>
     <p class="text-[11px] ink-3 text-center pt-3 font-mono">
-      Voiding writes a reversal record — audit trail preserved (ATO).
+      {{ _("Voiding writes a reversal record — audit trail preserved (ATO).") }}
     </p>
   </div>
   {% else %}
   <div class="card p-4">
-    <p class="text-sm ink-3">This invoice has been voided. The audit record is preserved.</p>
+    <p class="text-sm ink-3">{{ _("This invoice has been voided. The audit record is preserved.") }}</p>
   </div>
   {% endif %}
 
