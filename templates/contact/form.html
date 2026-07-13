@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Contact — SAE Books{% endblock %}
+{% block title %}{{ _("Contact") }} — SAE Books{% endblock %}
 
 {% block content %}
 <div class="flex min-h-[70vh] items-center justify-center">
   <div class="w-full max-w-lg">
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 px-8 py-10">
 
-      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">Get in touch</h1>
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Get in touch") }}</h1>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        Questions about SAE Books? We'll get back to you as soon as possible.
+        {{ _("Questions about SAE Books? We'll get back to you as soon as possible.") }}
       </p>
 
       {% if error %}
@@ -26,7 +26,7 @@
         {{ csrf_input(request) | safe }}
 
         <div class="mb-4">
-          <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your name</label>
+          <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Your name") }}</label>
           <input id="name" name="name" type="text" required maxlength="120"
                  value="{{ values.name or '' }}"
                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
@@ -36,7 +36,7 @@
         </div>
 
         <div class="mb-4">
-          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email address</label>
+          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Email address") }}</label>
           <input id="email" name="email" type="email" required
                  value="{{ values.email or '' }}"
                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
@@ -46,19 +46,19 @@
         </div>
 
         <div class="mb-4">
-          <label for="topic" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic</label>
+          <label for="topic" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Topic") }}</label>
           <select id="topic" name="topic"
                   class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
                          bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
                          focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent">
-            <option value="general" {% if values.topic == 'general' %}selected{% endif %}>General enquiry</option>
-            <option value="enterprise" {% if values.topic == 'enterprise' %}selected{% endif %}>Enterprise — custom deployment</option>
-            <option value="support" {% if values.topic == 'support' %}selected{% endif %}>Support</option>
+            <option value="general" {% if values.topic == 'general' %}selected{% endif %}>{{ _("General enquiry") }}</option>
+            <option value="enterprise" {% if values.topic == 'enterprise' %}selected{% endif %}>{{ _("Enterprise — custom deployment") }}</option>
+            <option value="support" {% if values.topic == 'support' %}selected{% endif %}>{{ _("Support") }}</option>
           </select>
         </div>
 
         <div class="mb-6">
-          <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+          <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Message") }}</label>
           <textarea id="message" name="message" required minlength="10" maxlength="4000" rows="5"
                     class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
                            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
@@ -71,7 +71,7 @@
                 class="w-full rounded-md bg-[#194291] px-4 py-2 text-sm font-medium
                        text-white hover:bg-[#133372] focus:outline-none focus:ring-2
                        focus:ring-[#194291] focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-          Send message
+          {{ _("Send message") }}
         </button>
       </form>
 
