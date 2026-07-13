@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Edit %(name)s") % {"name": fund.name if fund else _("super fund")} }} — SAE Books{% endblock %}
+{% block title %}{{ _("Edit %(name)s") % {"name": fund.name if fund else _("super fund")} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 

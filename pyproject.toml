@@ -19,6 +19,10 @@ dependencies = [
     "pyjwt[crypto]>=2.9",
     "aiosmtplib>=3.0",
     "babel>=2.14",
+    # Direct dependency for eID (Smart-ID / Mobiil-ID) certificate-chain
+    # and signature validation (previously only transitive via pyjwt[crypto]).
+    # >=42 for x509 verification helpers incl. verify_directly_issued_by.
+    "cryptography>=42",
 ]
 
 [project.optional-dependencies]

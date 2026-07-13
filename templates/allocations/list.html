@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "_icons.html" as icons %}
 
-{% block title %}Allocation Rules — SAE Books{% endblock %}
+{% block title %}Allocation Rules — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}

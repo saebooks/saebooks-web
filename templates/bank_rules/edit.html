@@ -1,18 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Bank Rule — SAE Books{% endblock %}
+{% block title %}{{ _("Edit Bank Rule") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">Edit Bank Rule</h1>
-  <a href="/bank-rules" class="text-sm sae hover:underline">← Back to rules</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Edit Bank Rule") }}</h1>
+  <a href="/bank-rules" class="text-sm sae hover:underline">{{ _("← Back to rules") }}</a>
 </div>
 
 {% if conflict %}
 <div class="card px-4 py-3 text-sm ink-2 mb-6" style="border-color:var(--warm);">
-  This record was modified by another user while you were editing. Your changes have been
-  preserved but the version has been updated to the latest. Please review and save again.
+  {{ _("This record was modified by another user while you were editing. Your changes have been preserved but the version has been updated to the latest. Please review and save again.") }}
 </div>
 {% endif %}
 
@@ -35,7 +34,7 @@
 
       <div>
         <label for="name" class="block text-sm font-medium ink-2 mb-1">
-          Name <span style="color:var(--neg)">*</span>
+          {{ _("Name") }} <span style="color:var(--neg)">*</span>
         </label>
         <input
           type="text"
@@ -52,13 +51,13 @@
       </div>
 
       <fieldset class="hairline border rounded-md px-4 py-3">
-        <legend class="text-xs font-semibold ink-3 uppercase tracking-wide px-1">Match criteria</legend>
+        <legend class="text-xs font-semibold ink-3 uppercase tracking-wide px-1">{{ _("Match criteria") }}</legend>
 
         <div class="space-y-3 mt-2">
 
           <div>
             <label for="match_field" class="block text-sm font-medium ink-2 mb-1">
-              Match field <span style="color:var(--neg)">*</span>
+              {{ _("Match field") }} <span style="color:var(--neg)">*</span>
             </label>
             <select
               id="match_field"
@@ -66,7 +65,7 @@
               {% if errors.get('match_field') %}style="border-color:var(--neg)"{% endif %}
               class="saebooks-input w-full"
             >
-              <option value="">— select —</option>
+              <option value="">{{ _("— select —") }}</option>
               {% for val in ["narration", "description", "reference", "amount", "payee"] %}
               <option value="{{ val }}" {% if form.get('match_field') == val %}selected{% endif %}>{{ val }}</option>
               {% endfor %}
@@ -78,7 +77,7 @@
 
           <div>
             <label for="match_operator" class="block text-sm font-medium ink-2 mb-1">
-              Operator <span style="color:var(--neg)">*</span>
+              {{ _("Operator") }} <span style="color:var(--neg)">*</span>
             </label>
             <select
               id="match_operator"
@@ -86,7 +85,7 @@
               {% if errors.get('match_operator') %}style="border-color:var(--neg)"{% endif %}
               class="saebooks-input w-full"
             >
-              <option value="">— select —</option>
+              <option value="">{{ _("— select —") }}</option>
               {% for val in ["contains", "equals", "starts_with", "ends_with", "regex"] %}
               <option value="{{ val }}" {% if form.get('match_operator') == val %}selected{% endif %}>{{ val }}</option>
               {% endfor %}
@@ -98,7 +97,7 @@
 
           <div>
             <label for="match_value" class="block text-sm font-medium ink-2 mb-1">
-              Match value <span style="color:var(--neg)">*</span>
+              {{ _("Match value") }} <span style="color:var(--neg)">*</span>
             </label>
             <input
               type="text"
@@ -118,13 +117,13 @@
       </fieldset>
 
       <fieldset class="hairline border rounded-md px-4 py-3">
-        <legend class="text-xs font-semibold ink-3 uppercase tracking-wide px-1">Action</legend>
+        <legend class="text-xs font-semibold ink-3 uppercase tracking-wide px-1">{{ _("Action") }}</legend>
 
         <div class="space-y-3 mt-2">
 
           <div>
             <label for="action_account_id" class="block text-sm font-medium ink-2 mb-1">
-              Account ID <span style="color:var(--neg)">*</span>
+              {{ _("Account ID") }} <span style="color:var(--neg)">*</span>
             </label>
             <input
               type="text"
@@ -142,7 +141,7 @@
 
           <div>
             <label for="action_tax_code_id" class="block text-sm font-medium ink-2 mb-1">
-              Tax code ID <span class="ink-3 font-normal">(optional)</span>
+              {{ _("Tax code ID") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
             </label>
             <input
               type="text"
@@ -162,7 +161,7 @@
 
       <div>
         <label for="priority" class="block text-sm font-medium ink-2 mb-1">
-          Priority <span class="ink-3 font-normal">(lower runs first)</span>
+          {{ _("Priority") }} <span class="ink-3 font-normal">{{ _("(lower runs first)") }}</span>
         </label>
         <input
           type="number"
@@ -184,19 +183,19 @@
         type="submit"
         class="btn-primary text-sm"
       >
-        Save rule
+        {{ _("Save rule") }}
       </button>
       <a
         href="/bank-rules"
         class="btn-secondary text-sm"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 
   </form>
   {% else %}
-  <p class="text-sm" style="color:var(--neg)">{{ errors.get("__all__", "Bank rule not found.") }}</p>
+  <p class="text-sm" style="color:var(--neg)">{{ errors.get("__all__") or _("Bank rule not found.") }}</p>
   {% endif %}
 </div>
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Suggest Match — SAE Books{% endblock %}
+{% block title %}{{ _("Suggest Match") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -14,8 +14,8 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Suggested Matches</h1>
-    <p class="text-sm ink-3 mt-1">BSL: <span class="font-mono">{{ bsl_id }}</span></p>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Suggested Matches") }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ _("BSL:") }} <span class="font-mono">{{ bsl_id }}</span></p>
   </div>
   <a
     href="{% if account_id %}/reconciliation/{{ account_id }}/lines{% else %}/reconciliation{% endif %}"
@@ -23,7 +23,7 @@
            hover:bg-[color:var(--paper-2)] focus:outline-none focus:ring-2 focus:ring-offset-2"
     style="--tw-ring-color:var(--sae);"
   >
-    Back to Reconciliation
+    {{ _("Back to Reconciliation") }}
   </a>
 </div>
 
@@ -38,10 +38,10 @@
   <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Date</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Ref</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Ref") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th scope="col" class="px-4 py-3"></th>
       </tr>
     </thead>
@@ -68,7 +68,7 @@
                 type="submit"
                 class="btn-primary text-xs"
               >
-                Match
+                {{ _("Match") }}
               </button>
             </form>
           </td>
@@ -77,9 +77,9 @@
       {% else %}
         <tr>
           <td colspan="5" class="px-4 py-8 text-center ink-3">
-            No suggestions found for this transaction.
+            {{ _("No suggestions found for this transaction.") }}
             <a href="{% if account_id %}/reconciliation/{{ account_id }}/lines{% else %}/reconciliation{% endif %}"
-               class="sae hover:underline ml-1">Back to reconciliation.</a>
+               class="sae hover:underline ml-1">{{ _("Back to reconciliation.") }}</a>
           </td>
         </tr>
       {% endif %}

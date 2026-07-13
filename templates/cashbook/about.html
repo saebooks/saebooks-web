@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}About Cashbook — SAE Books{% endblock %}
+{% block title %}{{ _("About Cashbook") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-4">
-  <a href="/cashbook" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← cashbook</a>
+  <a href="/cashbook" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← cashbook") }}</a>
 </div>
 
 <div class="max-w-2xl">
@@ -13,66 +13,58 @@
   <header class="mb-6 relative">
     <div class="dot-grid-soft absolute inset-0 -z-10 opacity-50"></div>
     <div class="flex items-center gap-2 mb-1">
-      <span class="nav-section-label">About</span>
+      <span class="nav-section-label">{{ _("About") }}</span>
       <span class="reg-mark"></span>
     </div>
     <h1 class="font-display text-3xl leading-none tracking-tight">
-      About Cashbook
+      {{ _("About Cashbook") }}
     </h1>
-    <p class="mt-2 text-sm ink-3">A short orientation for first-time visitors.</p>
+    <p class="mt-2 text-sm ink-3">{{ _("A short orientation for first-time visitors.") }}</p>
     <div class="drafting mt-4"></div>
   </header>
 
   <div class="card p-6 space-y-5 ink-2 leading-relaxed">
 
     <p>
-      <strong class="ink-1">Cashbook</strong> is the simplest way to keep books for a sole trader
-      or micro-business. You log money in, money out, and what category each transaction
-      belongs to. That's it.
+      {{ (_("%(cashbook)s is the simplest way to keep books for a sole trader or micro-business. You log money in, money out, and what category each transaction belongs to. That's it.") % {"cashbook": '<strong class="ink-1">' ~ _("Cashbook") ~ '</strong>'}) | safe }}
     </p>
 
     <p>
-      It's free. There's no signup funnel, no usage limit, no upsell pop-up. The free
-      Community edition of <a href="https://saebooks.com.au" class="sae hover:underline">SAE Books</a>
-      runs Cashbook out of the box, and your data lives on your own server (or on the
-      demo server, if this is the public demo).
+      {{ (_("It's free. There's no signup funnel, no usage limit, no upsell pop-up. The free Community edition of %(link)s runs Cashbook out of the box, and your data lives on your own server (or on the demo server, if this is the public demo).") % {"link": '<a href="https://saebooks.com.au" class="sae hover:underline">{{ current_brand().name }}</a>'}) | safe }}
     </p>
 
     <div class="hairline-t pt-5">
-      <p class="nav-section-label mb-3">What you can do here</p>
+      <p class="nav-section-label mb-3">{{ _("What you can do here") }}</p>
       <ul class="space-y-2 ink-2">
-        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>Record cash-in and cash-out from a single screen.</li>
-        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>Issue invoices and send them as PDFs.</li>
-        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>Send quotes and convert accepted ones into invoices.</li>
-        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>See running totals — Cash in, Cash out, Net — for the current month.</li>
-        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>Export everything to CSV for your accountant.</li>
+        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>{{ _("Record cash-in and cash-out from a single screen.") }}</li>
+        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>{{ _("Issue invoices and send them as PDFs.") }}</li>
+        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>{{ _("Send quotes and convert accepted ones into invoices.") }}</li>
+        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>{{ _("See running totals — Cash in, Cash out, Net — for the current month.") }}</li>
+        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--sae);"></span>{{ _("Export everything to CSV for your accountant.") }}</li>
       </ul>
     </div>
 
     <div class="hairline-t pt-5">
-      <p class="nav-section-label mb-3">What's <em>not</em> here, intentionally</p>
+      <p class="nav-section-label mb-3">{{ _("What's") }} <em>{{ _("not") }}</em> {{ _("here, intentionally") }}</p>
       <ul class="space-y-2 ink-2">
-        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--warm);"></span>No bank feeds. (Coming with the Business edition.)</li>
-        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--warm);"></span>No BAS or PAYG lodgement. (Coming with the Pro edition.)</li>
-        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--warm);"></span>No bills/AP, no payroll, no double-entry journals you have to think about.</li>
+        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--warm);"></span>{{ _("No bank feeds. (Coming with the Business edition.)") }}</li>
+        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--warm);"></span>{{ _("No BAS or PAYG lodgement. (Coming with the Pro edition.)") }}</li>
+        <li class="flex items-start gap-2"><span class="dot mt-1.5" style="background:var(--warm);"></span>{{ _("No bills/AP, no payroll, no double-entry journals you have to think about.") }}</li>
       </ul>
     </div>
 
     <div class="hairline-t pt-5">
       <p>
-        The ATO requires that issued invoices stay in the audit trail. So Cashbook
-        doesn't have a "delete" button for sent invoices — only <strong class="ink-1">Void</strong>,
-        which writes a reversal record. If you've never thought about that distinction,
-        that's exactly the point: the right thing to do is the only button you'll see.
+        {{ (_('The ATO requires that issued invoices stay in the audit trail. So Cashbook doesn\'t have a "delete" button for sent invoices — only %(void)s, which writes a reversal record. If you\'ve never thought about that distinction, that\'s exactly the point: the right thing to do is the only button you\'ll see.') % {"void": '<strong class="ink-1">' ~ _("Void") ~ '</strong>'}) | safe }}
       </p>
     </div>
 
     <div class="mt-7 hairline-t pt-5">
-      <p class="nav-section-label mb-3">More</p>
+      <p class="nav-section-label mb-3">{{ _("More") }}</p>
       <ul class="space-y-2 text-sm">
-        <li><a href="https://saebooks.com.au/cashbook" target="_blank" rel="noopener" class="sae hover:underline">Full Cashbook pitch →</a></li>
-        <li><a href="https://saebooks.com.au/#editions" target="_blank" rel="noopener" class="sae hover:underline">Editions and pricing →</a></li>
-        <li><a href="https://github.com/sae-engineering" target="_blank" rel="noopener" class="sae hover:underline">SAE Books on GitHub →</a></li>
+        <li><a href="https://saebooks.com.au/cashbook" target="_blank" rel="noopener" class="sae hover:underline">{{ _("Full Cashbook pitch →") }}</a></li>
+        <li><a href="https://saebooks.com.au/#editions" target="_blank" rel="noopener" class="sae hover:underline">{{ _("Editions and pricing →") }}</a></li>
+        <li><a href="https://github.com/sae-engineering" target="_blank" rel="noopener" class="sae hover:underline">{{ _("%(brand)s on GitHub →") % {"brand": current_brand().name} }}</a></li>
       </ul>
     </div>
 

@@ -24,10 +24,14 @@ import os
 _EDITION_FLAGS: dict[str, frozenset[str]] = {
     "community":  frozenset(),
     "offline":    frozenset(),
-    "business":   frozenset(),
-    "pro":        frozenset(),
-    "enterprise": frozenset(),
-    "developer":  frozenset({"hard_delete", "dev_tools"}),
+    # eid_auth — Estonian eID login (Smart-ID / Mobiil-ID). Paid tiers
+    # only: SK ID Solutions bills production authentications per
+    # transaction, so the free/community tier never renders or routes it.
+    # Engine-side parity flag (FLAG_EID_AUTH) is engine-lane work.
+    "business":   frozenset({"eid_auth"}),
+    "pro":        frozenset({"eid_auth"}),
+    "enterprise": frozenset({"eid_auth"}),
+    "developer":  frozenset({"hard_delete", "dev_tools", "eid_auth"}),
 }
 
 

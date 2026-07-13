@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Reconciliation — SAE Books{% endblock %}
+{% block title %}{{ _("Reconciliation") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,8 +13,8 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-2xl">Bank Reconciliation</h1>
-    <p class="text-sm ink-3 mt-1">Select an account to reconcile</p>
+    <h1 class="font-display text-2xl">{{ _("Bank Reconciliation") }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ _("Select an account to reconcile") }}</p>
   </div>
 </div>
 
@@ -28,8 +28,8 @@
   <table class="min-w-full divide-y divide-gray-200 text-sm">
     <thead class="bg-gray-50">
       <tr>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account Name</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Code") }}</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account Name") }}</th>
         <th class="px-4 py-3"></th>
       </tr>
     </thead>
@@ -43,14 +43,14 @@
             <a
               href="/reconciliation/{{ account.id }}/lines"
               class="text-xs font-medium text-[#194291] hover:underline"
-            >Reconcile</a>
+            >{{ _("Reconcile") }}</a>
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
           <td colspan="3" class="px-4 py-8 text-center text-gray-400">
-            No reconcilable accounts found. Enable reconciliation on a bank or cash account.
+            {{ _("No reconcilable accounts found. Enable reconciliation on a bank or cash account.") }}
           </td>
         </tr>
       {% endif %}

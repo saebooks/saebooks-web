@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if contact %}{{ contact.name }} — SAE Books{% else %}{{ _("Contact Not Found") }} — SAE Books{% endif %}
+  {% if contact %}{{ contact.name }} — {{ current_brand().name }}{% else %}{{ _("Contact Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

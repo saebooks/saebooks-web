@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if contact %}{{ _("Edit %(name)s") % {"name": contact.name} }} — SAE Books{% else %}{{ _("Edit Contact") }} — SAE Books{% endif %}
+  {% if contact %}{{ _("Edit %(name)s") % {"name": contact.name} }} — {{ current_brand().name }}{% else %}{{ _("Edit Contact") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

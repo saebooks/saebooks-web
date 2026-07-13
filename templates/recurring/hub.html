@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Recurring transactions") }} — SAE Books{% endblock %}
+{% block title %}{{ _("Recurring transactions") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <header class="mb-8">
@@ -148,7 +148,7 @@
     <div>
       <p class="text-sm font-semibold" style="color: var(--warm);">{{ _("Recurring bills + expenses — coming soon") }}</p>
       <p class="text-xs ink-3 mt-1 max-w-xl">
-        {{ _("SAE Books currently supports recurring invoices and journal templates. Recurring bills (e.g. monthly rent, weekly contractor invoices) and recurring expenses (subscriptions, regular cash purchases) will land in a future release — they need the same scheduler that drives recurring invoices, applied to the bill / expense templates.") }}
+        {{ _("%(brand)s currently supports recurring invoices and journal templates. Recurring bills (e.g. monthly rent, weekly contractor invoices) and recurring expenses (subscriptions, regular cash purchases) will land in a future release — they need the same scheduler that drives recurring invoices, applied to the bill / expense templates.") % {"brand": current_brand().name} }}
       </p>
     </div>
   </div>

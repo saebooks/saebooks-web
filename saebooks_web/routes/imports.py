@@ -19,7 +19,7 @@ between steps.  No raw file bytes are stored in the session — only the
 wizard_id; the file content lives in the wizard_state JSONB in Postgres.
 
 Auth guard: redirect to /login (303) if no session token.
-Admin guard: role == "admin" or is_sae_staff required for imports.
+Admin guard: role in ("owner", "admin") or is_sae_staff required for imports.
 
 API endpoints consumed:
     POST /api/v1/imports/wizards              → start wizard
@@ -61,7 +61,7 @@ def _require_auth(request: Request) -> str | None:
 def _require_admin(request: Request) -> bool:
     role = request.session.get("user_role", "")
     is_staff = bool(request.session.get("is_sae_staff"))
-    return is_staff or role == "admin"
+    return is_staff or role in ("owner", "admin")
 
 
 def _auth_redirect(request: Request) -> RedirectResponse | None:

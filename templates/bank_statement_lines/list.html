@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Bank Statement Lines — SAE Books{% endblock %}
+{% block title %}{{ _("Bank Statement Lines") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -12,9 +12,9 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Bank Statement Lines</h1>
+    <h1 class="text-2xl font-semibold text-gray-900">{{ _("Bank Statement Lines") }}</h1>
     {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ total }} line{{ "s" if total != 1 else "" }}</p>
+    <p class="text-sm text-gray-500 mt-1">{{ ngettext("%(n)s line", "%(n)s lines", total) % {"n": total} }}</p>
     {% endif %}
   </div>
 </div>
@@ -28,28 +28,28 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Status") }}</label>
     <select
       id="status"
       name="status"
       class="saebooks-input"
     >
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="UNMATCHED" {% if filter_status == 'UNMATCHED' %}selected{% endif %}>Unmatched</option>
-      <option value="MATCHED" {% if filter_status == 'MATCHED' %}selected{% endif %}>Matched</option>
-      <option value="IGNORED" {% if filter_status == 'IGNORED' %}selected{% endif %}>Ignored</option>
-      <option value="RECONCILED" {% if filter_status == 'RECONCILED' %}selected{% endif %}>Reconciled</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="UNMATCHED" {% if filter_status == 'UNMATCHED' %}selected{% endif %}>{{ _("Unmatched") }}</option>
+      <option value="MATCHED" {% if filter_status == 'MATCHED' %}selected{% endif %}>{{ _("Matched") }}</option>
+      <option value="IGNORED" {% if filter_status == 'IGNORED' %}selected{% endif %}>{{ _("Ignored") }}</option>
+      <option value="RECONCILED" {% if filter_status == 'RECONCILED' %}selected{% endif %}>{{ _("Reconciled") }}</option>
     </select>
   </div>
 
   <div>
-    <label for="bank_account_id" class="block text-xs font-medium ink-3 mb-1">Bank Account</label>
+    <label for="bank_account_id" class="block text-xs font-medium ink-3 mb-1">{{ _("Bank Account") }}</label>
     <input
       id="bank_account_id"
       type="text"
       name="bank_account_id"
       value="{{ filter_bank_account_id }}"
-      placeholder="Search or ID"
+      placeholder="{{ _('Search or ID') }}"
       class="saebooks-input w-72"
     >
   </div>
@@ -61,7 +61,7 @@
     type="submit"
     class="btn-primary !py-1.5 !px-4 text-sm"
   >
-    Filter
+    {{ _("Filter") }}
   </button>
 </form>
 
@@ -75,7 +75,7 @@
      entity="bank_statement_lines",
      action_endpoint="/bank-statement-lines/bulk",
      actions=[
-       ("unmatch", "Unmatch", true),
+       ("unmatch", _("Unmatch"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

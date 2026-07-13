@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if account %}{{ account.code }} — Bank Account — SAE Books{% else %}Bank Account Not Found — SAE Books{% endif %}
+  {% if account %}{{ account.code }} — {{ _("Bank Account") }} — {{ current_brand().name }}{% else %}{{ _("Bank Account Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -28,7 +28,7 @@
     <h1 class="text-2xl font-semibold ink-1">
       {{ account.code }} — {{ account.name }}
     </h1>
-    <p class="text-sm ink-3 mt-1">ID: {{ account.id }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("ID:") }} {{ account.id }}</p>
   </div>
   <div class="flex items-center gap-3">
     {% if not account.archived_at %}
@@ -36,7 +36,7 @@
       href="/bank-accounts/{{ account.id }}/edit"
       class="btn-secondary text-sm"
     >
-      Edit
+      {{ _("Edit") }}
     </a>
     <form method="POST" action="/bank-accounts/{{ account.id }}/archive" class="inline">
     {{ csrf_input(request)|safe }}
@@ -44,74 +44,74 @@
       <input type="hidden" name="version" value="{{ account.version }}">
       <button
         type="submit"
-        onclick="return confirm('Archive this bank account?')"
+        onclick="return confirm('{{ _('Archive this bank account?') }}')"
         class="btn-secondary text-sm"
         style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
-        Archive
+        {{ _("Archive") }}
       </button>
     </form>
     {% endif %}
-    <a href="/bank-accounts" class="text-sm sae hover:underline">← Back to bank accounts</a>
+    <a href="/bank-accounts" class="text-sm sae hover:underline">{{ _("← Back to bank accounts") }}</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-8">
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">BSB</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("BSB") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 font-mono">{{ account.bsb or "—" }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Account number</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Account number") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 font-mono">{{ account.bank_account_number or "—" }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Bank</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Bank") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ account.bank_abbreviation or "—" }}</p>
   </div>
 </div>
 
 {# ── Account details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Account details</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Account details") }}</h2>
   <div class="card rounded-xl overflow-x-auto">
     <table class="min-w-full text-sm">
       <tbody class="divide-[color:var(--line)] divide-y">
         <tr>
-          <td class="px-4 py-3 font-medium ink-3 w-48">Code</td>
+          <td class="px-4 py-3 font-medium ink-3 w-48">{{ _("Code") }}</td>
           <td class="px-4 py-3 ink-1">{{ account.code }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Name</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Name") }}</td>
           <td class="px-4 py-3 ink-1">{{ account.name }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">BSB</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("BSB") }}</td>
           <td class="px-4 py-3 ink-1 font-mono text-xs">{{ account.bsb or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Account number</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Account number") }}</td>
           <td class="px-4 py-3 ink-1 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Account title</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Account title") }}</td>
           <td class="px-4 py-3 ink-1">{{ account.bank_account_title or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Bank abbreviation</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Bank abbreviation") }}</td>
           <td class="px-4 py-3 ink-1">{{ account.bank_abbreviation or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">APCA user ID</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("APCA user ID") }}</td>
           <td class="px-4 py-3 ink-1 font-mono text-xs">{{ account.apca_user_id or "—" }}</td>
         </tr>
         <tr>
-          <td class="px-4 py-3 font-medium ink-3">Trust account</td>
+          <td class="px-4 py-3 font-medium ink-3">{{ _("Trust account") }}</td>
           <td class="px-4 py-3">
             {% if account.is_trust_account %}
             <span class="badge-warm">
-              Trust
+              {{ _("Trust") }}
             </span>
             {% else %}
             <span class="ink-3 text-sm">—</span>
@@ -127,26 +127,26 @@
 <div class="mb-8">
   <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
     <h2 class="text-base font-semibold ink-1">
-      Transactions
+      {{ _("Transactions") }}
       {% if lines_total %}
-      <span class="ml-2 text-xs font-normal ink-3">{{ lines_total }} line{{ "s" if lines_total != 1 else "" }}</span>
+      <span class="ml-2 text-xs font-normal ink-3">{{ ngettext("%(n)s line", "%(n)s lines", lines_total) % {"n": lines_total} }}</span>
       {% endif %}
     </h2>
 
     {# Status filter — submits as GET so the URL is shareable. #}
     <form method="get" action="/bank-accounts/{{ account.id }}" class="flex flex-wrap items-end gap-2 text-sm">
-      <label for="status" class="sr-only">Status</label>
+      <label for="status" class="sr-only">{{ _("Status") }}</label>
       <select
         id="status"
         name="status"
         onchange="this.form.submit()"
         class="saebooks-input text-sm"
       >
-        <option value=""           {% if not filter_status %}selected{% endif %}>All statuses</option>
-        <option value="UNMATCHED"  {% if filter_status == 'UNMATCHED'  %}selected{% endif %}>Unmatched</option>
-        <option value="MATCHED"    {% if filter_status == 'MATCHED'    %}selected{% endif %}>Matched</option>
-        <option value="RECONCILED" {% if filter_status == 'RECONCILED' %}selected{% endif %}>Reconciled</option>
-        <option value="IGNORED"    {% if filter_status == 'IGNORED'    %}selected{% endif %}>Ignored</option>
+        <option value=""           {% if not filter_status %}selected{% endif %}>{{ _("All statuses") }}</option>
+        <option value="UNMATCHED"  {% if filter_status == 'UNMATCHED'  %}selected{% endif %}>{{ _("Unmatched") }}</option>
+        <option value="MATCHED"    {% if filter_status == 'MATCHED'    %}selected{% endif %}>{{ _("Matched") }}</option>
+        <option value="RECONCILED" {% if filter_status == 'RECONCILED' %}selected{% endif %}>{{ _("Reconciled") }}</option>
+        <option value="IGNORED"    {% if filter_status == 'IGNORED'    %}selected{% endif %}>{{ _("Ignored") }}</option>
       </select>
       <input type="hidden" name="limit" value="{{ limit }}">
       <input type="hidden" name="offset" value="0">
@@ -167,12 +167,12 @@
         <tr>
           {%- import "_sort_macros.html" as srt -%}
           {%- set _filters = {"status": filter_status} if filter_status else {} -%}
-          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("date",        "Date",        sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("description", "Description", sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("reference",   "Ref",         sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("amount",      "Amount",      sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("balance",     "Balance",     sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("status",      "Status",      sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("date",        _("Date"),        sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("description", _("Description"), sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("reference",   _("Ref"),         sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("amount",      _("Amount"),      sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("balance",     _("Balance"),     sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("status",      _("Status"),      sort, direction, _filters, fragment="transactions") }}</th>
         </tr>
       </thead>
       <tbody class="divide-[color:var(--line)] divide-y">
@@ -209,10 +209,10 @@
   {% elif not lines_error %}
   <div class="card rounded-xl px-4 py-8 text-center">
     <p class="text-sm ink-3">
-      {% if filter_status %}No {{ filter_status|lower }} transactions for this account.{% else %}No transactions for this account yet.{% endif %}
+      {% if filter_status %}{{ _("No %(status)s transactions for this account.") % {"status": filter_status|lower} }}{% else %}{{ _("No transactions for this account yet.") }}{% endif %}
     </p>
     <p class="text-xs ink-3 mt-1">
-      Import a bank statement or connect a feed to see transactions here.
+      {{ _("Import a bank statement or connect a feed to see transactions here.") }}
     </p>
   </div>
   {% endif %}
@@ -221,15 +221,15 @@
 {# ── Metadata footer ── #}
 <div class="card rounded-xl px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-3" style="background:var(--paper-2);">
   <div>
-    <span class="font-medium">Created</span>
+    <span class="font-medium">{{ _("Created") }}</span>
     <p class="mt-0.5">{{ account.created_at[:19] | replace("T", " ") if account.created_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Version</span>
+    <span class="font-medium">{{ _("Version") }}</span>
     <p class="mt-0.5">{{ account.version }}</p>
   </div>
   <div>
-    <span class="font-medium">Archived</span>
+    <span class="font-medium">{{ _("Archived") }}</span>
     <p class="mt-0.5">{{ account.archived_at[:19] | replace("T", " ") if account.archived_at else "—" }}</p>
   </div>
 </div>

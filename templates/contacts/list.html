@@ -4,7 +4,7 @@
 {% import "_icons.html" as icons %}
 {% import "_components/kebab_menu.html" as km %}
 
-{% block title %}{{ _("Contacts") }} — SAE Books{% endblock %}
+{% block title %}{{ _("Contacts") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}

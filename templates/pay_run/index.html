@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Pay Run") }} — SAE Books{% endblock %}
+{% block title %}{{ _("Pay Run") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -29,7 +29,7 @@
       <p class="font-semibold mb-1">{{ _("This page exports creditor bill payments only (ABA format).") }}</p>
       <p class="mb-2">
         {{ _("Wage calculation — including Hospitality Industry Award penalty rates (Saturday 125%, Sunday 150%, Public Holiday 225%) — is") }}
-        <strong>{{ _("not automated") }}</strong> {{ _("in SAE Books v1. Wages must be calculated externally and posted as journal entries.") }}
+        <strong>{{ _("not automated") }}</strong> {{ _("in %(brand)s v1. Wages must be calculated externally and posted as journal entries.") % {"brand": current_brand().name} }}
       </p>
       <p class="font-medium">{{ _("Recommended workflow for casual/award staff:") }}</p>
       <ol class="list-decimal list-inside mt-1 space-y-0.5 text-amber-700">
@@ -37,7 +37,7 @@
         <li>{{ _("Deduct PAYG withholding and superannuation per your payroll run.") }}</li>
         <li>{{ _("Post the net wages, PAYG, and super as a") }}
             <a href="/journal-entries/new" class="underline hover:text-amber-900">{{ _("journal entry") }}</a>
-            {{ _("in SAE Books (Dr Wages Expense / Cr Bank / Cr PAYG Payable / Cr Super Payable).") }}</li>
+            {{ _("in %(brand)s (Dr Wages Expense / Cr Bank / Cr PAYG Payable / Cr Super Payable).") % {"brand": current_brand().name} }}</li>
       </ol>
       <p class="mt-2 text-amber-600 text-xs">
         {{ _("Full payroll automation (STP Phase 2, Award rate engine) is on the roadmap for a future release.") }}

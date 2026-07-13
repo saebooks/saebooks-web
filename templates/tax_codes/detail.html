@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if tax_code %}{{ tax_code.code }} — SAE Books{% else %}Tax Code Not Found — SAE Books{% endif %}
+  {% if tax_code %}{{ tax_code.code }} — {{ current_brand().name }}{% else %}Tax Code Not Found — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

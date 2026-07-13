@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Statement Pack — SAE Books{% endblock %}
+{% block title %}{{ _("Statement Pack") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <style>
@@ -12,7 +12,7 @@
 </style>
 
 <div class="mb-4 no-print">
-  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← reports</a>
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← reports") }}</a>
 </div>
 
 <header class="mb-6 relative">
@@ -20,18 +20,18 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Statement pack</span>
+        <span class="nav-section-label">{{ _("Statement pack") }}</span>
         <span class="reg-mark"></span>
       </div>
-      <h1 class="font-display text-3xl leading-none tracking-tight">Financial Statement Pack</h1>
-      <p class="text-xs ink-3 font-mono mt-2">{{ from_date }} → {{ to_date }} · as at {{ as_of_date }}</p>
+      <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("Financial Statement Pack") }}</h1>
+      <p class="text-xs ink-3 font-mono mt-2">{{ from_date }} → {{ to_date }} · {{ _("as at") }} {{ as_of_date }}</p>
     </div>
     <div class="flex gap-2 no-print">
-      <button type="button" onclick="window.print()" class="btn-secondary text-sm">Print / Save PDF</button>
+      <button type="button" onclick="window.print()" class="btn-secondary text-sm">{{ _("Print / Save PDF") }}</button>
       <a href="/reports/statement-pack/pdf?as_of_date={{ as_of_date }}&from_date={{ from_date }}&to_date={{ to_date }}&comparative={{ 'true' if comparative else 'false' }}"
          class="btn-secondary text-sm"
          target="_blank"
-         rel="noopener noreferrer">Download PDF</a>
+         rel="noopener noreferrer">{{ _("Download PDF") }}</a>
     </div>
   </div>
   <div class="drafting mt-4"></div>
@@ -40,23 +40,23 @@
 <form hx-get="/reports/statement-pack" hx-target="body" hx-swap="outerHTML"
       class="card p-4 mb-5 flex flex-wrap gap-3 items-end no-print">
   <div>
-    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">P&amp;L from</label>
+    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("P&L from") }}</label>
     <input id="from_date" type="date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">P&amp;L to</label>
+    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("P&L to") }}</label>
     <input id="to_date" type="date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Balance as at</label>
+    <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Balance as at") }}</label>
     <input id="as_of_date" type="date" name="as_of_date" value="{{ as_of_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div class="flex items-center gap-2 self-end mb-1">
     <input id="comparative" type="checkbox" name="comparative" value="true"
            {% if comparative %}checked{% endif %} class="accent-[var(--sae)]">
-    <label for="comparative" class="text-[10px] font-mono uppercase tracking-wider ink-3">Prior year</label>
+    <label for="comparative" class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Prior year") }}</label>
   </div>
-  <button type="submit" class="btn-secondary text-sm">Run</button>
+  <button type="submit" class="btn-secondary text-sm">{{ _("Run") }}</button>
 </form>
 
 {% if error %}
@@ -69,15 +69,15 @@
   <h2 class="font-display text-2xl ink-1">{{ company.get("legal_name") or company.get("name") or "—" }}</h2>
   {% if company.get("acn") %}<p class="text-xs ink-3 font-mono mt-1">ACN {{ company.get("acn") }}</p>{% endif %}
   {% if company.get("abn") %}<p class="text-xs ink-3 font-mono">ABN {{ company.get("abn") }}</p>{% endif %}
-  <p class="font-display text-lg ink-1 mt-5">Special Purpose Financial Statements</p>
-  <p class="text-sm ink-2 mt-1">For the year ended {{ to_date }}</p>
-  <p class="text-xs ink-3 mt-3">Prepared {{ prepared }} · <span class="uppercase tracking-wider">Draft — not certified</span></p>
+  <p class="font-display text-lg ink-1 mt-5">{{ _("Special Purpose Financial Statements") }}</p>
+  <p class="text-sm ink-2 mt-1">{{ _("For the year ended %(date)s") % {"date": to_date} }}</p>
+  <p class="text-xs ink-3 mt-3">{{ _("Prepared %(date)s") % {"date": prepared} }} · <span class="uppercase tracking-wider">{{ _("Draft — not certified") }}</span></p>
 </section>
 
 {# ─── Statement of Profit or Loss ─────────────────────────────────────────── #}
 <section class="pack-section mb-10">
-  <h2 class="font-display text-xl ink-1 mb-1">Statement of Profit or Loss</h2>
-  <p class="text-xs ink-3 font-mono mb-3">For the period {{ from_date }} → {{ to_date }}</p>
+  <h2 class="font-display text-xl ink-1 mb-1">{{ _("Statement of Profit or Loss") }}</h2>
+  <p class="text-xs ink-3 font-mono mb-3">{{ _("For the period %(from)s → %(to)s") % {"from": from_date, "to": to_date} }}</p>
 
   {% if comparative and comp_pl %}
   {# Pack-local comparative P&L — two amount columns (current + prior year).
@@ -88,15 +88,15 @@
     {# Income section #}
     <div class="card overflow-hidden mb-0">
       <div class="px-6 py-3 hairline-b" style="background:rgba(62,122,78,0.06);">
-        <p class="nav-section-label" style="color:var(--pos);">Income</p>
+        <p class="nav-section-label" style="color:var(--pos);">{{ _("Income") }}</p>
       </div>
       <table class="sae-table w-full">
         <thead>
           <tr>
-            <th class="text-left">Account</th>
-            <th class="text-left">Code</th>
+            <th class="text-left">{{ _("Account") }}</th>
+            <th class="text-left">{{ _("Code") }}</th>
             <th class="text-right">{{ from_date[:4] }}–{{ to_date[:4] }}</th>
-            <th class="text-right ink-3">Prior year</th>
+            <th class="text-right ink-3">{{ _("Prior year") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -111,12 +111,12 @@
             </tr>
             {% endfor %}
           {% else %}
-            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no income for this period —</td></tr>
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no income for this period —") }}</td></tr>
           {% endif %}
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" class="font-semibold" style="color:var(--pos);">Total Income</td>
+            <td colspan="2" class="font-semibold" style="color:var(--pos);">{{ _("Total Income") }}</td>
             <td class="text-right num-display font-semibold" style="color:var(--pos);">
               {{ num(comp_pl.income.total_income_current, 2) }}
             </td>
@@ -131,15 +131,15 @@
     {# Expenses section #}
     <div class="card overflow-hidden mb-0">
       <div class="px-6 py-3 hairline-b" style="background:rgba(161,67,51,0.06);">
-        <p class="nav-section-label" style="color:var(--neg);">Expenses</p>
+        <p class="nav-section-label" style="color:var(--neg);">{{ _("Expenses") }}</p>
       </div>
       <table class="sae-table w-full">
         <thead>
           <tr>
-            <th class="text-left">Account</th>
-            <th class="text-left">Code</th>
+            <th class="text-left">{{ _("Account") }}</th>
+            <th class="text-left">{{ _("Code") }}</th>
             <th class="text-right">{{ from_date[:4] }}–{{ to_date[:4] }}</th>
-            <th class="text-right ink-3">Prior year</th>
+            <th class="text-right ink-3">{{ _("Prior year") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -154,12 +154,12 @@
             </tr>
             {% endfor %}
           {% else %}
-            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no expenses for this period —</td></tr>
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no expenses for this period —") }}</td></tr>
           {% endif %}
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" class="font-semibold" style="color:var(--neg);">Total Expenses</td>
+            <td colspan="2" class="font-semibold" style="color:var(--neg);">{{ _("Total Expenses") }}</td>
             <td class="text-right num-display font-semibold" style="color:var(--neg);">
               {{ num(comp_pl.expenses.total_expenses_current, 2) }}
             </td>
@@ -176,18 +176,18 @@
     {% set net_pri = comp_pl.net_profit_prior %}
     {% if net_cur >= 0 %}
     <div class="card p-5 flex items-center justify-between gap-6" style="border-color:var(--pos);background:rgba(62,122,78,0.04);">
-      <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit</span>
+      <span class="text-sm font-semibold" style="color:var(--pos);">{{ _("Net Profit") }}</span>
       <div class="flex items-center gap-8">
         <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ num(net_cur, 2) }}</span>
-        <span class="num ink-3 text-sm">Prior: {{ num(net_pri, 2) }}</span>
+        <span class="num ink-3 text-sm">{{ _("Prior:") }} {{ num(net_pri, 2) }}</span>
       </div>
     </div>
     {% else %}
     <div class="card p-5 flex items-center justify-between gap-6" style="border-color:var(--neg);background:rgba(161,67,51,0.04);">
-      <span class="text-sm font-semibold" style="color:var(--neg);">Net Loss</span>
+      <span class="text-sm font-semibold" style="color:var(--neg);">{{ _("Net Loss") }}</span>
       <div class="flex items-center gap-8">
         <span class="font-display text-2xl num-display" style="color:var(--neg);">{{ num(net_cur, 2) }}</span>
-        <span class="num ink-3 text-sm">Prior: {{ num(net_pri, 2) }}</span>
+        <span class="num ink-3 text-sm">{{ _("Prior:") }} {{ num(net_pri, 2) }}</span>
       </div>
     </div>
     {% endif %}
@@ -201,8 +201,8 @@
 
 {# ─── Statement of Financial Position ────────────────────────────────────── #}
 <section class="pack-section mb-10">
-  <h2 class="font-display text-xl ink-1 mb-1">Statement of Financial Position</h2>
-  <p class="text-xs ink-3 font-mono mb-3">As at {{ as_of_date }}{% if comparative %} (Prior year: {{ prior_as_of }}){% endif %}</p>
+  <h2 class="font-display text-xl ink-1 mb-1">{{ _("Statement of Financial Position") }}</h2>
+  <p class="text-xs ink-3 font-mono mb-3">{{ _("As at %(date)s") % {"date": as_of_date} }}{% if comparative %} {{ _("(Prior year: %(date)s)") % {"date": prior_as_of} }}{% endif %}</p>
 
   {% if comparative and comp_bs %}
   {# Pack-local comparative Balance Sheet — two amount columns.
@@ -213,27 +213,27 @@
     {% if comp_bs.balanced %}
     <div class="card p-3 flex items-center gap-2" style="border-color:var(--pos);">
       <span class="dot" style="background:var(--pos);"></span>
-      <span class="text-sm font-semibold" style="color:var(--pos);">Balance sheet is balanced.</span>
+      <span class="text-sm font-semibold" style="color:var(--pos);">{{ _("Balance sheet is balanced.") }}</span>
     </div>
     {% else %}
     <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
       <span class="dot" style="background:var(--neg);"></span>
-      <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ num(comp_bs.difference, 2) }}</span>
+      <span class="text-sm font-semibold" style="color:var(--neg);">{{ _("Balance sheet is NOT balanced — difference: %(diff)s") % {"diff": num(comp_bs.difference, 2)} }}</span>
     </div>
     {% endif %}
 
     {# Assets #}
     <div class="card overflow-hidden mb-0">
       <div class="px-6 py-3 hairline-b">
-        <p class="nav-section-label">Assets</p>
+        <p class="nav-section-label">{{ _("Assets") }}</p>
       </div>
       <table class="sae-table w-full">
         <thead>
           <tr>
-            <th class="text-left">Account</th>
-            <th class="text-left">Code</th>
+            <th class="text-left">{{ _("Account") }}</th>
+            <th class="text-left">{{ _("Code") }}</th>
             <th class="text-right">{{ as_of_date }}</th>
-            <th class="text-right ink-3">Prior year</th>
+            <th class="text-right ink-3">{{ _("Prior year") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -248,12 +248,12 @@
             </tr>
             {% endfor %}
           {% else %}
-            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no asset accounts —</td></tr>
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no asset accounts —") }}</td></tr>
           {% endif %}
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" class="font-semibold ink-1">Total Assets</td>
+            <td colspan="2" class="font-semibold ink-1">{{ _("Total Assets") }}</td>
             <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.assets.total_assets_current, 2) }}</td>
             <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.assets.total_assets_prior, 2) }}</td>
           </tr>
@@ -264,15 +264,15 @@
     {# Liabilities #}
     <div class="card overflow-hidden mb-0">
       <div class="px-6 py-3 hairline-b">
-        <p class="nav-section-label">Liabilities</p>
+        <p class="nav-section-label">{{ _("Liabilities") }}</p>
       </div>
       <table class="sae-table w-full">
         <thead>
           <tr>
-            <th class="text-left">Account</th>
-            <th class="text-left">Code</th>
+            <th class="text-left">{{ _("Account") }}</th>
+            <th class="text-left">{{ _("Code") }}</th>
             <th class="text-right">{{ as_of_date }}</th>
-            <th class="text-right ink-3">Prior year</th>
+            <th class="text-right ink-3">{{ _("Prior year") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -287,12 +287,12 @@
             </tr>
             {% endfor %}
           {% else %}
-            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no liability accounts —</td></tr>
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no liability accounts —") }}</td></tr>
           {% endif %}
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" class="font-semibold ink-1">Total Liabilities</td>
+            <td colspan="2" class="font-semibold ink-1">{{ _("Total Liabilities") }}</td>
             <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.liabilities.total_liabilities_current, 2) }}</td>
             <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.liabilities.total_liabilities_prior, 2) }}</td>
           </tr>
@@ -303,15 +303,15 @@
     {# Equity #}
     <div class="card overflow-hidden mb-0">
       <div class="px-6 py-3 hairline-b">
-        <p class="nav-section-label">Equity</p>
+        <p class="nav-section-label">{{ _("Equity") }}</p>
       </div>
       <table class="sae-table w-full">
         <thead>
           <tr>
-            <th class="text-left">Account</th>
-            <th class="text-left">Code</th>
+            <th class="text-left">{{ _("Account") }}</th>
+            <th class="text-left">{{ _("Code") }}</th>
             <th class="text-right">{{ as_of_date }}</th>
-            <th class="text-right ink-3">Prior year</th>
+            <th class="text-right ink-3">{{ _("Prior year") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -326,12 +326,12 @@
             </tr>
             {% endfor %}
           {% else %}
-            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no equity accounts —</td></tr>
+            <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no equity accounts —") }}</td></tr>
           {% endif %}
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" class="font-semibold ink-1">Total Equity</td>
+            <td colspan="2" class="font-semibold ink-1">{{ _("Total Equity") }}</td>
             <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.equity.total_equity_current, 2) }}</td>
             <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.equity.total_equity_prior, 2) }}</td>
           </tr>
@@ -348,20 +348,20 @@
 
 {# ─── Trial Balance ───────────────────────────────────────────────────────── #}
 <section class="pack-section mb-10">
-  <h2 class="font-display text-xl ink-1 mb-1">Trial Balance</h2>
-  <p class="text-xs ink-3 font-mono mb-3">As at {{ as_of_date }}</p>
+  <h2 class="font-display text-xl ink-1 mb-1">{{ _("Trial Balance") }}</h2>
+  <p class="text-xs ink-3 font-mono mb-3">{{ _("As at %(date)s") % {"date": as_of_date} }}</p>
   {# Trial Balance comparative is not implemented; always uses the shared fragment. #}
   {% with report=tb_report %}{% include "reports/_trial_balance_table.html" %}{% endwith %}
 </section>
 
 <section class="card p-6 pack-section">
-  <h2 class="font-display text-lg ink-1 mb-3">Trustee's Declaration</h2>
-  <p class="text-sm ink-2 mb-2">In the opinion of the trustee of {{ company.get("legal_name") or company.get("name") or "the entity" }}:</p>
+  <h2 class="font-display text-lg ink-1 mb-3">{{ _("Trustee's Declaration") }}</h2>
+  <p class="text-sm ink-2 mb-2">{{ _("In the opinion of the trustee of %(entity)s:") % {"entity": company.get("legal_name") or company.get("name") or _("the entity")} }}</p>
   <ul class="text-sm ink-2 list-disc ml-5 space-y-1">
-    <li>the financial statements present fairly the financial position as at {{ as_of_date }} and the result for the year then ended; and</li>
-    <li>there are reasonable grounds to believe the entity will be able to pay its debts as and when they become due and payable.</li>
+    <li>{{ _("the financial statements present fairly the financial position as at %(date)s and the result for the year then ended; and") % {"date": as_of_date} }}</li>
+    <li>{{ _("there are reasonable grounds to believe the entity will be able to pay its debts as and when they become due and payable.") }}</li>
   </ul>
-  <p class="text-sm ink-2 mt-5">Signed for and on behalf of the trustee:</p>
-  <p class="num ink-2 mt-8">_______________________________&nbsp;&nbsp;&nbsp;Date: ____________</p>
+  <p class="text-sm ink-2 mt-5">{{ _("Signed for and on behalf of the trustee:") }}</p>
+  <p class="num ink-2 mt-8">_______________________________&nbsp;&nbsp;&nbsp;{{ _("Date:") }} ____________</p>
 </section>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Cashbook Entries — SAE Books{% endblock %}
+{% block title %}{{ _("Cashbook Entries") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -14,50 +14,50 @@
 <header class="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
   <div>
     <div class="flex items-center gap-2 mb-1">
-      <span class="nav-section-label">Cashbook</span>
+      <span class="nav-section-label">{{ _("Cashbook") }}</span>
       <span class="reg-mark"></span>
-      <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Entries</span>
+      <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Entries") }}</span>
     </div>
     <h1 class="font-display text-3xl leading-none tracking-tight">
-      Full history
+      {{ _("Full history") }}
     </h1>
   </div>
   <a href="/cashbook" class="btn-primary self-start sm:self-auto">
-    + Quick entry
+    {{ _("+ Quick entry") }}
   </a>
 </header>
 
 {# Filters #}
 <form method="get" action="/cashbook/entries" class="card p-4 mb-6 flex flex-wrap gap-3 items-end">
   <div>
-    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">From</label>
+    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From") }}</label>
     <input type="date" id="from_date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">To</label>
+    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("To") }}</label>
     <input type="date" id="to_date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="direction" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Direction</label>
+    <label for="direction" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Direction") }}</label>
     <select id="direction" name="direction" class="saebooks-input text-sm py-1.5"
             onchange="this.form.requestSubmit()">
-      <option value="" {% if not filter_direction %}selected{% endif %}>Any</option>
-      <option value="income" {% if filter_direction == 'income' %}selected{% endif %}>Cash in</option>
-      <option value="expense" {% if filter_direction == 'expense' %}selected{% endif %}>Cash out</option>
+      <option value="" {% if not filter_direction %}selected{% endif %}>{{ _("Any") }}</option>
+      <option value="income" {% if filter_direction == 'income' %}selected{% endif %}>{{ _("Cash in") }}</option>
+      <option value="expense" {% if filter_direction == 'expense' %}selected{% endif %}>{{ _("Cash out") }}</option>
     </select>
   </div>
   <div>
-    <label for="category" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Category</label>
+    <label for="category" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Category") }}</label>
     <select id="category" name="category" class="saebooks-input text-sm py-1.5"
             onchange="this.form.requestSubmit()">
-      <option value="" {% if not filter_category %}selected{% endif %}>Any</option>
+      <option value="" {% if not filter_category %}selected{% endif %}>{{ _("Any") }}</option>
       {% for cat in categories %}
       <option value="{{ cat.code }}" {% if filter_category == cat.code %}selected{% endif %}>{{ cat.label }}</option>
       {% endfor %}
     </select>
   </div>
-  <button type="submit" class="btn-primary text-sm py-1.5">Filter</button>
-  <a href="/cashbook/entries" class="text-xs ink-3 hover:underline self-end pb-1.5 font-mono">reset</a>
+  <button type="submit" class="btn-primary text-sm py-1.5">{{ _("Filter") }}</button>
+  <a href="/cashbook/entries" class="text-xs ink-3 hover:underline self-end pb-1.5 font-mono">{{ _("reset") }}</a>
 </form>
 
 {# Money rows #}
@@ -88,17 +88,17 @@
 </section>
 
 <div class="mt-4 flex items-center justify-between">
-  <p class="text-xs ink-3 font-mono">{{ entries|length }} entries shown</p>
+  <p class="text-xs ink-3 font-mono">{{ ngettext("%(n)s entry shown", "%(n)s entries shown", entries|length) % {"n": entries|length} }}</p>
   {% if next_cursor %}
   <a href="/cashbook/entries?from_date={{ from_date }}&to_date={{ to_date }}&direction={{ filter_direction }}&category={{ filter_category }}&cursor={{ next_cursor }}&limit={{ limit }}"
-     class="btn-secondary text-sm">Load more →</a>
+     class="btn-secondary text-sm">{{ _("Load more →") }}</a>
   {% endif %}
 </div>
 
 {% else %}
 <section class="card p-12 text-center">
-  <p class="text-sm ink-3 font-mono mb-4">— no entries for this period —</p>
-  <a href="/cashbook" class="btn-primary inline-flex">+ Add your first entry</a>
+  <p class="text-sm ink-3 font-mono mb-4">{{ _("— no entries for this period —") }}</p>
+  <a href="/cashbook" class="btn-primary inline-flex">{{ _("+ Add your first entry") }}</a>
 </section>
 {% endif %}
 

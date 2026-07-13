@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_funnel_macros.html" import funnel %}
 
-{% block title %}{{ _("Customer overview") }} — SAE Books{% endblock %}
+{% block title %}{{ _("Customer overview") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <header class="mb-8">
@@ -149,7 +149,7 @@
     <div>
       <p class="text-sm font-semibold sae">{{ _("CRM features — deferred") }}</p>
       <p class="text-xs ink-3 mt-1 max-w-xl">
-        {{ _("Leads, opportunities, contracts, appointments, reviews and referrals are deferred for SAE Books v1. The data shown here is derived from existing invoicing + projects state — no separate CRM is needed.") }}
+        {{ _("Leads, opportunities, contracts, appointments, reviews and referrals are deferred for %(brand)s v1. The data shown here is derived from existing invoicing + projects state — no separate CRM is needed.") % {"brand": current_brand().name} }}
       </p>
     </div>
   </div>

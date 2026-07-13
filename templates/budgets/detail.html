@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if budget %}Budget {{ budget.year }}/{{ budget.month }} — SAE Books{% else %}Budget Not Found — SAE Books{% endif %}
+  {% if budget %}Budget {{ budget.year }}/{{ budget.month }} — {{ current_brand().name }}{% else %}Budget Not Found — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
