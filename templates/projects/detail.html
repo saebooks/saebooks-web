@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if project %}Project {{ project.code }} — {{ current_brand().name }}{% else %}Project Not Found — {{ current_brand().name }}{% endif %}
+  {% if project %}{{ _("Project %(code)s") % {"code": project.code} }} — {{ current_brand().name }}{% else %}{{ _("Project Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -38,7 +38,7 @@
         {{ project.status | replace("_", " ") | title }}
       </span>
     </div>
-    <p class="text-sm ink-3 mt-1">ID: {{ project.id }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("ID:") }} {{ project.id }}</p>
   </div>
   <div class="flex items-center gap-3">
     {% if not project.archived_at %}
@@ -53,12 +53,12 @@
       <select
         name="status"
         onchange="this.form.submit()"
-        aria-label="Change project status"
+        aria-label="{{ _('Change project status') }}"
         class="saebooks-input px-2 py-1.5 text-sm"
       >
-        <option value="ACTIVE"{% if project.status == 'ACTIVE' %} selected{% endif %}>Active</option>
-        <option value="ON_HOLD"{% if project.status == 'ON_HOLD' %} selected{% endif %}>On Hold</option>
-        <option value="COMPLETED"{% if project.status == 'COMPLETED' %} selected{% endif %}>Completed</option>
+        <option value="ACTIVE"{% if project.status == 'ACTIVE' %} selected{% endif %}>{{ _("Active") }}</option>
+        <option value="ON_HOLD"{% if project.status == 'ON_HOLD' %} selected{% endif %}>{{ _("On Hold") }}</option>
+        <option value="COMPLETED"{% if project.status == 'COMPLETED' %} selected{% endif %}>{{ _("Completed") }}</option>
       </select>
     </form>
 
@@ -66,7 +66,7 @@
       href="/projects/{{ project.id }}/edit"
       class="btn-secondary px-4 py-1.5 text-sm font-medium"
     >
-      Edit
+      {{ _("Edit") }}
     </a>
     <form method="POST" action="/projects/{{ project.id }}/archive" class="inline">
     {{ csrf_input(request)|safe }}
@@ -74,37 +74,37 @@
       <input type="hidden" name="version" value="{{ project.version }}">
       <button
         type="submit"
-        onclick="return confirm('Archive this project?')"
+        onclick="return confirm('{{ _('Archive this project?') }}')"
         class="btn-secondary px-4 py-1.5 text-sm font-medium"
         style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
-        Archive
+        {{ _("Archive") }}
       </button>
     </form>
     {% endif %}
     <a
       href="/projects"
       class="text-sm sae hover:underline"
-    >← Back to projects</a>
+    >{{ _("← Back to projects") }}</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Code</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Code") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ project.code }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Status</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Status") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ project.status | replace("_", " ") | title }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Start date</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Start date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ project.start_date or "—" }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">End date</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("End date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ project.end_date or "—" }}</p>
   </div>
 </div>
@@ -112,7 +112,7 @@
 {# ── Notes ── #}
 {% if project.notes %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-2">Notes</h2>
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Notes") }}</h2>
   <div class="card rounded-xl px-4 py-3 text-sm ink-2 whitespace-pre-wrap">{{ project.notes }}</div>
 </div>
 {% endif %}
@@ -120,7 +120,7 @@
 {# ── Extra metadata ── #}
 {% if project.extra %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-2">Extra</h2>
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Extra") }}</h2>
   <div class="card rounded-xl px-4 py-3 text-sm ink-2 font-mono whitespace-pre-wrap">{{ project.extra | tojson(indent=2) }}</div>
 </div>
 {% endif %}
@@ -128,19 +128,19 @@
 {# ── Metadata footer ── #}
 <div class="card rounded-xl bg-[color:var(--paper-2)] px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
   <div>
-    <span class="font-medium">Created</span>
+    <span class="font-medium">{{ _("Created") }}</span>
     <p class="mt-0.5">{{ project.created_at[:19] | replace("T", " ") if project.created_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Version</span>
+    <span class="font-medium">{{ _("Version") }}</span>
     <p class="mt-0.5">{{ project.version }}</p>
   </div>
   <div>
-    <span class="font-medium">Company</span>
+    <span class="font-medium">{{ _("Company") }}</span>
     <p class="mt-0.5 truncate">{{ project.company_id }}</p>
   </div>
   <div>
-    <span class="font-medium">Archived</span>
+    <span class="font-medium">{{ _("Archived") }}</span>
     <p class="mt-0.5">{{ project.archived_at[:19] | replace("T", " ") if project.archived_at else "—" }}</p>
   </div>
 </div>

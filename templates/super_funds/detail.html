@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ fund.name if fund else "Super fund" }} — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ fund.name if fund else _("Super fund") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -17,15 +17,15 @@
   <div>
     <h1 class="font-display text-3xl ink-1">{{ fund.name }}</h1>
     <p class="text-base ink-3 mt-1">
-      {% if fund.is_smsf %}Self-Managed Super Fund{% else %}APRA-regulated fund{% endif %}
+      {% if fund.is_smsf %}{{ _("Self-Managed Super Fund") }}{% else %}{{ _("APRA-regulated fund") }}{% endif %}
     </p>
   </div>
   <div class="flex gap-2">
     {% if fund.is_default %}
-    <span class="chip chip-pos">Default fund</span>
+    <span class="chip chip-pos">{{ _("Default fund") }}</span>
     {% endif %}
     {% if fund.archived_at %}
-    <span class="chip chip-ink">Archived</span>
+    <span class="chip chip-ink">{{ _("Archived") }}</span>
     {% endif %}
   </div>
 </div>
@@ -35,27 +35,27 @@
   <div class="col-span-2 space-y-6">
 
     <div class="card p-6">
-      <p class="nav-section-label mb-4">Fund details</p>
+      <p class="nav-section-label mb-4">{{ _("Fund details") }}</p>
       <dl class="space-y-3 text-base">
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Type</dt>
+          <dt class="ink-3">{{ _("Type") }}</dt>
           <dd class="col-span-2">
             {% if fund.is_smsf %}
-            <span class="chip chip-warm">SMSF</span>
+            <span class="chip chip-warm">{{ _("SMSF") }}</span>
             {% else %}
-            <span class="chip chip-ink">APRA</span>
+            <span class="chip chip-ink">{{ _("APRA") }}</span>
             {% endif %}
           </dd>
         </div>
 
         {% if not fund.is_smsf %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">USI</dt>
+          <dt class="ink-3">{{ _("USI") }}</dt>
           <dd class="col-span-2 num">{{ fund.usi or "—" }}</dd>
         </div>
         {% if fund.spin %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">SPIN</dt>
+          <dt class="ink-3">{{ _("SPIN") }}</dt>
           <dd class="col-span-2 num">{{ fund.spin }}</dd>
         </div>
         {% endif %}
@@ -63,28 +63,28 @@
 
         {% if fund.is_smsf %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">ABN</dt>
+          <dt class="ink-3">{{ _("ABN") }}</dt>
           <dd class="col-span-2 num">{{ fund.employer_abn or "—" }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">ESA</dt>
+          <dt class="ink-3">{{ _("ESA") }}</dt>
           <dd class="col-span-2">{{ fund.esa or "—" }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Bank account</dt>
+          <dt class="ink-3">{{ _("Bank account") }}</dt>
           <dd class="col-span-2">
             {% if fund.has_smsf_bank %}
-            <span class="chip chip-ink">Configured — revealed during pay run</span>
+            <span class="chip chip-ink">{{ _("Configured — revealed during pay run") }}</span>
             {% else %}
-            <span class="ink-3 text-sm">Not set</span>
+            <span class="ink-3 text-sm">{{ _("Not set") }}</span>
             {% endif %}
           </dd>
         </div>
         {% endif %}
 
         <div class="grid grid-cols-3 gap-2 hairline border-t pt-3">
-          <dt class="ink-3">Default</dt>
-          <dd class="col-span-2">{{ "Yes" if fund.is_default else "No" }}</dd>
+          <dt class="ink-3">{{ _("Default") }}</dt>
+          <dd class="col-span-2">{{ _("Yes") if fund.is_default else _("No") }}</dd>
         </div>
       </dl>
     </div>
@@ -92,15 +92,15 @@
     <div class="card p-4">
       <dl class="flex flex-wrap gap-6 text-sm">
         <div>
-          <dt class="ink-3 text-xs uppercase tracking-wide">Version</dt>
+          <dt class="ink-3 text-xs uppercase tracking-wide">{{ _("Version") }}</dt>
           <dd class="num">{{ fund.version }}</dd>
         </div>
         <div>
-          <dt class="ink-3 text-xs uppercase tracking-wide">Created</dt>
+          <dt class="ink-3 text-xs uppercase tracking-wide">{{ _("Created") }}</dt>
           <dd class="num text-xs ink-3">{{ fund.created_at }}</dd>
         </div>
         <div>
-          <dt class="ink-3 text-xs uppercase tracking-wide">Updated</dt>
+          <dt class="ink-3 text-xs uppercase tracking-wide">{{ _("Updated") }}</dt>
           <dd class="num text-xs ink-3">{{ fund.updated_at }}</dd>
         </div>
       </dl>
@@ -110,35 +110,35 @@
 
   <aside class="space-y-4">
     <div class="card p-5">
-      <p class="nav-section-label mb-3">Actions</p>
+      <p class="nav-section-label mb-3">{{ _("Actions") }}</p>
       <div class="space-y-2">
         {% if not fund.archived_at %}
-        <a href="/super-funds/{{ fund.id }}/edit" class="btn btn-primary w-full">Edit</a>
+        <a href="/super-funds/{{ fund.id }}/edit" class="btn btn-primary w-full">{{ _("Edit") }}</a>
 
         {% if not fund.is_default %}
         <form method="POST" action="/super-funds/{{ fund.id }}/set-default">
           {{ csrf_input(request)|safe }}
-          <button type="submit" class="btn btn-secondary w-full">Set as default</button>
+          <button type="submit" class="btn btn-secondary w-full">{{ _("Set as default") }}</button>
         </form>
         {% else %}
-        <p class="text-xs ink-3 text-center">Already the default fund.</p>
+        <p class="text-xs ink-3 text-center">{{ _("Already the default fund.") }}</p>
         {% endif %}
 
         <form method="POST" action="/super-funds/{{ fund.id }}/archive"
-              onsubmit="return confirm('Archive this super fund?')">
+              onsubmit="return confirm('{{ _('Archive this super fund?') }}')">
           {{ csrf_input(request)|safe }}
-          <button type="submit" class="btn btn-danger w-full">Archive</button>
+          <button type="submit" class="btn btn-danger w-full">{{ _("Archive") }}</button>
         </form>
         {% else %}
-        <p class="ink-3 text-sm">Archived on {{ fund.archived_at }}.</p>
+        <p class="ink-3 text-sm">{{ _("Archived on %(date)s.") % {"date": fund.archived_at} }}</p>
         {% endif %}
       </div>
     </div>
 
     <div class="card p-5">
-      <p class="nav-section-label mb-2">Navigate</p>
-      <a href="/super-funds" class="block text-sm sae hover:underline">← All super funds</a>
-      <a href="/employees" class="block text-sm sae hover:underline mt-1">Employees →</a>
+      <p class="nav-section-label mb-2">{{ _("Navigate") }}</p>
+      <a href="/super-funds" class="block text-sm sae hover:underline">{{ _("← All super funds") }}</a>
+      <a href="/employees" class="block text-sm sae hover:underline mt-1">{{ _("Employees →") }}</a>
     </div>
   </aside>
 

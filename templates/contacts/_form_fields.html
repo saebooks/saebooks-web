@@ -22,20 +22,20 @@
 {% endif %}
 
 <fieldset class="space-y-4">
-  <legend class="nav-section-label mb-3">Identity</legend>
+  <legend class="nav-section-label mb-3">{{ _("Identity") }}</legend>
 
-  {{ text_input("name", "Name", required=true, placeholder="Acme Pty Ltd") }}
+  {{ text_input("name", _("Name"), required=true, placeholder="Acme Pty Ltd") }}
 
   <div>
     <label for="contact_type" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Type <span style="color:var(--neg);">*</span>
+      {{ _("Type") }} <span style="color:var(--neg);">*</span>
     </label>
     <select id="contact_type" name="contact_type" required class="saebooks-input"
             {% if errors.get('contact_type') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
-      <option value="" disabled {% if not form.get("contact_type") %}selected{% endif %}>Select type…</option>
-      <option value="CUSTOMER" {% if form.get("contact_type") == "CUSTOMER" %}selected{% endif %}>Customer</option>
-      <option value="SUPPLIER" {% if form.get("contact_type") == "SUPPLIER" %}selected{% endif %}>Supplier</option>
-      <option value="BOTH"     {% if form.get("contact_type") == "BOTH"     %}selected{% endif %}>Both</option>
+      <option value="" disabled {% if not form.get("contact_type") %}selected{% endif %}>{{ _("Select type…") }}</option>
+      <option value="CUSTOMER" {% if form.get("contact_type") == "CUSTOMER" %}selected{% endif %}>{{ _("Customer") }}</option>
+      <option value="SUPPLIER" {% if form.get("contact_type") == "SUPPLIER" %}selected{% endif %}>{{ _("Supplier") }}</option>
+      <option value="BOTH"     {% if form.get("contact_type") == "BOTH"     %}selected{% endif %}>{{ _("Both") }}</option>
     </select>
     {% if errors.get("contact_type") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["contact_type"] }}</p>{% endif %}
   </div>
@@ -44,45 +44,45 @@
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
-  <legend class="nav-section-label mb-3">Contact info</legend>
+  <legend class="nav-section-label mb-3">{{ _("Contact info") }}</legend>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {{ text_input("email", "Email", placeholder="billing@example.com", type="email") }}
-    {{ text_input("phone", "Phone", placeholder="+61 400 000 000") }}
+    {{ text_input("email", _("Email"), placeholder="billing@example.com", type="email") }}
+    {{ text_input("phone", _("Phone"), placeholder="+61 400 000 000") }}
   </div>
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
-  <legend class="nav-section-label mb-3">Address</legend>
-  {{ text_input("address_line1", "Address line 1") }}
-  {{ text_input("address_line2", "Address line 2") }}
+  <legend class="nav-section-label mb-3">{{ _("Address") }}</legend>
+  {{ text_input("address_line1", _("Address line 1")) }}
+  {{ text_input("address_line2", _("Address line 2")) }}
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-    {{ text_input("city", "City") }}
-    {{ text_input("state", "State") }}
-    {{ text_input("postcode", "Postcode") }}
-    {{ text_input("country", "Country", placeholder="Australia") }}
+    {{ text_input("city", _("City")) }}
+    {{ text_input("state", _("State")) }}
+    {{ text_input("postcode", _("Postcode")) }}
+    {{ text_input("country", _("Country"), placeholder="Australia") }}
   </div>
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
-  <legend class="nav-section-label mb-3">Banking</legend>
+  <legend class="nav-section-label mb-3">{{ _("Banking") }}</legend>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {{ text_input("bank_bsb", "BSB", placeholder="062-000") }}
-    {{ text_input("bank_account_number", "Account number", placeholder="12345678") }}
+    {{ text_input("bank_bsb", _("BSB"), placeholder="062-000") }}
+    {{ text_input("bank_account_number", _("Account number"), placeholder="12345678") }}
   </div>
-  {{ text_input("bank_account_title", "Account holder name", placeholder="Acme Pty Ltd") }}
+  {{ text_input("bank_account_title", _("Account holder name"), placeholder="Acme Pty Ltd") }}
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
-  <legend class="nav-section-label mb-3">Accounting</legend>
+  <legend class="nav-section-label mb-3">{{ _("Accounting") }}</legend>
 
   <div>
     <label for="default_tax_code" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Default tax code
+      {{ _("Default tax code") }}
     </label>
     {% if tax_codes %}
     <select id="default_tax_code" name="default_tax_code" class="saebooks-input"
             {% if errors.get('default_tax_code') %}style="border-color:var(--neg);"{% endif %}>
-      <option value="">— None —</option>
+      <option value="">{{ _("— None —") }}</option>
       {% for tc in tax_codes %}
       <option value="{{ tc.code }}" {% if form.get("default_tax_code") == tc.code %}selected{% endif %}>
         {{ tc.code }} — {{ tc.name }}
@@ -100,12 +100,12 @@
 
   <div>
     <label for="default_account_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Default account
+      {{ _("Default account") }}
     </label>
     {% if accounts %}
     <select id="default_account_id" name="default_account_id" class="saebooks-input"
             {% if errors.get('default_account_id') %}style="border-color:var(--neg);"{% endif %}>
-      <option value="">— None —</option>
+      <option value="">{{ _("— None —") }}</option>
       {% for acct in accounts %}
       <option value="{{ acct.id }}" {% if form.get("default_account_id") == acct.id %}selected{% endif %}>
         {{ acct.code }} — {{ acct.name }}
@@ -123,11 +123,11 @@
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
-  <legend class="nav-section-label mb-3">Billing currency</legend>
+  <legend class="nav-section-label mb-3">{{ _("Billing currency") }}</legend>
   <div>
     <label for="currency_code" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Currency code
-      <span class="ink-4 font-normal normal-case ml-1">(ISO 4217 — leave blank for AUD)</span>
+      {{ _("Currency code") }}
+      <span class="ink-4 font-normal normal-case ml-1">{{ _("(ISO 4217 — leave blank for AUD)") }}</span>
     </label>
     <input type="text" id="currency_code" name="currency_code"
            value="{{ form.get('currency_code', '') }}"
@@ -139,7 +139,7 @@
 </fieldset>
 
 <div class="mt-7">
-  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Notes</label>
+  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Notes") }}</label>
   <textarea id="notes" name="notes" rows="3" class="saebooks-input"
             placeholder="Optional notes about this contact"
             {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("notes", "") }}</textarea>
@@ -159,11 +159,9 @@
     >
   </div>
   <div>
-    <label for="is_one_off" class="block text-sm font-medium ink-2">One-off contact</label>
+    <label for="is_one_off" class="block text-sm font-medium ink-2">{{ _("One-off contact") }}</label>
     <p class="text-xs ink-3 mt-0.5">
-      Hide from the main /contacts list. Use this for cash purchases, walk-in
-      customers, or any counterparty you created just so a transaction had a
-      name but don't want to track as an ongoing relationship.
+      {{ _("Hide from the main /contacts list. Use this for cash purchases, walk-in customers, or any counterparty you created just so a transaction had a name but don't want to track as an ongoing relationship.") }}
     </p>
   </div>
 </div>

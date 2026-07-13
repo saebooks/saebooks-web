@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if contact %}{{ contact.name }} — {{ current_brand().name }}{% else %}Contact Not Found — {{ current_brand().name }}{% endif %}
+  {% if contact %}{{ contact.name }} — {{ current_brand().name }}{% else %}{{ _("Contact Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -25,7 +25,7 @@
 {% if contact %}
 
 <div class="mb-4">
-  <a href="/contacts" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← contacts</a>
+  <a href="/contacts" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← contacts") }}</a>
 </div>
 
 <header class="mb-6 relative">
@@ -33,34 +33,34 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Contact</span>
+        <span class="nav-section-label">{{ _("Contact") }}</span>
         <span class="reg-mark"></span>
         {% set _ct = contact.contact_type|upper %}
-        {% if _ct == 'CUSTOMER' %}<span class="badge-paid">Customer</span>
-        {% elif _ct == 'SUPPLIER' %}<span class="badge-pending">Supplier</span>
-        {% elif _ct == 'BOTH' %}<span class="badge-open">Both</span>
+        {% if _ct == 'CUSTOMER' %}<span class="badge-paid">{{ _("Customer") }}</span>
+        {% elif _ct == 'SUPPLIER' %}<span class="badge-pending">{{ _("Supplier") }}</span>
+        {% elif _ct == 'BOTH' %}<span class="badge-open">{{ _("Both") }}</span>
         {% else %}<span class="badge-draft">{{ contact.contact_type|capitalize }}</span>{% endif %}
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight">
         {{ contact.name }}
       </h1>
       {% if contact.abn %}
-      <p class="text-xs ink-3 font-mono mt-2">ABN · <span class="num ink-2">{{ contact.abn }}</span></p>
+      <p class="text-xs ink-3 font-mono mt-2">{{ _("ABN") }} · <span class="num ink-2">{{ contact.abn }}</span></p>
       {% endif %}
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
       {% if contact.contact_type in ("CUSTOMER", "BOTH") %}
       <a href="/contacts/{{ contact.id }}/statement/pdf" target="_blank" rel="noopener"
-         class="btn-secondary text-sm">Statement PDF</a>
+         class="btn-secondary text-sm">{{ _("Statement PDF") }}</a>
       {% endif %}
-      <a href="/contacts/{{ contact.id }}/edit" class="btn-secondary text-sm">Edit</a>
+      <a href="/contacts/{{ contact.id }}/edit" class="btn-secondary text-sm">{{ _("Edit") }}</a>
       {% if not contact.archived_at %}
       <form method="post" action="/contacts/{{ contact.id }}/archive"
-            onsubmit="return confirm('Archive this contact? This cannot be undone.');" class="inline">
+            onsubmit="return confirm('{{ _('Archive this contact? This cannot be undone.') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ contact.version }}">
-        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">Archive</button>
+        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Archive") }}</button>
       </form>
       {% endif %}
       {% if is_admin %}
@@ -77,15 +77,15 @@
 
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
   <div class="card p-5">
-    <p class="nav-section-label mb-3">Contact details</p>
+    <p class="nav-section-label mb-3">{{ _("Contact details") }}</p>
     <div class="mt-2">
-      <p class="text-[11px] uppercase tracking-wider ink-3">Owing / Overdue</p>
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Owing / Overdue") }}</p>
       <p class="font-display text-xl num sae">{% if contact.unpaid_balance %}{{ num(contact.unpaid_balance|float, 2) }}{% else %}—{% endif %}</p>
-      <p class="text-xs ink-3">{% if contact.overdue_days %}Overdue {{ contact.overdue_days }} days{% else %}Up to date{% endif %}</p>
+      <p class="text-xs ink-3">{% if contact.overdue_days %}{{ _("Overdue %(days)s days") % {"days": contact.overdue_days} }}{% else %}{{ _("Up to date") }}{% endif %}</p>
     </div>
     <dl class="space-y-2 text-sm">
       <div class="flex gap-3">
-        <dt class="w-20 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">Email</dt>
+        <dt class="w-20 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">{{ _("Email") }}</dt>
         <dd class="ink-1">
           {% if contact.email %}
             <a href="mailto:{{ contact.email }}" class="sae hover:underline">{{ contact.email }}</a>
@@ -93,14 +93,14 @@
         </dd>
       </div>
       <div class="flex gap-3">
-        <dt class="w-20 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">Phone</dt>
+        <dt class="w-20 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">{{ _("Phone") }}</dt>
         <dd class="ink-1 num">{{ contact.phone or "—" }}</dd>
       </div>
     </dl>
   </div>
 
   <div class="card p-5">
-    <p class="nav-section-label mb-3">Address</p>
+    <p class="nav-section-label mb-3">{{ _("Address") }}</p>
     <address class="text-sm ink-1 not-italic leading-relaxed">
       {% if contact.address_line1 %}{{ contact.address_line1 }}<br>{% endif %}
       {% if contact.address_line2 %}{{ contact.address_line2 }}<br>{% endif %}
@@ -109,7 +109,7 @@
       {% endif %}
       {% if contact.country %}{{ contact.country }}{% endif %}
       {% if not (contact.address_line1 or contact.city or contact.country) %}
-        <span class="ink-4">No address on file</span>
+        <span class="ink-4">{{ _("No address on file") }}</span>
       {% endif %}
     </address>
   </div>
@@ -117,23 +117,23 @@
 
 {% if contact.default_tax_code or contact.default_account_id or contact.currency_code %}
 <div class="card p-5 mb-6">
-  <p class="nav-section-label mb-3">Accounting defaults</p>
+  <p class="nav-section-label mb-3">{{ _("Accounting defaults") }}</p>
   <dl class="space-y-2 text-sm">
     {% if contact.currency_code %}
     <div class="flex gap-3">
-      <dt class="w-28 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">Currency</dt>
+      <dt class="w-28 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">{{ _("Currency") }}</dt>
       <dd class="ink-1 font-mono">{{ contact.currency_code }}</dd>
     </div>
     {% endif %}
     {% if contact.default_tax_code %}
     <div class="flex gap-3">
-      <dt class="w-28 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">Tax code</dt>
+      <dt class="w-28 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">{{ _("Tax code") }}</dt>
       <dd class="ink-1">{{ contact.default_tax_code }}</dd>
     </div>
     {% endif %}
     {% if contact.default_account_id %}
     <div class="flex gap-3">
-      <dt class="w-28 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">Account</dt>
+      <dt class="w-28 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">{{ _("Account") }}</dt>
       <dd class="ink-2 font-mono text-xs">{{ contact.default_account_id }}</dd>
     </div>
     {% endif %}
@@ -143,7 +143,7 @@
 
 {% if contact.notes %}
 <section class="mb-6">
-  <p class="nav-section-label mb-2">Notes</p>
+  <p class="nav-section-label mb-2">{{ _("Notes") }}</p>
   <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap leading-relaxed">{{ contact.notes }}</div>
 </section>
 {% endif %}
@@ -151,14 +151,14 @@
 {% if contact.contact_type in ('SUPPLIER', 'BOTH') and not contact.archived_at %}
 <div class="mb-6">
   <a href="/bills/new?contact_id={{ contact.id }}" class="btn-secondary text-sm">
-    + New bill from this supplier
+    + {{ _("New bill from this supplier") }}
   </a>
 </div>
 {% endif %}
 
 {# ── Attachments ── #}
 <section class="mb-7">
-  <p class="nav-section-label mb-2">Attachments</p>
+  <p class="nav-section-label mb-2">{{ _("Attachments") }}</p>
   {% include "_partials/attachments.html" with context %}
 </section>
 
@@ -176,48 +176,48 @@
 {%- endmacro %}
 
 <div class="mb-2 flex items-baseline justify-between">
-  <h2 class="text-base font-semibold ink-1">Transaction history</h2>
-  <span class="text-sm ink-3 tabular-nums">{{ transactions|length }} record{{ "s" if transactions|length != 1 else "" }}</span>
+  <h2 class="text-base font-semibold ink-1">{{ _("Transaction history") }}</h2>
+  <span class="text-sm ink-3 tabular-nums">{{ _("%(n)s record") % {"n": transactions|length} if transactions|length == 1 else _("%(n)s records") % {"n": transactions|length} }}</span>
 </div>
 
 <form method="get" class="card mb-3 flex flex-wrap gap-3 items-end px-4 py-3">
   <div>
-    <label for="txn_type" class="block text-xs font-medium ink-3 mb-1">Type</label>
+    <label for="txn_type" class="block text-xs font-medium ink-3 mb-1">{{ _("Type") }}</label>
     <select id="txn_type" name="txn_type"
       class="saebooks-input text-sm px-2 py-1.5">
-      <option value="">All</option>
+      <option value="">{{ _("All") }}</option>
       {% for opt in ['Invoice','Bill','Payment','Credit Note','Expense'] %}
       <option value="{{ opt }}" {% if txn_type == opt %}selected{% endif %}>{{ opt }}</option>
       {% endfor %}
     </select>
   </div>
   <div>
-    <label for="txn_status" class="block text-xs font-medium ink-3 mb-1">Status</label>
+    <label for="txn_status" class="block text-xs font-medium ink-3 mb-1">{{ _("Status") }}</label>
     <select id="txn_status" name="txn_status"
       class="saebooks-input text-sm px-2 py-1.5">
-      <option value="">All</option>
-      <option value="DRAFT"  {% if txn_status == "DRAFT"  %}selected{% endif %}>Draft</option>
-      <option value="POSTED" {% if txn_status == "POSTED" %}selected{% endif %}>Posted</option>
-      <option value="VOIDED" {% if txn_status == "VOIDED" %}selected{% endif %}>Voided</option>
+      <option value="">{{ _("All") }}</option>
+      <option value="DRAFT"  {% if txn_status == "DRAFT"  %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="POSTED" {% if txn_status == "POSTED" %}selected{% endif %}>{{ _("Posted") }}</option>
+      <option value="VOIDED" {% if txn_status == "VOIDED" %}selected{% endif %}>{{ _("Voided") }}</option>
     </select>
   </div>
   <div>
-    <label for="date_from" class="block text-xs font-medium ink-3 mb-1">From</label>
+    <label for="date_from" class="block text-xs font-medium ink-3 mb-1">{{ _("From") }}</label>
     <input type="date" id="date_from" name="date_from" value="{{ date_from }}"
       class="saebooks-input text-sm px-2 py-1.5">
   </div>
   <div>
-    <label for="date_to" class="block text-xs font-medium ink-3 mb-1">To</label>
+    <label for="date_to" class="block text-xs font-medium ink-3 mb-1">{{ _("To") }}</label>
     <input type="date" id="date_to" name="date_to" value="{{ date_to }}"
       class="saebooks-input text-sm px-2 py-1.5">
   </div>
   <input type="hidden" name="sort" value="{{ sort }}">
   <input type="hidden" name="direction" value="{{ direction }}">
   <button type="submit" class="btn-primary text-sm">
-    Apply
+    {{ _("Apply") }}
   </button>
   {% if txn_type or txn_status or date_from or date_to %}
-  <a href="?" class="text-sm ink-3 hover:underline">Clear filters</a>
+  <a href="?" class="text-sm ink-3 hover:underline">{{ _("Clear filters") }}</a>
   {% endif %}
 </form>
 
@@ -226,12 +226,12 @@
   <table class="sae-table min-w-full w-full text-sm">
     <thead>
       <tr>
-        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('date',   'Date',   sort, direction) }}</th>
-        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('type',   'Type',   sort, direction) }}</th>
-        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('number', 'Number', sort, direction) }}</th>
-        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">Reference</th>
-        <th scope="col" class="px-3 py-2 text-right font-medium ink-2">{{ sort_link('amount', 'Amount', sort, direction) }}</th>
-        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('status', 'Status', sort, direction) }}</th>
+        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('date',   _("Date"),   sort, direction) }}</th>
+        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('type',   _("Type"),   sort, direction) }}</th>
+        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('number', _("Number"), sort, direction) }}</th>
+        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ _("Reference") }}</th>
+        <th scope="col" class="px-3 py-2 text-right font-medium ink-2">{{ sort_link('amount', _("Amount"), sort, direction) }}</th>
+        <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('status', _("Status"), sort, direction) }}</th>
       </tr>
     </thead>
     <tbody>
@@ -254,11 +254,11 @@
         <td class="px-3 py-2 text-right ink-1 font-semibold tabular-nums">{{ money(t.amount|float, grouping=False) }}</td>
         <td class="px-3 py-2">
           {% if t.status == "POSTED" %}
-            <span class="badge-pos">Posted</span>
+            <span class="badge-pos">{{ _("Posted") }}</span>
           {% elif t.status == "VOIDED" %}
-            <span class="badge-ink">Voided</span>
+            <span class="badge-ink">{{ _("Voided") }}</span>
           {% elif t.status == "DRAFT" %}
-            <span class="badge-warm">Draft</span>
+            <span class="badge-warm">{{ _("Draft") }}</span>
           {% else %}
             <span class="text-xs ink-3">{{ t.status or "—" }}</span>
           {% endif %}
@@ -270,7 +270,7 @@
 </div>
 {% else %}
 <div class="card border-dashed px-4 py-8 text-center text-sm ink-3">
-  No transactions match the current filters.
+  {{ _("No transactions match the current filters.") }}
 </div>
 {% endif %}
 

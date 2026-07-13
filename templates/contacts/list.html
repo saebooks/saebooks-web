@@ -4,7 +4,7 @@
 {% import "_icons.html" as icons %}
 {% import "_components/kebab_menu.html" as km %}
 
-{% block title %}Contacts — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Contacts") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}
@@ -21,18 +21,18 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Directory</span>
+        <span class="nav-section-label">{{ _("Directory") }}</span>
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="users" class="w-7 h-7 ink-3" aria-hidden="true"></i>
-        <span>Contacts</span>
+        <span>{{ _("Contacts") }}</span>
 
       </h1>
       {% if not error %}
-      <p class="text-xs ink-3 font-mono mt-2">{{ total }} contact{{ "s" if total != 1 else "" }}</p>
+      <p class="text-xs ink-3 font-mono mt-2">{{ _("%(n)s contact") % {"n": total} if total == 1 else _("%(n)s contacts") % {"n": total} }}</p>
       {% endif %}
     </div>
-    <a href="/contacts/new" class="btn-primary text-sm"><i data-lucide="user-plus" class="w-4 h-4" aria-hidden="true"></i><span>New contact</span></a>
+    <a href="/contacts/new" class="btn-primary text-sm"><i data-lucide="user-plus" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("New contact") }}</span></a>
   </div>
   <div class="drafting mt-4"></div>
 </header>
@@ -43,14 +43,14 @@
 <div class="mb-4 flex flex-wrap gap-3 items-center">
   <form method="get" action="/contacts" class="flex items-end gap-2">
     <div>
-      <label for="contact_type" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Type</label>
+      <label for="contact_type" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Type") }}</label>
       <select id="contact_type" name="contact_type" class="saebooks-input text-sm py-1.5"
               onchange="this.form.requestSubmit()">
-        <option value=""            {% if not filter_contact_type %}selected{% endif %}>All</option>
-        <option value="CUSTOMER"    {% if filter_contact_type == 'CUSTOMER' %}selected{% endif %}>Customer</option>
-        <option value="SUPPLIER"    {% if filter_contact_type == 'SUPPLIER' %}selected{% endif %}>Supplier</option>
-        <option value="BOTH"        {% if filter_contact_type == 'BOTH' %}selected{% endif %}>Both</option>
-        <option value="BENEFICIARY" {% if filter_contact_type == 'BENEFICIARY' %}selected{% endif %}>Beneficiary</option>
+        <option value=""            {% if not filter_contact_type %}selected{% endif %}>{{ _("All") }}</option>
+        <option value="CUSTOMER"    {% if filter_contact_type == 'CUSTOMER' %}selected{% endif %}>{{ _("Customer") }}</option>
+        <option value="SUPPLIER"    {% if filter_contact_type == 'SUPPLIER' %}selected{% endif %}>{{ _("Supplier") }}</option>
+        <option value="BOTH"        {% if filter_contact_type == 'BOTH' %}selected{% endif %}>{{ _("Both") }}</option>
+        <option value="BENEFICIARY" {% if filter_contact_type == 'BENEFICIARY' %}selected{% endif %}>{{ _("Beneficiary") }}</option>
       </select>
     </div>
   </form>
@@ -69,15 +69,15 @@
     <thead>
       <tr>
         <th scope="col" class="w-8 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="text-left">Name</th>
-        <th scope="col" class="text-left">Type</th>
-        <th scope="col" class="text-left">Email</th>
-        <th scope="col" class="text-left">Phone</th>
-        <th scope="col" class="text-left">City</th>
+        <th scope="col" class="text-left">{{ _("Name") }}</th>
+        <th scope="col" class="text-left">{{ _("Type") }}</th>
+        <th scope="col" class="text-left">{{ _("Email") }}</th>
+        <th scope="col" class="text-left">{{ _("Phone") }}</th>
+        <th scope="col" class="text-left">{{ _("City") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -87,16 +87,16 @@
         <tr>
           <td class="text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ c.id }}"
-                   aria-label="Select contact {{ c.name }}"
+                   aria-label="{{ _('Select contact %(name)s') % {'name': c.name} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
           <td><a href="/contacts/{{ c.id }}" class="sae hover:underline font-medium">{{ c.name }}</a></td>
           <td>
             {% set _ct = c.contact_type|lower %}
-            {% if _ct == 'customer' %}<span class="badge-paid">Customer</span>
-            {% elif _ct == 'supplier' %}<span class="badge-pending">Supplier</span>
-            {% elif _ct == 'both' %}<span class="badge-open">Both</span>
+            {% if _ct == 'customer' %}<span class="badge-paid">{{ _("Customer") }}</span>
+            {% elif _ct == 'supplier' %}<span class="badge-pending">{{ _("Supplier") }}</span>
+            {% elif _ct == 'both' %}<span class="badge-open">{{ _("Both") }}</span>
             {% else %}<span class="badge-draft">{{ c.contact_type|capitalize }}</span>{% endif %}
           </td>
           <td class="ink-2">{{ c.email or "—" }}</td>
@@ -104,21 +104,21 @@
           <td class="ink-2">{{ c.city or "—" }}</td>
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set actions = [
-              ("view",    "View",    "/contacts/" ~ c.id,             "link", false),
-              ("edit",    "Edit",    "/contacts/" ~ c.id ~ "/edit",   "link", false),
+              ("view",    _("View"),    "/contacts/" ~ c.id,             "link", false),
+              ("edit",    _("Edit"),    "/contacts/" ~ c.id ~ "/edit",   "link", false),
             ] %}
-            {%- set _ = actions.append(("archive", "Archive", "/contacts/" ~ c.id ~ "/archive","post", true)) %}
+            {%- set _x = actions.append(("archive", _("Archive"), "/contacts/" ~ c.id ~ "/archive","post", true)) %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/contacts/" ~ c.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/contacts/" ~ c.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=c.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(8, "users", "No contacts yet",
-                     "Add the customers and suppliers you work with.",
-                     "Add contact", "/contacts/new") }}
+        {{ empty.row(8, "users", _("No contacts yet"),
+                     _("Add the customers and suppliers you work with."),
+                     _("Add contact"), "/contacts/new") }}
       {% endif %}
     </tbody>
   </table>
@@ -136,7 +136,7 @@
      entity="contacts",
      action_endpoint="/contacts/bulk",
      actions=[
-       ("archive",      "Archive",         true),
+       ("archive",      _("Archive"),         true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

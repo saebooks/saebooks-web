@@ -1,31 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Time — Week of {{ monday }} — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Time — Week of %(date)s") % {"date": monday} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl ink-1">Weekly time grid</h1>
+    <h1 class="font-display text-3xl ink-1">{{ _("Weekly time grid") }}</h1>
     <p class="text-base ink-3 mt-1">
-      Week of {{ monday }} —
-      <span class="num-display">{{ week_total }}h</span> total
-      ({{ billable_total }}h billable, {{ non_billable_total }}h non-billable).
+      {{ _("Week of %(date)s —") % {"date": monday} }}
+      <span class="num-display">{{ week_total }}h</span> {{ _("total") }}
+      {{ _("(%(billable)sh billable, %(non_billable)sh non-billable).") % {"billable": billable_total, "non_billable": non_billable_total} }}
     </p>
   </div>
   <div class="flex gap-2 items-center">
-    <a href="/time-entries/week?week_start={{ prev_week }}" class="btn btn-secondary">← Prev</a>
-    <a href="/time-entries/week?week_start={{ this_week }}" class="btn btn-secondary">This week</a>
-    <a href="/time-entries/week?week_start={{ next_week }}" class="btn btn-secondary">Next →</a>
-    <a href="/time-entries" class="btn btn-secondary">List view</a>
+    <a href="/time-entries/week?week_start={{ prev_week }}" class="btn btn-secondary">{{ _("← Prev") }}</a>
+    <a href="/time-entries/week?week_start={{ this_week }}" class="btn btn-secondary">{{ _("This week") }}</a>
+    <a href="/time-entries/week?week_start={{ next_week }}" class="btn btn-secondary">{{ _("Next →") }}</a>
+    <a href="/time-entries" class="btn btn-secondary">{{ _("List view") }}</a>
   </div>
 </div>
 
 {% if error %}
 <div class="card p-3 mb-6 flex items-center justify-between gap-4" style="border-color:var(--neg);">
-  <span class="text-base" style="color:var(--neg);">Couldn't load entries. Please try again.</span>
+  <span class="text-base" style="color:var(--neg);">{{ _("Couldn't load entries. Please try again.") }}</span>
   <button type="button" onclick="window.location.reload()"
-          class="shrink-0 text-sm font-medium underline hover:no-underline" style="color:var(--neg);">Retry</button>
+          class="shrink-0 text-sm font-medium underline hover:no-underline" style="color:var(--neg);">{{ _("Retry") }}</button>
 </div>
 {% endif %}
 
@@ -61,15 +61,15 @@
             {% elif e.description %}
               {{ e.description }}
             {% else %}
-              (no description)
+              {{ _("(no description)") }}
             {% endif %}
           </p>
           {% if e.billable %}
           <p class="text-xs sae mt-0.5">
-            {% if e.rate %}{{ money(e.rate|float, grouping=False) }}/h
+            {% if e.rate %}{{ _("%(rate)s/h") % {"rate": money(e.rate|float, grouping=False)} }}
               · <span class="num-display">{{ money((e.rate|float) * (e.hours|float), grouping=False) }}</span>
-            {% else %}billable{% endif %}
-            {% if e.invoice_line_id %} → on invoice{% endif %}
+            {% else %}{{ _("billable") }}{% endif %}
+            {% if e.invoice_line_id %} {{ _("→ on invoice") }}{% endif %}
           </p>
           {% endif %}
         </a>
@@ -82,15 +82,15 @@
   {{ csrf_input(request)|safe }}
       <input type="hidden" name="work_date" value="{{ d_iso }}">
       <div class="flex gap-1 mb-1">
-        <input type="number" name="hours" aria-label="Hours for {{ d_iso }}" step="0.25" min="0.01" required aria-required="true"
+        <input type="number" name="hours" aria-label="{{ _('Hours for %(date)s') % {'date': d_iso} }}" step="0.25" min="0.01" required aria-required="true"
                placeholder="h"
                class="w-12 rounded hairline px-1.5 py-1 text-sm num">
-        <input type="text" name="description" aria-label="Description for {{ d_iso }}" placeholder="What"
+        <input type="text" name="description" aria-label="{{ _('Description for %(date)s') % {'date': d_iso} }}" placeholder="What"
                class="flex-1 rounded hairline px-1.5 py-1 text-sm min-w-0">
       </div>
       <div class="flex gap-1 mb-1">
-        <select name="project_id" aria-label="Project for {{ d_iso }}" class="flex-1 rounded hairline px-1 py-1 text-xs min-w-0">
-          <option value="">project…</option>
+        <select name="project_id" aria-label="{{ _('Project for %(date)s') % {'date': d_iso} }}" class="flex-1 rounded hairline px-1 py-1 text-xs min-w-0">
+          <option value="">{{ _("project…") }}</option>
           {% for p in projects %}
           <option value="{{ p.id }}">{{ p.name }}</option>
           {% endfor %}
@@ -100,7 +100,7 @@
           $
         </label>
       </div>
-      <button type="submit" class="w-full text-xs btn btn-secondary py-1">+ Add</button>
+      <button type="submit" class="w-full text-xs btn btn-secondary py-1">+ {{ _("Add") }}</button>
     </form>
   </section>
   {% endfor %}
@@ -109,10 +109,10 @@
 <div class="mt-6 flex items-center gap-3">
   <a href="/time-entries?date_from={{ days[0] }}&amp;date_to={{ days[6] }}&amp;billable_only=true&amp;uninvoiced_only=true"
      class="btn btn-secondary">
-    Show this week's billable uninvoiced →
+    {{ _("Show this week's billable uninvoiced →") }}
   </a>
   <a href="/time-entries/new?work_date={{ this_week }}" class="btn btn-primary ml-auto">
-    + Long-form entry
+    + {{ _("Long-form entry") }}
   </a>
 </div>
 

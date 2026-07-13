@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Inventory overview — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Inventory overview") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <header class="mb-8">
   <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Inventory</span>
+        <span class="nav-section-label">{{ _("Inventory") }}</span>
       </div>
       <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
          >
-        Inventory overview
+        {{ _("Inventory overview") }}
       </h1>
       <p class="mt-2 text-sm ink-3">
-        Products, services, and stock at a glance.
+        {{ _("Products, services, and stock at a glance.") }}
       </p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       <a href="/items/new" class="btn btn-primary">
-        <i data-lucide="plus" class="w-4 h-4"></i> New product / service
+        <i data-lucide="plus" class="w-4 h-4"></i> {{ _("New product / service") }}
       </a>
       <a href="/purchase_orders/new" class="btn btn-secondary">
-        <i data-lucide="shopping-cart" class="w-4 h-4"></i> Purchase order
+        <i data-lucide="shopping-cart" class="w-4 h-4"></i> {{ _("Purchase order") }}
       </a>
     </div>
   </div>
@@ -32,26 +32,26 @@
 {# ── KPI strip ── #}
 <section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
   <a href="/items" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
-    <p class="nav-section-label mb-2">Items · total</p>
+    <p class="nav-section-label mb-2">{{ _("Items · total") }}</p>
     <p class="num-display text-2xl sae">{{ items_count }}</p>
-    <p class="mt-1 text-xs ink-3">{{ active_count }} active</p>
+    <p class="mt-1 text-xs ink-3">{{ _("%(n)s active") % {"n": active_count} }}</p>
   </a>
   <a href="/items?kind=PRODUCT" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
-    <p class="nav-section-label mb-2">Products</p>
+    <p class="nav-section-label mb-2">{{ _("Products") }}</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">{{ products_count }}</p>
-    <p class="mt-1 text-xs ink-3">stocked / sold</p>
+    <p class="mt-1 text-xs ink-3">{{ _("stocked / sold") }}</p>
   </a>
   <a href="/items?kind=SERVICE" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
-    <p class="nav-section-label mb-2">Services</p>
+    <p class="nav-section-label mb-2">{{ _("Services") }}</p>
     <p class="num-display text-2xl" style="color:var(--pos);">{{ services_count }}</p>
-    <p class="mt-1 text-xs ink-3">labour / fees</p>
+    <p class="mt-1 text-xs ink-3">{{ _("labour / fees") }}</p>
   </a>
   <a href="/items" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
-    <p class="nav-section-label mb-2">Low stock</p>
+    <p class="nav-section-label mb-2">{{ _("Low stock") }}</p>
     <p class="num-display text-2xl" style="color: {% if low_stock_count > 0 %}var(--neg){% else %}var(--ink-3){% endif %};">
       {{ low_stock_count }}
     </p>
-    <p class="mt-1 text-xs ink-3">below reorder point</p>
+    <p class="mt-1 text-xs ink-3">{{ _("below reorder point") }}</p>
   </a>
 </section>
 
@@ -60,17 +60,17 @@
   <div class="lg:col-span-2 space-y-6">
     <section class="card p-6">
       <div class="flex items-start justify-between mb-4">
-        <p class="nav-section-label">Top sold · recent invoices</p>
-        <a href="/items" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all items →</a>
+        <p class="nav-section-label">{{ _("Top sold · recent invoices") }}</p>
+        <a href="/items" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("all items →") }}</a>
       </div>
       {% if top_sold %}
         <table class="w-full text-sm">
           <thead class="text-[11px] font-mono uppercase ink-3">
             <tr>
-              <th class="text-left py-1">Item</th>
-              <th class="text-left py-1">SKU</th>
-              <th class="text-right py-1">Lines</th>
-              <th class="text-right py-1">Revenue</th>
+              <th class="text-left py-1">{{ _("Item") }}</th>
+              <th class="text-left py-1">{{ _("SKU") }}</th>
+              <th class="text-right py-1">{{ _("Lines") }}</th>
+              <th class="text-right py-1">{{ _("Revenue") }}</th>
             </tr>
           </thead>
           <tbody>
@@ -85,23 +85,23 @@
           </tbody>
         </table>
       {% else %}
-        <p class="text-sm ink-3 py-6 text-center font-mono">— no recent sales activity —</p>
+        <p class="text-sm ink-3 py-6 text-center font-mono">{{ _("— no recent sales activity —") }}</p>
       {% endif %}
     </section>
 
     {% if low_stock %}
     <section class="card p-6">
       <div class="flex items-start justify-between mb-4">
-        <p class="nav-section-label" style="color:var(--neg);">Low stock · reorder</p>
-        <a href="/items" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all items →</a>
+        <p class="nav-section-label" style="color:var(--neg);">{{ _("Low stock · reorder") }}</p>
+        <a href="/items" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("all items →") }}</a>
       </div>
       <table class="w-full text-sm">
         <thead class="text-[11px] font-mono uppercase ink-3">
           <tr>
-            <th class="text-left py-1">Item</th>
-            <th class="text-left py-1">SKU</th>
-            <th class="text-right py-1">On hand</th>
-            <th class="text-right py-1">Reorder at</th>
+            <th class="text-left py-1">{{ _("Item") }}</th>
+            <th class="text-left py-1">{{ _("SKU") }}</th>
+            <th class="text-right py-1">{{ _("On hand") }}</th>
+            <th class="text-right py-1">{{ _("Reorder at") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -123,8 +123,8 @@
   <div class="space-y-6">
     <section class="card p-6">
       <div class="flex items-start justify-between mb-4">
-        <p class="nav-section-label">Recent items</p>
-        <a href="/items" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+        <p class="nav-section-label">{{ _("Recent items") }}</p>
+        <a href="/items" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("all →") }}</a>
       </div>
       {% if recent_items %}
         <ul class="space-y-2">
@@ -139,14 +139,14 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-sm ink-3 py-4 text-center font-mono">— no items yet —</p>
+        <p class="text-sm ink-3 py-4 text-center font-mono">{{ _("— no items yet —") }}</p>
       {% endif %}
     </section>
 
     <section class="card p-6">
       <div class="flex items-start justify-between mb-4">
-        <p class="nav-section-label">Recent purchase orders</p>
-        <a href="/purchase_orders" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+        <p class="nav-section-label">{{ _("Recent purchase orders") }}</p>
+        <a href="/purchase_orders" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("all →") }}</a>
       </div>
       {% if recent_pos %}
         <ul class="space-y-2">
@@ -160,7 +160,7 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-sm ink-3 py-4 text-center font-mono">— no POs —</p>
+        <p class="text-sm ink-3 py-4 text-center font-mono">{{ _("— no POs —") }}</p>
       {% endif %}
     </section>
   </div>

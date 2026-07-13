@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Tidy one-off contacts — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Tidy one-off contacts") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -12,14 +12,9 @@
 {% endif %}
 
 <div class="mb-6">
-  <h1 class="text-3xl font-semibold ink-1">Tidy one-off contacts</h1>
+  <h1 class="text-3xl font-semibold ink-1">{{ _("Tidy one-off contacts") }}</h1>
   <p class="text-base ink-3 mt-1 max-w-3xl">
-    These contacts each have a single POSTED transaction, no drafts, and have
-    been quiet for at least 90 days — likely cash purchases or walk-ins you
-    don't need on your main contacts list. Ticked rows below will be marked
-    as one-off and hidden from the default view. Their transactions stay
-    where they are. You can un-tag any of them later from the contact's edit
-    page.
+    {{ _("These contacts each have a single POSTED transaction, no drafts, and have been quiet for at least 90 days — likely cash purchases or walk-ins you don't need on your main contacts list. Ticked rows below will be marked as one-off and hidden from the default view. Their transactions stay where they are. You can un-tag any of them later from the contact's edit page.") }}
   </p>
 </div>
 
@@ -38,21 +33,21 @@
       <thead>
         <tr>
           <th scope="col" class="px-3 py-2 text-left text-sm font-medium ink-2">
-            <input type="checkbox" id="select-all" checked aria-label="Select all candidates" class="rounded border-gray-300" onclick="document.querySelectorAll('input[name=contact_id]').forEach(cb => cb.checked = this.checked)">
+            <input type="checkbox" id="select-all" checked aria-label="{{ _('Select all candidates') }}" class="rounded border-gray-300" onclick="document.querySelectorAll('input[name=contact_id]').forEach(cb => cb.checked = this.checked)">
           </th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">Name</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">Type</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">Last txn</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">Kind</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-2">Total</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">Last seen</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ _("Name") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ _("Type") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ _("Last txn") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ _("Kind") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-2">{{ _("Total") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ _("Last seen") }}</th>
         </tr>
       </thead>
       <tbody>
         {% for c in candidates %}
         <tr class="hover:bg-[color:var(--paper-2)]">
           <td class="px-3 py-2">
-            <input type="checkbox" name="contact_id" value="{{ c.id }}" checked aria-label="Select {{ c.name }}" class="rounded border-gray-300">
+            <input type="checkbox" name="contact_id" value="{{ c.id }}" checked aria-label="{{ _('Select %(name)s') % {'name': c.name} }}" class="rounded border-gray-300">
           </td>
           <td class="px-3 py-2">
             <a href="/contacts/{{ c.id }}" class="sae hover:underline" target="_blank">{{ c.name }}</a>
@@ -79,15 +74,15 @@
 
   <div class="flex items-center gap-3">
     <button type="submit" class="btn-primary text-base">
-      Tag selected as one-off
+      {{ _("Tag selected as one-off") }}
     </button>
-    <a href="/contacts" class="text-base ink-3 hover:underline">Cancel</a>
-    <span class="text-sm ink-4 ml-auto">{{ candidates|length }} candidate{{ 's' if candidates|length != 1 else '' }} found</span>
+    <a href="/contacts" class="text-base ink-3 hover:underline">{{ _("Cancel") }}</a>
+    <span class="text-sm ink-4 ml-auto">{{ _("%(n)s candidate found") % {"n": candidates|length} if candidates|length == 1 else _("%(n)s candidates found") % {"n": candidates|length} }}</span>
   </div>
 </form>
 {% else %}
 <div class="card border-dashed px-4 py-8 text-center text-base ink-3">
-  Nothing to tidy — no one-off candidates right now.
+  {{ _("Nothing to tidy — no one-off candidates right now.") }}
 </div>
 {% endif %}
 

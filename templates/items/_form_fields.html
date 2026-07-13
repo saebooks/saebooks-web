@@ -43,7 +43,7 @@
     class="saebooks-input w-full"
     {% if errors.get(name) %}style="border-color:var(--neg)"{% endif %}
   >
-    <option value="" {% if not form.get(name) %}selected{% endif %}>— select account —</option>
+    <option value="" {% if not form.get(name) %}selected{% endif %}>{{ _("— select account —") }}</option>
     {% for acct in accounts %}
     <option value="{{ acct.id }}" {% if form.get(name) == acct.id %}selected{% endif %}>
       {% if acct.get('code') %}{{ acct.code }} — {% endif %}{{ acct.name }}
@@ -66,14 +66,14 @@
 
 {# ── Identity ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Identity</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Identity") }}</legend>
 
-  {{ text_input("sku", "SKU", required=true, placeholder="WIDGET-001") }}
-  {{ text_input("name", "Name", required=true, placeholder="Widget, 10mm") }}
+  {{ text_input("sku", _("SKU"), required=true, placeholder="WIDGET-001") }}
+  {{ text_input("name", _("Name"), required=true, placeholder="Widget, 10mm") }}
 
   <div>
     <label for="item_type" class="block text-sm font-medium ink-2 mb-1">
-      Type <span style="color:var(--neg)">*</span>
+      {{ _("Type") }} <span style="color:var(--neg)">*</span>
     </label>
     <select
       id="item_type"
@@ -81,8 +81,8 @@
       class="saebooks-input w-full"
       {% if errors.get('item_type') %}style="border-color:var(--neg)"{% endif %}
     >
-      <option value="inventory" {% if form.get("item_type", "inventory") == "inventory" %}selected{% endif %}>Inventory</option>
-      <option value="service"   {% if form.get("item_type") == "service" %}selected{% endif %}>Service</option>
+      <option value="inventory" {% if form.get("item_type", "inventory") == "inventory" %}selected{% endif %}>{{ _("Inventory") }}</option>
+      <option value="service"   {% if form.get("item_type") == "service" %}selected{% endif %}>{{ _("Service") }}</option>
     </select>
     {% if errors.get("item_type") %}
     <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["item_type"] }}</p>
@@ -93,21 +93,21 @@
 
 {# ── Pricing ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Pricing</legend>
-  {{ text_input("default_sale_price", "Default sale price", placeholder="0.00", type="text") }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Pricing") }}</legend>
+  {{ text_input("default_sale_price", _("Default sale price"), placeholder="0.00", type="text") }}
 </fieldset>
 
 {# ── Accounts ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Linked Accounts</legend>
-  {{ account_select("income_account_id", "Income account", required=true) }}
-  {{ account_select("cogs_account_id", "COGS account", required=true) }}
-  {{ account_select("inventory_account_id", "Inventory account", required=true) }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Linked Accounts") }}</legend>
+  {{ account_select("income_account_id", _("Income account"), required=true) }}
+  {{ account_select("cogs_account_id", _("COGS account"), required=true) }}
+  {{ account_select("inventory_account_id", _("Inventory account"), required=true) }}
 </fieldset>
 
 {# ── Description ── #}
 <div class="mt-6">
-  <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
+  <label for="description" class="block text-sm font-medium ink-2 mb-1">{{ _("Description") }}</label>
   <textarea
     id="description"
     name="description"

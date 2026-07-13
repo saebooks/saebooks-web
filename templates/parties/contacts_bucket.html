@@ -11,14 +11,14 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Contacts</span>
+        <span class="nav-section-label">{{ _("Contacts") }}</span>
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="{{ icon }}" class="w-7 h-7 ink-3" aria-hidden="true"></i>
         <span>{{ title }}</span>
       </h1>
       <p class="text-xs ink-3 font-mono mt-2">
-        {{ total }} {{ "record" if total == 1 else "records" }}
+        {{ _("%(n)s record") % {"n": total} if total == 1 else _("%(n)s records") % {"n": total} }}
         {% if subtitle %}<span class="ml-2 ink-3">· {{ subtitle }}</span>{% endif %}
       </p>
     </div>
@@ -34,13 +34,13 @@
 
 <form method="get" action="{{ base_path }}" class="mb-4 flex items-end gap-2">
   <div class="flex-1 max-w-sm">
-    <label for="search" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Search</label>
+    <label for="search" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Search") }}</label>
     <input id="search" name="search" type="text" value="{{ search }}"
            placeholder="Name or email"
            class="saebooks-input text-sm py-1.5 w-full">
   </div>
-  <button type="submit" class="btn-secondary text-sm">Filter</button>
-  {% if search %}<a href="{{ base_path }}" class="text-sm ink-3 hover:underline self-end pb-2">Clear</a>{% endif %}
+  <button type="submit" class="btn-secondary text-sm">{{ _("Filter") }}</button>
+  {% if search %}<a href="{{ base_path }}" class="text-sm ink-3 hover:underline self-end pb-2">{{ _("Clear") }}</a>{% endif %}
 </form>
 
 {% if error %}
@@ -54,12 +54,12 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th class="text-left">Name</th>
-        <th class="text-left">Type</th>
-        <th class="text-left">Email</th>
-        <th class="text-left">Phone</th>
-        <th class="text-left">City</th>
-        <th class="text-left">ABN</th>
+        <th class="text-left">{{ _("Name") }}</th>
+        <th class="text-left">{{ _("Type") }}</th>
+        <th class="text-left">{{ _("Email") }}</th>
+        <th class="text-left">{{ _("Phone") }}</th>
+        <th class="text-left">{{ _("City") }}</th>
+        <th class="text-left">{{ _("ABN") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -71,10 +71,10 @@
           </td>
           <td>
             {% set _ct = (c.contact_type or '')|lower %}
-            {% if _ct == 'customer' %}<span class="badge-paid">Customer</span>
-            {% elif _ct == 'supplier' %}<span class="badge-pending">Supplier</span>
-            {% elif _ct == 'both' %}<span class="badge-open">Both</span>
-            {% elif _ct == 'beneficiary' %}<span class="badge-draft">Beneficiary</span>
+            {% if _ct == 'customer' %}<span class="badge-paid">{{ _("Customer") }}</span>
+            {% elif _ct == 'supplier' %}<span class="badge-pending">{{ _("Supplier") }}</span>
+            {% elif _ct == 'both' %}<span class="badge-open">{{ _("Both") }}</span>
+            {% elif _ct == 'beneficiary' %}<span class="badge-draft">{{ _("Beneficiary") }}</span>
             {% else %}<span class="badge-draft">{{ c.contact_type|default('—') }}</span>{% endif %}
           </td>
           <td class="ink-2">{{ c.email or "—" }}</td>
@@ -84,8 +84,8 @@
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(6, icon, "No " ~ title|lower ~ " yet",
-                     "Records in this bucket will appear here.",
+        {{ empty.row(6, icon, _("No %(title)s yet") % {"title": title|lower},
+                     _("Records in this bucket will appear here."),
                      new_label if new_url else "", new_url or "") }}
       {% endif %}
     </tbody>

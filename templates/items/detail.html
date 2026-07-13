@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if item %}{{ item.sku }} — {{ current_brand().name }}{% else %}Item Not Found — {{ current_brand().name }}{% endif %}
+  {% if item %}{{ item.sku }} — {{ current_brand().name }}{% else %}{{ _("Item Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -40,7 +40,7 @@
     <p class="text-sm ink-3 mt-1">{{ item.description }}</p>
     {% endif %}
     {% if item.archived_at %}
-    <p class="text-sm mt-1" style="color:var(--warm)">Archived {{ item.archived_at[:10] }}</p>
+    <p class="text-sm mt-1" style="color:var(--warm)">{{ _("Archived %(date)s") % {"date": item.archived_at[:10]} }}</p>
     {% endif %}
   </div>
   <div class="flex items-center gap-3">
@@ -49,7 +49,7 @@
       href="/items/{{ item.id }}/edit"
       class="btn-secondary text-sm px-4 py-1.5"
     >
-      Edit
+      {{ _("Edit") }}
     </a>
     <form method="POST" action="/items/{{ item.id }}/archive" class="inline">
     {{ csrf_input(request)|safe }}
@@ -57,16 +57,16 @@
       <input type="hidden" name="version" value="{{ item.version }}">
       <button
         type="submit"
-        onclick="return confirm('Archive this item?')"
+        onclick="return confirm('{{ _('Archive this item?') }}')"
         class="btn-secondary text-sm px-4 py-1.5"
         style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
-        Archive
+        {{ _("Archive") }}
       </button>
     </form>
     {% endif %}
     <a href="/items" class="text-sm sae hover:underline">
-      ← Back to items
+      {{ _("← Back to items") }}
     </a>
   </div>
 </div>
@@ -74,22 +74,22 @@
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Sale price</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Sale price") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ num(item.default_sale_price|float, 2) }}
     </p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Cost method</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Cost method") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ item.cost_method }}</p>
   </div>
   {% if item.item_type == 'inventory' %}
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">On hand qty</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("On hand qty") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ item.on_hand_qty }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">WAC cost</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("WAC cost") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ num(item.wac_cost|float, 4) }}
     </p>
@@ -99,22 +99,22 @@
 
 {# ── Accounts ── #}
 <div class="card p-5 mb-6">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Linked Accounts</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Linked Accounts") }}</h2>
   <dl class="grid grid-cols-1 gap-y-2 text-sm sm:grid-cols-3">
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">Income account</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("Income account") }}</dt>
       <dd class="ink-1 font-mono text-xs">
         <a href="/accounts/{{ item.income_account_id }}" class="sae hover:underline">{{ item.income_account_id }}</a>
       </dd>
     </div>
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">COGS account</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("COGS account") }}</dt>
       <dd class="ink-1 font-mono text-xs">
         <a href="/accounts/{{ item.cogs_account_id }}" class="sae hover:underline">{{ item.cogs_account_id }}</a>
       </dd>
     </div>
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">Inventory account</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("Inventory account") }}</dt>
       <dd class="ink-1 font-mono text-xs">
         <a href="/accounts/{{ item.inventory_account_id }}" class="sae hover:underline">{{ item.inventory_account_id }}</a>
       </dd>
@@ -124,18 +124,18 @@
 
 {# ── System info ── #}
 <div class="card p-5 mb-6">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">System Info</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("System Info") }}</h2>
   <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">ID</dt>
+      <dt class="shrink-0 ink-3">{{ _("ID") }}</dt>
       <dd class="ink-1 font-mono text-xs">{{ item.id }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">Version</dt>
+      <dt class="shrink-0 ink-3">{{ _("Version") }}</dt>
       <dd class="ink-1">{{ item.version }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">Created</dt>
+      <dt class="shrink-0 ink-3">{{ _("Created") }}</dt>
       <dd class="ink-1">{{ item.created_at[:10] }}</dd>
     </div>
   </dl>

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Edit time entry — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Edit time entry") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6">
-  <h1 class="font-display text-3xl ink-1">Edit time entry</h1>
+  <h1 class="font-display text-3xl ink-1">{{ _("Edit time entry") }}</h1>
   <p class="text-base ink-3 mt-1">
     {% if entry %}{{ entry.work_date }} · v{{ entry.version }}{% endif %}
   </p>
@@ -23,23 +23,23 @@
   <input type="hidden" name="version" value="{{ entry.version }}">
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm ink-3 mb-1">Date</label>
+      <label class="block text-sm ink-3 mb-1">{{ _("Date") }}</label>
       <input type="date" name="work_date" value="{{ form.work_date }}"
              class="w-full rounded-md hairline px-3 py-2 bg-paper">
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1">Hours</label>
+      <label class="block text-sm ink-3 mb-1">{{ _("Hours") }}</label>
       <input type="number" name="hours" step="0.25" min="0.01"
              value="{{ form.hours }}"
              class="w-full rounded-md hairline px-3 py-2 bg-paper num-display">
     </div>
     <div class="col-span-2">
-      <label class="block text-sm ink-3 mb-1">Description</label>
+      <label class="block text-sm ink-3 mb-1">{{ _("Description") }}</label>
       <input type="text" name="description" value="{{ form.description or '' }}"
              class="w-full rounded-md hairline px-3 py-2 bg-paper">
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1">Project</label>
+      <label class="block text-sm ink-3 mb-1">{{ _("Project") }}</label>
       <select name="project_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
         <option value="">—</option>
         {% for p in projects %}
@@ -48,7 +48,7 @@
       </select>
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1">Contact</label>
+      <label class="block text-sm ink-3 mb-1">{{ _("Contact") }}</label>
       <select name="contact_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
         <option value="">—</option>
         {% for c in contacts %}
@@ -60,17 +60,17 @@
       <label class="inline-flex items-center gap-2 text-base ink-1">
         <input type="checkbox" name="billable" value="on"
                {% if form.billable %}checked{% endif %}>
-        Billable
+        {{ _("Billable") }}
       </label>
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1">Rate ($/h)</label>
+      <label class="block text-sm ink-3 mb-1">{{ _("Rate ($/h)") }}</label>
       <input type="number" name="rate" step="0.01" min="0"
              value="{{ form.rate or '' }}"
              class="w-full rounded-md hairline px-3 py-2 bg-paper num">
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1">Break (minutes)</label>
+      <label class="block text-sm ink-3 mb-1">{{ _("Break (minutes)") }}</label>
       <input type="number" name="break_minutes" step="5" min="0"
              value="{{ form.break_minutes or '' }}"
              class="w-full rounded-md hairline px-3 py-2 bg-paper num">
@@ -78,8 +78,8 @@
   </div>
 
   <div class="mt-6 flex items-center gap-3">
-    <button type="submit" class="btn btn-primary">Save changes</button>
-    <a href="/time-entries/{{ entry.id }}" class="btn btn-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ _("Save changes") }}</button>
+    <a href="/time-entries/{{ entry.id }}" class="btn btn-secondary">{{ _("Cancel") }}</a>
   </div>
 </form>
 

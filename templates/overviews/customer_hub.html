@@ -1,29 +1,28 @@
 {% extends "base.html" %}
 {% from "_funnel_macros.html" import funnel %}
 
-{% block title %}Customer overview — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Customer overview") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <header class="mb-8">
   <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Customers</span>
+        <span class="nav-section-label">{{ _("Customers") }}</span>
         <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
-          As of {{ today_iso }}
+          {{ _("As of %(date)s") % {"date": today_iso} }}
         </span>
         <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono uppercase"
               style="background: rgba(99,102,241,0.08); color: var(--sae);">
-          <i data-lucide="flask-conical" class="w-3 h-3"></i> beta
+          <i data-lucide="flask-conical" class="w-3 h-3"></i> {{ _("beta") }}
         </span>
       </div>
       <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
          >
-        Customer overview
+        {{ _("Customer overview") }}
       </h1>
       <p class="mt-2 text-sm ink-3 max-w-2xl">
-        Customers at a glance — quotes, projects, and unpaid invoices in one
-        view. CRM features (leads, opportunities, reviews) are deferred for v1.
+        {{ _("Customers at a glance — quotes, projects, and unpaid invoices in one view. CRM features (leads, opportunities, reviews) are deferred for v1.") }}
       </p>
     </div>
   </div>
@@ -32,45 +31,45 @@
 
 {# ── Quick actions ── #}
 <section class="card p-5 mb-6">
-  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">Quick actions</p>
+  <p class="text-[11px] font-mono uppercase tracking-[0.2em] ink-3 mb-3">{{ _("Quick actions") }}</p>
   <div class="flex flex-wrap items-center gap-2">
     <a href="/contacts/new?type=CUSTOMER" class="btn btn-primary">
-      <i data-lucide="user-plus" class="w-4 h-4"></i> New customer
+      <i data-lucide="user-plus" class="w-4 h-4"></i> {{ _("New customer") }}
     </a>
     <a href="/quotes/new" class="btn btn-secondary">
-      <i data-lucide="file-pen-line" class="w-4 h-4"></i> New quote
+      <i data-lucide="file-pen-line" class="w-4 h-4"></i> {{ _("New quote") }}
     </a>
     <a href="/invoices/new" class="btn btn-secondary">
-      <i data-lucide="plus" class="w-4 h-4"></i> New invoice
+      <i data-lucide="plus" class="w-4 h-4"></i> {{ _("New invoice") }}
     </a>
     <a href="/projects/new" class="btn btn-secondary">
-      <i data-lucide="folder-kanban" class="w-4 h-4"></i> New project
+      <i data-lucide="folder-kanban" class="w-4 h-4"></i> {{ _("New project") }}
     </a>
     <a href="/admin/imports" class="btn btn-secondary">
-      <i data-lucide="upload" class="w-4 h-4"></i> Import customers
+      <i data-lucide="upload" class="w-4 h-4"></i> {{ _("Import customers") }}
     </a>
   </div>
 </section>
 
 {# ── Customer pipeline ── #}
 <div class="mb-6">
-  {{ funnel(customers_funnel, title="Customer pipeline", as_of=today_iso) }}
+  {{ funnel(customers_funnel, title=_("Customer pipeline"), as_of=today_iso) }}
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
   {# Open quotes — useful #}
   <section class="card p-6">
     <div class="flex items-start justify-between mb-4">
-      <p class="nav-section-label">Open quotes</p>
-      <a href="/quotes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      <p class="nav-section-label">{{ _("Open quotes") }}</p>
+      <a href="/quotes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("all →") }}</a>
     </div>
     {% if quotes_open %}
       <table class="w-full text-sm">
         <thead class="text-[11px] font-mono uppercase ink-3">
           <tr>
             <th class="text-left py-1">#</th>
-            <th class="text-left py-1">Customer</th>
-            <th class="text-right py-1">Amount</th>
+            <th class="text-left py-1">{{ _("Customer") }}</th>
+            <th class="text-right py-1">{{ _("Amount") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -87,15 +86,15 @@
         </tbody>
         <tfoot>
           <tr class="hairline-t">
-            <td colspan="2" class="py-2 text-[11px] font-mono uppercase ink-3">Total</td>
+            <td colspan="2" class="py-2 text-[11px] font-mono uppercase ink-3">{{ _("Total") }}</td>
             <td class="py-2 text-right num-display sae">{{ money(quotes_open_total|float) }}</td>
           </tr>
         </tfoot>
       </table>
     {% else %}
-      <p class="text-sm ink-3 py-6 text-center font-mono">— no open quotes —</p>
+      <p class="text-sm ink-3 py-6 text-center font-mono">{{ _("— no open quotes —") }}</p>
       <div class="text-center mt-2">
-        <a href="/quotes/new" class="text-xs sae hover:underline">Create one →</a>
+        <a href="/quotes/new" class="text-xs sae hover:underline">{{ _("Create one →") }}</a>
       </div>
     {% endif %}
   </section>
@@ -104,21 +103,21 @@
   <section class="card p-6">
     <div class="flex items-start justify-between mb-4">
       <div>
-        <p class="nav-section-label">Overdue invoices</p>
+        <p class="nav-section-label">{{ _("Overdue invoices") }}</p>
         <p class="num-display text-2xl mt-1" style="color: var(--neg);">
           {{ money(overdue_total|float) }}
         </p>
-        <p class="text-xs ink-3 mt-0.5">{{ overdue_count }} overdue</p>
+        <p class="text-xs ink-3 mt-0.5">{{ _("%(n)s overdue") % {"n": overdue_count} }}</p>
       </div>
-      <a href="/invoices?status=POSTED" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      <a href="/invoices?status=POSTED" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("all →") }}</a>
     </div>
     {% if overdue_top %}
       <table class="w-full text-sm">
         <thead class="text-[11px] font-mono uppercase ink-3">
           <tr>
-            <th class="text-left py-1">Customer</th>
-            <th class="text-left py-1">Due</th>
-            <th class="text-right py-1">Owed</th>
+            <th class="text-left py-1">{{ _("Customer") }}</th>
+            <th class="text-left py-1">{{ _("Due") }}</th>
+            <th class="text-right py-1">{{ _("Owed") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -138,7 +137,7 @@
         </tbody>
       </table>
     {% else %}
-      <p class="text-sm ink-3 py-6 text-center font-mono">— nothing overdue —</p>
+      <p class="text-sm ink-3 py-6 text-center font-mono">{{ _("— nothing overdue —") }}</p>
     {% endif %}
   </section>
 </div>
@@ -148,11 +147,9 @@
   <div class="flex items-start gap-3">
     <i data-lucide="flask-conical" class="w-5 h-5 sae"></i>
     <div>
-      <p class="text-sm font-semibold sae">CRM features — deferred</p>
+      <p class="text-sm font-semibold sae">{{ _("CRM features — deferred") }}</p>
       <p class="text-xs ink-3 mt-1 max-w-xl">
-        Leads, opportunities, contracts, appointments, reviews and referrals are
-        deferred for {{ current_brand().name }} v1. The data shown here is derived from existing
-        invoicing + projects state — no separate CRM is needed.
+        {{ _("Leads, opportunities, contracts, appointments, reviews and referrals are deferred for %(brand)s v1. The data shown here is derived from existing invoicing + projects state — no separate CRM is needed.") % {"brand": current_brand().name} }}
       </p>
     </div>
   </div>
