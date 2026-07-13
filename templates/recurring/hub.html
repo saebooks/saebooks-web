@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Recurring transactions — SAE Books{% endblock %}
+{% block title %}{{ _("Recurring transactions") }} — SAE Books{% endblock %}
 
 {% block content %}
 <header class="mb-8">
   <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Accounting</span>
+        <span class="nav-section-label">{{ _("Accounting") }}</span>
       </div>
       <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight"
          >
-        Recurring transactions
+        {{ _("Recurring transactions") }}
       </h1>
       <p class="mt-2 text-sm ink-3">
-        Templates that repeat on a schedule — invoices, journals, and (soon) bills.
+        {{ _("Templates that repeat on a schedule — invoices, journals, and (soon) bills.") }}
       </p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       <a href="/recurring-invoices/new" class="btn btn-primary">
-        <i data-lucide="repeat" class="w-4 h-4"></i> New recurring invoice
+        <i data-lucide="repeat" class="w-4 h-4"></i> {{ _("New recurring invoice") }}
       </a>
       <a href="/journal-templates/new" class="btn btn-secondary">
-        <i data-lucide="file-stack" class="w-4 h-4"></i> New journal template
+        <i data-lucide="file-stack" class="w-4 h-4"></i> {{ _("New journal template") }}
       </a>
     </div>
   </div>
@@ -32,24 +32,24 @@
 {# ── KPI strip ── #}
 <section class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
   <a href="/recurring-invoices" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
-    <p class="nav-section-label mb-2">Recurring invoices · active</p>
+    <p class="nav-section-label mb-2">{{ _("Recurring invoices · active") }}</p>
     <p class="num-display text-2xl" style="color: var(--pos);">{{ active_invoices_count }}</p>
-    <p class="mt-1 text-xs ink-3">{{ paused_invoices_count }} paused</p>
+    <p class="mt-1 text-xs ink-3">{{ _("%(n)s paused") % {"n": paused_invoices_count} }}</p>
   </a>
   <a href="/journal-templates" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
-    <p class="nav-section-label mb-2">Journal templates</p>
+    <p class="nav-section-label mb-2">{{ _("Journal templates") }}</p>
     <p class="num-display text-2xl sae">{{ journal_templates_count }}</p>
-    <p class="mt-1 text-xs ink-3">recurring journals</p>
+    <p class="mt-1 text-xs ink-3">{{ _("recurring journals") }}</p>
   </a>
   <div class="card bg-paper p-5 rounded-none opacity-60">
-    <p class="nav-section-label mb-2">Recurring bills</p>
+    <p class="nav-section-label mb-2">{{ _("Recurring bills") }}</p>
     <p class="num-display text-2xl ink-3">—</p>
-    <p class="mt-1 text-xs" style="color: var(--warm);">coming soon</p>
+    <p class="mt-1 text-xs" style="color: var(--warm);">{{ _("coming soon") }}</p>
   </div>
   <div class="card bg-paper p-5 rounded-none opacity-60">
-    <p class="nav-section-label mb-2">Recurring expenses</p>
+    <p class="nav-section-label mb-2">{{ _("Recurring expenses") }}</p>
     <p class="num-display text-2xl ink-3">—</p>
-    <p class="mt-1 text-xs" style="color: var(--warm);">coming soon</p>
+    <p class="mt-1 text-xs" style="color: var(--warm);">{{ _("coming soon") }}</p>
   </div>
 </section>
 
@@ -57,18 +57,18 @@
   {# Recurring invoices #}
   <section class="card p-6">
     <div class="flex items-start justify-between mb-4">
-      <p class="nav-section-label">Recurring invoices</p>
-      <a href="/recurring-invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      <p class="nav-section-label">{{ _("Recurring invoices") }}</p>
+      <a href="/recurring-invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("all →") }}</a>
     </div>
     {% if recurring_invoices %}
       <table class="w-full text-sm">
         <thead class="text-[11px] font-mono uppercase ink-3">
           <tr>
-            <th scope="col" class="text-left py-1">Name</th>
-            <th scope="col" class="text-left py-1">Customer</th>
-            <th scope="col" class="text-left py-1">Schedule</th>
-            <th scope="col" class="text-right py-1">Next run</th>
-            <th scope="col" class="text-right py-1">Status</th>
+            <th scope="col" class="text-left py-1">{{ _("Name") }}</th>
+            <th scope="col" class="text-left py-1">{{ _("Customer") }}</th>
+            <th scope="col" class="text-left py-1">{{ _("Schedule") }}</th>
+            <th scope="col" class="text-right py-1">{{ _("Next run") }}</th>
+            <th scope="col" class="text-right py-1">{{ _("Status") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -86,9 +86,9 @@
             <td class="py-2 text-right">
               {% set st = (r.status or 'ACTIVE')|upper %}
               {% if st == 'ACTIVE' %}
-                <span class="badge-pos">Active</span>
+                <span class="badge-pos">{{ _("Active") }}</span>
               {% elif st == 'PAUSED' %}
-                <span class="badge-warm">Paused</span>
+                <span class="badge-warm">{{ _("Paused") }}</span>
               {% else %}
                 <span class="badge-draft">{{ st|title }}</span>
               {% endif %}
@@ -98,9 +98,9 @@
         </tbody>
       </table>
     {% else %}
-      <p class="text-sm ink-3 py-6 text-center font-mono">— no recurring invoices —</p>
+      <p class="text-sm ink-3 py-6 text-center font-mono">{{ _("— no recurring invoices —") }}</p>
       <div class="text-center mt-2">
-        <a href="/recurring-invoices/new" class="text-xs sae hover:underline">Create one →</a>
+        <a href="/recurring-invoices/new" class="text-xs sae hover:underline">{{ _("Create one →") }}</a>
       </div>
     {% endif %}
   </section>
@@ -108,16 +108,16 @@
   {# Journal templates #}
   <section class="card p-6">
     <div class="flex items-start justify-between mb-4">
-      <p class="nav-section-label">Journal templates</p>
-      <a href="/journal-templates" class="text-xs sae hover:underline font-mono uppercase tracking-wider">all →</a>
+      <p class="nav-section-label">{{ _("Journal templates") }}</p>
+      <a href="/journal-templates" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("all →") }}</a>
     </div>
     {% if journal_templates %}
       <table class="w-full text-sm">
         <thead class="text-[11px] font-mono uppercase ink-3">
           <tr>
-            <th scope="col" class="text-left py-1">Name</th>
-            <th scope="col" class="text-left py-1">Description</th>
-            <th scope="col" class="text-right py-1">Lines</th>
+            <th scope="col" class="text-left py-1">{{ _("Name") }}</th>
+            <th scope="col" class="text-left py-1">{{ _("Description") }}</th>
+            <th scope="col" class="text-right py-1">{{ _("Lines") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -133,9 +133,9 @@
         </tbody>
       </table>
     {% else %}
-      <p class="text-sm ink-3 py-6 text-center font-mono">— no journal templates —</p>
+      <p class="text-sm ink-3 py-6 text-center font-mono">{{ _("— no journal templates —") }}</p>
       <div class="text-center mt-2">
-        <a href="/journal-templates/new" class="text-xs sae hover:underline">Create one →</a>
+        <a href="/journal-templates/new" class="text-xs sae hover:underline">{{ _("Create one →") }}</a>
       </div>
     {% endif %}
   </section>
@@ -146,13 +146,9 @@
   <div class="flex items-start gap-3">
     <i data-lucide="construction" class="w-5 h-5" style="color: var(--warm);"></i>
     <div>
-      <p class="text-sm font-semibold" style="color: var(--warm);">Recurring bills + expenses — coming soon</p>
+      <p class="text-sm font-semibold" style="color: var(--warm);">{{ _("Recurring bills + expenses — coming soon") }}</p>
       <p class="text-xs ink-3 mt-1 max-w-xl">
-        SAE Books currently supports recurring invoices and journal templates.
-        Recurring bills (e.g. monthly rent, weekly contractor invoices) and
-        recurring expenses (subscriptions, regular cash purchases) will land in
-        a future release — they need the same scheduler that drives recurring
-        invoices, applied to the bill / expense templates.
+        {{ _("SAE Books currently supports recurring invoices and journal templates. Recurring bills (e.g. monthly rent, weekly contractor invoices) and recurring expenses (subscriptions, regular cash purchases) will land in a future release — they need the same scheduler that drives recurring invoices, applied to the bill / expense templates.") }}
       </p>
     </div>
   </div>
