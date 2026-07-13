@@ -381,7 +381,7 @@
 
   <div class="card p-5">
     <p class="text-xs ink-3 mb-4">
-      {{ (_("Add an extraction hint for %(supplier)s. The hint guides the AI parser when ingesting future statements from this supplier.") % {"supplier": "<strong class=\"ink-1\">" ~ (statement.supplier_name | default(_("this supplier"))) ~ "</strong>"}) | safe }}
+      {{ (_("Add an extraction hint for %(supplier)s. The hint guides the AI parser when ingesting future statements from this supplier.") % {"supplier": "<strong class=\"ink-1\">" ~ (statement.supplier_name | default(_("this supplier")) | e) ~ "</strong>"}) | safe }}
       {% if statement.status in ("needs_review", "extracted") %}
       {{ _("After saving, re-ingest this statement to apply it immediately.") }}
       {% endif %}
@@ -398,7 +398,7 @@
           name="prompt_hint"
           rows="3"
           required
-          placeholder="{{ _('e.g. Statement lines start after the Transaction Detail header. Date format is DD/MM/YYYY.') }}"
+          placeholder="{{ _("e.g. Statement lines start after the 'Transaction Detail' header. Date format is DD/MM/YYYY.") }}"
           class="saebooks-input w-full text-sm py-2 resize-y"
         ></textarea>
       </div>

@@ -18,9 +18,9 @@
 <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--warm);">
   <p class="text-sm font-semibold ink-1 mb-1">{{ _("Archived bank accounts cannot be edited.") }}</p>
   {% if account %}
-  {% set _link = '<a href="/bank-accounts/' ~ account.id ~ '" class="underline sae">' ~ _("bank account detail page") ~ '</a>' %}
+  {% set _link = '<a href="/bank-accounts/' ~ (account.id | e) ~ '" class="underline sae">' ~ _("bank account detail page") ~ '</a>' %}
   <p class="text-sm ink-2">
-    {{ (_("This bank account was archived on %(date)s. Return to the %(link)s to view it.") % {"date": account.archived_at[:10], "link": _link}) | safe }}
+    {{ (_("This bank account was archived on %(date)s. Return to the %(link)s to view it.") % {"date": account.archived_at[:10] | e, "link": _link}) | safe }}
   </p>
   {% endif %}
 </div>
