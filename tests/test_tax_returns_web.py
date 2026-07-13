@@ -258,7 +258,7 @@ async def test_tax_returns_generate_defaults_jurisdiction_to_au_when_unresolved(
 @respx.mock
 async def test_tax_returns_generate_422_surfaced(respx_mock: respx.MockRouter) -> None:
     """The engine's 422 'no box definitions' detail is shown, not swallowed
-    into a generic error — TSD isn't generatable via this action."""
+    into a generic error (mocked here; live TSD generate is wired)."""
     respx_mock.post(f"{_API_BASE}/api/v1/tax_returns/generate").mock(
         return_value=Response(422, json={
             "detail": "No box definitions found for jurisdiction=EE return_type=TSD",
@@ -317,8 +317,8 @@ async def test_tax_returns_detail_tsd_renders(respx_mock: respx.MockRouter) -> N
     # Data-quality warning surfaced, not swallowed
     assert "Jane Doe" in resp.text
     assert "No isikukood on file" in resp.text
-    # TSD has no wired document builder — no download link offered
-    assert "Download XML" not in resp.text
+    # TSD export is wired engine-side (feat/tsd-api-route) — download offered
+    assert "Download XML" in resp.text
 
 
 # ---------------------------------------------------------------------------
