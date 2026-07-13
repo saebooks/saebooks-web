@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Email send log {{ entry.id[:8] }} — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Email send log %(id)s") % {"id": entry.id[:8]} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="mb-4">
-  <a href="/email-log" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← email log</a>
+  <a href="/email-log" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← {{ _("email log") }}</a>
 </div>
 
 {% set badge = status_badges.get(entry.resend_status, ('badge-draft', entry.resend_status|capitalize)) %}
 <header class="mb-6">
   <div class="flex items-center gap-2 mb-1">
-    <span class="nav-section-label">Email send log</span>
+    <span class="nav-section-label">{{ _("Email send log") }}</span>
     <span class="{{ badge[0] }}">{{ badge[1] }}</span>
   </div>
   <h1 class="font-display text-xl leading-tight tracking-tight">{{ entry.subject }}</h1>
@@ -29,7 +29,7 @@
   <div class="flex items-start gap-3">
     <span class="dot mt-1" style="background:var(--warm);"></span>
     <div class="text-sm ink-1">
-      <div class="font-medium" style="color:var(--warm);">BLOCKED — nothing sent</div>
+      <div class="font-medium" style="color:var(--warm);">{{ _("BLOCKED — nothing sent") }}</div>
       <div class="ink-2 mt-1 font-mono text-xs">{{ entry.kill_switch_reason }}</div>
     </div>
   </div>
@@ -37,15 +37,15 @@
 {% elif entry.resend_status == 'failed' %}
 <div class="card p-3 mb-5" style="border-color:var(--neg); background:rgba(161,67,51,0.04);">
   <div class="text-sm ink-1">
-    <div class="font-medium" style="color:var(--neg);">FAILED at Resend</div>
+    <div class="font-medium" style="color:var(--neg);">{{ _("FAILED at Resend") }}</div>
     <div class="ink-2 mt-1 font-mono text-xs">{{ entry.resend_error }}</div>
   </div>
 </div>
 {% elif entry.resend_status == 'sent' %}
 <div class="card p-3 mb-5" style="border-color:var(--pos); background:rgba(46,125,77,0.04);">
   <div class="text-sm ink-1">
-    <div class="font-medium" style="color:var(--pos);">SENT</div>
-    <div class="ink-2 mt-1 font-mono text-xs">Resend message id: {{ entry.resend_message_id }}</div>
+    <div class="font-medium" style="color:var(--pos);">{{ _("SENT") }}</div>
+    <div class="ink-2 mt-1 font-mono text-xs">{{ _("Resend message id:") }} {{ entry.resend_message_id }}</div>
   </div>
 </div>
 {% endif %}
@@ -53,43 +53,43 @@
 {# ─── Delivery timeline (Resend webhook events) ─── #}
 {% if entry.delivered_at or entry.bounced_at or entry.opened_at or entry.clicked_at or entry.complained_at %}
 <section class="card p-4 mb-5">
-  <h2 class="nav-section-label mb-3">Delivery timeline</h2>
+  <h2 class="nav-section-label mb-3">{{ _("Delivery timeline") }}</h2>
   <dl class="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-2 text-sm">
     {% if entry.delivered_at %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Delivered</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Delivered") }}</dt>
     <dd class="ink-1 font-mono text-xs" style="color:var(--pos);">✓ {{ entry.delivered_at[:19].replace('T', ' ') }}</dd>
     {% endif %}
     {% if entry.opened_at %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Opened</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Opened") }}</dt>
     <dd class="ink-1 font-mono text-xs">
       {{ entry.opened_at[:19].replace('T', ' ') }}
       {% if entry.opened_count > 1 %}<span class="ink-3">({{ entry.opened_count }}×)</span>{% endif %}
     </dd>
     {% endif %}
     {% if entry.clicked_at %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Clicked</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Clicked") }}</dt>
     <dd class="ink-1 font-mono text-xs">
       {{ entry.clicked_at[:19].replace('T', ' ') }}
       {% if entry.clicked_count > 1 %}<span class="ink-3">({{ entry.clicked_count }}×)</span>{% endif %}
     </dd>
     {% endif %}
     {% if entry.bounced_at %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Bounced</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Bounced") }}</dt>
     <dd class="ink-1 font-mono text-xs" style="color:var(--neg);">
       ❌ {{ entry.bounced_at[:19].replace('T', ' ') }}
       {% if entry.bounce_reason %} — {{ entry.bounce_reason }}{% endif %}
     </dd>
     {% endif %}
     {% if entry.complained_at %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Complained</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Complained") }}</dt>
     <dd class="ink-1 font-mono text-xs" style="color:var(--neg);">
-      🚨 {{ entry.complained_at[:19].replace('T', ' ') }} — recipient marked as spam
+      🚨 {{ entry.complained_at[:19].replace('T', ' ') }} — {{ _("recipient marked as spam") }}
     </dd>
     {% endif %}
   </dl>
   {% if entry.webhook_events %}
   <details class="mt-3">
-    <summary class="text-xs ink-3 cursor-pointer font-mono">{{ entry.webhook_events|length }} raw event(s) — toggle</summary>
+    <summary class="text-xs ink-3 cursor-pointer font-mono">{{ _("%(count)s raw event(s) — toggle") % {"count": entry.webhook_events|length} }}</summary>
     <pre class="font-mono text-[10px] ink-3 mt-2 overflow-x-auto max-h-64">{{ entry.webhook_events|tojson(indent=2) }}</pre>
   </details>
   {% endif %}
@@ -97,24 +97,24 @@
 {% endif %}
 
 <section class="card p-4 mb-5">
-  <h2 class="nav-section-label mb-3">Envelope</h2>
+  <h2 class="nav-section-label mb-3">{{ _("Envelope") }}</h2>
   <dl class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 text-sm">
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">From</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("From") }}</dt>
     <dd class="ink-1 font-mono">{{ entry.from_addr }}</dd>
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">To</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("To") }}</dt>
     <dd class="ink-1 font-mono">{{ entry.to_addrs | join(', ') }}</dd>
     {% if entry.cc_addrs %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Cc</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Cc") }}</dt>
     <dd class="ink-1 font-mono">{{ entry.cc_addrs | join(', ') }}</dd>
     {% endif %}
     {% if entry.bcc_addrs %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Bcc</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Bcc") }}</dt>
     <dd class="ink-1 font-mono">{{ entry.bcc_addrs | join(', ') }}</dd>
     {% endif %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Subject</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Subject") }}</dt>
     <dd class="ink-1">{{ entry.subject }}</dd>
     {% if entry.attachments %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Attachments</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Attachments") }}</dt>
     <dd class="ink-1 font-mono text-xs">
       {% for att in entry.attachments %}
       <div class="flex items-center gap-3 py-1">
@@ -125,7 +125,7 @@
           {% if att.size_bytes %}{{ num(att.size_bytes/1024, 1) }} KB{% endif %}
         </span>
         {% if att.sha256 %}
-        <span class="ink-4 text-[10px]" title="SHA-256 of the exact bytes that {{ entry.resend_status }}">
+        <span class="ink-4 text-[10px]" title="{{ _('SHA-256 of the exact bytes that %(status)s') % {'status': entry.resend_status} }}">
           sha256:{{ att.sha256[:12] }}…
         </span>
         {% endif %}
@@ -134,14 +134,14 @@
     </dd>
     {% endif %}
     {% if entry.sent_by_user_id %}
-    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">Sent by</dt>
+    <dt class="ink-3 font-mono text-xs uppercase tracking-wider">{{ _("Sent by") }}</dt>
     <dd class="ink-1 font-mono text-xs">{{ entry.sent_by_user_id }}</dd>
     {% endif %}
   </dl>
 </section>
 
 <section class="card p-4 mb-5">
-  <h2 class="nav-section-label mb-3">Body (HTML)</h2>
+  <h2 class="nav-section-label mb-3">{{ _("Body (HTML)") }}</h2>
   <div class="card p-4 bg-paper-2 text-sm" style="max-height:500px; overflow:auto;">
     {{ entry.body_html | safe }}
   </div>
@@ -149,14 +149,14 @@
 
 {% if entry.body_text %}
 <section class="card p-4 mb-5">
-  <h2 class="nav-section-label mb-3">Body (plain text)</h2>
+  <h2 class="nav-section-label mb-3">{{ _("Body (plain text)") }}</h2>
   <pre class="font-mono text-xs ink-2 whitespace-pre-wrap">{{ entry.body_text }}</pre>
 </section>
 {% endif %}
 
 <section class="text-xs ink-3 font-mono mt-6">
-  <div>log id: {{ entry.id }}</div>
-  <div>doc id: {{ entry.doc_id }} (version {{ entry.doc_version }})</div>
-  <div>tenant: {{ entry.tenant_id }}</div>
+  <div>{{ _("log id:") }} {{ entry.id }}</div>
+  <div>{{ _("doc id:") }} {{ entry.doc_id }} ({{ _("version") }} {{ entry.doc_version }})</div>
+  <div>{{ _("tenant:") }} {{ entry.tenant_id }}</div>
 </section>
 {% endblock %}

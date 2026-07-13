@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Import Chart of Accounts — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Import Chart of Accounts") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -16,32 +16,32 @@
 <div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
   <span class="dot" style="background:var(--pos);"></span>
   <span class="text-sm" style="color:var(--pos);">
-  CoA import applied.
-  {% if result.added %} {{ result.added }} account(s) added.{% endif %}
-  {% if result.updated %} {{ result.updated }} updated.{% endif %}
-  {% if result.archived %} {{ result.archived }} archived.{% endif %}
-  {% if result.unchanged %} {{ result.unchanged }} unchanged.{% endif %}
+  {{ _("CoA import applied.") }}
+  {% if result.added %} {{ _("%(count)s account(s) added.") % {"count": result.added} }}{% endif %}
+  {% if result.updated %} {{ _("%(count)s updated.") % {"count": result.updated} }}{% endif %}
+  {% if result.archived %} {{ _("%(count)s archived.") % {"count": result.archived} }}{% endif %}
+  {% if result.unchanged %} {{ _("%(count)s unchanged.") % {"count": result.unchanged} }}{% endif %}
   </span>
 </div>
 {% endif %}
 
 <div class="flex items-center gap-2 mb-1">
-  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">Imports</a>
+  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">{{ _("Imports") }}</a>
   <span class="ink-4 text-xs">/</span>
-  <span class="text-sm ink-1 font-medium">Chart of Accounts</span>
+  <span class="text-sm ink-1 font-medium">{{ _("Chart of Accounts") }}</span>
 </div>
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold ink-1">Import Chart of Accounts</h1>
-  <p class="text-sm ink-3 mt-1">Upload a CoA CSV to add or update accounts — preview the diff before applying</p>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Import Chart of Accounts") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Upload a CoA CSV to add or update accounts — preview the diff before applying") }}</p>
 </div>
 
 <div class="card p-6 max-w-lg">
   <div class="flex items-center justify-between mb-4">
-    <h2 class="text-sm font-semibold ink-2">Upload CSV</h2>
+    <h2 class="text-sm font-semibold ink-2">{{ _("Upload CSV") }}</h2>
     <a href="/admin/imports/coa/export?download=1"
        class="text-xs sae hover:underline">
-      Download current CoA
+      {{ _("Download current CoA") }}
     </a>
   </div>
 
@@ -50,16 +50,16 @@
 
     <div class="mb-5">
       <label class="block text-xs font-medium ink-2 mb-1" for="file">
-        CoA CSV File
+        {{ _("CoA CSV File") }}
       </label>
       <input type="file" id="file" name="file" accept=".csv,.txt" required
         class="block w-full text-sm ink-2 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[color:var(--sae-tint)] file:text-[color:var(--sae)]">
       <p class="mt-1 text-xs ink-3">
-        Columns: code, name, account_type, parent_code, tax_code_default, reconcile
+        {{ _("Columns: code, name, account_type, parent_code, tax_code_default, reconcile") }}
       </p>
     </div>
     <button type="submit" class="btn-primary text-sm">
-      Preview Changes
+      {{ _("Preview Changes") }}
     </button>
   </form>
 </div>

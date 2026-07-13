@@ -19,11 +19,11 @@
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
     </svg>
-    Extract from document
+    {{ _("Extract from document") }}
   </button>
 
   <div id="ai-extract-panel" class="hidden mt-3 rounded-lg px-4 py-4" style="border:1px solid var(--sae-tint);background:var(--sae-tint);">
-    <p class="text-xs sae mb-3">Upload a PDF, JPEG, or PNG invoice/bill and we will pre-fill the form fields.</p>
+    <p class="text-xs sae mb-3">{{ _("Upload a PDF, JPEG, or PNG invoice/bill and we will pre-fill the form fields.") }}</p>
 
     <form
       id="ai-extract-form"
@@ -50,12 +50,12 @@
           class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white
                  hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
         >
-          Extract
+          {{ _("Extract") }}
         </button>
         <span
           id="ai-extract-spinner"
           class="htmx-indicator text-xs sae"
-        >Analysing document…</span>
+        >{{ _("Analysing document…") }}</span>
       </div>
     </form>
 

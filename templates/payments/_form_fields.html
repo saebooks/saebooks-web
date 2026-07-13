@@ -10,37 +10,37 @@
 <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
 <fieldset class="space-y-4">
-  <legend class="nav-section-label mb-3">Payment details</legend>
+  <legend class="nav-section-label mb-3">{{ _("Payment details") }}</legend>
 
   <div>
     <label for="direction" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Direction <span style="color:var(--neg);">*</span>
+      {{ _("Direction") }} <span style="color:var(--neg);">*</span>
     </label>
     <select id="direction" name="direction" required class="saebooks-input sm:max-w-xs"
             {% if errors.get('direction') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
-      <option value="INCOMING" {% if form.get("direction", "INCOMING") == "INCOMING" %}selected{% endif %}>Incoming (customer receipt)</option>
-      <option value="OUTGOING" {% if form.get("direction") == "OUTGOING" %}selected{% endif %}>Outgoing (supplier payment)</option>
+      <option value="INCOMING" {% if form.get("direction", "INCOMING") == "INCOMING" %}selected{% endif %}>{{ _("Incoming (customer receipt)") }}</option>
+      <option value="OUTGOING" {% if form.get("direction") == "OUTGOING" %}selected{% endif %}>{{ _("Outgoing (supplier payment)") }}</option>
     </select>
     {% if errors.get("direction") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["direction"] }}</p>{% endif %}
   </div>
 
   <div>
     <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Contact <span style="color:var(--neg);">*</span>
+      {{ _("Contact") }} <span style="color:var(--neg);">*</span>
     </label>
     <select id="contact_id" name="contact_id" required class="saebooks-input"
             {% if errors.get('contact_id') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
-      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>Select contact…</option>
+      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>{{ _("Select contact…") }}</option>
       {% if form.get("direction", "INCOMING") == "OUTGOING" %}
         {% if suppliers %}
-        <optgroup label="Suppliers">
+        <optgroup label="{{ _('Suppliers') }}">
           {% for c in suppliers %}
           <option value="{{ c.id }}" {% if form.get("contact_id") == c.id %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
         </optgroup>
         {% endif %}
         {% if customers %}
-        <optgroup label="Customers">
+        <optgroup label="{{ _('Customers') }}">
           {% for c in customers %}
           <option value="{{ c.id }}" {% if form.get("contact_id") == c.id %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
@@ -48,14 +48,14 @@
         {% endif %}
       {% else %}
         {% if customers %}
-        <optgroup label="Customers">
+        <optgroup label="{{ _('Customers') }}">
           {% for c in customers %}
           <option value="{{ c.id }}" {% if form.get("contact_id") == c.id %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
         </optgroup>
         {% endif %}
         {% if suppliers %}
-        <optgroup label="Suppliers">
+        <optgroup label="{{ _('Suppliers') }}">
           {% for c in suppliers %}
           <option value="{{ c.id }}" {% if form.get("contact_id") == c.id %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
@@ -69,7 +69,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div>
       <label for="payment_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Payment date <span style="color:var(--neg);">*</span>
+        {{ _("Payment date") }} <span style="color:var(--neg);">*</span>
       </label>
       <input type="date" id="payment_date" name="payment_date" value="{{ form.get('payment_date', '') }}"
              required class="saebooks-input num"
@@ -79,7 +79,7 @@
 
     <div>
       <label for="amount" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Amount <span style="color:var(--neg);">*</span>
+        {{ _("Amount") }} <span style="color:var(--neg);">*</span>
       </label>
       <input type="number" id="amount" name="amount" value="{{ form.get('amount', '') }}"
              step="0.01" min="0.01" placeholder="0.00" required
@@ -90,7 +90,7 @@
 
     <div>
       <label for="method" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Method <span style="color:var(--neg);">*</span>
+        {{ _("Method") }} <span style="color:var(--neg);">*</span>
       </label>
       <select id="method" name="method" required class="saebooks-input"
               {% if errors.get('method') %}style="border-color:var(--neg);"{% endif %}>
@@ -104,7 +104,7 @@
 
   <div>
     <label for="reference" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Reference <span class="ink-4 font-normal normal-case">(optional)</span>
+      {{ _("Reference") }} <span class="ink-4 font-normal normal-case">({{ _("optional") }})</span>
     </label>
     <input type="text" id="reference" name="reference" value="{{ form.get('reference', '') }}"
            placeholder="e.g. bank transaction reference"
@@ -115,11 +115,11 @@
 
   <div>
     <label for="bank_account_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Bank account <span class="ink-4 font-normal normal-case">(optional)</span>
+      {{ _("Bank account") }} <span class="ink-4 font-normal normal-case">({{ _("optional") }})</span>
     </label>
     <select id="bank_account_id" name="bank_account_id" class="saebooks-input"
             {% if errors.get('bank_account_id') %}style="border-color:var(--neg);"{% endif %}>
-      <option value="" {% if not form.get("bank_account_id") %}selected{% endif %}>— none —</option>
+      <option value="" {% if not form.get("bank_account_id") %}selected{% endif %}>{{ _("— none —") }}</option>
       {% for acct in bank_accounts %}
       <option value="{{ acct.id }}" {% if form.get("bank_account_id") == acct.id %}selected{% endif %}>
         {{ acct.code }} — {{ acct.name }}
@@ -131,9 +131,9 @@
 </fieldset>
 
 <fieldset class="mt-7">
-  <legend class="nav-section-label mb-2">Allocations</legend>
+  <legend class="nav-section-label mb-2">{{ _("Allocations") }}</legend>
   <p class="text-[11px] ink-3 mb-3 font-mono">
-    Optional — leave blank for unallocated.
+    {{ _("Optional — leave blank for unallocated.") }}
   </p>
 
   <input type="hidden" id="allocation-count" value="{{ allocation_count }}">
@@ -142,9 +142,9 @@
     <table class="sae-table w-full text-sm">
       <thead>
         <tr>
-          <th class="text-left w-32">Type</th>
-          <th class="text-left">Invoice / Bill UUID</th>
-          <th class="text-right w-32">Amount</th>
+          <th class="text-left w-32">{{ _("Type") }}</th>
+          <th class="text-left">{{ _("Invoice / Bill UUID") }}</th>
+          <th class="text-right w-32">{{ _("Amount") }}</th>
           <th class="w-10"></th>
         </tr>
       </thead>
@@ -165,12 +165,12 @@
           hx-include="#allocation-count"
           hx-vals="js:{index: parseInt(document.getElementById('allocation-count').value)}"
           onclick="document.getElementById('allocation-count').value = parseInt(document.getElementById('allocation-count').value) + 1">
-    + Add allocation
+    + {{ _("Add allocation") }}
   </button>
 </fieldset>
 
 <div class="mt-7">
-  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Notes</label>
+  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Notes") }}</label>
   <textarea id="notes" name="notes" rows="3" class="saebooks-input"
             placeholder="Optional internal notes"
             {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("notes", "") }}</textarea>

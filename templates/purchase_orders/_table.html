@@ -15,16 +15,16 @@
     <thead class="bg-paper-2">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">PO number</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Issue date</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Expected</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Supplier</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Total</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("PO number") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Issue date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Expected") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Supplier") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Total") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -38,7 +38,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ po.id }}"
-                   aria-label="Select purchase order {{ po.number or po.id }}"
+                   aria-label="{{ _('Select purchase order %(number)s') % {'number': po.number or po.id} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -71,20 +71,20 @@
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (po.status or 'draft')|lower %}
             {%- set actions = [
-              ("view", "View", "/purchase_orders/" ~ po.id, "link", false),
-              ("edit", "Edit", "/purchase_orders/" ~ po.id ~ "/edit", "link", false),
+              ("view", _("View"), "/purchase_orders/" ~ po.id, "link", false),
+              ("edit", _("Edit"), "/purchase_orders/" ~ po.id ~ "/edit", "link", false),
             ] %}
             {%- if status_lower == 'draft' %}
-              {%- set _ = actions.append(("send",    "Send",    "/purchase_orders/" ~ po.id ~ "/send",    "post", false)) %}
+              {%- set _x = actions.append(("send",    _("Send"),    "/purchase_orders/" ~ po.id ~ "/send",    "post", false)) %}
             {%- elif status_lower in ('open', 'partial') %}
-              {%- set _ = actions.append(("close",   "Close",   "/purchase_orders/" ~ po.id ~ "/close",   "post", false)) %}
-              {%- set _ = actions.append(("cancel",  "Cancel",  "/purchase_orders/" ~ po.id ~ "/cancel",  "post", true)) %}
+              {%- set _x = actions.append(("close",   _("Close"),   "/purchase_orders/" ~ po.id ~ "/close",   "post", false)) %}
+              {%- set _x = actions.append(("cancel",  _("Cancel"),  "/purchase_orders/" ~ po.id ~ "/cancel",  "post", true)) %}
             {%- endif %}
             {%- if status_lower not in ('cancelled', 'closed') %}
-              {%- set _ = actions.append(("archive", "Archive", "/purchase_orders/" ~ po.id ~ "/archive", "post", true)) %}
+              {%- set _x = actions.append(("archive", _("Archive"), "/purchase_orders/" ~ po.id ~ "/archive", "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/purchase_orders/" ~ po.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/purchase_orders/" ~ po.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=po.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -92,12 +92,12 @@
         {% endfor %}
       {% else %}
         {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-        {{ empty.row(8, "inbox", "No purchase orders yet",
-                     "Raise your first purchase order to track supplier commitments.",
-                     "New purchase order", "/purchase_orders/new") }}
+        {{ empty.row(8, "inbox", _("No purchase orders yet"),
+                     _("Raise your first purchase order to track supplier commitments."),
+                     _("New purchase order"), "/purchase_orders/new") }}
         {% else %}
-        {{ empty.row(8, "search-x", "No purchase orders match these filters",
-                     "Try clearing the filters above.") }}
+        {{ empty.row(8, "search-x", _("No purchase orders match these filters"),
+                     _("Try clearing the filters above.")) }}
         {% endif %}
       {% endif %}
     </tbody>
@@ -107,7 +107,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -118,7 +118,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -128,7 +128,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

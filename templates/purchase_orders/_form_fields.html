@@ -12,12 +12,12 @@
 <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Purchase order details</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Purchase order details") }}</legend>
 
   {# Supplier #}
   <div>
     <label for="contact_id" class="block text-sm font-medium ink-2 mb-1">
-      Supplier <span style="color:var(--neg);">*</span>
+      {{ _("Supplier") }} <span style="color:var(--neg);">*</span>
     </label>
     <select
       id="contact_id"
@@ -26,7 +26,7 @@
       class="saebooks-input w-full"
       {% if errors.get('contact_id') %}style="border-color:var(--neg)"{% endif %}
     >
-      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>Select supplier…</option>
+      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>{{ _("Select supplier…") }}</option>
       {% for contact in contacts %}
       <option value="{{ contact.id }}"
         {% if form.get("contact_id") == contact.id %}selected{% endif %}>
@@ -43,7 +43,7 @@
     {# Issue date #}
     <div>
       <label for="issue_date" class="block text-sm font-medium ink-2 mb-1">
-        Issue date <span style="color:var(--neg);">*</span>
+        {{ _("Issue date") }} <span style="color:var(--neg);">*</span>
       </label>
       <input
         type="date"
@@ -62,7 +62,7 @@
     {# Expected date #}
     <div>
       <label for="expected_date" class="block text-sm font-medium ink-2 mb-1">
-        Expected date <span class="ink-3 font-normal">(optional)</span>
+        {{ _("Expected date") }} <span class="ink-3 font-normal">({{ _("optional") }})</span>
       </label>
       <input
         type="date"
@@ -78,7 +78,7 @@
   {# Delivery address #}
   <div>
     <label for="delivery_address" class="block text-sm font-medium ink-2 mb-1">
-      Delivery address <span class="ink-3 font-normal">(optional)</span>
+      {{ _("Delivery address") }} <span class="ink-3 font-normal">({{ _("optional") }})</span>
     </label>
     <textarea
       id="delivery_address"
@@ -92,7 +92,7 @@
   {# Currency + FX rate #}
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div>
-      <label for="currency" class="block text-sm font-medium ink-2 mb-1">Currency</label>
+      <label for="currency" class="block text-sm font-medium ink-2 mb-1">{{ _("Currency") }}</label>
       <select
         id="currency"
         name="currency"
@@ -108,7 +108,7 @@
 
     <div id="fx-rate-row" {% if form.get('currency', 'AUD') | upper == 'AUD' %}style="display:none"{% endif %}>
       <label for="fx_rate" class="block text-sm font-medium ink-2 mb-1">
-        Exchange rate <span class="ink-3 font-normal">(1 foreign = ? AUD)</span>
+        {{ _("Exchange rate") }} <span class="ink-3 font-normal">({{ _("1 foreign = ? AUD") }})</span>
       </label>
       <input
         type="number"
@@ -125,7 +125,7 @@
 
 {# ── Line items ── #}
 <fieldset class="mt-8">
-  <legend class="text-sm font-semibold ink-1 mb-3">Line items</legend>
+  <legend class="text-sm font-semibold ink-1 mb-3">{{ _("Line items") }}</legend>
 
   <input type="hidden" id="line-count" value="{{ line_count }}">
 
@@ -133,12 +133,12 @@
     <table class="min-w-full text-sm">
       <thead class="bg-paper-2 hairline-b">
         <tr>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-24">Qty</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">Unit price</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-32">Tax</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-36">Project</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-24">{{ _("Qty") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">{{ _("Unit price") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-32">{{ _("Tax") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-36">{{ _("Project") }}</th>
           <th scope="col" class="px-3 py-2 w-10"></th>
         </tr>
       </thead>
@@ -162,13 +162,13 @@
     hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
     onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1"
   >
-    + Add line
+    + {{ _("Add line") }}
   </button>
 </fieldset>
 
 {# ── Notes ── #}
 <div class="mt-6">
-  <label for="notes" class="block text-sm font-medium ink-2 mb-1">Notes</label>
+  <label for="notes" class="block text-sm font-medium ink-2 mb-1">{{ _("Notes") }}</label>
   <textarea
     id="notes"
     name="notes"

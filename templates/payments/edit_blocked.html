@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Payment — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Cannot Edit Payment") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-5 flex items-center gap-3">
   {% if payment %}
-  <a href="/payments/{{ payment.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← payment</a>
+  <a href="/payments/{{ payment.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("payment") }}</a>
   {% else %}
-  <a href="/payments" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← payments</a>
+  <a href="/payments" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("payments") }}</a>
   {% endif %}
   <span class="ink-4">/</span>
-  <h1 class="font-display text-xl ink-1">Cannot edit payment</h1>
+  <h1 class="font-display text-xl ink-1">{{ _("Cannot edit payment") }}</h1>
 </div>
 
 <div class="card p-5 max-w-xl flex items-start gap-3" style="border-color:var(--warm);">
   <span class="dot mt-1.5" style="background:var(--warm);"></span>
   <div class="text-sm ink-2 flex-1">
-    <p class="font-semibold ink-1 mb-2">This payment is {{ payment.status|capitalize }} and cannot be edited.</p>
-    <p>Recorded payments cannot be edited. Void and re-record if needed.</p>
+    <p class="font-semibold ink-1 mb-2">{{ _("This payment is %(status)s and cannot be edited.") % {"status": payment.status|capitalize} }}</p>
+    <p>{{ _("Recorded payments cannot be edited. Void and re-record if needed.") }}</p>
   </div>
 </div>
 

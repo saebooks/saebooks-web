@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Expense {{ expense.number or expense.id }} — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Expense %(number)s") % {"number": expense.number or expense.id} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -12,35 +12,35 @@
 
 <div class="flex items-start justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl">Expense {{ expense.number or "(draft)" }}</h1>
+    <h1 class="font-display text-3xl">{{ _("Expense %(number)s") % {"number": expense.number or _("(draft)")} }}</h1>
     <p class="text-sm ink-3 mt-1">{{ expense.expense_date }} · <span class="num-display text-base ink-1 font-semibold">{{ money(expense.total|float, grouping=False) }}</span></p>
   </div>
   <div>
     {% if expense.status == "POSTED" %}
-      <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-medium text-green-800">Posted</span>
+      <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-medium text-green-800">{{ _("Posted") }}</span>
     {% elif expense.status == "VOIDED" %}
-      <span class="inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-base font-medium text-gray-600">Voided</span>
+      <span class="inline-flex items-center rounded-full bg-gray-200 px-3 py-1 text-base font-medium text-gray-600">{{ _("Voided") }}</span>
     {% else %}
-      <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-base font-medium text-amber-800">Draft</span>
+      <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-base font-medium text-amber-800">{{ _("Draft") }}</span>
     {% endif %}
   </div>
 </div>
 
 <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-base mb-6">
   <div>
-    <dt class="font-medium text-gray-500">Paid from</dt>
+    <dt class="font-medium text-gray-500">{{ _("Paid from") }}</dt>
     <dd class="text-gray-900">{{ payment_account_name or expense.payment_account_id }}</dd>
   </div>
   <div>
-    <dt class="font-medium text-gray-500">Supplier</dt>
+    <dt class="font-medium text-gray-500">{{ _("Supplier") }}</dt>
     <dd class="text-gray-900">{{ contact_name or "—" }}</dd>
   </div>
   <div>
-    <dt class="font-medium text-gray-500">Reference</dt>
+    <dt class="font-medium text-gray-500">{{ _("Reference") }}</dt>
     <dd class="text-gray-900">{{ expense.reference or "—" }}</dd>
   </div>
   <div>
-    <dt class="font-medium text-gray-500">Notes</dt>
+    <dt class="font-medium text-gray-500">{{ _("Notes") }}</dt>
     <dd class="text-gray-900 whitespace-pre-wrap">{{ expense.notes or "—" }}</dd>
   </div>
 </dl>
@@ -49,12 +49,12 @@
   <thead class="bg-gray-50">
     <tr>
       <th class="px-3 py-2 text-left text-sm font-medium text-gray-500">#</th>
-      <th class="px-3 py-2 text-left text-sm font-medium text-gray-500">Description</th>
-      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Qty</th>
-      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Unit</th>
-      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Subtotal</th>
-      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Tax</th>
-      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">Total</th>
+      <th class="px-3 py-2 text-left text-sm font-medium text-gray-500">{{ _("Description") }}</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">{{ _("Qty") }}</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">{{ _("Unit") }}</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">{{ _("Subtotal") }}</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">{{ _("Tax") }}</th>
+      <th class="px-3 py-2 text-right text-sm font-medium text-gray-500">{{ _("Total") }}</th>
     </tr>
   </thead>
   <tbody class="divide-y divide-gray-100 bg-white">
@@ -70,7 +70,7 @@
     </tr>
     {% endfor %}
     <tr class="border-t-2 border-gray-300 bg-gray-50 font-semibold">
-      <td colspan="4" class="px-3 py-2 text-right">Totals</td>
+      <td colspan="4" class="px-3 py-2 text-right">{{ _("Totals") }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ money(expense.subtotal|float, grouping=False) }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ money(expense.tax_total|float, grouping=False) }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ money(expense.total|float, grouping=False) }}</td>
@@ -83,36 +83,36 @@
   <form method="post" action="/expenses/{{ expense.id }}/post" class="inline">
   {{ csrf_input(request) | safe }}
     <button type="submit" class="rounded-md bg-green-600 px-4 py-2 text-base font-medium text-white hover:bg-green-700">
-      Post
+      {{ _("Post") }}
     </button>
   </form>
   {% endif %}
   {% if expense.status != "VOIDED" %}
   <form method="post" action="/expenses/{{ expense.id }}/void" class="inline"
-    onsubmit="return confirm('Void this expense? If POSTED, a reversing journal entry will be created.');">
+    onsubmit="return confirm('{{ _('Void this expense? If POSTED, a reversing journal entry will be created.') }}');">
   {{ csrf_input(request) | safe }}
     <button type="submit" class="rounded-md bg-gray-200 px-4 py-2 text-base font-medium text-gray-800 hover:bg-gray-300">
-      Void
+      {{ _("Void") }}
     </button>
   </form>
   {% endif %}
   {% if expense.archived_at is none %}
   <form method="post" action="/expenses/{{ expense.id }}/archive" class="inline"
-    onsubmit="return confirm('Archive this expense (soft-delete)?');">
+    onsubmit="return confirm('{{ _('Archive this expense (soft-delete)?') }}');">
   {{ csrf_input(request) | safe }}
     <button type="submit" class="rounded-md border border-gray-300 px-4 py-2 text-base text-gray-700 hover:bg-gray-50">
-      Archive
+      {{ _("Archive") }}
     </button>
   </form>
   {% endif %}
-  <a href="/expenses" class="text-base text-gray-500 hover:underline self-center">← Back to list</a>
+  <a href="/expenses" class="text-base text-gray-500 hover:underline self-center">← {{ _("Back to list") }}</a>
 </div>
 
 {% if expense.journal_entry_id %}
 <p class="mt-4 text-sm text-gray-500">
-  Posting journal: <a href="/journal/{{ expense.journal_entry_id }}" class="text-indigo-600 hover:underline">{{ expense.journal_entry_id }}</a>
+  {{ _("Posting journal:") }} <a href="/journal/{{ expense.journal_entry_id }}" class="text-indigo-600 hover:underline">{{ expense.journal_entry_id }}</a>
   {% if expense.void_journal_entry_id %}
-  · Void reversal: <a href="/journal/{{ expense.void_journal_entry_id }}" class="text-indigo-600 hover:underline">{{ expense.void_journal_entry_id }}</a>
+  · {{ _("Void reversal:") }} <a href="/journal/{{ expense.void_journal_entry_id }}" class="text-indigo-600 hover:underline">{{ expense.void_journal_entry_id }}</a>
   {% endif %}
 </p>
 {% endif %}

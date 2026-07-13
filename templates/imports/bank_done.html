@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Bank Import Complete — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Bank Import Complete") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="flex items-center gap-2 mb-1">
-  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">Imports</a>
+  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">{{ _("Imports") }}</a>
   <span class="ink-4 text-xs">/</span>
-  <a href="/admin/imports/bank" class="text-sm ink-3 hover:ink-2">Bank Statement</a>
+  <a href="/admin/imports/bank" class="text-sm ink-3 hover:ink-2">{{ _("Bank Statement") }}</a>
   <span class="ink-4 text-xs">/</span>
-  <span class="text-sm ink-1 font-medium">Done</span>
+  <span class="text-sm ink-1 font-medium">{{ _("Done") }}</span>
 </div>
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold ink-1">Import Complete</h1>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Import Complete") }}</h1>
 </div>
 
 {% if proxy_html %}
@@ -23,17 +23,17 @@
 {% else %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--pos);">
   <span class="dot" style="background:var(--pos);"></span>
-  <span class="text-sm" style="color:var(--pos);">Bank statement imported successfully.</span>
+  <span class="text-sm" style="color:var(--pos);">{{ _("Bank statement imported successfully.") }}</span>
 </div>
 {% endif %}
 
 <div class="mt-4 flex gap-3">
   <a href="/admin/imports/bank"
      class="rounded-md hairline px-4 py-2 text-sm font-medium ink-2 hover:bg-[color:var(--paper-2)]">
-    Import Another
+    {{ _("Import Another") }}
   </a>
   <a href="/bank-statement-lines" class="btn-primary text-sm">
-    View Statement Lines
+    {{ _("View Statement Lines") }}
   </a>
 </div>
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Purchase orders — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Purchase orders") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -12,9 +12,9 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Purchase orders</h1>
+    <h1 class="text-2xl font-semibold text-gray-900">{{ _("Purchase orders") }}</h1>
     {% if not error %}
-    <p class="text-sm text-gray-500 mt-1">{{ total }} purchase order{{ "s" if total != 1 else "" }}</p>
+    <p class="text-sm text-gray-500 mt-1">{{ ngettext("%(count)s purchase order", "%(count)s purchase orders", total) % {"count": total} }}</p>
     {% endif %}
   </div>
 
@@ -23,7 +23,7 @@
     class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
            hover:bg-[#133372]"
   >
-    + New purchase order
+    + {{ _("New purchase order") }}
   </a>
 </div>
 
@@ -36,24 +36,24 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Status") }}</label>
     <select
       id="status"
       name="status"
       class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="OPEN" {% if filter_status == 'OPEN' %}selected{% endif %}>Open</option>
-      <option value="PARTIAL" {% if filter_status == 'PARTIAL' %}selected{% endif %}>Partial</option>
-      <option value="RECEIVED" {% if filter_status == 'RECEIVED' %}selected{% endif %}>Received</option>
-      <option value="CLOSED" {% if filter_status == 'CLOSED' %}selected{% endif %}>Closed</option>
-      <option value="CANCELLED" {% if filter_status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="OPEN" {% if filter_status == 'OPEN' %}selected{% endif %}>{{ _("Open") }}</option>
+      <option value="PARTIAL" {% if filter_status == 'PARTIAL' %}selected{% endif %}>{{ _("Partial") }}</option>
+      <option value="RECEIVED" {% if filter_status == 'RECEIVED' %}selected{% endif %}>{{ _("Received") }}</option>
+      <option value="CLOSED" {% if filter_status == 'CLOSED' %}selected{% endif %}>{{ _("Closed") }}</option>
+      <option value="CANCELLED" {% if filter_status == 'CANCELLED' %}selected{% endif %}>{{ _("Cancelled") }}</option>
     </select>
   </div>
 
   <div>
-    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">Date from</label>
+    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Date from") }}</label>
     <input
       type="date"
       id="date_from"
@@ -64,7 +64,7 @@
   </div>
 
   <div>
-    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">Date to</label>
+    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Date to") }}</label>
     <input
       type="date"
       id="date_to"
@@ -75,7 +75,7 @@
   </div>
 
   <div>
-    <label for="contact_id" class="block text-xs font-medium ink-3 mb-1">Supplier</label>
+    <label for="contact_id" class="block text-xs font-medium ink-3 mb-1">{{ _("Supplier") }}</label>
     <input
       type="text"
       id="contact_id"
@@ -93,7 +93,7 @@
     type="submit"
     class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
   >
-    Filter
+    {{ _("Filter") }}
   </button>
 </form>
 
@@ -106,9 +106,9 @@
      entity="purchase_orders",
      action_endpoint="/purchase_orders/bulk",
      actions=[
-       ("send", "Send", false),
-       ("cancel", "Cancel", true),
-       ("archive", "Archive", true),
+       ("send", _("Send"), false),
+       ("cancel", _("Cancel"), true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
