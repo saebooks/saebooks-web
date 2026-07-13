@@ -1,45 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Security · SAE Books{% endblock %}
+{% block title %}{{ _("Security") }} · SAE Books{% endblock %}
 {% block content %}
 <div class="max-w-2xl mx-auto p-6">
-  <h1 class="text-2xl font-semibold ink-1 mb-2">Security</h1>
+  <h1 class="text-2xl font-semibold ink-1 mb-2">{{ _("Security") }}</h1>
   <p class="ink-2 mb-6">
-    Enrol a hardware security key, Touch ID, Windows Hello, or a passkey on this
-    device. Once enrolled, you can sign in without typing a password.
+    {{ _("Enrol a hardware security key, Touch ID, Windows Hello, or a passkey on this device. Once enrolled, you can sign in without typing a password.") }}
   </p>
 
   {% if not webauthn_enabled %}
     <div class="p-4 rounded-lg border hairline bg-[color:var(--paper-2)]">
-      <strong>WebAuthn is disabled on this instance.</strong>
-      Set <code>SAEBOOKS_WEBAUTHN_ENABLED=1</code> + RP id / origin in this
-      instance’s env to turn it on.
+      <strong>{{ _("WebAuthn is disabled on this instance.") }}</strong>
+      {{ _("Set") }} <code>SAEBOOKS_WEBAUTHN_ENABLED=1</code> {{ _("+ RP id / origin in this instance’s env to turn it on.") }}
     </div>
   {% else %}
     <section class="rounded-2xl border hairline bg-[color:var(--surface)] p-5 mb-6">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <h2 class="text-lg font-medium ink-1">Add a new key</h2>
-          <p class="text-sm ink-2">Tap your security key or use this device’s built-in authenticator.</p>
+          <h2 class="text-lg font-medium ink-1">{{ _("Add a new key") }}</h2>
+          <p class="text-sm ink-2">{{ _("Tap your security key or use this device’s built-in authenticator.") }}</p>
         </div>
       </div>
       <div class="mt-4 flex items-end gap-3">
         <label class="flex flex-col gap-1 grow">
-          <span class="text-xs ink-2">Name</span>
-          <input id="webauthn-name" type="text" maxlength="64" value="Security key"
+          <span class="text-xs ink-2">{{ _("Name") }}</span>
+          <input id="webauthn-name" type="text" maxlength="64" value="{{ _('Security key') }}"
                  class="rounded-lg border hairline px-3 py-2 bg-[color:var(--paper-1)] ink-1">
         </label>
         <button id="webauthn-enroll"
                 class="px-4 py-2.5 rounded-lg bg-[color:var(--sae)] text-white font-medium hover:opacity-90 disabled:opacity-50">
-          Enrol
+          {{ _("Enrol") }}
         </button>
       </div>
       <div id="enroll-msg" class="mt-2 text-xs ink-2 min-h-[1.25rem]"></div>
     </section>
 
     <section class="rounded-2xl border hairline bg-[color:var(--surface)] p-5">
-      <h2 class="text-lg font-medium ink-1 mb-3">Enrolled keys</h2>
+      <h2 class="text-lg font-medium ink-1 mb-3">{{ _("Enrolled keys") }}</h2>
       <ul id="cred-list" class="divide-y divide-[color:var(--hairline)]">
-        <li class="py-3 text-sm ink-2">Loading…</li>
+        <li class="py-3 text-sm ink-2">{{ _("Loading…") }}</li>
       </ul>
     </section>
   {% endif %}
