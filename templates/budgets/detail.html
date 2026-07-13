@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if budget %}Budget {{ budget.year }}/{{ budget.month }} — SAE Books{% else %}Budget Not Found — SAE Books{% endif %}
+  {% if budget %}{{ _("Budget %(year)s/%(month)s") % {"year": budget.year, "month": budget.month} }} — SAE Books{% else %}{{ _("Budget Not Found") }} — SAE Books{% endif %}
 {% endblock %}
 
 {% block content %}
+{% set _months = ["", _("January"), _("February"), _("March"), _("April"), _("May"), _("June"), _("July"), _("August"), _("September"), _("October"), _("November"), _("December")] %}
 
 {% if flash %}
 <div class="card px-4 py-3 text-sm mb-6" style="border-color:var(--warm);color:var(--warm)">
@@ -25,7 +26,7 @@
   <div>
     <h1 class="text-2xl font-semibold ink-1">
       Budget — {{ budget.year }} /
-      {{ ["", "January","February","March","April","May","June","July","August","September","October","November","December"][budget.month] }}
+      {{ _months[budget.month] }}
     </h1>
     <p class="text-sm ink-3 mt-1">ID: {{ budget.id }}</p>
   </div>
@@ -35,7 +36,7 @@
       href="/budgets/{{ budget.id }}/edit"
       class="btn-secondary text-sm"
     >
-      Edit
+      {{ _("Edit") }}
     </a>
     <form method="POST" action="/budgets/{{ budget.id }}/archive" class="inline">
     {{ csrf_input(request)|safe }}
@@ -43,69 +44,69 @@
       <input type="hidden" name="version" value="{{ budget.version }}">
       <button
         type="submit"
-        onclick="return confirm('Archive this budget?')"
+        onclick="return confirm('{{ _('Archive this budget?') }}')"
         class="btn-secondary text-sm"
         style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
-        Archive
+        {{ _("Archive") }}
       </button>
     </form>
     {% endif %}
-    <a href="/budgets" class="text-sm sae hover:underline">← Back to budgets</a>
+    <a href="/budgets" class="text-sm sae hover:underline">← {{ _("Back to budgets") }}</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Year</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Year") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ budget.year }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Month</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Month") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">
-      {{ ["", "January","February","March","April","May","June","July","August","September","October","November","December"][budget.month] }}
+      {{ _months[budget.month] }}
     </p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Amount</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Amount") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">$&nbsp;{{ num(budget.amount | float, 2) }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Version</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Version") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ budget.version }}</p>
   </div>
 </div>
 
 {# ── Budget details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Budget details</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Budget details") }}</h2>
   <div class="card rounded-xl overflow-x-auto">
     <table class="sae-table min-w-full text-sm">
       <tbody class="divide-[color:var(--line)]">
         <tr>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">Account</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">{{ _("Account") }}</th>
           <td class="px-4 py-3">
             <a href="/accounts/{{ budget.account_id }}" class="sae hover:underline font-mono text-xs">{{ budget.account_id }}</a>
           </td>
         </tr>
         <tr>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Year</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Year") }}</th>
           <td class="px-4 py-3 ink-1">{{ budget.year }}</td>
         </tr>
         <tr>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Month</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Month") }}</th>
           <td class="px-4 py-3 ink-1">
-            {{ ["", "January","February","March","April","May","June","July","August","September","October","November","December"][budget.month] }}
+            {{ _months[budget.month] }}
             ({{ budget.month }})
           </td>
         </tr>
         <tr>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Amount</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Amount") }}</th>
           <td class="px-4 py-3 ink-1 tabular-nums">{{ money(budget.amount | float, grouping=False) }}</td>
         </tr>
         <tr>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Notes</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Notes") }}</th>
           <td class="px-4 py-3 ink-1">{{ budget.notes or "—" }}</td>
         </tr>
       </tbody>
@@ -116,19 +117,19 @@
 {# ── Metadata footer ── #}
 <div class="card rounded-xl px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-4" style="background:var(--paper-2)">
   <div>
-    <span class="font-medium">Created</span>
+    <span class="font-medium">{{ _("Created") }}</span>
     <p class="mt-0.5">{{ budget.created_at[:19] | replace("T", " ") if budget.created_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Updated</span>
+    <span class="font-medium">{{ _("Updated") }}</span>
     <p class="mt-0.5">{{ budget.updated_at[:19] | replace("T", " ") if budget.updated_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Version</span>
+    <span class="font-medium">{{ _("Version") }}</span>
     <p class="mt-0.5">{{ budget.version }}</p>
   </div>
   <div>
-    <span class="font-medium">Archived</span>
+    <span class="font-medium">{{ _("Archived") }}</span>
     <p class="mt-0.5">{{ budget.archived_at[:19] | replace("T", " ") if budget.archived_at else "—" }}</p>
   </div>
 </div>

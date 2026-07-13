@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Archived Budget — SAE Books{% endblock %}
+{% block title %}{{ _("Cannot Edit Archived Budget") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if budget %}Edit Budget {{ budget.year }}/{{ budget.month }}{% else %}Edit Budget{% endif %}
+    {% if budget %}{{ _("Edit Budget %(year)s/%(month)s") % {"year": budget.year, "month": budget.month} }}{% else %}{{ _("Edit Budget") }}{% endif %}
   </h1>
   {% if budget %}
-  <a href="/budgets/{{ budget.id }}" class="text-sm sae hover:underline">← Back to budget</a>
+  <a href="/budgets/{{ budget.id }}" class="text-sm sae hover:underline">← {{ _("Back to budget") }}</a>
   {% else %}
-  <a href="/budgets" class="text-sm sae hover:underline">← Back to budgets</a>
+  <a href="/budgets" class="text-sm sae hover:underline">← {{ _("Back to budgets") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--warm)">
-  <p class="text-sm font-semibold mb-1" style="color:var(--warm)">Archived budgets cannot be edited.</p>
+  <p class="text-sm font-semibold mb-1" style="color:var(--warm)">{{ _("Archived budgets cannot be edited.") }}</p>
   {% if budget %}
   <p class="text-sm ink-2">
-    This budget was archived on {{ budget.archived_at[:10] }}.
-    Return to the
-    <a href="/budgets/{{ budget.id }}" class="underline sae">budget detail page</a>
-    to view it.
+    {{ _("This budget was archived on %(date)s.") % {"date": budget.archived_at[:10]} }}
+    {{ _("Return to the") }}
+    <a href="/budgets/{{ budget.id }}" class="underline sae">{{ _("budget detail page") }}</a>
+    {{ _("to view it.") }}
   </p>
   {% endif %}
 </div>

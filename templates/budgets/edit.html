@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if budget %}Edit Budget {{ budget.year }}/{{ budget.month }} — SAE Books{% else %}Edit Budget — SAE Books{% endif %}
+  {% if budget %}{{ _("Edit Budget %(year)s/%(month)s") % {"year": budget.year, "month": budget.month} }} — SAE Books{% else %}{{ _("Edit Budget") }} — SAE Books{% endif %}
 {% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if budget %}Edit Budget {{ budget.year }}/{{ budget.month }}{% else %}Edit Budget{% endif %}
+    {% if budget %}{{ _("Edit Budget %(year)s/%(month)s") % {"year": budget.year, "month": budget.month} }}{% else %}{{ _("Edit Budget") }}{% endif %}
   </h1>
   {% if budget %}
-  <a href="/budgets/{{ budget.id }}" class="text-sm sae hover:underline">← Back to budget</a>
+  <a href="/budgets/{{ budget.id }}" class="text-sm sae hover:underline">← {{ _("Back to budget") }}</a>
   {% else %}
-  <a href="/budgets" class="text-sm sae hover:underline">← Back to budgets</a>
+  <a href="/budgets" class="text-sm sae hover:underline">← {{ _("Back to budgets") }}</a>
   {% endif %}
 </div>
 
@@ -26,16 +26,14 @@
   role="alert"
 >
   <p class="font-semibold mb-1">
-    Someone else has updated this budget.
+    {{ _("Someone else has updated this budget.") }}
   </p>
   <p class="mb-2">
-    The form below now shows <strong>your submitted values</strong> with the server's current version
-    number applied — so your next save will use the correct base.
-    If you want to start fresh from the server's current state instead,
+    {{ _("The form below now shows") }} <strong>{{ _("your submitted values") }}</strong> {{ _("with the server's current version number applied — so your next save will use the correct base. If you want to start fresh from the server's current state instead,") }}
     {% if budget %}
-    <a href="/budgets/{{ budget.id }}/edit" class="underline">reload the server version</a>.
+    <a href="/budgets/{{ budget.id }}/edit" class="underline">{{ _("reload the server version") }}</a>.
     {% else %}
-    reload the page.
+    {{ _("reload the page.") }}
     {% endif %}
   </p>
 </div>
@@ -62,21 +60,21 @@
         type="submit"
         class="btn-primary text-sm"
       >
-        Save changes
+        {{ _("Save changes") }}
       </button>
       {% if budget %}
       <a
         href="/budgets/{{ budget.id }}"
         class="btn-secondary text-sm"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
       {% else %}
       <a
         href="/budgets"
         class="btn-secondary text-sm"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
       {% endif %}
     </div>

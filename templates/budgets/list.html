@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Budgets — SAE Books{% endblock %}
+{% block title %}{{ _("Budgets") }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -12,13 +12,13 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-2xl">Budgets</h1>
+    <h1 class="font-display text-2xl">{{ _("Budgets") }}</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ total }} budget row{{ "s" if total != 1 else "" }}</p>
     {% endif %}
   </div>
   <div>
-    <a href="/budgets/new" class="btn-primary text-sm">+ New budget</a>
+    <a href="/budgets/new" class="btn-primary text-sm">+ {{ _("New budget") }}</a>
   </div>
 </div>
 
@@ -31,13 +31,13 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="year" class="block text-xs font-medium ink-3 mb-1">Year</label>
+    <label for="year" class="block text-xs font-medium ink-3 mb-1">{{ _("Year") }}</label>
     <input
       id="year"
       type="number"
       name="year"
       value="{{ filter_year or '' }}"
-      placeholder="e.g. 2026"
+      placeholder="{{ _('e.g. 2026') }}"
       min="1900"
       max="9999"
       class="saebooks-input w-28 text-sm py-1.5"
@@ -45,17 +45,17 @@
   </div>
 
   <div>
-    <label for="month" class="block text-xs font-medium ink-3 mb-1">Month</label>
+    <label for="month" class="block text-xs font-medium ink-3 mb-1">{{ _("Month") }}</label>
     <select
       id="month"
       name="month"
       class="saebooks-input text-sm py-1.5"
     >
-      <option value="" {% if not filter_month %}selected{% endif %}>All months</option>
+      <option value="" {% if not filter_month %}selected{% endif %}>{{ _("All months") }}</option>
       {% for m, label in [
-        (1,"January"),(2,"February"),(3,"March"),(4,"April"),
-        (5,"May"),(6,"June"),(7,"July"),(8,"August"),
-        (9,"September"),(10,"October"),(11,"November"),(12,"December")
+        (1,_("January")),(2,_("February")),(3,_("March")),(4,_("April")),
+        (5,_("May")),(6,_("June")),(7,_("July")),(8,_("August")),
+        (9,_("September")),(10,_("October")),(11,_("November")),(12,_("December"))
       ] %}
       <option value="{{ m }}" {% if filter_month == m %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
@@ -65,7 +65,7 @@
   <input type="hidden" name="page" value="1">
   <input type="hidden" name="page_size" value="{{ page_size }}">
 
-  <button type="submit" class="btn-primary text-sm">Filter</button>
+  <button type="submit" class="btn-primary text-sm">{{ _("Filter") }}</button>
 </form>
 
 {# Table fragment — HTMX replaces this div on filter/pagination #}
