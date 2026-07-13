@@ -23,7 +23,7 @@ LOCALES := et en ru
 
 i18n-extract:
 	mkdir -p i18n
-	pybabel extract -F babel.cfg -o $(POT) --project=saebooks-web --no-wrap .
+	.venv/bin/python tools/extract_pot.py  # babel API — CLI skips _partials/_components (see tools/extract_pot.py docstring)
 
 i18n-init: i18n-extract
 	@for locale in $(LOCALES); do \

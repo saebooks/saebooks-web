@@ -8,14 +8,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-13 13:57+0300\n"
+"POT-Creation-Date: 2026-07-13 18:59+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.17.0\n"
+"Generated-By: Babel 2.18.0\n"
 
 #: saebooks_web/eid_sso.py:94
 msgid "You declined the sign-in request on your device."
@@ -104,7 +104,8 @@ msgid_plural "%(n)s items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/_funnel_macros.html:74 templates/base.html:502
+#: templates/_funnel_macros.html:74
+#: templates/_partials/sidebar_cashbook.html:29 templates/base.html:502
 #: templates/cashbook/invoices/list.html:3
 #: templates/cashbook/invoices/list.html:18
 #: templates/cashbook/invoices/list.html:23 templates/invoices/detail.html:31
@@ -195,10 +196,10 @@ msgstr ""
 msgid "Delete this item?"
 msgstr ""
 
-#: templates/_icons.html:55 templates/account_ranges/list.html:94
-#: templates/account_ranges/list.html:120 templates/ato_sbr/index.html:159
-#: templates/bank_rules/list.html:98 templates/invoices/list.html:103
-#: templates/journal_templates/list.html:76
+#: templates/_icons.html:55 templates/_partials/attachments.html:79
+#: templates/account_ranges/list.html:94 templates/account_ranges/list.html:120
+#: templates/ato_sbr/index.html:159 templates/bank_rules/list.html:98
+#: templates/invoices/list.html:103 templates/journal_templates/list.html:76
 #: templates/journal_templates/list.html:101
 #: templates/statements/templates.html:97
 msgid "Delete"
@@ -361,6 +362,7 @@ msgstr ""
 msgid "Inbox"
 msgstr ""
 
+#: templates/_partials/sidebar_cashbook.html:28
 #: templates/bad_debts/list.html:26 templates/bad_debts/recovery_prompt.html:9
 #: templates/base.html:491 templates/invoices/detail.html:31
 #: templates/invoices/list.html:16 templates/overviews/sales.html:12
@@ -373,8 +375,8 @@ msgstr ""
 msgid "Overview"
 msgstr ""
 
-#: templates/base.html:499 templates/cashbook/quotes/list.html:3
-#: templates/cashbook/quotes/list.html:18
+#: templates/_partials/sidebar_cashbook.html:30 templates/base.html:499
+#: templates/cashbook/quotes/list.html:3 templates/cashbook/quotes/list.html:18
 #: templates/cashbook/quotes/list.html:23 templates/quotes/list.html:3
 #: templates/quotes/list.html:18 templates/quotes/list.html:24
 msgid "Quotes"
@@ -407,7 +409,8 @@ msgstr ""
 msgid "One-off customers"
 msgstr ""
 
-#: templates/base.html:534 templates/overviews/expenses.html:12
+#: templates/_partials/sidebar_cashbook.html:35 templates/base.html:534
+#: templates/overviews/expenses.html:12
 msgid "Purchases"
 msgstr ""
 
@@ -437,14 +440,15 @@ msgstr ""
 msgid "People"
 msgstr ""
 
-#: templates/base.html:570 templates/employees/list.html:4
-#: templates/employees/list.html:10 templates/super_funds/list.html:20
-#: templates/tax_returns/detail.html:113
+#: templates/_partials/sidebar_cashbook.html:41 templates/base.html:570
+#: templates/employees/list.html:4 templates/employees/list.html:10
+#: templates/super_funds/list.html:20 templates/tax_returns/detail.html:113
 msgid "Employees"
 msgstr ""
 
-#: templates/base.html:573 templates/employees/list.html:19
-#: templates/super_funds/list.html:5 templates/super_funds/list.html:11
+#: templates/_partials/sidebar_cashbook.html:42 templates/base.html:573
+#: templates/employees/list.html:19 templates/super_funds/list.html:5
+#: templates/super_funds/list.html:11
 msgid "Super funds"
 msgstr ""
 
@@ -558,8 +562,9 @@ msgstr ""
 msgid "Deklaratsioonid"
 msgstr ""
 
-#: templates/base.html:702 templates/reports/index.html:5
-#: templates/reports/index.html:9 templates/reports/index.html:21
+#: templates/_partials/sidebar_cashbook.html:48 templates/base.html:702
+#: templates/reports/index.html:5 templates/reports/index.html:9
+#: templates/reports/index.html:21
 msgid "Reports"
 msgstr ""
 
@@ -610,6 +615,7 @@ msgstr ""
 msgid "Profile"
 msgstr ""
 
+#: templates/_partials/sidebar_cashbook.html:57
 #: templates/bad_debts/list.html:42 templates/base.html:758
 msgid "Settings"
 msgstr ""
@@ -1357,6 +1363,287 @@ msgstr ""
 msgid "Read the isolation policy source"
 msgstr ""
 
+#: templates/_components/bulk_action_bar.html:36
+msgid "Bulk actions for selected rows"
+msgstr ""
+
+#: templates/_components/bulk_action_bar.html:40
+msgid "selected"
+msgstr ""
+
+#: templates/_components/bulk_action_bar.html:45
+#: templates/accounts/detail.html:169 templates/admin/audit_log.html:54
+#: templates/admin/sql_tool.html:41 templates/journal_entries/list.html:158
+#: templates/parties/contacts_bucket.html:43
+#: templates/parties/one_off_bucket.html:37
+msgid "Clear"
+msgstr ""
+
+#: templates/_components/bulk_action_bar.html:77
+msgid "Confirm action"
+msgstr ""
+
+#: templates/_components/bulk_action_bar.html:81
+#: templates/accounts/_form_fields.html:50 templates/accounts/_table.html:20
+#: templates/contacts/_form_fields.html:31 templates/contacts/cleanup.html:39
+#: templates/contacts/detail.html:211 templates/contacts/detail.html:256
+#: templates/contacts/list.html:46 templates/contacts/list.html:77
+#: templates/items/_form_fields.html:76 templates/items/_table.html:27
+#: templates/items/list.html:39 templates/parties/contacts_bucket.html:58
+#: templates/payments/_form_fields.html:145 templates/payments/detail.html:112
+#: templates/reports/_fx_revaluation_table.html:36
+#: templates/reports/_profit_loss_table.html:156
+#: templates/reports/_profit_loss_table.html:206
+#: templates/reports/_trial_balance_table.html:48
+#: templates/reports/_trial_balance_table.html:88
+#: templates/statements/detail.html:207 templates/super_funds/detail.html:41
+#: templates/super_funds/list.html:42
+msgid "Type"
+msgstr ""
+
+#: templates/_components/bulk_action_bar.html:81
+msgid "to confirm."
+msgstr ""
+
+#: templates/_components/bulk_action_bar.html:91
+#: templates/account_ranges/edit.html:120 templates/account_ranges/new.html:113
+#: templates/accounts/edit.html:70 templates/accounts/edit.html:77
+#: templates/accounts/new.html:33 templates/allocations/edit.html:120
+#: templates/allocations/new.html:124 templates/bank_accounts/edit.html:71
+#: templates/bank_accounts/edit.html:78 templates/bank_accounts/new.html:33
+#: templates/bank_rules/edit.html:192 templates/bank_rules/new.html:193
+#: templates/bills/edit.html:51 templates/bills/edit.html:53
+#: templates/bills/new.html:26 templates/branches/edit.html:36
+#: templates/branches/new.html:40 templates/budgets/edit.html:70
+#: templates/budgets/edit.html:77 templates/budgets/new.html:33
+#: templates/cashbook/entry_edit.html:118
+#: templates/cashbook/invoices/edit.html:103
+#: templates/cashbook/invoices/new.html:96
+#: templates/cashbook/quotes/edit.html:99 templates/cashbook/quotes/new.html:89
+#: templates/cashbook/upgrade_confirm.html:49
+#: templates/contacts/cleanup.html:79 templates/contacts/edit.html:51
+#: templates/contacts/edit.html:53 templates/contacts/new.html:23
+#: templates/credit_notes/edit.html:70 templates/credit_notes/edit.html:77
+#: templates/credit_notes/new.html:30 templates/employees/edit.html:318
+#: templates/employees/new.html:329 templates/expenses/new.html:97
+#: templates/fixed_assets/edit.html:71 templates/fixed_assets/edit.html:78
+#: templates/fixed_assets/new.html:34 templates/inbox/review.html:335
+#: templates/invoices/edit.html:57 templates/invoices/edit.html:59
+#: templates/invoices/new.html:32 templates/items/edit.html:70
+#: templates/items/edit.html:77 templates/items/new.html:33
+#: templates/journal_entries/edit.html:70
+#: templates/journal_entries/edit.html:77 templates/journal_entries/new.html:30
+#: templates/journal_templates/new.html:124 templates/payments/edit.html:51
+#: templates/payments/edit.html:53 templates/payments/new.html:21
+#: templates/projects/edit.html:70 templates/projects/edit.html:77
+#: templates/projects/new.html:33 templates/purchase_orders/_table.html:81
+#: templates/purchase_orders/detail.html:65
+#: templates/purchase_orders/detail.html:83
+#: templates/purchase_orders/edit.html:64
+#: templates/purchase_orders/edit.html:66
+#: templates/purchase_orders/list.html:110
+#: templates/purchase_orders/new.html:29 templates/quotes/edit.html:39
+#: templates/quotes/email_compose.html:114 templates/quotes/new.html:21
+#: templates/recurring_invoices/edit.html:70
+#: templates/recurring_invoices/edit.html:77
+#: templates/recurring_invoices/new.html:30
+#: templates/settings/gst_backdate_confirm.html:74
+#: templates/super_funds/edit.html:103 templates/super_funds/new.html:115
+#: templates/tax_codes/edit.html:70 templates/tax_codes/edit.html:77
+#: templates/tax_codes/new.html:33 templates/time_entries/edit.html:82
+#: templates/time_entries/new.html:99
+msgid "Cancel"
+msgstr ""
+
+#: templates/_components/bulk_action_bar.html:96
+msgid "Confirm"
+msgstr ""
+
+#: templates/_components/kebab_menu.html:36
+msgid "Row actions"
+msgstr ""
+
+#: templates/_components/raw_inspector.html:21
+msgid "Raw inspector — dev only"
+msgstr ""
+
+#: templates/_components/raw_inspector.html:26
+msgid "Close raw inspector"
+msgstr ""
+
+#: templates/_partials/attachments.html:30
+msgid "Attachments are disabled for this instance."
+msgstr ""
+
+#: templates/_partials/attachments.html:41
+msgid "File"
+msgstr ""
+
+#: templates/_partials/attachments.html:42
+msgid "Size"
+msgstr ""
+
+#: templates/_partials/attachments.html:43
+msgid "Uploaded by"
+msgstr ""
+
+#: templates/_partials/attachments.html:44 templates/accounts/detail.html:189
+#: templates/bank_accounts/detail.html:170
+#: templates/bank_statement_lines/_table.html:25
+#: templates/bank_statement_lines/detail.html:50 templates/bills/_table.html:30
+#: templates/cashbook/entry_detail.html:43
+#: templates/cashbook/entry_edit.html:58 templates/cashbook/landing.html:65
+#: templates/cashbook/quotes/edit.html:83 templates/cashbook/quotes/new.html:73
+#: templates/contacts/detail.html:255 templates/credit_notes/_table.html:26
+#: templates/expenses/_table.html:29 templates/expenses/new.html:24
+#: templates/inbox/_table.html:19 templates/inbox/review.html:170
+#: templates/inbox/review.html:449 templates/invoices/_table.html:31
+#: templates/journal_entries/_table.html:55
+#: templates/overviews/expenses.html:168 templates/overviews/sales.html:199
+#: templates/payments/_table.html:21 templates/payments/detail.html:90
+#: templates/quotes/_table.html:24 templates/reconciliation/suggest.html:41
+#: templates/statements/detail.html:206 templates/statements/detail.html:441
+#: templates/time_entries/edit.html:26 templates/time_entries/list.html:111
+#: templates/time_entries/new.html:23
+msgid "Date"
+msgstr ""
+
+#: templates/_partials/attachments.html:45 templates/branches/list.html:27
+#: templates/employees/detail.html:299 templates/super_funds/detail.html:113
+#: templates/time_entries/detail.html:103
+msgid "Actions"
+msgstr ""
+
+#: templates/_partials/attachments.html:69
+msgid "Download"
+msgstr ""
+
+#: templates/_partials/attachments.html:75
+#, python-format
+msgid "Delete “%(name)s”? This cannot be undone."
+msgstr ""
+
+#: templates/_partials/attachments.html:88
+msgid "No attachments yet."
+msgstr ""
+
+#: templates/_partials/attachments.html:115
+msgid "Upload"
+msgstr ""
+
+#: templates/_partials/breadcrumb.html:11
+msgid "Breadcrumb"
+msgstr ""
+
+#: templates/_partials/demo_banner.html:22
+msgid "Private sandbox"
+msgstr ""
+
+#: templates/_partials/demo_banner.html:25
+msgid "tenant"
+msgstr ""
+
+#: templates/_partials/demo_banner.html:28 templates/quotes/detail.html:290
+msgid "created"
+msgstr ""
+
+#: templates/_partials/demo_banner.html:31
+msgid "self-destructs after 30 minutes idle"
+msgstr ""
+
+#: templates/_partials/demo_banner.html:33
+msgid "View isolation proof"
+msgstr ""
+
+#: templates/_partials/review_flag.html:38
+#, python-format
+msgid "Flagged: %(note)s — click to clear"
+msgstr ""
+
+#: templates/_partials/review_flag.html:38
+msgid "Flagged for review — click to clear"
+msgstr ""
+
+#: templates/_partials/review_flag.html:39
+msgid "Clear review flag"
+msgstr ""
+
+#: templates/_partials/review_flag.html:49
+#: templates/_partials/review_flag.html:50
+#: templates/_partials/review_flag.html:80 templates/expenses/_table.html:34
+#: templates/invoices/_table.html:36 templates/journal_entries/_table.html:59
+msgid "Flag for review"
+msgstr ""
+
+#: templates/_partials/review_flag.html:61
+msgid "Flagged for review"
+msgstr ""
+
+#: templates/_partials/review_flag.html:70
+msgid "Clear flag"
+msgstr ""
+
+#: templates/_partials/review_flag.html:73
+msgid "Not flagged."
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:23
+msgid "Cashbook overview"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:24
+msgid "Money in / out"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:31 templates/contacts/list.html:7
+#: templates/contacts/list.html:28 templates/parties/contacts_bucket.html:14
+#: templates/parties/one_off_bucket.html:14
+msgid "Contacts"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:36 templates/accounts/list.html:45
+#: templates/expenses/list.html:3 templates/expenses/list.html:15
+#: templates/journal_entries/list.html:105
+#: templates/reports/_profit_loss_table.html:73
+#: templates/reports/_profit_loss_table.html:199
+#: templates/reports/statement_pack.html:134
+msgid "Expenses"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:40
+msgid "People & payroll"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:43
+msgid "Pay runs"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:44
+msgid "Time tracking"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:49
+msgid "Cashbook report"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:50
+#: templates/reports/bas_summary.html:16 templates/reports/index.html:86
+msgid "BAS"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:51
+msgid "Profit & loss"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:61 templates/cashbook/about.html:3
+#: templates/cashbook/about.html:20
+msgid "About Cashbook"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:65
+msgid "Upgrade to full"
+msgstr ""
+
 #: templates/account_ranges/edit.html:3 templates/account_ranges/edit.html:8
 msgid "Edit Account Range"
 msgstr ""
@@ -1455,55 +1742,6 @@ msgstr ""
 msgid "Save range"
 msgstr ""
 
-#: templates/account_ranges/edit.html:120 templates/account_ranges/new.html:113
-#: templates/accounts/edit.html:70 templates/accounts/edit.html:77
-#: templates/accounts/new.html:33 templates/allocations/edit.html:120
-#: templates/allocations/new.html:124 templates/bank_accounts/edit.html:71
-#: templates/bank_accounts/edit.html:78 templates/bank_accounts/new.html:33
-#: templates/bank_rules/edit.html:192 templates/bank_rules/new.html:193
-#: templates/bills/edit.html:51 templates/bills/edit.html:53
-#: templates/bills/new.html:26 templates/branches/edit.html:36
-#: templates/branches/new.html:40 templates/budgets/edit.html:70
-#: templates/budgets/edit.html:77 templates/budgets/new.html:33
-#: templates/cashbook/entry_edit.html:118
-#: templates/cashbook/invoices/edit.html:103
-#: templates/cashbook/invoices/new.html:96
-#: templates/cashbook/quotes/edit.html:99 templates/cashbook/quotes/new.html:89
-#: templates/cashbook/upgrade_confirm.html:49
-#: templates/contacts/cleanup.html:79 templates/contacts/edit.html:51
-#: templates/contacts/edit.html:53 templates/contacts/new.html:23
-#: templates/credit_notes/edit.html:70 templates/credit_notes/edit.html:77
-#: templates/credit_notes/new.html:30 templates/employees/edit.html:318
-#: templates/employees/new.html:329 templates/expenses/new.html:97
-#: templates/fixed_assets/edit.html:71 templates/fixed_assets/edit.html:78
-#: templates/fixed_assets/new.html:34 templates/inbox/review.html:335
-#: templates/invoices/edit.html:57 templates/invoices/edit.html:59
-#: templates/invoices/new.html:32 templates/items/edit.html:70
-#: templates/items/edit.html:77 templates/items/new.html:33
-#: templates/journal_entries/edit.html:70
-#: templates/journal_entries/edit.html:77 templates/journal_entries/new.html:30
-#: templates/journal_templates/new.html:124 templates/payments/edit.html:51
-#: templates/payments/edit.html:53 templates/payments/new.html:21
-#: templates/projects/edit.html:70 templates/projects/edit.html:77
-#: templates/projects/new.html:33 templates/purchase_orders/_table.html:81
-#: templates/purchase_orders/detail.html:65
-#: templates/purchase_orders/detail.html:83
-#: templates/purchase_orders/edit.html:64
-#: templates/purchase_orders/edit.html:66
-#: templates/purchase_orders/list.html:110
-#: templates/purchase_orders/new.html:29 templates/quotes/edit.html:39
-#: templates/quotes/email_compose.html:114 templates/quotes/new.html:21
-#: templates/recurring_invoices/edit.html:70
-#: templates/recurring_invoices/edit.html:77
-#: templates/recurring_invoices/new.html:30
-#: templates/settings/gst_backdate_confirm.html:74
-#: templates/super_funds/edit.html:103 templates/super_funds/new.html:115
-#: templates/tax_codes/edit.html:70 templates/tax_codes/edit.html:77
-#: templates/tax_codes/new.html:33 templates/time_entries/edit.html:82
-#: templates/time_entries/new.html:99
-msgid "Cancel"
-msgstr ""
-
 #: templates/account_ranges/edit.html:126
 msgid "Account range not found."
 msgstr ""
@@ -1593,23 +1831,6 @@ msgstr ""
 #: templates/accounts/_form_fields.html:45
 #: templates/bank_accounts/_form_fields.html:43
 msgid "Account code"
-msgstr ""
-
-#: templates/accounts/_form_fields.html:50 templates/accounts/_table.html:20
-#: templates/contacts/_form_fields.html:31 templates/contacts/cleanup.html:39
-#: templates/contacts/detail.html:211 templates/contacts/detail.html:256
-#: templates/contacts/list.html:46 templates/contacts/list.html:77
-#: templates/items/_form_fields.html:76 templates/items/_table.html:27
-#: templates/items/list.html:39 templates/parties/contacts_bucket.html:58
-#: templates/payments/_form_fields.html:145 templates/payments/detail.html:112
-#: templates/reports/_fx_revaluation_table.html:36
-#: templates/reports/_profit_loss_table.html:156
-#: templates/reports/_profit_loss_table.html:206
-#: templates/reports/_trial_balance_table.html:48
-#: templates/reports/_trial_balance_table.html:88
-#: templates/statements/detail.html:207 templates/super_funds/detail.html:41
-#: templates/super_funds/list.html:42
-msgid "Type"
 msgstr ""
 
 #: templates/accounts/_form_fields.html:59
@@ -1851,33 +2072,6 @@ msgstr ""
 #: templates/quotes/list.html:67 templates/recurring_invoices/list.html:70
 #: templates/time_entries/list.html:97
 msgid "Filter"
-msgstr ""
-
-#: templates/accounts/detail.html:169 templates/admin/audit_log.html:54
-#: templates/admin/sql_tool.html:41 templates/journal_entries/list.html:158
-#: templates/parties/contacts_bucket.html:43
-#: templates/parties/one_off_bucket.html:37
-msgid "Clear"
-msgstr ""
-
-#: templates/accounts/detail.html:189 templates/bank_accounts/detail.html:170
-#: templates/bank_statement_lines/_table.html:25
-#: templates/bank_statement_lines/detail.html:50 templates/bills/_table.html:30
-#: templates/cashbook/entry_detail.html:43
-#: templates/cashbook/entry_edit.html:58 templates/cashbook/landing.html:65
-#: templates/cashbook/quotes/edit.html:83 templates/cashbook/quotes/new.html:73
-#: templates/contacts/detail.html:255 templates/credit_notes/_table.html:26
-#: templates/expenses/_table.html:29 templates/expenses/new.html:24
-#: templates/inbox/_table.html:19 templates/inbox/review.html:170
-#: templates/inbox/review.html:449 templates/invoices/_table.html:31
-#: templates/journal_entries/_table.html:55
-#: templates/overviews/expenses.html:168 templates/overviews/sales.html:199
-#: templates/payments/_table.html:21 templates/payments/detail.html:90
-#: templates/quotes/_table.html:24 templates/reconciliation/suggest.html:41
-#: templates/statements/detail.html:206 templates/statements/detail.html:441
-#: templates/time_entries/edit.html:26 templates/time_entries/list.html:111
-#: templates/time_entries/new.html:23
-msgid "Date"
 msgstr ""
 
 #: templates/accounts/detail.html:190 templates/bank_accounts/detail.html:172
@@ -2135,14 +2329,6 @@ msgstr ""
 #: templates/reports/_profit_loss_table.html:167
 #: templates/reports/statement_pack.html:91
 msgid "Income"
-msgstr ""
-
-#: templates/accounts/list.html:45 templates/expenses/list.html:3
-#: templates/expenses/list.html:15 templates/journal_entries/list.html:105
-#: templates/reports/_profit_loss_table.html:73
-#: templates/reports/_profit_loss_table.html:199
-#: templates/reports/statement_pack.html:134
-msgid "Expenses"
 msgstr ""
 
 #: templates/accounts/new.html:3 templates/accounts/new.html:8
@@ -4259,11 +4445,6 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: templates/branches/list.html:27 templates/employees/detail.html:299
-#: templates/super_funds/detail.html:113 templates/time_entries/detail.html:103
-msgid "Actions"
-msgstr ""
-
 #: templates/branches/list.html:47
 #, python-format
 msgid "Archive branch %(code)s?"
@@ -4530,10 +4711,6 @@ msgstr ""
 
 #: templates/budgets/new.html:27
 msgid "Save budget"
-msgstr ""
-
-#: templates/cashbook/about.html:3 templates/cashbook/about.html:20
-msgid "About Cashbook"
 msgstr ""
 
 #: templates/cashbook/about.html:8
@@ -5532,12 +5709,6 @@ msgstr ""
 
 #: templates/contacts/edit.html:25
 msgid "Someone else has updated this contact."
-msgstr ""
-
-#: templates/contacts/list.html:7 templates/contacts/list.html:28
-#: templates/parties/contacts_bucket.html:14
-#: templates/parties/one_off_bucket.html:14
-msgid "Contacts"
 msgstr ""
 
 #: templates/contacts/list.html:24
@@ -6646,11 +6817,6 @@ msgstr ""
 
 #: templates/expenses/_table.html:17
 msgid "No expenses match."
-msgstr ""
-
-#: templates/expenses/_table.html:34 templates/invoices/_table.html:36
-#: templates/journal_entries/_table.html:59
-msgid "Flag for review"
 msgstr ""
 
 #: templates/expenses/_table.html:43
@@ -9581,10 +9747,6 @@ msgstr ""
 msgid "When"
 msgstr ""
 
-#: templates/quotes/detail.html:290
-msgid "created"
-msgstr ""
-
 #: templates/quotes/detail.html:291
 msgid "accepted"
 msgstr ""
@@ -10661,10 +10823,6 @@ msgstr ""
 #: templates/reports/bas_summary.html:3 templates/reports/bas_summary.html:19
 #: templates/reports/index.html:88
 msgid "BAS Summary"
-msgstr ""
-
-#: templates/reports/bas_summary.html:16 templates/reports/index.html:86
-msgid "BAS"
 msgstr ""
 
 #: templates/reports/budget_vs_actual.html:3
