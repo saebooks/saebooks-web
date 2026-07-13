@@ -87,6 +87,9 @@ def _make_session_cookie(data: dict) -> str:
 _ADMIN_COOKIE = _make_session_cookie(
     {"api_token": "test-token-admin", "user_role": "admin", "is_sae_staff": False}
 )
+_OWNER_COOKIE = _make_session_cookie(
+    {"api_token": "test-token-owner", "user_role": "owner", "is_sae_staff": False}
+)
 _BOOKKEEPER_COOKIE = _make_session_cookie(
     {"api_token": "test-token-bk", "user_role": "bookkeeper", "is_sae_staff": False}
 )
@@ -275,6 +278,46 @@ async def test_admin_license_forbidden_for_bookkeeper() -> None:
         resp = await client.get("/admin/license")
 
     assert resp.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# W6 -- role hierarchy: "owner" outranks "admin" and must pass the same
+# admin-only gates (_require_admin / _is_admin previously only accepted the
+# literal "admin" role, wrongly rejecting the higher "owner" role).
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_companies_new_form_owner() -> None:
+    """GET /companies/new returns 200 for an owner (owner outranks admin)."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _OWNER_COOKIE},
+    ) as client:
+        resp = await client.get("/companies/new")
+
+    assert resp.status_code == 200
+    assert 'name="name"' in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_admin_license_renders_for_owner(respx_mock: respx.MockRouter) -> None:
+    """GET /admin/license returns 200 for an owner, not 403."""
+    respx_mock.get(f"{_API_BASE}/api/v1/license").mock(
+        return_value=Response(200, json=_LICENSE_ENTERPRISE)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _OWNER_COOKIE},
+    ) as client:
+        resp = await client.get("/admin/license")
+
+    assert resp.status_code == 200
+    assert "enterprise" in resp.text
 
 
 # ---------------------------------------------------------------------------

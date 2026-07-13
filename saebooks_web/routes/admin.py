@@ -63,7 +63,7 @@ def _is_sae_staff(request: Request) -> bool:
 
 def _is_admin(request: Request) -> bool:
     role = request.session.get("user_role", "")
-    return _is_sae_staff(request) or role == "admin"
+    return _is_sae_staff(request) or role in ("owner", "admin")
 
 
 # ---------------------------------------------------------------------------
