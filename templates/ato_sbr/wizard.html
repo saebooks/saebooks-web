@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}ATO SBR Wizard — Admin — SAE Books{% endblock %}
+{% block title %}{{ _("ATO SBR Wizard") }} — {{ _("Admin") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="flex items-center gap-2 mb-1">
-  <span class="text-sm ink-3">Admin</span>
+  <span class="text-sm ink-3">{{ _("Admin") }}</span>
   <span class="ink-3 text-xs">/</span>
-  <a href="/admin/ato-sbr" class="text-sm ink-3 hover:underline sae">ATO SBR</a>
+  <a href="/admin/ato-sbr" class="text-sm ink-3 hover:underline sae">{{ _("ATO SBR") }}</a>
   <span class="ink-3 text-xs">/</span>
-  <span class="text-sm ink-1 font-medium">Setup wizard</span>
+  <span class="text-sm ink-1 font-medium">{{ _("Setup wizard") }}</span>
 </div>
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold ink-1">ATO SBR — Setup wizard</h1>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("ATO SBR — Setup wizard") }}</h1>
   {% if step_index is not none and step_count %}
   <p class="text-sm ink-3 mt-1">
-    Step {{ step_index + 1 }} of {{ step_count }}
-    {% if flow %} · flow: <span class="font-mono text-xs">{{ flow }}</span>{% endif %}
+    {{ _("Step %(current)s of %(total)s") % {"current": step_index + 1, "total": step_count} }}
+    {% if flow %} · {{ _("flow:") }} <span class="font-mono text-xs">{{ flow }}</span>{% endif %}
   </p>
   {% endif %}
 </div>
@@ -66,9 +66,8 @@
           {{ q.label }}
           {% if q.field == "keystore_done" %}
           <p class="mt-2 text-xs ink-3">
-            Upload your keystore on the
-            <a href="/admin/ato-sbr" class="underline sae">ATO SBR landing page</a> first
-            (in a new tab) — then come back here and click <em>Next</em>.
+            {{ _("Upload your keystore on the") }}
+            <a href="/admin/ato-sbr" class="underline sae">{{ _("ATO SBR landing page") }}</a> {{ _("first (in a new tab) — then come back here and click") }} <em>{{ _("Next") }}</em>.
           </p>
           {% endif %}
         </div>
@@ -79,14 +78,14 @@
 
     <div class="flex items-center justify-between pt-2 hairline border-t">
       <a href="/admin/ato-sbr" class="text-xs ink-3 hover:underline sae">
-        ← Back to ATO SBR
+        ← {{ _("Back to ATO SBR") }}
       </a>
       <button type="submit"
         class="btn-primary text-sm">
         {% if step_index is not none and step_count and step_index + 1 >= step_count %}
-          Finish
+          {{ _("Finish") }}
         {% else %}
-          Next →
+          {{ _("Next →") }}
         {% endif %}
       </button>
     </div>

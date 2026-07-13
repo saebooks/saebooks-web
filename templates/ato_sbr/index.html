@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}ATO SBR — Admin — SAE Books{% endblock %}
+{% block title %}{{ _("ATO SBR") }} — {{ _("Admin") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="flex items-center gap-2 mb-1">
-  <span class="text-sm ink-3">Admin</span>
+  <span class="text-sm ink-3">{{ _("Admin") }}</span>
   <span class="ink-3 text-xs">/</span>
-  <span class="text-sm ink-1 font-medium">ATO SBR</span>
+  <span class="text-sm ink-1 font-medium">{{ _("ATO SBR") }}</span>
 </div>
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold ink-1">ATO SBR — Machine Credential Setup</h1>
-  <p class="text-sm ink-3 mt-1">Configure ATO Standard Business Reporting for STP and BAS e-lodgement</p>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("ATO SBR — Machine Credential Setup") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Configure ATO Standard Business Reporting for STP and BAS e-lodgement") }}</p>
 </div>
 
 {% if feature_disabled %}
 <div class="card px-4 py-4 text-sm ink-2" style="border-color:var(--warm);">
-  <p class="font-medium ink-1">ATO SBR feature is not enabled in this edition.</p>
+  <p class="font-medium ink-1">{{ _("ATO SBR feature is not enabled in this edition.") }}</p>
   <p class="mt-1 text-xs ink-3">
-    This feature is available in SAE Books Enterprise. Contact your administrator or see the
-    <a href="/admin/license" class="underline sae">licence page</a> for details.
+    {{ _("This feature is available in SAE Books Enterprise. Contact your administrator or see the") }}
+    <a href="/admin/license" class="underline sae">{{ _("licence page") }}</a> {{ _("for details.") }}
   </p>
 </div>
 {% else %}
@@ -53,30 +53,29 @@
 
     {# Setup wizard #}
     <div class="card p-5">
-      <h2 class="text-sm font-semibold ink-1 mb-2">Setup wizard</h2>
+      <h2 class="text-sm font-semibold ink-1 mb-2">{{ _("Setup wizard") }}</h2>
       <p class="text-xs ink-3 mb-3">
-        Walk through myGovID setup, RAM Principal Authority, the Machine Credential
-        Downloader, keystore upload, and SSID entry — one step at a time.
+        {{ _("Walk through myGovID setup, RAM Principal Authority, the Machine Credential Downloader, keystore upload, and SSID entry — one step at a time.") }}
       </p>
 
       {% if active_wizard_id %}
       <div class="rounded-md px-3 py-2 text-xs mb-3" style="background:var(--sae-tint);color:var(--sae-2);border:1px solid var(--sae-tint);">
-        Wizard in progress
+        {{ _("Wizard in progress") }}
         {% if active_wizard_step_index is not none and active_wizard_step_count %}
-          — step {{ active_wizard_step_index + 1 }} of {{ active_wizard_step_count }}
+          — {{ _("step %(current)s of %(total)s") % {"current": active_wizard_step_index + 1, "total": active_wizard_step_count} }}
         {% endif %}
       </div>
       <div class="flex gap-2">
         <a href="/admin/ato-sbr/onboarding/{{ active_wizard_id }}"
            class="btn-primary text-xs">
-          Resume wizard
+          {{ _("Resume wizard") }}
         </a>
         <form method="post" action="/admin/ato-sbr/onboarding/start" style="display:inline">
           {{ csrf_input(request)|safe }}
           <input type="hidden" name="flow" value="machine_credential">
           <button type="submit"
             class="btn-secondary text-xs">
-            Start a new wizard
+            {{ _("Start a new wizard") }}
           </button>
         </form>
       </div>
@@ -86,7 +85,7 @@
         <input type="hidden" name="flow" value="machine_credential">
         <button type="submit"
           class="btn-primary text-xs">
-          Start setup wizard
+          {{ _("Start setup wizard") }}
         </button>
       </form>
       {% endif %}
@@ -94,10 +93,10 @@
 
     {# Keystore upload — usable any time, including from inside the wizard #}
     <div class="card p-5">
-      <h2 class="text-sm font-semibold ink-1 mb-2">Upload Machine Credential keystore</h2>
+      <h2 class="text-sm font-semibold ink-1 mb-2">{{ _("Upload Machine Credential keystore") }}</h2>
       <p class="text-xs ink-3 mb-3">
-        Use the ATO Machine Credential Downloader Chrome extension to download
-        <code class="font-mono">keystore.xml</code>, then upload it here.
+        {{ _("Use the ATO Machine Credential Downloader Chrome extension to download") }}
+        <code class="font-mono">keystore.xml</code>{{ _(", then upload it here.") }}
       </p>
       <form method="post" action="/admin/ato-sbr/keystore" enctype="multipart/form-data" class="space-y-3">
         {{ csrf_input(request)|safe }}
@@ -110,14 +109,14 @@
         </div>
         <div>
           <label class="block text-xs font-medium ink-2 mb-1" for="keystore_password">
-            Keystore password
+            {{ _("Keystore password") }}
           </label>
           <input type="password" id="keystore_password" name="password" required
             class="saebooks-input w-full">
         </div>
         <button type="submit"
           class="btn-primary text-xs">
-          Upload keystore
+          {{ _("Upload keystore") }}
         </button>
       </form>
     </div>
@@ -128,7 +127,7 @@
   <div class="space-y-4">
 
     <div class="card p-5">
-      <h2 class="text-sm font-semibold ink-1 mb-3">Stored keystores</h2>
+      <h2 class="text-sm font-semibold ink-1 mb-3">{{ _("Stored keystores") }}</h2>
 
       {% if keystore_entries %}
       <ul class="divide-y divide-[color:var(--line)] text-xs">
@@ -136,10 +135,10 @@
         <li class="py-2">
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0">
-              <div class="font-medium ink-1 truncate">{{ entry.label or "unnamed" }}</div>
+              <div class="font-medium ink-1 truncate">{{ entry.label or _("unnamed") }}</div>
               <div class="ink-3 truncate">
                 {% if entry.filename %}{{ entry.filename }}{% endif %}
-                {% if entry.expires_at %} · expires {{ entry.expires_at[:10] }}{% endif %}
+                {% if entry.expires_at %} · {{ _("expires %(date)s") % {"date": entry.expires_at[:10]} }}{% endif %}
               </div>
             </div>
             <div class="flex gap-1 shrink-0">
@@ -148,16 +147,16 @@
                 <input type="hidden" name="keystore_id" value="{{ entry.id }}">
                 <button type="submit"
                   class="rounded-md px-2 py-1 text-xs font-medium" style="color:var(--sae-2);background:var(--sae-tint);border:1px solid var(--sae-tint);"
-                  title="Test lodge-server connection with this keystore">
-                  Ping
+                  title="{{ _('Test lodge-server connection with this keystore') }}">
+                  {{ _("Ping") }}
                 </button>
               </form>
               <form method="post" action="/admin/ato-sbr/keystore/{{ entry.id }}/delete" style="display:inline"
-                onsubmit="return confirm('Delete this keystore? You will need to re-upload it to lodge again.')">
+                onsubmit="return confirm('{{ _('Delete this keystore? You will need to re-upload it to lodge again.') }}')">
                 {{ csrf_input(request)|safe }}
                 <button type="submit"
                   class="rounded-md px-2 py-1 text-xs font-medium" style="color:var(--neg);background:var(--neg-tint);border:1px solid rgba(161,67,51,0.4);">
-                  Delete
+                  {{ _("Delete") }}
                 </button>
               </form>
             </div>
@@ -166,7 +165,7 @@
         {% endfor %}
       </ul>
       {% else %}
-      <p class="text-xs ink-3">No keystore uploaded yet — use the form on the left after running the wizard up to the keystore step.</p>
+      <p class="text-xs ink-3">{{ _("No keystore uploaded yet — use the form on the left after running the wizard up to the keystore step.") }}</p>
       {% endif %}
     </div>
 
