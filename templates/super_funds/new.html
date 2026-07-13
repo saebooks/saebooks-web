@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New super fund — SAE Books{% endblock %}
+{% block title %}{{ _("New super fund") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="mb-6">
-  <h1 class="font-display text-3xl ink-1">New super fund</h1>
-  <p class="text-base ink-3 mt-1">Add an APRA-regulated fund (by USI) or a Self-Managed Super Fund.</p>
+  <h1 class="font-display text-3xl ink-1">{{ _("New super fund") }}</h1>
+  <p class="text-base ink-3 mt-1">{{ _("Add an APRA-regulated fund (by USI) or a Self-Managed Super Fund.") }}</p>
 </div>
 
 {% if errors._global %}
@@ -22,7 +22,7 @@
   <div class="space-y-4">
 
     <div>
-      <label class="block text-sm ink-3 mb-1">Fund name *</label>
+      <label class="block text-sm ink-3 mb-1">{{ _("Fund name") }} *</label>
       <input type="text" name="name" required value="{{ form.name }}"
              placeholder="e.g. AustralianSuper"
              class="w-full rounded-md hairline px-3 py-2 bg-paper">
@@ -33,21 +33,21 @@
         <input type="checkbox" name="is_smsf" value="on"
                id="smsf-toggle"
                {% if form.is_smsf %}checked{% endif %}>
-        This is a Self-Managed Super Fund (SMSF)
+        {{ _("This is a Self-Managed Super Fund (SMSF)") }}
       </label>
       <label class="inline-flex items-center gap-2 text-base ink-1">
         <input type="checkbox" name="is_default" value="on"
                {% if form.is_default %}checked{% endif %}>
-        Set as default fund
+        {{ _("Set as default fund") }}
       </label>
     </div>
 
     {# APRA fields #}
     <div id="apra-fields" class="space-y-4 {% if form.is_smsf %}hidden{% endif %}">
       <div class="hairline border-t pt-4">
-        <p class="text-sm font-medium ink-2 mb-3">APRA fund details</p>
+        <p class="text-sm font-medium ink-2 mb-3">{{ _("APRA fund details") }}</p>
         <div>
-          <label class="block text-sm ink-3 mb-1">USI <span class="ink-4 text-xs">(11 characters, from ATO fund lookup)</span></label>
+          <label class="block text-sm ink-3 mb-1">{{ _("USI") }} <span class="ink-4 text-xs">{{ _("(11 characters, from ATO fund lookup)") }}</span></label>
           <input type="text" name="usi" value="{{ form.usi }}"
                  placeholder="STA0100AU"
                  maxlength="11"
@@ -59,16 +59,16 @@
     {# SMSF fields #}
     <div id="smsf-fields" class="space-y-4 {% if not form.is_smsf %}hidden{% endif %}">
       <div class="hairline border-t pt-4">
-        <p class="text-sm font-medium ink-2 mb-3">SMSF details</p>
+        <p class="text-sm font-medium ink-2 mb-3">{{ _("SMSF details") }}</p>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm ink-3 mb-1">ABN *</label>
+            <label class="block text-sm ink-3 mb-1">{{ _("ABN") }} *</label>
             <input type="text" name="employer_abn" value="{{ form.employer_abn }}"
                    placeholder="NNN NNN NNN NN"
                    class="w-full rounded-md hairline px-3 py-2 bg-paper num">
           </div>
           <div>
-            <label class="block text-sm ink-3 mb-1">ESA (Electronic Service Address) *</label>
+            <label class="block text-sm ink-3 mb-1">{{ _("ESA (Electronic Service Address)") }} *</label>
             <input type="text" name="esa" value="{{ form.esa }}"
                    placeholder="e.g. superstream@smsf.com.au"
                    class="w-full rounded-md hairline px-3 py-2 bg-paper">
@@ -76,15 +76,15 @@
         </div>
         <div class="mt-4">
           <p class="text-sm ink-3 mb-3">
-            Fund bank account
+            {{ _("Fund bank account") }}
             <span class="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded text-xs"
                   style="background: var(--sae-tint); color: var(--sae-2);">
-              <i data-lucide="shield" class="w-3 h-3"></i> Encrypted at rest
+              <i data-lucide="shield" class="w-3 h-3"></i> {{ _("Encrypted at rest") }}
             </span>
           </p>
           <div class="grid grid-cols-3 gap-4">
             <div>
-              <label class="block text-sm ink-3 mb-1">BSB</label>
+              <label class="block text-sm ink-3 mb-1">{{ _("BSB") }}</label>
               <input type="text" name="smsf_bsb" value="{{ form.smsf_bsb }}"
                      placeholder="062-000"
                      maxlength="7"
@@ -92,13 +92,13 @@
                      class="w-full rounded-md hairline px-3 py-2 bg-paper num">
             </div>
             <div>
-              <label class="block text-sm ink-3 mb-1">Account number</label>
+              <label class="block text-sm ink-3 mb-1">{{ _("Account number") }}</label>
               <input type="text" name="smsf_account_number" value="{{ form.smsf_account_number }}"
                      autocomplete="off"
                      class="w-full rounded-md hairline px-3 py-2 bg-paper num">
             </div>
             <div>
-              <label class="block text-sm ink-3 mb-1">Account name</label>
+              <label class="block text-sm ink-3 mb-1">{{ _("Account name") }}</label>
               <input type="text" name="smsf_account_name" value="{{ form.smsf_account_name }}"
                      autocomplete="off"
                      class="w-full rounded-md hairline px-3 py-2 bg-paper">
@@ -111,8 +111,8 @@
   </div>
 
   <div class="mt-6 flex items-center gap-3">
-    <button type="submit" class="btn btn-primary">Save fund</button>
-    <a href="/super-funds" class="btn btn-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ _("Save fund") }}</button>
+    <a href="/super-funds" class="btn btn-secondary">{{ _("Cancel") }}</a>
   </div>
 </form>
 
