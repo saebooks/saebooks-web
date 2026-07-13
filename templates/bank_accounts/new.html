@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New Bank Account — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("New Bank Account") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">New Bank Account</h1>
-  <a href="/bank-accounts" class="text-sm sae hover:underline">← Back to bank accounts</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New Bank Account") }}</h1>
+  <a href="/bank-accounts" class="text-sm sae hover:underline">{{ _("← Back to bank accounts") }}</a>
 </div>
 
 <div class="card rounded-xl px-6 py-6 max-w-2xl">
@@ -24,13 +24,13 @@
         type="submit"
         class="btn-primary text-sm"
       >
-        Save bank account
+        {{ _("Save bank account") }}
       </button>
       <a
         href="/bank-accounts"
         class="btn-secondary text-sm"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 

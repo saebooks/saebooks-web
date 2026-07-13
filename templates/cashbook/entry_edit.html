@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Entry — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Edit Entry") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="max-w-xl">
   <div class="mb-5 flex items-center gap-3">
-    <a href="/cashbook/entries" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← back</a>
+    <a href="/cashbook/entries" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">{{ _("← back") }}</a>
     <span class="ink-4">/</span>
-    <h1 class="font-display text-xl ink-1">Edit entry</h1>
+    <h1 class="font-display text-xl ink-1">{{ _("Edit entry") }}</h1>
   </div>
 
   {% if errors.__all__ %}
@@ -22,7 +22,7 @@
   <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
     <span class="dot" style="background:var(--warm);"></span>
     <span class="text-sm" style="color:var(--warm);">
-      Modified elsewhere. Latest server version shown — review and resubmit.
+      {{ _("Modified elsewhere. Latest server version shown — review and resubmit.") }}
     </span>
   </div>
   {% endif %}
@@ -34,28 +34,28 @@
 
       {# Direction #}
       <div class="mb-5">
-        <p class="cb-label-inline">Direction</p>
+        <p class="cb-label-inline">{{ _("Direction") }}</p>
         <div class="grid grid-cols-2 gap-2">
           <label class="cb-dir-btn cb-dir-in {% if (form.direction or entry.direction) == 'income' %}active{% endif %}">
             <input type="radio" name="direction" value="income"
                    {% if (form.direction or entry.direction) == 'income' %}checked{% endif %}
                    class="sr-only" onchange="updateCategoryFilter()">
             <span class="text-xl leading-none">↓</span>
-            <span>Cash in</span>
+            <span>{{ _("Cash in") }}</span>
           </label>
           <label class="cb-dir-btn cb-dir-out {% if (form.direction or entry.direction) == 'expense' %}active{% endif %}">
             <input type="radio" name="direction" value="expense"
                    {% if (form.direction or entry.direction) == 'expense' %}checked{% endif %}
                    class="sr-only" onchange="updateCategoryFilter()">
             <span class="text-xl leading-none">↑</span>
-            <span>Cash out</span>
+            <span>{{ _("Cash out") }}</span>
           </label>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label for="entry_date" class="cb-label-inline">Date</label>
+          <label for="entry_date" class="cb-label-inline">{{ _("Date") }}</label>
           <input type="date" id="entry_date" name="entry_date"
                  value="{{ form.entry_date or entry.entry_date }}"
                  class="saebooks-input num"
@@ -64,7 +64,7 @@
         </div>
 
         <div>
-          <label for="amount" class="cb-label-inline">Amount</label>
+          <label for="amount" class="cb-label-inline">{{ _("Amount") }}</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center ink-3 num pointer-events-none">$</span>
             <input type="number" id="amount" name="amount" min="0.01" step="0.01"
@@ -77,10 +77,10 @@
         </div>
 
         <div>
-          <label for="category_code" class="cb-label-inline">Category</label>
+          <label for="category_code" class="cb-label-inline">{{ _("Category") }}</label>
           <select id="category_code" name="category_code" class="saebooks-input"
                   {% if errors.category_code %}style="border-color:var(--neg);"{% endif %}>
-            <option value="">— Select category —</option>
+            <option value="">{{ _("— Select category —") }}</option>
             {% for cat in categories %}
             <option value="{{ cat.code }}"
                     data-direction="{{ cat.direction }}"
@@ -94,7 +94,7 @@
 
         <div>
           <label for="description" class="cb-label-inline">
-            Description <span class="ink-4 font-normal">(optional)</span>
+            {{ _("Description") }} <span class="ink-4 font-normal">{{ _("(optional)") }}</span>
           </label>
           <input type="text" id="description" name="description" maxlength="500"
                  value="{{ form.description or entry.description or '' }}"
@@ -108,14 +108,14 @@
                onchange="updateGstHint()"
                class="h-4 w-4 accent-[#194291]" style="border-color:var(--line);">
         <span class="text-sm ink-2">
-          Includes GST
+          {{ _("Includes GST") }}
           <span id="gst-hint" class="num text-xs ink-3 ml-1 hidden"></span>
         </span>
       </label>
 
       <div class="mt-6 hairline pt-5 flex gap-3">
-        <button type="submit" class="btn-primary">Save changes</button>
-        <a href="/cashbook/entries" class="btn-secondary">Cancel</a>
+        <button type="submit" class="btn-primary">{{ _("Save changes") }}</button>
+        <a href="/cashbook/entries" class="btn-secondary">{{ _("Cancel") }}</a>
       </div>
     </form>
   </div>
@@ -152,7 +152,7 @@ function updateGstHint() {
   var hint = document.getElementById('gst-hint');
   if (chk && chk.checked && !isNaN(amt) && amt > 0) {
     var gst = Math.round((amt / 11) * 100) / 100;
-    hint.textContent = '— includes $' + gst.toFixed(2) + ' GST';
+    hint.textContent = {{ _("— includes $%(amount)s GST") | tojson }}.replace('%(amount)s', gst.toFixed(2));
     hint.classList.remove('hidden');
   } else {
     hint.classList.add('hidden');

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Bank Accounts — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Bank Accounts") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,16 +13,16 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Bank Accounts</h1>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Bank Accounts") }}</h1>
     {% if not error %}
-    <p class="text-sm ink-3 mt-1">{{ total }} account{{ "s" if total != 1 else "" }}</p>
+    <p class="text-sm ink-3 mt-1">{{ ngettext("%(n)s account", "%(n)s accounts", total) % {"n": total} }}</p>
     {% endif %}
   </div>
   <a
     href="/bank-accounts/new"
     class="btn-primary text-sm"
   >
-    New bank account
+    {{ _("New bank account") }}
   </a>
 </div>
 
@@ -35,14 +35,14 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="archived" class="block text-xs font-medium ink-3 mb-1">Show archived</label>
+    <label for="archived" class="block text-xs font-medium ink-3 mb-1">{{ _("Show archived") }}</label>
     <select
       id="archived"
       name="archived"
       class="saebooks-input text-sm"
     >
-      <option value="false" {% if not filter_archived %}selected{% endif %}>Active only</option>
-      <option value="true" {% if filter_archived %}selected{% endif %}>Include archived</option>
+      <option value="false" {% if not filter_archived %}selected{% endif %}>{{ _("Active only") }}</option>
+      <option value="true" {% if filter_archived %}selected{% endif %}>{{ _("Include archived") }}</option>
     </select>
   </div>
 
@@ -53,7 +53,7 @@
     type="submit"
     class="btn-primary text-sm"
   >
-    Filter
+    {{ _("Filter") }}
   </button>
 </form>
 

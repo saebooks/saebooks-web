@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading...
+  {{ _("Loading...") }}
 </div>
 
 {% if report %}
@@ -24,7 +24,7 @@
 
 {# PSI concentration warning banner #}
 {% if concentration_warning and top_pct is not none and rows %}
-{% set top_name = rows[0].get("contact_name", "a single customer") %}
+{% set top_name = rows[0].get("contact_name", _("a single customer")) %}
 <div class="card p-4 mb-4 flex items-start gap-3" style="border-color:var(--neg);">
   <svg class="h-5 w-5 shrink-0 mt-0.5" style="color:var(--neg);" fill="none" viewBox="0 0 24 24"
        stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -35,15 +35,13 @@
   </svg>
   <div>
     <p class="text-sm font-semibold" style="color:var(--neg);">
-      Revenue concentration risk — {{ num(top_pct, 0) }}% from one customer
+      {{ _("Revenue concentration risk — %(pct)s%% from one customer") % {"pct": num(top_pct, 0)} }}
     </p>
     <p class="mt-1 text-xs ink-2">
-      <strong>{{ top_name }}</strong> accounts for {{ num(top_pct, 1) }}% of your revenue
-      in this period. The ATO's 80/20 rule means income may be classified as Personal Services
-      Income (PSI) if &ge;80% comes from one source. Diversifying your client base or obtaining
-      a Personal Services Business (PSB) determination can affect which deductions you can claim.
+      <strong>{{ top_name }}</strong> {{ _("accounts for %(pct)s%% of your revenue in this period.") % {"pct": num(top_pct, 1)} }}
+      {{ _("The ATO's 80/20 rule means income may be classified as Personal Services Income (PSI) if ≥80% comes from one source. Diversifying your client base or obtaining a Personal Services Business (PSB) determination can affect which deductions you can claim.") }}
       <a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/personal-services-income"
-         target="_blank" rel="noopener" class="sae hover:underline font-mono">ATO PSI guide →</a>
+         target="_blank" rel="noopener" class="sae hover:underline font-mono">{{ _("ATO PSI guide →") }}</a>
     </p>
   </div>
 </div>
@@ -54,9 +52,9 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th class="text-left">Customer</th>
-        <th class="text-right">Revenue (ex-GST)</th>
-        <th class="text-right">% of total</th>
+        <th class="text-left">{{ _("Customer") }}</th>
+        <th class="text-right">{{ _("Revenue (ex-GST)") }}</th>
+        <th class="text-right">{{ _("% of total") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -73,7 +71,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td class="font-semibold ink-1">Total</td>
+        <td class="font-semibold ink-1">{{ _("Total") }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total, 2) }}</td>
         <td class="text-right num font-semibold ink-2">100.0%</td>
       </tr>
@@ -81,11 +79,11 @@
   </table>
 </div>
 {% else %}
-<p class="text-sm ink-3 font-mono">— no invoiced revenue found for the selected period —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no invoiced revenue found for the selected period —") }}</p>
 {% endif %}
 
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>

@@ -18,15 +18,15 @@
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Date</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Balance</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Balance") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -40,7 +40,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ line.id }}"
-                   aria-label="Select line {{ line.id }}"
+                   aria-label="{{ _('Select line %(id)s') % {'id': line.id} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -71,21 +71,21 @@
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (line.status or 'unmatched')|lower %}
             {%- set actions = [
-              ("view", "View", "/bank-statement-lines/" ~ line.id, "link", false),
+              ("view", _("View"), "/bank-statement-lines/" ~ line.id, "link", false),
             ] %}
             {%- if status_lower in ('matched', 'reconciled') %}
-              {%- set _ = actions.append(("unmatch", "Unmatch", "/bank-statement-lines/" ~ line.id ~ "/unmatch", "post", true)) %}
+              {%- set _x = actions.append(("unmatch", _("Unmatch"), "/bank-statement-lines/" ~ line.id ~ "/unmatch", "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/bank-statement-lines/" ~ line.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/bank-statement-lines/" ~ line.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=line.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(7, "landmark", "No bank statement lines yet",
-                     "Import a bank statement or connect a feed to see lines here.") }}
+        {{ empty.row(7, "landmark", _("No bank statement lines yet"),
+                     _("Import a bank statement or connect a feed to see lines here.")) }}
       {% endif %}
     </tbody>
   </table>
@@ -95,7 +95,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": [offset + limit, total] | min, "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -106,7 +106,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline border px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -116,7 +116,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline border px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Reconciliation — {{ account.name if account else account_id }} — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Reconciliation") }} — {{ account.name if account else account_id }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -14,30 +14,30 @@
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="font-display text-2xl">
-      {% if account %}{{ account.name }}{% else %}Account Reconciliation{% endif %}
+      {% if account %}{{ account.name }}{% else %}{{ _("Account Reconciliation") }}{% endif %}
     </h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">
-      {{ lines|length }} unmatched line{{ "s" if lines|length != 1 else "" }} 
-      · <span class="num-display">Total unmatched: {{ num( lines | sum(attribute='amount') | float, 2 ) }}</span>
+      {{ ngettext("%(n)s unmatched line", "%(n)s unmatched lines", lines|length) % {"n": lines|length} }}
+      · <span class="num-display">{{ _("Total unmatched:") }} {{ num( lines | sum(attribute='amount') | float, 2 ) }}</span>
     </p>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
     <div class="card p-3">
-      <p class="text-[11px] uppercase tracking-wider ink-3">Statement balance</p>
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Statement balance") }}</p>
       <p class="font-display text-xl num">{{ num( (account.balance or 0) | float, 2 ) }}</p>
     </div>
     <div class="card p-3">
-      <p class="text-[11px] uppercase tracking-wider ink-3">Books balance</p>
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Books balance") }}</p>
       <p class="font-display text-xl num">{{ num( (account.ledger_balance or 0) | float, 2 ) }}</p>
     </div>
     <div class="card p-3 border-sae">
-      <p class="text-[11px] uppercase tracking-wider ink-3">To reconcile</p>
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("To reconcile") }}</p>
       <p class="font-display text-xl num sae">{{ lines|length }}</p>
     </div>
   </div>
   <div class="flex items-center gap-3">
-    <a href="/reconciliation" class="btn-secondary text-sm">All Accounts</a>
+    <a href="/reconciliation" class="btn-secondary text-sm">{{ _("All Accounts") }}</a>
 
     <form method="POST" action="/reconciliation/{{ account_id }}/auto-match">
     {{ csrf_input(request)|safe }}
@@ -47,7 +47,7 @@
         class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white
                hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
       >
-        Auto Match All
+        {{ _("Auto Match All") }}
       </button>
     </form>
   </div>
@@ -63,11 +63,11 @@
   <table class="sae-table w-full">
     <thead class="bg-gray-50">
       <tr>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Date</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Reference</th>
-        <th class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Reference") }}</th>
+        <th class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th class="px-4 py-3"></th>
       </tr>
     </thead>
@@ -91,14 +91,14 @@
             <a
               href="/reconciliation/{{ line.id }}/suggest?account_id={{ account_id }}"
               class="btn-secondary !py-1 !px-3 text-xs"
-            >Suggest</a>
+            >{{ _("Suggest") }}</a>
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
           <td colspan="6" class="px-4 py-8 text-center text-gray-400">
-            No unmatched lines — all bank statement lines are reconciled.
+            {{ _("No unmatched lines — all bank statement lines are reconciled.") }}
           </td>
         </tr>
       {% endif %}

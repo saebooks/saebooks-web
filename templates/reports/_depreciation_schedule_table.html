@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading...
+  {{ _("Loading...") }}
 </div>
 
 {% if report %}
@@ -27,14 +27,14 @@
     <table class="sae-table w-full">
       <thead>
         <tr>
-          <th class="text-left">Asset #</th>
-          <th class="text-left">Description</th>
-          <th class="text-left">Method</th>
-          <th class="text-right">Cost</th>
-          <th class="text-right">Residual Value</th>
-          <th class="text-right">Book Value</th>
-          <th class="text-right">Next Month Dep.</th>
-          <th class="text-center">Fully Dep.</th>
+          <th class="text-left">{{ _("Asset #") }}</th>
+          <th class="text-left">{{ _("Description") }}</th>
+          <th class="text-left">{{ _("Method") }}</th>
+          <th class="text-right">{{ _("Cost") }}</th>
+          <th class="text-right">{{ _("Residual Value") }}</th>
+          <th class="text-right">{{ _("Book Value") }}</th>
+          <th class="text-right">{{ _("Next Month Dep.") }}</th>
+          <th class="text-center">{{ _("Fully Dep.") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -50,22 +50,22 @@
             <td class="text-right num ink-1">{{ num(asset.get("next_month_depreciation", 0) | float, 2) }}</td>
             <td class="text-center">
               {% if asset.get("fully_depreciated") %}
-              <span class="font-semibold" style="color:var(--pos);" title="Fully depreciated">&#10003;</span>
+              <span class="font-semibold" style="color:var(--pos);" title="{{ _('Fully depreciated') }}">&#10003;</span>
               {% else %}
-              <span class="ink-4" title="Not fully depreciated">&#10007;</span>
+              <span class="ink-4" title="{{ _('Not fully depreciated') }}">&#10007;</span>
               {% endif %}
             </td>
           </tr>
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="8" class="text-center ink-3 font-mono text-sm py-6">— no assets found for this period —</td>
+            <td colspan="8" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no assets found for this period —") }}</td>
           </tr>
         {% endif %}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="3" class="font-semibold ink-1">Totals</td>
+          <td colspan="3" class="font-semibold ink-1">{{ _("Totals") }}</td>
           <td class="text-right num-display font-semibold ink-1">{{ num(total_cost, 2) }}</td>
           <td></td>
           <td class="text-right num-display font-semibold ink-1">{{ num(total_book_value, 2) }}</td>
@@ -77,7 +77,7 @@
   </div>
 </div>
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>

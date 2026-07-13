@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Entry — Cashbook — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Entry") }} — {{ _("Cashbook") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-4">
   <a href="/cashbook/entries" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
-    ← entries
+    {{ _("← entries") }}
   </a>
 </div>
 
@@ -23,7 +23,7 @@
   <div class="flex items-start justify-between mb-6">
     <div>
       <p class="nav-section-label mb-1">
-        {% if entry.direction == 'income' %}Cash in{% else %}Cash out{% endif %}
+        {% if entry.direction == 'income' %}{{ _("Cash in") }}{% else %}{{ _("Cash out") }}{% endif %}
       </p>
       <p class="num-display text-4xl"
          style="color:{% if entry.direction == 'income' %}var(--pos){% else %}var(--neg){% endif %};">
@@ -40,28 +40,28 @@
 
   <dl class="space-y-3 text-sm">
     <div class="flex items-baseline gap-3 hairline-b pb-2">
-      <dt class="w-28 nav-section-label">Date</dt>
+      <dt class="w-28 nav-section-label">{{ _("Date") }}</dt>
       <dd class="ink-1 num">{{ entry.entry_date }}</dd>
     </div>
     <div class="flex items-baseline gap-3 hairline-b pb-2">
-      <dt class="w-28 nav-section-label">Category</dt>
+      <dt class="w-28 nav-section-label">{{ _("Category") }}</dt>
       <dd class="ink-1">{{ entry.category_label or entry.category_code }}</dd>
     </div>
     {% if entry.description %}
     <div class="flex items-baseline gap-3 hairline-b pb-2">
-      <dt class="w-28 nav-section-label">Description</dt>
+      <dt class="w-28 nav-section-label">{{ _("Description") }}</dt>
       <dd class="ink-1 flex-1">{{ entry.description }}</dd>
     </div>
     {% endif %}
     {% if entry.gst_amount and entry.gst_amount|float > 0 %}
     <div class="flex items-baseline gap-3 hairline-b pb-2">
-      <dt class="w-28 nav-section-label">GST</dt>
+      <dt class="w-28 nav-section-label">{{ _("GST") }}</dt>
       <dd class="ink-1 num">${{ "%.2f"|format(entry.gst_amount|float) }}</dd>
     </div>
     {% endif %}
     {% if entry.journal_entry_ref %}
     <div class="flex items-baseline gap-3">
-      <dt class="w-28 nav-section-label">Reference</dt>
+      <dt class="w-28 nav-section-label">{{ _("Reference") }}</dt>
       <dd class="ink-3 text-xs num">{{ entry.journal_entry_ref }}</dd>
     </div>
     {% endif %}
@@ -70,23 +70,23 @@
   {% if entry.status|lower != 'voided' %}
   <div class="mt-7 hairline pt-5 space-y-2">
     <a href="/cashbook/entries/{{ entry.id }}/edit" class="btn-primary w-full justify-center">
-      Edit
+      {{ _("Edit") }}
     </a>
     <form method="post" action="/cashbook/entries/{{ entry.id }}/void"
-          onsubmit="return confirm('Void this entry? An audit record is preserved.');">
+          onsubmit="return confirm('{{ _('Void this entry? An audit record is preserved.') }}');">
       {{ csrf_input(request) | safe }}
       <input type="hidden" name="version" value="{{ entry.version }}">
       <button type="submit" class="btn-secondary w-full justify-center" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
-        Void
+        {{ _("Void") }}
       </button>
     </form>
     <p class="text-[11px] ink-3 text-center pt-2 font-mono">
-      Voiding writes a reversal record — audit trail preserved (ATO).
+      {{ _("Voiding writes a reversal record — audit trail preserved (ATO).") }}
     </p>
   </div>
   {% else %}
   <div class="mt-7 hairline pt-5">
-    <p class="text-sm ink-3">This entry has been voided. The audit record is preserved.</p>
+    <p class="text-sm ink-3">{{ _("This entry has been voided. The audit record is preserved.") }}</p>
   </div>
   {% endif %}
 
@@ -94,7 +94,7 @@
 
 {# ── Attachments (receipts / source documents for this entry) ── #}
 <section class="mt-6 max-w-xl">
-  <p class="nav-section-label mb-2">Attachments</p>
+  <p class="nav-section-label mb-2">{{ _("Attachments") }}</p>
   {% include "_partials/attachments.html" with context %}
 </section>
 

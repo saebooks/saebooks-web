@@ -2,7 +2,7 @@
 {% import "_partials/empty_state.html" as empty %}
 
 {% block title %}
-  {% if statement %}{{ statement.supplier_name | default("Statement") }} — {% endif %}Supplier Statement — {{ current_brand().name }}
+  {% if statement %}{{ statement.supplier_name | default(_("Statement")) }} — {% endif %}{{ _("Supplier Statement") }} — {{ current_brand().name }}
 {% endblock %}
 
 {% block content %}
@@ -17,7 +17,7 @@
 
 {# ── Back link ── #}
 <div class="mb-4">
-  <a href="/statements" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← statements</a>
+  <a href="/statements" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← statements") }}</a>
 </div>
 
 {% if error %}
@@ -35,16 +35,16 @@
   <div class="flex items-start justify-between gap-4 flex-wrap">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Payables</span>
+        <span class="nav-section-label">{{ _("Payables") }}</span>
         <span class="reg-mark"></span>
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight">
-        {{ statement.supplier_name | default("Supplier Statement") }}
+        {{ statement.supplier_name | default(_("Supplier Statement")) }}
       </h1>
       <p class="text-xs ink-3 font-mono mt-2">
-        Statement date: {{ statement.statement_date | default("—") }}
-        {% if statement.supplier_abn %}· ABN {{ statement.supplier_abn }}{% endif %}
-        {% if statement.customer_ref %}· Ref {{ statement.customer_ref }}{% endif %}
+        {{ _("Statement date:") }} {{ statement.statement_date | default("—") }}
+        {% if statement.supplier_abn %}· {{ _("ABN") }} {{ statement.supplier_abn }}{% endif %}
+        {% if statement.customer_ref %}· {{ _("Ref") }} {{ statement.customer_ref }}{% endif %}
       </p>
     </div>
 
@@ -52,17 +52,17 @@
     <div class="flex items-center gap-2 flex-wrap justify-end">
       {% set s = (statement.status or "") | lower %}
       {% if s == "reconciled" %}
-        <span class="badge-pos text-sm px-3 py-1">Reconciled</span>
+        <span class="badge-pos text-sm px-3 py-1">{{ _("Reconciled") }}</span>
       {% elif s == "needs_review" %}
-        <span class="badge-warm text-sm px-3 py-1">Needs Review</span>
+        <span class="badge-warm text-sm px-3 py-1">{{ _("Needs Review") }}</span>
       {% elif s == "extracted" %}
-        <span class="badge-draft text-sm px-3 py-1">Extracted</span>
+        <span class="badge-draft text-sm px-3 py-1">{{ _("Extracted") }}</span>
       {% elif s == "dismissed" %}
-        <span class="badge-ink text-sm px-3 py-1">Dismissed</span>
+        <span class="badge-ink text-sm px-3 py-1">{{ _("Dismissed") }}</span>
       {% elif s == "exception" %}
-        <span class="badge-warm text-sm px-3 py-1">Exception</span>
+        <span class="badge-warm text-sm px-3 py-1">{{ _("Exception") }}</span>
       {% elif s == "pending" %}
-        <span class="badge-draft text-sm px-3 py-1">Pending</span>
+        <span class="badge-draft text-sm px-3 py-1">{{ _("Pending") }}</span>
       {% else %}
         <span class="badge-ink text-sm px-3 py-1">{{ statement.status | default("—") }}</span>
       {% endif %}
@@ -73,7 +73,7 @@
         {{ csrf_input(request)|safe }}
         <button type="submit" class="btn-primary text-sm"
                 style="background:var(--pos);border-color:var(--pos);">
-          Mark reviewed
+          {{ _("Mark reviewed") }}
         </button>
       </form>
       {% endif %}
@@ -81,11 +81,11 @@
       {# Dismiss button — available when not already dismissed #}
       {% if s != "dismissed" %}
       <form method="POST" action="/statements/{{ statement.id }}/dismiss" class="inline"
-            onsubmit="return confirm('Dismiss this statement? It will be hidden from the default queue.');">
+            onsubmit="return confirm('{{ _('Dismiss this statement? It will be hidden from the default queue.') }}');">
         {{ csrf_input(request)|safe }}
         <button type="submit" class="btn-secondary text-sm"
                 style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
-          Dismiss
+          {{ _("Dismiss") }}
         </button>
       </form>
       {% endif %}
@@ -97,7 +97,7 @@
 {# ── Balance comparison card ── #}
 <div class="card p-5 mb-6 grid grid-cols-2 gap-5 sm:grid-cols-4">
   <div>
-    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Stmt Closing Balance</div>
+    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">{{ _("Stmt Closing Balance") }}</div>
     <div class="font-mono text-xl font-semibold ink-1">
       {% if statement.closing_balance is not none %}
         {{ money(statement.closing_balance | float, grouping=False) }}
@@ -105,7 +105,7 @@
     </div>
   </div>
   <div>
-    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Our AP (books)</div>
+    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">{{ _("Our AP (books)") }}</div>
     <div class="font-mono text-xl font-semibold ink-1">
       {% if statement.our_ap_as_at is not none %}
         {{ money(statement.our_ap_as_at | float, grouping=False) }}
@@ -113,7 +113,7 @@
     </div>
   </div>
   <div>
-    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Balance Delta</div>
+    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">{{ _("Balance Delta") }}</div>
     <div class="font-mono text-xl font-semibold">
       {% if statement.balance_delta is not none %}
         {% set delta = statement.balance_delta | float %}
@@ -128,7 +128,7 @@
     </div>
   </div>
   <div>
-    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">Opening Balance</div>
+    <div class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-1">{{ _("Opening Balance") }}</div>
     <div class="font-mono text-xl font-semibold ink-2">
       {% if statement.opening_balance is not none %}
         {{ money(statement.opening_balance | float, grouping=False) }}
@@ -162,37 +162,37 @@
   {% if counts.missing_in_books > 0 %}
     <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
           style="background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.4);color:#f87171;">
-      Missing in books <strong>{{ counts.missing_in_books }}</strong>
+      {{ _("Missing in books") }} <strong>{{ counts.missing_in_books }}</strong>
     </span>
   {% endif %}
   {% if counts.amount_mismatch > 0 %}
     <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
           style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#f59e0b;">
-      Amount mismatch <strong>{{ counts.amount_mismatch }}</strong>
+      {{ _("Amount mismatch") }} <strong>{{ counts.amount_mismatch }}</strong>
     </span>
   {% endif %}
   {% if counts.not_on_statement > 0 %}
     <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
           style="background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.4);color:#c084fc;">
-      Not on statement <strong>{{ counts.not_on_statement }}</strong>
+      {{ _("Not on statement") }} <strong>{{ counts.not_on_statement }}</strong>
     </span>
   {% endif %}
   {% if counts.matched > 0 %}
     <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
           style="background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.4);color:#4ade80;">
-      Matched <strong>{{ counts.matched }}</strong>
+      {{ _("Matched") }} <strong>{{ counts.matched }}</strong>
     </span>
   {% endif %}
   {% if counts.settled_not_in_books > 0 %}
     <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
           style="background:rgba(100,116,139,.15);border-color:rgba(100,116,139,.4);color:#94a3b8;">
-      Settled (not in books) <strong>{{ counts.settled_not_in_books }}</strong>
+      {{ _("Settled (not in books)") }} <strong>{{ counts.settled_not_in_books }}</strong>
     </span>
   {% endif %}
   {% if counts.payment_info > 0 %}
     <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono"
           style="background:rgba(103,232,249,.12);border-color:rgba(103,232,249,.4);color:#67e8f9;">
-      Payment / Credit <strong>{{ counts.payment_info }}</strong>
+      {{ _("Payment / Credit") }} <strong>{{ counts.payment_info }}</strong>
     </span>
   {% endif %}
 </div>
@@ -202,14 +202,14 @@
   <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
     <thead>
       <tr style="background:var(--paper-2);">
-        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
-        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Date</th>
-        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Type</th>
-        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Reference</th>
-        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Description</th>
-        <th scope="col" class="px-3 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Amount</th>
-        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Note</th>
-        <th scope="col" class="px-3 py-3 text-[10px] font-mono uppercase tracking-wider ink-3">Action</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Status") }}</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Date") }}</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Type") }}</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Reference") }}</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Description") }}</th>
+        <th scope="col" class="px-3 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Amount") }}</th>
+        <th scope="col" class="px-3 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Note") }}</th>
+        <th scope="col" class="px-3 py-3 text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Action") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -223,37 +223,37 @@
           {% set badge_bg = "rgba(248,113,113,.15)" %}
           {% set badge_border = "rgba(248,113,113,.4)" %}
           {% set badge_color = "#f87171" %}
-          {% set badge_label = "Missing in Books" %}
+          {% set badge_label = _("Missing in Books") %}
         {% elif ms == "amount_mismatch" %}
           {% set row_accent = "#f59e0b" %}
           {% set badge_bg = "rgba(245,158,11,.15)" %}
           {% set badge_border = "rgba(245,158,11,.4)" %}
           {% set badge_color = "#f59e0b" %}
-          {% set badge_label = "Amount Mismatch" %}
+          {% set badge_label = _("Amount Mismatch") %}
         {% elif ms == "not_on_statement" %}
           {% set row_accent = "#c084fc" %}
           {% set badge_bg = "rgba(192,132,252,.15)" %}
           {% set badge_border = "rgba(192,132,252,.4)" %}
           {% set badge_color = "#c084fc" %}
-          {% set badge_label = "Not on Statement" %}
+          {% set badge_label = _("Not on Statement") %}
         {% elif ms == "matched" %}
           {% set row_accent = "#4ade80" %}
           {% set badge_bg = "rgba(74,222,128,.12)" %}
           {% set badge_border = "rgba(74,222,128,.4)" %}
           {% set badge_color = "#4ade80" %}
-          {% set badge_label = "Matched" %}
+          {% set badge_label = _("Matched") %}
         {% elif ms == "settled_not_in_books" %}
           {% set row_accent = "#64748b" %}
           {% set badge_bg = "rgba(100,116,139,.15)" %}
           {% set badge_border = "rgba(100,116,139,.4)" %}
           {% set badge_color = "#94a3b8" %}
-          {% set badge_label = "Settled (not in books)" %}
+          {% set badge_label = _("Settled (not in books)") %}
         {% elif ms == "payment_info" %}
           {% set row_accent = "#67e8f9" %}
           {% set badge_bg = "rgba(103,232,249,.12)" %}
           {% set badge_border = "rgba(103,232,249,.4)" %}
           {% set badge_color = "#67e8f9" %}
-          {% set badge_label = "Payment / Credit" %}
+          {% set badge_label = _("Payment / Credit") %}
         {% else %}
           {% set row_accent = "var(--line)" %}
           {% set badge_bg = "rgba(148,163,184,.1)" %}
@@ -320,8 +320,8 @@
               <button type="submit"
                       class="text-xs font-mono px-2 py-1 rounded border transition-colors"
                       style="background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.4);color:#f87171;"
-                      title="Draft a new bill from this missing line">
-                Draft bill
+                      title="{{ _('Draft a new bill from this missing line') }}">
+                {{ _("Draft bill") }}
               </button>
             </form>
             {% else %}
@@ -331,8 +331,8 @@
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(8, "list-x", "No lines found on this statement",
-                     "Re-ingest or check the extraction template.") }}
+        {{ empty.row(8, "list-x", _("No lines found on this statement"),
+                     _("Re-ingest or check the extraction template.")) }}
       {% endif %}
     </tbody>
   </table>
@@ -342,19 +342,19 @@
 <section class="mt-8" id="add-template">
   <h2 class="font-display text-lg tracking-tight mb-3 flex items-center gap-2">
     <i data-lucide="wand-2" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-    Extraction template
+    {{ _("Extraction template") }}
   </h2>
 
   {# Show existing templates for this supplier if any #}
   {% if supplier_templates %}
   <div class="card p-4 mb-4 overflow-x-auto">
-    <p class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-2">Existing templates for this supplier</p>
+    <p class="text-[10px] font-mono uppercase tracking-wider ink-3 mb-2">{{ _("Existing templates for this supplier") }}</p>
     <table class="min-w-full text-xs" style="border-color:var(--line);">
       <thead>
         <tr style="background:var(--paper-2);">
-          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Hint</th>
-          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Page scope</th>
-          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">Active</th>
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">{{ _("Hint") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">{{ _("Page scope") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-mono uppercase tracking-wider ink-3">{{ _("Active") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -364,9 +364,9 @@
           <td class="px-3 py-2 font-mono ink-3">{{ tmpl.page_scope | default("—") }}</td>
           <td class="px-3 py-2">
             {% if tmpl.active %}
-              <span class="badge-pos">Yes</span>
+              <span class="badge-pos">{{ _("Yes") }}</span>
             {% else %}
-              <span class="badge-ink">No</span>
+              <span class="badge-ink">{{ _("No") }}</span>
             {% endif %}
           </td>
         </tr>
@@ -374,17 +374,16 @@
       </tbody>
     </table>
     <p class="text-xs ink-4 mt-2">
-      <a href="/statement-templates" class="sae hover:underline">Manage all templates →</a>
+      <a href="/statement-templates" class="sae hover:underline">{{ _("Manage all templates →") }}</a>
     </p>
   </div>
   {% endif %}
 
   <div class="card p-5">
     <p class="text-xs ink-3 mb-4">
-      Add an extraction hint for <strong class="ink-1">{{ statement.supplier_name | default("this supplier") }}</strong>.
-      The hint guides the AI parser when ingesting future statements from this supplier.
+      {{ (_("Add an extraction hint for %(supplier)s. The hint guides the AI parser when ingesting future statements from this supplier.") % {"supplier": "<strong class=\"ink-1\">" ~ (statement.supplier_name | default(_("this supplier")) | e) ~ "</strong>"}) | safe }}
       {% if statement.status in ("needs_review", "extracted") %}
-      After saving, re-ingest this statement to apply it immediately.
+      {{ _("After saving, re-ingest this statement to apply it immediately.") }}
       {% endif %}
     </p>
     <form method="POST" action="/statements/{{ statement.id }}/template" class="space-y-4">
@@ -392,36 +391,36 @@
       <div>
         <label for="prompt_hint"
                class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-          Prompt hint <span style="color:var(--neg);">*</span>
+          {{ _("Prompt hint") }} <span style="color:var(--neg);">*</span>
         </label>
         <textarea
           id="prompt_hint"
           name="prompt_hint"
           rows="3"
           required
-          placeholder="e.g. Statement lines start after the 'Transaction Detail' header. Date format is DD/MM/YYYY."
+          placeholder="{{ _("e.g. Statement lines start after the 'Transaction Detail' header. Date format is DD/MM/YYYY.") }}"
           class="saebooks-input w-full text-sm py-2 resize-y"
         ></textarea>
       </div>
       <div>
         <label for="page_scope"
                class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-          Page scope <span class="ink-4">(optional — e.g. <code>1</code> or <code>2-4</code>)</span>
+          {{ _("Page scope") }} <span class="ink-4">{{ (_("(optional — e.g. %(a)s or %(b)s)") % {"a": "<code>1</code>", "b": "<code>2-4</code>"}) | safe }}</span>
         </label>
         <input
           id="page_scope"
           type="text"
           name="page_scope"
-          placeholder="e.g. 1"
+          placeholder="{{ _('e.g. 1') }}"
           class="saebooks-input text-sm py-1.5 w-32"
         >
       </div>
       <div>
         <button type="submit" class="btn-primary text-sm">
-          Save template
+          {{ _("Save template") }}
         </button>
         <a href="/statement-templates" class="ml-4 text-xs sae hover:underline font-mono">
-          View all templates
+          {{ _("View all templates") }}
         </a>
       </div>
     </form>
@@ -433,16 +432,16 @@
 <section class="mt-8" id="supplier-history">
   <h2 class="font-display text-lg tracking-tight mb-3 flex items-center gap-2">
     <i data-lucide="history" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-    Other statements from this supplier
+    {{ _("Other statements from this supplier") }}
   </h2>
   <div class="card overflow-x-auto">
     <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
       <thead>
         <tr style="background:var(--paper-2);">
-          <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Date</th>
-          <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
-          <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Closing Balance</th>
-          <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Delta</th>
+          <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Date") }}</th>
+          <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Status") }}</th>
+          <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Closing Balance") }}</th>
+          <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Delta") }}</th>
           <th scope="col" class="px-4 py-3"></th>
         </tr>
       </thead>
@@ -457,13 +456,13 @@
           <td class="px-4 py-3">
             {% set ss = (sib.status or "") | lower %}
             {% if ss == "reconciled" %}
-              <span class="badge-pos">Reconciled</span>
+              <span class="badge-pos">{{ _("Reconciled") }}</span>
             {% elif ss == "needs_review" %}
-              <span class="badge-warm">Needs Review</span>
+              <span class="badge-warm">{{ _("Needs Review") }}</span>
             {% elif ss == "extracted" %}
-              <span class="badge-draft">Extracted</span>
+              <span class="badge-draft">{{ _("Extracted") }}</span>
             {% elif ss == "dismissed" %}
-              <span class="badge-ink">Dismissed</span>
+              <span class="badge-ink">{{ _("Dismissed") }}</span>
             {% else %}
               <span class="badge-ink">{{ sib.status | default("—") }}</span>
             {% endif %}
@@ -487,7 +486,7 @@
           </td>
           <td class="px-4 py-3 text-right">
             <a href="/statements/{{ sib.id }}" class="text-xs font-mono sae hover:underline">
-              View →
+              {{ _("View →") }}
             </a>
           </td>
         </tr>
@@ -500,13 +499,13 @@
 
 {% if statement.extraction_meta %}
 <div class="mt-4 text-xs ink-4 font-mono">
-  Extracted: {{ statement.extraction_meta | tojson(indent=None) if statement.extraction_meta is mapping else statement.extraction_meta }}
+  {{ _("Extracted:") }} {{ statement.extraction_meta | tojson(indent=None) if statement.extraction_meta is mapping else statement.extraction_meta }}
 </div>
 {% endif %}
 
 {% else %}
 {# No statement loaded and no error rendered above — shouldn't normally reach here #}
-<p class="ink-3 text-sm">Statement not found.</p>
+<p class="ink-3 text-sm">{{ _("Statement not found.") }}</p>
 {% endif %}
 
 {% endblock %}

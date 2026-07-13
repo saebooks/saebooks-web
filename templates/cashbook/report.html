@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Cashbook Report — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Cashbook Report") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,42 +13,42 @@
 
 <header class="mb-6">
   <div class="flex items-center gap-2 mb-1">
-    <span class="nav-section-label">Cashbook</span>
+    <span class="nav-section-label">{{ _("Cashbook") }}</span>
     <span class="reg-mark"></span>
-    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Report</span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Report") }}</span>
   </div>
   <h1 class="font-display text-3xl leading-none tracking-tight">
-    Cash report
+    {{ _("Cash report") }}
   </h1>
-  <p class="mt-2 text-sm ink-3">Totals by period</p>
+  <p class="mt-2 text-sm ink-3">{{ _("Totals by period") }}</p>
   <div class="drafting mt-4"></div>
 </header>
 
 {# Preset + date range #}
 <div class="card p-5 mb-6">
   <div class="flex flex-wrap gap-2 mb-4">
-    {% for pname, plabel in [('this_month', 'This month'), ('this_quarter', 'This quarter'), ('this_fy', 'This FY'), ('last_fy', 'Last FY')] %}
+    {% for pname, plabel in [('this_month', _('This month')), ('this_quarter', _('This quarter')), ('this_fy', _('This FY')), ('last_fy', _('Last FY'))] %}
     <a href="/cashbook/report?preset={{ pname }}"
        class="chip {% if active_preset == pname %}chip-active{% endif %}">
       {{ plabel }}
     </a>
     {% endfor %}
     <span class="ink-4 self-center mx-1">·</span>
-    <span class="text-xs ink-3 self-center font-mono uppercase tracking-wider">Custom:</span>
+    <span class="text-xs ink-3 self-center font-mono uppercase tracking-wider">{{ _("Custom:") }}</span>
   </div>
 
   <form method="get" action="/cashbook/report" class="flex flex-wrap gap-3 items-end">
     <div>
-      <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">From</label>
+      <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From") }}</label>
       <input type="date" id="from_date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">
     </div>
     <div>
-      <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">To</label>
+      <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("To") }}</label>
       <input type="date" id="to_date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
     </div>
     <input type="hidden" name="preset" value="custom">
-    <button type="submit" class="btn-primary text-sm py-1.5">Apply</button>
-    <a href="/cashbook/report/csv?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-secondary text-sm py-1.5">Export CSV</a>
+    <button type="submit" class="btn-primary text-sm py-1.5">{{ _("Apply") }}</button>
+    <a href="/cashbook/report/csv?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-secondary text-sm py-1.5">{{ _("Export CSV") }}</a>
   </form>
 </div>
 
@@ -61,15 +61,15 @@
 {# Headline KPI strip #}
 <section class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-paper-2 rounded-xl overflow-hidden mb-6 hairline">
   <div class="card bg-paper p-5 rounded-none">
-    <p class="nav-section-label mb-2">Cash in</p>
+    <p class="nav-section-label mb-2">{{ _("Cash in") }}</p>
     <p class="num-display text-2xl pos">${{ "%.2f"|format((summary.income_total or 0)|float) }}</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
-    <p class="nav-section-label mb-2">Cash out</p>
+    <p class="nav-section-label mb-2">{{ _("Cash out") }}</p>
     <p class="num-display text-2xl neg">${{ "%.2f"|format((summary.expense_total or 0)|float) }}</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
-    <p class="nav-section-label mb-2">Net</p>
+    <p class="nav-section-label mb-2">{{ _("Net") }}</p>
     {% set net = (summary.net or 0)|float %}
     <p class="num-display text-2xl" style="color:{% if net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
       {% if net < 0 %}−{% endif %}${{ "%.2f"|format(net|abs) }}
@@ -84,13 +84,13 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
   {% if gst_col > 0 %}
   <div class="card p-4">
-    <p class="nav-section-label mb-1">GST collected</p>
+    <p class="nav-section-label mb-1">{{ _("GST collected") }}</p>
     <p class="num-display text-xl ink-1">${{ "%.2f"|format(gst_col) }}</p>
   </div>
   {% endif %}
   {% if gst_paid > 0 %}
   <div class="card p-4">
-    <p class="nav-section-label mb-1">GST paid</p>
+    <p class="nav-section-label mb-1">{{ _("GST paid") }}</p>
     <p class="num-display text-xl ink-1">${{ "%.2f"|format(gst_paid) }}</p>
   </div>
   {% endif %}
@@ -107,37 +107,37 @@
   <div class="px-6 py-4 hairline-b flex items-baseline justify-between">
     <div class="flex items-center gap-2">
       <span class="reg-mark"></span>
-      <h2 class="nav-section-label">Activity Statement preview</h2>
+      <h2 class="nav-section-label">{{ _("Activity Statement preview") }}</h2>
     </div>
-    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Lodgement → {{ current_brand().name }} Pro</span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Lodgement → %(brand)s Pro") % {"brand": current_brand().name} }}</span>
   </div>
   <dl class="divide-y" style="border-color:var(--line);">
     <div class="flex justify-between px-6 py-3 text-sm">
-      <dt class="ink-2">G1 — Total sales (incl. GST)</dt>
+      <dt class="ink-2">{{ _("G1 — Total sales (incl. GST)") }}</dt>
       <dd class="num ink-1">${{ "%.2f"|format(bas_g1) }}</dd>
     </div>
     <div class="flex justify-between px-6 py-3 text-sm">
-      <dt class="ink-2">G11 — Non-capital purchases</dt>
+      <dt class="ink-2">{{ _("G11 — Non-capital purchases") }}</dt>
       <dd class="num ink-1">${{ "%.2f"|format(bas_g11) }}</dd>
     </div>
     <div class="flex justify-between px-6 py-3 text-sm">
-      <dt class="ink-2">1A — GST on sales</dt>
+      <dt class="ink-2">{{ _("1A — GST on sales") }}</dt>
       <dd class="num ink-1">${{ "%.2f"|format(bas_1a) }}</dd>
     </div>
     <div class="flex justify-between px-6 py-3 text-sm">
-      <dt class="ink-2">1B — GST on purchases</dt>
+      <dt class="ink-2">{{ _("1B — GST on purchases") }}</dt>
       <dd class="num ink-1">${{ "%.2f"|format(bas_1b) }}</dd>
     </div>
     <div class="flex justify-between px-6 py-3 text-sm bg-sae-tint">
-      <dt class="font-semibold ink-1">Net GST {% if bas_net >= 0 %}payable{% else %}refundable{% endif %}</dt>
+      <dt class="font-semibold ink-1">{% if bas_net >= 0 %}{{ _("Net GST payable") }}{% else %}{{ _("Net GST refundable") }}{% endif %}</dt>
       <dd class="num-display ink-1" style="color:{% if bas_net >= 0 %}var(--ink-1){% else %}var(--pos){% endif %};">
         ${{ "%.2f"|format(bas_net|abs) }}
       </dd>
     </div>
   </dl>
   <div class="px-6 py-3 hairline-t text-xs ink-3">
-    Preview of the BAS for this period. Actual lodgement is a Pro feature —
-    <a href="/cashbook/upgrade" class="sae hover:underline">see upgrade options</a>.
+    {{ _("Preview of the BAS for this period. Actual lodgement is a Pro feature —") }}
+    <a href="/cashbook/upgrade" class="sae hover:underline">{{ _("see upgrade options") }}</a>.
   </div>
 </section>
 
@@ -145,15 +145,15 @@
 {% if summary.by_category %}
 <section class="card overflow-hidden">
   <div class="px-6 py-4 hairline-b">
-    <h2 class="nav-section-label">By category</h2>
+    <h2 class="nav-section-label">{{ _("By category") }}</h2>
   </div>
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th scope="col" class="text-left">Category</th>
-        <th scope="col" class="text-left">Direction</th>
-        <th scope="col" class="text-right">Entries</th>
-        <th scope="col" class="text-right">Amount</th>
+        <th scope="col" class="text-left">{{ _("Category") }}</th>
+        <th scope="col" class="text-left">{{ _("Direction") }}</th>
+        <th scope="col" class="text-right">{{ _("Entries") }}</th>
+        <th scope="col" class="text-right">{{ _("Amount") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -162,9 +162,9 @@
         <td class="ink-1">{{ row.label or row.code }}</td>
         <td>
           {% if row.direction == 'income' %}
-            <span class="badge-paid">Cash in</span>
+            <span class="badge-paid">{{ _("Cash in") }}</span>
           {% else %}
-            <span class="badge-overdue">Cash out</span>
+            <span class="badge-overdue">{{ _("Cash out") }}</span>
           {% endif %}
         </td>
         <td class="text-right num ink-3">{{ row.count }}</td>
@@ -180,7 +180,7 @@
 
 {% else %}
 <section class="card p-12 text-center">
-  <p class="text-sm ink-3 font-mono">— no data for this period —</p>
+  <p class="text-sm ink-3 font-mono">{{ _("— no data for this period —") }}</p>
 </section>
 {% endif %}
 

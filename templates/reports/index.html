@@ -2,25 +2,25 @@
 
 {% import "_partials/breadcrumb.html" as crumb %}
 
-{% block title %}Reports — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Reports") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
-{{ crumb.trail([("Reports", none)]) }}
+{{ crumb.trail([(_("Reports"), none)]) }}
 
 <header class="mb-8 relative">
   <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Library</span>
+        <span class="nav-section-label">{{ _("Library") }}</span>
         <span class="reg-mark"></span>
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="bar-chart-3" class="w-7 h-7 ink-3" aria-hidden="true"></i>
-        <span>Reports</span>
+        <span>{{ _("Reports") }}</span>
       </h1>
-      <p class="text-xs ink-3 font-mono mt-2">Financial statements and analysis</p>
+      <p class="text-xs ink-3 font-mono mt-2">{{ _("Financial statements and analysis") }}</p>
     </div>
   </div>
   <div class="drafting mt-4"></div>
@@ -31,134 +31,134 @@
   <a href="/reports/profit-loss" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="trending-up" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Statement</span>
+      <span class="nav-section-label">{{ _("Statement") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Profit &amp; Loss</h2>
-    <p class="text-xs ink-3 leading-relaxed">Income, expenses and net profit for a date range.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Profit & Loss") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Income, expenses and net profit for a date range.") }}</p>
   </a>
 
   <a href="/reports/balance-sheet" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="scale" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Statement</span>
+      <span class="nav-section-label">{{ _("Statement") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Balance Sheet</h2>
-    <p class="text-xs ink-3 leading-relaxed">Assets, liabilities and equity as at a date.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Balance Sheet") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Assets, liabilities and equity as at a date.") }}</p>
   </a>
 
   <a href="/reports/trial-balance" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="list-checks" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Ledger</span>
+      <span class="nav-section-label">{{ _("Ledger") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Trial Balance</h2>
-    <p class="text-xs ink-3 leading-relaxed">Debits and credits per account with balanced indicator.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Trial Balance") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Debits and credits per account with balanced indicator.") }}</p>
   </a>
   <a href="/reports/statement-pack" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="files" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Statement</span>
+      <span class="nav-section-label">{{ _("Statement") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Statement Pack</h2>
-    <p class="text-xs ink-3 leading-relaxed">P&amp;L, Balance Sheet and Trial Balance in one printable document with cover and declaration.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Statement Pack") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("P&L, Balance Sheet and Trial Balance in one printable document with cover and declaration.") }}</p>
   </a>
   <a href="/reports/close-year" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="lock" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Period end</span>
+      <span class="nav-section-label">{{ _("Period end") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Year-End Close</h2>
-    <p class="text-xs ink-3 leading-relaxed">Zero P&amp;L into retained earnings and lock the period (admin).</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Year-End Close") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Zero P&L into retained earnings and lock the period (admin).") }}</p>
   </a>
 
   <a href="/reports/cashflow" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="wallet" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Statement</span>
+      <span class="nav-section-label">{{ _("Statement") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Cash Flow</h2>
-    <p class="text-xs ink-3 leading-relaxed">Operating, investing and financing cash movements.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Cash Flow") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Operating, investing and financing cash movements.") }}</p>
   </a>
 
   <a href="/reports/bas-summary" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="percent" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">BAS</span>
+      <span class="nav-section-label">{{ _("BAS") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">BAS Summary</h2>
-    <p class="text-xs ink-3 leading-relaxed">G1, G3, G11, 1A/1B net GST and remit/refund for a quarter.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("BAS Summary") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("G1, G3, G11, 1A/1B net GST and remit/refund for a quarter.") }}</p>
   </a>
 
   <a href="/reports/aged-receivables" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="hourglass" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Receivables</span>
+      <span class="nav-section-label">{{ _("Receivables") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Aged Receivables</h2>
-    <p class="text-xs ink-3 leading-relaxed">Outstanding customer invoices grouped by age bucket.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Aged Receivables") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Outstanding customer invoices grouped by age bucket.") }}</p>
   </a>
 
   <a href="/reports/aged-payables" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="alarm-clock" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Payables</span>
+      <span class="nav-section-label">{{ _("Payables") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Aged Payables</h2>
-    <p class="text-xs ink-3 leading-relaxed">Outstanding supplier bills grouped by age bucket.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Aged Payables") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Outstanding supplier bills grouped by age bucket.") }}</p>
   </a>
 
   <a href="/reports/budget-vs-actual" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="target" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Budget</span>
+      <span class="nav-section-label">{{ _("Budget") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Budget vs Actual</h2>
-    <p class="text-xs ink-3 leading-relaxed">Budget, actual and variance per account for a period. <a href="/reports/budget-vs-actual?export=csv" class="sae hover:underline text-[10px]">Export CSV</a> (and P&L, TB, etc. — see Tier 2 spec)</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Budget vs Actual") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Budget, actual and variance per account for a period.") }} <a href="/reports/budget-vs-actual?export=csv" class="sae hover:underline text-[10px]">{{ _("Export CSV") }}</a> {{ _("(and P&L, TB, etc. — see Tier 2 spec)") }}</p>
   </a>
 
   <a href="/reports/pl-by-segment" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="layers" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Statement</span>
+      <span class="nav-section-label">{{ _("Statement") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">P&amp;L by Segment</h2>
-    <p class="text-xs ink-3 leading-relaxed">Net profit per project, department or cost centre.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("P&L by Segment") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Net profit per project, department or cost centre.") }}</p>
   </a>
 
   <a href="/reports/revenue-by-customer" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="user-circle" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Revenue</span>
+      <span class="nav-section-label">{{ _("Revenue") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Revenue by Customer</h2>
-    <p class="text-xs ink-3 leading-relaxed">Invoiced revenue (ex-GST) per customer with PSI 80/20 concentration flag.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Revenue by Customer") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Invoiced revenue (ex-GST) per customer with PSI 80/20 concentration flag.") }}</p>
   </a>
 
   <a href="/reports/depreciation-schedule" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="trending-down" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">Schedule</span>
+      <span class="nav-section-label">{{ _("Schedule") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">Depreciation Schedule</h2>
-    <p class="text-xs ink-3 leading-relaxed">Per-asset cost, accumulated depreciation and book value.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Depreciation Schedule") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Per-asset cost, accumulated depreciation and book value.") }}</p>
   </a>
 
   <a href="/reports/fx-revaluation" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="globe" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">FX</span>
+      <span class="nav-section-label">{{ _("FX") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">FX Revaluation</h2>
-    <p class="text-xs ink-3 leading-relaxed">Open foreign-currency invoices and bills revalued at spot rate.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("FX Revaluation") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Open foreign-currency invoices and bills revalued at spot rate.") }}</p>
   </a>
 
   <a href="/reports/bas-payg" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="clipboard-check" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">BAS / PAYG</span>
+      <span class="nav-section-label">{{ _("BAS / PAYG") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">BAS / PAYG Review</h2>
-    <p class="text-xs ink-3 leading-relaxed">GST 1A/1B plus PAYG withholding W1/W2 and amount payable to the ATO.</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("BAS / PAYG Review") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("GST 1A/1B plus PAYG withholding W1/W2 and amount payable to the ATO.") }}</p>
   </a>
 
 </div>

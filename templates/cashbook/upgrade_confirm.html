@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Upgrade to Full {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Upgrade to Full %(brand)s") % {"brand": current_brand().name} }}{% endblock %}
 
 {% block content %}
 
 <div class="max-w-lg mx-auto">
-  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Upgrade to Full {{ current_brand().name }}</h1>
-  <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Unlock double-entry bookkeeping, invoicing, bills, payroll and more.</p>
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ _("Upgrade to Full %(brand)s") % {"brand": current_brand().name} }}</h1>
+  <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ _("Unlock double-entry bookkeeping, invoicing, bills, payroll and more.") }}</p>
 
   {% if flash %}
   <div class="mb-4 rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-800 dark:text-green-200">{{ flash }}</div>
@@ -22,21 +22,19 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
       </svg>
       <div>
-        <p class="font-semibold text-amber-800 dark:text-amber-200 text-sm mb-2">This is a one-way change.</p>
+        <p class="font-semibold text-amber-800 dark:text-amber-200 text-sm mb-2">{{ _("This is a one-way change.") }}</p>
         <p class="text-sm text-amber-700 dark:text-amber-300">
-          Once you upgrade, you cannot go back to Cashbook mode for this company.
-          Your existing cashbook entries will keep working — you'll gain access to the
-          full double-entry features (invoicing, bills, payroll, etc.).
+          {{ _("Once you upgrade, you cannot go back to Cashbook mode for this company. Your existing cashbook entries will keep working — you'll gain access to the full double-entry features (invoicing, bills, payroll, etc.).") }}
         </p>
       </div>
     </div>
   </div>
 
   <ul class="text-sm text-gray-700 dark:text-gray-300 space-y-2 mb-8 pl-4 list-disc">
-    <li>Your cashbook entries remain accessible under Banking &rsaquo; Journal Entries</li>
-    <li>You'll get access to Invoices, Bills, Purchase Orders, Payroll and Reports</li>
-    <li>The simplified Cashbook navigation will be replaced with the full sidebar</li>
-    <li>This change takes effect immediately</li>
+    <li>{{ _("Your cashbook entries remain accessible under Banking &rsaquo; Journal Entries") }}</li>
+    <li>{{ _("You'll get access to Invoices, Bills, Purchase Orders, Payroll and Reports") }}</li>
+    <li>{{ _("The simplified Cashbook navigation will be replaced with the full sidebar") }}</li>
+    <li>{{ _("This change takes effect immediately") }}</li>
   </ul>
 
   <form method="post" action="/cashbook/upgrade">
@@ -44,11 +42,11 @@
     <div class="flex gap-3">
       <button type="submit"
               class="rounded-md bg-[#cc0000] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#a30000] focus:outline-none focus:ring-2 focus:ring-[#cc0000] focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-        I understand, upgrade now
+        {{ _("I understand, upgrade now") }}
       </button>
       <a href="/cashbook"
          class="rounded-md border border-gray-300 dark:border-gray-600 px-6 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
   </form>

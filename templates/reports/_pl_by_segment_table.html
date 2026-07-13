@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading...
+  {{ _("Loading...") }}
 </div>
 
 {% if report %}
@@ -28,11 +28,11 @@
 
     {# Segment header #}
     <div class="px-6 py-3 hairline-b flex items-center justify-between" style="background:var(--sae-tint);">
-      <p class="nav-section-label sae">{{ seg.get("segment_label", "Segment") }}</p>
+      <p class="nav-section-label sae">{{ seg.get("segment_label", _("Segment")) }}</p>
       {% if net_profit >= 0 %}
-      <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit: {{ num(net_profit, 2) }}</span>
+      <span class="text-sm font-semibold" style="color:var(--pos);">{{ _("Net Profit:") }} {{ num(net_profit, 2) }}</span>
       {% else %}
-      <span class="text-sm font-semibold" style="color:var(--neg);">Net Profit: {{ num(net_profit, 2) }}</span>
+      <span class="text-sm font-semibold" style="color:var(--neg);">{{ _("Net Profit:") }} {{ num(net_profit, 2) }}</span>
       {% endif %}
     </div>
 
@@ -54,7 +54,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" class="font-semibold ink-1">Total {{ section.get("account_type", "") }}</td>
+            <td colspan="2" class="font-semibold ink-1">{{ _("Total %(account_type)s") % {"account_type": section.get("account_type", "")} }}</td>
             <td class="text-right num-display font-semibold ink-1 w-32">{{ num(section.get("total", 0) | float, 2) }}</td>
           </tr>
         </tfoot>
@@ -65,12 +65,12 @@
     {# Net profit footer #}
     {% if net_profit >= 0 %}
     <div class="px-6 py-3 hairline-t flex items-center justify-between" style="background:rgba(62,122,78,0.04);">
-      <span class="text-sm font-semibold" style="color:var(--pos);">Net Profit — {{ seg.get("segment_label", "") }}</span>
+      <span class="text-sm font-semibold" style="color:var(--pos);">{{ _("Net Profit — %(segment)s") % {"segment": seg.get("segment_label", "")} }}</span>
       <span class="font-display text-lg num-display" style="color:var(--pos);">{{ num(net_profit, 2) }}</span>
     </div>
     {% else %}
     <div class="px-6 py-3 hairline-t flex items-center justify-between" style="background:rgba(161,67,51,0.04);">
-      <span class="text-sm font-semibold" style="color:var(--neg);">Net Profit — {{ seg.get("segment_label", "") }}</span>
+      <span class="text-sm font-semibold" style="color:var(--neg);">{{ _("Net Profit — %(segment)s") % {"segment": seg.get("segment_label", "")} }}</span>
       <span class="font-display text-lg num-display" style="color:var(--neg);">{{ num(net_profit, 2) }}</span>
     </div>
     {% endif %}
@@ -80,11 +80,11 @@
 
 </div>
 {% else %}
-<p class="text-sm ink-3 font-mono">— no segments found for the selected period —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no segments found for the selected period —") }}</p>
 {% endif %}
 
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>

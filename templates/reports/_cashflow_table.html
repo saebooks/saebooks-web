@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading...
+  {{ _("Loading...") }}
 </div>
 
 {% if report %}
@@ -29,24 +29,24 @@
   {# Operating activities #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Operating Activities</p>
+      <p class="nav-section-label">{{ _("Operating Activities") }}</p>
     </div>
     <table class="sae-table w-full">
       <tbody>
         <tr>
-          <td class="ink-1">Net Profit</td>
+          <td class="ink-1">{{ _("Net Profit") }}</td>
           <td class="text-right num ink-1">{{ num(operating.get("net_profit", 0) | float, 2) }}</td>
         </tr>
         {% for adj in operating.get("adjustments", []) %}
         <tr>
-          <td class="ink-2 pl-8">{{ adj.get("label", "Adjustment") }}</td>
+          <td class="ink-2 pl-8">{{ adj.get("label", _("Adjustment")) }}</td>
           <td class="text-right num ink-2">{{ num(adj.get("amount", 0) | float, 2) }}</td>
         </tr>
         {% endfor %}
       </tbody>
       <tfoot>
         <tr>
-          <td class="font-semibold ink-1">Total Operating Activities</td>
+          <td class="font-semibold ink-1">{{ _("Total Operating Activities") }}</td>
           <td class="text-right num-display font-semibold ink-1">{{ num(operating.get("total_operating", 0) | float, 2) }}</td>
         </tr>
       </tfoot>
@@ -56,22 +56,22 @@
   {# Investing activities #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Investing Activities</p>
+      <p class="nav-section-label">{{ _("Investing Activities") }}</p>
     </div>
     <table class="sae-table w-full">
       <tbody>
         <tr>
-          <td class="ink-1">Asset Purchases</td>
+          <td class="ink-1">{{ _("Asset Purchases") }}</td>
           <td class="text-right num ink-1">{{ num(investing.get("asset_purchases", 0) | float, 2) }}</td>
         </tr>
         <tr>
-          <td class="ink-1">Asset Disposals</td>
+          <td class="ink-1">{{ _("Asset Disposals") }}</td>
           <td class="text-right num ink-1">{{ num(investing.get("asset_disposals", 0) | float, 2) }}</td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
-          <td class="font-semibold ink-1">Total Investing Activities</td>
+          <td class="font-semibold ink-1">{{ _("Total Investing Activities") }}</td>
           <td class="text-right num-display font-semibold ink-1">{{ num(investing.get("total_investing", 0) | float, 2) }}</td>
         </tr>
       </tfoot>
@@ -81,22 +81,22 @@
   {# Financing activities #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Financing Activities</p>
+      <p class="nav-section-label">{{ _("Financing Activities") }}</p>
     </div>
     <table class="sae-table w-full">
       <tbody>
         <tr>
-          <td class="ink-1">Loan Proceeds</td>
+          <td class="ink-1">{{ _("Loan Proceeds") }}</td>
           <td class="text-right num ink-1">{{ num(financing.get("loan_proceeds", 0) | float, 2) }}</td>
         </tr>
         <tr>
-          <td class="ink-1">Loan Repayments</td>
+          <td class="ink-1">{{ _("Loan Repayments") }}</td>
           <td class="text-right num ink-1">{{ num(financing.get("loan_repayments", 0) | float, 2) }}</td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
-          <td class="font-semibold ink-1">Total Financing Activities</td>
+          <td class="font-semibold ink-1">{{ _("Total Financing Activities") }}</td>
           <td class="text-right num-display font-semibold ink-1">{{ num(financing.get("total_financing", 0) | float, 2) }}</td>
         </tr>
       </tfoot>
@@ -106,12 +106,12 @@
   {# Net change in cash #}
   {% if net_change >= 0 %}
   <div class="card p-5 flex items-center justify-between" style="border-color:var(--pos);background:rgba(62,122,78,0.04);" id="net-change">
-    <span class="text-sm font-semibold" style="color:var(--pos);">Net Change in Cash</span>
+    <span class="text-sm font-semibold" style="color:var(--pos);">{{ _("Net Change in Cash") }}</span>
     <span class="font-display text-2xl num-display" style="color:var(--pos);">{{ num(net_change, 2) }}</span>
   </div>
   {% else %}
   <div class="card p-5 flex items-center justify-between" style="border-color:var(--neg);background:rgba(161,67,51,0.04);" id="net-change">
-    <span class="text-sm font-semibold" style="color:var(--neg);">Net Change in Cash</span>
+    <span class="text-sm font-semibold" style="color:var(--neg);">{{ _("Net Change in Cash") }}</span>
     <span class="font-display text-2xl num-display" style="color:var(--neg);">{{ num(net_change, 2) }}</span>
   </div>
   {% endif %}
@@ -121,11 +121,11 @@
     <table class="sae-table w-full">
       <tbody>
         <tr>
-          <td class="ink-2 font-medium">Opening Cash</td>
+          <td class="ink-2 font-medium">{{ _("Opening Cash") }}</td>
           <td class="text-right num ink-1">{{ num(opening_cash, 2) }}</td>
         </tr>
         <tr>
-          <td class="ink-1 font-semibold">Closing Cash</td>
+          <td class="ink-1 font-semibold">{{ _("Closing Cash") }}</td>
           <td class="text-right num-display ink-1 font-semibold">{{ num(closing_cash, 2) }}</td>
         </tr>
       </tbody>
@@ -134,7 +134,7 @@
 
 </div>
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>

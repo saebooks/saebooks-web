@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading...
+  {{ _("Loading...") }}
 </div>
 
 {% if report %}
@@ -25,11 +25,11 @@
   <table class="sae-table w-full" id="aged-payables-table">
     <thead>
       <tr>
-        <th class="text-left">Contact</th>
+        <th class="text-left">{{ _("Contact") }}</th>
         {% for bucket in buckets %}
         <th class="text-right">{{ bucket }}</th>
         {% endfor %}
-        <th class="text-right">Total</th>
+        <th class="text-right">{{ _("Total") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -45,7 +45,7 @@
         {% endfor %}
         {# Totals row #}
         <tr class="bg-paper-2 font-semibold hairline-t">
-          <td class="ink-1">Total</td>
+          <td class="ink-1">{{ _("Total") }}</td>
           {% for bucket in buckets %}
           <td class="text-right num ink-1">{{ num(totals.get(bucket, 0) | float, 2) }}</td>
           {% endfor %}
@@ -54,7 +54,7 @@
       {% else %}
         <tr>
           <td colspan="{{ (buckets | length) + 2 }}" class="text-center ink-3 font-mono text-sm py-8">
-            — no outstanding payables as at {{ report.get("as_of_date", "") }} —
+            {{ _("— no outstanding payables as at %(date)s —") % {"date": report.get("as_of_date", "")} }}
           </td>
         </tr>
       {% endif %}
@@ -62,7 +62,7 @@
   </table>
 </div>
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>

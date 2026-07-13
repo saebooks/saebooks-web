@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading...
+  {{ _("Loading...") }}
 </div>
 
 {% if report %}
@@ -26,27 +26,27 @@
   {% if comp_bs.balanced %}
   <div class="card p-3 flex items-center gap-2" style="border-color:var(--pos);">
     <span class="dot" style="background:var(--pos);"></span>
-    <span class="text-sm font-semibold" style="color:var(--pos);">Balance sheet is balanced.</span>
+    <span class="text-sm font-semibold" style="color:var(--pos);">{{ _("Balance sheet is balanced.") }}</span>
   </div>
   {% else %}
   <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
     <span class="dot" style="background:var(--neg);"></span>
-    <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ num(comp_bs.difference, 2) }}</span>
+    <span class="text-sm font-semibold" style="color:var(--neg);">{{ _("Balance sheet is NOT balanced — difference: %(diff)s") % {"diff": num(comp_bs.difference, 2)} }}</span>
   </div>
   {% endif %}
 
   {# Assets #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Assets</p>
+      <p class="nav-section-label">{{ _("Assets") }}</p>
     </div>
     <table class="sae-table w-full">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
-          <th class="text-left">Code</th>
-          <th class="text-right">Current</th>
-          <th class="text-right ink-3">Prior year</th>
+          <th class="text-left">{{ _("Account") }}</th>
+          <th class="text-left">{{ _("Code") }}</th>
+          <th class="text-right">{{ _("Current") }}</th>
+          <th class="text-right ink-3">{{ _("Prior year") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -61,12 +61,12 @@
           </tr>
           {% endfor %}
         {% else %}
-          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no asset accounts —</td></tr>
+          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no asset accounts —") }}</td></tr>
         {% endif %}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="2" class="font-semibold ink-1">Total Assets</td>
+          <td colspan="2" class="font-semibold ink-1">{{ _("Total Assets") }}</td>
           <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.assets.total_assets_current, 2) }}</td>
           <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.assets.total_assets_prior, 2) }}</td>
         </tr>
@@ -77,15 +77,15 @@
   {# Liabilities #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Liabilities</p>
+      <p class="nav-section-label">{{ _("Liabilities") }}</p>
     </div>
     <table class="sae-table w-full">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
-          <th class="text-left">Code</th>
-          <th class="text-right">Current</th>
-          <th class="text-right ink-3">Prior year</th>
+          <th class="text-left">{{ _("Account") }}</th>
+          <th class="text-left">{{ _("Code") }}</th>
+          <th class="text-right">{{ _("Current") }}</th>
+          <th class="text-right ink-3">{{ _("Prior year") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -100,12 +100,12 @@
           </tr>
           {% endfor %}
         {% else %}
-          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no liability accounts —</td></tr>
+          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no liability accounts —") }}</td></tr>
         {% endif %}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="2" class="font-semibold ink-1">Total Liabilities</td>
+          <td colspan="2" class="font-semibold ink-1">{{ _("Total Liabilities") }}</td>
           <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.liabilities.total_liabilities_current, 2) }}</td>
           <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.liabilities.total_liabilities_prior, 2) }}</td>
         </tr>
@@ -116,15 +116,15 @@
   {# Equity #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Equity</p>
+      <p class="nav-section-label">{{ _("Equity") }}</p>
     </div>
     <table class="sae-table w-full">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
-          <th class="text-left">Code</th>
-          <th class="text-right">Current</th>
-          <th class="text-right ink-3">Prior year</th>
+          <th class="text-left">{{ _("Account") }}</th>
+          <th class="text-left">{{ _("Code") }}</th>
+          <th class="text-right">{{ _("Current") }}</th>
+          <th class="text-right ink-3">{{ _("Prior year") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -139,12 +139,12 @@
           </tr>
           {% endfor %}
         {% else %}
-          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">— no equity accounts —</td></tr>
+          <tr><td colspan="4" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no equity accounts —") }}</td></tr>
         {% endif %}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="2" class="font-semibold ink-1">Total Equity</td>
+          <td colspan="2" class="font-semibold ink-1">{{ _("Total Equity") }}</td>
           <td class="text-right num-display font-semibold ink-1">{{ num(comp_bs.equity.total_equity_current, 2) }}</td>
           <td class="text-right num ink-3 font-semibold">{{ num(comp_bs.equity.total_equity_prior, 2) }}</td>
         </tr>
@@ -168,26 +168,26 @@
   {% if balanced %}
   <div class="card p-3 flex items-center gap-2" style="border-color:var(--pos);">
     <span class="dot" style="background:var(--pos);"></span>
-    <span class="text-sm font-semibold" style="color:var(--pos);">Balance sheet is balanced.</span>
+    <span class="text-sm font-semibold" style="color:var(--pos);">{{ _("Balance sheet is balanced.") }}</span>
   </div>
   {% else %}
   <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
     <span class="dot" style="background:var(--neg);"></span>
-    <span class="text-sm font-semibold" style="color:var(--neg);">Balance sheet is NOT balanced — difference: {{ num(difference, 2) }}</span>
+    <span class="text-sm font-semibold" style="color:var(--neg);">{{ _("Balance sheet is NOT balanced — difference: %(diff)s") % {"diff": num(difference, 2)} }}</span>
   </div>
   {% endif %}
 
   {# Assets section #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Assets</p>
+      <p class="nav-section-label">{{ _("Assets") }}</p>
     </div>
     <table class="sae-table w-full">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
-          <th class="text-left">Code</th>
-          <th class="text-right">Balance</th>
+          <th class="text-left">{{ _("Account") }}</th>
+          <th class="text-left">{{ _("Code") }}</th>
+          <th class="text-right">{{ _("Balance") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -202,13 +202,13 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="3" class="text-center ink-3 font-mono text-sm py-6">— no asset accounts —</td>
+            <td colspan="3" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no asset accounts —") }}</td>
           </tr>
         {% endif %}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="2" class="font-semibold ink-1">Total Assets</td>
+          <td colspan="2" class="font-semibold ink-1">{{ _("Total Assets") }}</td>
           <td class="text-right num-display font-semibold ink-1">
             {{ num(assets_section.get("total_assets", 0) | float, 2) }}
           </td>
@@ -220,14 +220,14 @@
   {# Liabilities section #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Liabilities</p>
+      <p class="nav-section-label">{{ _("Liabilities") }}</p>
     </div>
     <table class="sae-table w-full">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
-          <th class="text-left">Code</th>
-          <th class="text-right">Balance</th>
+          <th class="text-left">{{ _("Account") }}</th>
+          <th class="text-left">{{ _("Code") }}</th>
+          <th class="text-right">{{ _("Balance") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -242,13 +242,13 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="3" class="text-center ink-3 font-mono text-sm py-6">— no liability accounts —</td>
+            <td colspan="3" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no liability accounts —") }}</td>
           </tr>
         {% endif %}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="2" class="font-semibold ink-1">Total Liabilities</td>
+          <td colspan="2" class="font-semibold ink-1">{{ _("Total Liabilities") }}</td>
           <td class="text-right num-display font-semibold ink-1">
             {{ num(liabilities_section.get("total_liabilities", 0) | float, 2) }}
           </td>
@@ -260,14 +260,14 @@
   {# Equity section #}
   <div class="card overflow-hidden mb-0">
     <div class="px-6 py-3 hairline-b">
-      <p class="nav-section-label">Equity</p>
+      <p class="nav-section-label">{{ _("Equity") }}</p>
     </div>
     <table class="sae-table w-full">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
-          <th class="text-left">Code</th>
-          <th class="text-right">Balance</th>
+          <th class="text-left">{{ _("Account") }}</th>
+          <th class="text-left">{{ _("Code") }}</th>
+          <th class="text-right">{{ _("Balance") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -282,13 +282,13 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="3" class="text-center ink-3 font-mono text-sm py-6">— no equity accounts —</td>
+            <td colspan="3" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no equity accounts —") }}</td>
           </tr>
         {% endif %}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="2" class="font-semibold ink-1">Total Equity</td>
+          <td colspan="2" class="font-semibold ink-1">{{ _("Total Equity") }}</td>
           <td class="text-right num-display font-semibold ink-1">
             {{ num(equity_section.get("total_equity", 0) | float, 2) }}
           </td>
@@ -301,7 +301,7 @@
 {% endif %}
 
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>
