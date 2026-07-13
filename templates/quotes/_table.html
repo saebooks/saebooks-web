@@ -15,17 +15,17 @@
     <thead>
       <tr>
         <th class="w-8 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="text-left">Number</th>
-        <th class="text-left">Title</th>
-        <th class="text-left">Date</th>
-        <th class="text-left">Expiry</th>
-        <th class="text-left">Customer</th>
-        <th class="text-right">Total</th>
-        <th class="text-left">Status</th>
+        <th class="text-left">{{ _("Number") }}</th>
+        <th class="text-left">{{ _("Title") }}</th>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("Expiry") }}</th>
+        <th class="text-left">{{ _("Customer") }}</th>
+        <th class="text-right">{{ _("Total") }}</th>
+        <th class="text-left">{{ _("Status") }}</th>
         <th class="w-8"></th>{# kebab column header — intentionally empty #}
       </tr>
     </thead>
@@ -35,7 +35,7 @@
         <tr class="hover:bg-paper-2 cursor-pointer" data-status="{{ (q.status or 'draft')|lower }}" onclick="window.location='/quotes/{{ q.id }}'">
           <td class="text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ q.id }}"
-                   aria-label="Select quote {{ q.number or q.id }}"
+                   aria-label="{{ _('Select quote %(number)s') % {'number': (q.number or q.id)} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -54,17 +54,17 @@
           </td>
           <td>
             {% if q.status == 'ACCEPTED' %}
-              <span class="badge-paid">Accepted</span>
+              <span class="badge-paid">{{ _("Accepted") }}</span>
             {% elif q.status == 'INVOICED' %}
-              <span class="badge-open">Invoiced</span>
+              <span class="badge-open">{{ _("Invoiced") }}</span>
             {% elif q.status == 'SENT' %}
-              <span class="badge-pending">Sent</span>
+              <span class="badge-pending">{{ _("Sent") }}</span>
             {% elif q.status == 'DRAFT' %}
-              <span class="badge-draft">Draft</span>
+              <span class="badge-draft">{{ _("Draft") }}</span>
             {% elif q.status == 'DECLINED' %}
-              <span class="badge-overdue">Declined</span>
+              <span class="badge-overdue">{{ _("Declined") }}</span>
             {% elif q.status == 'ARCHIVED' %}
-              <span class="badge-draft">Archived</span>
+              <span class="badge-draft">{{ _("Archived") }}</span>
             {% else %}
               <span class="badge-draft">{{ q.status|capitalize }}</span>
             {% endif %}
@@ -72,20 +72,20 @@
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (q.status or 'draft')|lower %}
             {%- set actions = [
-              ("view", "View", "/quotes/" ~ q.id,       "link", false),
-              ("edit", "Edit", "/quotes/" ~ q.id ~ "/edit", "link", false),
+              ("view", _("View"), "/quotes/" ~ q.id,       "link", false),
+              ("edit", _("Edit"), "/quotes/" ~ q.id ~ "/edit", "link", false),
             ] %}
             {%- if status_lower == 'draft' %}
-              {%- set _ = actions.append(("send",    "Send",    "/quotes/" ~ q.id ~ "/send",    "post", false)) %}
+              {%- set _x = actions.append(("send",    _("Send"),    "/quotes/" ~ q.id ~ "/send",    "post", false)) %}
             {%- elif status_lower == 'sent' %}
-              {%- set _ = actions.append(("accept",  "Accept",  "/quotes/" ~ q.id ~ "/accept",  "post", false)) %}
-              {%- set _ = actions.append(("decline", "Decline", "/quotes/" ~ q.id ~ "/decline", "post", true)) %}
+              {%- set _x = actions.append(("accept",  _("Accept"),  "/quotes/" ~ q.id ~ "/accept",  "post", false)) %}
+              {%- set _x = actions.append(("decline", _("Decline"), "/quotes/" ~ q.id ~ "/decline", "post", true)) %}
             {%- endif %}
             {%- if status_lower not in ('invoiced', 'archived') %}
-              {%- set _ = actions.append(("archive", "Archive", "/quotes/" ~ q.id ~ "/archive", "post", true)) %}
+              {%- set _x = actions.append(("archive", _("Archive"), "/quotes/" ~ q.id ~ "/archive", "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/quotes/" ~ q.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/quotes/" ~ q.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=q.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -93,12 +93,12 @@
         {% endfor %}
       {% else %}
         {% if not filter_status and not filter_customer_id %}
-        {{ empty.row(9, "inbox", "No quotes yet",
-                     "Send your first quote to a customer.",
-                     "New quote", "/quotes/new") }}
+        {{ empty.row(9, "inbox", _("No quotes yet"),
+                     _("Send your first quote to a customer."),
+                     _("New quote"), "/quotes/new") }}
         {% else %}
-        {{ empty.row(9, "search-x", "No quotes match these filters",
-                     "Try clearing the filters above.") }}
+        {{ empty.row(9, "search-x", _("No quotes match these filters"),
+                     _("Try clearing the filters above.")) }}
         {% endif %}
       {% endif %}
     </tbody>
@@ -108,20 +108,20 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm">
   <div class="ink-3 font-mono text-xs">
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-2">
     {% if prev_offset is not none %}
     <a href="/quotes?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_customer_id %}&customer_id={{ filter_customer_id }}{% endif %}"
        hx-get="/quotes?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_customer_id %}&customer_id={{ filter_customer_id }}{% endif %}"
        hx-target="#quotes-table" hx-swap="outerHTML" hx-push-url="true"
-       class="btn-secondary text-sm py-1.5">← Previous</a>
+       class="btn-secondary text-sm py-1.5">{{ _("← Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a href="/quotes?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_customer_id %}&customer_id={{ filter_customer_id }}{% endif %}"
        hx-get="/quotes?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_customer_id %}&customer_id={{ filter_customer_id }}{% endif %}"
        hx-target="#quotes-table" hx-swap="outerHTML" hx-push-url="true"
-       class="btn-secondary text-sm py-1.5">Next →</a>
+       class="btn-secondary text-sm py-1.5">{{ _("Next →") }}</a>
     {% endif %}
   </div>
 </div>

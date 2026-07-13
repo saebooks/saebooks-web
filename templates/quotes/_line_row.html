@@ -2,9 +2,9 @@
    On mobile (<768px) each <tr> is reflowed as a card via .line-items-table CSS in base.html.
 #}
 <tr class="line-row">
-  <td class="px-3 py-2" data-label="Account">
-    <select name="lines[{{ index }}][account_id]" aria-label="Account, row {{ index }}" class="saebooks-input text-sm py-1.5">
-      <option value="">— account —</option>
+  <td class="px-3 py-2" data-label="{{ _('Account') }}">
+    <select name="lines[{{ index }}][account_id]" aria-label="{{ _('Account, row %(index)s') % {'index': index} }}" class="saebooks-input text-sm py-1.5">
+      <option value="">{{ _("— account —") }}</option>
       {% for acct in accounts %}
       <option value="{{ acct.id }}" {% if line.get("account_id") == acct.id %}selected{% endif %}>
         {{ acct.code }} — {{ acct.name }}
@@ -13,26 +13,26 @@
     </select>
   </td>
 
-  <td class="px-3 py-2" data-label="Description">
-    <input type="text" name="lines[{{ index }}][description]" aria-label="Description, row {{ index }}" value="{{ line.get('description', '') }}"
-           placeholder="Description" class="saebooks-input text-sm py-1.5">
+  <td class="px-3 py-2" data-label="{{ _('Description') }}">
+    <input type="text" name="lines[{{ index }}][description]" aria-label="{{ _('Description, row %(index)s') % {'index': index} }}" value="{{ line.get('description', '') }}"
+           placeholder="{{ _('Description') }}" class="saebooks-input text-sm py-1.5">
   </td>
 
-  <td class="px-3 py-2 w-24" data-label="Qty">
-    <input type="number" name="lines[{{ index }}][quantity]" aria-label="Quantity, row {{ index }}" value="{{ line.get('quantity', '1') }}"
+  <td class="px-3 py-2 w-24" data-label="{{ _('Qty') }}">
+    <input type="number" name="lines[{{ index }}][quantity]" aria-label="{{ _('Quantity, row %(index)s') % {'index': index} }}" value="{{ line.get('quantity', '1') }}"
            step="0.001" min="0" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
            class="saebooks-input num text-sm py-1.5 text-right">
   </td>
 
-  <td class="px-3 py-2 w-28" data-label="Unit price">
-    <input type="number" name="lines[{{ index }}][unit_price]" aria-label="Unit price, row {{ index }}" value="{{ line.get('unit_price', '') }}"
+  <td class="px-3 py-2 w-28" data-label="{{ _('Unit price') }}">
+    <input type="number" name="lines[{{ index }}][unit_price]" aria-label="{{ _('Unit price, row %(index)s') % {'index': index} }}" value="{{ line.get('unit_price', '') }}"
            step="0.01" placeholder="0.00" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
            class="saebooks-input num-display text-sm py-1.5 text-right">
   </td>
 
-  <td class="px-3 py-2 w-32" data-label="Tax">
-    <select name="lines[{{ index }}][tax_code_id]" aria-label="Tax code, row {{ index }}" class="saebooks-input text-sm py-1.5">
-      <option value="">— none —</option>
+  <td class="px-3 py-2 w-32" data-label="{{ _('Tax') }}">
+    <select name="lines[{{ index }}][tax_code_id]" aria-label="{{ _('Tax code, row %(index)s') % {'index': index} }}" class="saebooks-input text-sm py-1.5">
+      <option value="">{{ _("— none —") }}</option>
       {% for tc in tax_codes %}
       <option value="{{ tc.id }}" {% if line.get("tax_code_id") == tc.id %}selected{% endif %}>
         {{ tc.name }}
@@ -44,6 +44,6 @@
   <td class="px-3 py-2 w-10 text-center line-delete-cell">
     <button type="button" onclick="this.closest('tr').remove()"
             class="line-delete-btn ink-4 hover:text-[color:var(--neg)] text-lg leading-none font-bold transition-colors"
-            title="Remove line">&times;</button>
+            title="{{ _('Remove line') }}">&times;</button>
   </td>
 </tr>

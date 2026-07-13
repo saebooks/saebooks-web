@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}New Quote — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("New Quote") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-5 flex items-center gap-3">
-  <a href="/quotes" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← quotes</a>
+  <a href="/quotes" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("quotes") }}</a>
   <span class="ink-4">/</span>
-  <h1 class="font-display text-xl ink-1">New quote</h1>
+  <h1 class="font-display text-xl ink-1">{{ _("New quote") }}</h1>
 </div>
 
 <div class="card p-6">
@@ -17,8 +17,8 @@
     {% include "quotes/_form_fields.html" %}
 
     <div class="mt-7 hairline pt-5 flex items-center gap-3">
-      <button type="submit" class="btn-primary">Save quote</button>
-      <a href="/quotes" class="btn-secondary">Cancel</a>
+      <button type="submit" class="btn-primary">{{ _("Save quote") }}</button>
+      <a href="/quotes" class="btn-secondary">{{ _("Cancel") }}</a>
     </div>
   </form>
 </div>

@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if quote %}Quote {{ quote.number or quote.id }} — {{ current_brand().name }}{% else %}Quote Not Found — {{ current_brand().name }}{% endif %}
+  {% if quote %}{{ _("Quote %(number)s") % {"number": (quote.number or quote.id)} }} — {{ current_brand().name }}{% else %}{{ _("Quote Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -25,7 +25,7 @@
 {% if quote %}
 
 <div class="mb-4">
-  <a href="/quotes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← quotes</a>
+  <a href="/quotes" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← {{ _("quotes") }}</a>
 </div>
 
 {# ── Header ── #}
@@ -34,20 +34,20 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Quote</span>
+        <span class="nav-section-label">{{ _("Quote") }}</span>
         <span class="reg-mark"></span>
         {% if quote.status == 'ACCEPTED' %}
-          <span class="badge-paid">Accepted</span>
+          <span class="badge-paid">{{ _("Accepted") }}</span>
         {% elif quote.status == 'INVOICED' %}
-          <span class="badge-open">Invoiced</span>
+          <span class="badge-open">{{ _("Invoiced") }}</span>
         {% elif quote.status == 'SENT' %}
-          <span class="badge-pending">Sent</span>
+          <span class="badge-pending">{{ _("Sent") }}</span>
         {% elif quote.status == 'DRAFT' %}
-          <span class="badge-draft">Draft</span>
+          <span class="badge-draft">{{ _("Draft") }}</span>
         {% elif quote.status == 'DECLINED' %}
-          <span class="badge-overdue">Declined</span>
+          <span class="badge-overdue">{{ _("Declined") }}</span>
         {% elif quote.status == 'ARCHIVED' %}
-          <span class="badge-draft">Archived</span>
+          <span class="badge-draft">{{ _("Archived") }}</span>
         {% else %}
           <span class="badge-draft">{{ quote.status|capitalize }}</span>
         {% endif %}
@@ -65,7 +65,7 @@
       </h1>
       {% endif %}
       <p class="text-xs ink-3 font-mono mt-2">
-        customer ·
+        {{ _("customer") }} ·
         <a href="/contacts/{{ quote.customer_id }}" class="sae hover:underline">
           {{ quote.customer_name or quote.customer_id }}
         </a>
@@ -74,70 +74,70 @@
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
       <a href="/quotes/{{ quote.id }}/pdf" target="_blank" rel="noopener" class="btn-secondary text-sm">
-        Preview PDF
+        {{ _("Preview PDF") }}
       </a>
 
       <a href="/quotes/{{ quote.id }}/email" class="btn-secondary text-sm"
          style="border-color:var(--warm); color:var(--warm);"
-         title="Compose email to customer — blocked by kill switch during build">
-        Send to customer
+         title="{{ _('Compose email to customer — blocked by kill switch during build') }}">
+        {{ _("Send to customer") }}
       </a>
 
       {% if quote.status in ('DRAFT', 'SENT') or is_feature_enabled('edit_frozen_state') %}
-      <a href="/quotes/{{ quote.id }}/edit" class="btn-secondary text-sm">{% if quote.status not in ('DRAFT', 'SENT') %}Edit (override){% else %}Edit{% endif %}</a>
+      <a href="/quotes/{{ quote.id }}/edit" class="btn-secondary text-sm">{% if quote.status not in ('DRAFT', 'SENT') %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
       {% endif %}
 
       {% if quote.status == 'DRAFT' %}
       <form method="post" action="/quotes/{{ quote.id }}/send"
-            onsubmit="return confirm('Send this quote to the customer?');" class="inline">
+            onsubmit="return confirm('{{ _('Send this quote to the customer?') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ quote.version }}">
-        <button type="submit" class="btn-primary text-sm" style="background:var(--warm);border-color:var(--warm);">Send</button>
+        <button type="submit" class="btn-primary text-sm" style="background:var(--warm);border-color:var(--warm);">{{ _("Send") }}</button>
       </form>
       {% endif %}
 
       {% if quote.status == 'SENT' %}
       <form method="post" action="/quotes/{{ quote.id }}/accept"
-            onsubmit="return confirm('Mark this quote as accepted?');" class="inline">
+            onsubmit="return confirm('{{ _('Mark this quote as accepted?') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ quote.version }}">
-        <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">Accept</button>
+        <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">{{ _("Accept") }}</button>
       </form>
       <form method="post" action="/quotes/{{ quote.id }}/decline"
-            onsubmit="return confirm('Mark this quote as declined?');" class="inline">
+            onsubmit="return confirm('{{ _('Mark this quote as declined?') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ quote.version }}">
-        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">Decline</button>
+        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Decline") }}</button>
       </form>
       {% endif %}
 
       {% if quote.status == 'ACCEPTED' %}
       <form method="post" action="/quotes/{{ quote.id }}/convert-to-invoice"
-            onsubmit="return confirm('Convert this quote to a draft invoice? The quote will be locked.');"
+            onsubmit="return confirm('{{ _('Convert this quote to a draft invoice? The quote will be locked.') }}');"
             class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ quote.version }}">
-        <button type="submit" class="btn-primary text-sm">Convert to invoice</button>
+        <button type="submit" class="btn-primary text-sm">{{ _("Convert to invoice") }}</button>
       </form>
       {% endif %}
 
       {% if quote.status not in ('INVOICED', 'ARCHIVED') %}
       <form method="post" action="/quotes/{{ quote.id }}/archive"
-            onsubmit="return confirm('Archive this quote?');" class="inline">
+            onsubmit="return confirm('{{ _('Archive this quote?') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ quote.version }}">
-        <button type="submit" class="btn-secondary text-sm">Archive</button>
+        <button type="submit" class="btn-secondary text-sm">{{ _("Archive") }}</button>
       </form>
       {% endif %}
 
       {% if quote.status == 'INVOICED' and quote.invoice_id %}
-      <a href="/invoices/{{ quote.invoice_id }}" class="btn-primary text-sm">View invoice →</a>
+      <a href="/invoices/{{ quote.invoice_id }}" class="btn-primary text-sm">{{ _("View invoice →") }}</a>
       {% endif %}
 
       {% if is_admin %}
       {{ icons.hard_delete(
            "/api/v1/quotes/" ~ quote.id,
-           "quote " ~ (quote.number|default(quote.id|string)),
+           _("quote %(name)s") % {"name": (quote.number|default(quote.id|string))},
            "/quotes"
       ) }}
       {% endif %}
@@ -149,19 +149,19 @@
 {# ── Primary KPI strip ── #}
 <section class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-5 hairline">
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Issued</p>
+    <p class="nav-section-label mb-1">{{ _("Issued") }}</p>
     <p class="num ink-1 text-sm">{{ quote.issue_date }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Expires</p>
+    <p class="nav-section-label mb-1">{{ _("Expires") }}</p>
     <p class="num ink-1 text-sm">{{ quote.expiry_date or "—" }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Total</p>
+    <p class="nav-section-label mb-1">{{ _("Total") }}</p>
     <p class="num-display ink-1 text-lg">{{ quote.currency }} {{ num(quote.total|float, 2) }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Deposit</p>
+    <p class="nav-section-label mb-1">{{ _("Deposit") }}</p>
     <p class="num-display ink-1 text-lg">{{ quote.deposit_pct }}%</p>
   </div>
 </section>
@@ -169,19 +169,19 @@
 {# ── Secondary info ── #}
 <section class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-7 hairline">
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Late fee</p>
-    <p class="num ink-1 text-sm">{{ quote.late_fee_pct_per_month }}% / month</p>
+    <p class="nav-section-label mb-1">{{ _("Late fee") }}</p>
+    <p class="num ink-1 text-sm">{{ _("%(pct)s%% / month") % {"pct": quote.late_fee_pct_per_month} }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Validity</p>
-    <p class="num ink-1 text-sm">{{ quote.validity_days }} days</p>
+    <p class="nav-section-label mb-1">{{ _("Validity") }}</p>
+    <p class="num ink-1 text-sm">{{ _("%(days)s days") % {"days": quote.validity_days} }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Supply only</p>
-    <p class="ink-1 text-sm">{{ "Yes" if quote.is_supply_only else "No" }}</p>
+    <p class="nav-section-label mb-1">{{ _("Supply only") }}</p>
+    <p class="ink-1 text-sm">{{ _("Yes") if quote.is_supply_only else _("No") }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">Currency</p>
+    <p class="nav-section-label mb-1">{{ _("Currency") }}</p>
     <p class="num ink-1 text-sm">{{ quote.currency }}</p>
   </div>
 </section>
@@ -189,16 +189,16 @@
 {# ── Lines ── #}
 <section class="card overflow-hidden mb-7">
   <div class="px-6 py-3 hairline-b">
-    <p class="nav-section-label">Lines</p>
+    <p class="nav-section-label">{{ _("Lines") }}</p>
   </div>
   <table class="sae-table w-full">
     <thead>
       <tr>
         <th class="text-left w-10">#</th>
-        <th class="text-left">Description</th>
-        <th class="text-right">Qty</th>
-        <th class="text-right">Unit price</th>
-        <th class="text-right">Total</th>
+        <th class="text-left">{{ _("Description") }}</th>
+        <th class="text-right">{{ _("Qty") }}</th>
+        <th class="text-right">{{ _("Unit price") }}</th>
+        <th class="text-right">{{ _("Total") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -214,16 +214,16 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="text-center ink-3 font-mono text-sm py-6">— no lines —</td>
+          <td colspan="5" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no lines —") }}</td>
         </tr>
       {% endif %}
     </tbody>
   </table>
   <div class="hairline-t px-6 py-4 space-y-2 text-sm">
-    <div class="flex justify-between"><span class="ink-2">Subtotal</span><span class="num ink-1">{{ num(quote.subtotal|float, 2) }}</span></div>
-    <div class="flex justify-between"><span class="ink-2">Tax</span><span class="num ink-1">{{ num(quote.tax_total|float, 2) }}</span></div>
+    <div class="flex justify-between"><span class="ink-2">{{ _("Subtotal") }}</span><span class="num ink-1">{{ num(quote.subtotal|float, 2) }}</span></div>
+    <div class="flex justify-between"><span class="ink-2">{{ _("Tax") }}</span><span class="num ink-1">{{ num(quote.tax_total|float, 2) }}</span></div>
     <div class="flex justify-between hairline-t pt-2">
-      <span class="font-semibold ink-1">Total</span>
+      <span class="font-semibold ink-1">{{ _("Total") }}</span>
       <span class="num-display text-lg ink-1">{{ quote.currency }} {{ num(quote.total|float, 2) }}</span>
     </div>
   </div>
@@ -234,13 +234,13 @@
 <section class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-7">
   {% if quote.notes %}
   <div>
-    <p class="nav-section-label mb-2">Notes</p>
+    <p class="nav-section-label mb-2">{{ _("Notes") }}</p>
     <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap leading-relaxed">{{ quote.notes }}</div>
   </div>
   {% endif %}
   {% if quote.terms %}
   <div>
-    <p class="nav-section-label mb-2">Terms</p>
+    <p class="nav-section-label mb-2">{{ _("Terms") }}</p>
     <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap leading-relaxed">{{ quote.terms }}</div>
   </div>
   {% endif %}
@@ -250,15 +250,15 @@
 {# ── Send history ── #}
 {% if email_log %}
 <section class="mb-7">
-  <p class="nav-section-label mb-2">Send history</p>
+  <p class="nav-section-label mb-2">{{ _("Send history") }}</p>
   <div class="card overflow-hidden">
     <table class="sae-table w-full text-sm">
       <thead>
         <tr>
-          <th class="text-left">When</th>
-          <th class="text-left">To</th>
-          <th class="text-left">Subject</th>
-          <th class="text-left">Status</th>
+          <th class="text-left">{{ _("When") }}</th>
+          <th class="text-left">{{ _("To") }}</th>
+          <th class="text-left">{{ _("Subject") }}</th>
+          <th class="text-left">{{ _("Status") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -287,11 +287,11 @@
 {# ── Timestamps ── #}
 <div class="card p-4 mb-4" style="border-style:dashed;">
   <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs ink-3 font-mono">
-    <span>created · {{ quote.created_at or "—" }}</span>
-    {% if quote.accepted_at %}<span>accepted · {{ quote.accepted_at }}</span>{% endif %}
-    {% if quote.declined_at %}<span>declined · {{ quote.declined_at }}</span>{% endif %}
-    {% if quote.invoiced_at %}<span>invoiced · {{ quote.invoiced_at }}</span>{% endif %}
-    <span>version · {{ quote.version }}</span>
+    <span>{{ _("created") }} · {{ quote.created_at or "—" }}</span>
+    {% if quote.accepted_at %}<span>{{ _("accepted") }} · {{ quote.accepted_at }}</span>{% endif %}
+    {% if quote.declined_at %}<span>{{ _("declined") }} · {{ quote.declined_at }}</span>{% endif %}
+    {% if quote.invoiced_at %}<span>{{ _("invoiced") }} · {{ quote.invoiced_at }}</span>{% endif %}
+    <span>{{ _("version") }} · {{ quote.version }}</span>
   </div>
 </div>
 
