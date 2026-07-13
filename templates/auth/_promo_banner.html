@@ -9,10 +9,10 @@
   <div class="flex items-start gap-3">
     <span class="text-2xl leading-none select-none">&#127881;</span>
     <div>
-      <p class="font-semibold text-sm">First 1,000 customers get Pro free for a year</p>
+      <p class="font-semibold text-sm">{{ _("First 1,000 customers get Pro free for a year") }}</p>
       <p class="text-[#bdd0eb] text-xs mt-0.5">
         <strong class="text-white">{{ promo.remaining }}</strong>
-        of {{ promo.limit }} spots left — no credit card needed.
+        {{ _("of %(limit)s spots left — no credit card needed.") % {"limit": promo.limit} }}
       </p>
     </div>
   </div>

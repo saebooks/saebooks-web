@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Check your email — SAE Books{% endblock %}
+{% block title %}{{ _("Check your email") }} — SAE Books{% endblock %}
 
 {% block content %}
 <div class="flex min-h-[70vh] items-center justify-center">
@@ -16,25 +16,24 @@
         </svg>
       </div>
 
-      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Check your email</h1>
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ _("Check your email") }}</h1>
       {% if kind == 'verification' %}
         <p class="text-sm text-gray-600 dark:text-gray-400">
-          We just sent a verification link to <strong class="text-gray-900 dark:text-gray-100">{{ email }}</strong>.
-          Click it to activate your account.
+          {{ _("We just sent a verification link to") }} <strong class="text-gray-900 dark:text-gray-100">{{ email }}</strong>.
+          {{ _("Click it to activate your account.") }}
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-500 mt-3">
-          Didn't get it? Check your spam folder, or
-          <a href="/forgot-password" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">request another</a>.
+          {{ _("Didn't get it? Check your spam folder, or") }}
+          <a href="/forgot-password" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">{{ _("request another") }}</a>.
         </p>
       {% else %}
         <p class="text-sm text-gray-600 dark:text-gray-400">
-          If <strong class="text-gray-900 dark:text-gray-100">{{ email }}</strong> matches an account,
-          we just sent a sign-in link.
+          {{ _("If") }} <strong class="text-gray-900 dark:text-gray-100">{{ email }}</strong> {{ _("matches an account, we just sent a sign-in link.") }}
         </p>
       {% endif %}
 
       <a href="/login" class="inline-block mt-6 text-sm text-[#194291] dark:text-[#8aa9d8] hover:underline">
-        Back to sign-in
+        {{ _("Back to sign-in") }}
       </a>
     </div>
   </div>

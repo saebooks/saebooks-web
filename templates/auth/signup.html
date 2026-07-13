@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Sign up — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Sign up") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 {% set brand = current_brand() -%}
@@ -17,10 +17,10 @@
       <div class="flex items-start gap-3">
         <span class="text-2xl leading-none select-none">&#127881;</span>
         <div>
-          <p class="font-semibold text-sm">First 1,000 customers get Pro free for a year</p>
+          <p class="font-semibold text-sm">{{ _("First 1,000 customers get Pro free for a year") }}</p>
           <p class="text-[#bdd0eb] text-xs mt-0.5">
             <strong class="text-white" id="promo-remaining">{{ promo.remaining }}</strong>
-            of {{ promo.limit }} spots left — no credit card needed.
+            {{ _("of %(limit)s spots left — no credit card needed.") % {"limit": promo.limit} }}
           </p>
         </div>
       </div>
@@ -32,10 +32,9 @@
       <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Create your %(brand)s account") % {"brand": brand.name} }}</h1>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
         {% if promo and promo.enabled and promo.remaining > 0 %}
-        Sign up now and get Pro tier free for 12 months — no credit card needed.
+        {{ _("Sign up now and get Pro tier free for 12 months — no credit card needed.") }}
         {% else %}
-        Free Community edition — no credit card needed. You can upgrade
-        to Business or Pro any time from your account.
+        {{ _("Free Community edition — no credit card needed. You can upgrade to Business or Pro any time from your account.") }}
         {% endif %}
       </p>
 
@@ -52,7 +51,7 @@
         {% endif %}
 
         <div class="mb-4">
-          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Email") }}</label>
           <input id="email" name="email" type="email" required autocomplete="email"
                  value="{{ values.email or '' }}"
                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
@@ -62,7 +61,7 @@
         </div>
 
         <div class="mb-4">
-          <label for="company_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company name</label>
+          <label for="company_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Company name") }}</label>
           <input id="company_name" name="company_name" type="text" required
                  value="{{ values.company_name or '' }}"
                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
@@ -72,7 +71,7 @@
         </div>
 
         <div class="mb-4">
-          <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your name <span class="text-gray-400 dark:text-gray-500 font-normal">(optional)</span></label>
+          <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Your name") }} <span class="text-gray-400 dark:text-gray-500 font-normal">({{ _("optional") }})</span></label>
           <input id="name" name="name" type="text"
                  value="{{ values.name or '' }}"
                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
@@ -82,26 +81,26 @@
         </div>
 
         <div class="mb-6">
-          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Password") }}</label>
           <input id="password" name="password" type="password" required minlength="10" autocomplete="new-password"
                  class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm
                         bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
                         focus:outline-none focus:ring-2 focus:ring-[#194291] focus:border-transparent"
-                 placeholder="At least 10 characters">
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">10+ characters with at least one letter and one digit.</p>
+                 placeholder="{{ _('At least 10 characters') }}">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ _("10+ characters with at least one letter and one digit.") }}</p>
         </div>
 
         <button type="submit"
                 class="w-full rounded-md bg-[#194291] px-4 py-2 text-sm font-medium
                        text-white hover:bg-[#133372] focus:outline-none focus:ring-2
                        focus:ring-[#194291] focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-          Create account
+          {{ _("Create account") }}
         </button>
       </form>
 
       <p class="text-sm text-gray-500 dark:text-gray-400 mt-6 text-center">
-        Already have an account?
-        <a href="/login" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">Sign in</a>
+        {{ _("Already have an account?") }}
+        <a href="/login" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">{{ _("Sign in") }}</a>
       </p>
     </div>
   </div>
