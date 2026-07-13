@@ -15,13 +15,13 @@
 #}
 <tr class="line-row border-b hairline">
   {# Account #}
-  <td class="px-3 py-2" data-label="Account">
+  <td class="px-3 py-2" data-label="{{ _('Account') }}">
     <select
       name="lines[{{ index }}][account_id]"
-      aria-label="Account, row {{ index }}"
+      aria-label="{{ _('Account, row %(index)s') % {'index': index} }}"
       class="saebooks-input w-full"
     >
-      <option value="">— account —</option>
+      <option value="">{{ _("— account —") }}</option>
       {% for acct in accounts %}
       <option value="{{ acct.id }}"
         {% if line.get("account_id") == acct.id %}selected{% endif %}>
@@ -32,23 +32,23 @@
   </td>
 
   {# Description #}
-  <td class="px-3 py-2" data-label="Description">
+  <td class="px-3 py-2" data-label="{{ _('Description') }}">
     <input
       type="text"
       name="lines[{{ index }}][description]"
-      aria-label="Description, row {{ index }}"
+      aria-label="{{ _('Description, row %(index)s') % {'index': index} }}"
       value="{{ line.get('description', '') }}"
-      placeholder="Description"
+      placeholder="{{ _('Description') }}"
       class="saebooks-input w-full"
     >
   </td>
 
   {# Quantity #}
-  <td class="px-3 py-2 w-24" data-label="Qty">
+  <td class="px-3 py-2 w-24" data-label="{{ _('Qty') }}">
     <input
       type="number"
       name="lines[{{ index }}][quantity]"
-      aria-label="Quantity, row {{ index }}"
+      aria-label="{{ _('Quantity, row %(index)s') % {'index': index} }}"
       value="{{ line.get('quantity', '1') }}"
       step="0.001"
       min="0"
@@ -59,11 +59,11 @@
   </td>
 
   {# Unit price #}
-  <td class="px-3 py-2 w-28" data-label="Unit price">
+  <td class="px-3 py-2 w-28" data-label="{{ _('Unit price') }}">
     <input
       type="number"
       name="lines[{{ index }}][unit_price]"
-      aria-label="Unit price, row {{ index }}"
+      aria-label="{{ _('Unit price, row %(index)s') % {'index': index} }}"
       value="{{ line.get('unit_price', '') }}"
       step="0.01"
       min="0"
@@ -75,13 +75,13 @@
   </td>
 
   {# Tax code #}
-  <td class="px-3 py-2 w-32" data-label="Tax code">
+  <td class="px-3 py-2 w-32" data-label="{{ _('Tax code') }}">
     <select
       name="lines[{{ index }}][tax_code_id]"
-      aria-label="Tax code, row {{ index }}"
+      aria-label="{{ _('Tax code, row %(index)s') % {'index': index} }}"
       class="saebooks-input w-full"
     >
-      <option value="">— none —</option>
+      <option value="">{{ _("— none —") }}</option>
       {% for tc in tax_codes %}
       <option value="{{ tc.id }}"
         {% if line.get("tax_code_id") == tc.id %}selected{% endif %}>
@@ -96,10 +96,10 @@
     <button
       type="button"
       onclick="this.closest('tr').remove()"
-      aria-label="Remove line"
+      aria-label="{{ _('Remove line') }}"
       class="line-delete-btn text-lg leading-none font-bold"
       style="color:var(--neg);"
-      title="Remove line"
+      title="{{ _('Remove line') }}"
     >&times;</button>
   </td>
 </tr>

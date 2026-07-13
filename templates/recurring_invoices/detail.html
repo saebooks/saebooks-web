@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if ri %}{{ ri.name }} — Recurring Invoice — {{ current_brand().name }}{% else %}Recurring Invoice Not Found — {{ current_brand().name }}{% endif %}
+  {% if ri %}{{ _("%(name)s — Recurring Invoice") % {"name": ri.name} }} — {{ current_brand().name }}{% else %}{{ _("Recurring Invoice Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -34,7 +34,7 @@
       {% elif ri.status == 'ENDED' %}<span class="badge-draft">{{ ri.status | replace("_", " ") | title }}</span>
       {% else %}<span class="badge-draft">{{ ri.status | replace("_", " ") | title }}</span>{% endif %}
     </div>
-    <p class="text-sm ink-3 mt-1">ID: {{ ri.id }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("ID: %(id)s") % {"id": ri.id} }}</p>
   </div>
   <div class="flex items-center gap-3">
     {# Edit button — only for ACTIVE and PAUSED #}
@@ -43,7 +43,7 @@
       href="/recurring-invoices/{{ ri.id }}/edit"
       class="btn-secondary text-sm"
     >
-      Edit
+      {{ _("Edit") }}
     </a>
     {% endif %}
 
@@ -58,7 +58,7 @@
         class="btn-secondary text-sm"
         style="color:var(--warm);border-color:rgba(234,179,8,0.4);"
       >
-        Pause
+        {{ _("Pause") }}
       </button>
     </form>
     {% endif %}
@@ -74,7 +74,7 @@
         class="btn-secondary text-sm"
         style="color:var(--pos);border-color:rgba(34,197,94,0.4);"
       >
-        Resume
+        {{ _("Resume") }}
       </button>
     </form>
     {% endif %}
@@ -90,7 +90,7 @@
         type="submit"
         class="btn-primary text-sm"
       >
-        Generate invoice now
+        {{ _("Generate invoice now") }}
       </button>
     </form>
     {% endif %}
@@ -105,72 +105,72 @@
         type="submit"
         class="btn-secondary text-sm"
         style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
-        onclick="return confirm('Archive this recurring invoice?')"
+        onclick="return confirm('{{ _('Archive this recurring invoice?') }}')"
       >
-        Archive
+        {{ _("Archive") }}
       </button>
     </form>
     {% endif %}
 
-    <a href="/recurring-invoices" class="text-sm sae hover:underline">← Back to recurring invoices</a>
+    <a href="/recurring-invoices" class="text-sm sae hover:underline">← {{ _("Back to recurring invoices") }}</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Frequency</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Frequency") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ ri.frequency | replace("_", " ") | title }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Next run</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Next run") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ ri.next_run }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">End date</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("End date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ ri.end_date or "—" }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Invoices generated</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Invoices generated") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ ri.invoices_generated }}</p>
   </div>
 </div>
 
 {# ── Schedule details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Schedule</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Schedule") }}</h2>
   <div class="card overflow-x-auto">
     <table class="min-w-full text-sm">
       <tbody class="divide-[color:var(--line)]">
         <tr class="hairline-t">
-          <th scope="row" class="px-4 py-3 text-left font-medium ink-3 w-48">Contact</th>
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3 w-48">{{ _("Contact") }}</th>
           <td class="px-4 py-3 ink-1">
             {% if contact_name %}<a href="/contacts/{{ ri.contact_id }}" class="sae hover:underline">{{ contact_name }}</a>{% else %}—{% endif %}
           </td>
         </tr>
         <tr class="hairline-t">
-          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">Anchor day</th>
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Anchor day") }}</th>
           <td class="px-4 py-3 ink-1">{{ ri.anchor_day if ri.anchor_day is not none else "—" }}</td>
         </tr>
         <tr class="hairline-t">
-          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">Last run</th>
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Last run") }}</th>
           <td class="px-4 py-3 ink-1">{{ ri.last_run or "—" }}</td>
         </tr>
         <tr class="hairline-t">
-          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">Due days</th>
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Due days") }}</th>
           <td class="px-4 py-3 ink-1">{{ ri.due_days }}</td>
         </tr>
         <tr class="hairline-t">
-          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">Payment terms</th>
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Payment terms") }}</th>
           <td class="px-4 py-3 ink-1">{{ ri.payment_terms or "—" }}</td>
         </tr>
         <tr class="hairline-t">
-          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">Auto post</th>
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Auto post") }}</th>
           <td class="px-4 py-3 ink-1">
             {% if ri.auto_post %}
-              <span class="badge-sae">Yes</span>
+              <span class="badge-sae">{{ _("Yes") }}</span>
             {% else %}
-              <span class="badge-draft">No</span>
+              <span class="badge-draft">{{ _("No") }}</span>
             {% endif %}
           </td>
         </tr>
@@ -182,25 +182,25 @@
 {# ── Notes ── #}
 {% if ri.notes %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-2">Notes</h2>
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Notes") }}</h2>
   <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap">{{ ri.notes }}</div>
 </div>
 {% endif %}
 
 {# ── Lines ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Lines</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>
   {% if ri.lines %}
   <div class="card overflow-x-auto">
     <table class="min-w-full divide-[color:var(--line)] text-sm">
       <thead class="bg-[color:var(--paper-2)]">
         <tr>
           <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">#</th>
-          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
-          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Qty</th>
-          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Unit price</th>
-          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Discount %</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Qty") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Unit price") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Discount %") }}</th>
         </tr>
       </thead>
       <tbody class="divide-[color:var(--line)]">
@@ -218,26 +218,26 @@
     </table>
   </div>
   {% else %}
-  <p class="text-sm ink-3">No lines defined.</p>
+  <p class="text-sm ink-3">{{ _("No lines defined.") }}</p>
   {% endif %}
 </div>
 
 {# ── Metadata footer ── #}
 <div class="card bg-[color:var(--paper-2)] px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
   <div>
-    <span class="font-medium">Created</span>
+    <span class="font-medium">{{ _("Created") }}</span>
     <p class="mt-0.5">{{ ri.created_at[:19] | replace("T", " ") if ri.created_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Updated</span>
+    <span class="font-medium">{{ _("Updated") }}</span>
     <p class="mt-0.5">{{ ri.updated_at[:19] | replace("T", " ") if ri.updated_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Version</span>
+    <span class="font-medium">{{ _("Version") }}</span>
     <p class="mt-0.5">{{ ri.version }}</p>
   </div>
   <div>
-    <span class="font-medium">Archived</span>
+    <span class="font-medium">{{ _("Archived") }}</span>
     <p class="mt-0.5">{{ ri.archived_at[:19] | replace("T", " ") if ri.archived_at else "—" }}</p>
   </div>
 </div>

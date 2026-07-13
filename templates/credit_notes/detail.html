@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if credit_note %}Credit Note {{ credit_note.number or credit_note.id }} — {{ current_brand().name }}{% else %}Credit Note Not Found — {{ current_brand().name }}{% endif %}
+  {% if credit_note %}{{ _("Credit Note %(number)s") % {"number": (credit_note.number or credit_note.id)} }} — {{ current_brand().name }}{% else %}{{ _("Credit Note Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -30,22 +30,22 @@
   <div>
     <div class="flex items-center gap-3">
       <h1 class="text-2xl font-semibold ink-1">
-        Credit Note {{ credit_note.number or "—" }}
+        {{ _("Credit Note %(number)s") % {"number": (credit_note.number or "—")} }}
       </h1>
       {% if credit_note.status == 'POSTED' %}<span class="badge-pos">{{ credit_note.status | capitalize }}</span>
       {% elif credit_note.status == 'DRAFT' %}<span class="badge-draft">{{ credit_note.status | capitalize }}</span>
       {% elif credit_note.status == 'VOIDED' %}<span class="badge-neg">{{ credit_note.status | capitalize }}</span>
       {% else %}<span class="badge-draft">{{ credit_note.status | capitalize }}</span>{% endif %}
     </div>
-    <p class="text-sm ink-3 mt-1">Contact: {{ credit_note.contact_id }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("Contact: %(contact)s") % {"contact": credit_note.contact_id} }}</p>
     {% if credit_note.reason %}
     <p class="text-sm ink-3 mt-0.5">
-      Reason code:
+      {{ _("Reason code:") }}
       <span class="badge-sae">
         {{ credit_note.reason }}
       </span>
       {% if credit_note.reason == "GST registration change" %}
-      <span class="ml-1 text-xs font-medium" style="color:var(--warm);">— re-issue with GST applied</span>
+      <span class="ml-1 text-xs font-medium" style="color:var(--warm);">— {{ _("re-issue with GST applied") }}</span>
       {% endif %}
     </p>
     {% endif %}
@@ -55,11 +55,11 @@
     <a
       href="/credit-notes/{{ credit_note.id }}/edit"
       class="btn-primary text-sm"
-    >{% if credit_note.status != 'DRAFT' %}Edit (override){% else %}Edit{% endif %}</a>
+    >{% if credit_note.status != 'DRAFT' %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
     <form
       method="post"
       action="/credit-notes/{{ credit_note.id }}/post"
-      onsubmit="return confirm('Post this credit note? This cannot be undone easily.');"
+      onsubmit="return confirm('{{ _('Post this credit note? This cannot be undone easily.') }}');"
       class="inline"
     >
     {{ csrf_input(request)|safe }}
@@ -68,12 +68,12 @@
       <button
         type="submit"
         class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);"
-      >Post</button>
+      >{{ _("Post") }}</button>
     </form>
     <form
       method="post"
       action="/credit-notes/{{ credit_note.id }}/archive"
-      onsubmit="return confirm('Archive this credit note? This cannot be undone.');"
+      onsubmit="return confirm('{{ _('Archive this credit note? This cannot be undone.') }}');"
       class="inline"
     >
     {{ csrf_input(request)|safe }}
@@ -82,14 +82,14 @@
       <button
         type="submit"
         class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
-      >Archive</button>
+      >{{ _("Archive") }}</button>
     </form>
     {% endif %}
     {% if credit_note.status == 'POSTED' %}
     <form
       method="post"
       action="/credit-notes/{{ credit_note.id }}/void"
-      onsubmit="return confirm('Void this credit note?');"
+      onsubmit="return confirm('{{ _('Void this credit note?') }}');"
       class="inline"
     >
     {{ csrf_input(request)|safe }}
@@ -98,13 +98,13 @@
       <button
         type="submit"
         class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
-      >Void</button>
+      >{{ _("Void") }}</button>
     </form>
     {% endif %}
     {% if is_admin %}
     {{ icons.hard_delete(
          "/api/v1/credit_notes/" ~ credit_note.id,
-         "credit note " ~ (credit_note.number|default(credit_note.id|string)),
+         _("credit note %(name)s") % {"name": (credit_note.number|default(credit_note.id|string))},
          "/credit-notes"
     ) }}
     {% endif %}
@@ -113,34 +113,34 @@
       target="_blank"
       rel="noopener"
       class="btn-secondary text-sm"
-    >Download PDF</a>
+    >{{ _("Download PDF") }}</a>
     <a
       href="/credit-notes"
       class="text-sm sae hover:underline"
-    >← Back to credit notes</a>
+    >← {{ _("Back to credit notes") }}</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Issue date</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Issue date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ credit_note.issue_date }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Total</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Total") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ num(credit_note.total|float, 2) }}
     </p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Amount allocated</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Amount allocated") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ num(credit_note.amount_allocated|float, 2) }}
     </p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Remaining</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Remaining") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ num((credit_note.total|float) - (credit_note.amount_allocated|float), 2) }}
     </p>
@@ -149,32 +149,32 @@
 
 {# ── Applied-to section ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Applied To</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Applied To") }}</h2>
   <div class="card px-4 py-3 text-sm ink-2">
     {% if credit_note.original_invoice_id %}
-    <span class="ink-3">Invoice: </span>
+    <span class="ink-3">{{ _("Invoice:") }} </span>
     <a
       href="/invoices/{{ credit_note.original_invoice_id }}"
       class="sae hover:underline font-medium"
     >{{ credit_note.original_invoice_id }}</a>
     {% else %}
-    <span class="ink-3">Unapplied — not linked to an invoice</span>
+    <span class="ink-3">{{ _("Unapplied — not linked to an invoice") }}</span>
     {% endif %}
   </div>
 </div>
 
 {# ── Lines ── #}
-<h2 class="text-base font-semibold ink-1 mb-3">Lines</h2>
+<h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>
 <div class="card overflow-x-auto mb-8" id="lines-table">
   <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs w-8">#</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Qty</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Unit price</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Tax</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Total</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Qty") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Unit price") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Tax") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Total") }}</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-[color:var(--line)]">
@@ -191,25 +191,25 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-6 text-center ink-3">No lines.</td>
+          <td colspan="6" class="px-4 py-6 text-center ink-3">{{ _("No lines.") }}</td>
         </tr>
       {% endif %}
     </tbody>
     <tfoot class="bg-[color:var(--paper-2)] border-t hairline">
       <tr>
-        <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">Subtotal</td>
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">{{ _("Subtotal") }}</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
           {{ num(credit_note.subtotal|float, 2) }}
         </td>
       </tr>
       <tr>
-        <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">Tax</td>
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">{{ _("Tax") }}</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
           {{ num(credit_note.tax_total|float, 2) }}
         </td>
       </tr>
       <tr class="font-semibold">
-        <td colspan="5" class="px-4 py-3 text-right text-sm ink-1">Total</td>
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-1">{{ _("Total") }}</td>
         <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">
           {{ num(credit_note.total|float, 2) }}
         </td>
@@ -221,14 +221,14 @@
 {# ── Notes ── #}
 {% if credit_note.notes %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-2">Notes</h2>
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Notes") }}</h2>
   <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap">{{ credit_note.notes }}</div>
 </div>
 {% endif %}
 
 {# ── Change log stub ── #}
 <div class="card px-4 py-6 text-center text-sm ink-3" style="border-style:dashed;">
-  Change log view — TODO
+  {{ _("Change log view — TODO") }}
 </div>
 
 {% endif %}{# end if credit_note #}

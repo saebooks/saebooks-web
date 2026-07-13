@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Quotes — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Quotes") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,15 +13,15 @@
 
 <header class="mb-6">
   <div class="flex items-center gap-2 mb-1">
-    <span class="nav-section-label">Sales</span>
+    <span class="nav-section-label">{{ _("Sales") }}</span>
     <span class="reg-mark"></span>
-    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Quotes</span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Quotes") }}</span>
   </div>
   <div class="flex items-end justify-between gap-4">
     <div>
       <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="file-pen-line" class="w-7 h-7 ink-3" aria-hidden="true"></i>
-        <span>Quotes</span>
+        <span>{{ _("Quotes") }}</span>
       </h1>
       {% if not error %}
       <p class="mt-2 text-sm ink-3 font-mono">
@@ -29,7 +29,7 @@
       </p>
       {% endif %}
     </div>
-    <a href="/quotes/new" class="btn-primary"><i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i><span>New quote</span></a>
+    <a href="/quotes/new" class="btn-primary"><i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("New quote") }}</span></a>
   </div>
   <div class="drafting mt-4"></div>
 </header>
@@ -42,29 +42,29 @@
   class="card p-4 mb-5 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Status</label>
+    <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Status") }}</label>
     <select id="status" name="status" class="saebooks-input text-sm py-1.5"
             onchange="this.form.requestSubmit()">
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="DRAFT"    {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="SENT"     {% if filter_status == 'SENT' %}selected{% endif %}>Sent</option>
-      <option value="ACCEPTED" {% if filter_status == 'ACCEPTED' %}selected{% endif %}>Accepted</option>
-      <option value="DECLINED" {% if filter_status == 'DECLINED' %}selected{% endif %}>Declined</option>
-      <option value="INVOICED" {% if filter_status == 'INVOICED' %}selected{% endif %}>Invoiced</option>
-      <option value="ARCHIVED" {% if filter_status == 'ARCHIVED' %}selected{% endif %}>Archived</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="DRAFT"    {% if filter_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="SENT"     {% if filter_status == 'SENT' %}selected{% endif %}>{{ _("Sent") }}</option>
+      <option value="ACCEPTED" {% if filter_status == 'ACCEPTED' %}selected{% endif %}>{{ _("Accepted") }}</option>
+      <option value="DECLINED" {% if filter_status == 'DECLINED' %}selected{% endif %}>{{ _("Declined") }}</option>
+      <option value="INVOICED" {% if filter_status == 'INVOICED' %}selected{% endif %}>{{ _("Invoiced") }}</option>
+      <option value="ARCHIVED" {% if filter_status == 'ARCHIVED' %}selected{% endif %}>{{ _("Archived") }}</option>
     </select>
   </div>
 
   <div class="flex-1 min-w-[220px]">
-    <label for="customer_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Customer</label>
+    <label for="customer_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Customer") }}</label>
     <input type="text" id="customer_id" name="customer_id" value="{{ filter_customer_id }}"
-           placeholder="optional" class="saebooks-input num text-sm py-1.5 w-full">
+           placeholder="{{ _('optional') }}" class="saebooks-input num text-sm py-1.5 w-full">
   </div>
 
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
 
-  <button type="submit" class="btn-primary text-sm py-1.5">Filter</button>
+  <button type="submit" class="btn-primary text-sm py-1.5">{{ _("Filter") }}</button>
 </form>
 
 {% include "quotes/_table.html" %}
@@ -76,10 +76,10 @@
      entity="quotes",
      action_endpoint="/quotes/bulk",
      actions=[
-       ("send", "Send", false),
-       ("accept", "Accept", false),
-       ("decline", "Decline", true),
-       ("archive", "Archive", true),
+       ("send", _("Send"), false),
+       ("accept", _("Accept"), false),
+       ("decline", _("Decline"), true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

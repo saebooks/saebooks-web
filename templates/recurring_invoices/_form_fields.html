@@ -26,19 +26,19 @@
 
 {# ── Header details ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Recurring invoice details</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Recurring invoice details") }}</legend>
 
   {# Name #}
   <div>
     <label for="name" class="block text-sm font-medium ink-2 mb-1">
-      Name <span style="color:var(--neg);">*</span>
+      {{ _("Name") }} <span style="color:var(--neg);">*</span>
     </label>
     <input
       type="text"
       id="name"
       name="name"
       value="{{ form.get('name', '') }}"
-      placeholder="e.g. Monthly Retainer — Acme Corp"
+      placeholder="{{ _('e.g. Monthly Retainer — Acme Corp') }}"
       required
       class="saebooks-input w-full text-sm"
       {% if errors.get('name') %}style="border-color:var(--neg);"{% endif %}
@@ -51,7 +51,7 @@
   {# Customer #}
   <div>
     <label for="contact_id" class="block text-sm font-medium ink-2 mb-1">
-      Customer <span style="color:var(--neg);">*</span>
+      {{ _("Customer") }} <span style="color:var(--neg);">*</span>
     </label>
     <select
       id="contact_id"
@@ -60,7 +60,7 @@
       class="saebooks-input w-full text-sm"
       {% if errors.get('contact_id') %}style="border-color:var(--neg);"{% endif %}
     >
-      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>Select customer…</option>
+      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>{{ _("Select customer…") }}</option>
       {% for contact in contacts %}
       <option value="{{ contact.id }}"
         {% if form.get("contact_id") == contact.id %}selected{% endif %}>
@@ -76,13 +76,13 @@
 
 {# ── Schedule ── #}
 <fieldset class="mt-6 space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Schedule</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Schedule") }}</legend>
 
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
     {# Frequency #}
     <div>
       <label for="frequency" class="block text-sm font-medium ink-2 mb-1">
-        Frequency <span style="color:var(--neg);">*</span>
+        {{ _("Frequency") }} <span style="color:var(--neg);">*</span>
       </label>
       <select
         id="frequency"
@@ -91,7 +91,7 @@
         class="saebooks-input w-full text-sm"
         {% if errors.get('frequency') %}style="border-color:var(--neg);"{% endif %}
       >
-        <option value="" disabled {% if not form.get("frequency") %}selected{% endif %}>Select frequency…</option>
+        <option value="" disabled {% if not form.get("frequency") %}selected{% endif %}>{{ _("Select frequency…") }}</option>
         {% for freq in frequencies %}
         <option value="{{ freq }}"
           {% if form.get("frequency") == freq %}selected{% endif %}>
@@ -107,7 +107,7 @@
     {# Next run date #}
     <div>
       <label for="next_run" class="block text-sm font-medium ink-2 mb-1">
-        Next run <span style="color:var(--neg);">*</span>
+        {{ _("Next run") }} <span style="color:var(--neg);">*</span>
       </label>
       <input
         type="date"
@@ -126,7 +126,7 @@
     {# End date (optional) #}
     <div>
       <label for="end_date" class="block text-sm font-medium ink-2 mb-1">
-        End date <span class="ink-3 font-normal">(optional)</span>
+        {{ _("End date") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
       </label>
       <input
         type="date"
@@ -146,7 +146,7 @@
     {# Anchor day (optional) #}
     <div>
       <label for="anchor_day" class="block text-sm font-medium ink-2 mb-1">
-        Anchor day <span class="ink-3 font-normal">(1–31, optional)</span>
+        {{ _("Anchor day") }} <span class="ink-3 font-normal">{{ _("(1–31, optional)") }}</span>
       </label>
       <input
         type="number"
@@ -155,7 +155,7 @@
         value="{{ form.get('anchor_day', '') }}"
         min="1"
         max="31"
-        placeholder="e.g. 1"
+        placeholder="{{ _('e.g. 1') }}"
         class="saebooks-input w-full text-sm"
         {% if errors.get('anchor_day') %}style="border-color:var(--neg);"{% endif %}
       >
@@ -167,7 +167,7 @@
     {# Due days #}
     <div>
       <label for="due_days" class="block text-sm font-medium ink-2 mb-1">
-        Due days <span style="color:var(--neg);">*</span>
+        {{ _("Due days") }} <span style="color:var(--neg);">*</span>
       </label>
       <input
         type="number"
@@ -187,14 +187,14 @@
     {# Payment terms (optional) #}
     <div>
       <label for="payment_terms" class="block text-sm font-medium ink-2 mb-1">
-        Payment terms <span class="ink-3 font-normal">(optional)</span>
+        {{ _("Payment terms") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
       </label>
       <input
         type="text"
         id="payment_terms"
         name="payment_terms"
         value="{{ form.get('payment_terms', '') }}"
-        placeholder="e.g. Net 14"
+        placeholder="{{ _('e.g. Net 14') }}"
         class="saebooks-input w-full text-sm"
         {% if errors.get('payment_terms') %}style="border-color:var(--neg);"{% endif %}
       >
@@ -213,14 +213,14 @@
              focus:ring-2 focus:ring-[#194291]"
     >
     <label for="auto_post" class="text-sm ink-2">
-      Auto-post generated invoices
+      {{ _("Auto-post generated invoices") }}
     </label>
   </div>
 </fieldset>
 
 {# ── Line items ── #}
 <fieldset class="mt-8">
-  <legend class="text-sm font-semibold ink-1 mb-3">Line items</legend>
+  <legend class="text-sm font-semibold ink-1 mb-3">{{ _("Line items") }}</legend>
 
   {# line_count is a hidden input so JS can read the next index to use #}
   <input type="hidden" id="line-count" value="{{ line_count }}">
@@ -229,11 +229,11 @@
     <table class="min-w-full line-items-table text-sm">
       <thead class="bg-[color:var(--paper-2)] hairline-b">
         <tr>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-24">Qty</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">Unit price</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-32">Tax</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-24">{{ _("Qty") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">{{ _("Unit price") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-32">{{ _("Tax") }}</th>
           <th scope="col" class="px-3 py-2 w-10"></th>
         </tr>
       </thead>
@@ -258,19 +258,19 @@
     hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
     onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1"
   >
-    + Add line
+    + {{ _("Add line") }}
   </button>
 </fieldset>
 
 {# ── Notes ── #}
 <div class="mt-6">
-  <label for="notes" class="block text-sm font-medium ink-2 mb-1">Notes</label>
+  <label for="notes" class="block text-sm font-medium ink-2 mb-1">{{ _("Notes") }}</label>
   <textarea
     id="notes"
     name="notes"
     rows="3"
     class="saebooks-input w-full text-sm"
     {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}
-    placeholder="Optional internal notes"
+    placeholder="{{ _('Optional internal notes') }}"
   >{{ form.get("notes", "") }}</textarea>
 </div>

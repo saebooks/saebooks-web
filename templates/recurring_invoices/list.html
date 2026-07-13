@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Recurring Invoices — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Recurring Invoices") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,7 +13,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Recurring Invoices</h1>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Recurring Invoices") }}</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ total }} recurring invoice{{ "s" if total != 1 else "" }}</p>
     {% endif %}
@@ -22,7 +22,7 @@
     href="/recurring-invoices/new"
     class="btn-primary text-sm"
   >
-    New recurring invoice
+    {{ _("New recurring invoice") }}
   </a>
 </div>
 
@@ -35,27 +35,27 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium ink-3 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium ink-3 mb-1">{{ _("Status") }}</label>
     <select
       id="status"
       name="status"
       class="saebooks-input text-sm"
     >
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="ACTIVE" {% if filter_status == 'ACTIVE' %}selected{% endif %}>Active</option>
-      <option value="PAUSED" {% if filter_status == 'PAUSED' %}selected{% endif %}>Paused</option>
-      <option value="ENDED" {% if filter_status == 'ENDED' %}selected{% endif %}>Ended</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="ACTIVE" {% if filter_status == 'ACTIVE' %}selected{% endif %}>{{ _("Active") }}</option>
+      <option value="PAUSED" {% if filter_status == 'PAUSED' %}selected{% endif %}>{{ _("Paused") }}</option>
+      <option value="ENDED" {% if filter_status == 'ENDED' %}selected{% endif %}>{{ _("Ended") }}</option>
     </select>
   </div>
 
   <div>
-    <label for="search" class="block text-xs font-medium ink-3 mb-1">Search</label>
+    <label for="search" class="block text-xs font-medium ink-3 mb-1">{{ _("Search") }}</label>
     <input
       id="search"
       type="text"
       name="search"
       value="{{ filter_search }}"
-      placeholder="Name…"
+      placeholder="{{ _('Name…') }}"
       class="saebooks-input text-sm"
     >
   </div>
@@ -67,7 +67,7 @@
     type="submit"
     class="btn-primary text-sm"
   >
-    Filter
+    {{ _("Filter") }}
   </button>
 </form>
 
@@ -81,9 +81,9 @@
      entity="recurring_invoices",
      action_endpoint="/recurring-invoices/bulk",
      actions=[
-       ("pause", "Pause", false),
-       ("resume", "Resume", false),
-       ("archive", "Archive", true),
+       ("pause", _("Pause"), false),
+       ("resume", _("Resume"), false),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

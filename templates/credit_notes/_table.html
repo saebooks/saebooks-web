@@ -18,16 +18,16 @@
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">CN #</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Date</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Contact</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Applied To</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("CN #") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Contact") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Applied To") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -41,7 +41,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ cn.id }}"
-                   aria-label="Select credit note {{ cn.number or cn.id }}"
+                   aria-label="{{ _('Select credit note %(number)s') % {'number': (cn.number or cn.id)} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
           </td>
@@ -63,9 +63,9 @@
               href="/invoices/{{ cn.original_invoice_id }}"
               class="sae hover:underline"
               onclick="event.stopPropagation()"
-            >INV {{ cn.original_invoice_id[:8] }}…</a>
+            >{{ _("INV") }} {{ cn.original_invoice_id[:8] }}…</a>
             {% else %}
-            <span class="ink-3">Unapplied</span>
+            <span class="ink-3">{{ _("Unapplied") }}</span>
             {% endif %}
           </td>
           <td class="px-4 py-3 text-right ink-1 font-medium tabular-nums">
@@ -80,26 +80,26 @@
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (cn.status or 'draft')|lower %}
             {%- set actions = [
-              ("view", "View", "/credit-notes/" ~ cn.id,       "link", false),
-              ("edit", "Edit", "/credit-notes/" ~ cn.id ~ "/edit", "link", false),
+              ("view", _("View"), "/credit-notes/" ~ cn.id,       "link", false),
+              ("edit", _("Edit"), "/credit-notes/" ~ cn.id ~ "/edit", "link", false),
             ] %}
             {%- if status_lower == 'draft' %}
-              {%- set _ = actions.append(("post",    "Post",    "/credit-notes/" ~ cn.id ~ "/post",    "post", false)) %}
-              {%- set _ = actions.append(("archive", "Archive", "/credit-notes/" ~ cn.id ~ "/archive", "post", true)) %}
+              {%- set _x = actions.append(("post",    _("Post"),    "/credit-notes/" ~ cn.id ~ "/post",    "post", false)) %}
+              {%- set _x = actions.append(("archive", _("Archive"), "/credit-notes/" ~ cn.id ~ "/archive", "post", true)) %}
             {%- elif status_lower == 'posted' %}
-              {%- set _ = actions.append(("void",    "Void",    "/credit-notes/" ~ cn.id ~ "/void",    "post", true)) %}
+              {%- set _x = actions.append(("void",    _("Void"),    "/credit-notes/" ~ cn.id ~ "/void",    "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/credit-notes/" ~ cn.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/credit-notes/" ~ cn.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=cn.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(8, "file-minus", "No credit notes yet",
-                     "Issue a credit note to reverse or reduce an invoice.",
-                     "New credit note", "/credit-notes/new") }}
+        {{ empty.row(8, "file-minus", _("No credit notes yet"),
+                     _("Issue a credit note to reverse or reduce an invoice."),
+                     _("New credit note"), "/credit-notes/new") }}
       {% endif %}
     </tbody>
   </table>

@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}{{ tax_return.return_type }} — Deklaratsioonid — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ tax_return.return_type }} — {{ _("Deklaratsioonid") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 {% macro status_badge(status) -%}
   {%- set s = (status or '')|lower -%}
   {%- if s == 'filed' -%}
-    <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Filed</span>
+    <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">{{ _("Filed") }}</span>
   {%- elif s == 'lodged' or s == 'accepted' -%}
     <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">{{ s|capitalize }}</span>
   {%- elif s == 'rejected' -%}
-    <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">Rejected</span>
+    <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">{{ _("Rejected") }}</span>
   {%- elif s == 'ready' -%}
-    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Ready</span>
+    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">{{ _("Ready") }}</span>
   {%- elif s == 'amended' -%}
-    <span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Amended</span>
+    <span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">{{ _("Amended") }}</span>
   {%- else -%}
     <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ s|capitalize }}</span>
   {%- endif -%}
@@ -45,9 +45,9 @@
   </div>
   <div class="flex items-center gap-3">
     {% if exportable %}
-    <a href="/tax-returns/{{ tax_return.id }}/export" class="btn-secondary text-sm">Download XML</a>
+    <a href="/tax-returns/{{ tax_return.id }}/export" class="btn-secondary text-sm">{{ _("Download XML") }}</a>
     {% endif %}
-    <a href="/tax-returns" class="text-sm sae hover:underline">← Back to Deklaratsioonid</a>
+    <a href="/tax-returns" class="text-sm sae hover:underline">← {{ _("Back to Deklaratsioonid") }}</a>
   </div>
 </div>
 
@@ -55,8 +55,7 @@
 <div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
   <span class="dot" style="background:var(--warm);"></span>
   <span class="text-sm ink-2">
-    No filable document export is wired up for {{ tax_return.jurisdiction }} {{ tax_return.return_type }} yet — file this one
-    through its own channel (e.g. EMTA e-service) and mark it filed below once done.
+    {{ _("No filable document export is wired up for %(jurisdiction)s %(return_type)s yet — file this one through its own channel (e.g. EMTA e-service) and mark it filed below once done.") % {"jurisdiction": tax_return.jurisdiction, "return_type": tax_return.return_type} }}
   </span>
 </div>
 {% endif %}
@@ -64,7 +63,7 @@
 {# ── Data-quality warnings (TSD) — surfaced, never swallowed ── #}
 {% if tsd_errors %}
 <div class="card p-5 mb-6" style="border-color:var(--warm);">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Data-quality warnings</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Data-quality warnings") }}</h2>
   <ul class="space-y-1 text-sm">
     {% for err in tsd_errors %}
     <li class="ink-2">
@@ -79,14 +78,14 @@
 {# ── Figures: box-vector (KMD/BAS/IAS) ── #}
 {% if is_box_vector %}
 <div class="card p-5 mb-6">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Figures</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Figures") }}</h2>
   {% if boxes %}
   <table class="min-w-full divide-[color:var(--line)] divide-y text-sm">
     <thead>
       <tr>
-        <th class="px-2 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Box</th>
-        <th class="px-2 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Label</th>
-        <th class="px-2 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
+        <th class="px-2 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Box") }}</th>
+        <th class="px-2 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Label") }}</th>
+        <th class="px-2 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
       </tr>
     </thead>
     <tbody class="divide-[color:var(--line)] divide-y">
@@ -100,7 +99,7 @@
     </tbody>
   </table>
   {% else %}
-  <p class="text-sm ink-3">No box figures on this return.</p>
+  <p class="text-sm ink-3">{{ _("No box figures on this return.") }}</p>
   {% endif %}
 </div>
 {% endif %}
@@ -108,19 +107,19 @@
 {# ── Figures: TSD (list-shaped) ── #}
 {% if tax_return.return_type == 'TSD' %}
 <div class="card p-5 mb-6">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Main totals</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Main totals") }}</h2>
   {% if tsd_main %}
   <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
-    <div class="flex gap-2"><dt class="ink-3">Employees</dt><dd class="ink-1">{{ tsd_main.employee_count }}</dd></div>
-    <div class="flex gap-2"><dt class="ink-3">Gross</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_gross }}</dd></div>
-    <div class="flex gap-2"><dt class="ink-3">Income tax</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_income_tax }}</dd></div>
-    <div class="flex gap-2"><dt class="ink-3">Unemployment (employee)</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_unemployment_employee }}</dd></div>
-    <div class="flex gap-2"><dt class="ink-3">Unemployment (employer)</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_unemployment_employer }}</dd></div>
-    <div class="flex gap-2"><dt class="ink-3">Social tax</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_social_tax }}</dd></div>
-    <div class="flex gap-2"><dt class="ink-3">Pillar II</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_pillar_ii }}</dd></div>
+    <div class="flex gap-2"><dt class="ink-3">{{ _("Employees") }}</dt><dd class="ink-1">{{ tsd_main.employee_count }}</dd></div>
+    <div class="flex gap-2"><dt class="ink-3">{{ _("Gross") }}</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_gross }}</dd></div>
+    <div class="flex gap-2"><dt class="ink-3">{{ _("Income tax") }}</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_income_tax }}</dd></div>
+    <div class="flex gap-2"><dt class="ink-3">{{ _("Unemployment (employee)") }}</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_unemployment_employee }}</dd></div>
+    <div class="flex gap-2"><dt class="ink-3">{{ _("Unemployment (employer)") }}</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_unemployment_employer }}</dd></div>
+    <div class="flex gap-2"><dt class="ink-3">{{ _("Social tax") }}</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_social_tax }}</dd></div>
+    <div class="flex gap-2"><dt class="ink-3">{{ _("Pillar II") }}</dt><dd class="ink-1 tabular-nums">{{ tsd_main.total_pillar_ii }}</dd></div>
   </dl>
   {% else %}
-  <p class="text-sm ink-3">No main totals on this return.</p>
+  <p class="text-sm ink-3">{{ _("No main totals on this return.") }}</p>
   {% endif %}
   <p class="text-xs ink-3 mt-3">{{ tsd_lisa1_count }} Lisa 1 payment row{{ "s" if tsd_lisa1_count != 1 else "" }}.</p>
 </div>
@@ -129,42 +128,42 @@
 {# ── Lodgement (if lodged via the automated rail) ── #}
 {% if lodgement %}
 <div class="card p-5 mb-6">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Lodgement record</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Lodgement record") }}</h2>
   <dl class="space-y-2 text-sm">
-    <div class="flex gap-2"><dt class="w-36 shrink-0 ink-3">Regulator</dt><dd class="ink-1">{{ lodgement.regulator }}</dd></div>
-    <div class="flex gap-2"><dt class="w-36 shrink-0 ink-3">Reference</dt><dd class="ink-1 font-mono text-xs">{{ lodgement.regulator_reference or '—' }}</dd></div>
-    <div class="flex gap-2"><dt class="w-36 shrink-0 ink-3">Status</dt><dd class="ink-1">{{ lodgement.status }}</dd></div>
-    <div class="flex gap-2"><dt class="w-36 shrink-0 ink-3">Submitted</dt><dd class="ink-1">{{ lodgement.submitted_at or '—' }}</dd></div>
+    <div class="flex gap-2"><dt class="w-36 shrink-0 ink-3">{{ _("Regulator") }}</dt><dd class="ink-1">{{ lodgement.regulator }}</dd></div>
+    <div class="flex gap-2"><dt class="w-36 shrink-0 ink-3">{{ _("Reference") }}</dt><dd class="ink-1 font-mono text-xs">{{ lodgement.regulator_reference or '—' }}</dd></div>
+    <div class="flex gap-2"><dt class="w-36 shrink-0 ink-3">{{ _("Status") }}</dt><dd class="ink-1">{{ lodgement.status }}</dd></div>
+    <div class="flex gap-2"><dt class="w-36 shrink-0 ink-3">{{ _("Submitted") }}</dt><dd class="ink-1">{{ lodgement.submitted_at or '—' }}</dd></div>
   </dl>
 </div>
 {% endif %}
 
 {# ── Mark filed ── #}
 <div class="card p-5 mb-6 max-w-lg">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Filing</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Filing") }}</h2>
   {% if tax_return.status == 'filed' %}
   <p class="text-sm ink-2">
-    Filed{% if tax_return.filed_at %} at {{ tax_return.filed_at }}{% endif %}.
+    {% if tax_return.filed_at %}{{ _("Filed at %(date)s.") % {"date": tax_return.filed_at} }}{% else %}{{ _("Filed.") }}{% endif %}
   </p>
   {% else %}
   <form method="POST" action="/tax-returns/{{ tax_return.id }}/file" class="flex flex-wrap items-end gap-3">
     {{ csrf_input(request)|safe }}
     <div class="flex-1">
-      <label for="reference" class="block text-sm font-medium ink-2 mb-1">Confirmation reference (optional)</label>
-      <input type="text" id="reference" name="reference" class="saebooks-input w-full" placeholder="e.g. EMTA receipt number">
+      <label for="reference" class="block text-sm font-medium ink-2 mb-1">{{ _("Confirmation reference (optional)") }}</label>
+      <input type="text" id="reference" name="reference" class="saebooks-input w-full" placeholder="{{ _('e.g. EMTA receipt number') }}">
     </div>
-    <button type="submit" class="btn-primary text-sm" onclick="return confirm('Mark this return as filed?')">Mark as filed</button>
+    <button type="submit" class="btn-primary text-sm" onclick="return confirm('{{ _('Mark this return as filed?') }}')">{{ _("Mark as filed") }}</button>
   </form>
   {% endif %}
 </div>
 
 {# ── System info ── #}
 <div class="card p-5">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">System Info</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("System Info") }}</h2>
   <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
-    <div class="flex gap-2"><dt class="shrink-0 ink-3">ID</dt><dd class="ink-1 font-mono text-xs">{{ tax_return.id }}</dd></div>
-    <div class="flex gap-2"><dt class="shrink-0 ink-3">Generated</dt><dd class="ink-1">{{ tax_return.generated_at or '—' }}</dd></div>
-    <div class="flex gap-2"><dt class="shrink-0 ink-3">Period ID</dt><dd class="ink-1 font-mono text-xs">{{ tax_return.period_id }}</dd></div>
+    <div class="flex gap-2"><dt class="shrink-0 ink-3">{{ _("ID") }}</dt><dd class="ink-1 font-mono text-xs">{{ tax_return.id }}</dd></div>
+    <div class="flex gap-2"><dt class="shrink-0 ink-3">{{ _("Generated") }}</dt><dd class="ink-1">{{ tax_return.generated_at or '—' }}</dd></div>
+    <div class="flex gap-2"><dt class="shrink-0 ink-3">{{ _("Period ID") }}</dt><dd class="ink-1 font-mono text-xs">{{ tax_return.period_id }}</dd></div>
   </dl>
 </div>
 

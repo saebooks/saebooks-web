@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Credit Note — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Cannot Edit Credit Note") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">Cannot Edit Credit Note</h1>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Cannot Edit Credit Note") }}</h1>
   {% if credit_note %}
-  <a href="/credit-notes/{{ credit_note.id }}" class="text-sm sae hover:underline">← Back to credit note</a>
+  <a href="/credit-notes/{{ credit_note.id }}" class="text-sm sae hover:underline">← {{ _("Back to credit note") }}</a>
   {% else %}
-  <a href="/credit-notes" class="text-sm sae hover:underline">← Back to credit notes</a>
+  <a href="/credit-notes" class="text-sm sae hover:underline">← {{ _("Back to credit notes") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 text-sm ink-2 max-w-xl" style="border-color:var(--warm);">
   <p class="font-semibold mb-2">
-    This credit note is {{ credit_note.status | capitalize }} and cannot be edited.
+    {{ _("This credit note is %(status)s and cannot be edited.") % {"status": credit_note.status|capitalize} }}
   </p>
   <p>
-    Void and recreate if changes are needed.
+    {{ _("Void and recreate if changes are needed.") }}
   </p>
 </div>
 

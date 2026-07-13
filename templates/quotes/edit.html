@@ -1,27 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Quote — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Edit Quote") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-5 flex items-center gap-3">
   {% if quote %}
-  <a href="/quotes/{{ quote.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← quote</a>
+  <a href="/quotes/{{ quote.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("quote") }}</a>
   {% else %}
-  <a href="/quotes" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← quotes</a>
+  <a href="/quotes" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("quotes") }}</a>
   {% endif %}
   <span class="ink-4">/</span>
-  <h1 class="font-display text-xl ink-1">Edit quote</h1>
+  <h1 class="font-display text-xl ink-1">{{ _("Edit quote") }}</h1>
 </div>
 
 {% if conflict %}
 <div class="card p-3 mb-5 flex items-start gap-3" style="border-color:var(--warm);">
   <span class="dot mt-1.5" style="background:var(--warm);"></span>
   <div class="text-sm ink-2 flex-1">
-    <p class="font-semibold ink-1 mb-1">Someone else updated this quote.</p>
+    <p class="font-semibold ink-1 mb-1">{{ _("Someone else updated this quote.") }}</p>
     <p>
-      Your changes are preserved below — the version has been bumped to the server's current value.
-      Review and save again.
+      {{ _("Your changes are preserved below — the version has been bumped to the server's current value. Review and save again.") }}
     </p>
   </div>
 </div>
@@ -36,8 +35,8 @@
     {% include "quotes/_form_fields.html" %}
 
     <div class="mt-7 hairline pt-5 flex items-center gap-3">
-      <button type="submit" class="btn-primary">Save changes</button>
-      <a href="/quotes/{{ quote.id if quote else '' }}" class="btn-secondary">Cancel</a>
+      <button type="submit" class="btn-primary">{{ _("Save changes") }}</button>
+      <a href="/quotes/{{ quote.id if quote else '' }}" class="btn-secondary">{{ _("Cancel") }}</a>
     </div>
   </form>
 </div>

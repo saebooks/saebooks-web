@@ -36,19 +36,15 @@
 
 {# ── GST registration change guidance ── #}
 <div class="card p-3 mb-6 text-sm ink-2" style="border-color:var(--sae);">
-  <p class="font-semibold mb-1 ink-1">When to issue a credit note</p>
-  <p class="mb-1">A credit note reverses an earlier invoice. Common scenarios:</p>
+  <p class="font-semibold mb-1 ink-1">{{ _("When to issue a credit note") }}</p>
+  <p class="mb-1">{{ _("A credit note reverses an earlier invoice. Common scenarios:") }}</p>
   <ul class="list-disc list-inside space-y-0.5 mb-2">
-    <li><strong>GST registration change</strong> — You recently registered for GST. Invoices issued before
-      registration were GST-free. Issue a credit note for each affected invoice, then re-issue a new
-      invoice with GST applied. Link each credit note to its original invoice using the field below.</li>
-    <li><strong>Return of goods</strong> — Customer returned items; credit reduces the amount owed.</li>
-    <li><strong>Error correction</strong> — Fix an overcharge, wrong quantity, or wrong price.</li>
-    <li><strong>Manufacturer hold-back / rebate</strong> — Post-sale rebate or hold-back received from a
-      manufacturer or supplier. Select a <em>Cost of Sales</em> account on the line; the posting reduces
-      COGS rather than inflating income (BAS G8 adjustment, not G1).</li>
+    <li><strong>{{ _("GST registration change") }}</strong> — {{ _("You recently registered for GST. Invoices issued before registration were GST-free. Issue a credit note for each affected invoice, then re-issue a new invoice with GST applied. Link each credit note to its original invoice using the field below.") }}</li>
+    <li><strong>{{ _("Return of goods") }}</strong> — {{ _("Customer returned items; credit reduces the amount owed.") }}</li>
+    <li><strong>{{ _("Error correction") }}</strong> — {{ _("Fix an overcharge, wrong quantity, or wrong price.") }}</li>
+    <li><strong>{{ _("Manufacturer hold-back / rebate") }}</strong> — {{ _("Post-sale rebate or hold-back received from a manufacturer or supplier. Select a") }} <em>{{ _("Cost of Sales") }}</em> {{ _("account on the line; the posting reduces COGS rather than inflating income (BAS G8 adjustment, not G1).") }}</li>
   </ul>
-  <p>Select the appropriate reason code below so the credit note is documented correctly for BAS purposes.</p>
+  <p>{{ _("Select the appropriate reason code below so the credit note is documented correctly for BAS purposes.") }}</p>
 </div>
 
 {# ── Hidden idempotency key ── #}
@@ -56,12 +52,12 @@
 
 {# ── Header details ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Credit note details</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Credit note details") }}</legend>
 
   {# Customer #}
   <div>
     <label for="contact_id" class="block text-sm font-medium ink-2 mb-1">
-      Customer <span style="color:var(--neg);">*</span>
+      {{ _("Customer") }} <span style="color:var(--neg);">*</span>
     </label>
     <select
       id="contact_id"
@@ -70,7 +66,7 @@
       class="saebooks-input w-full"
       {% if errors.get('contact_id') %}style="border-color:var(--neg);"{% endif %}
     >
-      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>Select customer…</option>
+      <option value="" disabled {% if not form.get("contact_id") %}selected{% endif %}>{{ _("Select customer…") }}</option>
       {% for contact in contacts %}
       <option value="{{ contact.id }}"
         {% if form.get("contact_id") == contact.id %}selected{% endif %}>
@@ -87,7 +83,7 @@
     {# Issue date #}
     <div>
       <label for="issue_date" class="block text-sm font-medium ink-2 mb-1">
-        Issue date <span style="color:var(--neg);">*</span>
+        {{ _("Issue date") }} <span style="color:var(--neg);">*</span>
       </label>
       <input
         type="date"
@@ -106,14 +102,14 @@
     {# Original invoice ID (optional) #}
     <div>
       <label for="original_invoice_id" class="block text-sm font-medium ink-2 mb-1">
-        Original invoice ID <span class="ink-3 font-normal">(optional)</span>
+        {{ _("Original invoice ID") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
       </label>
       <input
         type="text"
         id="original_invoice_id"
         name="original_invoice_id"
         value="{{ form.get('original_invoice_id', '') }}"
-        placeholder="UUID of invoice being credited"
+        placeholder="{{ _('UUID of invoice being credited') }}"
         class="saebooks-input w-full"
         {% if errors.get('original_invoice_id') %}style="border-color:var(--neg);"{% endif %}
       >
@@ -126,7 +122,7 @@
   {# Reason code (structured dropdown — value submitted as `reason`) #}
   <div>
     <label for="reason" class="block text-sm font-medium ink-2 mb-1">
-      Reason code <span class="ink-3 font-normal">(optional)</span>
+      {{ _("Reason code") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
     </label>
     <select
       id="reason"
@@ -134,31 +130,34 @@
       class="saebooks-input w-full"
       {% if errors.get('reason') %}style="border-color:var(--neg);"{% endif %}
     >
-      <option value="" {% if not form.get('reason') %}selected{% endif %}>— Select reason —</option>
+      <option value="" {% if not form.get('reason') %}selected{% endif %}>— {{ _("Select reason") }} —</option>
+      {# Values are the literal, canonical (English) reason codes stored on the
+         record and compared elsewhere (e.g. credit_notes/detail.html); only
+         the displayed label is translated. #}
       {% set _reason_codes = [
-        "Return of goods",
-        "Change of terms",
-        "GST registration change",
-        "Manufacturer hold-back / rebate",
-        "Error correction",
-        "Other",
+        ("Return of goods", _("Return of goods")),
+        ("Change of terms", _("Change of terms")),
+        ("GST registration change", _("GST registration change")),
+        ("Manufacturer hold-back / rebate", _("Manufacturer hold-back / rebate")),
+        ("Error correction", _("Error correction")),
+        ("Other", _("Other")),
       ] %}
-      {% for code in _reason_codes %}
-      <option value="{{ code }}" {% if form.get('reason') == code %}selected{% endif %}>{{ code }}</option>
+      {% for code, label in _reason_codes %}
+      <option value="{{ code }}" {% if form.get('reason') == code %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
     {% if errors.get("reason") %}
     <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["reason"] }}</p>
     {% endif %}
     <p class="mt-1 text-xs ink-3">
-      Choose <strong>GST registration change</strong> when crediting pre-registration invoices that need to be re-issued with GST.
+      {{ (_("Choose %(term)s when crediting pre-registration invoices that need to be re-issued with GST.") % {"term": "<strong>" ~ _("GST registration change") ~ "</strong>"}) | safe }}
     </p>
   </div>
 </fieldset>
 
 {# ── Line items ── #}
 <fieldset class="mt-8">
-  <legend class="text-sm font-semibold ink-1 mb-3">Line items</legend>
+  <legend class="text-sm font-semibold ink-1 mb-3">{{ _("Line items") }}</legend>
 
   {# line_count is a hidden input so JS can read the next index to use #}
   <input type="hidden" id="line-count" value="{{ line_count }}">
@@ -167,11 +166,11 @@
     <table class="min-w-full line-items-table text-sm">
       <thead class="bg-[color:var(--paper-2)] border-b hairline">
         <tr>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-24">Qty</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">Unit price</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-32">Tax</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-24">{{ _("Qty") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">{{ _("Unit price") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-32">{{ _("Tax") }}</th>
           <th scope="col" class="px-3 py-2 w-10"></th>
         </tr>
       </thead>
@@ -196,19 +195,19 @@
     hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
     onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1"
   >
-    + Add line
+    + {{ _("Add line") }}
   </button>
 </fieldset>
 
 {# ── Notes ── #}
 <div class="mt-6">
-  <label for="notes" class="block text-sm font-medium ink-2 mb-1">Notes</label>
+  <label for="notes" class="block text-sm font-medium ink-2 mb-1">{{ _("Notes") }}</label>
   <textarea
     id="notes"
     name="notes"
     rows="3"
     class="saebooks-input w-full"
     {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}
-    placeholder="Optional notes"
+    placeholder="{{ _('Optional notes') }}"
   >{{ form.get("notes", "") }}</textarea>
 </div>
