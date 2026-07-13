@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Bad-debt recovery? — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Bad-debt recovery?") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <header class="mb-6">
   <div class="flex items-center gap-2 mb-1">
-    <span class="nav-section-label">Sales</span>
+    <span class="nav-section-label">{{ _("Sales") }}</span>
     <span class="reg-mark"></span>
-    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Bad-debt recovery</span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Bad-debt recovery") }}</span>
   </div>
   <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
     <i data-lucide="rotate-ccw" class="w-7 h-7 ink-3" aria-hidden="true"></i>
-    <span>Treat this receipt as a bad-debt recovery?</span>
+    <span>{{ _("Treat this receipt as a bad-debt recovery?") }}</span>
   </h1>
   <div class="drafting mt-4"></div>
 </header>
@@ -20,9 +20,7 @@
 <div class="card p-4 mb-4" style="border-color:var(--warm);">
   <p class="text-sm ink-2">
     This payer has {{ written_off|length }} written-off invoice{{ "s" if written_off|length != 1 else "" }}.
-    A receipt of <strong>${{ amount }}</strong> just came in. If it's money recovered against a
-    debt you'd already written off, record it as a bad-debt recovery — the engine posts it to
-    <em>Bad Debt Recovery</em> income (no GST). Otherwise dismiss and keep the receipt as a normal payment.
+    {{ (_("A receipt of %(amount)s just came in. If it's money recovered against a debt you'd already written off, record it as a bad-debt recovery — the engine posts it to %(account)s income (no GST). Otherwise dismiss and keep the receipt as a normal payment.") % {"amount": "<strong>$" ~ amount ~ "</strong>", "account": "<em>" ~ _("Bad Debt Recovery") ~ "</em>"}) | safe }}
   </p>
 </div>
 
@@ -30,10 +28,10 @@
   <table class="w-full text-sm">
     <thead>
       <tr class="text-left ink-3 border-b border-[var(--line)]">
-        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider">Invoice</th>
-        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider">Issued</th>
-        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-right">Original total</th>
-        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-right">Recover</th>
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider">{{ _("Invoice") }}</th>
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider">{{ _("Issued") }}</th>
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-right">{{ _("Original total") }}</th>
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-right">{{ _("Recover") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -53,7 +51,7 @@
             <input type="hidden" name="contact_id" value="{{ contact_id }}">
             <input type="hidden" name="recovery_date" value="{{ recovery_date }}">
             <button type="submit" class="btn-primary">
-              <i data-lucide="check" class="w-4 h-4" aria-hidden="true"></i><span>Recover ${{ amount }}</span>
+              <i data-lucide="check" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("Recover $%(amount)s") % {"amount": amount} }}</span>
             </button>
           </form>
         </td>
@@ -65,7 +63,7 @@
 
 <div class="flex items-center gap-3">
   <a href="{% if payment_id %}/payments/{{ payment_id }}{% else %}/payments{% endif %}" class="btn-secondary">
-    <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i><span>No — keep as a normal payment</span>
+    <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("No — keep as a normal payment") }}</span>
   </a>
 </div>
 

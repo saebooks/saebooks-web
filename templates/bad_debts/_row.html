@@ -17,12 +17,12 @@
       hx-post="/bad-debts/{{ inv.id }}/write-off"
       hx-target="#bad-debt-row-{{ inv.id }}"
       hx-swap="outerHTML"
-      hx-confirm="Write off {{ inv.number or 'this invoice' }} (${{ '%.2f'|format(inv._balance) }}) as a bad debt? The engine reclaims GST and settles the invoice."
+      hx-confirm="{{ _('Write off %(number)s ($%(balance)s) as a bad debt? The engine reclaims GST and settles the invoice.') % {'number': (inv.number or _('this invoice')), 'balance': '%.2f'|format(inv._balance)} }}"
       class="inline"
     >
       {{ csrf_input(request) }}
       <button type="submit" class="btn-danger-sm">
-        <i data-lucide="file-x" class="w-3.5 h-3.5" aria-hidden="true"></i><span>Write off</span>
+        <i data-lucide="file-x" class="w-3.5 h-3.5" aria-hidden="true"></i><span>{{ _("Write off") }}</span>
       </button>
     </form>
   </td>
