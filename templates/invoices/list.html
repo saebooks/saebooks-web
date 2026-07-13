@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Invoices — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Invoices") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,15 +13,15 @@
 
 <header class="mb-6">
   <div class="flex items-center gap-2 mb-1">
-    <span class="nav-section-label">Sales</span>
+    <span class="nav-section-label">{{ _("Sales") }}</span>
     <span class="reg-mark"></span>
-    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Invoices</span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Invoices") }}</span>
   </div>
   <div class="flex items-end justify-between gap-4">
     <div>
       <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="file-text" class="w-7 h-7 ink-3" aria-hidden="true"></i>
-        <span>Invoices</span>
+        <span>{{ _("Invoices") }}</span>
       </h1>
       {% if not error %}
       <p class="mt-2 text-sm ink-3 font-mono">
@@ -29,7 +29,7 @@
       </p>
       {% endif %}
     </div>
-    <a href="/invoices/new" class="btn-primary"><i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i><span>New invoice</span></a>
+    <a href="/invoices/new" class="btn-primary"><i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("New invoice") }}</span></a>
   </div>
   <div class="drafting mt-4"></div>
 </header>
@@ -43,33 +43,33 @@
   class="card p-4 mb-5 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Status</label>
+    <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Status") }}</label>
     <select id="status" name="status" class="saebooks-input text-sm py-1.5"
             onchange="this.form.requestSubmit()">
-      <option value=""         {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="draft"    {% if filter_status == 'draft' %}selected{% endif %}>Draft</option>
-      <option value="open"     {% if filter_status == 'open' %}selected{% endif %}>Open</option>
-      <option value="due-soon" {% if filter_status == 'due-soon' %}selected{% endif %}>Due soon</option>
-      <option value="overdue"  {% if filter_status == 'overdue' %}selected{% endif %}>Overdue</option>
-      <option value="partial"  {% if filter_status == 'partial' %}selected{% endif %}>Partial</option>
-      <option value="paid"     {% if filter_status == 'paid' %}selected{% endif %}>Paid</option>
-      <option value="voided"   {% if filter_status == 'voided' %}selected{% endif %}>Voided</option>
+      <option value=""         {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="draft"    {% if filter_status == 'draft' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="open"     {% if filter_status == 'open' %}selected{% endif %}>{{ _("Open") }}</option>
+      <option value="due-soon" {% if filter_status == 'due-soon' %}selected{% endif %}>{{ _("Due soon") }}</option>
+      <option value="overdue"  {% if filter_status == 'overdue' %}selected{% endif %}>{{ _("Overdue") }}</option>
+      <option value="partial"  {% if filter_status == 'partial' %}selected{% endif %}>{{ _("Partial") }}</option>
+      <option value="paid"     {% if filter_status == 'paid' %}selected{% endif %}>{{ _("Paid") }}</option>
+      <option value="voided"   {% if filter_status == 'voided' %}selected{% endif %}>{{ _("Voided") }}</option>
     </select>
   </div>
 
   <div>
-    <label for="date_from" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">From</label>
+    <label for="date_from" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From") }}</label>
     <input type="date" id="date_from" name="date_from" value="{{ filter_date_from }}" class="saebooks-input num text-sm py-1.5">
   </div>
 
   <div>
-    <label for="date_to" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">To</label>
+    <label for="date_to" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("To") }}</label>
     <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}" class="saebooks-input num text-sm py-1.5">
   </div>
 
   <div class="flex-1 min-w-[220px]">
-    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Contact UUID</label>
-    <input type="text" id="contact_id" name="contact_id" value="{{ filter_contact_id }}" placeholder="optional" class="saebooks-input num text-sm py-1.5 w-full">
+    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Contact UUID") }}</label>
+    <input type="text" id="contact_id" name="contact_id" value="{{ filter_contact_id }}" placeholder="{{ _('optional') }}" class="saebooks-input num text-sm py-1.5 w-full">
   </div>
 
   <div class="self-center pb-1">
@@ -77,14 +77,14 @@
       <input type="checkbox" name="flagged" value="true" {% if filter_flagged %}checked{% endif %}
         onchange="this.form.requestSubmit()"
         class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
-      Flagged only
+      {{ _("Flagged only") }}
     </label>
   </div>
 
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
 
-  <button type="submit" class="btn-primary text-sm py-1.5">Filter</button>
+  <button type="submit" class="btn-primary text-sm py-1.5">{{ _("Filter") }}</button>
 </form>
 
 {# Table fragment — HTMX replaces this div on filter/pagination #}
@@ -96,11 +96,11 @@
      entity="invoices",
      action_endpoint="/invoices/bulk",
      actions=[
-       ("post",      "Post",      false),
-       ("send",      "Send",      false),
-       ("mark_paid", "Mark Paid", false),
-       ("void",      "Void",      true),
-       ("delete",    "Delete",    true),
+       ("post",      _("Post"),      false),
+       ("send",      _("Send"),      false),
+       ("mark_paid", _("Mark Paid"), false),
+       ("void",      _("Void"),      true),
+       ("delete",    _("Delete"),    true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

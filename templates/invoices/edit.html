@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if invoice %}Edit Invoice {{ invoice.number or invoice.id }} — {{ current_brand().name }}{% else %}Edit Invoice — {{ current_brand().name }}{% endif %}
+  {% if invoice %}{{ _("Edit Invoice %(number)s") % {"number": invoice.number or invoice.id} }} — {{ current_brand().name }}{% else %}{{ _("Edit Invoice") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
 
 <div class="mb-5 flex items-center gap-3">
   {% if invoice %}
-  <a href="/invoices/{{ invoice.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← invoice</a>
+  <a href="/invoices/{{ invoice.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("invoice") }}</a>
   {% else %}
-  <a href="/invoices" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← invoices</a>
+  <a href="/invoices" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("invoices") }}</a>
   {% endif %}
   <span class="ink-4">/</span>
   <h1 class="font-display text-xl ink-1">
-    {% if invoice %}Edit invoice {{ invoice.number or "—" }}{% else %}Edit invoice{% endif %}
+    {% if invoice %}{{ _("Edit invoice %(number)s") % {"number": invoice.number or "—"} }}{% else %}{{ _("Edit invoice") }}{% endif %}
   </h1>
 </div>
 
@@ -24,15 +24,13 @@
   <div class="flex items-start gap-3">
     <span class="dot mt-1.5" style="background:var(--warm);"></span>
     <div class="text-sm ink-2 flex-1">
-      <p class="font-semibold ink-1 mb-1">Someone else updated this invoice.</p>
+      <p class="font-semibold ink-1 mb-1">{{ _("Someone else updated this invoice.") }}</p>
       <p>
-        The form below now shows <strong class="ink-1">your submitted values</strong> with the server's current version
-        number applied — so your next save will use the correct base.
-        If you want to start fresh from the server's current state instead,
+        {{ _("The form below now shows") }} <strong class="ink-1">{{ _("your submitted values") }}</strong> {{ _("with the server's current version number applied — so your next save will use the correct base. If you want to start fresh from the server's current state instead,") }}
         {% if invoice %}
-        <a href="/invoices/{{ invoice.id }}/edit" class="sae hover:underline">reload the server version</a>.
+        <a href="/invoices/{{ invoice.id }}/edit" class="sae hover:underline">{{ _("reload the server version") }}</a>.
         {% else %}
-        reload the page.
+        {{ _("reload the page.") }}
         {% endif %}
       </p>
     </div>
@@ -54,11 +52,11 @@
     {% include "invoices/_form_fields.html" %}
 
     <div class="mt-7 hairline pt-5 flex items-center gap-3">
-      <button type="submit" class="btn-primary">Save changes</button>
+      <button type="submit" class="btn-primary">{{ _("Save changes") }}</button>
       {% if invoice %}
-      <a href="/invoices/{{ invoice.id }}" class="btn-secondary">Cancel</a>
+      <a href="/invoices/{{ invoice.id }}" class="btn-secondary">{{ _("Cancel") }}</a>
       {% else %}
-      <a href="/invoices" class="btn-secondary">Cancel</a>
+      <a href="/invoices" class="btn-secondary">{{ _("Cancel") }}</a>
       {% endif %}
     </div>
   </form>

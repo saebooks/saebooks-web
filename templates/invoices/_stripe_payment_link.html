@@ -17,7 +17,7 @@
   </span>
   <button type="button"
           onclick="navigator.clipboard.writeText('{{ stripe_payment_link }}').then(() => { this.textContent = 'Copied!'; setTimeout(() => { this.textContent = 'Copy link'; }, 2000); })"
-          class="btn-primary text-sm py-1.5">Copy link</button>
+          class="btn-primary text-sm py-1.5">{{ _("Copy link") }}</button>
 </div>
 
 {% else %}
@@ -26,6 +26,6 @@
           hx-post="/invoices/{{ invoice_id }}/stripe-payment-link"
           hx-target="#stripe-payment-link-area"
           hx-swap="outerHTML"
-          class="btn-primary text-sm">Send payment link</button>
+          class="btn-primary text-sm">{{ _("Send payment link") }}</button>
 </div>
 {% endif %}

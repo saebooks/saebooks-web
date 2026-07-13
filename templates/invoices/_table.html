@@ -23,17 +23,17 @@
     <thead>
       <tr>
         <th class="w-8 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th class="text-left">{{ srt.sort_link('number',     'Number',  sort, direction, filters) }}</th>
-        <th class="text-left">{{ srt.sort_link('issue_date', 'Date',    sort, direction, filters) }}</th>
-        <th class="text-left">{{ srt.sort_link('due_date',   'Due',     sort, direction, filters) }}</th>
-        <th class="text-left">{{ srt.sort_link('contact_id', 'Contact', sort, direction, filters) }}</th>
-        <th class="text-right">{{ srt.sort_link('total',     'Total',   sort, direction, filters) }}</th>
-        <th class="text-left">{{ srt.sort_link('status',    'Status',  sort, direction, filters) }}</th>
-        <th class="w-8 text-center" title="Flag for review"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
+        <th class="text-left">{{ srt.sort_link('number',     _('Number'),  sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('issue_date', _('Date'),    sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('due_date',   _('Due'),     sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('contact_id', _('Contact'), sort, direction, filters) }}</th>
+        <th class="text-right">{{ srt.sort_link('total',     _('Total'),   sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('status',    _('Status'),  sort, direction, filters) }}</th>
+        <th class="w-8 text-center" title="{{ _('Flag for review') }}"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
         <th class="w-8"></th>{# kebab column header — intentionally empty #}
       </tr>
     </thead>
@@ -43,7 +43,7 @@
         <tr class="hover:bg-paper-2" data-status="{{ (inv.status or 'draft')|lower }}">
           <td class="text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ inv.id }}"
-                   aria-label="Select invoice {{ inv.number or inv.id }}"
+                   aria-label="{{ _('Select invoice %(number)s') % {'number': (inv.number or inv.id)} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -70,22 +70,22 @@
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (inv.status or 'draft')|lower %}
             {%- set actions = [
-              ("view",      "View",      "/invoices/" ~ inv.id,              "link",  false),
-              ("edit",      "Edit",      "/invoices/" ~ inv.id ~ "/edit",     "link",  false),
-              ("duplicate", "Duplicate", "/invoices/" ~ inv.id ~ "/duplicate","post",  false),
+              ("view",      _("View"),      "/invoices/" ~ inv.id,              "link",  false),
+              ("edit",      _("Edit"),      "/invoices/" ~ inv.id ~ "/edit",     "link",  false),
+              ("duplicate", _("Duplicate"), "/invoices/" ~ inv.id ~ "/duplicate","post",  false),
             ] %}
             {%- if status_lower == 'draft' %}
-              {%- set _ = actions.append(("post", "Post", "/invoices/" ~ inv.id ~ "/post", "post", false)) %}
+              {%- set _x = actions.append(("post", _("Post"), "/invoices/" ~ inv.id ~ "/post", "post", false)) %}
             {%- elif status_lower == 'posted' %}
-              {%- set _ = actions.append(("send",     "Send",     "/invoices/" ~ inv.id ~ "/send",     "post", false)) %}
-              {%- set _ = actions.append(("mark_paid","Mark Paid","/invoices/" ~ inv.id ~ "/mark-paid","post", false)) %}
-              {%- set _ = actions.append(("void",     "Void",     "/invoices/" ~ inv.id ~ "/void",     "post", true)) %}
+              {%- set _x = actions.append(("send",     _("Send"),     "/invoices/" ~ inv.id ~ "/send",     "post", false)) %}
+              {%- set _x = actions.append(("mark_paid",_("Mark Paid"),"/invoices/" ~ inv.id ~ "/mark-paid","post", false)) %}
+              {%- set _x = actions.append(("void",     _("Void"),     "/invoices/" ~ inv.id ~ "/void",     "post", true)) %}
             {%- endif %}
             {%- if status_lower != 'voided' %}
-              {%- set _ = actions.append(("archive", "Archive", "/invoices/" ~ inv.id ~ "/archive", "post", true)) %}
+              {%- set _x = actions.append(("archive", _("Archive"), "/invoices/" ~ inv.id ~ "/archive", "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/invoices/" ~ inv.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/invoices/" ~ inv.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=inv.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -93,12 +93,12 @@
         {% endfor %}
       {% else %}
         {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to and not filter_flagged %}
-        {{ empty.row(9, "inbox", "No invoices yet",
-                     "Bill your first customer to start the ledger.",
-                     "New invoice", "/invoices/new") }}
+        {{ empty.row(9, "inbox", _("No invoices yet"),
+                     _("Bill your first customer to start the ledger."),
+                     _("New invoice"), "/invoices/new") }}
         {% else %}
-        {{ empty.row(9, "search-x", "No invoices match these filters",
-                     "Try clearing the filters above.") }}
+        {{ empty.row(9, "search-x", _("No invoices match these filters"),
+                     _("Try clearing the filters above.")) }}
         {% endif %}
       {% endif %}
     </tbody>

@@ -15,25 +15,25 @@
 
 {# ── Header details ── #}
 <fieldset class="space-y-4">
-  <legend class="nav-section-label mb-3">Invoice details</legend>
+  <legend class="nav-section-label mb-3">{{ _("Invoice details") }}</legend>
 
   {# Customer — picker OR one-off inline name. Styling matches master's
      saebooks-input chrome; behaviour adds the one-off toggle from feat. #}
   <div data-customer-picker>
     <div class="flex items-center justify-between mb-1">
       <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block">
-        Customer <span style="color:var(--neg);">*</span>
+        {{ _("Customer") }} <span style="color:var(--neg);">*</span>
       </label>
       <label class="inline-flex items-center gap-1.5 text-xs ink-3 cursor-pointer">
         <input type="checkbox" id="one_off_toggle" name="one_off_toggle" value="on"
                {% if form.get("one_off_toggle") in ("on", True, "true", "True") or form.get("one_off_name") %}checked{% endif %}
                class="h-3.5 w-3.5 rounded">
-        One-off customer
+        {{ _("One-off customer") }}
       </label>
     </div>
     <select id="contact_id" name="contact_id" data-customer-select class="saebooks-input"
             {% if errors.get('contact_id') %}style="border-color:var(--neg);background:rgba(161,67,51,0.04);"{% endif %}>
-      <option value="" {% if not form.get("contact_id") %}selected{% endif %}>Select customer…</option>
+      <option value="" {% if not form.get("contact_id") %}selected{% endif %}>{{ _("Select customer…") }}</option>
       {% for contact in contacts %}
       <option value="{{ contact.id }}" {% if form.get("contact_id") == contact.id %}selected{% endif %}>
         {{ contact.name }}
@@ -42,12 +42,12 @@
     </select>
     <input type="text" id="one_off_name" name="one_off_name"
            value="{{ form.get('one_off_name', '') }}"
-           placeholder="One-off customer name (e.g. walk-in, cash sale)"
+           placeholder="{{ _('One-off customer name (e.g. walk-in, cash sale)') }}"
            data-customer-oneoff
            class="hidden saebooks-input"
            style="border-color: var(--warm); background: rgba(234,179,8,0.05);">
     <p data-customer-oneoff-hint class="hidden mt-1 text-xs" style="color: var(--warm);">
-      A new <em>one-off</em> contact will be created and hidden from your main /contacts list.
+      {{ (_("A new %(term)s contact will be created and hidden from your main /contacts list.") % {"term": "<em>" ~ _("one-off") ~ "</em>"}) | safe }}
     </p>
     {% if errors.get("contact_id") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["contact_id"] }}</p>{% endif %}
     {% if errors.get("one_off_name") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["one_off_name"] }}</p>{% endif %}
@@ -86,10 +86,10 @@
     {# Invoice number (optional — API auto-numbers) #}
     <div>
       <label for="number" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Number <span class="ink-4 font-normal normal-case">(optional)</span>
+        {{ _("Number") }} <span class="ink-4 font-normal normal-case">{{ _("(optional)") }}</span>
       </label>
       <input type="text" id="number" name="number" value="{{ form.get('number', '') }}"
-             placeholder="Auto-assigned if blank" class="saebooks-input num"
+             placeholder="{{ _('Auto-assigned if blank') }}" class="saebooks-input num"
              {% if errors.get('number') %}style="border-color:var(--neg);"{% endif %}>
       {% if errors.get("number") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["number"] }}</p>{% endif %}
     </div>
@@ -97,7 +97,7 @@
     {# Issue date #}
     <div>
       <label for="issue_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Issue date <span style="color:var(--neg);">*</span>
+        {{ _("Issue date") }} <span style="color:var(--neg);">*</span>
       </label>
       <input type="date" id="issue_date" name="issue_date" value="{{ form.get('issue_date', '') }}"
              required class="saebooks-input num"
@@ -108,7 +108,7 @@
     {# Due date #}
     <div>
       <label for="due_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        Due date <span style="color:var(--neg);">*</span>
+        {{ _("Due date") }} <span style="color:var(--neg);">*</span>
       </label>
       <input type="date" id="due_date" name="due_date" value="{{ form.get('due_date', '') }}"
              required class="saebooks-input num"
@@ -120,17 +120,17 @@
   {# Payment terms (optional) #}
   <div>
     <label for="payment_terms" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      Payment terms <span class="ink-4 font-normal normal-case">(optional)</span>
+      {{ _("Payment terms") }} <span class="ink-4 font-normal normal-case">{{ _("(optional)") }}</span>
     </label>
     <input type="text" id="payment_terms" name="payment_terms" value="{{ form.get('payment_terms', '') }}"
-           placeholder="e.g. Net 30" class="saebooks-input sm:w-56"
+           placeholder="{{ _('e.g. Net 30') }}" class="saebooks-input sm:w-56"
            {% if errors.get('payment_terms') %}style="border-color:var(--neg);"{% endif %}>
   </div>
 </fieldset>
 
 {# ── Line items ── #}
 <fieldset class="mt-7">
-  <legend class="nav-section-label mb-3">Line items</legend>
+  <legend class="nav-section-label mb-3">{{ _("Line items") }}</legend>
 
   <input type="hidden" id="line-count" value="{{ line_count }}">
 
@@ -138,13 +138,13 @@
     <table class="sae-table line-items-table w-full text-sm">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
-          <th class="text-left">Description</th>
-          <th class="text-right w-24">Qty</th>
-          <th class="text-right w-28">Unit price</th>
-          <th class="text-left w-32">Tax</th>
-          <th class="text-left w-36">Project</th>
-          <th class="text-right w-28">Acq. cost</th>
+          <th class="text-left">{{ _("Account") }}</th>
+          <th class="text-left">{{ _("Description") }}</th>
+          <th class="text-right w-24">{{ _("Qty") }}</th>
+          <th class="text-right w-28">{{ _("Unit price") }}</th>
+          <th class="text-left w-32">{{ _("Tax") }}</th>
+          <th class="text-left w-36">{{ _("Project") }}</th>
+          <th class="text-right w-28">{{ _("Acq. cost") }}</th>
           <th class="w-10"></th>
         </tr>
       </thead>
@@ -165,14 +165,14 @@
           hx-include="#line-count"
           hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
           onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1">
-    + Add line
+    + {{ _("Add line") }}
   </button>
 </fieldset>
 
 {# ── Notes ── #}
 <div class="mt-7">
-  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Notes</label>
+  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Notes") }}</label>
   <textarea id="notes" name="notes" rows="3" class="saebooks-input"
-            placeholder="Optional notes visible on the invoice"
+            placeholder="{{ _('Optional notes visible on the invoice') }}"
             {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("notes", "") }}</textarea>
 </div>
