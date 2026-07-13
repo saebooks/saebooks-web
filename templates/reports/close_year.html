@@ -1,23 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}Year-End Close — SAE Books{% endblock %}
+{% block title %}{{ _("Year-End Close") }} — SAE Books{% endblock %}
 
 {% block content %}
 <div class="mb-4">
-  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← reports</a>
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← reports") }}</a>
 </div>
 
 <header class="mb-6 relative">
   <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
   <div class="flex items-center gap-2 mb-1">
-    <span class="nav-section-label">Period end</span>
+    <span class="nav-section-label">{{ _("Period end") }}</span>
     <span class="reg-mark"></span>
   </div>
-  <h1 class="font-display text-3xl leading-none tracking-tight">Year-End Close</h1>
+  <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("Year-End Close") }}</h1>
   <p class="text-sm ink-2 mt-3 max-w-2xl">
-    Zeros every income, expense and cost-of-sales account into retained earnings
-    through the chosen date, then locks the period so no back-dated entry lands
-    in a closed year. Admin only.
+    {{ _("Zeros every income, expense and cost-of-sales account into retained earnings through the chosen date, then locks the period so no back-dated entry lands in a closed year. Admin only.") }}
   </p>
   <div class="drafting mt-4"></div>
 </header>
@@ -36,27 +34,27 @@
 <form hx-get="/reports/close-year" hx-target="body" hx-swap="outerHTML"
       class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
   <div>
-    <label for="through" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Through</label>
+    <label for="through" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Through") }}</label>
     <input id="through" type="date" name="through" value="{{ through }}" required class="saebooks-input num text-sm py-1.5">
   </div>
   <div>
-    <label for="retained_earnings_account_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Retained earnings</label>
+    <label for="retained_earnings_account_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Retained earnings") }}</label>
     <select id="retained_earnings_account_id" name="retained_earnings_account_id" class="saebooks-input text-sm py-1.5">
       {% for a in equity_accounts %}
       <option value="{{ a.id }}" {% if retained_earnings_id == a.id %}selected{% endif %}>{{ a.code }} — {{ a.name }}</option>
       {% endfor %}
     </select>
   </div>
-  <button type="submit" class="btn-secondary text-sm">Preview</button>
+  <button type="submit" class="btn-secondary text-sm">{{ _("Preview") }}</button>
 </form>
 
 {% if preview %}
   {% if preview.get("has_anything_to_close") %}
   <div class="card p-4 mb-4">
-    <p class="text-sm ink-1 mb-3">Net profit to close: <span class="num font-display">{{ num(preview.get("net_profit", 0) | float, 2) }}</span></p>
+    <p class="text-sm ink-1 mb-3">{{ _("Net profit to close:") }} <span class="num font-display">{{ num(preview.get("net_profit", 0) | float, 2) }}</span></p>
     <table class="w-full text-sm">
       <thead><tr class="ink-3 text-xs uppercase tracking-wider">
-        <th class="text-left py-1">Account</th><th class="text-right py-1">Debit</th><th class="text-right py-1">Credit</th>
+        <th class="text-left py-1">{{ _("Account") }}</th><th class="text-right py-1">{{ _("Debit") }}</th><th class="text-right py-1">{{ _("Credit") }}</th>
       </tr></thead>
       <tbody>
       {% for line in preview.get("lines", []) %}
@@ -71,20 +69,20 @@
   </div>
 
   <form method="post" action="/reports/close-year"
-        onsubmit="return confirm('Post the close-year journal and lock the period through {{ through }}? This is hard to undo.');"
+        onsubmit="return confirm('{{ _('Post the close-year journal and lock the period through %(through)s? This is hard to undo.') % {'through': through} }}');"
         class="card p-4 flex flex-wrap gap-3 items-end">
     {{ csrf_input(request)|safe }}
     <input type="hidden" name="through" value="{{ through }}">
     <input type="hidden" name="retained_earnings_account_id" value="{{ retained_earnings_id }}">
     <div class="flex-1 min-w-[16rem]">
-      <label for="override_reason" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">Override reason (only if the close date is already locked)</label>
-      <input id="override_reason" type="text" name="override_reason" placeholder="e.g. re-close after adjustment" class="saebooks-input text-sm py-1.5 w-full">
+      <label for="override_reason" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Override reason (only if the close date is already locked)") }}</label>
+      <input id="override_reason" type="text" name="override_reason" placeholder="{{ _('e.g. re-close after adjustment') }}" class="saebooks-input text-sm py-1.5 w-full">
     </div>
-    <button type="submit" class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700">Post close-year journal</button>
+    <button type="submit" class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700">{{ _("Post close-year journal") }}</button>
   </form>
   {% else %}
   <div class="card p-4">
-    <p class="text-sm ink-2">Nothing to close through {{ through }} — every P&amp;L account is already zero.</p>
+    <p class="text-sm ink-2">{{ _("Nothing to close through %(through)s — every P&L account is already zero.") % {"through": through} }}</p>
   </div>
   {% endif %}
 {% endif %}
