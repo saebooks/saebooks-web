@@ -5,16 +5,16 @@
    the initial full-page load.
 #}
 {%- set _filter_parts = [] %}
-{%- if filter_status %}{%- set _ = _filter_parts.append("status=" ~ filter_status) %}{%- endif %}
-{%- if filter_date_from %}{%- set _ = _filter_parts.append("date_from=" ~ filter_date_from) %}{%- endif %}
-{%- if filter_date_to %}{%- set _ = _filter_parts.append("date_to=" ~ filter_date_to) %}{%- endif %}
-{%- if filter_ref %}{%- set _ = _filter_parts.append("ref=" ~ (filter_ref|urlencode)) %}{%- endif %}
-{%- if filter_posted_by %}{%- set _ = _filter_parts.append("posted_by=" ~ (filter_posted_by|urlencode)) %}{%- endif %}
-{%- if filter_account_id %}{%- set _ = _filter_parts.append("account_id=" ~ filter_account_id) %}{%- endif %}
-{%- if filter_flagged %}{%- set _ = _filter_parts.append("flagged=true") %}{%- endif %}
+{%- if filter_status %}{%- set _x = _filter_parts.append("status=" ~ filter_status) %}{%- endif %}
+{%- if filter_date_from %}{%- set _x = _filter_parts.append("date_from=" ~ filter_date_from) %}{%- endif %}
+{%- if filter_date_to %}{%- set _x = _filter_parts.append("date_to=" ~ filter_date_to) %}{%- endif %}
+{%- if filter_ref %}{%- set _x = _filter_parts.append("ref=" ~ (filter_ref|urlencode)) %}{%- endif %}
+{%- if filter_posted_by %}{%- set _x = _filter_parts.append("posted_by=" ~ (filter_posted_by|urlencode)) %}{%- endif %}
+{%- if filter_account_id %}{%- set _x = _filter_parts.append("account_id=" ~ filter_account_id) %}{%- endif %}
+{%- if filter_flagged %}{%- set _x = _filter_parts.append("flagged=true") %}{%- endif %}
 {%- set filter_qs_no_sort = ("&" ~ _filter_parts|join("&")) if _filter_parts else "" %}
-{%- if sort %}{%- set _ = _filter_parts.append("sort=" ~ sort) %}{%- endif %}
-{%- if dir %}{%- set _ = _filter_parts.append("dir=" ~ dir) %}{%- endif %}
+{%- if sort %}{%- set _x = _filter_parts.append("sort=" ~ sort) %}{%- endif %}
+{%- if dir %}{%- set _x = _filter_parts.append("dir=" ~ dir) %}{%- endif %}
 {%- set filter_qs = ("&" ~ _filter_parts|join("&")) if _filter_parts else "" %}
 
 {# Macro for a sortable column header. Clicking toggles direction if
@@ -47,16 +47,16 @@
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("ref", "JE #") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("date", "Date") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("total_debit", "Total Debit") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("status", "Status") }}</th>
-        <th scope="col" class="w-8 px-1 py-3 text-center font-medium ink-3" title="Flag for review"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("ref", _("JE #")) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("date", _("Date")) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("total_debit", _("Total Debit")) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ sort_header("status", _("Status")) }}</th>
+        <th scope="col" class="w-8 px-1 py-3 text-center font-medium ink-3" title="{{ _('Flag for review') }}"><i data-lucide="flag" class="w-4 h-4 inline-block"></i></th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -70,7 +70,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ je.id }}"
-                   aria-label="Select journal entry {{ je.ref or je.id }}"
+                   aria-label="{{ _('Select journal entry %(ref)s') % {'ref': (je.ref or je.id)} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
           </td>
@@ -106,26 +106,26 @@
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (je.status or 'draft')|lower %}
             {%- set actions = [
-              ("view", "View", "/journal-entries/" ~ je.id,       "link", false),
-              ("edit", "Edit", "/journal-entries/" ~ je.id ~ "/edit", "link", false),
+              ("view", _("View"), "/journal-entries/" ~ je.id,       "link", false),
+              ("edit", _("Edit"), "/journal-entries/" ~ je.id ~ "/edit", "link", false),
             ] %}
             {%- if status_lower == 'draft' %}
-              {%- set _ = actions.append(("post",    "Post",    "/journal-entries/" ~ je.id ~ "/post",    "post", false)) %}
-              {%- set _ = actions.append(("archive", "Archive", "/journal-entries/" ~ je.id ~ "/archive", "post", true)) %}
+              {%- set _x = actions.append(("post",    _("Post"),    "/journal-entries/" ~ je.id ~ "/post",    "post", false)) %}
+              {%- set _x = actions.append(("archive", _("Archive"), "/journal-entries/" ~ je.id ~ "/archive", "post", true)) %}
             {%- elif status_lower == 'posted' %}
-              {%- set _ = actions.append(("reverse", "Reverse", "/journal-entries/" ~ je.id ~ "/reverse", "post", true)) %}
+              {%- set _x = actions.append(("reverse", _("Reverse"), "/journal-entries/" ~ je.id ~ "/reverse", "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/journal-entries/" ~ je.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/journal-entries/" ~ je.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=je.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(8, "book-open", "No journal entries yet",
-                     "Post your first journal to record a manual transaction.",
-                     "New journal", "/journal-entries/new") }}
+        {{ empty.row(8, "book-open", _("No journal entries yet"),
+                     _("Post your first journal to record a manual transaction."),
+                     _("New journal"), "/journal-entries/new") }}
       {% endif %}
     </tbody>
   </table>
@@ -135,7 +135,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -146,7 +146,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline border px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -156,7 +156,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline border px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

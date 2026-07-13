@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Journal Entry — SAE Books{% endblock %}
+{% block title %}{{ _("Cannot Edit Journal Entry") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">Cannot Edit Journal Entry</h1>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Cannot Edit Journal Entry") }}</h1>
   {% if entry %}
-  <a href="/journal-entries/{{ entry.id }}" class="text-sm sae hover:underline">← Back to journal entry</a>
+  <a href="/journal-entries/{{ entry.id }}" class="text-sm sae hover:underline">← {{ _("Back to journal entry") }}</a>
   {% else %}
-  <a href="/journal-entries" class="text-sm sae hover:underline">← Back to journal entries</a>
+  <a href="/journal-entries" class="text-sm sae hover:underline">← {{ _("Back to journal entries") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 text-sm ink-2 max-w-xl" style="border-color:var(--warm);">
   <p class="font-semibold mb-2">
-    This journal entry is {{ entry.status | capitalize }} and cannot be edited.
+    {{ _("This journal entry is %(status)s and cannot be edited.") % {"status": (entry.status | capitalize)} }}
   </p>
   <p>
-    Reverse and recreate if changes are needed.
+    {{ _("Reverse and recreate if changes are needed.") }}
   </p>
 </div>
 

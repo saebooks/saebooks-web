@@ -32,13 +32,13 @@
 
 {# ── Header details ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Journal entry details</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Journal entry details") }}</legend>
 
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     {# Entry date #}
     <div>
       <label for="entry_date" class="block text-sm font-medium ink-2 mb-1">
-        Entry date <span style="color:var(--neg);">*</span>
+        {{ _("Entry date") }} <span style="color:var(--neg);">*</span>
       </label>
       <input
         type="date"
@@ -57,14 +57,14 @@
     {# Reference (optional) #}
     <div>
       <label for="reference" class="block text-sm font-medium ink-2 mb-1">
-        Reference <span class="ink-4 font-normal">(optional)</span>
+        {{ _("Reference") }} <span class="ink-4 font-normal">({{ _("optional") }})</span>
       </label>
       <input
         type="text"
         id="reference"
         name="reference"
         value="{{ form.get('reference', '') }}"
-        placeholder="e.g. bank transaction ref"
+        placeholder="{{ _('e.g. bank transaction ref') }}"
         maxlength="32"
         class="saebooks-input w-full text-sm"
         {% if errors.get('reference') %}style="border-color:var(--neg);"{% endif %}
@@ -78,14 +78,14 @@
   {# Narration / description (optional) #}
   <div>
     <label for="narration" class="block text-sm font-medium ink-2 mb-1">
-      Narration <span class="ink-4 font-normal">(optional)</span>
+      {{ _("Narration") }} <span class="ink-4 font-normal">({{ _("optional") }})</span>
     </label>
     <input
       type="text"
       id="narration"
       name="narration"
       value="{{ form.get('narration', '') }}"
-      placeholder="e.g. Accrual for April consulting"
+      placeholder="{{ _('e.g. Accrual for April consulting') }}"
       class="saebooks-input w-full text-sm"
       {% if errors.get('narration') %}style="border-color:var(--neg);"{% endif %}
     >
@@ -97,8 +97,8 @@
 
 {# ── Line items ── #}
 <fieldset class="mt-8">
-  <legend class="text-sm font-semibold ink-1 mb-3">Lines</legend>
-  <p class="text-xs ink-3 mb-3">Each line must have an account. Enter the amount in Debit or Credit — total debits must equal total credits.</p>
+  <legend class="text-sm font-semibold ink-1 mb-3">{{ _("Lines") }}</legend>
+  <p class="text-xs ink-3 mb-3">{{ _("Each line must have an account. Enter the amount in Debit or Credit — total debits must equal total credits.") }}</p>
 
   {# line_count is a hidden input so JS can read the next index to use #}
   <input type="hidden" id="line-count" value="{{ line_count }}">
@@ -107,11 +107,11 @@
     <table class="min-w-full line-items-table text-sm">
       <thead class="bg-[color:var(--paper-2)] hairline-b">
         <tr>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-32">Tax Code</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">Debit</th>
-          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">Credit</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+          <th scope="col" class="px-3 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs w-32">{{ _("Tax Code") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">{{ _("Debit") }}</th>
+          <th scope="col" class="px-3 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs w-28">{{ _("Credit") }}</th>
           <th scope="col" class="px-3 py-2 w-10"></th>
         </tr>
       </thead>
@@ -136,6 +136,6 @@
     hx-vals="js:{index: parseInt(document.getElementById('line-count').value)}"
     onclick="document.getElementById('line-count').value = parseInt(document.getElementById('line-count').value) + 1"
   >
-    + Add line
+    + {{ _("Add line") }}
   </button>
 </fieldset>

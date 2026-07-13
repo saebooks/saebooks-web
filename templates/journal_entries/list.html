@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Journal Entries — SAE Books{% endblock %}
+{% block title %}{{ _("Journal Entries") }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -13,7 +13,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Journal Entries</h1>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Journal Entries") }}</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ total }} entr{{ "ies" if total != 1 else "y" }}</p>
     {% endif %}
@@ -23,7 +23,7 @@
     href="/journal-entries/new"
     class="btn-primary text-sm"
   >
-    + New journal entry
+    + {{ _("New journal entry") }}
   </a>
 </div>
 
@@ -36,21 +36,21 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium ink-3 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium ink-3 mb-1">{{ _("Status") }}</label>
     <select
       id="status"
       name="status"
       class="saebooks-input text-sm"
     >
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>Posted</option>
-      <option value="REVERSED" {% if filter_status == 'REVERSED' %}selected{% endif %}>Reversed</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>{{ _("Posted") }}</option>
+      <option value="REVERSED" {% if filter_status == 'REVERSED' %}selected{% endif %}>{{ _("Reversed") }}</option>
     </select>
   </div>
 
   <div>
-    <label for="date_from" class="block text-xs font-medium ink-3 mb-1">Date from</label>
+    <label for="date_from" class="block text-xs font-medium ink-3 mb-1">{{ _("Date from") }}</label>
     <input
       type="date"
       id="date_from"
@@ -61,7 +61,7 @@
   </div>
 
   <div>
-    <label for="date_to" class="block text-xs font-medium ink-3 mb-1">Date to</label>
+    <label for="date_to" class="block text-xs font-medium ink-3 mb-1">{{ _("Date to") }}</label>
     <input
       type="date"
       id="date_to"
@@ -72,14 +72,14 @@
   </div>
 
   <div>
-    <label for="ref" class="block text-xs font-medium ink-3 mb-1">Ref</label>
+    <label for="ref" class="block text-xs font-medium ink-3 mb-1">{{ _("Ref") }}</label>
     <input
       type="text"
       id="ref"
       name="ref"
       value="{{ filter_ref }}"
       list="ref-prefix-options"
-      placeholder="Pick prefix or type"
+      placeholder="{{ _('Pick prefix or type') }}"
       class="saebooks-input text-sm"
     >
     <datalist id="ref-prefix-options">
@@ -90,19 +90,19 @@
   </div>
 
   <div>
-    <label for="account_id" class="block text-xs font-medium ink-3 mb-1">Account</label>
+    <label for="account_id" class="block text-xs font-medium ink-3 mb-1">{{ _("Account") }}</label>
     <select
       id="account_id"
       name="account_id"
       class="saebooks-input text-sm min-w-[14rem]"
     >
-      <option value="" {% if not filter_account_id %}selected{% endif %}>All accounts</option>
+      <option value="" {% if not filter_account_id %}selected{% endif %}>{{ _("All accounts") }}</option>
       {%- set _types = [
-        ("ASSET", "Assets"),
-        ("LIABILITY", "Liabilities"),
-        ("EQUITY", "Equity"),
-        ("INCOME", "Income"),
-        ("EXPENSE", "Expenses"),
+        ("ASSET", _("Assets")),
+        ("LIABILITY", _("Liabilities")),
+        ("EQUITY", _("Equity")),
+        ("INCOME", _("Income")),
+        ("EXPENSE", _("Expenses")),
       ] %}
       {%- for type_code, type_label in _types %}
         {%- set _members = accounts | selectattr("account_type", "equalto", type_code) | list %}
@@ -120,13 +120,13 @@
   </div>
 
   <div>
-    <label for="posted_by" class="block text-xs font-medium ink-3 mb-1">Posted by</label>
+    <label for="posted_by" class="block text-xs font-medium ink-3 mb-1">{{ _("Posted by") }}</label>
     <select
       id="posted_by"
       name="posted_by"
       class="saebooks-input text-sm"
     >
-      <option value="" {% if not filter_posted_by %}selected{% endif %}>Anyone</option>
+      <option value="" {% if not filter_posted_by %}selected{% endif %}>{{ _("Anyone") }}</option>
       {%- for who in posted_by_options %}
       <option value="{{ who }}" {% if filter_posted_by == who %}selected{% endif %}>{{ who }}</option>
       {%- endfor %}
@@ -138,7 +138,7 @@
     <label class="inline-flex items-center gap-2 text-sm font-medium ink-2 cursor-pointer">
       <input type="checkbox" name="flagged" value="true" {% if filter_flagged %}checked{% endif %}
         class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
-      Flagged only
+      {{ _("Flagged only") }}
     </label>
   </div>
 
@@ -149,13 +149,13 @@
     type="submit"
     class="btn-primary text-sm"
   >
-    Filter
+    {{ _("Filter") }}
   </button>
   {% if filter_status or filter_date_from or filter_date_to or filter_ref or filter_posted_by or filter_account_id or filter_flagged %}
   <a
     href="/journal-entries"
     class="text-sm ink-3 hover:underline px-2 py-1.5"
-  >Clear</a>
+  >{{ _("Clear") }}</a>
   {% endif %}
 </form>
 
@@ -169,9 +169,9 @@
      entity="journal_entries",
      action_endpoint="/journal-entries/bulk",
      actions=[
-       ("post", "Post", false),
-       ("reverse", "Reverse", true),
-       ("archive", "Archive", true),
+       ("post", _("Post"), false),
+       ("reverse", _("Reverse"), true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
