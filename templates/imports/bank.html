@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Import Bank Statement — SAE Books{% endblock %}
+{% block title %}{{ _("Import Bank Statement") }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -13,14 +13,14 @@
 {% endif %}
 
 <div class="flex items-center gap-2 mb-1">
-  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">Imports</a>
+  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">{{ _("Imports") }}</a>
   <span class="ink-4 text-xs">/</span>
-  <span class="text-sm ink-1 font-medium">Bank Statement</span>
+  <span class="text-sm ink-1 font-medium">{{ _("Bank Statement") }}</span>
 </div>
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold ink-1">Import Bank Statement</h1>
-  <p class="text-sm ink-3 mt-1">Upload a CSV or OFX file — preview before confirming</p>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Import Bank Statement") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Upload a CSV or OFX file — preview before confirming") }}</p>
 </div>
 
 {% if error %}
@@ -37,29 +37,29 @@
 
     <div class="mb-5">
       <label class="block text-xs font-medium ink-2 mb-1" for="account_id">
-        Bank Account
+        {{ _("Bank Account") }}
       </label>
       <select id="account_id" name="account_id" required class="saebooks-input w-full">
-        <option value="">— select account —</option>
+        <option value="">{{ _("— select account —") }}</option>
         {% for acct in bank_accounts %}
         <option value="{{ acct.id }}">{{ acct.code }} — {{ acct.name }}</option>
         {% endfor %}
       </select>
       {% if not bank_accounts %}
-      <p class="mt-1 text-xs" style="color:var(--warm);">No bank accounts found. Add one under Bank Accounts first.</p>
+      <p class="mt-1 text-xs" style="color:var(--warm);">{{ _("No bank accounts found. Add one under Bank Accounts first.") }}</p>
       {% endif %}
     </div>
 
     <div class="mb-5">
       <label class="block text-xs font-medium ink-2 mb-1" for="file">
-        Statement File (CSV or OFX)
+        {{ _("Statement File (CSV or OFX)") }}
       </label>
       <input type="file" id="file" name="file" accept=".csv,.ofx,.txt" required
         class="block w-full text-sm ink-2 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[color:var(--sae-tint)] file:text-[color:var(--sae)]">
     </div>
 
     <button type="submit" class="btn-primary text-sm">
-      Preview Import
+      {{ _("Preview Import") }}
     </button>
   </form>
 </div>
