@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-12 20:28+0300\n"
+"POT-Creation-Date: 2026-07-13 11:16+0300\n"
 "PO-Revision-Date: 2026-07-12 11:41+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -19,86 +19,151 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: saebooks_web/eid_sso.py:93
+#: saebooks_web/eid_sso.py:94
 msgid "You declined the sign-in request on your device."
 msgstr "Вы отклонили запрос на вход на своём устройстве."
 
-#: saebooks_web/eid_sso.py:94 saebooks_web/eid_sso.py:220
+#: saebooks_web/eid_sso.py:95 saebooks_web/eid_sso.py:221
 msgid "The request expired before it was confirmed. Please try again."
 msgstr "Срок действия запроса истёк до подтверждения. Пожалуйста, попробуйте ещё раз."
 
-#: saebooks_web/eid_sso.py:95
+#: saebooks_web/eid_sso.py:96
 msgid "The wrong verification code was chosen. Please try again."
 msgstr "Выбран неверный контрольный код. Пожалуйста, попробуйте ещё раз."
 
-#: saebooks_web/eid_sso.py:96
+#: saebooks_web/eid_sso.py:97
 msgid "No active Smart-ID or Mobiil-ID account was found for these details."
 msgstr "По этим данным не найдена активная учётная запись Smart-ID или Mobiil-ID."
 
-#: saebooks_web/eid_sso.py:97
+#: saebooks_web/eid_sso.py:98
 msgid "The eID service is temporarily unavailable. Please try again shortly."
 msgstr "Служба eID временно недоступна. Пожалуйста, попробуйте немного позже."
 
-#: saebooks_web/eid_sso.py:98
+#: saebooks_web/eid_sso.py:99
 msgid "The authentication response could not be verified."
 msgstr "Не удалось проверить ответ аутентификации."
 
-#: saebooks_web/eid_sso.py:99
+#: saebooks_web/eid_sso.py:100
 msgid "eID sign-in is not configured on this server."
 msgstr "Вход через eID не настроен на этом сервере."
 
-#: saebooks_web/eid_sso.py:100
+#: saebooks_web/eid_sso.py:101
 msgid "eID sign-in failed. Please try again."
 msgstr "Вход через eID не удался. Пожалуйста, попробуйте ещё раз."
 
-#: saebooks_web/eid_sso.py:172
+#: saebooks_web/eid_sso.py:173
 msgid "That does not look like a valid Estonian personal code."
 msgstr "Это не похоже на действительный эстонский личный код."
 
-#: saebooks_web/eid_sso.py:213
+#: saebooks_web/eid_sso.py:214
 msgid "This sign-in attempt has expired. Please start again."
 msgstr "Эта попытка входа истекла. Пожалуйста, начните заново."
 
-#: saebooks_web/eid_sso.py:271
+#: saebooks_web/eid_sso.py:272
 msgid "Could not resolve your account email. Please re-login and retry."
 msgstr "Не удалось определить адрес электронной почты вашей учётной записи. Войдите заново и повторите попытку."
 
-#: saebooks_web/eid_sso.py:279
+#: saebooks_web/eid_sso.py:280
 msgid "This personal code is already linked to a different account."
 msgstr "Этот личный код уже привязан к другой учётной записи."
 
-#: saebooks_web/eid_sso.py:315
+#: saebooks_web/eid_sso.py:316
 msgid "Your identity was verified, but no account is linked to this personal code yet. Sign in with your password first, then link your eID under Settings."
 msgstr "Ваша личность подтверждена, но к этому личному коду ещё не привязана учётная запись. Сначала войдите с паролем, затем привяжите eID в настройках."
 
-#: saebooks_web/eid_sso.py:325
+#: saebooks_web/eid_sso.py:326
 msgid "Sign-in failed on the server. Please try again."
 msgstr "Вход не удался на сервере. Пожалуйста, попробуйте ещё раз."
 
-#: saebooks_web/routes/companies.py:177
+#: saebooks_web/routes/companies.py:178
 #, fuzzy
 msgid "Registrikood is required for an Estonian company."
 msgstr "Registrikood требуется для эстонской компании."
 
-#: saebooks_web/routes/companies.py:179
+#: saebooks_web/routes/companies.py:180
 #, fuzzy
 msgid "Registrikood must be exactly 8 digits."
 msgstr "Registrikood должна быть ровно 8 цифр."
 
-#: saebooks_web/routes/companies.py:181
+#: saebooks_web/routes/companies.py:182
 #, fuzzy
 msgid "KMV/VAT number must be \"EE\" followed by 9 digits, e.g. EE123456789."
 msgstr "KMV/VAT номер должен быть \"EE\", за которым следует девять цифр, например: EE123456789."
 
-#: saebooks_web/routes/companies.py:211
+#: saebooks_web/routes/companies.py:209
 #, fuzzy
-msgid "Company created. Estonian jurisdiction, registrikood and KMV/VAT number were captured but could not be saved yet — the engine does not accept these fields on company creation. This is tracked separately; the values above were not persisted."
-msgstr "Компания была создана. Эстонская юрисдикция, номер registrikood и KMV/VAT были записаны, однако их не удалось сохранить — двигатель не принимает эти поля при создании компании. Этот показатель отслеживается отдельно; вышеуказанные значения не сохранялись."
+msgid "Company created."
+msgstr "Компания была создана."
 
 #: templates/base.html:887
 #, fuzzy
 msgid "Language"
 msgstr "Язык"
+
+#: templates/demo_isolation.html:4 templates/demo_isolation.html:10
+#, fuzzy
+msgid "Isolation proof"
+msgstr "Противоположность изоляции"
+
+#: templates/demo_isolation.html:12
+#, fuzzy
+msgid "Your sandbox is a separate database tenant — the same isolation a paying customer gets, enforced by Postgres row-level security, not a UI filter."
+msgstr "Ваш песочный ящик — отдельный арендатор базы данных — та же изоляция, которую получает платящий клиент, обеспечиваемая службой безопасности постгресского уровня, а не фильтром UI."
+
+#: templates/demo_isolation.html:20
+#, fuzzy
+msgid "Your tenant"
+msgstr "Твой арендатор"
+
+#: templates/demo_isolation.html:24
+#, fuzzy
+msgid "Your company"
+msgstr "Ваша компания."
+
+#: templates/demo_isolation.html:33
+#, fuzzy
+msgid "Foreign contact ID"
+msgstr "Foreign contact ID"
+
+#: templates/demo_isolation.html:35
+#, fuzzy
+msgid "Paste any other demo's contact ID and try to read it with your own session."
+msgstr "Поместите любой другой пропуск демо и попытайтесь прочесть его на своей сессии."
+
+#: templates/demo_isolation.html:43
+#, fuzzy
+msgid "Try to fetch it"
+msgstr "Попробуйте его достать."
+
+#: templates/demo_isolation.html:61
+#, fuzzy
+msgid "Result"
+msgstr "Результат"
+
+#: templates/demo_isolation.html:66
+#, fuzzy
+msgid "The row does not exist for you. That is Postgres row-level security, not a hidden filter."
+msgstr "Эта строка не существует для тебя. Это охрана Постгресского уровня, а не скрытый фильтр."
+
+#: templates/demo_isolation.html:68
+#, fuzzy
+msgid "Enter a valid contact ID (UUID)."
+msgstr "Введите действующий контактный ID (UUID)."
+
+#: templates/demo_isolation.html:70
+#, fuzzy
+msgid "Unexpected: the row was visible. Isolation should have hidden it — please report this."
+msgstr "Неожиданно: строка была видимой. Изоляция должна была скрыть это — пожалуйста, сообщите об этом."
+
+#: templates/demo_isolation.html:72
+#, fuzzy
+msgid "The request returned an unexpected status."
+msgstr "Запрос вернул неожиданный статус."
+
+#: templates/demo_isolation.html:80
+#, fuzzy
+msgid "Read the isolation policy source"
+msgstr "Прочти источник политики изоляции."
 
 #: templates/auth/_eid_error.html:10
 msgid "Try again"
@@ -183,60 +248,55 @@ msgstr "Австралия (АС)"
 msgid "Estonia (EE)"
 msgstr "Эстония (ЭЭ)"
 
-#: templates/companies/new.html:154
-#, fuzzy
-msgid "Estonian company creation is in progress. These fields are captured here but the server does not yet persist them — see the note after you submit."
-msgstr "В настоящее время ведется работа по созданию эстонской компании. Эти поля зафиксированы здесь, но сервер еще не сохранил их — см. примечание после того, как вы представите."
-
-#: templates/companies/new.html:159
+#: templates/companies/new.html:148
 #, fuzzy
 msgid "Registrikood"
 msgstr "Registrikood"
 
-#: templates/companies/new.html:173
+#: templates/companies/new.html:162
 #, fuzzy
 msgid "8-digit Estonian business registry code (äriregistri kood)."
 msgstr "8-значный эстонский коммерческий регистрационный код (riregistri kood)."
 
-#: templates/companies/new.html:182
+#: templates/companies/new.html:171
 #, fuzzy
 msgid "KMV / VAT number"
 msgstr "KMV/ Номер НДС"
 
-#: templates/companies/new.html:194
+#: templates/companies/new.html:183
 #, fuzzy
 msgid "Format: EE followed by 9 digits. Optional — leave blank if not yet VAT-registered."
 msgstr "Формат: ЕЕ, за которым следуют 9 цифр. Optional — leave black if not yet ever registered VAT."
 
-#: templates/companies/new.html:203
+#: templates/companies/new.html:192
 #, fuzzy
 msgid "Currency"
 msgstr "Валюта"
 
-#: templates/companies/new.html:210
+#: templates/companies/new.html:199
 #, fuzzy
 msgid "Euro (EUR)"
 msgstr "евро (в евро)"
 
-#: templates/companies/new.html:211
+#: templates/companies/new.html:200
 #, fuzzy
 msgid "Australian Dollar (AUD)"
 msgstr "Австралийская доллар (AUD)"
 
-#: templates/companies/new.html:217
+#: templates/companies/new.html:206
 #, fuzzy
 msgid "Chart of accounts template"
 msgstr "Формула составления карт"
 
-#: templates/companies/new.html:224
+#: templates/companies/new.html:213
 #, fuzzy
 msgid "Estonian standard chart (ee/default)"
 msgstr "Эстонская стандартная карта (e/deful)"
 
-#: templates/companies/new.html:227
+#: templates/companies/new.html:216
 #, fuzzy
-msgid "The engine's Estonian chart template is registered but not yet implemented — this selector is future-ready, not active."
-msgstr "Эстонская карточка двигателя зарегистрирована, но еще не внедрена — этот выборщик готов к будущему, а не активен."
+msgid "The Estonian standard chart of accounts is applied automatically when the company is created."
+msgstr "Эстонская стандартная схема счетов применяется автоматически при создании компании."
 
 #: templates/settings/eid.html:3 templates/settings/eid.html:7
 #, fuzzy
@@ -259,4 +319,13 @@ msgstr "привязан %(when)s"
 #: templates/settings/eid.html:24
 msgid "Remove link"
 msgstr "Удалить привязку"
+
+#~ msgid "Company created. Estonian jurisdiction, registrikood and KMV/VAT number were captured but could not be saved yet — the engine does not accept these fields on company creation. This is tracked separately; the values above were not persisted."
+#~ msgstr "Компания была создана. Эстонская юрисдикция, номер registrikood и KMV/VAT были записаны, однако их не удалось сохранить — двигатель не принимает эти поля при создании компании. Этот показатель отслеживается отдельно; вышеуказанные значения не сохранялись."
+
+#~ msgid "Estonian company creation is in progress. These fields are captured here but the server does not yet persist them — see the note after you submit."
+#~ msgstr "В настоящее время ведется работа по созданию эстонской компании. Эти поля зафиксированы здесь, но сервер еще не сохранил их — см. примечание после того, как вы представите."
+
+#~ msgid "The engine's Estonian chart template is registered but not yet implemented — this selector is future-ready, not active."
+#~ msgstr "Эстонская карточка двигателя зарегистрирована, но еще не внедрена — этот выборщик готов к будущему, а не активен."
 

@@ -42,6 +42,18 @@ class Brand:
     favicon_32: str
     favicon_16: str
     apple_touch_icon: str
+    # Copy for the ephemeral-demo Turnstile gate page (see
+    # ``saebooks_web/security/demo_autologin.py``). Kept on the brand so the
+    # Tasur (EE) deployment shows Estonian copy purely by setting
+    # ``SAEBOOKS_BRAND=tasur`` — no code edit at deploy time. ``demo_features``
+    # is a short bullet list rendered as ticked ``<li>`` items on the gate.
+    demo_tagline: str = "Australian small-business accounting"
+    demo_features: tuple[str, ...] = (
+        "Full double-entry ledger",
+        "Invoices, bills & payments",
+        "GST & BAS ready",
+        "Bank reconciliation",
+    )
 
 
 _BRANDS: dict[str, Brand] = {
@@ -68,6 +80,13 @@ _BRANDS: dict[str, Brand] = {
         favicon_32="/static/brand/tasur-favicon.png",
         favicon_16="/static/brand/tasur-favicon.png",
         apple_touch_icon="/static/brand/tasur-apple-touch-icon.png",
+        demo_tagline="Estonian small-business accounting",
+        demo_features=(
+            "Full double-entry ledger",
+            "Invoices, bills & payments",
+            "Käibemaks & KMD ready",
+            "Bank reconciliation",
+        ),
     ),
 }
 

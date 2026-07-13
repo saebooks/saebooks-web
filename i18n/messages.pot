@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-12 20:28+0300\n"
+"POT-Creation-Date: 2026-07-13 11:16+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,80 +17,132 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: saebooks_web/eid_sso.py:93
+#: saebooks_web/eid_sso.py:94
 msgid "You declined the sign-in request on your device."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:94 saebooks_web/eid_sso.py:220
+#: saebooks_web/eid_sso.py:95 saebooks_web/eid_sso.py:221
 msgid "The request expired before it was confirmed. Please try again."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:95
+#: saebooks_web/eid_sso.py:96
 msgid "The wrong verification code was chosen. Please try again."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:96
+#: saebooks_web/eid_sso.py:97
 msgid "No active Smart-ID or Mobiil-ID account was found for these details."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:97
+#: saebooks_web/eid_sso.py:98
 msgid "The eID service is temporarily unavailable. Please try again shortly."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:98
+#: saebooks_web/eid_sso.py:99
 msgid "The authentication response could not be verified."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:99
+#: saebooks_web/eid_sso.py:100
 msgid "eID sign-in is not configured on this server."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:100
+#: saebooks_web/eid_sso.py:101
 msgid "eID sign-in failed. Please try again."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:172
+#: saebooks_web/eid_sso.py:173
 msgid "That does not look like a valid Estonian personal code."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:213
+#: saebooks_web/eid_sso.py:214
 msgid "This sign-in attempt has expired. Please start again."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:271
+#: saebooks_web/eid_sso.py:272
 msgid "Could not resolve your account email. Please re-login and retry."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:279
+#: saebooks_web/eid_sso.py:280
 msgid "This personal code is already linked to a different account."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:315
+#: saebooks_web/eid_sso.py:316
 msgid "Your identity was verified, but no account is linked to this personal code yet. Sign in with your password first, then link your eID under Settings."
 msgstr ""
 
-#: saebooks_web/eid_sso.py:325
+#: saebooks_web/eid_sso.py:326
 msgid "Sign-in failed on the server. Please try again."
 msgstr ""
 
-#: saebooks_web/routes/companies.py:177
+#: saebooks_web/routes/companies.py:178
 msgid "Registrikood is required for an Estonian company."
 msgstr ""
 
-#: saebooks_web/routes/companies.py:179
+#: saebooks_web/routes/companies.py:180
 msgid "Registrikood must be exactly 8 digits."
 msgstr ""
 
-#: saebooks_web/routes/companies.py:181
+#: saebooks_web/routes/companies.py:182
 msgid "KMV/VAT number must be \"EE\" followed by 9 digits, e.g. EE123456789."
 msgstr ""
 
-#: saebooks_web/routes/companies.py:211
-msgid "Company created. Estonian jurisdiction, registrikood and KMV/VAT number were captured but could not be saved yet — the engine does not accept these fields on company creation. This is tracked separately; the values above were not persisted."
+#: saebooks_web/routes/companies.py:209
+msgid "Company created."
 msgstr ""
 
 #: templates/base.html:887
 msgid "Language"
+msgstr ""
+
+#: templates/demo_isolation.html:4 templates/demo_isolation.html:10
+msgid "Isolation proof"
+msgstr ""
+
+#: templates/demo_isolation.html:12
+msgid "Your sandbox is a separate database tenant — the same isolation a paying customer gets, enforced by Postgres row-level security, not a UI filter."
+msgstr ""
+
+#: templates/demo_isolation.html:20
+msgid "Your tenant"
+msgstr ""
+
+#: templates/demo_isolation.html:24
+msgid "Your company"
+msgstr ""
+
+#: templates/demo_isolation.html:33
+msgid "Foreign contact ID"
+msgstr ""
+
+#: templates/demo_isolation.html:35
+msgid "Paste any other demo's contact ID and try to read it with your own session."
+msgstr ""
+
+#: templates/demo_isolation.html:43
+msgid "Try to fetch it"
+msgstr ""
+
+#: templates/demo_isolation.html:61
+msgid "Result"
+msgstr ""
+
+#: templates/demo_isolation.html:66
+msgid "The row does not exist for you. That is Postgres row-level security, not a hidden filter."
+msgstr ""
+
+#: templates/demo_isolation.html:68
+msgid "Enter a valid contact ID (UUID)."
+msgstr ""
+
+#: templates/demo_isolation.html:70
+msgid "Unexpected: the row was visible. Isolation should have hidden it — please report this."
+msgstr ""
+
+#: templates/demo_isolation.html:72
+msgid "The request returned an unexpected status."
+msgstr ""
+
+#: templates/demo_isolation.html:80
+msgid "Read the isolation policy source"
 msgstr ""
 
 #: templates/auth/_eid_error.html:10
@@ -173,48 +225,44 @@ msgstr ""
 msgid "Estonia (EE)"
 msgstr ""
 
-#: templates/companies/new.html:154
-msgid "Estonian company creation is in progress. These fields are captured here but the server does not yet persist them — see the note after you submit."
-msgstr ""
-
-#: templates/companies/new.html:159
+#: templates/companies/new.html:148
 msgid "Registrikood"
 msgstr ""
 
-#: templates/companies/new.html:173
+#: templates/companies/new.html:162
 msgid "8-digit Estonian business registry code (äriregistri kood)."
 msgstr ""
 
-#: templates/companies/new.html:182
+#: templates/companies/new.html:171
 msgid "KMV / VAT number"
 msgstr ""
 
-#: templates/companies/new.html:194
+#: templates/companies/new.html:183
 msgid "Format: EE followed by 9 digits. Optional — leave blank if not yet VAT-registered."
 msgstr ""
 
-#: templates/companies/new.html:203
+#: templates/companies/new.html:192
 msgid "Currency"
 msgstr ""
 
-#: templates/companies/new.html:210
+#: templates/companies/new.html:199
 msgid "Euro (EUR)"
 msgstr ""
 
-#: templates/companies/new.html:211
+#: templates/companies/new.html:200
 msgid "Australian Dollar (AUD)"
 msgstr ""
 
-#: templates/companies/new.html:217
+#: templates/companies/new.html:206
 msgid "Chart of accounts template"
 msgstr ""
 
-#: templates/companies/new.html:224
+#: templates/companies/new.html:213
 msgid "Estonian standard chart (ee/default)"
 msgstr ""
 
-#: templates/companies/new.html:227
-msgid "The engine's Estonian chart template is registered but not yet implemented — this selector is future-ready, not active."
+#: templates/companies/new.html:216
+msgid "The Estonian standard chart of accounts is applied automatically when the company is created."
 msgstr ""
 
 #: templates/settings/eid.html:3 templates/settings/eid.html:7

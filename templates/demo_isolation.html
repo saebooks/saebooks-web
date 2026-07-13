@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% set brand = current_brand() %}
+
+{% block title %}{{ _("Isolation proof") }} — {{ brand.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  <header class="mb-6">
+    <span class="nav-section-label">{{ _("Isolation proof") }}</span>
+    <p class="text-sm ink-2 mt-2">
+      {{ _("Your sandbox is a separate database tenant — the same isolation a paying customer gets, enforced by Postgres row-level security, not a UI filter.") }}
+    </p>
+  </header>
+
+  {# Your own identity — the tenant/company this session belongs to. #}
+  <div class="rounded-lg border p-4 mb-5" style="border-color: var(--line); background: var(--surface);">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+      <div>
+        <div class="text-[11px] uppercase tracking-wider ink-3 mb-0.5">{{ _("Your tenant") }}</div>
+        <div class="font-mono break-all">{{ identity.tenant_id }}</div>
+      </div>
+      <div>
+        <div class="text-[11px] uppercase tracking-wider ink-3 mb-0.5">{{ _("Your company") }}</div>
+        <div class="font-mono break-all">{{ identity.company_id }}</div>
+      </div>
+    </div>
+  </div>
+
+  {# The probe — try to read a foreign tenant's contact with your own JWT. #}
+  <form method="get" action="/demo/isolation"
+        class="rounded-lg border p-4 mb-5" style="border-color: var(--line); background: var(--surface);">
+    <label for="probe" class="block text-sm font-medium mb-1">{{ _("Foreign contact ID") }}</label>
+    <p class="text-xs ink-3 mb-3">
+      {{ _("Paste any other demo's contact ID and try to read it with your own session.") }}
+    </p>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <input type="text" id="probe" name="probe" value="{{ probe_value }}"
+             class="flex-1 font-mono text-sm rounded-md border px-3 py-2"
+             style="border-color: var(--line); background: var(--surface-2); color: var(--ink);"
+             spellcheck="false" autocomplete="off">
+      <button type="submit" class="btn-primary text-sm shrink-0">
+        <i data-lucide="shield-alert" class="w-4 h-4"></i>{{ _("Try to fetch it") }}
+      </button>
+    </div>
+  </form>
+
+  {# Live outcome of the server-side GET /api/v1/contacts/<uuid>. #}
+  {% if result %}
+  <div class="rounded-lg border p-4 mb-5"
+       style="{% if result.outcome == 'blocked' %}border-color: var(--pos); background: var(--pos-tint);{% elif result.outcome == 'invalid' %}border-color: var(--warm); background: var(--warm-tint);{% else %}border-color: var(--neg); background: var(--neg-tint);{% endif %} color: var(--ink);">
+    <div class="flex items-center gap-2 mb-1">
+      {% if result.outcome == 'blocked' %}
+      <i data-lucide="shield-check" class="w-5 h-5" style="color: var(--pos);" aria-hidden="true"></i>
+      {% elif result.outcome == 'invalid' %}
+      <i data-lucide="alert-triangle" class="w-5 h-5" style="color: var(--warm);" aria-hidden="true"></i>
+      {% else %}
+      <i data-lucide="alert-octagon" class="w-5 h-5" style="color: var(--neg);" aria-hidden="true"></i>
+      {% endif %}
+      <span class="font-semibold text-sm">
+        {{ _("Result") }}{% if result.status %} · HTTP {{ result.status }}{% endif %}
+      </span>
+    </div>
+    <p class="text-sm">
+      {% if result.outcome == 'blocked' %}
+      {{ _("The row does not exist for you. That is Postgres row-level security, not a hidden filter.") }}
+      {% elif result.outcome == 'invalid' %}
+      {{ _("Enter a valid contact ID (UUID).") }}
+      {% elif result.outcome == 'visible' %}
+      {{ _("Unexpected: the row was visible. Isolation should have hidden it — please report this.") }}
+      {% else %}
+      {{ _("The request returned an unexpected status.") }}
+      {% endif %}
+    </p>
+  </div>
+  {% endif %}
+
+  <p class="text-xs ink-3">
+    <a href="{{ policy_source_url }}" class="underline" style="color: var(--sae);"
+       target="_blank" rel="noopener noreferrer">{{ _("Read the isolation policy source") }}</a>
+  </p>
+
+</div>
+{% endblock %}

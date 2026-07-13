@@ -93,6 +93,7 @@ from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.parties import router as parties_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.dashboard import router as dashboard_router
+from saebooks_web.routes.demo_isolation import router as demo_isolation_router
 from saebooks_web.routes.switch_company import router as switch_company_router
 from saebooks_web.routes.locale import router as locale_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
@@ -248,7 +249,7 @@ app.add_middleware(
     secret_key=settings.secret_key,
     session_cookie=settings.session_cookie_name,
     max_age=settings.session_max_age,
-    https_only=False,  # TODO: set True behind TLS reverse proxy in prod
+    https_only=settings.session_https_only,  # set SAEBOOKS_WEB_SESSION_HTTPS_ONLY=true in prod
     same_site="strict",
 )
 
@@ -365,6 +366,7 @@ app.include_router(public_auth_router)
 app.include_router(contact_router)
 app.include_router(billing_router)
 app.include_router(dashboard_router)
+app.include_router(demo_isolation_router)
 app.include_router(switch_company_router)
 app.include_router(locale_router)
 app.include_router(contacts_router)

@@ -967,6 +967,9 @@
     {# Page content #}
     <main id="main" tabindex="-1" class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 sm:py-8">
       <div class="max-w-[1320px] mx-auto">
+        {# Passive ephemeral-demo badge — renders only for a provisioned demo
+           session (gated on the demo_tenant_id session marker inside). #}
+        {% include "_partials/demo_banner.html" %}
         {% block content %}{% endblock %}
       </div>
     </main>
