@@ -2,7 +2,7 @@
    Keep the wrapper id stable: the quick-create button targets it. #}
 <div id="inbox-contact-select">
   <select id="contact_id" name="contact_id" class="saebooks-input w-full" required>
-    <option value="">— select a supplier —</option>
+    <option value="">{{ _("— select a supplier —") }}</option>
     {% for c in contacts %}
     <option value="{{ c.id }}" {% if selected_contact_id == c.id %}selected{% endif %}>{{ c.name }}</option>
     {% endfor %}
@@ -10,6 +10,6 @@
   {% if quick_create_error %}
   <p class="mt-1 text-sm" style="color: var(--neg);">{{ quick_create_error }}</p>
   {% elif quick_created and selected_contact_id %}
-  <p class="mt-1 text-sm" style="color: var(--pos);">Supplier created and selected.</p>
+  <p class="mt-1 text-sm" style="color: var(--pos);">{{ _("Supplier created and selected.") }}</p>
   {% endif %}
 </div>

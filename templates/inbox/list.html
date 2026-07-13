@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Inbox — SAE Books{% endblock %}
+{% block title %}{{ _("Inbox") }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -12,12 +12,12 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-3xl font-semibold ink-1">Inbox</h1>
-    <p class="text-base ink-3 mt-1">Captured documents waiting to become expenses, bills and credit notes — review, code, publish as DRAFT.</p>
+    <h1 class="text-3xl font-semibold ink-1">{{ _("Inbox") }}</h1>
+    <p class="text-base ink-3 mt-1">{{ _("Captured documents waiting to become expenses, bills and credit notes — review, code, publish as DRAFT.") }}</p>
   </div>
   <a href="/inbox/email-addresses" class="btn-secondary shrink-0">
     <i data-lucide="mail" class="w-4 h-4 inline-block"></i>
-    Email-in addresses
+    {{ _("Email-in addresses") }}
   </a>
 </div>
 
@@ -29,8 +29,8 @@
        style="border-color: var(--line);"
        onclick="document.getElementById('inbox-file-input').click()">
     <i data-lucide="scan-line" class="w-8 h-8 mx-auto" style="color: var(--sae);"></i>
-    <p class="mt-3 text-base ink-1 font-medium">Drop a receipt or supplier invoice here</p>
-    <p class="mt-1 text-sm ink-3">JPEG, PNG, WebP or PDF up to 10&nbsp;MiB — or tap to photograph / choose a file.</p>
+    <p class="mt-3 text-base ink-1 font-medium">{{ _("Drop a receipt or supplier invoice here") }}</p>
+    <p class="mt-1 text-sm ink-3">{{ _("JPEG, PNG, WebP or PDF up to 10 MiB — or tap to photograph / choose a file.") }}</p>
     <input type="file" id="inbox-file-input" name="file"
            accept="image/*,application/pdf" capture="environment"
            class="hidden"
@@ -38,7 +38,7 @@
   </div>
   <p id="inbox-upload-progress" class="hidden mt-2 text-sm ink-3">
     <i data-lucide="loader-2" class="w-3.5 h-3.5 inline-block animate-spin"></i>
-    Uploading and extracting — this can take a few seconds…
+    {{ _("Uploading and extracting — this can take a few seconds…") }}
   </p>
 </form>
 <script>
@@ -71,7 +71,7 @@
 
 {# ── Status filter tabs — counts from /inbox/stats where tracked ───────── #}
 {% set tabs = [
-  ('', 'Open'),
+  ('', _('Open')),
   ('NEEDS_REVIEW', 'NEEDS_REVIEW'),
   ('READY', 'READY'),
   ('RECEIVED', 'RECEIVED'),
