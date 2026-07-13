@@ -28,10 +28,10 @@
   <td class="px-4 py-3 ink-1">
     {{ account.name }}
     {% if account.is_trust_account %}
-    <span class="ml-1.5 badge-warm">Trust</span>
+    <span class="ml-1.5 badge-warm">{{ _("Trust") }}</span>
     {% endif %}
     {% if account.account_type == "LIABILITY" %}
-    <span class="ml-1.5 badge-ink">owed</span>
+    <span class="ml-1.5 badge-ink">{{ _("owed") }}</span>
     {% endif %}
   </td>
   <td class="px-4 py-3 ink-2 font-mono text-xs">{{ account.bsb or "—" }}</td>
@@ -71,21 +71,21 @@
       <div class="bg-[color:var(--paper-2)] px-4 py-3 hairline-b">
         <h2 class="text-sm font-semibold ink-2">{{ section.label }}
           <span class="ml-2 text-xs font-normal ink-3">
-            {{ section["items"]|length }} account{{ "s" if section["items"]|length != 1 else "" }}
+            {{ ngettext("%(n)s account", "%(n)s accounts", section["items"]|length) % {"n": section["items"]|length} }}
           </span>
         </h2>
       </div>
       <table class="min-w-full divide-[color:var(--line)] divide-y text-sm">
         <thead class="bg-[color:var(--surface)]">
           <tr>
-            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
-            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">BSB</th>
-            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account number</th>
-            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Title</th>
-            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">Bank</th>
-            <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">Per ledger</th>
-            <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">Per statement</th>
+            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Code") }}</th>
+            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("BSB") }}</th>
+            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account number") }}</th>
+            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Title") }}</th>
+            <th scope="col" class="px-4 py-2 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Bank") }}</th>
+            <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Per ledger") }}</th>
+            <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Per statement") }}</th>
           </tr>
         </thead>
         <tbody class="divide-[color:var(--line)] divide-y">
@@ -102,14 +102,14 @@
       <table class="min-w-full divide-[color:var(--line)] divide-y text-sm">
         <thead class="bg-[color:var(--paper-2)]">
           <tr>
-            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
-            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">BSB</th>
-            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account number</th>
-            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Title</th>
-            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Bank</th>
-            <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Per ledger</th>
-            <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Per statement</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Code") }}</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("BSB") }}</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account number") }}</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Title") }}</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Bank") }}</th>
+            <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Per ledger") }}</th>
+            <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Per statement") }}</th>
           </tr>
         </thead>
         <tbody class="divide-[color:var(--line)] divide-y">
@@ -122,8 +122,8 @@
   {% endif %}
 {% else %}
   <div class="card rounded-xl px-4 py-12 text-center">
-    <p class="ink-3 text-sm mb-2">No bank accounts found.</p>
-    <a href="/bank-accounts/new" class="text-sm sae hover:underline">Add your first bank account →</a>
+    <p class="ink-3 text-sm mb-2">{{ _("No bank accounts found.") }}</p>
+    <a href="/bank-accounts/new" class="text-sm sae hover:underline">{{ _("Add your first bank account →") }}</a>
   </div>
 {% endif %}
 
@@ -131,7 +131,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": [offset + limit, total] | min, "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -142,7 +142,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline border px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -152,7 +152,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline border px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

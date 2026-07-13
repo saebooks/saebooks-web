@@ -1,28 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Archived Bank Account — SAE Books{% endblock %}
+{% block title %}{{ _("Cannot Edit Archived Bank Account") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if account %}Edit {{ account.code }}{% else %}Edit Bank Account{% endif %}
+    {% if account %}{{ _("Edit %(code)s") % {"code": account.code} }}{% else %}{{ _("Edit Bank Account") }}{% endif %}
   </h1>
   {% if account %}
-  <a href="/bank-accounts/{{ account.id }}" class="text-sm sae hover:underline">← Back to bank account</a>
+  <a href="/bank-accounts/{{ account.id }}" class="text-sm sae hover:underline">{{ _("← Back to bank account") }}</a>
   {% else %}
-  <a href="/bank-accounts" class="text-sm sae hover:underline">← Back to bank accounts</a>
+  <a href="/bank-accounts" class="text-sm sae hover:underline">{{ _("← Back to bank accounts") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--warm);">
-  <p class="text-sm font-semibold ink-1 mb-1">Archived bank accounts cannot be edited.</p>
+  <p class="text-sm font-semibold ink-1 mb-1">{{ _("Archived bank accounts cannot be edited.") }}</p>
   {% if account %}
+  {% set _link = '<a href="/bank-accounts/' ~ account.id ~ '" class="underline sae">' ~ _("bank account detail page") ~ '</a>' %}
   <p class="text-sm ink-2">
-    This bank account was archived on {{ account.archived_at[:10] }}.
-    Return to the
-    <a href="/bank-accounts/{{ account.id }}" class="underline sae">bank account detail page</a>
-    to view it.
+    {{ (_("This bank account was archived on %(date)s. Return to the %(link)s to view it.") % {"date": account.archived_at[:10], "link": _link}) | safe }}
   </p>
   {% endif %}
 </div>
