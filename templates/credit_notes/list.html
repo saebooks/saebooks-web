@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Credit Notes — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Credit Notes") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -12,7 +12,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Credit Notes</h1>
+    <h1 class="text-2xl font-semibold text-gray-900">{{ _("Credit Notes") }}</h1>
     {% if not error %}
     <p class="text-sm text-gray-500 mt-1">{{ total }} credit note{{ "s" if total != 1 else "" }}</p>
     {% endif %}
@@ -23,7 +23,7 @@
     class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
            hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
   >
-    + New credit note
+    + {{ _("New credit note") }}
   </a>
 </div>
 
@@ -36,21 +36,21 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Status") }}</label>
     <select
       id="status"
       name="status"
       class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>Posted</option>
-      <option value="VOIDED" {% if filter_status == 'VOIDED' %}selected{% endif %}>Voided</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>{{ _("Posted") }}</option>
+      <option value="VOIDED" {% if filter_status == 'VOIDED' %}selected{% endif %}>{{ _("Voided") }}</option>
     </select>
   </div>
 
   <div>
-    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">Date from</label>
+    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Date from") }}</label>
     <input
       type="date"
       id="date_from"
@@ -61,7 +61,7 @@
   </div>
 
   <div>
-    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">Date to</label>
+    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Date to") }}</label>
     <input
       type="date"
       id="date_to"
@@ -72,13 +72,13 @@
   </div>
 
   <div>
-    <label for="contact_id" class="block text-xs font-medium ink-3 mb-1">Contact</label>
+    <label for="contact_id" class="block text-xs font-medium ink-3 mb-1">{{ _("Contact") }}</label>
     <input
       type="text"
       id="contact_id"
       name="contact_id"
       value="{{ filter_contact_id }}"
-      placeholder="optional"
+      placeholder="{{ _('optional') }}"
       class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] w-64"
     >
   </div>
@@ -91,7 +91,7 @@
     type="submit"
     class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
   >
-    Filter
+    {{ _("Filter") }}
   </button>
 </form>
 
@@ -105,9 +105,9 @@
      entity="credit_notes",
      action_endpoint="/credit-notes/bulk",
      actions=[
-       ("post", "Post", false),
-       ("void", "Void", true),
-       ("archive", "Archive", true),
+       ("post", _("Post"), false),
+       ("void", _("Void"), true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
