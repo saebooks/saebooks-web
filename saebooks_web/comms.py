@@ -95,6 +95,7 @@ import jinja2
 from fastapi import APIRouter, Request
 from starlette.responses import JSONResponse, Response
 
+from saebooks_web.brand import current_brand
 from saebooks_web.config import settings
 
 logger = logging.getLogger("saebooks_web.comms")
@@ -516,7 +517,12 @@ def render_email_template(template: str, context: dict) -> str:
     """
     filename = _EMAIL_TEMPLATES[template]  # KeyError → 400 at the route
     tmpl = get_email_env().get_template(filename)
-    return tmpl.render(**context)
+    # The email env is a bare jinja2.Environment (not Jinja2Templates), so it
+    # doesn't get the current_brand() global the rest of the app registers —
+    # supply the active Brand directly so email templates can read brand.name
+    # (deployment-wide SAEBOOKS_BRAND, same as every other rendered page).
+    render_context = {"brand": current_brand(), **context}
+    return tmpl.render(**render_context)
 
 
 # ---------------------------------------------------------------------------

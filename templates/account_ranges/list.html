@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 {% import "_components/kebab_menu.html" as km %}
 
-{% block title %}{{ _("Account Ranges") }} — SAE Books{% endblock %}
+{% block title %}{{ _("Account Ranges") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}

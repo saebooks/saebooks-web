@@ -69,6 +69,7 @@ from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware
 from saebooks_web.auth import router as auth_router
 from saebooks_web.discourse_sso import router as discourse_sso_router
 from saebooks_web.authentik_sso import router as authentik_sso_router
+from saebooks_web.eid_sso import router as eid_sso_router
 from saebooks_web.routes.preview import router as preview_router
 from saebooks_web.routes.public_auth import router as public_auth_router
 from saebooks_web.routes.billing import router as billing_router
@@ -139,12 +140,16 @@ from saebooks_web.render import router as render_router
 # Internal server-to-server outbound email (engine #32) — token-gated,
 # exempt from session auth (same /internal/ skip lists as render).
 from saebooks_web.comms import router as comms_router
+from saebooks_web.brand import current_brand
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
 
+# SAEBOOKS_BRAND is a deployment-level env var (one value per process, per
+# brand.py's own docstring) — safe to resolve once here at app-construction
+# time, same as reading any other env-backed setting at import time.
 app = FastAPI(
-    title="SAE Books Web",
+    title=f"{current_brand().name} Web",
     description="Thin Jinja2 + HTMX frontend for saebooks-api",
     version="0.1.3",
     docs_url="/api/docs",  # keep /docs free from accidental exposure
@@ -359,6 +364,7 @@ app.include_router(admin_tenants_router)
 app.include_router(auth_router)
 app.include_router(discourse_sso_router)
 app.include_router(authentik_sso_router)
+app.include_router(eid_sso_router)
 app.include_router(webauthn_router)
 app.include_router(public_auth_router)
 app.include_router(contact_router)

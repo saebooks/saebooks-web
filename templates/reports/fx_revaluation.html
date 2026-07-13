@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}FX Revaluation — SAE Books{% endblock %}
+{% block title %}{{ _("FX Revaluation") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-4">
-  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← reports</a>
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← reports") }}</a>
 </div>
 
 <header class="mb-6 relative">
@@ -13,13 +13,13 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">FX</span>
+        <span class="nav-section-label">{{ _("FX") }}</span>
         <span class="reg-mark"></span>
       </div>
-      <h1 class="font-display text-3xl leading-none tracking-tight">FX Revaluation</h1>
-      {% if report %}<p class="text-xs ink-3 font-mono mt-2">As at {{ report.get("as_of_date", as_of_date) }} &mdash; Base currency: <span class="font-semibold">{{ report.get("base_currency", "AUD") }}</span></p>{% endif %}
+      <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("FX Revaluation") }}</h1>
+      {% if report %}<p class="text-xs ink-3 font-mono mt-2">{{ _("As at %(date)s") % {"date": report.get("as_of_date", as_of_date)} }} &mdash; {{ _("Base currency:") }} <span class="font-semibold">{{ report.get("base_currency", "AUD") }}</span></p>{% endif %}
     </div>
-    <button type="button" onclick="window.print()" class="btn-secondary text-sm">Print</button>
+    <button type="button" onclick="window.print()" class="btn-secondary text-sm">{{ _("Print") }}</button>
   </div>
   <div class="drafting mt-4"></div>
 </header>
@@ -27,10 +27,10 @@
 <form hx-get="/reports/fx-revaluation" hx-target="#report-content" hx-swap="innerHTML" hx-indicator="#report-spinner"
       class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
   <div>
-    <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">As at date</label>
+    <label for="as_of_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("As at date") }}</label>
     <input id="as_of_date" type="date" name="as_of_date" value="{{ as_of_date }}" class="saebooks-input num text-sm py-1.5">
   </div>
-  <button type="submit" class="btn-primary text-sm">Refresh</button>
+  <button type="submit" class="btn-primary text-sm">{{ _("Refresh") }}</button>
 </form>
 
 {% include "reports/_fx_revaluation_table.html" %}

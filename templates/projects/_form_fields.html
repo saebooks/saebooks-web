@@ -39,14 +39,14 @@
 
 {# ── Identity ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Identity</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Identity") }}</legend>
 
-  {{ text_input("code", "Project code", required=true, placeholder="PRJ-001") }}
-  {{ text_input("name", "Name", required=true, placeholder="Office Fit-Out") }}
+  {{ text_input("code", _("Project code"), required=true, placeholder="PRJ-001") }}
+  {{ text_input("name", _("Name"), required=true, placeholder="Office Fit-Out") }}
 
   <div>
     <label for="status" class="block text-sm font-medium ink-2 mb-1">
-      Status
+      {{ _("Status") }}
     </label>
     <select
       id="status"
@@ -67,14 +67,14 @@
 
 {# ── Dates ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Schedule</legend>
-  {{ text_input("start_date", "Start date", type="date") }}
-  {{ text_input("end_date", "End date", type="date") }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Schedule") }}</legend>
+  {{ text_input("start_date", _("Start date"), type="date") }}
+  {{ text_input("end_date", _("End date"), type="date") }}
 </fieldset>
 
 {# ── Notes ── #}
 <div class="mt-6">
-  <label for="notes" class="block text-sm font-medium ink-2 mb-1">Notes</label>
+  <label for="notes" class="block text-sm font-medium ink-2 mb-1">{{ _("Notes") }}</label>
   <textarea
     id="notes"
     name="notes"

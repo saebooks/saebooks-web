@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Archived Item — SAE Books{% endblock %}
+{% block title %}{{ _("Cannot Edit Archived Item") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if item %}Edit {{ item.sku }}{% else %}Edit Item{% endif %}
+    {% if item %}{{ _("Edit %(sku)s") % {"sku": item.sku} }}{% else %}{{ _("Edit Item") }}{% endif %}
   </h1>
   {% if item %}
-  <a href="/items/{{ item.id }}" class="text-sm sae hover:underline">← Back to item</a>
+  <a href="/items/{{ item.id }}" class="text-sm sae hover:underline">{{ _("← Back to item") }}</a>
   {% else %}
-  <a href="/items" class="text-sm sae hover:underline">← Back to items</a>
+  <a href="/items" class="text-sm sae hover:underline">{{ _("← Back to items") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--warm);">
-  <p class="text-sm font-semibold ink-1 mb-1">Archived items cannot be edited. Restore it first.</p>
+  <p class="text-sm font-semibold ink-1 mb-1">{{ _("Archived items cannot be edited. Restore it first.") }}</p>
   {% if item %}
   <p class="text-sm ink-2">
-    This item was archived on {{ item.archived_at[:10] }}.
-    Return to the
-    <a href="/items/{{ item.id }}" class="sae underline">item detail page</a>
-    to restore it before making changes.
+    {{ _("This item was archived on %(date)s.") % {"date": item.archived_at[:10]} }}
+    {{ _("Return to the") }}
+    <a href="/items/{{ item.id }}" class="sae underline">{{ _("item detail page") }}</a>
+    {{ _("to restore it before making changes.") }}
   </p>
   {% endif %}
 </div>

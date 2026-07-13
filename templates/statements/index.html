@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Supplier Statements — SAE Books{% endblock %}
+{% block title %}{{ _("Supplier Statements") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -18,14 +18,14 @@
   <div class="flex items-start justify-between gap-4 flex-wrap">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Payables</span>
+        <span class="nav-section-label">{{ _("Payables") }}</span>
         <span class="reg-mark"></span>
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
         <i data-lucide="file-check-2" class="w-7 h-7 ink-3" aria-hidden="true"></i>
-        <span>Supplier Statements</span>
+        <span>{{ _("Supplier Statements") }}</span>
       </h1>
-      <p class="text-xs ink-3 font-mono mt-2">Reconciliation queue — {{ total }} statement{{ "s" if total != 1 else "" }}</p>
+      <p class="text-xs ink-3 font-mono mt-2">{{ ngettext("Reconciliation queue — %(n)s statement", "Reconciliation queue — %(n)s statements", total) % {"n": total} }}</p>
     </div>
 
     {# ── Ingest form ── #}
@@ -34,20 +34,20 @@
       <div>
         <label for="paperless_document_id"
                class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-          Paperless Doc ID
+          {{ _("Paperless Doc ID") }}
         </label>
         <input
           id="paperless_document_id"
           type="number"
           name="paperless_document_id"
           min="1"
-          placeholder="e.g. 42"
+          placeholder="{{ _('e.g. 42') }}"
           required
           class="saebooks-input num text-sm py-1.5 w-36"
         >
       </div>
       <button type="submit" class="btn-primary text-sm">
-        Ingest
+        {{ _("Ingest") }}
       </button>
     </form>
   </div>
@@ -63,12 +63,12 @@
      "all"         → All statements
 #}
 <div class="mb-4 flex gap-2 items-center flex-wrap">
-  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Filter:</span>
+  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Filter:") }}</span>
   {% set tabs = [
-    ("",           "Needs attention"),
-    ("reconciled", "Reconciled"),
-    ("dismissed",  "Dismissed"),
-    ("all",        "All"),
+    ("",           _("Needs attention")),
+    ("reconciled", _("Reconciled")),
+    ("dismissed",  _("Dismissed")),
+    ("all",        _("All")),
   ] %}
   {% for val, label in tabs %}
   <a href="/statements{% if val %}?status={{ val }}{% endif %}"
@@ -94,13 +94,13 @@
   <table class="min-w-full divide-y text-sm" style="border-color:var(--line);">
     <thead>
       <tr style="background:var(--paper-2);">
-        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Supplier</th>
-        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Statement Date</th>
-        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">Status</th>
-        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Closing Balance</th>
-        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Our AP</th>
-        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Delta</th>
-        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">Exceptions</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Supplier") }}</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Statement Date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Status") }}</th>
+        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Closing Balance") }}</th>
+        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Our AP") }}</th>
+        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Delta") }}</th>
+        <th scope="col" class="px-4 py-3 text-right text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Exceptions") }}</th>
         <th scope="col" class="px-4 py-3"></th>
       </tr>
     </thead>
@@ -119,17 +119,17 @@
           <td class="px-4 py-3">
             {% set s = (stmt.status or "") | lower %}
             {% if s == "reconciled" %}
-              <span class="badge-pos">Reconciled</span>
+              <span class="badge-pos">{{ _("Reconciled") }}</span>
             {% elif s == "needs_review" %}
-              <span class="badge-warm">Needs Review</span>
+              <span class="badge-warm">{{ _("Needs Review") }}</span>
             {% elif s == "extracted" %}
-              <span class="badge-draft">Extracted</span>
+              <span class="badge-draft">{{ _("Extracted") }}</span>
             {% elif s == "dismissed" %}
-              <span class="badge-ink">Dismissed</span>
+              <span class="badge-ink">{{ _("Dismissed") }}</span>
             {% elif s == "exception" %}
-              <span class="badge-warm">Exception</span>
+              <span class="badge-warm">{{ _("Exception") }}</span>
             {% elif s == "pending" %}
-              <span class="badge-draft">Pending</span>
+              <span class="badge-draft">{{ _("Pending") }}</span>
             {% else %}
               <span class="badge-ink">{{ stmt.status | default("—") }}</span>
             {% endif %}
@@ -166,7 +166,7 @@
           <td class="px-4 py-3 text-right">
             <a href="/statements/{{ stmt.id }}"
                class="text-xs font-mono sae hover:underline">
-              View →
+              {{ _("View →") }}
             </a>
           </td>
         </tr>
@@ -175,11 +175,11 @@
         <tr>
           <td colspan="8" class="px-4 py-10 text-center ink-4 text-sm">
             {% if status_filter == "" %}
-              No statements need attention right now.
-              <a href="/statements?status=all" class="sae hover:underline ml-1">View all</a>
+              {{ _("No statements need attention right now.") }}
+              <a href="/statements?status=all" class="sae hover:underline ml-1">{{ _("View all") }}</a>
             {% else %}
-              No statements found.
-              <a href="/statements" class="sae hover:underline ml-1">Clear filter</a>
+              {{ _("No statements found.") }}
+              <a href="/statements" class="sae hover:underline ml-1">{{ _("Clear filter") }}</a>
             {% endif %}
           </td>
         </tr>

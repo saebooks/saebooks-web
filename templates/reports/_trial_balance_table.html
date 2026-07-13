@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading...
+  {{ _("Loading...") }}
 </div>
 
 {% if report %}
@@ -26,14 +26,14 @@
 {% if balanced %}
 <div class="card p-3 flex items-center gap-2 mb-4" style="border-color:var(--pos);" id="balance-indicator">
   <span class="dot" style="background:var(--pos);"></span>
-  <span class="text-sm font-semibold" style="color:var(--pos);">Balanced</span>
-  <span class="text-sm ink-2">Debits equal credits.</span>
+  <span class="text-sm font-semibold" style="color:var(--pos);">{{ _("Balanced") }}</span>
+  <span class="text-sm ink-2">{{ _("Debits equal credits.") }}</span>
 </div>
 {% else %}
 <div class="card p-3 flex items-center gap-2 mb-4" style="border-color:var(--neg);" id="balance-indicator">
   <span class="dot" style="background:var(--neg);"></span>
-  <span class="text-sm font-semibold" style="color:var(--neg);">UNBALANCED</span>
-  <span class="text-sm ink-2">Debits do not equal credits — check your journals.</span>
+  <span class="text-sm font-semibold" style="color:var(--neg);">{{ _("UNBALANCED") }}</span>
+  <span class="text-sm ink-2">{{ _("Debits do not equal credits — check your journals.") }}</span>
 </div>
 {% endif %}
 
@@ -43,13 +43,13 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th class="text-left w-24">Code</th>
-        <th class="text-left">Name</th>
-        <th class="text-left w-32">Type</th>
-        <th class="text-right w-32">Debits</th>
-        <th class="text-right w-32">Credits</th>
-        <th class="text-right w-28">Balance</th>
-        <th class="text-right w-28 ink-3">Prior balance</th>
+        <th class="text-left w-24">{{ _("Code") }}</th>
+        <th class="text-left">{{ _("Name") }}</th>
+        <th class="text-left w-32">{{ _("Type") }}</th>
+        <th class="text-right w-32">{{ _("Debits") }}</th>
+        <th class="text-right w-32">{{ _("Credits") }}</th>
+        <th class="text-right w-28">{{ _("Balance") }}</th>
+        <th class="text-right w-28 ink-3">{{ _("Prior balance") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -67,11 +67,11 @@
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="3" class="font-semibold ink-1">Totals</td>
+        <td colspan="3" class="font-semibold ink-1">{{ _("Totals") }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total_debits, 2) }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total_credits, 2) }}</td>
         <td></td>
-        <td class="text-right num ink-3 font-semibold">Prior year</td>
+        <td class="text-right num ink-3 font-semibold">{{ _("Prior year") }}</td>
       </tr>
     </tfoot>
   </table>
@@ -83,12 +83,12 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th class="text-left w-24">Code</th>
-        <th class="text-left">Name</th>
-        <th class="text-left w-32">Type</th>
-        <th class="text-right w-32">Debits</th>
-        <th class="text-right w-32">Credits</th>
-        <th class="text-right w-32">Balance</th>
+        <th class="text-left w-24">{{ _("Code") }}</th>
+        <th class="text-left">{{ _("Name") }}</th>
+        <th class="text-left w-32">{{ _("Type") }}</th>
+        <th class="text-right w-32">{{ _("Debits") }}</th>
+        <th class="text-right w-32">{{ _("Credits") }}</th>
+        <th class="text-right w-32">{{ _("Balance") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -105,7 +105,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="3" class="font-semibold ink-1">Totals</td>
+        <td colspan="3" class="font-semibold ink-1">{{ _("Totals") }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total_debits, 2) }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total_credits, 2) }}</td>
         <td></td>
@@ -116,7 +116,7 @@
 {% endif %}
 
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>

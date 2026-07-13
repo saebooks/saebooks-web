@@ -24,24 +24,24 @@
 {%- macro payment_status_badge(item, today=None, due_soon_cutoff=None) -%}
   {%- set s = (item.status or '')|upper -%}
   {%- if s == 'VOIDED' -%}
-    <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">Voided</span>
+    <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">{{ _("Voided") }}</span>
   {%- elif s == 'DRAFT' -%}
-    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Draft</span>
+    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">{{ _("Draft") }}</span>
   {%- elif s == 'POSTED' -%}
     {%- set total = (item.total or 0)|float -%}
     {%- set paid  = (item.amount_paid or 0)|float -%}
     {%- if total > 0 and paid >= total -%}
-      <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Paid</span>
+      <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">{{ _("Paid") }}</span>
     {%- elif paid > 0 -%}
       <span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-        Partial · {{ money(paid, grouping=False) }} / {{ money(total, grouping=False) }}
+        {{ _("Partial") }} · {{ money(paid, grouping=False) }} / {{ money(total, grouping=False) }}
       </span>
     {%- elif today and item.due_date and item.due_date < today -%}
-      <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">Overdue</span>
+      <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">{{ _("Overdue") }}</span>
     {%- elif due_soon_cutoff and item.due_date and item.due_date <= due_soon_cutoff -%}
-      <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Due soon</span>
+      <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">{{ _("Due soon") }}</span>
     {%- else -%}
-      <span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Open</span>
+      <span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">{{ _("Open") }}</span>
     {%- endif -%}
   {%- else -%}
     <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ s|capitalize }}</span>
@@ -55,11 +55,11 @@
 {%- macro simple_status_badge(item) -%}
   {%- set s = (item.status or '')|upper -%}
   {%- if s == 'POSTED' -%}
-    <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Posted</span>
+    <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">{{ _("Posted") }}</span>
   {%- elif s == 'VOIDED' -%}
-    <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">Voided</span>
+    <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">{{ _("Voided") }}</span>
   {%- elif s == 'DRAFT' -%}
-    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Draft</span>
+    <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">{{ _("Draft") }}</span>
   {%- else -%}
     <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">{{ s|capitalize }}</span>
   {%- endif -%}

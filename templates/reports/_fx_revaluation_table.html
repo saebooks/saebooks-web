@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading&hellip;
+  {{ _("Loading…") }}
 </div>
 
 {% if report %}
@@ -33,14 +33,14 @@
     <table class="sae-table w-full">
       <thead>
         <tr>
-          <th class="text-left">Type</th>
-          <th class="text-left">Reference</th>
-          <th class="text-left">Contact</th>
-          <th class="text-left">Currency</th>
-          <th class="text-right">Original Amount</th>
-          <th class="text-right">Amount Paid</th>
-          <th class="text-right">Outstanding (Foreign)</th>
-          <th class="text-right">Outstanding ({{ base_currency }})</th>
+          <th class="text-left">{{ _("Type") }}</th>
+          <th class="text-left">{{ _("Reference") }}</th>
+          <th class="text-left">{{ _("Contact") }}</th>
+          <th class="text-left">{{ _("Currency") }}</th>
+          <th class="text-right">{{ _("Original Amount") }}</th>
+          <th class="text-right">{{ _("Amount Paid") }}</th>
+          <th class="text-right">{{ _("Outstanding (Foreign)") }}</th>
+          <th class="text-right">{{ _("Outstanding (%(currency)s)") % {"currency": base_currency} }}</th>
         </tr>
       </thead>
       <tbody>
@@ -49,9 +49,9 @@
           <tr>
             <td>
               {% if item.get("entity_type") == "INVOICE" %}
-              <span class="badge-open">INV</span>
+              <span class="badge-open">{{ _("INV") }}</span>
               {% else %}
-              <span class="badge-pending">BILL</span>
+              <span class="badge-pending">{{ _("BILL") }}</span>
               {% endif %}
             </td>
             <td class="num ink-2 text-xs">{{ item.get("entity_ref") or "—" }}</td>
@@ -71,14 +71,14 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="8" class="text-center ink-3 font-mono text-sm py-6">— no foreign-currency documents found for this date —</td>
+            <td colspan="8" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no foreign-currency documents found for this date —") }}</td>
           </tr>
         {% endif %}
       </tbody>
       <tfoot>
         <tr>
           <td colspan="7" class="font-semibold ink-1">
-            Total Revaluation Gain / Loss ({{ base_currency }})
+            {{ _("Total Revaluation Gain / Loss (%(currency)s)") % {"currency": base_currency} }}
           </td>
           <td class="text-right num-display font-semibold">
             {% set total_gl = report.get("total_revaluation_gain_loss") %}
@@ -93,7 +93,8 @@
         </tr>
         <tr class="bg-paper-2">
           <td colspan="8" class="text-xs ink-3 font-mono py-2">
-            {{ report.get("total_items", 0) }} document(s) with foreign currency exposure as at {{ report.get("as_of_date", as_of_date) }}
+            {% set _n = report.get("total_items", 0) %}
+            {{ ngettext("%(n)s document with foreign currency exposure as at %(date)s", "%(n)s documents with foreign currency exposure as at %(date)s", _n) % {"n": _n, "date": report.get("as_of_date", as_of_date)} }}
           </td>
         </tr>
       </tfoot>
@@ -101,7 +102,7 @@
   </div>
 </div>
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>

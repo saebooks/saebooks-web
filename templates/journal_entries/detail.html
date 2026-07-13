@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if entry %}{{ _("Journal Entry %(ref)s") % {"ref": (entry.ref or entry.id)} }} — SAE Books{% else %}{{ _("Journal Entry Not Found") }} — SAE Books{% endif %}
+  {% if entry %}{{ _("Journal Entry %(ref)s") % {"ref": (entry.ref or entry.id)} }} — {{ current_brand().name }}{% else %}{{ _("Journal Entry Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

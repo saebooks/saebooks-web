@@ -11,7 +11,7 @@
       name="lines[{{ index }}][account_id]"
       class="saebooks-input w-full"
     >
-      <option value="">— account —</option>
+      <option value="">{{ _("— account —") }}</option>
       {% for acct in accounts %}
       <option value="{{ acct.id }}"
         {% if line.get("account_id") == acct.id %}selected{% endif %}>
@@ -28,7 +28,7 @@
       name="lines[{{ index }}][description]"
       value="{{ line.get('description', '') }}"
       placeholder="Description"
-      aria-label="Line description"
+      aria-label="{{ _('Line description') }}"
       class="saebooks-input w-full"
     >
   </td>
@@ -41,7 +41,7 @@
       value="{{ line.get('quantity', '1') }}"
       step="0.001"
       min="0"
-      aria-label="Quantity"
+      aria-label="{{ _('Quantity') }}"
       class="saebooks-input w-full text-right"
     >
   </td>
@@ -55,7 +55,7 @@
       step="0.01"
       min="0"
       placeholder="0.00"
-      aria-label="Unit price"
+      aria-label="{{ _('Unit price') }}"
       class="saebooks-input w-full text-right"
     >
   </td>
@@ -66,7 +66,7 @@
       name="lines[{{ index }}][tax_code_id]"
       class="saebooks-input w-full"
     >
-      <option value="">— none —</option>
+      <option value="">{{ _("— none —") }}</option>
       {% for tc in tax_codes %}
       <option value="{{ tc.id }}"
         {% if line.get("tax_code_id") == tc.id %}selected{% endif %}>
@@ -82,7 +82,7 @@
       name="lines[{{ index }}][project_id]"
       class="saebooks-input w-full"
     >
-      <option value="">— none —</option>
+      <option value="">{{ _("— none —") }}</option>
       {% for proj in projects %}
       <option value="{{ proj.id }}"
         {% if line.get("project_id") and line.get("project_id")|string == proj.id|string %}selected{% endif %}>
@@ -99,8 +99,8 @@
       onclick="this.closest('tr').remove()"
       class="text-lg leading-none font-bold"
       style="color:var(--neg);"
-      aria-label="Remove line"
-      title="Remove line"
+      aria-label="{{ _('Remove line') }}"
+      title="{{ _('Remove line') }}"
     >&times;</button>
   </td>
 </tr>

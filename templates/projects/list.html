@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Projects — SAE Books{% endblock %}
+{% block title %}{{ _("Projects") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,16 +13,16 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Projects</h1>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Projects") }}</h1>
     {% if not error %}
-    <p class="text-sm ink-3 mt-1">{{ total }} project{{ "s" if total != 1 else "" }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("%(n)s project") % {"n": total} if total == 1 else _("%(n)s projects") % {"n": total} }}</p>
     {% endif %}
   </div>
   <a
     href="/projects/new"
     class="btn-primary px-4 py-2 text-sm font-medium"
   >
-    New project
+    {{ _("New project") }}
   </a>
 </div>
 
@@ -35,17 +35,17 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium ink-3 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium ink-3 mb-1">{{ _("Status") }}</label>
     <select
       id="status"
       name="status"
       class="saebooks-input text-sm px-2 py-1.5"
     >
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="ACTIVE" {% if filter_status == 'ACTIVE' %}selected{% endif %}>Active</option>
-      <option value="ON_HOLD" {% if filter_status == 'ON_HOLD' %}selected{% endif %}>On Hold</option>
-      <option value="COMPLETED" {% if filter_status == 'COMPLETED' %}selected{% endif %}>Completed</option>
-      <option value="ARCHIVED" {% if filter_status == 'ARCHIVED' %}selected{% endif %}>Archived</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="ACTIVE" {% if filter_status == 'ACTIVE' %}selected{% endif %}>{{ _("Active") }}</option>
+      <option value="ON_HOLD" {% if filter_status == 'ON_HOLD' %}selected{% endif %}>{{ _("On Hold") }}</option>
+      <option value="COMPLETED" {% if filter_status == 'COMPLETED' %}selected{% endif %}>{{ _("Completed") }}</option>
+      <option value="ARCHIVED" {% if filter_status == 'ARCHIVED' %}selected{% endif %}>{{ _("Archived") }}</option>
     </select>
   </div>
 
@@ -57,7 +57,7 @@
     type="submit"
     class="btn-primary px-3 py-1.5 text-sm font-medium"
   >
-    Filter
+    {{ _("Filter") }}
   </button>
 </form>
 
@@ -71,7 +71,7 @@
      entity="projects",
      action_endpoint="/projects/bulk",
      actions=[
-       ("archive", "Archive", true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

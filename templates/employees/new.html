@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New employee — SAE Books{% endblock %}
+{% block title %}{{ _("New employee") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6">
-  <h1 class="font-display text-3xl">New employee</h1>
-  <p class="text-base ink-3 mt-1">Register an employee for STP Phase 2 payroll reporting.</p>
+  <h1 class="font-display text-3xl">{{ _("New employee") }}</h1>
+  <p class="text-base ink-3 mt-1">{{ _("Register an employee for STP Phase 2 payroll reporting.") }}</p>
 </div>
 
 {% if errors._global %}
@@ -20,15 +20,15 @@
 
   {# ── Section 1: Identity ────────────────────────────────────────────── #}
   <section class="card p-6">
-    <p class="nav-section-label mb-4">Identity</p>
+    <p class="nav-section-label mb-4">{{ _("Identity") }}</p>
     <div class="grid grid-cols-2 gap-4">
       <div class="col-span-2">
-        <label class="block text-sm ink-3 mb-1" for="contact_id">Contact *<span class="sr-only"> (required)</span>
-          <span class="ink-4 text-xs">(links this employee to an existing contact card)</span>
+        <label class="block text-sm ink-3 mb-1" for="contact_id">{{ _("Contact") }} *<span class="sr-only"> {{ _("(required)") }}</span>
+          <span class="ink-4 text-xs">{{ _("(links this employee to an existing contact card)") }}</span>
         </label>
         <select id="contact_id" name="contact_id" required
                 class="w-full rounded-md hairline px-3 py-2 bg-paper">
-          <option value="">— Select contact —</option>
+          <option value="">{{ _("— Select contact —") }}</option>
           {% for c in contacts %}
           <option value="{{ c.id }}"
                   {% if form.contact_id == c.id|string %}selected{% endif %}>
@@ -39,8 +39,8 @@
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1" for="employee_number">Employee number
-          <span class="ink-4 text-xs">(blank = server mints EMP-NNNNNN)</span>
+        <label class="block text-sm ink-3 mb-1" for="employee_number">{{ _("Employee number") }}
+          <span class="ink-4 text-xs">{{ _("(blank = server mints EMP-NNNNNN)") }}</span>
         </label>
         <input type="text" id="employee_number" name="employee_number" value="{{ form.employee_number }}"
                placeholder="EMP-000001"
@@ -48,27 +48,27 @@
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1" for="start_date">Start date *<span class="sr-only"> (required)</span></label>
+        <label class="block text-sm ink-3 mb-1" for="start_date">{{ _("Start date") }} *<span class="sr-only"> {{ _("(required)") }}</span></label>
         <input type="date" id="start_date" name="start_date" required aria-required="true" value="{{ form.start_date }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1" for="dob">Date of birth</label>
+        <label class="block text-sm ink-3 mb-1" for="dob">{{ _("Date of birth") }}</label>
         <input type="date" id="dob" name="dob" value="{{ form.dob or '' }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1" for="employment_basis">Employment basis *<span class="sr-only"> (required)</span></label>
+        <label class="block text-sm ink-3 mb-1" for="employment_basis">{{ _("Employment basis") }} *<span class="sr-only"> {{ _("(required)") }}</span></label>
         <select id="employment_basis" name="employment_basis" required aria-required="true"
                 class="w-full rounded-md hairline px-3 py-2 bg-paper">
-          <option value="F" {% if form.employment_basis == 'F' %}selected{% endif %}>F — Full time</option>
-          <option value="P" {% if form.employment_basis == 'P' %}selected{% endif %}>P — Part time</option>
-          <option value="C" {% if form.employment_basis == 'C' %}selected{% endif %}>C — Casual</option>
-          <option value="L" {% if form.employment_basis == 'L' %}selected{% endif %}>L — Labour hire</option>
-          <option value="V" {% if form.employment_basis == 'V' %}selected{% endif %}>V — Voluntary agreement</option>
-          <option value="N" {% if form.employment_basis == 'N' %}selected{% endif %}>N — Non-employee</option>
+          <option value="F" {% if form.employment_basis == 'F' %}selected{% endif %}>{{ _("F — Full time") }}</option>
+          <option value="P" {% if form.employment_basis == 'P' %}selected{% endif %}>{{ _("P — Part time") }}</option>
+          <option value="C" {% if form.employment_basis == 'C' %}selected{% endif %}>{{ _("C — Casual") }}</option>
+          <option value="L" {% if form.employment_basis == 'L' %}selected{% endif %}>{{ _("L — Labour hire") }}</option>
+          <option value="V" {% if form.employment_basis == 'V' %}selected{% endif %}>{{ _("V — Voluntary agreement") }}</option>
+          <option value="N" {% if form.employment_basis == 'N' %}selected{% endif %}>{{ _("N — Non-employee") }}</option>
         </select>
       </div>
     </div>
@@ -76,54 +76,54 @@
 
   {# ── Section 2: Tax / STP ───────────────────────────────────────────── #}
   <section class="card p-6">
-    <p class="nav-section-label mb-4">Tax and STP</p>
+    <p class="nav-section-label mb-4">{{ _("Tax and STP") }}</p>
     <div class="grid grid-cols-2 gap-4">
 
       <div>
         <label class="block text-sm ink-3 mb-1">
-          TFN
+          {{ _("TFN") }}
           <span class="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded text-xs"
                 style="background: var(--sae-tint); color: var(--sae-2);">
-            <i data-lucide="shield" class="w-3 h-3"></i> Encrypted at rest
+            <i data-lucide="shield" class="w-3 h-3"></i> {{ _("Encrypted at rest") }}
           </span>
         </label>
         <input type="password" name="tfn" value=""
                placeholder="NNN NNN NNN"
                autocomplete="off"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
-        <p class="text-xs ink-3 mt-1">TFN is Fernet-encrypted — never stored in plaintext.</p>
+        <p class="text-xs ink-3 mt-1">{{ _("TFN is Fernet-encrypted — never stored in plaintext.") }}</p>
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1" for="tfn_status">TFN status</label>
+        <label class="block text-sm ink-3 mb-1" for="tfn_status">{{ _("TFN status") }}</label>
         <select id="tfn_status" name="tfn_status" class="w-full rounded-md hairline px-3 py-2 bg-paper">
-          <option value="NOT_PROVIDED"    {% if form.tfn_status == 'NOT_PROVIDED' %}selected{% endif %}>Not provided</option>
-          <option value="PROVIDED"        {% if form.tfn_status == 'PROVIDED' %}selected{% endif %}>Provided</option>
-          <option value="NEW_PAYEE_30D"   {% if form.tfn_status == 'NEW_PAYEE_30D' %}selected{% endif %}>New payee (30-day exemption)</option>
-          <option value="APPLIED_FOR"     {% if form.tfn_status == 'APPLIED_FOR' %}selected{% endif %}>Applied for</option>
-          <option value="EXEMPT_PENSIONER" {% if form.tfn_status == 'EXEMPT_PENSIONER' %}selected{% endif %}>Exempt — pensioner</option>
-          <option value="EXEMPT_UNDER_18" {% if form.tfn_status == 'EXEMPT_UNDER_18' %}selected{% endif %}>Exempt — under 18</option>
+          <option value="NOT_PROVIDED"    {% if form.tfn_status == 'NOT_PROVIDED' %}selected{% endif %}>{{ _("Not provided") }}</option>
+          <option value="PROVIDED"        {% if form.tfn_status == 'PROVIDED' %}selected{% endif %}>{{ _("Provided") }}</option>
+          <option value="NEW_PAYEE_30D"   {% if form.tfn_status == 'NEW_PAYEE_30D' %}selected{% endif %}>{{ _("New payee (30-day exemption)") }}</option>
+          <option value="APPLIED_FOR"     {% if form.tfn_status == 'APPLIED_FOR' %}selected{% endif %}>{{ _("Applied for") }}</option>
+          <option value="EXEMPT_PENSIONER" {% if form.tfn_status == 'EXEMPT_PENSIONER' %}selected{% endif %}>{{ _("Exempt — pensioner") }}</option>
+          <option value="EXEMPT_UNDER_18" {% if form.tfn_status == 'EXEMPT_UNDER_18' %}selected{% endif %}>{{ _("Exempt — under 18") }}</option>
         </select>
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1" for="income_stream_type">Income stream type</label>
+        <label class="block text-sm ink-3 mb-1" for="income_stream_type">{{ _("Income stream type") }}</label>
         <select id="income_stream_type" name="income_stream_type" class="w-full rounded-md hairline px-3 py-2 bg-paper">
-          <option value="SAW" {% if form.income_stream_type == 'SAW' %}selected{% endif %}>SAW — Salary &amp; wages</option>
-          <option value="CHP" {% if form.income_stream_type == 'CHP' %}selected{% endif %}>CHP — Closely held payee</option>
-          <option value="IAA" {% if form.income_stream_type == 'IAA' %}selected{% endif %}>IAA — Inbound assignee (AU)</option>
-          <option value="WHM" {% if form.income_stream_type == 'WHM' %}selected{% endif %}>WHM — Working holiday maker</option>
-          <option value="SWP" {% if form.income_stream_type == 'SWP' %}selected{% endif %}>SWP — Seasonal worker</option>
-          <option value="JPD" {% if form.income_stream_type == 'JPD' %}selected{% endif %}>JPD — Joint petroleum development</option>
-          <option value="VOL" {% if form.income_stream_type == 'VOL' %}selected{% endif %}>VOL — Voluntary agreement</option>
-          <option value="LAB" {% if form.income_stream_type == 'LAB' %}selected{% endif %}>LAB — Labour hire</option>
-          <option value="OSP" {% if form.income_stream_type == 'OSP' %}selected{% endif %}>OSP — Other specified</option>
+          <option value="SAW" {% if form.income_stream_type == 'SAW' %}selected{% endif %}>{{ _("SAW — Salary & wages") }}</option>
+          <option value="CHP" {% if form.income_stream_type == 'CHP' %}selected{% endif %}>{{ _("CHP — Closely held payee") }}</option>
+          <option value="IAA" {% if form.income_stream_type == 'IAA' %}selected{% endif %}>{{ _("IAA — Inbound assignee (AU)") }}</option>
+          <option value="WHM" {% if form.income_stream_type == 'WHM' %}selected{% endif %}>{{ _("WHM — Working holiday maker") }}</option>
+          <option value="SWP" {% if form.income_stream_type == 'SWP' %}selected{% endif %}>{{ _("SWP — Seasonal worker") }}</option>
+          <option value="JPD" {% if form.income_stream_type == 'JPD' %}selected{% endif %}>{{ _("JPD — Joint petroleum development") }}</option>
+          <option value="VOL" {% if form.income_stream_type == 'VOL' %}selected{% endif %}>{{ _("VOL — Voluntary agreement") }}</option>
+          <option value="LAB" {% if form.income_stream_type == 'LAB' %}selected{% endif %}>{{ _("LAB — Labour hire") }}</option>
+          <option value="OSP" {% if form.income_stream_type == 'OSP' %}selected{% endif %}>{{ _("OSP — Other specified") }}</option>
         </select>
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1" for="tax_treatment_code">Tax treatment code
-          <span class="ink-4 text-xs">(auto-suggested; editable)</span>
+        <label class="block text-sm ink-3 mb-1" for="tax_treatment_code">{{ _("Tax treatment code") }}
+          <span class="ink-4 text-xs">{{ _("(auto-suggested; editable)") }}</span>
         </label>
         <input type="text" id="tax_treatment_code" name="tax_treatment_code" value="{{ form.tax_treatment_code }}"
                placeholder="e.g. RTRR"
@@ -131,7 +131,7 @@
       </div>
 
       <div>
-        <label class="block text-sm ink-3 mb-1" for="payg_branch_code">PAYG branch code</label>
+        <label class="block text-sm ink-3 mb-1" for="payg_branch_code">{{ _("PAYG branch code") }}</label>
         <input type="text" id="payg_branch_code" name="payg_branch_code" value="{{ form.payg_branch_code }}"
                placeholder="NNN"
                maxlength="3"
@@ -142,26 +142,26 @@
         <label class="inline-flex items-center gap-2 text-sm ink-1">
           <input type="checkbox" name="claims_tax_free_threshold" value="on"
                  {% if form.claims_tax_free_threshold %}checked{% endif %}>
-          Claims tax-free threshold
+          {{ _("Claims tax-free threshold") }}
         </label>
         <label class="inline-flex items-center gap-2 text-sm ink-1">
           <input type="checkbox" name="is_australian_resident" value="on"
                  {% if form.is_australian_resident %}checked{% endif %}>
-          Australian resident for tax purposes
+          {{ _("Australian resident for tax purposes") }}
         </label>
         <label class="inline-flex items-center gap-2 text-sm ink-1">
           <input type="checkbox" name="study_training_support_loan" value="on"
                  {% if form.study_training_support_loan %}checked{% endif %}>
-          Study and Training Support Loan (STSL / HECS)
+          {{ _("Study and Training Support Loan (STSL / HECS)") }}
         </label>
         <label class="inline-flex items-center gap-2 text-sm ink-1" id="whm-toggle-label">
           <input type="checkbox" name="working_holiday_maker" value="on"
                  id="whm-checkbox"
                  {% if form.working_holiday_maker %}checked{% endif %}>
-          Working holiday maker
+          {{ _("Working holiday maker") }}
         </label>
         <div id="whm-country-field" class="{% if not form.working_holiday_maker %}hidden{% endif %}">
-          <label class="block text-sm ink-3 mb-1">WHM country code (ISO 2)</label>
+          <label class="block text-sm ink-3 mb-1">{{ _("WHM country code (ISO 2)") }}</label>
           <input type="text" name="whm_country_code" value="{{ form.whm_country_code }}"
                  placeholder="e.g. GB"
                  maxlength="2"
@@ -173,25 +173,25 @@
 
   {# ── Section 3: Address ─────────────────────────────────────────────── #}
   <section class="card p-6">
-    <p class="nav-section-label mb-4">Address</p>
+    <p class="nav-section-label mb-4">{{ _("Address") }}</p>
     <div class="grid grid-cols-2 gap-4">
       <div class="col-span-2">
-        <label class="block text-sm ink-3 mb-1" for="address_line1">Street line 1</label>
+        <label class="block text-sm ink-3 mb-1" for="address_line1">{{ _("Street line 1") }}</label>
         <input type="text" id="address_line1" name="address_line1" value="{{ form.address_line1 }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
       <div class="col-span-2">
-        <label class="block text-sm ink-3 mb-1" for="address_line2">Street line 2</label>
+        <label class="block text-sm ink-3 mb-1" for="address_line2">{{ _("Street line 2") }}</label>
         <input type="text" id="address_line2" name="address_line2" value="{{ form.address_line2 }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="suburb">Suburb / city</label>
+        <label class="block text-sm ink-3 mb-1" for="suburb">{{ _("Suburb / city") }}</label>
         <input type="text" id="suburb" name="suburb" value="{{ form.suburb }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="state">State / territory</label>
+        <label class="block text-sm ink-3 mb-1" for="state">{{ _("State / territory") }}</label>
         <select id="state" name="state" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="">—</option>
           {% for st in ['NSW','VIC','QLD','WA','SA','TAS','ACT','NT'] %}
@@ -200,13 +200,13 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="postcode">Postcode</label>
+        <label class="block text-sm ink-3 mb-1" for="postcode">{{ _("Postcode") }}</label>
         <input type="text" id="postcode" name="postcode" value="{{ form.postcode }}"
                maxlength="8"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="country_code">Country code</label>
+        <label class="block text-sm ink-3 mb-1" for="country_code">{{ _("Country code") }}</label>
         <input type="text" id="country_code" name="country_code" value="{{ form.country_code or 'AU' }}"
                maxlength="2"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
@@ -216,28 +216,28 @@
 
   {# ── Section 4: Pay shape ───────────────────────────────────────────── #}
   <section class="card p-6">
-    <p class="nav-section-label mb-4">Pay shape</p>
+    <p class="nav-section-label mb-4">{{ _("Pay shape") }}</p>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm ink-3 mb-1" for="pay_frequency">Pay frequency</label>
+        <label class="block text-sm ink-3 mb-1" for="pay_frequency">{{ _("Pay frequency") }}</label>
         <select id="pay_frequency" name="pay_frequency" class="w-full rounded-md hairline px-3 py-2 bg-paper">
-          <option value="WEEKLY"      {% if form.pay_frequency == 'WEEKLY' %}selected{% endif %}>Weekly</option>
-          <option value="FORTNIGHTLY" {% if form.pay_frequency == 'FORTNIGHTLY' %}selected{% endif %}>Fortnightly</option>
-          <option value="MONTHLY"     {% if form.pay_frequency == 'MONTHLY' %}selected{% endif %}>Monthly</option>
-          <option value="QUARTERLY"   {% if form.pay_frequency == 'QUARTERLY' %}selected{% endif %}>Quarterly</option>
-          <option value="ANNUAL"      {% if form.pay_frequency == 'ANNUAL' %}selected{% endif %}>Annual</option>
+          <option value="WEEKLY"      {% if form.pay_frequency == 'WEEKLY' %}selected{% endif %}>{{ _("Weekly") }}</option>
+          <option value="FORTNIGHTLY" {% if form.pay_frequency == 'FORTNIGHTLY' %}selected{% endif %}>{{ _("Fortnightly") }}</option>
+          <option value="MONTHLY"     {% if form.pay_frequency == 'MONTHLY' %}selected{% endif %}>{{ _("Monthly") }}</option>
+          <option value="QUARTERLY"   {% if form.pay_frequency == 'QUARTERLY' %}selected{% endif %}>{{ _("Quarterly") }}</option>
+          <option value="ANNUAL"      {% if form.pay_frequency == 'ANNUAL' %}selected{% endif %}>{{ _("Annual") }}</option>
         </select>
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="pay_basis">Pay basis</label>
+        <label class="block text-sm ink-3 mb-1" for="pay_basis">{{ _("Pay basis") }}</label>
         <select id="pay_basis" name="pay_basis" class="w-full rounded-md hairline px-3 py-2 bg-paper">
-          <option value="HOURLY" {% if form.pay_basis == 'HOURLY' %}selected{% endif %}>Hourly</option>
-          <option value="SALARY" {% if form.pay_basis == 'SALARY' %}selected{% endif %}>Salary</option>
+          <option value="HOURLY" {% if form.pay_basis == 'HOURLY' %}selected{% endif %}>{{ _("Hourly") }}</option>
+          <option value="SALARY" {% if form.pay_basis == 'SALARY' %}selected{% endif %}>{{ _("Salary") }}</option>
         </select>
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="base_rate">Base rate *<span class="sr-only"> (required)</span>
-          <span class="ink-4 text-xs">($/hr for hourly; annual salary otherwise)</span>
+        <label class="block text-sm ink-3 mb-1" for="base_rate">{{ _("Base rate") }} *<span class="sr-only"> {{ _("(required)") }}</span>
+          <span class="ink-4 text-xs">{{ _("($/hr for hourly; annual salary otherwise)") }}</span>
         </label>
         <input type="number" id="base_rate" name="base_rate" required aria-required="true" step="0.0001" min="0"
                value="{{ form.base_rate }}"
@@ -245,24 +245,24 @@
                class="w-full rounded-md hairline px-3 py-2 bg-paper num-display">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="weekly_hours">Ordinary weekly hours</label>
+        <label class="block text-sm ink-3 mb-1" for="weekly_hours">{{ _("Ordinary weekly hours") }}</label>
         <input type="number" id="weekly_hours" name="weekly_hours" step="0.01" min="0"
                value="{{ form.weekly_hours or '38.00' }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="payslip_email">Payslip email
-          <span class="ink-4 text-xs">(defaults to contact email)</span>
+        <label class="block text-sm ink-3 mb-1" for="payslip_email">{{ _("Payslip email") }}
+          <span class="ink-4 text-xs">{{ _("(defaults to contact email)") }}</span>
         </label>
         <input type="email" id="payslip_email" name="payslip_email" value="{{ form.payslip_email }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper">
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="payslip_delivery">Payslip delivery</label>
+        <label class="block text-sm ink-3 mb-1" for="payslip_delivery">{{ _("Payslip delivery") }}</label>
         <select id="payslip_delivery" name="payslip_delivery" class="w-full rounded-md hairline px-3 py-2 bg-paper">
-          <option value="EMAIL"  {% if form.payslip_delivery == 'EMAIL' %}selected{% endif %}>Email</option>
-          <option value="PRINT"  {% if form.payslip_delivery == 'PRINT' %}selected{% endif %}>Print</option>
-          <option value="PORTAL" {% if form.payslip_delivery == 'PORTAL' %}selected{% endif %}>Employee portal</option>
+          <option value="EMAIL"  {% if form.payslip_delivery == 'EMAIL' %}selected{% endif %}>{{ _("Email") }}</option>
+          <option value="PRINT"  {% if form.payslip_delivery == 'PRINT' %}selected{% endif %}>{{ _("Print") }}</option>
+          <option value="PORTAL" {% if form.payslip_delivery == 'PORTAL' %}selected{% endif %}>{{ _("Employee portal") }}</option>
         </select>
       </div>
     </div>
@@ -270,37 +270,37 @@
 
   {# ── Section 5: Super + bank ────────────────────────────────────────── #}
   <section class="card p-6">
-    <p class="nav-section-label mb-4">Super and bank</p>
+    <p class="nav-section-label mb-4">{{ _("Super and bank") }}</p>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm ink-3 mb-1" for="super_fund_id">Super fund</label>
+        <label class="block text-sm ink-3 mb-1" for="super_fund_id">{{ _("Super fund") }}</label>
         <select id="super_fund_id" name="super_fund_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
-          <option value="">— None —</option>
+          <option value="">{{ _("— None —") }}</option>
           {% for f in super_funds %}
           <option value="{{ f.id }}"
                   {% if form.super_fund_id == f.id|string %}selected{% endif %}>
-            {{ f.name }}{% if f.is_default %} (default){% endif %}
+            {{ f.name }}{% if f.is_default %} {{ _("(default)") }}{% endif %}
           </option>
           {% endfor %}
         </select>
       </div>
       <div>
-        <label class="block text-sm ink-3 mb-1" for="super_member_number">Member number</label>
+        <label class="block text-sm ink-3 mb-1" for="super_member_number">{{ _("Member number") }}</label>
         <input type="text" id="super_member_number" name="super_member_number" value="{{ form.super_member_number }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
 
       <div class="col-span-2 hairline border-t pt-4">
         <p class="text-sm ink-3 mb-3">
-          Bank account for net-pay disbursement
+          {{ _("Bank account for net-pay disbursement") }}
           <span class="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded text-xs"
                 style="background: var(--sae-tint); color: var(--sae-2);">
-            <i data-lucide="shield" class="w-3 h-3"></i> Encrypted at rest
+            <i data-lucide="shield" class="w-3 h-3"></i> {{ _("Encrypted at rest") }}
           </span>
         </p>
         <div class="grid grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm ink-3 mb-1">BSB <span class="ink-4 text-xs">(NNN-NNN)</span></label>
+            <label class="block text-sm ink-3 mb-1">{{ _("BSB") }} <span class="ink-4 text-xs">(NNN-NNN)</span></label>
             <input type="text" name="bsb" value="{{ form.bsb }}"
                    placeholder="062-000"
                    maxlength="7"
@@ -308,13 +308,13 @@
                    class="w-full rounded-md hairline px-3 py-2 bg-paper num">
           </div>
           <div>
-            <label class="block text-sm ink-3 mb-1">Account number</label>
+            <label class="block text-sm ink-3 mb-1">{{ _("Account number") }}</label>
             <input type="text" name="account_number" value="{{ form.account_number }}"
                    autocomplete="off"
                    class="w-full rounded-md hairline px-3 py-2 bg-paper num">
           </div>
           <div>
-            <label class="block text-sm ink-3 mb-1">Account name</label>
+            <label class="block text-sm ink-3 mb-1">{{ _("Account name") }}</label>
             <input type="text" name="account_name" value="{{ form.account_name }}"
                    autocomplete="off"
                    class="w-full rounded-md hairline px-3 py-2 bg-paper">
@@ -325,8 +325,8 @@
   </section>
 
   <div class="flex items-center gap-3">
-    <button type="submit" class="btn btn-primary">Save employee</button>
-    <a href="/employees" class="btn btn-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ _("Save employee") }}</button>
+    <a href="/employees" class="btn btn-secondary">{{ _("Cancel") }}</a>
   </div>
 </form>
 

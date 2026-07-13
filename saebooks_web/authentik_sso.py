@@ -94,6 +94,7 @@ def _public_base_url() -> str:
 def _login_error(request: Request, msg: str, code: int = 400) -> HTMLResponse:
     # Lazy import to avoid a circular ref with discourse_sso/auth.
     from saebooks_web.discourse_sso import discourse_enabled
+    from saebooks_web.eid_sso import eid_enabled
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -102,6 +103,7 @@ def _login_error(request: Request, msg: str, code: int = 400) -> HTMLResponse:
             "error": msg,
             "discourse_enabled": discourse_enabled(),
             "authentik_enabled": authentik_enabled(),
+            "eid_enabled": eid_enabled(),
             "authentik_button_label": _button_label(),
             "is_demo": False,
         },

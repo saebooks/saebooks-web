@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Company Settings") }} — SAE Books{% endblock %}
+{% block title %}{{ _("Company Settings") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -224,7 +224,7 @@
       <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Bad-debt write-off & recovery") }}</legend>
 
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-        {{ _("How SAE Books handles invoices that go unpaid long enough to be treated as a bad debt, and money that later comes in against a debt already written off.") }}
+        {{ _("How %(brand)s handles invoices that go unpaid long enough to be treated as a bad debt, and money that later comes in against a debt already written off.") % {"brand": current_brand().name} }}
       </p>
 
       {# Write-off mode — radio group, mirrors the psi_status pattern. #}

@@ -13,7 +13,7 @@
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
   </svg>
-  Loading...
+  {{ _("Loading...") }}
 </div>
 
 {% if report %}
@@ -26,12 +26,12 @@
   <table class="sae-table w-full">
     <thead>
       <tr>
-        <th class="text-left w-24">Code</th>
-        <th class="text-left">Account</th>
-        <th class="text-right w-32">Budget</th>
-        <th class="text-right w-32">Actual</th>
-        <th class="text-right w-32">Variance</th>
-        <th class="text-right w-28">Variance %</th>
+        <th class="text-left w-24">{{ _("Code") }}</th>
+        <th class="text-left">{{ _("Account") }}</th>
+        <th class="text-right w-32">{{ _("Budget") }}</th>
+        <th class="text-right w-32">{{ _("Actual") }}</th>
+        <th class="text-right w-32">{{ _("Variance") }}</th>
+        <th class="text-right w-28">{{ _("Variance %") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -58,7 +58,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="2" class="font-semibold ink-1">Totals</td>
+        <td colspan="2" class="font-semibold ink-1">{{ _("Totals") }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total_budget, 2) }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total_actual, 2) }}</td>
         {% if total_variance >= 0 %}
@@ -73,7 +73,7 @@
 </div>
 
 {% elif not error %}
-<p class="text-sm ink-3 font-mono">— no data —</p>
+<p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
 </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("ATO SBR") }} — {{ _("Admin") }} — SAE Books{% endblock %}
+{% block title %}{{ _("ATO SBR") }} — {{ _("Admin") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -19,7 +19,7 @@
 <div class="card px-4 py-4 text-sm ink-2" style="border-color:var(--warm);">
   <p class="font-medium ink-1">{{ _("ATO SBR feature is not enabled in this edition.") }}</p>
   <p class="mt-1 text-xs ink-3">
-    {{ _("This feature is available in SAE Books Enterprise. Contact your administrator or see the") }}
+    {{ _("This feature is available in %(brand)s Enterprise. Contact your administrator or see the") % {"brand": current_brand().name} }}
     <a href="/admin/license" class="underline sae">{{ _("licence page") }}</a> {{ _("for details.") }}
   </p>
 </div>

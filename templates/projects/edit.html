@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if project %}Edit {{ project.code }} — SAE Books{% else %}Edit Project — SAE Books{% endif %}
+  {% if project %}{{ _("Edit %(code)s") % {"code": project.code} }} — {{ current_brand().name }}{% else %}{{ _("Edit Project") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if project %}Edit {{ project.code }}{% else %}Edit Project{% endif %}
+    {% if project %}{{ _("Edit %(code)s") % {"code": project.code} }}{% else %}{{ _("Edit Project") }}{% endif %}
   </h1>
   {% if project %}
-  <a href="/projects/{{ project.id }}" class="text-sm sae hover:underline">← Back to project</a>
+  <a href="/projects/{{ project.id }}" class="text-sm sae hover:underline">{{ _("← Back to project") }}</a>
   {% else %}
-  <a href="/projects" class="text-sm sae hover:underline">← Back to projects</a>
+  <a href="/projects" class="text-sm sae hover:underline">{{ _("← Back to projects") }}</a>
   {% endif %}
 </div>
 
@@ -26,16 +26,14 @@
   role="alert"
 >
   <p class="font-semibold mb-1 ink-1">
-    Someone else has updated this project.
+    {{ _("Someone else has updated this project.") }}
   </p>
   <p class="mb-2">
-    The form below now shows <strong>your submitted values</strong> with the server's current version
-    number applied — so your next save will use the correct base.
-    If you want to start fresh from the server's current state instead,
+    {{ _("The form below now shows") }} <strong>{{ _("your submitted values") }}</strong> {{ _("with the server's current version number applied — so your next save will use the correct base. If you want to start fresh from the server's current state instead,") }}
     {% if project %}
-    <a href="/projects/{{ project.id }}/edit" class="underline sae">reload the server version</a>.
+    <a href="/projects/{{ project.id }}/edit" class="underline sae">{{ _("reload the server version") }}</a>.
     {% else %}
-    reload the page.
+    {{ _("reload the page.") }}
     {% endif %}
   </p>
 </div>
@@ -62,21 +60,21 @@
         type="submit"
         class="btn-primary px-5 py-2 text-sm font-medium"
       >
-        Save changes
+        {{ _("Save changes") }}
       </button>
       {% if project %}
       <a
         href="/projects/{{ project.id }}"
         class="btn-secondary px-5 py-2 text-sm font-medium"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
       {% else %}
       <a
         href="/projects"
         class="btn-secondary px-5 py-2 text-sm font-medium"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
       {% endif %}
     </div>

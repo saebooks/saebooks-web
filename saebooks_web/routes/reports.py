@@ -51,9 +51,9 @@ def _require_auth(request: Request) -> str | None:
 
 
 def _require_admin(request: Request) -> bool:
-    """True if the session is SAE staff or a tenant admin (year-end close)."""
+    """True if the session is SAE staff or a tenant owner/admin (year-end close)."""
     role = request.session.get("user_role", "")
-    return bool(request.session.get("is_sae_staff")) or role == "admin"
+    return bool(request.session.get("is_sae_staff")) or role in ("owner", "admin")
 
 
 def _last_fy_end() -> str:

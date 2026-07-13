@@ -2,23 +2,23 @@
 {% import "_components/kebab_menu.html" as km %}
 {% import "_partials/empty_state.html" as empty %}
 
-{% block title %}Super funds — SAE Books{% endblock %}
+{% block title %}{{ _("Super funds") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl ink-1">Super funds</h1>
+    <h1 class="font-display text-3xl ink-1">{{ _("Super funds") }}</h1>
     <p class="text-base ink-3 mt-1">
-      APRA-regulated funds and SMSFs available for employee super contributions.
+      {{ _("APRA-regulated funds and SMSFs available for employee super contributions.") }}
     </p>
     {% if not error %}
-    <p class="text-base ink-3 mt-1 num">{{ total }} fund{{ "s" if total != 1 else "" }}</p>
+    <p class="text-base ink-3 mt-1 num">{{ _("%(n)s fund") % {"n": total} if total == 1 else _("%(n)s funds") % {"n": total} }}</p>
     {% endif %}
   </div>
   <div class="flex gap-2">
-    <a href="/employees" class="btn btn-secondary">Employees</a>
-    <a href="/super-funds/new" class="btn btn-primary">+ New fund</a>
+    <a href="/employees" class="btn btn-secondary">{{ _("Employees") }}</a>
+    <a href="/super-funds/new" class="btn btn-primary">+ {{ _("New fund") }}</a>
   </div>
 </div>
 
@@ -34,16 +34,16 @@
     <thead>
       <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
         <th scope="col" class="w-8 px-3 py-2 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-3 py-2">Fund name</th>
-        <th scope="col" class="px-3 py-2">Type</th>
-        <th scope="col" class="px-3 py-2">USI / ABN</th>
-        <th scope="col" class="px-3 py-2">ESA</th>
-        <th scope="col" class="px-3 py-2 text-center">Default</th>
-        <th scope="col" class="px-3 py-2 text-center">Bank</th>
+        <th scope="col" class="px-3 py-2">{{ _("Fund name") }}</th>
+        <th scope="col" class="px-3 py-2">{{ _("Type") }}</th>
+        <th scope="col" class="px-3 py-2">{{ _("USI / ABN") }}</th>
+        <th scope="col" class="px-3 py-2">{{ _("ESA") }}</th>
+        <th scope="col" class="px-3 py-2 text-center">{{ _("Default") }}</th>
+        <th scope="col" class="px-3 py-2 text-center">{{ _("Bank") }}</th>
         <th scope="col" class="w-8 px-3 py-2"></th>
       </tr>
     </thead>
@@ -52,21 +52,21 @@
       <tr class="border-b hairline hover:bg-paper-2 {% if f.archived_at %}opacity-50{% endif %}">
         <td class="px-3 py-2 text-center" onclick="event.stopPropagation()">
           <input type="checkbox" data-row-select data-id="{{ f.id }}"
-                 aria-label="Select fund {{ f.name }}"
+                 aria-label="{{ _('Select fund %(name)s') % {'name': f.name} }}"
                  onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </td>
         <td class="px-3 py-2 font-medium">
           {{ f.name }}
           {% if f.is_default %}
-          <span class="chip chip-pos text-xs ml-2">Default</span>
+          <span class="chip chip-pos text-xs ml-2">{{ _("Default") }}</span>
           {% endif %}
         </td>
         <td class="px-3 py-2">
           {% if f.is_smsf %}
-          <span class="chip chip-warm text-xs">SMSF</span>
+          <span class="chip chip-warm text-xs">{{ _("SMSF") }}</span>
           {% else %}
-          <span class="chip chip-ink text-xs">APRA</span>
+          <span class="chip chip-ink text-xs">{{ _("APRA") }}</span>
           {% endif %}
         </td>
         <td class="px-3 py-2 num text-sm">
@@ -80,25 +80,25 @@
         </td>
         <td class="px-3 py-2 text-center">
           {% if f.has_smsf_bank %}
-          <span class="chip chip-ink text-xs">Set</span>
+          <span class="chip chip-ink text-xs">{{ _("Set") }}</span>
           {% else %}—{% endif %}
         </td>
         <td class="px-3 py-2 text-right" onclick="event.stopPropagation()">
           {%- set actions = [
-            ("view",    "View",    "/super-funds/" ~ f.id,             "link", false),
-            ("edit",    "Edit",    "/super-funds/" ~ f.id ~ "/edit",   "link", false),
-            ("archive", "Archive", "/super-funds/" ~ f.id ~ "/archive","post", true),
+            ("view",    _("View"),    "/super-funds/" ~ f.id,             "link", false),
+            ("edit",    _("Edit"),    "/super-funds/" ~ f.id ~ "/edit",   "link", false),
+            ("archive", _("Archive"), "/super-funds/" ~ f.id ~ "/archive","post", true),
             ] %}
           {%- if is_feature_enabled("hard_delete") %}
-          {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/super-funds/" ~ f.id ~ "/hard-delete", "post", true)) %}
+          {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/super-funds/" ~ f.id ~ "/hard-delete", "post", true)) %}
           {%- endif %}
           {{ km.kebab(row_id=f.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
         </td>
       </tr>
       {% else %}
-      {{ empty.row(8, "landmark", "No super funds yet",
-                   "Add an APRA fund or SMSF for employee contributions.",
-                   "New fund", "/super-funds/new") }}
+      {{ empty.row(8, "landmark", _("No super funds yet"),
+                   _("Add an APRA fund or SMSF for employee contributions."),
+                   _("New fund"), "/super-funds/new") }}
       {% endfor %}
     </tbody>
   </table>
@@ -107,10 +107,10 @@
 <div class="mt-4 flex items-center justify-end">
   <div class="text-sm ink-3 flex gap-2">
     {% if prev_offset is not none %}
-    <a href="?offset={{ prev_offset }}&amp;limit={{ limit }}" class="sae hover:underline">← Prev</a>
+    <a href="?offset={{ prev_offset }}&amp;limit={{ limit }}" class="sae hover:underline">{{ _("← Prev") }}</a>
     {% endif %}
     {% if next_offset is not none %}
-    <a href="?offset={{ next_offset }}&amp;limit={{ limit }}" class="sae hover:underline">Next →</a>
+    <a href="?offset={{ next_offset }}&amp;limit={{ limit }}" class="sae hover:underline">{{ _("Next →") }}</a>
     {% endif %}
   </div>
 </div>
@@ -122,7 +122,7 @@
      entity="super_funds",
      action_endpoint="/super-funds/bulk",
      actions=[
-       ("archive", "Archive", true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

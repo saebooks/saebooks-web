@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Imports — Admin — SAE Books{% endblock %}
+{% block title %}{{ _("Imports") }} — {{ _("Admin") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,8 +13,8 @@
 {% endif %}
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold ink-1">Data Imports</h1>
-  <p class="text-sm ink-3 mt-1">Import bank statements, chart of accounts, or migrate from another system</p>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Data Imports") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Import bank statements, chart of accounts, or migrate from another system") }}</p>
 </div>
 
 <div class="grid grid-cols-3 gap-5">
@@ -29,10 +29,10 @@
             d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
         </svg>
       </div>
-      <h2 class="text-base font-semibold ink-1">Bank Statements</h2>
+      <h2 class="text-base font-semibold ink-1">{{ _("Bank Statements") }}</h2>
     </div>
-    <p class="text-sm ink-3">Upload CSV or OFX bank statement files. Preview transactions before importing.</p>
-    <div class="mt-4 text-xs font-medium sae">Import bank transactions →</div>
+    <p class="text-sm ink-3">{{ _("Upload CSV or OFX bank statement files. Preview transactions before importing.") }}</p>
+    <div class="mt-4 text-xs font-medium sae">{{ _("Import bank transactions →") }}</div>
   </a>
 
   {# Chart of accounts #}
@@ -45,10 +45,10 @@
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
         </svg>
       </div>
-      <h2 class="text-base font-semibold ink-1">Chart of Accounts</h2>
+      <h2 class="text-base font-semibold ink-1">{{ _("Chart of Accounts") }}</h2>
     </div>
-    <p class="text-sm ink-3">Upload a CoA CSV to add or update accounts. See a diff before applying changes.</p>
-    <div class="mt-4 text-xs font-medium" style="color:var(--pos);">Import chart of accounts →</div>
+    <p class="text-sm ink-3">{{ _("Upload a CoA CSV to add or update accounts. See a diff before applying changes.") }}</p>
+    <div class="mt-4 text-xs font-medium" style="color:var(--pos);">{{ _("Import chart of accounts →") }}</div>
   </a>
 
   {# QBO migration #}
@@ -60,10 +60,10 @@
             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
         </svg>
       </div>
-      <h2 class="text-base font-semibold ink-1">QuickBooks Online</h2>
+      <h2 class="text-base font-semibold ink-1">{{ _("QuickBooks Online") }}</h2>
     </div>
-    <p class="text-sm ink-3">Migrate contacts and accounts from a QuickBooks Online CSV export.</p>
-    <div class="mt-4 text-xs ink-3">Use the Setup → Admin panel to access QBO migration.</div>
+    <p class="text-sm ink-3">{{ _("Migrate contacts and accounts from a QuickBooks Online CSV export.") }}</p>
+    <div class="mt-4 text-xs ink-3">{{ _("Use the Setup → Admin panel to access QBO migration.") }}</div>
   </div>
 
 </div>

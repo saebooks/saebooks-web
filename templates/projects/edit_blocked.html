@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Archived Project — SAE Books{% endblock %}
+{% block title %}{{ _("Cannot Edit Archived Project") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if project %}Edit {{ project.code }}{% else %}Edit Project{% endif %}
+    {% if project %}{{ _("Edit %(code)s") % {"code": project.code} }}{% else %}{{ _("Edit Project") }}{% endif %}
   </h1>
   {% if project %}
-  <a href="/projects/{{ project.id }}" class="text-sm sae hover:underline">← Back to project</a>
+  <a href="/projects/{{ project.id }}" class="text-sm sae hover:underline">{{ _("← Back to project") }}</a>
   {% else %}
-  <a href="/projects" class="text-sm sae hover:underline">← Back to projects</a>
+  <a href="/projects" class="text-sm sae hover:underline">{{ _("← Back to projects") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--warm);">
-  <p class="text-sm font-semibold ink-1 mb-1">Archived projects cannot be edited.</p>
+  <p class="text-sm font-semibold ink-1 mb-1">{{ _("Archived projects cannot be edited.") }}</p>
   {% if project %}
   <p class="text-sm ink-2">
-    This project was archived on {{ project.archived_at[:10] }}.
-    Return to the
-    <a href="/projects/{{ project.id }}" class="underline sae">project detail page</a>
-    to view it.
+    {{ _("This project was archived on %(date)s.") % {"date": project.archived_at[:10]} }}
+    {{ _("Return to the") }}
+    <a href="/projects/{{ project.id }}" class="underline sae">{{ _("project detail page") }}</a>
+    {{ _("to view it.") }}
   </p>
   {% endif %}
 </div>

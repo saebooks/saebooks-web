@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New time entry — SAE Books{% endblock %}
+{% block title %}{{ _("New time entry") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6">
-  <h1 class="font-display text-3xl ink-1">New time entry</h1>
-  <p class="text-base ink-3 mt-1">Log hours worked — billable or non-billable.</p>
+  <h1 class="font-display text-3xl ink-1">{{ _("New time entry") }}</h1>
+  <p class="text-base ink-3 mt-1">{{ _("Log hours worked — billable or non-billable.") }}</p>
 </div>
 
 {% if errors._global %}
@@ -20,26 +20,26 @@
   {{ csrf_input(request)|safe }}
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm ink-3 mb-1" for="work_date">Date *<span class="sr-only"> (required)</span></label>
+      <label class="block text-sm ink-3 mb-1" for="work_date">{{ _("Date") }} *<span class="sr-only"> {{ _("(required)") }}</span></label>
       <input type="date" id="work_date" name="work_date" required aria-required="true" value="{{ form.work_date }}"
              class="w-full rounded-md hairline px-3 py-2 bg-paper">
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1" for="hours">Hours *<span class="sr-only"> (required)</span></label>
+      <label class="block text-sm ink-3 mb-1" for="hours">{{ _("Hours") }} *<span class="sr-only"> {{ _("(required)") }}</span></label>
       <input type="number" id="hours" name="hours" step="0.25" min="0.01" required aria-required="true" value="{{ form.hours }}"
              placeholder="e.g. 1.5"
              class="w-full rounded-md hairline px-3 py-2 bg-paper num-display">
     </div>
 
     <div class="col-span-2">
-      <label class="block text-sm ink-3 mb-1" for="description">Description</label>
+      <label class="block text-sm ink-3 mb-1" for="description">{{ _("Description") }}</label>
       <input type="text" id="description" name="description" value="{{ form.description }}"
              placeholder="Site visit, drawings review, etc."
              class="w-full rounded-md hairline px-3 py-2 bg-paper">
     </div>
 
     <div>
-      <label class="block text-sm ink-3 mb-1" for="project_id">Project</label>
+      <label class="block text-sm ink-3 mb-1" for="project_id">{{ _("Project") }}</label>
       <select id="project_id" name="project_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
         <option value="">—</option>
         {% for p in projects %}
@@ -48,7 +48,7 @@
       </select>
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1" for="contact_id">Contact</label>
+      <label class="block text-sm ink-3 mb-1" for="contact_id">{{ _("Contact") }}</label>
       <select id="contact_id" name="contact_id" class="w-full rounded-md hairline px-3 py-2 bg-paper">
         <option value="">—</option>
         {% for c in contacts %}
@@ -61,31 +61,31 @@
       <label class="inline-flex items-center gap-2 text-base ink-1">
         <input type="checkbox" name="billable" value="on"
                {% if form.billable %}checked{% endif %}>
-        Billable — convert to invoice line later
+        {{ _("Billable — convert to invoice line later") }}
       </label>
     </div>
     <div>
-      <label class="block text-sm ink-3 mb-1" for="rate">Rate ($/h, optional)</label>
+      <label class="block text-sm ink-3 mb-1" for="rate">{{ _("Rate ($/h, optional)") }}</label>
       <input type="number" id="rate" name="rate" step="0.01" min="0" value="{{ form.rate }}"
              placeholder="e.g. 150.00"
              class="w-full rounded-md hairline px-3 py-2 bg-paper num">
     </div>
 
     <div class="col-span-2 hairline border-t pt-4">
-      <p class="text-sm ink-3 mb-2">Optional clock times</p>
+      <p class="text-sm ink-3 mb-2">{{ _("Optional clock times") }}</p>
       <div class="grid grid-cols-3 gap-3">
         <div>
-          <label class="block text-sm ink-3 mb-1" for="start_time">Start</label>
+          <label class="block text-sm ink-3 mb-1" for="start_time">{{ _("Start") }}</label>
           <input type="time" id="start_time" name="start_time" value="{{ form.start_time or '' }}"
                  class="w-full rounded-md hairline px-3 py-2 bg-paper num">
         </div>
         <div>
-          <label class="block text-sm ink-3 mb-1" for="end_time">End</label>
+          <label class="block text-sm ink-3 mb-1" for="end_time">{{ _("End") }}</label>
           <input type="time" id="end_time" name="end_time" value="{{ form.end_time or '' }}"
                  class="w-full rounded-md hairline px-3 py-2 bg-paper num">
         </div>
         <div>
-          <label class="block text-sm ink-3 mb-1" for="break_minutes">Break (min)</label>
+          <label class="block text-sm ink-3 mb-1" for="break_minutes">{{ _("Break (min)") }}</label>
           <input type="number" id="break_minutes" name="break_minutes" min="0" step="5"
                  value="{{ form.break_minutes or '' }}"
                  class="w-full rounded-md hairline px-3 py-2 bg-paper num">
@@ -95,9 +95,9 @@
   </div>
 
   <div class="mt-6 flex items-center gap-3">
-    <button type="submit" class="btn btn-primary">Save entry</button>
-    <a href="/time-entries" class="btn btn-secondary">Cancel</a>
-    <a href="/time-entries/week" class="ml-auto text-sm sae hover:underline">Switch to weekly grid →</a>
+    <button type="submit" class="btn btn-primary">{{ _("Save entry") }}</button>
+    <a href="/time-entries" class="btn btn-secondary">{{ _("Cancel") }}</a>
+    <a href="/time-entries/week" class="ml-auto text-sm sae hover:underline">{{ _("Switch to weekly grid →") }}</a>
   </div>
 </form>
 

@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if item %}Edit {{ item.sku }} — SAE Books{% else %}Edit Item — SAE Books{% endif %}
+  {% if item %}{{ _("Edit %(sku)s") % {"sku": item.sku} }} — {{ current_brand().name }}{% else %}{{ _("Edit Item") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if item %}Edit {{ item.sku }}{% else %}Edit Item{% endif %}
+    {% if item %}{{ _("Edit %(sku)s") % {"sku": item.sku} }}{% else %}{{ _("Edit Item") }}{% endif %}
   </h1>
   {% if item %}
-  <a href="/items/{{ item.id }}" class="text-sm sae hover:underline">← Back to item</a>
+  <a href="/items/{{ item.id }}" class="text-sm sae hover:underline">{{ _("← Back to item") }}</a>
   {% else %}
-  <a href="/items" class="text-sm sae hover:underline">← Back to items</a>
+  <a href="/items" class="text-sm sae hover:underline">{{ _("← Back to items") }}</a>
   {% endif %}
 </div>
 
@@ -26,16 +26,14 @@
   role="alert"
 >
   <p class="font-semibold mb-1 ink-1">
-    Someone else has updated this item.
+    {{ _("Someone else has updated this item.") }}
   </p>
   <p class="mb-2">
-    The form below now shows <strong>your submitted values</strong> with the server's current version
-    number applied — so your next save will use the correct base.
-    If you want to start fresh from the server's current state instead,
+    {{ _("The form below now shows") }} <strong>{{ _("your submitted values") }}</strong> {{ _("with the server's current version number applied — so your next save will use the correct base. If you want to start fresh from the server's current state instead,") }}
     {% if item %}
-    <a href="/items/{{ item.id }}/edit" class="sae underline">reload the server version</a>.
+    <a href="/items/{{ item.id }}/edit" class="sae underline">{{ _("reload the server version") }}</a>.
     {% else %}
-    reload the page.
+    {{ _("reload the page.") }}
     {% endif %}
   </p>
 </div>
@@ -62,21 +60,21 @@
         type="submit"
         class="btn-primary text-sm px-5 py-2"
       >
-        Save changes
+        {{ _("Save changes") }}
       </button>
       {% if item %}
       <a
         href="/items/{{ item.id }}"
         class="btn-secondary text-sm px-5 py-2"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
       {% else %}
       <a
         href="/items"
         class="btn-secondary text-sm px-5 py-2"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
       {% endif %}
     </div>

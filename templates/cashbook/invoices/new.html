@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}New Invoice — Cashbook — SAE Books{% endblock %}
+{% block title %}{{ _("New Invoice") }} — {{ _("Cashbook") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="max-w-xl">
   <div class="mb-5 flex items-center gap-3">
-    <a href="/cashbook/invoices" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← invoices</a>
+    <a href="/cashbook/invoices" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">{{ _("← invoices") }}</a>
     <span class="ink-4">/</span>
-    <h1 class="font-display text-xl ink-1">New invoice</h1>
+    <h1 class="font-display text-xl ink-1">{{ _("New invoice") }}</h1>
   </div>
 
   {% if errors.__all__ %}
@@ -25,7 +25,7 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="sm:col-span-2">
-          <label for="customer_name" class="cb-label-inline">Customer</label>
+          <label for="customer_name" class="cb-label-inline">{{ _("Customer") }}</label>
           <input type="text" id="customer_name" name="customer_name" required maxlength="200"
                  value="{{ form.customer_name or '' }}"
                  class="saebooks-input"
@@ -35,7 +35,7 @@
 
         <div class="sm:col-span-2">
           <label for="customer_email" class="cb-label-inline">
-            Email <span class="ink-4 font-normal">(optional)</span>
+            {{ _("Email") }} <span class="ink-4 font-normal">{{ _("(optional)") }}</span>
           </label>
           <input type="email" id="customer_email" name="customer_email" maxlength="200"
                  value="{{ form.customer_email or '' }}"
@@ -43,7 +43,7 @@
         </div>
 
         <div class="sm:col-span-2">
-          <label for="description" class="cb-label-inline">Description</label>
+          <label for="description" class="cb-label-inline">{{ _("Description") }}</label>
           <input type="text" id="description" name="description" required maxlength="500"
                  value="{{ form.description or '' }}"
                  class="saebooks-input"
@@ -52,7 +52,7 @@
         </div>
 
         <div>
-          <label for="amount" class="cb-label-inline">Amount</label>
+          <label for="amount" class="cb-label-inline">{{ _("Amount") }}</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center ink-3 num pointer-events-none">$</span>
             <input type="number" id="amount" name="amount" required min="0.01" step="0.01" inputmode="decimal"
@@ -68,12 +68,12 @@
             <input type="checkbox" id="gst" name="gst" value="on"
                    {% if form.gst %}checked{% endif %}
                    class="h-4 w-4 accent-[#194291]" style="border-color:var(--line);">
-            <span class="text-sm ink-2">Charging GST (10%)</span>
+            <span class="text-sm ink-2">{{ _("Charging GST (10%)") }}</span>
           </label>
         </div>
 
         <div>
-          <label for="issue_date" class="cb-label-inline">Issue date</label>
+          <label for="issue_date" class="cb-label-inline">{{ _("Issue date") }}</label>
           <input type="date" id="issue_date" name="issue_date" required
                  value="{{ form.issue_date or '' }}"
                  class="saebooks-input num"
@@ -82,7 +82,7 @@
         </div>
 
         <div>
-          <label for="due_date" class="cb-label-inline">Due date</label>
+          <label for="due_date" class="cb-label-inline">{{ _("Due date") }}</label>
           <input type="date" id="due_date" name="due_date" required
                  value="{{ form.due_date or '' }}"
                  class="saebooks-input num"
@@ -92,12 +92,12 @@
       </div>
 
       <div class="mt-6 hairline pt-5 flex gap-3">
-        <button type="submit" class="btn-primary">Save draft</button>
-        <a href="/cashbook/invoices" class="btn-secondary">Cancel</a>
+        <button type="submit" class="btn-primary">{{ _("Save draft") }}</button>
+        <a href="/cashbook/invoices" class="btn-secondary">{{ _("Cancel") }}</a>
       </div>
 
       <p class="text-[11px] ink-3 font-mono mt-4">
-        Drafts can be edited freely. Once sent, only Void is available (ATO audit trail).
+        {{ _("Drafts can be edited freely. Once sent, only Void is available (ATO audit trail).") }}
       </p>
     </form>
   </div>

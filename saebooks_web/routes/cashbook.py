@@ -37,6 +37,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.brand import current_brand
 
 logger = logging.getLogger("saebooks_web.cashbook")
 
@@ -904,7 +905,7 @@ async def cashbook_upgrade_submit(request: Request) -> HTMLResponse | RedirectRe
 
     if resp.is_success:
         request.session["flash"] = (
-            "Welcome to full SAE Books. Your cashbook entries are still here "
+            f"Welcome to full {current_brand().name}. Your cashbook entries are still here "
             "— view them under Banking > Journal Entries."
         )
         return RedirectResponse(url="/", status_code=303)

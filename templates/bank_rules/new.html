@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New Bank Rule — SAE Books{% endblock %}
+{% block title %}{{ _("New Bank Rule") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold text-gray-900">New Bank Rule</h1>
-  <a href="/bank-rules" class="text-sm text-[#194291] hover:underline">← Back to rules</a>
+  <h1 class="text-2xl font-semibold text-gray-900">{{ _("New Bank Rule") }}</h1>
+  <a href="/bank-rules" class="text-sm text-[#194291] hover:underline">{{ _("← Back to rules") }}</a>
 </div>
 
 <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-6 max-w-2xl">
@@ -25,7 +25,7 @@
 
       <div>
         <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
-          Name <span class="text-red-500">*</span>
+          {{ _("Name") }} <span class="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -44,13 +44,13 @@
       </div>
 
       <fieldset class="border border-gray-200 rounded-md px-4 py-3">
-        <legend class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">Match criteria</legend>
+        <legend class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">{{ _("Match criteria") }}</legend>
 
         <div class="space-y-3 mt-2">
 
           <div>
             <label for="match_field" class="block text-sm font-medium text-gray-700 mb-1">
-              Match field <span class="text-red-500">*</span>
+              {{ _("Match field") }} <span class="text-red-500">*</span>
             </label>
             <select
               id="match_field"
@@ -59,7 +59,7 @@
                      px-3 py-2 text-sm text-gray-900
                      focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
             >
-              <option value="">— select —</option>
+              <option value="">{{ _("— select —") }}</option>
               {% for val in ["narration", "description", "reference", "amount", "payee"] %}
               <option value="{{ val }}" {% if form.get('match_field') == val %}selected{% endif %}>{{ val }}</option>
               {% endfor %}
@@ -71,7 +71,7 @@
 
           <div>
             <label for="match_operator" class="block text-sm font-medium text-gray-700 mb-1">
-              Operator <span class="text-red-500">*</span>
+              {{ _("Operator") }} <span class="text-red-500">*</span>
             </label>
             <select
               id="match_operator"
@@ -80,7 +80,7 @@
                      px-3 py-2 text-sm text-gray-900
                      focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
             >
-              <option value="">— select —</option>
+              <option value="">{{ _("— select —") }}</option>
               {% for val in ["contains", "equals", "starts_with", "ends_with", "regex"] %}
               <option value="{{ val }}" {% if form.get('match_operator') == val %}selected{% endif %}>{{ val }}</option>
               {% endfor %}
@@ -92,7 +92,7 @@
 
           <div>
             <label for="match_value" class="block text-sm font-medium text-gray-700 mb-1">
-              Match value <span class="text-red-500">*</span>
+              {{ _("Match value") }} <span class="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -114,20 +114,20 @@
       </fieldset>
 
       <fieldset class="border border-gray-200 rounded-md px-4 py-3">
-        <legend class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">Action</legend>
+        <legend class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">{{ _("Action") }}</legend>
 
         <div class="space-y-3 mt-2">
 
           <div>
             <label for="action_account_id" class="block text-sm font-medium ink-3 mb-1">
-              Account <span class="text-red-500">*</span>
+              {{ _("Account") }} <span class="text-red-500">*</span>
             </label>
             <input
               type="text"
               id="action_account_id"
               name="action_account_id"
               value="{{ form.get('action_account_id', '') }}"
-              placeholder="Account ID or search"
+              placeholder="{{ _('Account ID or search') }}"
               required
               class="saebooks-input font-mono w-full"
             >
@@ -138,14 +138,14 @@
 
           <div>
             <label for="action_tax_code_id" class="block text-sm font-medium ink-3 mb-1">
-              Tax code <span class="text-gray-400 font-normal">(optional)</span>
+              {{ _("Tax code") }} <span class="text-gray-400 font-normal">{{ _("(optional)") }}</span>
             </label>
             <input
               type="text"
               id="action_tax_code_id"
               name="action_tax_code_id"
               value="{{ form.get('action_tax_code_id', '') }}"
-              placeholder="Tax code ID (leave blank to inherit)"
+              placeholder="{{ _('Tax code ID (leave blank to inherit)') }}"
               class="saebooks-input font-mono w-full"
             >
             {% if errors.get("action_tax_code_id") %}
@@ -158,7 +158,7 @@
 
       <div>
         <label for="priority" class="block text-sm font-medium text-gray-700 mb-1">
-          Priority <span class="text-gray-400 font-normal">(lower runs first)</span>
+          {{ _("Priority") }} <span class="text-gray-400 font-normal">{{ _("(lower runs first)") }}</span>
         </label>
         <input
           type="number"
@@ -183,14 +183,14 @@
         class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white
                hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
       >
-        Save rule
+        {{ _("Save rule") }}
       </button>
       <a
         href="/bank-rules"
         class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700
                hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 

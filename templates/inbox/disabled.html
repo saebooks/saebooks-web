@@ -1,26 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}Inbox — SAE Books{% endblock %}
+{% block title %}{{ _("Inbox") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-xl mx-auto mt-12">
   <div class="card px-8 py-10 text-center">
     <i data-lucide="inbox" class="w-10 h-10 mx-auto ink-4"></i>
     {% if reason == 'vault' %}
-    <h1 class="mt-4 text-2xl font-semibold ink-1">Document storage is not configured</h1>
+    <h1 class="mt-4 text-2xl font-semibold ink-1">{{ _("Document storage is not configured") }}</h1>
     <p class="mt-2 text-base ink-2">
-      The Document Inbox needs saebooks-vault to store captured receipts and
-      invoices, and the vault is not enabled on this instance. An administrator
-      needs to configure the vault before documents can be captured.
+      {{ _("The Document Inbox needs saebooks-vault to store captured receipts and invoices, and the vault is not enabled on this instance. An administrator needs to configure the vault before documents can be captured.") }}
     </p>
     {% else %}
-    <h1 class="mt-4 text-2xl font-semibold ink-1">Document Inbox is not enabled</h1>
+    <h1 class="mt-4 text-2xl font-semibold ink-1">{{ _("Document Inbox is not enabled") }}</h1>
     <p class="mt-2 text-base ink-2">
-      This edition does not include the Document Inbox. Plain attachments on
-      records remain available.
+      {{ _("This edition does not include the Document Inbox. Plain attachments on records remain available.") }}
     </p>
     {% endif %}
-    <a href="/" class="btn-secondary mt-6 inline-flex">Back to dashboard</a>
+    <a href="/" class="btn-secondary mt-6 inline-flex">{{ _("Back to dashboard") }}</a>
   </div>
 </div>
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if budget %}{{ _("Budget %(year)s/%(month)s") % {"year": budget.year, "month": budget.month} }} — SAE Books{% else %}{{ _("Budget Not Found") }} — SAE Books{% endif %}
+  {% if budget %}{{ _("Budget %(year)s/%(month)s") % {"year": budget.year, "month": budget.month} }} — {{ current_brand().name }}{% else %}{{ _("Budget Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

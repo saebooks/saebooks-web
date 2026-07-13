@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ _("Sign in with passkey") }} · SAE Books{% endblock %}
+{% block title %}{{ _("Sign in with passkey") }} · {{ current_brand().name }}{% endblock %}
 {% block content %}
 <div class="min-h-screen flex items-center justify-center bg-[color:var(--paper-1)]">
   <div class="max-w-sm w-full p-8 rounded-2xl border hairline bg-[color:var(--surface)] shadow-lg">
     <div class="flex flex-col items-center gap-4">
-      <img src="/static/sae-books-logo.png" alt="SAE Books" class="h-10">
+      <img src="/static/sae-books-logo.png" alt="{{ current_brand().name }}" class="h-10">
       <h1 class="text-xl font-semibold ink-1">{{ _("Sign in with passkey") }}</h1>
       <p class="text-sm ink-2 text-center">
         {{ _("Tap your security key, use Touch ID, or pick a passkey from your device.") }}

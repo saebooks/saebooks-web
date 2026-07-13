@@ -18,15 +18,15 @@
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Start date</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">End date</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Code") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Start date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("End date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -39,7 +39,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ project.id }}"
-                   aria-label="Select project {{ project.code }}"
+                   aria-label="{{ _('Select project %(code)s') % {'code': project.code} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -63,11 +63,11 @@
           </td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
-              ("view",    "View",    "/projects/" ~ project.id,             "link", false),
-              ("edit",    "Edit",    "/projects/" ~ project.id ~ "/edit",   "link", false),
-              ("archive", "Archive", "/projects/" ~ project.id ~ "/archive","post", true),            ] %}
+              ("view",    _("View"),    "/projects/" ~ project.id,             "link", false),
+              ("edit",    _("Edit"),    "/projects/" ~ project.id ~ "/edit",   "link", false),
+              ("archive", _("Archive"), "/projects/" ~ project.id ~ "/archive","post", true),            ] %}
               {%- if is_feature_enabled("hard_delete") %}
-              {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/projects/" ~ project.id ~ "/hard-delete", "post", true)) %}
+              {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/projects/" ~ project.id ~ "/hard-delete", "post", true)) %}
               {%- endif %}
             {{ km.kebab(row_id=project.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -75,12 +75,12 @@
         {% endfor %}
       {% else %}
         {% if filter_status %}
-        {{ empty.row(7, "search-x", "No projects match this filter",
-                     "Try clearing the filter above.") }}
+        {{ empty.row(7, "search-x", _("No projects match this filter"),
+                     _("Try clearing the filter above.")) }}
         {% else %}
-        {{ empty.row(7, "folder", "No projects yet",
-                     "Create a project to track work and costs.",
-                     "New project", "/projects/new") }}
+        {{ empty.row(7, "folder", _("No projects yet"),
+                     _("Create a project to track work and costs."),
+                     _("New project"), "/projects/new") }}
         {% endif %}
       {% endif %}
     </tbody>
@@ -91,7 +91,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(start)s–%(end)s of %(total)s") % {"start": offset + 1, "end": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -102,7 +102,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -112,7 +112,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Send Quote {{ quote.number or quote.id }} — SAE Books{% endblock %}
+{% block title %}Send Quote {{ quote.number or quote.id }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="mb-4">

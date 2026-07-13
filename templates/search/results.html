@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Search") }}{% if q %} — {{ q }}{% endif %} — SAE Books{% endblock %}
+{% block title %}{{ _("Search") }}{% if q %} — {{ q }}{% endif %} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto">

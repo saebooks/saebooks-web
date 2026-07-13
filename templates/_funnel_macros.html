@@ -29,7 +29,7 @@
   <div class="flex items-start justify-between mb-4">
     <div>
       {% if title %}<p class="nav-section-label">{{ title }}</p>{% endif %}
-      {% if as_of %}<p class="text-[11px] font-mono ink-3 mt-1">As of {{ as_of }}</p>{% endif %}
+      {% if as_of %}<p class="text-[11px] font-mono ink-3 mt-1">{{ _("As of %(date)s") % {"date": as_of} }}</p>{% endif %}
     </div>
   </div>
   <div class="flex items-stretch gap-0 overflow-x-auto pb-2">
@@ -48,7 +48,7 @@
         </p>
         {% if s.count is not none %}
         <p class="text-[11px] ink-3 mt-1 font-mono">
-          {{ s.count }} item{{ '' if s.count == 1 else 's' }}
+          {{ ngettext("%(n)s item", "%(n)s items", s.count) % {"n": s.count} }}
         </p>
         {% endif %}
       </a>
@@ -68,30 +68,31 @@
   pane fields:
     unpaid_total, overdue_total, not_due_total, overdue_pct, not_due_pct, paid_total
 #}
-{% macro invoices_two_pane(pane, title="Invoices", as_of=None,
+{% macro invoices_two_pane(pane, title=None, as_of=None,
                           unpaid_href="/invoices?status=POSTED",
                           paid_href="/payments?direction=INCOMING") %}
+{% set title = title or _("Invoices") %}
 <section class="card p-6">
   <div class="flex items-start justify-between mb-4">
     <p class="nav-section-label">{{ title }}</p>
-    {% if as_of %}<p class="text-[11px] font-mono ink-3">As of {{ as_of }}</p>{% endif %}
+    {% if as_of %}<p class="text-[11px] font-mono ink-3">{{ _("As of %(date)s") % {"date": as_of} }}</p>{% endif %}
   </div>
   <div class="grid grid-cols-2 gap-px bg-paper-2 rounded-lg overflow-hidden hairline">
     {# Left pane: Unpaid #}
     <a href="{{ unpaid_href }}" class="bg-paper p-5 block hover:bg-paper-2">
-      <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Unpaid · last 365 days</p>
+      <p class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Unpaid · last 365 days") }}</p>
       <p class="num-display text-2xl mt-1" style="color: var(--sae);">
         {{ money(pane.unpaid_total|float) }}
       </p>
       <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div>
-          <p class="text-[10px] font-mono uppercase ink-3">Overdue</p>
+          <p class="text-[10px] font-mono uppercase ink-3">{{ _("Overdue") }}</p>
           <p class="num-display text-lg" style="color: var(--neg);">
             {{ money(pane.overdue_total|float, decimals=0) }}
           </p>
         </div>
         <div>
-          <p class="text-[10px] font-mono uppercase ink-3">Not due yet</p>
+          <p class="text-[10px] font-mono uppercase ink-3">{{ _("Not due yet") }}</p>
           <p class="num-display text-lg ink">
             {{ money(pane.not_due_total|float, decimals=0) }}
           </p>
@@ -106,19 +107,19 @@
 
     {# Right pane: Paid #}
     <a href="{{ paid_href }}" class="bg-paper p-5 block hover:bg-paper-2">
-      <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Paid · last 30 days</p>
+      <p class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Paid · last 30 days") }}</p>
       <p class="num-display text-2xl mt-1" style="color: var(--pos);">
         {{ money(pane.paid_total|float) }}
       </p>
       <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div>
-          <p class="text-[10px] font-mono uppercase ink-3">Deposited</p>
+          <p class="text-[10px] font-mono uppercase ink-3">{{ _("Deposited") }}</p>
           <p class="num-display text-lg" style="color: var(--pos);">
             {{ money(pane.paid_total|float, decimals=0) }}
           </p>
         </div>
         <div>
-          <p class="text-[10px] font-mono uppercase ink-3">Not deposited</p>
+          <p class="text-[10px] font-mono uppercase ink-3">{{ _("Not deposited") }}</p>
           <p class="num-display text-lg ink-3">{{ money(0, decimals=0) }}</p>
         </div>
       </div>

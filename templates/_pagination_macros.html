@@ -68,11 +68,11 @@
     {% set window = _page_window(current_page, total_pages) | trim %}
     <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
       <div>
-        Showing <span class="tabular-nums">{{ offset + 1 }}–{{ [offset + limit, total] | min }}</span> of <span class="tabular-nums">{{ total }}</span>
+        {{ _("Showing") }} <span class="tabular-nums">{{ offset + 1 }}–{{ [offset + limit, total] | min }}</span> {{ _("of") }} <span class="tabular-nums">{{ total }}</span>
       </div>
       <div class="flex flex-wrap items-center gap-1">
-        {{ _page_btn('« First', 0, base_path, limit, filters, target, disabled=(current_page == 1), fragment=fragment) }}
-        {{ _page_btn('‹ Prev', prev_offset or 0, base_path, limit, filters, target, disabled=(current_page == 1), fragment=fragment) }}
+        {{ _page_btn(_('« First'), 0, base_path, limit, filters, target, disabled=(current_page == 1), fragment=fragment) }}
+        {{ _page_btn(_('‹ Prev'), prev_offset or 0, base_path, limit, filters, target, disabled=(current_page == 1), fragment=fragment) }}
 
         {% for token in window.split(',') %}
           {% if token == '…' %}
@@ -83,8 +83,8 @@
           {% endif %}
         {% endfor %}
 
-        {{ _page_btn('Next ›', next_offset or 0, base_path, limit, filters, target, disabled=(current_page == total_pages), fragment=fragment) }}
-        {{ _page_btn('Last »', (total_pages - 1) * limit, base_path, limit, filters, target, disabled=(current_page == total_pages), fragment=fragment) }}
+        {{ _page_btn(_('Next ›'), next_offset or 0, base_path, limit, filters, target, disabled=(current_page == total_pages), fragment=fragment) }}
+        {{ _page_btn(_('Last »'), (total_pages - 1) * limit, base_path, limit, filters, target, disabled=(current_page == total_pages), fragment=fragment) }}
       </div>
     </div>
   {% endif %}

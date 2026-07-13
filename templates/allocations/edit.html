@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Edit %(name)s") % {"name": (rule.name or _('Allocation Rule'))} }} — SAE Books{% endblock %}
+{% block title %}{{ _("Edit %(name)s") % {"name": (rule.name or _('Allocation Rule'))} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
