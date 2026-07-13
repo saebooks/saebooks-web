@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Disposed Asset — SAE Books{% endblock %}
+{% block title %}{{ _("Cannot Edit Disposed Asset") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if asset %}Edit {{ asset.code }}{% else %}Edit Fixed Asset{% endif %}
+    {% if asset %}{{ _("Edit %(code)s") % {"code": asset.code} }}{% else %}{{ _("Edit Fixed Asset") }}{% endif %}
   </h1>
   {% if asset %}
-  <a href="/fixed-assets/{{ asset.id }}" class="text-sm sae hover:underline">← Back to asset</a>
+  <a href="/fixed-assets/{{ asset.id }}" class="text-sm sae hover:underline">← {{ _("Back to asset") }}</a>
   {% else %}
-  <a href="/fixed-assets" class="text-sm sae hover:underline">← Back to fixed assets</a>
+  <a href="/fixed-assets" class="text-sm sae hover:underline">← {{ _("Back to fixed assets") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--warm);">
-  <p class="text-sm font-semibold ink-1 mb-1">Disposed assets cannot be edited.</p>
+  <p class="text-sm font-semibold ink-1 mb-1">{{ _("Disposed assets cannot be edited.") }}</p>
   {% if asset %}
   <p class="text-sm ink-2">
-    This asset was disposed on {{ asset.disposal_date or "an earlier date" }}.
-    Return to the
-    <a href="/fixed-assets/{{ asset.id }}" class="underline sae">asset detail page</a>
-    to view it.
+    {{ _("This asset was disposed on %(date)s.") % {"date": (asset.disposal_date or _("an earlier date"))} }}
+    {{ _("Return to the") }}
+    <a href="/fixed-assets/{{ asset.id }}" class="underline sae">{{ _("asset detail page") }}</a>
+    {{ _("to view it.") }}
   </p>
   {% endif %}
 </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Fixed Assets — SAE Books{% endblock %}
+{% block title %}{{ _("Fixed Assets") }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -12,7 +12,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-2xl">Fixed Assets</h1>
+    <h1 class="font-display text-2xl">{{ _("Fixed Assets") }}</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ total }} asset{{ "s" if total != 1 else "" }}</p>
     {% endif %}
@@ -22,13 +22,13 @@
       href="/fixed-assets/depreciation-run"
       class="rounded-md border border-[#194291] px-3 py-1.5 text-sm font-medium text-[#194291] hover:bg-[#eaf0fa]"
     >
-      Run Batch Depreciation
+      {{ _("Run Batch Depreciation") }}
     </a>
     <a
       href="/fixed-assets/new"
       class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
     >
-      New fixed asset
+      {{ _("New fixed asset") }}
     </a>
   </div>
 </div>
@@ -42,26 +42,26 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Status") }}</label>
     <select
       id="status"
       name="status"
       class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="active" {% if filter_status == 'active' %}selected{% endif %}>Active</option>
-      <option value="disposed" {% if filter_status == 'disposed' %}selected{% endif %}>Disposed</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="active" {% if filter_status == 'active' %}selected{% endif %}>{{ _("Active") }}</option>
+      <option value="disposed" {% if filter_status == 'disposed' %}selected{% endif %}>{{ _("Disposed") }}</option>
     </select>
   </div>
 
   <div>
-    <label for="search" class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+    <label for="search" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Search") }}</label>
     <input
       id="search"
       type="text"
       name="search"
       value="{{ filter_search }}"
-      placeholder="Name or code…"
+      placeholder="{{ _('Name or code…') }}"
       class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
   </div>
@@ -73,7 +73,7 @@
     type="submit"
     class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
   >
-    Filter
+    {{ _("Filter") }}
   </button>
 </form>
 
@@ -87,7 +87,7 @@
      entity="fixed_assets",
      action_endpoint="/fixed-assets/bulk",
      actions=[
-       ("archive", "Archive", true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
