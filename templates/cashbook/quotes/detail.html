@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ quote.number or _("Draft") }} — {{ _("Cashbook") }} — SAE Books{% endblock %}
+{% block title %}{{ quote.number or _("Draft") }} — {{ _("Cashbook") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 

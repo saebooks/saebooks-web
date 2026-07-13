@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Pay Run — SAE Books{% endblock %}
+{% block title %}Pay Run — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -29,7 +29,7 @@
       <p class="font-semibold mb-1">This page exports creditor bill payments only (ABA format).</p>
       <p class="mb-2">
         Wage calculation — including Hospitality Industry Award penalty rates
-        (Saturday 125%, Sunday 150%, Public Holiday 225%) — is <strong>not automated</strong> in SAE Books v1.
+        (Saturday 125%, Sunday 150%, Public Holiday 225%) — is <strong>not automated</strong> in {{ current_brand().name }} v1.
         Wages must be calculated externally and posted as journal entries.
       </p>
       <p class="font-medium">Recommended workflow for casual/award staff:</p>
@@ -39,7 +39,7 @@
         <li>Deduct PAYG withholding and superannuation per your payroll run.</li>
         <li>Post the net wages, PAYG, and super as a
             <a href="/journal-entries/new" class="underline hover:text-amber-900">journal entry</a>
-            in SAE Books (Dr Wages Expense / Cr Bank / Cr PAYG Payable / Cr Super Payable).</li>
+            in {{ current_brand().name }} (Dr Wages Expense / Cr Bank / Cr PAYG Payable / Cr Super Payable).</li>
       </ol>
       <p class="mt-2 text-amber-600 text-xs">
         Full payroll automation (STP Phase 2, Award rate engine) is on the roadmap for a future release.

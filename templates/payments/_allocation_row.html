@@ -2,8 +2,8 @@
 <tr class="alloc-row">
   <td class="px-3 py-2 w-32">
     <select name="allocations[{{ index }}][target_type]" class="saebooks-input text-sm py-1.5">
-      <option value="INVOICE" {% if alloc.get("target_type", "INVOICE") == "INVOICE" %}selected{% endif %}>Invoice</option>
-      <option value="BILL" {% if alloc.get("target_type") == "BILL" %}selected{% endif %}>Bill</option>
+      <option value="INVOICE" {% if alloc.get("target_type", "INVOICE") == "INVOICE" %}selected{% endif %}>{{ _("Invoice") }}</option>
+      <option value="BILL" {% if alloc.get("target_type") == "BILL" %}selected{% endif %}>{{ _("Bill") }}</option>
     </select>
   </td>
 
@@ -24,6 +24,6 @@
   <td class="px-3 py-2 w-10 text-center">
     <button type="button" onclick="this.closest('tr').remove()"
             class="ink-4 hover:text-[color:var(--neg)] text-lg leading-none font-bold transition-colors"
-            title="Remove allocation">&times;</button>
+            title="{{ _('Remove allocation') }}">&times;</button>
   </td>
 </tr>

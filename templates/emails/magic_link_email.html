@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your SAE Books Login Link</title>
+    <title>Your {{ brand.name }} Login Link</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -80,14 +80,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>SAE Books</h1>
+            <h1>{{ brand.name }}</h1>
         </div>
         <div class="content">
             <p>Hello,</p>
-            <p>Click the button below to securely log in to your SAE Books account. This link expires in <strong>{{ expires_minutes }} minutes</strong>.</p>
+            <p>Click the button below to securely log in to your {{ brand.name }} account. This link expires in <strong>{{ expires_minutes }} minutes</strong>.</p>
             
             <center>
-                <a href="{{ magic_link }}" class="cta-button">Log In to SAE Books</a>
+                <a href="{{ magic_link }}" class="cta-button">Log In to {{ brand.name }}</a>
             </center>
             
             <p class="button-link">Or copy and paste this link in your browser:<br>{{ magic_link }}</p>
@@ -100,7 +100,7 @@
         </div>
         <div class="footer">
             <p>&copy; 2026 SAE Engineering. All rights reserved.</p>
-            <p><a href="https://saebooks.com.au" style="color: #194291; text-decoration: none;">Visit SAE Books</a></p>
+            <p><a href="https://saebooks.com.au" style="color: #194291; text-decoration: none;">Visit {{ brand.name }}</a></p>
         </div>
     </div>
 </body>

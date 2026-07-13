@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_funnel_macros.html" import funnel %}
 
-{% block title %}Customer overview — SAE Books{% endblock %}
+{% block title %}Customer overview — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <header class="mb-8">
@@ -151,7 +151,7 @@
       <p class="text-sm font-semibold sae">CRM features — deferred</p>
       <p class="text-xs ink-3 mt-1 max-w-xl">
         Leads, opportunities, contracts, appointments, reviews and referrals are
-        deferred for SAE Books v1. The data shown here is derived from existing
+        deferred for {{ current_brand().name }} v1. The data shown here is derived from existing
         invoicing + projects state — no separate CRM is needed.
       </p>
     </div>

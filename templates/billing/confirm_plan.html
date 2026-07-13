@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Confirm your plan — SAE Books{% endblock %}
+{% block title %}Confirm your plan — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="flex min-h-[70vh] items-center justify-center">
@@ -26,7 +26,7 @@
       </div>
 
       <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-        Subscribe to SAE Books {{ plan_label }}
+        Subscribe to {{ current_brand().name }} {{ plan_label }}
       </h1>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
         Review your plan before continuing to Stripe's secure payment page.

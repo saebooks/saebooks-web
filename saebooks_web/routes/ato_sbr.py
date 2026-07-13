@@ -49,10 +49,10 @@ def _require_auth(request: Request) -> str | None:
 
 
 def _require_admin(request: Request) -> bool:
-    """True if session user is SAE staff or has the admin role."""
+    """True if session user is SAE staff or has the owner/admin role."""
     role = request.session.get("user_role", "")
     is_staff = bool(request.session.get("is_sae_staff"))
-    return is_staff or role == "admin"
+    return is_staff or role in ("owner", "admin")
 
 
 def _flash(request: Request, message: str | None = None, error: str | None = None) -> None:

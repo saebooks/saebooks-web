@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Reconciliation") }} — {{ account.name if account else account_id }} — SAE Books{% endblock %}
+{% block title %}{{ _("Reconciliation") }} — {{ account.name if account else account_id }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Company Settings — SAE Books{% endblock %}
+{% block title %}Company Settings — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -226,7 +226,7 @@
       <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">Bad-debt write-off &amp; recovery</legend>
 
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-        How SAE Books handles invoices that go unpaid long enough to be treated as
+        How {{ current_brand().name }} handles invoices that go unpaid long enough to be treated as
         a bad debt, and money that later comes in against a debt already written off.
       </p>
 

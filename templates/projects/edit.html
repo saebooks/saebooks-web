@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if project %}Edit {{ project.code }} — SAE Books{% else %}Edit Project — SAE Books{% endif %}
+  {% if project %}Edit {{ project.code }} — {{ current_brand().name }}{% else %}Edit Project — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

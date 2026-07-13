@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Expenses — SAE Books{% endblock %}
+{% block title %}{{ _("Expenses") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -12,19 +12,19 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-3xl font-semibold ink-1">Expenses</h1>
-    <p class="text-base ink-3 mt-1">Paid-at-checkout purchases.
-      For supplier invoices you owe later, use
-      <a href="/bills" class="sae hover:underline">Bills</a>.</p>
+    <h1 class="text-3xl font-semibold ink-1">{{ _("Expenses") }}</h1>
+    <p class="text-base ink-3 mt-1">{{ _("Paid-at-checkout purchases.") }}
+      {{ _("For supplier invoices you owe later, use") }}
+      <a href="/bills" class="sae hover:underline">{{ _("Bills") }}</a>.</p>
     {% if not error %}
-    <p class="text-base ink-3 mt-1">{{ total }} expense{{ "s" if total != 1 else "" }}</p>
+    <p class="text-base ink-3 mt-1">{{ ngettext("%(count)s expense", "%(count)s expenses", total) % {"count": total} }}</p>
     {% endif %}
   </div>
   <a
     href="/expenses/new"
     class="rounded-md bg-indigo-600 px-4 py-2 text-base font-medium text-white hover:bg-indigo-700"
   >
-    + New expense
+    + {{ _("New expense") }}
   </a>
 </div>
 
@@ -36,23 +36,23 @@
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
   <div>
-    <label for="status" class="block text-sm font-medium ink-3 mb-1">Status</label>
+    <label for="status" class="block text-sm font-medium ink-3 mb-1">{{ _("Status") }}</label>
     <select id="status" name="status"
       onchange="this.form.requestSubmit()"
       class="saebooks-input text-base px-2 py-1.5">
-      <option value="" {% if not filter_status %}selected{% endif %}>All</option>
-      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>Posted</option>
-      <option value="VOIDED" {% if filter_status == 'VOIDED' %}selected{% endif %}>Voided</option>
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>{{ _("Posted") }}</option>
+      <option value="VOIDED" {% if filter_status == 'VOIDED' %}selected{% endif %}>{{ _("Voided") }}</option>
     </select>
   </div>
   <div>
-    <label for="date_from" class="block text-sm font-medium ink-3 mb-1">Date from</label>
+    <label for="date_from" class="block text-sm font-medium ink-3 mb-1">{{ _("Date from") }}</label>
     <input type="date" id="date_from" name="date_from" value="{{ filter_date_from }}"
       class="saebooks-input text-base px-2 py-1.5">
   </div>
   <div>
-    <label for="date_to" class="block text-sm font-medium ink-3 mb-1">Date to</label>
+    <label for="date_to" class="block text-sm font-medium ink-3 mb-1">{{ _("Date to") }}</label>
     <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}"
       class="saebooks-input text-base px-2 py-1.5">
   </div>
@@ -60,16 +60,16 @@
     <label class="inline-flex items-center gap-2 text-sm font-medium ink-2 cursor-pointer">
       <input type="checkbox" name="flagged" value="true" {% if filter_flagged %}checked{% endif %}
         onchange="this.form.requestSubmit()"
-        aria-label="Flagged only"
+        aria-label="{{ _('Flagged only') }}"
         class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
-      Flagged only
+      {{ _("Flagged only") }}
     </label>
   </div>
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
   <button type="submit"
     class="rounded-md bg-indigo-600 px-3 py-1.5 text-base font-medium text-white hover:bg-indigo-700">
-    Filter
+    {{ _("Filter") }}
   </button>
 </form>
 
@@ -82,9 +82,9 @@
      entity="expenses",
      action_endpoint="/expenses/bulk",
      actions=[
-       ("post", "Post", false),
-       ("void", "Void", true),
-       ("archive", "Archive", true),
+       ("post", _("Post"), false),
+       ("void", _("Void"), true),
+       ("archive", _("Archive"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

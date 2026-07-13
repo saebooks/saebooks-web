@@ -3,7 +3,7 @@
 {% import "_components/kebab_menu.html" as km %}
 {% import "_partials/empty_state.html" as empty %}
 
-{% block title %}{{ _("Bank Rules") }} — SAE Books{% endblock %}
+{% block title %}{{ _("Bank Rules") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}

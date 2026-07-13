@@ -22,9 +22,9 @@
 {%- macro confidence_chip(confidence) -%}
   {%- set c = (confidence or '')|upper -%}
   {%- if c == 'OK' -%}
-    <span class="badge badge-pos font-mono" title="Extraction confidence">OK</span>
+    <span class="badge badge-pos font-mono" title="{{ _('Extraction confidence') }}">OK</span>
   {%- elif c == 'PARTIAL' -%}
-    <span class="badge badge-warm font-mono" title="Extraction incomplete — review carefully">PARTIAL</span>
+    <span class="badge badge-warm font-mono" title="{{ _('Extraction incomplete — review carefully') }}">PARTIAL</span>
   {%- endif -%}
 {%- endmacro %}
 
@@ -36,10 +36,10 @@
 #}
 {%- macro provenance_badge(source) -%}
   {%- if source == 'model' -%}
-    <span class="badge badge-sae font-mono !text-[9px] !px-1.5" title="Filled by the vision model — verify before publishing">AI</span>
+    <span class="badge badge-sae font-mono !text-[9px] !px-1.5" title="{{ _('Filled by the vision model — verify before publishing') }}">AI</span>
   {%- elif source == 'rule' -%}
-    <span class="badge badge-warm font-mono !text-[9px] !px-1.5" title="Filled by a supplier rule">RULE</span>
+    <span class="badge badge-warm font-mono !text-[9px] !px-1.5" title="{{ _('Filled by a supplier rule') }}">RULE</span>
   {%- elif source == 'edited' -%}
-    <span class="badge badge-ink font-mono !text-[9px] !px-1.5" title="Edited by a reviewer">EDITED</span>
+    <span class="badge badge-ink font-mono !text-[9px] !px-1.5" title="{{ _('Edited by a reviewer') }}">EDITED</span>
   {%- endif -%}
 {%- endmacro %}

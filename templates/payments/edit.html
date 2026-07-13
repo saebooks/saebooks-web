@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if payment %}Edit Payment {{ payment.reference or payment.number or payment.id }} — SAE Books{% else %}Edit Payment — SAE Books{% endif %}
+  {% if payment %}{{ _("Edit Payment %(reference)s") % {"reference": payment.reference or payment.number or payment.id} }} — {{ current_brand().name }}{% else %}{{ _("Edit Payment") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
 
 <div class="mb-5 flex items-center gap-3">
   {% if payment %}
-  <a href="/payments/{{ payment.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← payment</a>
+  <a href="/payments/{{ payment.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("payment") }}</a>
   {% else %}
-  <a href="/payments" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← payments</a>
+  <a href="/payments" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("payments") }}</a>
   {% endif %}
   <span class="ink-4">/</span>
   <h1 class="font-display text-xl ink-1">
-    {% if payment %}Edit payment {{ payment.reference or payment.number or "—" }}{% else %}Edit payment{% endif %}
+    {% if payment %}{{ _("Edit payment %(reference)s") % {"reference": payment.reference or payment.number or "—"} }}{% else %}{{ _("Edit payment") }}{% endif %}
   </h1>
 </div>
 
@@ -22,13 +22,11 @@
 <div id="conflict-banner" class="card p-3 mb-5 flex items-start gap-3" style="border-color:var(--warm);" role="alert">
   <span class="dot mt-1.5" style="background:var(--warm);"></span>
   <div class="text-sm ink-2 flex-1">
-    <p class="font-semibold ink-1 mb-1">Someone else updated this payment.</p>
+    <p class="font-semibold ink-1 mb-1">{{ _("Someone else updated this payment.") }}</p>
     <p>
-      The form below now shows <strong>your submitted values</strong> with the server's current version
-      number applied — so your next save will use the correct base.
-      If you want to start fresh from the server's current state instead,
-      {% if payment %}<a href="/payments/{{ payment.id }}/edit" class="sae hover:underline">reload the server version</a>.
-      {% else %}reload the page.{% endif %}
+      {{ _("The form below now shows") }} <strong>{{ _("your submitted values") }}</strong> {{ _("with the server's current version number applied — so your next save will use the correct base. If you want to start fresh from the server's current state instead,") }}
+      {% if payment %}<a href="/payments/{{ payment.id }}/edit" class="sae hover:underline">{{ _("reload the server version") }}</a>.
+      {% else %}{{ _("reload the page.") }}{% endif %}
     </p>
   </div>
 </div>
@@ -48,11 +46,11 @@
     {% include "payments/_form_fields.html" %}
 
     <div class="mt-7 hairline pt-5 flex items-center gap-3">
-      <button type="submit" class="btn-primary">Save changes</button>
+      <button type="submit" class="btn-primary">{{ _("Save changes") }}</button>
       {% if payment %}
-      <a href="/payments/{{ payment.id }}" class="btn-secondary">Cancel</a>
+      <a href="/payments/{{ payment.id }}" class="btn-secondary">{{ _("Cancel") }}</a>
       {% else %}
-      <a href="/payments" class="btn-secondary">Cancel</a>
+      <a href="/payments" class="btn-secondary">{{ _("Cancel") }}</a>
       {% endif %}
     </div>
   </form>

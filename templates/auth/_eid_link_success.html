@@ -1,0 +1,9 @@
+{# Link-mode success fragment — replaces #eid-flow on the settings page.
+   Context: link (record with masked/provider/linked_at), display_name. #}
+<div id="eid-flow" class="rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-800 dark:text-green-300"
+     data-testid="eid-link-success">
+  <p class="font-medium mb-1">{{ _("eID linked") }}</p>
+  <p>
+    {{ _("Your account is now linked to personal code %(masked)s. You can sign in with Smart-ID or Mobiil-ID from the login page.") % {"masked": link.masked} }}
+  </p>
+</div>

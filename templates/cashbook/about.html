@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("About Cashbook") }} — SAE Books{% endblock %}
+{% block title %}{{ _("About Cashbook") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -30,7 +30,7 @@
     </p>
 
     <p>
-      {{ (_("It's free. There's no signup funnel, no usage limit, no upsell pop-up. The free Community edition of %(link)s runs Cashbook out of the box, and your data lives on your own server (or on the demo server, if this is the public demo).") % {"link": '<a href="https://saebooks.com.au" class="sae hover:underline">SAE Books</a>'}) | safe }}
+      {{ (_("It's free. There's no signup funnel, no usage limit, no upsell pop-up. The free Community edition of %(link)s runs Cashbook out of the box, and your data lives on your own server (or on the demo server, if this is the public demo).") % {"link": '<a href="https://saebooks.com.au" class="sae hover:underline">{{ current_brand().name }}</a>'}) | safe }}
     </p>
 
     <div class="hairline-t pt-5">
@@ -64,7 +64,7 @@
       <ul class="space-y-2 text-sm">
         <li><a href="https://saebooks.com.au/cashbook" target="_blank" rel="noopener" class="sae hover:underline">{{ _("Full Cashbook pitch →") }}</a></li>
         <li><a href="https://saebooks.com.au/#editions" target="_blank" rel="noopener" class="sae hover:underline">{{ _("Editions and pricing →") }}</a></li>
-        <li><a href="https://github.com/sae-engineering" target="_blank" rel="noopener" class="sae hover:underline">{{ _("SAE Books on GitHub →") }}</a></li>
+        <li><a href="https://github.com/sae-engineering" target="_blank" rel="noopener" class="sae hover:underline">{{ _("%(brand)s on GitHub →") % {"brand": current_brand().name} }}</a></li>
       </ul>
     </div>
 

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "inbox/_macros.html" as chips %}
 
-{% block title %}Review {{ doc.filename }} — SAE Books{% endblock %}
+{% block title %}{{ _("Review %(filename)s") % {"filename": doc.filename} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,8 +13,8 @@
 
 {% if conflict %}
 <div class="rounded-md bg-[color:var(--neg-tint)] border border-[color:var(--neg)] px-4 py-3 text-base mb-4" style="color: var(--neg);">
-  <strong>This document changed in another window.</strong>
-  The latest version has been reloaded below — re-apply your edits and save again.
+  <strong>{{ _("This document changed in another window.") }}</strong>
+  {{ _("The latest version has been reloaded below — re-apply your edits and save again.") }}
 </div>
 {% endif %}
 
@@ -26,45 +26,45 @@
 
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
   <div class="min-w-0">
-    <p class="text-sm ink-3"><a href="/inbox" class="sae hover:underline">Inbox</a> / review</p>
+    <p class="text-sm ink-3"><a href="/inbox" class="sae hover:underline">{{ _("Inbox") }}</a> / {{ _("review") }}</p>
     <h1 class="text-2xl font-semibold ink-1 truncate" title="{{ doc.filename }}">{{ doc.filename }}</h1>
   </div>
   <div class="flex items-center gap-2">
     {{ chips.confidence_chip(doc.extraction_confidence) }}
     {{ chips.status_chip(doc.status) }}
     <span class="font-mono text-xs ink-3">{{ doc.source }}</span>
-    {% if doc.extract_model %}<span class="font-mono text-xs ink-3" title="Extraction model">{{ doc.extract_model }}</span>{% endif %}
+    {% if doc.extract_model %}<span class="font-mono text-xs ink-3" title="{{ _('Extraction model') }}">{{ doc.extract_model }}</span>{% endif %}
   </div>
 </div>
 
 {% if doc.extraction_error %}
 <div class="rounded-md bg-[color:var(--warm-tint)] border border-[color:var(--warm)] px-4 py-2 text-sm mb-4" style="color: var(--warm);">
-  Extraction was incomplete: {{ doc.extraction_error }} — verify every field before publishing.
+  {{ _("Extraction was incomplete:") }} {{ doc.extraction_error }} — {{ _("verify every field before publishing.") }}
 </div>
 {% endif %}
 {% if doc.last_error and doc.status in ('RECEIVED', 'FAILED') %}
 <div class="rounded-md bg-[color:var(--neg-tint)] border border-[color:var(--neg)] px-4 py-2 text-sm mb-4" style="color: var(--neg);">
-  Last extraction attempt failed: {{ doc.last_error }}
+  {{ _("Last extraction attempt failed:") }} {{ doc.last_error }}
 </div>
 {% endif %}
 
 {% if doc.status == 'PUBLISHED' %}
 <div class="rounded-md bg-[color:var(--pos-tint)] border border-[color:var(--pos)] px-4 py-3 text-base mb-4" style="color: var(--pos);">
-  Published as
+  {{ _("Published as") }}
   {% set kind = (doc.published_record_kind or '')|upper %}
   {% set record_url = {'EXPENSE': '/expenses/', 'BILL': '/bills/', 'CREDIT_NOTE': '/credit-notes/'}.get(kind) %}
   {% if record_url and doc.published_record_id %}
     <a href="{{ record_url }}{{ doc.published_record_id }}" class="underline font-medium">DRAFT {{ kind }}</a>
   {% else %}DRAFT {{ kind }}{% endif %}
-  on {{ doc.published_at }}.
+  {{ _("on") }} {{ doc.published_at }}.
 </div>
 {% elif doc.status == 'REJECTED' %}
 <div class="rounded-md bg-[color:var(--neg-tint)] border border-[color:var(--neg)] px-4 py-3 text-base mb-4" style="color: var(--neg);">
-  Rejected — {{ doc.reject_reason }}{% if doc.reject_note %}: {{ doc.reject_note }}{% endif %}
+  {{ _("Rejected —") }} {{ doc.reject_reason }}{% if doc.reject_note %}: {{ doc.reject_note }}{% endif %}
 </div>
 {% elif doc.status == 'DUPLICATE' %}
 <div class="rounded-md bg-[color:var(--warm-tint)] border border-[color:var(--warm)] px-4 py-3 text-base mb-4" style="color: var(--warm);">
-  Duplicate of {% if doc.duplicate_of_id %}<a href="/inbox/{{ doc.duplicate_of_id }}" class="underline">an earlier document</a>{% else %}an earlier document{% endif %}.
+  {{ _("Duplicate of") }} {% if doc.duplicate_of_id %}<a href="/inbox/{{ doc.duplicate_of_id }}" class="underline">{{ _("an earlier document") }}</a>{% else %}{{ _("an earlier document") }}{% endif %}.
 </div>
 {% endif %}
 
@@ -74,17 +74,18 @@
 {% if doc.advisory_duplicates %}
 <div id="inbox-advisory-duplicates"
      class="rounded-md bg-[color:var(--warm-tint)] border border-[color:var(--warm)] px-4 py-3 text-base mb-4" style="color: var(--warm);">
-  <strong>Possible duplicate.</strong>
-  {{ doc.advisory_duplicates | length }} other open
-  document{{ 's' if doc.advisory_duplicates | length != 1 else '' }} in the inbox
-  {{ 'share' if doc.advisory_duplicates | length != 1 else 'shares' }} this vendor and
-  invoice number — check before publishing (publishing is still allowed):
+  <strong>{{ _("Possible duplicate.") }}</strong>
+  {{ ngettext(
+       "%(count)s other open document in the inbox shares this vendor and invoice number — check before publishing (publishing is still allowed):",
+       "%(count)s other open documents in the inbox share this vendor and invoice number — check before publishing (publishing is still allowed):",
+       doc.advisory_duplicates | length
+  ) % {"count": doc.advisory_duplicates | length} }}
   <ul class="mt-1 list-disc list-inside">
     {% for dup in doc.advisory_duplicates %}
     <li>
       <a href="/inbox/{{ dup.id }}" class="underline">{{ dup.filename }}</a>
       <span class="font-mono text-xs">{{ dup.status }}</span>
-      {% if dup.invoice_number %}· ref {{ dup.invoice_number }}{% endif %}
+      {% if dup.invoice_number %}· {{ _("ref") }} {{ dup.invoice_number }}{% endif %}
       {% if dup.total %}· ${{ dup.total }}{% endif %}
     </li>
     {% endfor %}
@@ -105,7 +106,7 @@
     {% endif %}
     <div class="px-4 py-2 border-t hairline flex items-center justify-between text-xs ink-3 font-mono">
       <span>{{ doc.mime }} · {{ (doc.size_bytes / 1024) | round(1) }} KiB</span>
-      <a href="/inbox/{{ doc.id }}/file" target="_blank" class="sae hover:underline">open in new tab</a>
+      <a href="/inbox/{{ doc.id }}/file" target="_blank" class="sae hover:underline">{{ _("open in new tab") }}</a>
     </div>
   </div>
 
@@ -119,18 +120,18 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label for="record_kind" class="block text-base font-medium ink-3">Publish as</label>
+        <label for="record_kind" class="block text-base font-medium ink-3">{{ _("Publish as") }}</label>
         <select id="record_kind" name="record_kind" class="saebooks-input w-full">
           {% for kind in record_kinds %}
           <option value="{{ kind }}" {% if kind == 'EXPENSE' %}selected{% endif %}>{{ kind.replace('_', ' ')|title }}</option>
           {% endfor %}
         </select>
-        <p class="mt-1 text-xs ink-3">Always created as a DRAFT — posting stays a deliberate second step on the record.</p>
+        <p class="mt-1 text-xs ink-3">{{ _("Always created as a DRAFT — posting stays a deliberate second step on the record.") }}</p>
       </div>
       <div>
-        <label for="company_id" class="block text-base font-medium ink-3">Company</label>
+        <label for="company_id" class="block text-base font-medium ink-3">{{ _("Company") }}</label>
         <select id="company_id" name="company_id" class="saebooks-input w-full" required>
-          <option value="">— select a company —</option>
+          <option value="">{{ _("— select a company —") }}</option>
           {% for co in companies %}
           <option value="{{ co.id }}" {% if doc.company_id == co.id %}selected{% endif %}>{{ co.name }}</option>
           {% endfor %}
@@ -142,14 +143,14 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label for="vendor_name" class="block text-base font-medium ink-3">
-          Vendor (extracted) {{ chips.provenance_badge(provenance.vendor_name) }}
+          {{ _("Vendor (extracted)") }} {{ chips.provenance_badge(provenance.vendor_name) }}
         </label>
         <input type="text" id="vendor_name" name="vendor_name" value="{{ merged.vendor_name or '' }}"
                class="saebooks-input w-full">
       </div>
       <div>
         <label for="contact_id" class="block text-base font-medium ink-3">
-          Supplier contact {{ chips.provenance_badge(provenance.contact_id) }}
+          {{ _("Supplier contact") }} {{ chips.provenance_badge(provenance.contact_id) }}
         </label>
         {% set selected_contact_id = merged.contact_id or '' %}
         {% set doc_id = doc.id %}
@@ -160,13 +161,13 @@
                 hx-target="#inbox-contact-select"
                 hx-swap="outerHTML"
                 class="mt-1 text-sm sae hover:underline">
-          + Create supplier from vendor name
+          + {{ _("Create supplier from vendor name") }}
         </button>
         {% if errors.contact_id %}<p class="mt-1 text-sm" style="color: var(--neg);">{{ errors.contact_id }}</p>{% endif %}
       </div>
       <div>
         <label for="date" class="block text-base font-medium ink-3">
-          Date {{ chips.provenance_badge(provenance.date) }}
+          {{ _("Date") }} {{ chips.provenance_badge(provenance.date) }}
         </label>
         <input type="date" id="date" name="date" value="{{ merged.date or '' }}" required
                class="saebooks-input w-full">
@@ -174,19 +175,19 @@
       </div>
       <div>
         <label for="invoice_number" class="block text-base font-medium ink-3">
-          Reference / invoice # {{ chips.provenance_badge(provenance.invoice_number) }}
+          {{ _("Reference / invoice #") }} {{ chips.provenance_badge(provenance.invoice_number) }}
         </label>
         <input type="text" id="invoice_number" name="invoice_number" value="{{ merged.invoice_number or '' }}"
                class="saebooks-input w-full" placeholder="optional">
       </div>
       <div id="payment-account-field">
         <label for="payment_account_id" class="block text-base font-medium ink-3">
-          Paid from {{ chips.provenance_badge(provenance.payment_account_id) }}
+          {{ _("Paid from") }} {{ chips.provenance_badge(provenance.payment_account_id) }}
         </label>
         {# required only for EXPENSE — bills/credit notes take no payment
            account; inboxKindSync() toggles it with the record_kind. #}
         <select id="payment_account_id" name="payment_account_id" class="saebooks-input w-full" required>
-          <option value="">— bank / card / cash account —</option>
+          <option value="">{{ _("— bank / card / cash account —") }}</option>
           {% for a in payment_accounts %}
           <option value="{{ a.id }}" {% if merged.payment_account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
           {% endfor %}
@@ -195,12 +196,12 @@
       </div>
       <div>
         <label for="total" class="block text-base font-medium ink-3">
-          Document total {{ chips.provenance_badge(provenance.total) }}
+          {{ _("Document total") }} {{ chips.provenance_badge(provenance.total) }}
         </label>
         <input type="number" id="total" name="total" value="{{ merged.total or '' }}" step="0.01" min="0"
                class="saebooks-input w-full num" placeholder="0.00">
         {% if merged.currency and merged.currency != 'AUD' %}
-        <p class="mt-1 text-xs" style="color: var(--warm);">Extracted currency: {{ merged.currency }}</p>
+        <p class="mt-1 text-xs" style="color: var(--warm);">{{ _("Extracted currency:") }} {{ merged.currency }}</p>
         {% endif %}
       </div>
     </div>
@@ -209,20 +210,20 @@
     <div>
       <div class="flex items-center justify-between mb-2">
         <label class="block text-base font-medium ink-3">
-          Lines {{ chips.provenance_badge(provenance.line_items) }}
+          {{ _("Lines") }} {{ chips.provenance_badge(provenance.line_items) }}
         </label>
-        <button type="button" onclick="inboxAddLine()" class="text-sm sae hover:underline">+ Add line</button>
+        <button type="button" onclick="inboxAddLine()" class="text-sm sae hover:underline">+ {{ _("Add line") }}</button>
       </div>
       {% if errors.lines %}<p class="mb-2 text-sm" style="color: var(--neg);">{{ errors.lines }}</p>{% endif %}
       <div class="card overflow-x-auto">
         <table class="min-w-full text-base" id="inbox-lines-table">
           <thead>
             <tr class="text-sm ink-3 text-left">
-              <th class="px-2 py-1.5">Description</th>
-              <th class="px-2 py-1.5">Account</th>
-              <th class="px-2 py-1.5">Tax</th>
-              <th class="px-2 py-1.5 text-right">Qty</th>
-              <th class="px-2 py-1.5 text-right">Unit price</th>
+              <th class="px-2 py-1.5">{{ _("Description") }}</th>
+              <th class="px-2 py-1.5">{{ _("Account") }}</th>
+              <th class="px-2 py-1.5">{{ _("Tax") }}</th>
+              <th class="px-2 py-1.5 text-right">{{ _("Qty") }}</th>
+              <th class="px-2 py-1.5 text-right">{{ _("Unit price") }}</th>
               <th class="px-2 py-1.5"></th>
             </tr>
           </thead>
@@ -231,22 +232,22 @@
             <tr class="inbox-line-row border-t hairline">
               <td class="px-2 py-1">
                 <input type="text" name="lines[{{ loop.index0 }}][description]" value="{{ line.description }}"
-                       aria-label="Description, row {{ loop.index0 }}"
+                       aria-label="{{ _('Description, row %(index)s') % {'index': loop.index0} }}"
                        class="saebooks-input w-full px-2 py-1 text-base">
               </td>
               <td class="px-2 py-1">
-                <select name="lines[{{ loop.index0 }}][account_id]" aria-label="Account, row {{ loop.index0 }}"
+                <select name="lines[{{ loop.index0 }}][account_id]" aria-label="{{ _('Account, row %(index)s') % {'index': loop.index0} }}"
                         class="saebooks-input w-full px-2 py-1 text-base">
-                  <option value="">— expense account —</option>
+                  <option value="">{{ _("— expense account —") }}</option>
                   {% for a in expense_accounts %}
                   <option value="{{ a.id }}" {% if line.account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
                   {% endfor %}
                 </select>
               </td>
               <td class="px-2 py-1">
-                <select name="lines[{{ loop.index0 }}][tax_code_id]" aria-label="Tax code, row {{ loop.index0 }}"
+                <select name="lines[{{ loop.index0 }}][tax_code_id]" aria-label="{{ _('Tax code, row %(index)s') % {'index': loop.index0} }}"
                         class="saebooks-input w-full px-2 py-1 text-base">
-                  <option value="">none</option>
+                  <option value="">{{ _("none") }}</option>
                   {% for t in tax_codes %}
                   <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>
                   {% endfor %}
@@ -254,17 +255,17 @@
               </td>
               <td class="px-2 py-1">
                 <input type="number" name="lines[{{ loop.index0 }}][quantity]" value="{{ line.quantity }}"
-                       step="0.0001" min="0" aria-label="Quantity, row {{ loop.index0 }}"
+                       step="0.0001" min="0" aria-label="{{ _('Quantity, row %(index)s') % {'index': loop.index0} }}"
                        class="saebooks-input w-20 px-2 py-1 text-base text-right num">
               </td>
               <td class="px-2 py-1">
                 <input type="number" name="lines[{{ loop.index0 }}][unit_price]" value="{{ line.unit_price }}"
-                       step="0.0001" min="0" aria-label="Unit price, row {{ loop.index0 }}"
+                       step="0.0001" min="0" aria-label="{{ _('Unit price, row %(index)s') % {'index': loop.index0} }}"
                        class="saebooks-input w-28 px-2 py-1 text-base text-right num">
               </td>
               <td class="px-2 py-1 text-center">
                 <button type="button" onclick="this.closest('tr').remove(); inboxVariance();"
-                        aria-label="Remove line" class="ink-3 hover:text-[color:var(--neg)] p-1">
+                        aria-label="{{ _('Remove line') }}" class="ink-3 hover:text-[color:var(--neg)] p-1">
                   <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
               </td>
@@ -281,23 +282,22 @@
     </div>
 
     <div>
-      <label for="notes" class="block text-base font-medium ink-3">Notes</label>
+      <label for="notes" class="block text-base font-medium ink-3">{{ _("Notes") }}</label>
       <textarea id="notes" name="notes" rows="2" class="saebooks-input w-full">{{ merged.notes or '' }}</textarea>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
       {% if publishable %}
-      <button type="submit" name="action" value="publish" class="btn-primary">Publish as draft</button>
+      <button type="submit" name="action" value="publish" class="btn-primary">{{ _("Publish as draft") }}</button>
       {% else %}
-      <span class="text-sm ink-3" title="The engine forbids publishing before extraction has run.">
-        Extraction hasn't run yet — re-run extraction below (or wait for the
-        sweep) before publishing.
+      <span class="text-sm ink-3" title="{{ _('The engine forbids publishing before extraction has run.') }}">
+        {{ _("Extraction hasn't run yet — re-run extraction below (or wait for the sweep) before publishing.") }}
       </span>
       {% endif %}
-      <button type="submit" name="action" value="save" class="btn-secondary">Save review</button>
+      <button type="submit" name="action" value="save" class="btn-secondary">{{ _("Save review") }}</button>
       <button type="button" class="text-base hover:underline" style="color: var(--neg);"
               onclick="document.getElementById('inbox-reject-modal').classList.remove('hidden')">
-        Reject…
+        {{ _("Reject…") }}
       </button>
     </div>
   </form>
@@ -307,18 +307,18 @@
     {{ csrf_input(request) | safe }}
     <button type="submit" class="text-sm sae hover:underline">
       <i data-lucide="refresh-cw" class="w-3.5 h-3.5 inline-block"></i>
-      Re-run extraction
+      {{ _("Re-run extraction") }}
     </button>
   </form>
 
   {# Reject modal #}
   <div id="inbox-reject-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(10,20,40,.45);">
     <div class="card w-[min(28rem,92vw)] p-6">
-      <h2 class="text-lg font-semibold ink-1 mb-3">Reject document</h2>
+      <h2 class="text-lg font-semibold ink-1 mb-3">{{ _("Reject document") }}</h2>
       <form method="post" action="/inbox/{{ doc.id }}/reject" class="space-y-4">
         {{ csrf_input(request) | safe }}
         <div>
-          <label for="reject-reason" class="block text-base font-medium ink-3">Reason</label>
+          <label for="reject-reason" class="block text-base font-medium ink-3">{{ _("Reason") }}</label>
           <select id="reject-reason" name="reason" class="saebooks-input w-full" required>
             {% for reason in reject_reasons %}
             <option value="{{ reason }}">{{ reason }}</option>
@@ -326,13 +326,13 @@
           </select>
         </div>
         <div>
-          <label for="reject-note" class="block text-base font-medium ink-3">Note (optional)</label>
+          <label for="reject-note" class="block text-base font-medium ink-3">{{ _("Note (optional)") }}</label>
           <textarea id="reject-note" name="note" rows="2" class="saebooks-input w-full"></textarea>
         </div>
         <div class="flex items-center gap-3">
-          <button type="submit" class="rounded-md px-4 py-2 text-base font-medium text-white" style="background: var(--neg);">Reject</button>
+          <button type="submit" class="rounded-md px-4 py-2 text-base font-medium text-white" style="background: var(--neg);">{{ _("Reject") }}</button>
           <button type="button" class="btn-secondary"
-                  onclick="document.getElementById('inbox-reject-modal').classList.add('hidden')">Cancel</button>
+                  onclick="document.getElementById('inbox-reject-modal').classList.add('hidden')">{{ _("Cancel") }}</button>
         </div>
       </form>
     </div>
@@ -409,7 +409,7 @@
       </td>
       <td class="px-2 py-1">
         <select name="lines[__INDEX__][account_id]" class="saebooks-input w-full px-2 py-1 text-base">
-          <option value="">— expense account —</option>
+          <option value="">{{ _("— expense account —") }}</option>
           {% for a in expense_accounts %}
           <option value="{{ a.id }}">{{ a.code }} {{ a.name }}</option>
           {% endfor %}
@@ -417,7 +417,7 @@
       </td>
       <td class="px-2 py-1">
         <select name="lines[__INDEX__][tax_code_id]" class="saebooks-input w-full px-2 py-1 text-base">
-          <option value="">none</option>
+          <option value="">{{ _("none") }}</option>
           {% for t in tax_codes %}
           <option value="{{ t.id }}">{{ t.code }} ({{ t.rate }}%)</option>
           {% endfor %}
@@ -433,7 +433,7 @@
       </td>
       <td class="px-2 py-1 text-center">
         <button type="button" onclick="this.closest('tr').remove(); inboxVariance();"
-                aria-label="Remove line" class="ink-3 hover:text-[color:var(--neg)] p-1">
+                aria-label="{{ _('Remove line') }}" class="ink-3 hover:text-[color:var(--neg)] p-1">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </td>
@@ -443,12 +443,12 @@
   {% else %}
   {# Terminal document — read-only extract summary, no coding form. #}
   <div class="card p-5 space-y-2 text-base">
-    <p class="ink-3 text-sm font-mono uppercase tracking-wider">Extracted values</p>
+    <p class="ink-3 text-sm font-mono uppercase tracking-wider">{{ _("Extracted values") }}</p>
     <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
-      <dt class="ink-3">Vendor</dt><dd class="ink-1">{{ merged.vendor_name or '—' }}</dd>
-      <dt class="ink-3">Date</dt><dd class="num">{{ merged.date or '—' }}</dd>
-      <dt class="ink-3">Reference</dt><dd class="num">{{ merged.invoice_number or '—' }}</dd>
-      <dt class="ink-3">Total</dt><dd class="num">{% if merged.total %}${{ merged.total }}{% else %}—{% endif %}</dd>
+      <dt class="ink-3">{{ _("Vendor") }}</dt><dd class="ink-1">{{ merged.vendor_name or '—' }}</dd>
+      <dt class="ink-3">{{ _("Date") }}</dt><dd class="num">{{ merged.date or '—' }}</dd>
+      <dt class="ink-3">{{ _("Reference") }}</dt><dd class="num">{{ merged.invoice_number or '—' }}</dd>
+      <dt class="ink-3">{{ _("Total") }}</dt><dd class="num">{% if merged.total %}${{ merged.total }}{% else %}—{% endif %}</dd>
     </dl>
   </div>
   {% endif %}

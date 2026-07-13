@@ -25,10 +25,10 @@
 {# ── Confidence badge ── #}
 <div class="flex items-center gap-2 mb-2">
   <span class="{% if low_confidence %}badge-warm{% else %}badge-pos{% endif %}">
-    AI confidence: {{ confidence_pct }}%
+    {{ _("AI confidence: %(pct)s%%") % {"pct": confidence_pct} }}
   </span>
   {% if low_confidence %}
-  <span class="text-xs font-medium" style="color:var(--warm);">Low confidence — please review fields carefully</span>
+  <span class="text-xs font-medium" style="color:var(--warm);">{{ _("Low confidence — please review fields carefully") }}</span>
   {% endif %}
 </div>
 
@@ -40,7 +40,7 @@
   we inject a <script> here instead to avoid requiring every input to have an
   id matching the API field name.
 #}
-<div class="text-xs ink-3 mb-1">Fields pre-filled below. Review and adjust before saving.</div>
+<div class="text-xs ink-3 mb-1">{{ _("Fields pre-filled below. Review and adjust before saving.") }}</div>
 
 <script>
 (function () {

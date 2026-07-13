@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if account %}{{ account.code }} — {{ _("Bank Account") }} — SAE Books{% else %}{{ _("Bank Account Not Found") }} — SAE Books{% endif %}
+  {% if account %}{{ account.code }} — {{ _("Bank Account") }} — {{ current_brand().name }}{% else %}{{ _("Bank Account Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

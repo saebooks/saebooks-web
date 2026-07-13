@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Bank Statement Preview — SAE Books{% endblock %}
+{% block title %}{{ _("Bank Statement Preview") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="flex items-center gap-2 mb-1">
-  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">Imports</a>
+  <a href="/admin/imports" class="text-sm ink-3 hover:ink-2">{{ _("Imports") }}</a>
   <span class="ink-4 text-xs">/</span>
-  <a href="/admin/imports/bank" class="text-sm ink-3 hover:ink-2">Bank Statement</a>
+  <a href="/admin/imports/bank" class="text-sm ink-3 hover:ink-2">{{ _("Bank Statement") }}</a>
   <span class="ink-4 text-xs">/</span>
-  <span class="text-sm ink-1 font-medium">Preview</span>
+  <span class="text-sm ink-1 font-medium">{{ _("Preview") }}</span>
 </div>
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold ink-1">Bank Statement Preview</h1>
-  <p class="text-sm ink-3 mt-1">Review the parsed transactions before importing</p>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Bank Statement Preview") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Review the parsed transactions before importing") }}</p>
 </div>
 
 {% if error %}
 <div class="card p-3 mb-4" style="border-color:var(--neg);">
-  <span class="text-sm" style="color:var(--neg);"><strong>Parse error:</strong> {{ error }}</span>
+  <span class="text-sm" style="color:var(--neg);"><strong>{{ _("Parse error:") }}</strong> {{ error }}</span>
   <div class="mt-2">
-    <a href="/admin/imports/bank" class="text-sm underline" style="color:var(--neg);">Try again</a>
+    <a href="/admin/imports/bank" class="text-sm underline" style="color:var(--neg);">{{ _("Try again") }}</a>
   </div>
 </div>
 {% elif proxy_html %}
@@ -29,7 +29,7 @@
   {{ proxy_html | safe }}
 </div>
 {% else %}
-<div class="text-sm ink-3">No preview data available.</div>
+<div class="text-sm ink-3">{{ _("No preview data available.") }}</div>
 {% endif %}
 
 {% endblock %}

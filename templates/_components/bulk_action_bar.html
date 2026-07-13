@@ -33,16 +33,16 @@
      data-entity="{{ entity }}"
      data-endpoint="{{ action_endpoint }}"
      role="region"
-     aria-label="Bulk actions for selected rows">
+     aria-label="{{ _('Bulk actions for selected rows') }}">
   <div class="mx-auto max-w-[1320px] px-4 py-3 flex flex-wrap items-center gap-3">
     <span class="text-sm ink-2">
       <strong data-bulk-count>0</strong>
-      <span data-bulk-noun>{{ entity }}</span> selected
+      <span data-bulk-noun>{{ entity }}</span> {{ _("selected") }}
     </span>
     <button type="button"
             class="text-sm sae hover:underline"
             onclick="window.__listTable && window.__listTable.clearSelection('{{ entity }}')">
-      Clear
+      {{ _("Clear") }}
     </button>
     <div class="ml-auto flex flex-wrap items-center gap-2">
       {% for key, label, destructive in actions %}
@@ -74,11 +74,11 @@
      onclick="if (event.target === this) window.__listTable && window.__listTable.closeConfirm()">
   <div class="mx-auto mt-32 max-w-md rounded-xl bg-[color:var(--surface)] shadow-2xl p-6">
     <h2 id="bulk-confirm-title" class="text-lg font-semibold ink-1 mb-2"
-        data-confirm-title>Confirm action</h2>
+        data-confirm-title>{{ _("Confirm action") }}</h2>
     <p class="text-sm ink-2 mb-4" data-confirm-body></p>
     <div data-confirm-typed class="hidden mb-4">
       <p class="text-xs ink-3 mb-1">
-        Type <strong data-typed-word></strong> to confirm.
+        {{ _("Type") }} <strong data-typed-word></strong> {{ _("to confirm.") }}
       </p>
       <input type="text" data-confirm-typed-input
              class="saebooks-input w-full text-sm font-mono uppercase focus:ring-2 focus:ring-red-500"
@@ -88,12 +88,12 @@
       <button type="button"
               onclick="window.__listTable && window.__listTable.closeConfirm()"
               class="rounded-md border hairline px-4 py-2 text-sm ink-2 hover:bg-[color:var(--paper-2)]">
-        Cancel
+        {{ _("Cancel") }}
       </button>
       <button type="button"
               data-confirm-go disabled
               class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
-        Confirm
+        {{ _("Confirm") }}
       </button>
     </div>
   </div>

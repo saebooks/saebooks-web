@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if po %}Edit PO {{ po.number or po.id }} — SAE Books{% else %}Edit PO — SAE Books{% endif %}
+  {% if po %}{{ _("Edit PO %(number)s") % {"number": po.number or po.id} }} — {{ current_brand().name }}{% else %}{{ _("Edit PO") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
 
 <div class="mb-5 flex items-center gap-3">
   {% if po %}
-  <a href="/purchase_orders/{{ po.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← purchase order</a>
+  <a href="/purchase_orders/{{ po.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("purchase order") }}</a>
   {% else %}
-  <a href="/purchase_orders" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← purchase orders</a>
+  <a href="/purchase_orders" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("purchase orders") }}</a>
   {% endif %}
   <span class="ink-4">/</span>
   <h1 class="font-display text-xl ink-1">
-    {% if po %}Edit PO {{ po.number or "(draft)" }}{% else %}Edit purchase order{% endif %}
+    {% if po %}{{ _("Edit PO %(number)s") % {"number": po.number or _("(draft)")} }}{% else %}{{ _("Edit purchase order") }}{% endif %}
   </h1>
 </div>
 
 {% if po %}
 <div class=mb-4>
   <a href=/purchase_orders/{{ po.id }}/pdf target=_blank rel=noopener class=chip>
-    <i data-lucide=download class=w-3.5 h-3.5></i> Download PDF
+    <i data-lucide=download class=w-3.5 h-3.5></i> {{ _("Download PDF") }}
   </a>
 </div>
 {% endif %}
@@ -30,11 +30,10 @@
 <div id="conflict-banner" class="card p-3 mb-5 flex items-start gap-3" style="border-color:var(--warm);" role="alert">
   <span class="dot mt-1.5" style="background:var(--warm);"></span>
   <div class="text-sm ink-2 flex-1">
-    <p class="font-semibold ink-1 mb-1">Someone else updated this purchase order.</p>
+    <p class="font-semibold ink-1 mb-1">{{ _("Someone else updated this purchase order.") }}</p>
     <p>
-      The form below now shows <strong>your submitted values</strong> with the server's current
-      version number applied — so your next save will use the correct base.
-      {% if po %}<a href="/purchase_orders/{{ po.id }}/edit" class="sae hover:underline">reload the server version</a>.{% endif %}
+      {{ _("The form below now shows") }} <strong>{{ _("your submitted values") }}</strong> {{ _("with the server's current version number applied — so your next save will use the correct base.") }}
+      {% if po %}<a href="/purchase_orders/{{ po.id }}/edit" class="sae hover:underline">{{ _("reload the server version") }}</a>.{% endif %}
     </p>
   </div>
 </div>
@@ -60,11 +59,11 @@
     {% include "purchase_orders/_form_fields.html" %}
 
     <div class="mt-7 hairline pt-5 flex items-center gap-3">
-      <button type="submit" class="btn-primary">Save changes</button>
+      <button type="submit" class="btn-primary">{{ _("Save changes") }}</button>
       {% if po %}
-      <a href="/purchase_orders/{{ po.id }}" class="btn-secondary">Cancel</a>
+      <a href="/purchase_orders/{{ po.id }}" class="btn-secondary">{{ _("Cancel") }}</a>
       {% else %}
-      <a href="/purchase_orders" class="btn-secondary">Cancel</a>
+      <a href="/purchase_orders" class="btn-secondary">{{ _("Cancel") }}</a>
       {% endif %}
     </div>
   </form>
