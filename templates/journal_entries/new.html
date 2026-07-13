@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New Journal Entry — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("New Journal Entry") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">New Journal Entry</h1>
-  <a href="/journal-entries" class="text-sm sae hover:underline">← Back to journal entries</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New Journal Entry") }}</h1>
+  <a href="/journal-entries" class="text-sm sae hover:underline">← {{ _("Back to journal entries") }}</a>
 </div>
 
 <div class="card rounded-xl shadow-sm px-6 py-6">
@@ -21,13 +21,13 @@
         type="submit"
         class="btn-primary text-sm"
       >
-        Save journal entry
+        {{ _("Save journal entry") }}
       </button>
       <a
         href="/journal-entries"
         class="btn-secondary text-sm"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 

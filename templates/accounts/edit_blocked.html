@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Archived Account — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Cannot Edit Archived Account") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if account %}Edit {{ account.code }}{% else %}Edit Account{% endif %}
+    {% if account %}{{ _("Edit %(code)s") % {"code": account.code} }}{% else %}{{ _("Edit Account") }}{% endif %}
   </h1>
   {% if account %}
-  <a href="/accounts/{{ account.id }}" class="text-sm sae hover:underline">← Back to account</a>
+  <a href="/accounts/{{ account.id }}" class="text-sm sae hover:underline">← {{ _("Back to account") }}</a>
   {% else %}
-  <a href="/accounts" class="text-sm sae hover:underline">← Back to accounts</a>
+  <a href="/accounts" class="text-sm sae hover:underline">← {{ _("Back to accounts") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--warm);">
-  <p class="text-sm font-semibold ink-1 mb-1">Archived accounts cannot be edited. Restore it first.</p>
+  <p class="text-sm font-semibold ink-1 mb-1">{{ _("Archived accounts cannot be edited. Restore it first.") }}</p>
   {% if account %}
   <p class="text-sm ink-2">
-    This account was archived on {{ account.archived_at[:10] }}.
-    Return to the
-    <a href="/accounts/{{ account.id }}" class="underline sae">account detail page</a>
-    to restore it before making changes.
+    {{ _("This account was archived on %(date)s.") % {"date": account.archived_at[:10]} }}
+    {{ _("Return to the") }}
+    <a href="/accounts/{{ account.id }}" class="underline sae">{{ _("account detail page") }}</a>
+    {{ _("to restore it before making changes.") }}
   </p>
   {% endif %}
 </div>

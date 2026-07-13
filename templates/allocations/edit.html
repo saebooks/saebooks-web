@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Edit {{ rule.name or 'Allocation Rule' }} — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Edit %(name)s") % {"name": (rule.name or _('Allocation Rule'))} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">Edit Allocation Rule</h1>
-  <a href="/allocations/{{ rule.id }}" class="text-sm sae hover:underline">← Back</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Edit Allocation Rule") }}</h1>
+  <a href="/allocations/{{ rule.id }}" class="text-sm sae hover:underline">← {{ _("Back") }}</a>
 </div>
 
 {% if errors.__all__ %}
@@ -26,7 +26,7 @@
       {# Name #}
       <div>
         <label for="name" class="block text-sm font-medium ink-2 mb-1">
-          Rule name <span style="color:var(--neg)">*</span>
+          {{ _("Rule name") }} <span style="color:var(--neg)">*</span>
         </label>
         <input
           id="name"
@@ -42,7 +42,7 @@
 
       {# Description #}
       <div>
-        <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
+        <label for="description" class="block text-sm font-medium ink-2 mb-1">{{ _("Description") }}</label>
         <textarea
           id="description"
           name="description"
@@ -54,7 +54,7 @@
       {# Source account #}
       <div>
         <label for="source_account_id" class="block text-sm font-medium ink-2 mb-1">
-          Source account (cost pool) <span style="color:var(--neg)">*</span>
+          {{ _("Source account (cost pool)") }} <span style="color:var(--neg)">*</span>
         </label>
         <select
           id="source_account_id"
@@ -63,7 +63,7 @@
           class="saebooks-input w-full text-sm px-3 py-2"
           required
         >
-          <option value="">— select account —</option>
+          <option value="">{{ _("— select account —") }}</option>
           {% for acct in accounts %}
           {% set current_src = form.get('source_account_id', '') or (rule.source_account_id | string) %}
           <option value="{{ acct.id }}" {% if current_src == (acct.id | string) %}selected{% endif %}>
@@ -83,20 +83,20 @@
           {% if rule.is_active %}checked{% endif %}
           class="h-4 w-4 rounded border-gray-300 text-[#194291]"
         >
-        <label for="is_active" class="text-sm ink-2">Active</label>
+        <label for="is_active" class="text-sm ink-2">{{ _("Active") }}</label>
       </div>
 
       {# Targets #}
       <div>
         <div class="flex items-center justify-between mb-2">
           <label class="block text-sm font-medium ink-2">
-            Target accounts <span style="color:var(--neg)">*</span>
+            {{ _("Target accounts") }} <span style="color:var(--neg)">*</span>
           </label>
           <button
             type="button"
             id="add-target"
             class="text-xs sae hover:underline"
-          >+ Add target</button>
+          >+ {{ _("Add target") }}</button>
         </div>
         {% if errors.targets %}<p class="text-xs mb-2" style="color:var(--neg)">{{ errors.targets }}</p>{% endif %}
         <div id="targets-list" class="space-y-2">
@@ -111,13 +111,13 @@
         type="submit"
         class="btn-primary px-5 py-2 text-sm font-medium"
       >
-        Save changes
+        {{ _("Save changes") }}
       </button>
       <a
         href="/allocations/{{ rule.id }}"
         class="btn-secondary px-5 py-2 text-sm font-medium"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 

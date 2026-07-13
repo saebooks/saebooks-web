@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Sign in with passkey · {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Sign in with passkey") }} · {{ current_brand().name }}{% endblock %}
 {% block content %}
 <div class="min-h-screen flex items-center justify-center bg-[color:var(--paper-1)]">
   <div class="max-w-sm w-full p-8 rounded-2xl border hairline bg-[color:var(--surface)] shadow-lg">
     <div class="flex flex-col items-center gap-4">
       <img src="/static/sae-books-logo.png" alt="{{ current_brand().name }}" class="h-10">
-      <h1 class="text-xl font-semibold ink-1">Sign in with passkey</h1>
+      <h1 class="text-xl font-semibold ink-1">{{ _("Sign in with passkey") }}</h1>
       <p class="text-sm ink-2 text-center">
-        Tap your security key, use Touch&nbsp;ID, or pick a passkey from your device.
+        {{ _("Tap your security key, use Touch ID, or pick a passkey from your device.") }}
       </p>
 
       <button id="webauthn-go"
@@ -19,14 +19,14 @@
           <rect x="3" y="11" width="18" height="11" rx="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
-        <span id="webauthn-go-label">Sign in</span>
+        <span id="webauthn-go-label">{{ _("Sign in") }}</span>
       </button>
 
       <div id="webauthn-msg" class="text-xs ink-2 mt-1 min-h-[1.25rem] text-center"></div>
 
       <div class="text-xs ink-2 mt-2">
-        Don’t have a passkey enrolled yet?
-        <a href="/login?form=1" class="underline">Sign in with email instead</a>
+        {{ _("Don’t have a passkey enrolled yet?") }}
+        <a href="/login?form=1" class="underline">{{ _("Sign in with email instead") }}</a>
       </div>
     </div>
   </div>

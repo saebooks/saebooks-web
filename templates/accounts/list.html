@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Chart of Accounts — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Chart of Accounts") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -13,7 +13,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-2xl">Chart of Accounts</h1>
+    <h1 class="font-display text-2xl">{{ _("Chart of Accounts") }}</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ total }} account{{ "s" if total != 1 else "" }}</p>
     {% endif %}
@@ -21,28 +21,28 @@
   <div class="flex items-center gap-2">
     <button type="button" onclick="document.querySelectorAll('details.acct-group').forEach(d=>d.open=true)"
             class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-      Expand all
+      {{ _("Expand all") }}
     </button>
     <button type="button" onclick="document.querySelectorAll('details.acct-group').forEach(d=>d.open=false)"
             class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
-      Collapse all
+      {{ _("Collapse all") }}
     </button>
     <a href="/accounts/new"
        class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]">
-      New account
+      {{ _("New account") }}
     </a>
   </div>
 </div>
 
 {# Tabs by account-type group #}
-<nav class="mb-4 flex flex-wrap gap-1 border-b border-gray-200" aria-label="Account types">
+<nav class="mb-4 flex flex-wrap gap-1 border-b border-gray-200" aria-label="{{ _('Account types') }}">
   {% set _tabs = [
-    ("all",       "All accounts", "All"),
-    ("asset",     "Assets",       "Assets"),
-    ("liability", "Liabilities",  "Liabilities"),
-    ("equity",    "Equity",       "Equity"),
-    ("income",    "Income",       "Income"),
-    ("expense",   "Expenses",     "Expenses"),
+    ("all",       _("All accounts"), "All"),
+    ("asset",     _("Assets"),       "Assets"),
+    ("liability", _("Liabilities"),  "Liabilities"),
+    ("equity",    _("Equity"),       "Equity"),
+    ("income",    _("Income"),       "Income"),
+    ("expense",   _("Expenses"),     "Expenses"),
   ] %}
   {% for tab_key, full_label, short_label in _tabs %}
     {% set is_active = (tab == tab_key) %}
@@ -109,7 +109,7 @@
         </a>
         {{ type_pill(node.account_type) }}
         {% if node.is_header %}
-        <span class="inline-block rounded-full px-2 py-0.5 bg-gray-100 text-gray-500 text-xs">Header</span>
+        <span class="inline-block rounded-full px-2 py-0.5 bg-gray-100 text-gray-500 text-xs">{{ _("Header") }}</span>
         {% endif %}
         <span class="ml-auto flex items-center gap-3 shrink-0">
           <span class="text-xs text-gray-400">{{ kids|length }} child{{ "ren" if kids|length != 1 else "" }}</span>
@@ -149,14 +149,14 @@
 </div>
 {% else %}
 <div class="bg-white rounded-xl border border-gray-200 px-4 py-12 text-center">
-  <p class="text-sm font-medium text-gray-500 mb-1">No accounts yet</p>
-  <p class="text-xs text-gray-400 mb-4">Add your first account to start building your chart of accounts.</p>
+  <p class="text-sm font-medium text-gray-500 mb-1">{{ _("No accounts yet") }}</p>
+  <p class="text-xs text-gray-400 mb-4">{{ _("Add your first account to start building your chart of accounts.") }}</p>
   {% if not filter_account_type %}
   <a href="/accounts/new" class="inline-flex items-center rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
-    New account
+    {{ _("New account") }}
   </a>
   {% else %}
-  <a href="/accounts" class="text-sm text-[#194291] hover:underline">Clear filter</a>
+  <a href="/accounts" class="text-sm text-[#194291] hover:underline">{{ _("Clear filter") }}</a>
   {% endif %}
 </div>
 {% endif %}

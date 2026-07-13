@@ -18,16 +18,16 @@
     <thead>
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Cost</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Residual value</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Purchase date</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Code") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Cost") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Residual value") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Purchase date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -41,7 +41,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ asset.id }}"
-                   aria-label="Select asset {{ asset.code }}"
+                   aria-label="{{ _('Select asset %(code)s') % {'code': asset.code} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -68,14 +68,14 @@
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (asset.status or 'active')|lower %}
             {%- set actions = [
-              ("view",    "View",    "/fixed-assets/" ~ asset.id,             "link", false),
-              ("edit",    "Edit",    "/fixed-assets/" ~ asset.id ~ "/edit",   "link", false),
+              ("view",    _("View"),    "/fixed-assets/" ~ asset.id,             "link", false),
+              ("edit",    _("Edit"),    "/fixed-assets/" ~ asset.id ~ "/edit",   "link", false),
             ] %}
             {%- if status_lower == 'active' %}
-              {%- set _ = actions.append(("archive", "Archive", "/fixed-assets/" ~ asset.id ~ "/archive", "post", true)) %}
+              {%- set _x = actions.append(("archive", _("Archive"), "/fixed-assets/" ~ asset.id ~ "/archive", "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/fixed-assets/" ~ asset.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/fixed-assets/" ~ asset.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=asset.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -83,12 +83,12 @@
         {% endfor %}
       {% else %}
         {% if filter_status or filter_search %}
-        {{ empty.row(8, "search-x", "No fixed assets match these filters",
-                     "Try clearing the filters above.") }}
+        {{ empty.row(8, "search-x", _("No fixed assets match these filters"),
+                     _("Try clearing the filters above.")) }}
         {% else %}
-        {{ empty.row(8, "package", "No fixed assets yet",
-                     "Add an asset to start tracking depreciation.",
-                     "New fixed asset", "/fixed-assets/new") }}
+        {{ empty.row(8, "package", _("No fixed assets yet"),
+                     _("Add an asset to start tracking depreciation."),
+                     _("New fixed asset"), "/fixed-assets/new") }}
         {% endif %}
       {% endif %}
     </tbody>
@@ -99,7 +99,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -110,7 +110,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -120,7 +120,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

@@ -15,12 +15,12 @@
   <table class="sae-table min-w-full w-full text-sm">
     <thead>
       <tr>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Code</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Type</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Tax default</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Balance</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Header</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Code") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Type") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Tax default") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Balance") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Header") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -57,7 +57,7 @@
           </td>
           <td class="px-4 py-3 ink-3 text-xs">
             {% if a.is_header %}
-              <span class="badge-ink">Header</span>
+              <span class="badge-ink">{{ _("Header") }}</span>
             {% else %}—{% endif %}
           </td>
         </tr>
@@ -65,15 +65,15 @@
       {% else %}
         <tr>
           <td colspan="6" class="px-4 py-12 text-center">
-            <p class="text-sm font-medium ink-3 mb-1">No accounts yet</p>
-            <p class="text-xs ink-3 mb-4">Add your first account to start building your chart of accounts.</p>
+            <p class="text-sm font-medium ink-3 mb-1">{{ _("No accounts yet") }}</p>
+            <p class="text-xs ink-3 mb-4">{{ _("Add your first account to start building your chart of accounts.") }}</p>
             {% if not filter_account_type %}
             <a href="/accounts/new"
                class="btn-primary text-sm">
-              New account
+              {{ _("New account") }}
             </a>
             {% else %}
-            <a href="/accounts" class="text-sm sae hover:underline">Clear filter</a>
+            <a href="/accounts" class="text-sm sae hover:underline">{{ _("Clear filter") }}</a>
             {% endif %}
           </td>
         </tr>
@@ -86,7 +86,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -97,7 +97,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="btn-secondary text-sm"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -107,7 +107,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="btn-secondary text-sm"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

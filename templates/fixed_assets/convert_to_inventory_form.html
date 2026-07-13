@@ -8,13 +8,10 @@
     today      : ISO date string (default conversion_date)
 #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Convert to Inventory</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Convert to Inventory") }}</h2>
   <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--warm);">
     <p class="text-sm ink-3 mb-4">
-      Converts this demonstrator vehicle from the fixed-asset register to used-vehicle
-      inventory. Depreciation is brought current to the conversion date, then a single
-      journal (Dr Inventory / Dr Accum Dep / Cr FA Cost) moves the net book value into
-      stock. The asset is marked disposed; an inventory item is created at NBV.
+      {{ _("Converts this demonstrator vehicle from the fixed-asset register to used-vehicle inventory. Depreciation is brought current to the conversion date, then a single journal (Dr Inventory / Dr Accum Dep / Cr FA Cost) moves the net book value into stock. The asset is marked disposed; an inventory item is created at NBV.") }}
     </p>
     <form method="POST" action="/fixed-assets/{{ asset.id }}/convert-to-inventory" novalidate>
     {{ csrf_input(request)|safe }}
@@ -24,7 +21,7 @@
 
         <div>
           <label for="conversion_date" class="block text-sm font-medium ink-2 mb-1">
-            Conversion date <span style="color:var(--neg);">*</span>
+            {{ _("Conversion date") }} <span style="color:var(--neg);">*</span>
           </label>
           <input
             type="date"
@@ -38,7 +35,7 @@
 
         <div>
           <label for="inventory_account_id" class="block text-sm font-medium ink-2 mb-1">
-            Inventory account (Dr) <span style="color:var(--neg);">*</span>
+            {{ _("Inventory account (Dr)") }} <span style="color:var(--neg);">*</span>
           </label>
           <select
             id="inventory_account_id"
@@ -46,7 +43,7 @@
             required
             class="saebooks-input w-full max-w-lg px-3 py-2 text-sm"
           >
-            <option value="">— select account —</option>
+            <option value="">{{ _("— select account —") }}</option>
             {% for acct in accounts %}
             <option value="{{ acct.id }}"
               {% if '1-1330' in acct.code or 'trading stock' in acct.name|lower %}selected{% endif %}>
@@ -58,7 +55,7 @@
 
         <div>
           <label for="cogs_account_id" class="block text-sm font-medium ink-2 mb-1">
-            Cost of sales account <span style="color:var(--neg);">*</span>
+            {{ _("Cost of sales account") }} <span style="color:var(--neg);">*</span>
           </label>
           <select
             id="cogs_account_id"
@@ -66,7 +63,7 @@
             required
             class="saebooks-input w-full max-w-lg px-3 py-2 text-sm"
           >
-            <option value="">— select account —</option>
+            <option value="">{{ _("— select account —") }}</option>
             {% for acct in accounts %}
             {% if acct.account_type in ('COST_OF_SALES', 'EXPENSE') %}
             <option value="{{ acct.id }}">{{ acct.code }} — {{ acct.name }}</option>
@@ -77,7 +74,7 @@
 
         <div>
           <label for="income_account_id" class="block text-sm font-medium ink-2 mb-1">
-            Sales income account <span style="color:var(--neg);">*</span>
+            {{ _("Sales income account") }} <span style="color:var(--neg);">*</span>
           </label>
           <select
             id="income_account_id"
@@ -85,7 +82,7 @@
             required
             class="saebooks-input w-full max-w-lg px-3 py-2 text-sm"
           >
-            <option value="">— select account —</option>
+            <option value="">{{ _("— select account —") }}</option>
             {% for acct in accounts %}
             {% if acct.account_type in ('INCOME', 'OTHER_INCOME') %}
             <option value="{{ acct.id }}">{{ acct.code }} — {{ acct.name }}</option>
@@ -96,8 +93,8 @@
 
         <div>
           <label for="sku" class="block text-sm font-medium ink-2 mb-1">
-            SKU / Stock code
-            <span class="ink-4 font-normal">(defaults to asset code {{ asset.code }})</span>
+            {{ _("SKU / Stock code") }}
+            <span class="ink-4 font-normal">{{ _("(defaults to asset code %(code)s)") % {"code": asset.code} }}</span>
           </label>
           <input
             type="text"
@@ -110,14 +107,14 @@
 
         <div>
           <label for="vin" class="block text-sm font-medium ink-2 mb-1">
-            VIN / Vehicle description
-            <span class="ink-4 font-normal">(optional, stored as item description)</span>
+            {{ _("VIN / Vehicle description") }}
+            <span class="ink-4 font-normal">{{ _("(optional, stored as item description)") }}</span>
           </label>
           <input
             type="text"
             id="vin"
             name="vin"
-            placeholder="e.g. 1HGCM82633A123456"
+            placeholder="{{ _('e.g. 1HGCM82633A123456') }}"
             class="saebooks-input w-full max-w-lg px-3 py-2 text-sm"
           >
         </div>
@@ -127,10 +124,10 @@
       <div class="mt-5">
         <button
           type="submit"
-          onclick="return confirm('Convert this demonstrator to inventory? Depreciation will be posted to today and the FA will be marked disposed. This cannot be undone.')"
+          onclick="return confirm('{{ _('Convert this demonstrator to inventory? Depreciation will be posted to today and the FA will be marked disposed. This cannot be undone.') }}')"
           class="btn-primary text-sm" style="background:var(--warm);border-color:var(--warm);"
         >
-          Convert to Inventory
+          {{ _("Convert to Inventory") }}
         </button>
       </div>
     </form>

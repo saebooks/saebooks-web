@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if asset %}{{ asset.code }} — Fixed Asset — {{ current_brand().name }}{% else %}Fixed Asset Not Found — {{ current_brand().name }}{% endif %}
+  {% if asset %}{{ _("%(code)s — Fixed Asset") % {"code": asset.code} }} — {{ current_brand().name }}{% else %}{{ _("Fixed Asset Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -43,7 +43,7 @@
       href="/fixed-assets/{{ asset.id }}/edit"
       class="btn-secondary text-sm"
     >
-      Edit
+      {{ _("Edit") }}
     </a>
     {% if not asset.archived_at %}
     <form method="POST" action="/fixed-assets/{{ asset.id }}/archive" class="inline">
@@ -52,46 +52,46 @@
       <input type="hidden" name="version" value="{{ asset.version }}">
       <button
         type="submit"
-        onclick="return confirm('Archive this fixed asset?')"
+        onclick="return confirm('{{ _('Archive this fixed asset?') }}')"
         class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
-        Archive
+        {{ _("Archive") }}
       </button>
     </form>
     {% endif %}
     {% endif %}
-    <a href="/fixed-assets" class="text-sm sae hover:underline">← Back to fixed assets</a>
+    <a href="/fixed-assets" class="text-sm sae hover:underline">← {{ _("Back to fixed assets") }}</a>
   </div>
 </div>
 
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Cost</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Cost") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(asset.cost | float, grouping=False) }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Residual value</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Residual value") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(asset.residual_value | float, grouping=False) }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Purchase date</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Purchase date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ asset.purchase_date or "—" }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">In service date</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("In service date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ asset.in_service_date or "—" }}</p>
   </div>
 </div>
 
 {# ── Depreciation details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Depreciation</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Depreciation") }}</h2>
   <div class="card overflow-x-auto">
     <table class="min-w-full text-sm">
       <tbody>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">Depreciation model</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">{{ _("Depreciation model") }}</th>
           <td class="px-4 py-3 ink-1">
             {% if asset.depreciation_model and asset.depreciation_model.method %}
               {{ asset.depreciation_model.method | replace("_", " ") | title }}
@@ -103,16 +103,16 @@
         </tr>
         {% if asset.depreciation_model %}
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Method</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Method") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.depreciation_model.method | replace("_", " ") | title }}</td>
         </tr>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Method period</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Method period") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.depreciation_model.method_period }} month{{ "s" if asset.depreciation_model.method_period != 1 else "" }}</td>
         </tr>
         {% endif %}
         <tr>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Last posted through</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Last posted through") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.last_depreciation_posted_through or "—" }}</td>
         </tr>
       </tbody>
@@ -122,45 +122,45 @@
 
 {# ── Asset details ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Asset details</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Asset details") }}</h2>
   <div class="card overflow-x-auto">
     <table class="min-w-full text-sm">
       <tbody>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">Description</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">{{ _("Description") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.description or "—" }}</td>
         </tr>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Serial number</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Serial number") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.serial_number or "—" }}</td>
         </tr>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Manufacturer</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Manufacturer") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.manufacturer or "—" }}</td>
         </tr>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Model number</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Model number") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.model_number or "—" }}</td>
         </tr>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Location</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Location") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.location or "—" }}</td>
         </tr>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Custody person</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Custody person") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.custody_person or "—" }}</td>
         </tr>
         <tr{% if asset.disposal_date %} class="hairline-b"{% endif %}>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Warranty end</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Warranty end") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.warranty_end or "—" }}</td>
         </tr>
         {% if asset.disposal_date %}
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Disposal date</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Disposal date") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.disposal_date }}</td>
         </tr>
         <tr>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Disposal proceeds</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Disposal proceeds") }}</th>
           <td class="px-4 py-3 ink-1">
             {% if asset.disposal_proceeds is not none %}
               {{ num(asset.disposal_proceeds | float, 2) }}
@@ -177,31 +177,31 @@
 
 {# ── Account links ── #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Account links</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Account links") }}</h2>
   <div class="card overflow-x-auto">
     <table class="min-w-full text-sm">
       <tbody>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">Cost account</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 w-48 text-left">{{ _("Cost account") }}</th>
           <td class="px-4 py-3">
             <a href="/accounts/{{ asset.cost_account_id }}" class="sae hover:underline font-mono text-xs">{{ asset.cost_account_id }}</a>
           </td>
         </tr>
         <tr class="hairline-b">
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Accum. dep. account</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Accum. dep. account") }}</th>
           <td class="px-4 py-3">
             <a href="/accounts/{{ asset.accum_dep_account_id }}" class="sae hover:underline font-mono text-xs">{{ asset.accum_dep_account_id }}</a>
           </td>
         </tr>
         <tr{% if asset.tax_model_id %} class="hairline-b"{% endif %}>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Dep. expense account</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Dep. expense account") }}</th>
           <td class="px-4 py-3">
             <a href="/accounts/{{ asset.dep_expense_account_id }}" class="sae hover:underline font-mono text-xs">{{ asset.dep_expense_account_id }}</a>
           </td>
         </tr>
         {% if asset.tax_model_id %}
         <tr>
-          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">Tax model</th>
+          <th scope="row" class="px-4 py-3 font-medium ink-3 text-left">{{ _("Tax model") }}</th>
           <td class="px-4 py-3 ink-1">{{ asset.tax_model_id }}</td>
         </tr>
         {% endif %}
@@ -212,7 +212,7 @@
 
 {% if asset.extra %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-2">Extra</h2>
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Extra") }}</h2>
   <div class="card px-4 py-3 text-sm ink-2 font-mono whitespace-pre-wrap">{{ asset.extra | tojson(indent=2) }}</div>
 </div>
 {% endif %}
@@ -220,17 +220,17 @@
 {# ── Post Depreciation form (only shown when ACTIVE and depreciation method is not no_depreciation) ── #}
 {% if asset.status == 'active' and asset.depreciation_model and asset.depreciation_model.method != 'no_depreciation' %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Post Depreciation</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Post Depreciation") }}</h2>
   <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--sae);">
     <p class="text-sm ink-3 mb-1">
-      Post depreciation entries through the selected date.
+      {{ _("Post depreciation entries through the selected date.") }}
     </p>
     {% if asset.last_depreciation_posted_through %}
     <p class="text-xs ink-4 mb-4">
-      Last posted through: {{ asset.last_depreciation_posted_through }}
+      {{ _("Last posted through: %(date)s") % {"date": asset.last_depreciation_posted_through} }}
     </p>
     {% else %}
-    <p class="text-xs ink-4 mb-4">No depreciation posted yet.</p>
+    <p class="text-xs ink-4 mb-4">{{ _("No depreciation posted yet.") }}</p>
     {% endif %}
     <form method="POST" action="/fixed-assets/{{ asset.id }}/post-depreciation" novalidate>
     {{ csrf_input(request)|safe }}
@@ -240,7 +240,7 @@
       <div class="space-y-4">
         <div>
           <label for="through_date" class="block text-sm font-medium ink-2 mb-1">
-            Post through <span style="color:var(--neg);">*</span>
+            {{ _("Post through") }} <span style="color:var(--neg);">*</span>
           </label>
           <input
             type="date"
@@ -258,7 +258,7 @@
           type="submit"
           class="btn-primary text-sm"
         >
-          Post Depreciation
+          {{ _("Post Depreciation") }}
         </button>
       </div>
     </form>
@@ -279,19 +279,19 @@
 {# ── Metadata footer ── #}
 <div class="card px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-4" style="background:var(--paper-2);">
   <div>
-    <span class="font-medium">Created</span>
+    <span class="font-medium">{{ _("Created") }}</span>
     <p class="mt-0.5">{{ asset.created_at[:19] | replace("T", " ") if asset.created_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Updated</span>
+    <span class="font-medium">{{ _("Updated") }}</span>
     <p class="mt-0.5">{{ asset.updated_at[:19] | replace("T", " ") if asset.updated_at else "—" }}</p>
   </div>
   <div>
-    <span class="font-medium">Version</span>
+    <span class="font-medium">{{ _("Version") }}</span>
     <p class="mt-0.5">{{ asset.version }}</p>
   </div>
   <div>
-    <span class="font-medium">Archived</span>
+    <span class="font-medium">{{ _("Archived") }}</span>
     <p class="mt-0.5">{{ asset.archived_at[:19] | replace("T", " ") if asset.archived_at else "—" }}</p>
   </div>
 </div>

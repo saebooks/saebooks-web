@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New Account Range — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("New Account Range") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">New Account Range</h1>
-  <a href="/admin/ranges" class="text-sm sae hover:underline">← Back to ranges</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New Account Range") }}</h1>
+  <a href="/admin/ranges" class="text-sm sae hover:underline">← {{ _("Back to ranges") }}</a>
 </div>
 
 <div class="card shadow-sm px-6 py-6 max-w-2xl">
@@ -26,7 +26,7 @@
 
       <div>
         <label for="name" class="block text-sm font-medium ink-2 mb-1">
-          Name <span style="color:var(--neg);">*</span>
+          {{ _("Name") }} <span style="color:var(--neg);">*</span>
         </label>
         <input
           type="text"
@@ -45,7 +45,7 @@
 
       <div>
         <label for="prefix" class="block text-sm font-medium ink-2 mb-1">
-          Prefix <span style="color:var(--neg);">*</span>
+          {{ _("Prefix") }} <span style="color:var(--neg);">*</span>
         </label>
         <input
           type="text"
@@ -60,12 +60,12 @@
         {% if errors.get("prefix") %}
         <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["prefix"] }}</p>
         {% endif %}
-        <p class="mt-1 text-xs ink-3">Account codes starting with this prefix fall into this range.</p>
+        <p class="mt-1 text-xs ink-3">{{ _("Account codes starting with this prefix fall into this range.") }}</p>
       </div>
 
       <div>
         <label for="account_type" class="block text-sm font-medium ink-2 mb-1">
-          Account type <span style="color:var(--neg);">*</span>
+          {{ _("Account type") }} <span style="color:var(--neg);">*</span>
         </label>
         <input
           type="text"
@@ -83,12 +83,12 @@
       </div>
 
       <div>
-        <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
+        <label for="description" class="block text-sm font-medium ink-2 mb-1">{{ _("Description") }}</label>
         <textarea
           id="description"
           name="description"
           rows="2"
-          placeholder="Optional description"
+          placeholder="{{ _('Optional description') }}"
           class="saebooks-input w-full"
           {% if errors.get('description') %}style="border-color:var(--neg);"{% endif %}
         >{{ form.get("description", "") }}</textarea>
@@ -104,13 +104,13 @@
         type="submit"
         class="btn-primary text-sm px-5 py-2"
       >
-        Save range
+        {{ _("Save range") }}
       </button>
       <a
         href="/admin/ranges"
         class="btn-secondary text-sm px-5 py-2"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 

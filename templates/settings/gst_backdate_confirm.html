@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Confirm Backdated GST Registration — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Confirm Backdated GST Registration") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6">
-  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Confirm Backdated GST Registration</h1>
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("Confirm Backdated GST Registration") }}</h1>
 </div>
 
 <div class="bg-white dark:bg-gray-800 rounded-xl border border-amber-300 dark:border-amber-600 shadow-sm px-6 py-6 max-w-2xl">
@@ -16,28 +16,26 @@
     </svg>
     <div>
       <h2 class="text-base font-semibold text-amber-800 dark:text-amber-300 mb-1">
-        Backdate GST registration to {{ gst_date }}?
+        {{ _("Backdate GST registration to %(date)s?") % {"date": gst_date} }}
       </h2>
       <p class="text-sm text-amber-700 dark:text-amber-400">
         {% if invoice_count > 0 %}
           <strong>{{ invoice_count }} invoice{{ 's' if invoice_count != 1 else '' }}</strong>
-          issued from {{ gst_date }} onward did not include GST.
-          You should review these invoices and issue credit notes or amended invoices
-          to account for the GST that should have been charged.
+          {{ _("issued from %(date)s onward did not include GST. You should review these invoices and issue credit notes or amended invoices to account for the GST that should have been charged.") % {"date": gst_date} }}
         {% else %}
-          No invoices without GST were found from {{ gst_date }} onward.
+          {{ _("No invoices without GST were found from %(date)s onward.") % {"date": gst_date} }}
         {% endif %}
       </p>
     </div>
   </div>
 
   <div class="bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-700 px-4 py-3 mb-5 text-sm text-amber-800 dark:text-amber-300">
-    <p class="font-medium mb-1">ATO requirements for backdated registration:</p>
+    <p class="font-medium mb-1">{{ _("ATO requirements for backdated registration:") }}</p>
     <ul class="list-disc ml-4 space-y-1">
-      <li>You may backdate GST registration up to 4 years (ATO policy).</li>
-      <li>Invoices issued during the unregistered period may need to be amended to add GST.</li>
-      <li>You may need to lodge amended BAS returns for affected periods.</li>
-      <li>Consult your tax advisor before proceeding if you are unsure.</li>
+      <li>{{ _("You may backdate GST registration up to 4 years (ATO policy).") }}</li>
+      <li>{{ _("Invoices issued during the unregistered period may need to be amended to add GST.") }}</li>
+      <li>{{ _("You may need to lodge amended BAS returns for affected periods.") }}</li>
+      <li>{{ _("Consult your tax advisor before proceeding if you are unsure.") }}</li>
     </ul>
   </div>
 
@@ -63,7 +61,7 @@
         class="rounded-md bg-amber-600 px-5 py-2 text-sm font-medium text-white
                hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
       >
-        Confirm — save backdated date
+        {{ _("Confirm — save backdated date") }}
       </button>
       <a
         href="/settings/company"
@@ -73,7 +71,7 @@
                hover:bg-gray-50 dark:hover:bg-gray-600
                focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
   </form>

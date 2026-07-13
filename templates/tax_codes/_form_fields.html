@@ -41,14 +41,14 @@
 
 {# ── Identity ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Identity</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Identity") }}</legend>
 
-  {{ text_input("code", "Code", required=true, placeholder="GST") }}
-  {{ text_input("name", "Name", required=true, placeholder="GST on Sales") }}
+  {{ text_input("code", _("Code"), required=true, placeholder="GST") }}
+  {{ text_input("name", _("Name"), required=true, placeholder="GST on Sales") }}
 
   <div>
     <label for="rate" class="block text-sm font-medium ink-2 mb-1">
-      Rate (%) <span style="color:var(--neg);">*</span>
+      {{ _("Rate (%)") }} <span style="color:var(--neg);">*</span>
     </label>
     <input
       type="text"
@@ -63,18 +63,18 @@
     {% if errors.get("rate") %}
     <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["rate"] }}</p>
     {% endif %}
-    <p class="mt-1 text-xs ink-3">Enter as a decimal percentage, e.g. 10 for 10%.</p>
+    <p class="mt-1 text-xs ink-3">{{ _("Enter as a decimal percentage, e.g. 10 for 10%.") }}</p>
   </div>
 
 </fieldset>
 
 {# ── Classification ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Classification</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Classification") }}</legend>
 
   <div>
     <label for="tax_system" class="block text-sm font-medium ink-2 mb-1">
-      Tax system <span style="color:var(--neg);">*</span>
+      {{ _("Tax system") }} <span style="color:var(--neg);">*</span>
     </label>
     <select
       id="tax_system"
@@ -83,7 +83,7 @@
       class="saebooks-input w-full"
       {% if errors.get('tax_system') %}style="border-color:var(--neg);"{% endif %}
     >
-      <option value="" {% if not form.get("tax_system") %}selected{% endif %}>— select tax system —</option>
+      <option value="" {% if not form.get("tax_system") %}selected{% endif %}>{{ _("— select tax system —") }}</option>
       {% for val, label in tax_systems %}
       <option value="{{ val }}" {% if form.get("tax_system") == val %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
@@ -95,7 +95,7 @@
 
   <div>
     <label for="reporting_type" class="block text-sm font-medium ink-2 mb-1">
-      Reporting type <span style="color:var(--neg);">*</span>
+      {{ _("Reporting type") }} <span style="color:var(--neg);">*</span>
     </label>
     <select
       id="reporting_type"
@@ -104,7 +104,7 @@
       class="saebooks-input w-full"
       {% if errors.get('reporting_type') %}style="border-color:var(--neg);"{% endif %}
     >
-      <option value="" {% if not form.get("reporting_type") %}selected{% endif %}>— select reporting type —</option>
+      <option value="" {% if not form.get("reporting_type") %}selected{% endif %}>{{ _("— select reporting type —") }}</option>
       {% for val, label in reporting_types %}
       <option value="{{ val }}" {% if form.get("reporting_type") == val %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
@@ -118,14 +118,14 @@
 
 {# ── Description ── #}
 <div class="mt-6">
-  <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
+  <label for="description" class="block text-sm font-medium ink-2 mb-1">{{ _("Description") }}</label>
   <textarea
     id="description"
     name="description"
     rows="3"
     class="saebooks-input w-full"
     {% if errors.get('description') %}style="border-color:var(--neg);"{% endif %}
-    placeholder="Optional description"
+    placeholder="{{ _('Optional description') }}"
   >{{ form.get("description", "") }}</textarea>
   {% if errors.get("description") %}
   <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["description"] }}</p>

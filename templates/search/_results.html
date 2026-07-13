@@ -6,10 +6,10 @@
   <p class="text-sm" style="color:var(--neg);">{{ error }}</p>
 
 {% elif not q.strip() %}
-  <p class="text-sm ink-3">Enter a search term above to find contacts, invoices, bills, and accounts.</p>
+  <p class="text-sm ink-3">{{ _("Enter a search term above to find contacts, invoices, bills, and accounts.") }}</p>
 
 {% elif total == 0 %}
-  <p class="text-sm ink-3">No results for <strong>{{ q }}</strong>.</p>
+  <p class="text-sm ink-3">{{ _("No results for") }} <strong>{{ q }}</strong>.</p>
 
 {% else %}
   <p class="text-sm ink-3 mb-4">{{ total }} result{{ "s" if total != 1 else "" }} for <strong>{{ q }}</strong></p>

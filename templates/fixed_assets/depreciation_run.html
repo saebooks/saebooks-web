@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Batch Depreciation Run — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Batch Depreciation Run") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Batch Depreciation Run</h1>
-    <p class="text-sm ink-3 mt-1">Post depreciation for all active assets through a selected date.</p>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Batch Depreciation Run") }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ _("Post depreciation for all active assets through a selected date.") }}</p>
   </div>
   <div>
-    <a href="/fixed-assets" class="text-sm sae hover:underline">← Back to fixed assets</a>
+    <a href="/fixed-assets" class="text-sm sae hover:underline">← {{ _("Back to fixed assets") }}</a>
   </div>
 </div>
 
@@ -30,7 +30,7 @@
     <div class="space-y-4">
       <div>
         <label for="through" class="block text-sm font-medium ink-2 mb-1">
-          Post through <span style="color:var(--neg);">*</span>
+          {{ _("Post through") }} <span style="color:var(--neg);">*</span>
         </label>
         <input
           type="date"
@@ -48,7 +48,7 @@
         type="submit"
         class="btn-primary text-sm"
       >
-        Run depreciation
+        {{ _("Run depreciation") }}
       </button>
     </div>
   </form>
@@ -57,7 +57,7 @@
 {# ── Results section (shown after a successful POST) ── #}
 {% if run_summary is not none %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Results</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Results") }}</h2>
 
   {# Summary line #}
   <p class="text-sm ink-2 mb-4">
@@ -85,9 +85,9 @@
     <table class="sae-table min-w-full text-sm">
       <thead>
         <tr>
-          <th scope="col" class="px-4 py-3 text-left text-xs font-medium ink-3 uppercase tracking-wide">Asset Code</th>
-          <th scope="col" class="px-4 py-3 text-right text-xs font-medium ink-3 uppercase tracking-wide">Amount Posted</th>
-          <th scope="col" class="px-4 py-3 text-left text-xs font-medium ink-3 uppercase tracking-wide">Note</th>
+          <th scope="col" class="px-4 py-3 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Asset Code") }}</th>
+          <th scope="col" class="px-4 py-3 text-right text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Amount Posted") }}</th>
+          <th scope="col" class="px-4 py-3 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Note") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -102,7 +102,7 @@
     </table>
   </div>
   {% else %}
-  <p class="text-sm ink-3">No assets were processed.</p>
+  <p class="text-sm ink-3">{{ _("No assets were processed.") }}</p>
   {% endif %}
 </div>
 {% endif %}

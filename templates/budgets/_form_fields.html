@@ -39,11 +39,11 @@
 
 {# ── Account ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Account</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Account") }}</legend>
 
   <div>
     <label for="account_id" class="block text-sm font-medium ink-2 mb-1">
-      Account <span style="color:var(--neg)">*</span>
+      {{ _("Account") }} <span style="color:var(--neg)">*</span>
     </label>
     <select
       id="account_id"
@@ -52,7 +52,7 @@
       class="saebooks-input w-full"
       {% if errors.get('account_id') %}style="border-color:var(--neg)"{% endif %}
     >
-      <option value="" {% if not form.get('account_id') %}selected{% endif %}>— select account —</option>
+      <option value="" {% if not form.get('account_id') %}selected{% endif %}>{{ _("— select account —") }}</option>
       {% for acct in accounts %}
       <option value="{{ acct.id }}" {% if form.get('account_id') == acct.id %}selected{% endif %}>
         {% if acct.get('code') %}{{ acct.code }} — {% endif %}{{ acct.name }}
@@ -67,12 +67,12 @@
 
 {# ── Period ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Budget Period</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Budget Period") }}</legend>
 
   <div class="grid grid-cols-2 gap-4">
     <div>
       <label for="year" class="block text-sm font-medium ink-2 mb-1">
-        Year <span style="color:var(--neg)">*</span>
+        {{ _("Year") }} <span style="color:var(--neg)">*</span>
       </label>
       <input
         type="number"
@@ -81,7 +81,7 @@
         value="{{ form.get('year', '') }}"
         min="1900"
         max="9999"
-        placeholder="e.g. 2026"
+        placeholder="{{ _('e.g. 2026') }}"
         required
         class="saebooks-input w-full"
         {% if errors.get('year') %}style="border-color:var(--neg)"{% endif %}
@@ -93,7 +93,7 @@
 
     <div>
       <label for="month" class="block text-sm font-medium ink-2 mb-1">
-        Month <span style="color:var(--neg)">*</span>
+        {{ _("Month") }} <span style="color:var(--neg)">*</span>
       </label>
       <select
         id="month"
@@ -102,11 +102,11 @@
         class="saebooks-input w-full"
         {% if errors.get('month') %}style="border-color:var(--neg)"{% endif %}
       >
-        <option value="" {% if not form.get('month') %}selected{% endif %}>— select month —</option>
+        <option value="" {% if not form.get('month') %}selected{% endif %}>{{ _("— select month —") }}</option>
         {% for m, label in [
-          (1,"January"),(2,"February"),(3,"March"),(4,"April"),
-          (5,"May"),(6,"June"),(7,"July"),(8,"August"),
-          (9,"September"),(10,"October"),(11,"November"),(12,"December")
+          (1,_("January")),(2,_("February")),(3,_("March")),(4,_("April")),
+          (5,_("May")),(6,_("June")),(7,_("July")),(8,_("August")),
+          (9,_("September")),(10,_("October")),(11,_("November")),(12,_("December"))
         ] %}
         <option value="{{ m }}" {% if form.get('month')|string == m|string %}selected{% endif %}>
           {{ label }}
@@ -122,20 +122,20 @@
 
 {# ── Amount ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Amount</legend>
-  {{ text_input("amount", "Budget amount", required=true, placeholder="0.00") }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Amount") }}</legend>
+  {{ text_input("amount", _("Budget amount"), required=true, placeholder="0.00") }}
 </fieldset>
 
 {# ── Notes ── #}
 <div class="mt-6">
-  <label for="notes" class="block text-sm font-medium ink-2 mb-1">Notes</label>
+  <label for="notes" class="block text-sm font-medium ink-2 mb-1">{{ _("Notes") }}</label>
   <textarea
     id="notes"
     name="notes"
     rows="3"
     class="saebooks-input w-full"
     {% if errors.get('notes') %}style="border-color:var(--neg)"{% endif %}
-    placeholder="Optional notes"
+    placeholder="{{ _('Optional notes') }}"
   >{{ form.get("notes", "") }}</textarea>
   {% if errors.get("notes") %}
   <p class="mt-1 text-xs" style="color:var(--neg)">{{ errors["notes"] }}</p>

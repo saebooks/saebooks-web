@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if asset %}Edit {{ asset.code }} — {{ current_brand().name }}{% else %}Edit Fixed Asset — {{ current_brand().name }}{% endif %}
+  {% if asset %}{{ _("Edit %(code)s") % {"code": asset.code} }} — {{ current_brand().name }}{% else %}{{ _("Edit Fixed Asset") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold ink-1">
-    {% if asset %}Edit {{ asset.code }}{% else %}Edit Fixed Asset{% endif %}
+    {% if asset %}{{ _("Edit %(code)s") % {"code": asset.code} }}{% else %}{{ _("Edit Fixed Asset") }}{% endif %}
   </h1>
   {% if asset %}
-  <a href="/fixed-assets/{{ asset.id }}" class="text-sm sae hover:underline">← Back to asset</a>
+  <a href="/fixed-assets/{{ asset.id }}" class="text-sm sae hover:underline">← {{ _("Back to asset") }}</a>
   {% else %}
-  <a href="/fixed-assets" class="text-sm sae hover:underline">← Back to fixed assets</a>
+  <a href="/fixed-assets" class="text-sm sae hover:underline">← {{ _("Back to fixed assets") }}</a>
   {% endif %}
 </div>
 
@@ -26,16 +26,14 @@
   role="alert"
 >
   <p class="font-semibold mb-1 ink-1">
-    Someone else has updated this asset.
+    {{ _("Someone else has updated this asset.") }}
   </p>
   <p class="mb-2">
-    The form below now shows <strong>your submitted values</strong> with the server's current version
-    number applied — so your next save will use the correct base.
-    If you want to start fresh from the server's current state instead,
+    {{ _("The form below now shows") }} <strong>{{ _("your submitted values") }}</strong> {{ _("with the server's current version number applied — so your next save will use the correct base. If you want to start fresh from the server's current state instead,") }}
     {% if asset %}
-    <a href="/fixed-assets/{{ asset.id }}/edit" class="underline sae">reload the server version</a>.
+    <a href="/fixed-assets/{{ asset.id }}/edit" class="underline sae">{{ _("reload the server version") }}</a>.
     {% else %}
-    reload the page.
+    {{ _("reload the page.") }}
     {% endif %}
   </p>
 </div>
@@ -63,21 +61,21 @@
         type="submit"
         class="btn-primary text-sm"
       >
-        Save changes
+        {{ _("Save changes") }}
       </button>
       {% if asset %}
       <a
         href="/fixed-assets/{{ asset.id }}"
         class="btn-secondary text-sm"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
       {% else %}
       <a
         href="/fixed-assets"
         class="btn-secondary text-sm"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
       {% endif %}
     </div>

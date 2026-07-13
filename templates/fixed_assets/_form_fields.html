@@ -47,7 +47,7 @@
     class="saebooks-input w-full px-3 py-2 text-sm"
     {% if errors.get(name) %}style="border-color:var(--neg);"{% endif %}
   >
-    <option value="" {% if not form.get(name) %}selected{% endif %}>— select account —</option>
+    <option value="" {% if not form.get(name) %}selected{% endif %}>{{ _("— select account —") }}</option>
     {% for acct in accounts %}
     <option value="{{ acct.id }}" {% if form.get(name) == acct.id %}selected{% endif %}>
       {% if acct.get('code') %}{{ acct.code }} — {% endif %}{{ acct.name }}
@@ -69,14 +69,14 @@
 
 {# ── Identity ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Identity</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Identity") }}</legend>
 
-  {{ text_input("name", "Name", required=true, placeholder="Office Server Rack") }}
-  {{ text_input("code", "Asset code", placeholder="AST-000001") }}
+  {{ text_input("name", _("Name"), required=true, placeholder="Office Server Rack") }}
+  {{ text_input("code", _("Asset code"), placeholder="AST-000001") }}
   {# ── Depreciation model select ── #}
   <div>
     <label for="depreciation_model_id" class="block text-sm font-medium ink-2 mb-1">
-      Depreciation model <span style="color:var(--neg);">*</span>
+      {{ _("Depreciation model") }} <span style="color:var(--neg);">*</span>
     </label>
     <select
       id="depreciation_model_id"
@@ -86,11 +86,11 @@
       {% if errors.get('depreciation_model_id') %}style="border-color:var(--neg);"{% endif %}
     >
       {% if dep_models %}
-        <option value="" {% if not form.get('depreciation_model_id') %}selected{% endif %}>— select depreciation model —</option>
+        <option value="" {% if not form.get('depreciation_model_id') %}selected{% endif %}>{{ _("— select depreciation model —") }}</option>
         {% for m in dep_models %}
           {# Derive human-readable label from the model slug / fields #}
           {% if m.method == "no_depreciation" %}
-            {% set _label = "No depreciation" %}
+            {% set _label = _("No depreciation") %}
           {% else %}
             {# method_number is months when method_period==12; convert to years #}
             {% if m.method_period and m.method_period == 12 and m.method_number %}
@@ -112,7 +112,7 @@
         {% endfor %}
       {% else %}
         {# API unavailable — keep form functional with a free-text fallback #}
-        <option value="" {% if not form.get('depreciation_model_id') %}selected{% endif %}>— models unavailable —</option>
+        <option value="" {% if not form.get('depreciation_model_id') %}selected{% endif %}>{{ _("— models unavailable —") }}</option>
         {% if form.get('depreciation_model_id') %}
         <option value="{{ form.get('depreciation_model_id') }}" selected>
           {{ form.get('depreciation_model_id') }}
@@ -124,17 +124,17 @@
     <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors['depreciation_model_id'] }}</p>
     {% endif %}
   </div>
-  {{ text_input("tax_model_id", "Tax model ID", placeholder="Optional") }}
+  {{ text_input("tax_model_id", _("Tax model ID"), placeholder=_("Optional")) }}
 
   <div>
-    <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
+    <label for="description" class="block text-sm font-medium ink-2 mb-1">{{ _("Description") }}</label>
     <textarea
       id="description"
       name="description"
       rows="2"
       class="saebooks-input w-full px-3 py-2 text-sm"
       {% if errors.get('description') %}style="border-color:var(--neg);"{% endif %}
-      placeholder="Optional description"
+      placeholder="{{ _('Optional description') }}"
     >{{ form.get("description", "") }}</textarea>
     {% if errors.get("description") %}
     <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["description"] }}</p>
@@ -145,38 +145,38 @@
 {# ── Financials (create-only fields) ── #}
 {% if not is_edit %}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Financial details</legend>
-  {{ text_input("cost", "Cost", required=true, placeholder="0.00") }}
-  {{ text_input("residual_value", "Residual value", placeholder="0.00") }}
-  {{ text_input("purchase_date", "Purchase date", required=true, placeholder="2024-01-15", type="date") }}
-  {{ text_input("in_service_date", "In service date", placeholder="2024-01-20", type="date") }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Financial details") }}</legend>
+  {{ text_input("cost", _("Cost"), required=true, placeholder="0.00") }}
+  {{ text_input("residual_value", _("Residual value"), placeholder="0.00") }}
+  {{ text_input("purchase_date", _("Purchase date"), required=true, placeholder="2024-01-15", type="date") }}
+  {{ text_input("in_service_date", _("In service date"), placeholder="2024-01-20", type="date") }}
 </fieldset>
 {% else %}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Financial details</legend>
-  {{ text_input("residual_value", "Residual value", placeholder="0.00") }}
-  {{ text_input("purchase_date", "Purchase date", placeholder="2024-01-15", type="date") }}
-  {{ text_input("in_service_date", "In service date", placeholder="2024-01-20", type="date") }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Financial details") }}</legend>
+  {{ text_input("residual_value", _("Residual value"), placeholder="0.00") }}
+  {{ text_input("purchase_date", _("Purchase date"), placeholder="2024-01-15", type="date") }}
+  {{ text_input("in_service_date", _("In service date"), placeholder="2024-01-20", type="date") }}
 </fieldset>
 {% endif %}
 
 {# ── Physical details ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Physical details</legend>
-  {{ text_input("serial_number", "Serial number", placeholder="SN-001") }}
-  {{ text_input("manufacturer", "Manufacturer", placeholder="APC") }}
-  {{ text_input("model_number", "Model number", placeholder="AR3100") }}
-  {{ text_input("location", "Location", placeholder="Comms Room A") }}
-  {{ text_input("custody_person", "Custody person", placeholder="John Smith") }}
-  {{ text_input("warranty_end", "Warranty end", placeholder="2027-01-15", type="date") }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Physical details") }}</legend>
+  {{ text_input("serial_number", _("Serial number"), placeholder="SN-001") }}
+  {{ text_input("manufacturer", _("Manufacturer"), placeholder="APC") }}
+  {{ text_input("model_number", _("Model number"), placeholder="AR3100") }}
+  {{ text_input("location", _("Location"), placeholder="Comms Room A") }}
+  {{ text_input("custody_person", _("Custody person"), placeholder="John Smith") }}
+  {{ text_input("warranty_end", _("Warranty end"), placeholder="2027-01-15", type="date") }}
 </fieldset>
 
 {# ── Account links (create-only) ── #}
 {% if not is_edit %}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Account links</legend>
-  {{ account_select("cost_account_id", "Cost account", required=true) }}
-  {{ account_select("accum_dep_account_id", "Accumulated depreciation account", required=true) }}
-  {{ account_select("dep_expense_account_id", "Depreciation expense account", required=true) }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Account links") }}</legend>
+  {{ account_select("cost_account_id", _("Cost account"), required=true) }}
+  {{ account_select("accum_dep_account_id", _("Accumulated depreciation account"), required=true) }}
+  {{ account_select("dep_expense_account_id", _("Depreciation expense account"), required=true) }}
 </fieldset>
 {% endif %}

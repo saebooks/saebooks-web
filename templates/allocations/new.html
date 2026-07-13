@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New Allocation Rule — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("New Allocation Rule") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">New Allocation Rule</h1>
-  <a href="/allocations" class="text-sm sae hover:underline">← Back to allocation rules</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New Allocation Rule") }}</h1>
+  <a href="/allocations" class="text-sm sae hover:underline">← {{ _("Back to allocation rules") }}</a>
 </div>
 
 {% if errors.__all__ %}
@@ -25,7 +25,7 @@
       {# Name #}
       <div>
         <label for="name" class="block text-sm font-medium ink-2 mb-1">
-          Rule name <span style="color:var(--neg)">*</span>
+          {{ _("Rule name") }} <span style="color:var(--neg)">*</span>
         </label>
         <input
           id="name"
@@ -42,12 +42,12 @@
 
       {# Description #}
       <div>
-        <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
+        <label for="description" class="block text-sm font-medium ink-2 mb-1">{{ _("Description") }}</label>
         <textarea
           id="description"
           name="description"
           rows="2"
-          placeholder="Optional notes about this rule"
+          placeholder="{{ _('Optional notes about this rule') }}"
           class="saebooks-input w-full text-sm px-3 py-2"
         >{{ form.get('description', '') }}</textarea>
       </div>
@@ -55,9 +55,9 @@
       {# Source account #}
       <div>
         <label for="source_account_id" class="block text-sm font-medium ink-2 mb-1">
-          Source account (cost pool) <span style="color:var(--neg)">*</span>
+          {{ _("Source account (cost pool)") }} <span style="color:var(--neg)">*</span>
         </label>
-        <p class="text-xs ink-3 mb-1">The shared overhead account to allocate FROM (e.g. Group Rent).</p>
+        <p class="text-xs ink-3 mb-1">{{ _("The shared overhead account to allocate FROM (e.g. Group Rent).") }}</p>
         <select
           id="source_account_id"
           name="source_account_id"
@@ -65,7 +65,7 @@
           class="saebooks-input w-full text-sm px-3 py-2"
           required
         >
-          <option value="">— select account —</option>
+          <option value="">{{ _("— select account —") }}</option>
           {% for acct in accounts %}
           <option value="{{ acct.id }}" {% if form.get('source_account_id') == acct.id %}selected{% endif %}>
             {{ acct.code }} — {{ acct.name }}
@@ -84,22 +84,22 @@
           {% if form.get('is_active', 'true') != 'false' %}checked{% endif %}
           class="h-4 w-4 rounded border-gray-300 text-[#194291]"
         >
-        <label for="is_active" class="text-sm ink-2">Active (rule appears in apply picker)</label>
+        <label for="is_active" class="text-sm ink-2">{{ _("Active (rule appears in apply picker)") }}</label>
       </div>
 
       {# Targets #}
       <div>
         <div class="flex items-center justify-between mb-2">
           <label class="block text-sm font-medium ink-2">
-            Target accounts <span style="color:var(--neg)">*</span>
+            {{ _("Target accounts") }} <span style="color:var(--neg)">*</span>
           </label>
           <button
             type="button"
             id="add-target"
             class="text-xs sae hover:underline"
-          >+ Add target</button>
+          >+ {{ _("Add target") }}</button>
         </div>
-        <p class="text-xs ink-3 mb-3">Percentages must sum to 100. One row per target account.</p>
+        <p class="text-xs ink-3 mb-3">{{ _("Percentages must sum to 100. One row per target account.") }}</p>
 
         {% if errors.targets %}<p class="text-xs mb-2" style="color:var(--neg)">{{ errors.targets }}</p>{% endif %}
 
@@ -115,13 +115,13 @@
         type="submit"
         class="btn-primary px-5 py-2 text-sm font-medium"
       >
-        Save rule
+        {{ _("Save rule") }}
       </button>
       <a
         href="/allocations"
         class="btn-secondary px-5 py-2 text-sm font-medium"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Confirm your plan — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Confirm your plan") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="flex min-h-[70vh] items-center justify-center">
@@ -11,25 +11,25 @@
       <div class="flex items-center gap-2 mb-6 text-xs text-gray-500 dark:text-gray-400">
         <span class="flex items-center gap-1">
           <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white text-xs font-bold">&#10003;</span>
-          Create account
+          {{ _("Create account") }}
         </span>
         <span class="flex-1 border-t border-gray-300 dark:border-gray-600"></span>
         <span class="flex items-center gap-1">
           <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-500 text-white text-xs font-bold">&#10003;</span>
-          Verify email
+          {{ _("Verify email") }}
         </span>
         <span class="flex-1 border-t border-gray-300 dark:border-gray-600"></span>
         <span class="flex items-center gap-1 font-semibold text-[#194291] dark:text-[#8aa9d8]">
           <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#194291] text-white text-xs font-bold">3</span>
-          Choose payment
+          {{ _("Choose payment") }}
         </span>
       </div>
 
       <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-        Subscribe to {{ current_brand().name }} {{ plan_label }}
+        {{ _("Subscribe to %(brand)s %(plan)s") % {"brand": current_brand().name,"plan": plan_label} }}
       </h1>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        Review your plan before continuing to Stripe's secure payment page.
+        {{ _("Review your plan before continuing to Stripe's secure payment page.") }}
       </p>
 
       {# Plan summary card #}
@@ -62,9 +62,7 @@
       </div>
 
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-5">
-        You'll be taken to <strong class="text-gray-700 dark:text-gray-300">Stripe</strong> to enter payment details.
-        Your subscription starts immediately after payment. Cancel anytime.
-        All prices are in AUD and include GST.
+        {{ _("You'll be taken to") }} <strong class="text-gray-700 dark:text-gray-300">Stripe</strong> {{ _("to enter payment details. Your subscription starts immediately after payment. Cancel anytime. All prices are in AUD and include GST.") }}
       </p>
 
       {# Continue to payment form — explicit POST, no auto-submit. #}
@@ -79,7 +77,7 @@
         {# as cards inside an brand-navy container consistent with the   #}
         {# plan summary above. #}
         <fieldset class="mb-5">
-          <legend class="sr-only">Billing period</legend>
+          <legend class="sr-only">{{ _("Billing period") }}</legend>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
             <label class="relative flex cursor-pointer rounded-lg border border-[#194291]/30 dark:border-[#194291]/50
@@ -89,13 +87,13 @@
               <input type="radio" name="period" value="month" class="sr-only peer" checked>
               <div class="flex flex-col w-full">
                 <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 peer-checked:text-[#133372] dark:peer-checked:text-[#bdd0eb]">
-                  Monthly
+                  {{ _("Monthly") }}
                 </span>
                 <span class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   ${{ plan_price_monthly }} / mo
                 </span>
                 <span class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
-                  Billed every month
+                  {{ _("Billed every month") }}
                 </span>
               </div>
             </label>
@@ -108,18 +106,18 @@
               <div class="flex flex-col w-full">
                 <span class="flex items-center gap-2">
                   <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 peer-checked:text-[#133372] dark:peer-checked:text-[#bdd0eb]">
-                    Yearly
+                    {{ _("Yearly") }}
                   </span>
                   <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/40
                                px-1.5 py-0.5 text-[10px] font-medium text-green-700 dark:text-green-300">
-                    Save 2 months
+                    {{ _("Save 2 months") }}
                   </span>
                 </span>
                 <span class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   ${{ plan_price_yearly }} / yr
                 </span>
                 <span class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
-                  Billed once a year
+                  {{ _("Billed once a year") }}
                 </span>
               </div>
             </label>
@@ -131,14 +129,14 @@
                 class="w-full rounded-md bg-[#194291] px-4 py-2.5 text-sm font-medium
                        text-white hover:bg-[#133372] focus:outline-none focus:ring-2
                        focus:ring-[#194291] focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-          Continue to payment &rarr;
+          {{ _("Continue to payment →") }}
         </button>
       </form>
 
       <p class="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-        Not ready yet?
-        <a href="/" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">Go to dashboard</a>
-        instead.
+        {{ _("Not ready yet?") }}
+        <a href="/" class="text-[#194291] dark:text-[#8aa9d8] hover:underline">{{ _("Go to dashboard") }}</a>
+        {{ _("instead.") }}
       </p>
     </div>
   </div>

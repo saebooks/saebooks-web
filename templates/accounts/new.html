@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New Account — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("New Account") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">New Account</h1>
-  <a href="/accounts" class="text-sm sae hover:underline">← Back to accounts</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New Account") }}</h1>
+  <a href="/accounts" class="text-sm sae hover:underline">← {{ _("Back to accounts") }}</a>
 </div>
 
 <div class="card shadow-sm px-6 py-6 max-w-2xl">
@@ -24,13 +24,13 @@
         type="submit"
         class="btn-primary text-sm px-5 py-2"
       >
-        Save account
+        {{ _("Save account") }}
       </button>
       <a
         href="/accounts"
         class="btn-secondary text-sm px-5 py-2"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 

@@ -1,19 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Branches — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Branches") }} — {{ current_brand().name }}{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto p-6">
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-semibold">Branches</h1>
+      <h1 class="text-2xl font-semibold">{{ _("Branches") }}</h1>
       <p class="ink-2 text-sm mt-1">
-        Internal sub-divisional tags for the active company. Used to split
-        reports by trading-name / location / cost-centre without creating a
-        new legal entity.
+        {{ _("Internal sub-divisional tags for the active company. Used to split reports by trading-name / location / cost-centre without creating a new legal entity.") }}
       </p>
     </div>
     <a href="/branches/new" class="btn-primary inline-flex items-center gap-1.5">
       <i data-lucide="plus" class="w-4 h-4"></i>
-      New branch
+      {{ _("New branch") }}
     </a>
   </div>
 
@@ -22,11 +20,11 @@
       <table class="w-full text-sm">
         <thead class="text-xs uppercase tracking-wider ink-3" style="background: var(--paper-2);">
           <tr>
-            <th scope="col" class="text-left px-4 py-2 font-mono">Code</th>
-            <th scope="col" class="text-left px-4 py-2">Name</th>
-            <th scope="col" class="text-center px-4 py-2">Default</th>
-            <th scope="col" class="text-center px-4 py-2">Status</th>
-            <th scope="col" class="text-right px-4 py-2">Actions</th>
+            <th scope="col" class="text-left px-4 py-2 font-mono">{{ _("Code") }}</th>
+            <th scope="col" class="text-left px-4 py-2">{{ _("Name") }}</th>
+            <th scope="col" class="text-center px-4 py-2">{{ _("Default") }}</th>
+            <th scope="col" class="text-center px-4 py-2">{{ _("Status") }}</th>
+            <th scope="col" class="text-right px-4 py-2">{{ _("Actions") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -38,17 +36,17 @@
                 {% if b.is_default %}<i data-lucide="check" class="w-4 h-4 inline-block"></i>{% endif %}
               </td>
               <td class="px-4 py-2 text-center">
-                {% if b.archived_at %}<span class="ink-3 text-xs">Archived</span>
-                {% else %}<span class="text-xs">Active</span>{% endif %}
+                {% if b.archived_at %}<span class="ink-3 text-xs">{{ _("Archived") }}</span>
+                {% else %}<span class="text-xs">{{ _("Active") }}</span>{% endif %}
               </td>
               <td class="px-4 py-2 text-right">
                 {% if not b.archived_at %}
-                  <a href="/branches/{{ b.id }}/edit" class="text-sm underline hover:no-underline">Edit</a>
+                  <a href="/branches/{{ b.id }}/edit" class="text-sm underline hover:no-underline">{{ _("Edit") }}</a>
                   {% if not b.is_default %}
                     <form method="post" action="/branches/{{ b.id }}/archive" class="inline ml-3"
-                          onsubmit="return confirm('Archive branch {{ b.code }}?');">
+                          onsubmit="return confirm('{{ _('Archive branch %(code)s?') % {'code': b.code} }}');">
   {{ csrf_input(request) | safe }}
-                      <button type="submit" class="text-sm underline hover:no-underline ink-2">Archive</button>
+                      <button type="submit" class="text-sm underline hover:no-underline ink-2">{{ _("Archive") }}</button>
                     </form>
                   {% endif %}
                 {% endif %}
@@ -60,7 +58,7 @@
     </div>
   {% else %}
     <div class="rounded-xl border hairline p-8 text-center" style="background: var(--surface);">
-      <p class="ink-2">No branches yet. <a href="/branches/new" class="underline">Create the first one</a> for this company.</p>
+      <p class="ink-2">{{ _("No branches yet.") }} <a href="/branches/new" class="underline">{{ _("Create the first one") }}</a> {{ _("for this company.") }}</p>
     </div>
   {% endif %}
 </div>

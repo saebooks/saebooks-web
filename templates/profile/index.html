@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}My Profile — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("My Profile") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-lg space-y-6">
 
-  <h1 class="text-xl font-semibold ink-1">My Profile</h1>
+  <h1 class="text-xl font-semibold ink-1">{{ _("My Profile") }}</h1>
 
   {% if flash %}
   <div class="rounded-md bg-[color:var(--pos-tint)] border border-[color:var(--pos)] px-4 py-3 text-sm text-[color:var(--pos)]">
@@ -21,19 +21,19 @@
   {# ── Account info ── #}
   <div class="card rounded-lg divide-y divide-[color:var(--line)]">
     <div class="px-5 py-4">
-      <h2 class="text-sm font-semibold ink-2">Account</h2>
+      <h2 class="text-sm font-semibold ink-2">{{ _("Account") }}</h2>
     </div>
     <div class="px-5 py-4 space-y-3 text-sm">
       <div class="flex justify-between">
-        <span class="ink-3">Username</span>
+        <span class="ink-3">{{ _("Username") }}</span>
         <span class="ink-1 font-medium">{{ profile.get('name') or '—' }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="ink-3">Email</span>
+        <span class="ink-3">{{ _("Email") }}</span>
         <span class="ink-1">{{ profile.get('email') or '—' }}</span>
       </div>
       <div class="flex justify-between">
-        <span class="ink-3">Role</span>
+        <span class="ink-3">{{ _("Role") }}</span>
         <span class="ink-1 capitalize">{{ profile.get('role') or '—' }}</span>
       </div>
     </div>
@@ -42,7 +42,7 @@
   {# ── Change password ── #}
   <div class="card rounded-lg divide-y divide-[color:var(--line)]">
     <div class="px-5 py-4">
-      <h2 class="text-sm font-semibold ink-2">Change Password</h2>
+      <h2 class="text-sm font-semibold ink-2">{{ _("Change Password") }}</h2>
     </div>
     <div class="px-5 py-5">
       {% if pw_error %}
@@ -55,7 +55,7 @@
 
         <div>
           <label for="current_password" class="block text-sm font-medium ink-2 mb-1">
-            Current password
+            {{ _("Current password") }}
           </label>
           <input id="current_password" name="current_password" type="password" required
                  autocomplete="current-password"
@@ -63,7 +63,7 @@
         </div>
         <div>
           <label for="new_password" class="block text-sm font-medium ink-2 mb-1">
-            New password
+            {{ _("New password") }}
           </label>
           <input id="new_password" name="new_password" type="password" required
                  autocomplete="new-password" minlength="8"
@@ -71,7 +71,7 @@
         </div>
         <div>
           <label for="confirm_password" class="block text-sm font-medium ink-2 mb-1">
-            Confirm new password
+            {{ _("Confirm new password") }}
           </label>
           <input id="confirm_password" name="confirm_password" type="password" required
                  autocomplete="new-password" minlength="8"
@@ -79,7 +79,7 @@
         </div>
         <button type="submit"
                 class="btn-primary rounded-md px-4 py-2 text-sm font-medium">
-          Update password
+          {{ _("Update password") }}
         </button>
       </form>
     </div>

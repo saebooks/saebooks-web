@@ -16,15 +16,15 @@
     <thead>
       <tr>
         <th class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Year</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Month</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
-        <th class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Amount</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Notes</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Year") }}</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Month") }}</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+        <th class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Notes") }}</th>
         <th class="w-8"></th>
       </tr>
     </thead>
@@ -37,16 +37,16 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ budget.id }}"
-                   aria-label="Select budget row {{ budget.id }}"
+                   aria-label="{{ _('Select budget row %(id)s') % {'id': budget.id} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
           <td class="px-4 py-3 ink-1">{{ budget.year }}</td>
           <td class="px-4 py-3 ink-1">
-            {{ ["", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][budget.month] }}
+            {{ ["", _("Jan"), _("Feb"), _("Mar"), _("Apr"), _("May"), _("Jun"), _("Jul"), _("Aug"), _("Sep"), _("Oct"), _("Nov"), _("Dec")][budget.month] }}
           </td>
           <td class="px-4 py-3">
-            <a href="/budgets/{{ budget.id }}" class="sae hover:underline text-sm font-medium" onclick="event.stopPropagation()">View</a>
+            <a href="/budgets/{{ budget.id }}" class="sae hover:underline text-sm font-medium" onclick="event.stopPropagation()">{{ _("View") }}</a>
             <a href="/accounts/{{ budget.account_id }}" class="ml-2 sae hover:underline font-mono text-xs" title="{{ budget.account_id }}" onclick="event.stopPropagation()">
               {{ budget.account_id[:8] }}…
             </a>
@@ -57,9 +57,9 @@
           <td class="px-4 py-3 ink-3 text-xs">{{ budget.notes or "—" }}</td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
-              ("view",    "View",    "/budgets/" ~ budget.id,             "link", false),
-              ("edit",    "Edit",    "/budgets/" ~ budget.id ~ "/edit",   "link", false),
-              ("archive", "Archive", "/budgets/" ~ budget.id ~ "/archive","post", true),
+              ("view",    _("View"),    "/budgets/" ~ budget.id,             "link", false),
+              ("edit",    _("Edit"),    "/budgets/" ~ budget.id ~ "/edit",   "link", false),
+              ("archive", _("Archive"), "/budgets/" ~ budget.id ~ "/archive","post", true),
             ] %}
             {{ km.kebab(row_id=budget.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -68,15 +68,15 @@
       {% else %}
         <tr>
           <td colspan="7" class="px-4 py-12 text-center">
-            <p class="text-sm font-medium text-gray-500 mb-1">No budget rows found</p>
+            <p class="text-sm font-medium text-gray-500 mb-1">{{ _("No budget rows found") }}</p>
             {% if filter_year or filter_month %}
-            <p class="text-xs text-gray-400 mb-4">Try adjusting the year or month filter.</p>
-            <a href="/budgets" class="text-sm text-[#194291] hover:underline">Clear filters</a>
+            <p class="text-xs text-gray-400 mb-4">{{ _("Try adjusting the year or month filter.") }}</p>
+            <a href="/budgets" class="text-sm text-[#194291] hover:underline">{{ _("Clear filters") }}</a>
             {% else %}
-            <p class="text-xs text-gray-400 mb-4">Add a budget to track planned spend against actuals.</p>
+            <p class="text-xs text-gray-400 mb-4">{{ _("Add a budget to track planned spend against actuals.") }}</p>
             <a href="/budgets/new"
                class="inline-flex items-center rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
-              New budget
+              {{ _("New budget") }}
             </a>
             {% endif %}
           </td>
@@ -101,7 +101,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_page is not none %}
     <a
@@ -111,7 +111,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="rounded-md border border-gray-300 px-3 py-1.5 hover:bg-gray-50"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

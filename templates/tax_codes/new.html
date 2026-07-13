@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New Tax Code — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("New Tax Code") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">New Tax Code</h1>
-  <a href="/tax-codes" class="text-sm sae hover:underline">← Back to tax codes</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New Tax Code") }}</h1>
+  <a href="/tax-codes" class="text-sm sae hover:underline">← {{ _("Back to tax codes") }}</a>
 </div>
 
 <div class="card px-6 py-6 max-w-2xl">
@@ -24,13 +24,13 @@
         type="submit"
         class="btn-primary text-sm"
       >
-        Save tax code
+        {{ _("Save tax code") }}
       </button>
       <a
         href="/tax-codes"
         class="btn-secondary text-sm"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 

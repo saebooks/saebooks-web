@@ -40,14 +40,14 @@
 
 {# ── Identity ── #}
 <fieldset class="space-y-4">
-  <legend class="text-sm font-semibold ink-1 mb-2">Identity</legend>
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Identity") }}</legend>
 
-  {{ text_input("code", "Account code", required=true, placeholder="1-1000") }}
-  {{ text_input("name", "Name", required=true, placeholder="Business Bank Account") }}
+  {{ text_input("code", _("Account code"), required=true, placeholder="1-1000") }}
+  {{ text_input("name", _("Name"), required=true, placeholder="Business Bank Account") }}
 
   <div>
     <label for="account_type" class="block text-sm font-medium ink-2 mb-1">
-      Type <span style="color:var(--neg);">*</span>
+      {{ _("Type") }} <span style="color:var(--neg);">*</span>
     </label>
     <select
       id="account_type"
@@ -56,7 +56,7 @@
       class="saebooks-input w-full"
       {% if errors.get('account_type') %}style="border-color:var(--neg);"{% endif %}
     >
-      <option value="" {% if not form.get("account_type") %}selected{% endif %}>— select type —</option>
+      <option value="" {% if not form.get("account_type") %}selected{% endif %}>{{ _("— select type —") }}</option>
       {% for val, label in account_types %}
       <option value="{{ val }}" {% if form.get("account_type") == val %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
@@ -70,20 +70,20 @@
 
 {# ── Hierarchy ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">Hierarchy</legend>
-  {{ text_input("parent_id", "Parent account ID (UUID)", placeholder="Leave blank for top-level account") }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Hierarchy") }}</legend>
+  {{ text_input("parent_id", _("Parent account ID (UUID)"), placeholder=_("Leave blank for top-level account")) }}
 </fieldset>
 
 {# ── Description ── #}
 <div class="mt-6">
-  <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
+  <label for="description" class="block text-sm font-medium ink-2 mb-1">{{ _("Description") }}</label>
   <textarea
     id="description"
     name="description"
     rows="3"
     class="saebooks-input w-full"
     {% if errors.get('description') %}style="border-color:var(--neg);"{% endif %}
-    placeholder="Optional description"
+    placeholder="{{ _('Optional description') }}"
   >{{ form.get("description", "") }}</textarea>
   {% if errors.get("description") %}
   <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["description"] }}</p>

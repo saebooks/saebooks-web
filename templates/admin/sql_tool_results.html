@@ -3,7 +3,7 @@
 {% if error %}
 <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
   <span class="dot" style="background:var(--neg);"></span>
-  <span class="text-sm" style="color:var(--neg);"><strong>Query error:</strong> {{ error }}</span>
+  <span class="text-sm" style="color:var(--neg);"><strong>{{ _("Query error:") }}</strong> {{ error }}</span>
 </div>
 {% elif proxy_html %}
 {# The upstream API returned rendered HTML with the results table — display it. #}
@@ -16,7 +16,7 @@
 <div class="card overflow-auto">
   {% if truncated %}
   <div class="px-4 py-2 hairline-b text-xs" style="background:var(--warm-tint);color:var(--warm);">
-    Results truncated — showing maximum allowed rows.
+    {{ _("Results truncated — showing maximum allowed rows.") }}
   </div>
   {% endif %}
   <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
@@ -38,7 +38,7 @@
       {% if not rows %}
       <tr>
         <td colspan="{{ columns | length }}" class="px-4 py-6 text-center ink-3">
-          Query returned 0 rows.
+          {{ _("Query returned 0 rows.") }}
         </td>
       </tr>
       {% endif %}
@@ -46,5 +46,5 @@
   </table>
 </div>
 {% else %}
-<div class="text-sm ink-3 py-4">No results.</div>
+<div class="text-sm ink-3 py-4">{{ _("No results.") }}</div>
 {% endif %}

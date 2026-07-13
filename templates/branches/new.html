@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}New branch — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("New branch") }} — {{ current_brand().name }}{% endblock %}
 {% block content %}
 <div class="max-w-xl mx-auto p-6">
   <div class="mb-6">
-    <a href="/branches" class="text-sm underline ink-2 hover:no-underline">← Branches</a>
-    <h1 class="text-2xl font-semibold mt-2">New branch</h1>
+    <a href="/branches" class="text-sm underline ink-2 hover:no-underline">← {{ _("Branches") }}</a>
+    <h1 class="text-2xl font-semibold mt-2">{{ _("New branch") }}</h1>
   </div>
 
   {% if errors %}
@@ -17,14 +17,14 @@
         style="background: var(--surface);">
   {{ csrf_input(request) | safe }}
     <div>
-      <label class="block text-sm font-medium mb-1" for="code">Code</label>
+      <label class="block text-sm font-medium mb-1" for="code">{{ _("Code") }}</label>
       <input type="text" id="code" name="code" required maxlength="32"
              value="{{ form.code or '' }}"
              class="saebooks-input w-full font-mono" />
-      <p class="text-xs ink-3 mt-1">Short identifier, unique per company. e.g. <code>SAE-ENG</code>, <code>MELB</code>, <code>R&amp;D</code>.</p>
+      <p class="text-xs ink-3 mt-1">{{ _("Short identifier, unique per company. e.g.") }} <code>SAE-ENG</code>, <code>MELB</code>, <code>R&amp;D</code>.</p>
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1" for="name">Display name</label>
+      <label class="block text-sm font-medium mb-1" for="name">{{ _("Display name") }}</label>
       <input type="text" id="name" name="name" required maxlength="255"
              value="{{ form.name or '' }}"
              class="saebooks-input w-full" />
@@ -32,12 +32,12 @@
     <div class="flex items-center gap-2">
       <input type="checkbox" id="is_default" name="is_default" value="true"
              {% if form.is_default %}checked{% endif %} />
-      <label for="is_default" class="text-sm">Default branch for this company</label>
+      <label for="is_default" class="text-sm">{{ _("Default branch for this company") }}</label>
     </div>
-    <p class="text-xs ink-3">Default-branch logic: at most one default per company. Marking this one default un-defaults the previous one.</p>
+    <p class="text-xs ink-3">{{ _("Default-branch logic: at most one default per company. Marking this one default un-defaults the previous one.") }}</p>
     <div class="flex items-center gap-3 pt-2">
-      <button type="submit" class="btn-primary">Create branch</button>
-      <a href="/branches" class="text-sm underline ink-2">Cancel</a>
+      <button type="submit" class="btn-primary">{{ _("Create branch") }}</button>
+      <a href="/branches" class="text-sm underline ink-2">{{ _("Cancel") }}</a>
     </div>
   </form>
 </div>

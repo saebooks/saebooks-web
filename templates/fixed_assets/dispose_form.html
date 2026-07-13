@@ -6,11 +6,10 @@
     asset : the full asset dict
 #}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">Dispose Asset</h2>
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Dispose Asset") }}</h2>
   <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--neg);">
     <p class="text-sm ink-3 mb-4">
-      Disposing an asset marks it as disposed and records the disposal date and proceeds.
-      This action cannot be undone.
+      {{ _("Disposing an asset marks it as disposed and records the disposal date and proceeds. This action cannot be undone.") }}
     </p>
     <form method="POST" action="/fixed-assets/{{ asset.id }}/dispose" novalidate>
     {{ csrf_input(request)|safe }}
@@ -20,7 +19,7 @@
       <div class="space-y-4">
         <div>
           <label for="disposal_date" class="block text-sm font-medium ink-2 mb-1">
-            Disposal date <span style="color:var(--neg);">*</span>
+            {{ _("Disposal date") }} <span style="color:var(--neg);">*</span>
           </label>
           <input
             type="date"
@@ -33,7 +32,7 @@
 
         <div>
           <label for="proceeds" class="block text-sm font-medium ink-2 mb-1">
-            Proceeds <span style="color:var(--neg);">*</span>
+            {{ _("Proceeds") }} <span style="color:var(--neg);">*</span>
           </label>
           <input
             type="text"
@@ -46,13 +45,13 @@
         </div>
 
         <div>
-          <label for="dispose_notes" class="block text-sm font-medium ink-2 mb-1">Notes</label>
+          <label for="dispose_notes" class="block text-sm font-medium ink-2 mb-1">{{ _("Notes") }}</label>
           <textarea
             id="dispose_notes"
             name="notes"
             rows="2"
             class="saebooks-input w-full max-w-lg px-3 py-2 text-sm"
-            placeholder="Optional notes"
+            placeholder="{{ _('Optional notes') }}"
           ></textarea>
         </div>
       </div>
@@ -60,10 +59,10 @@
       <div class="mt-5">
         <button
           type="submit"
-          onclick="return confirm('Dispose this fixed asset? This cannot be undone.')"
+          onclick="return confirm('{{ _('Dispose this fixed asset? This cannot be undone.') }}')"
           class="btn-primary text-sm" style="background:var(--neg);border-color:var(--neg);"
         >
-          Dispose asset
+          {{ _("Dispose asset") }}
         </button>
       </div>
     </form>

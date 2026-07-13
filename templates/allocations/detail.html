@@ -31,18 +31,18 @@
     <a
       href="/allocations/{{ rule.id }}/edit"
       class="btn-secondary px-3 py-1.5 text-sm font-medium"
-    >Edit</a>
+    >{{ _("Edit") }}</a>
     {% if is_admin %}
     {{ icons.hard_delete(
          "/api/v1/allocation_rules/" ~ rule.id,
-         "rule '" ~ (rule.name|default('this rule')) ~ "'",
+         _("rule '%(name)s'") % {"name": (rule.name|default(_('this rule')))},
          "/allocations"
     ) }}
     {% endif %}
     <a
       href="/allocations"
       class="text-sm sae hover:underline self-center ml-2"
-    >← All rules</a>
+    >← {{ _("All rules") }}</a>
   </div>
 </div>
 
@@ -50,39 +50,39 @@
 
   {# Rule summary #}
   <div class="card rounded-xl px-6 py-5">
-    <h2 class="text-base font-semibold ink-1 mb-4">Rule details</h2>
+    <h2 class="text-base font-semibold ink-1 mb-4">{{ _("Rule details") }}</h2>
     <dl class="space-y-3 text-sm">
       <div class="flex gap-2">
-        <dt class="w-36 font-medium ink-3">Status</dt>
+        <dt class="w-36 font-medium ink-3">{{ _("Status") }}</dt>
         <dd>
           {% if rule.is_active %}
-          <span class="inline-block badge-pos">Active</span>
+          <span class="inline-block badge-pos">{{ _("Active") }}</span>
           {% else %}
-          <span class="inline-block badge-draft">Inactive</span>
+          <span class="inline-block badge-draft">{{ _("Inactive") }}</span>
           {% endif %}
         </dd>
       </div>
       <div class="flex gap-2">
-        <dt class="w-36 font-medium ink-3">Source account</dt>
+        <dt class="w-36 font-medium ink-3">{{ _("Source account") }}</dt>
         <dd class="font-mono text-xs ink-2">{{ rule.source_account_id }}</dd>
       </div>
       <div class="flex gap-2">
-        <dt class="w-36 font-medium ink-3">Created</dt>
+        <dt class="w-36 font-medium ink-3">{{ _("Created") }}</dt>
         <dd class="ink-2">{{ rule.created_at[:10] if rule.created_at else '—' }}</dd>
       </div>
       <div class="flex gap-2">
-        <dt class="w-36 font-medium ink-3">Updated</dt>
+        <dt class="w-36 font-medium ink-3">{{ _("Updated") }}</dt>
         <dd class="ink-2">{{ rule.updated_at[:10] if rule.updated_at else '—' }}</dd>
       </div>
     </dl>
 
-    <h3 class="text-sm font-semibold ink-2 mt-6 mb-3">Target accounts</h3>
+    <h3 class="text-sm font-semibold ink-2 mt-6 mb-3">{{ _("Target accounts") }}</h3>
     {% if rule.targets %}
     <table class="min-w-full text-sm">
       <thead>
         <tr class="text-left text-xs font-semibold ink-3 hairline-b">
-          <th scope="col" class="py-1 pr-4">Account</th>
-          <th scope="col" class="py-1 pr-4">Label</th>
+          <th scope="col" class="py-1 pr-4">{{ _("Account") }}</th>
+          <th scope="col" class="py-1 pr-4">{{ _("Label") }}</th>
           <th scope="col" class="py-1 text-right">%</th>
         </tr>
       </thead>
@@ -95,7 +95,7 @@
         </tr>
         {% endfor %}
         <tr class="hairline-t">
-          <td class="py-1.5 pr-4 ink-3" colspan="2">Total</td>
+          <td class="py-1.5 pr-4 ink-3" colspan="2">{{ _("Total") }}</td>
           <td class="py-1.5 text-right font-semibold ink-1">
             {{ rule.targets | sum(attribute='percentage') }}%
           </td>
@@ -103,30 +103,29 @@
       </tbody>
     </table>
     {% else %}
-    <p class="text-sm ink-3">No targets defined.</p>
+    <p class="text-sm ink-3">{{ _("No targets defined.") }}</p>
     {% endif %}
 
     {# Archive #}
     <div class="mt-6 hairline-t pt-4">
       <form method="POST" action="/allocations/{{ rule.id }}/delete"
-            onsubmit="return confirm('Archive this allocation rule?')">
+            onsubmit="return confirm('{{ _('Archive this allocation rule?') }}')">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ rule.version }}">
         <button
           type="submit"
           class="text-xs hover:underline"
           style="color:var(--neg)"
-        >Archive rule</button>
+        >{{ _("Archive rule") }}</button>
       </form>
     </div>
   </div>
 
   {# Apply form #}
   <div class="card rounded-xl px-6 py-5">
-    <h2 class="text-base font-semibold ink-1 mb-4">Apply rule</h2>
+    <h2 class="text-base font-semibold ink-1 mb-4">{{ _("Apply rule") }}</h2>
     <p class="text-sm ink-3 mb-5">
-      Generate a posted journal entry that credits the source account and debits each
-      target account for its percentage share of the specified amount.
+      {{ _("Generate a posted journal entry that credits the source account and debits each target account for its percentage share of the specified amount.") }}
     </p>
     <form method="POST" action="/allocations/{{ rule.id }}/apply" novalidate>
       {{ csrf_input(request)|safe }}
@@ -134,7 +133,7 @@
       <div class="space-y-4">
         <div>
           <label for="entry_date" class="block text-sm font-medium ink-2 mb-1">
-            Entry date <span style="color:var(--neg)">*</span>
+            {{ _("Entry date") }} <span style="color:var(--neg)">*</span>
           </label>
           <input
             id="entry_date"
@@ -147,7 +146,7 @@
         </div>
         <div>
           <label for="amount" class="block text-sm font-medium ink-2 mb-1">
-            Total amount <span style="color:var(--neg)">*</span>
+            {{ _("Total amount") }} <span style="color:var(--neg)">*</span>
           </label>
           <input
             id="amount"
@@ -162,13 +161,13 @@
           >
         </div>
         <div>
-          <label for="description" class="block text-sm font-medium ink-2 mb-1">Description</label>
+          <label for="description" class="block text-sm font-medium ink-2 mb-1">{{ _("Description") }}</label>
           <input
             id="apply_description"
             type="text"
             name="description"
             value="{{ apply_form.get('description', '') }}"
-            placeholder="Optional JE description"
+            placeholder="{{ _('Optional JE description') }}"
             class="saebooks-input w-full text-sm px-3 py-2"
           >
         </div>
@@ -179,7 +178,7 @@
           type="submit"
           class="btn-primary px-5 py-2 text-sm font-medium"
         >
-          Apply &amp; post JE
+          {{ _("Apply & post JE") }}
         </button>
       </div>
 

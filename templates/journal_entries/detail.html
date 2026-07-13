@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if entry %}Journal Entry {{ entry.ref or entry.id }} — {{ current_brand().name }}{% else %}Journal Entry Not Found — {{ current_brand().name }}{% endif %}
+  {% if entry %}{{ _("Journal Entry %(ref)s") % {"ref": (entry.ref or entry.id)} }} — {{ current_brand().name }}{% else %}{{ _("Journal Entry Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -49,7 +49,7 @@
   <div>
     <div class="flex items-center gap-3">
       <h1 class="text-2xl font-semibold ink-1">
-        Journal Entry {{ entry.ref or "—" }}
+        {{ _("Journal Entry %(ref)s") % {"ref": (entry.ref or "—")} }}
       </h1>
       <span class="
         {% if entry.status == 'POSTED' %}badge-pos
@@ -74,11 +74,11 @@
     <a
       href="/journal-entries/{{ entry.id }}/edit"
       class="btn-primary text-sm"
-    >{% if entry.status != 'DRAFT' %}Edit (override){% else %}Edit{% endif %}</a>
+    >{% if entry.status != 'DRAFT' %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
     <form
       method="post"
       action="/journal-entries/{{ entry.id }}/post"
-      onsubmit="return confirm('Post this journal entry? This cannot be undone easily.');"
+      onsubmit="return confirm('{{ _('Post this journal entry? This cannot be undone easily.') }}');"
       class="inline"
     >
     {{ csrf_input(request)|safe }}
@@ -87,19 +87,19 @@
       <input
         type="text"
         name="override_reason"
-        placeholder="Override reason (only to post into a locked period)"
+        placeholder="{{ _('Override reason (only to post into a locked period)') }}"
         class="saebooks-input text-xs w-72 align-middle"
-        title="Required to post into a period-locked range (year-end adjustment, BAS amendment). Leave blank for normal posting."
+        title="{{ _('Required to post into a period-locked range (year-end adjustment, BAS amendment). Leave blank for normal posting.') }}"
       >
       <button
         type="submit"
         class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);"
-      >Post</button>
+      >{{ _("Post") }}</button>
     </form>
     <form
       method="post"
       action="/journal-entries/{{ entry.id }}/archive"
-      onsubmit="return confirm('Archive this journal entry? This cannot be undone.');"
+      onsubmit="return confirm('{{ _('Archive this journal entry? This cannot be undone.') }}');"
       class="inline"
     >
     {{ csrf_input(request)|safe }}
@@ -108,14 +108,14 @@
       <button
         type="submit"
         class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
-      >Archive</button>
+      >{{ _("Archive") }}</button>
     </form>
     {% endif %}
     {% if entry.status == 'POSTED' %}
     <form
       method="post"
       action="/journal-entries/{{ entry.id }}/reverse"
-      onsubmit="return confirm('Reverse this journal entry? A new reversal entry will be created.');"
+      onsubmit="return confirm('{{ _('Reverse this journal entry? A new reversal entry will be created.') }}');"
       class="inline-flex items-center gap-2"
     >
     {{ csrf_input(request)|safe }}
@@ -125,43 +125,43 @@
         type="date"
         name="reversal_date"
         class="saebooks-input text-xs align-middle"
-        title="Reversal date — leave blank to reverse on the original entry's date. Set e.g. 1 Jul to reverse a 30 Jun accrual into the next period."
+        title="{{ _('Reversal date — leave blank to reverse on the original entry\'s date. Set e.g. 1 Jul to reverse a 30 Jun accrual into the next period.') }}"
       >
       <input
         type="text"
         name="override_reason"
-        placeholder="Override (if reversal date is locked)"
+        placeholder="{{ _('Override (if reversal date is locked)') }}"
         class="saebooks-input text-xs w-56 align-middle"
-        title="Only needed if the reversal date falls in a period-locked range."
+        title="{{ _('Only needed if the reversal date falls in a period-locked range.') }}"
       >
       <button
         type="submit"
         class="btn-primary text-sm" style="background:var(--warm);border-color:var(--warm);"
-      >Reverse</button>
+      >{{ _("Reverse") }}</button>
     </form>
     {% endif %}
     {% if entry.status == 'REVERSED' %}
     <span class="badge-warm">
-      Reversed
+      {{ _("Reversed") }}
     </span>
     {% endif %}
     {% if is_admin %}
     {{ icons.hard_delete(
          "/api/v1/journal_entries/" ~ entry.id,
-         "journal entry " ~ (entry.ref|default(entry.id|string)),
+         _("journal entry") ~ " " ~ (entry.ref|default(entry.id|string)),
          "/journal-entries"
     ) }}
     {% endif %}
     <a
       href="/journal-entries"
       class="text-sm sae hover:underline"
-    >← Back to journal entries</a>
+    >← {{ _("Back to journal entries") }}</a>
   </div>
 </div>
 
 {# ── Review flag (Gap 3, 0157) ── #}
 <div class="mb-6 flex items-center gap-3">
-  <span class="text-sm font-medium ink-3">Review</span>
+  <span class="text-sm font-medium ink-3">{{ _("Review") }}</span>
   {% with flag_base="/journal-entries", entity_id=entry.id, flagged=entry.flagged_for_review, review_note=entry.review_note, compact=False %}
     {% include "_partials/review_flag.html" %}
   {% endwith %}
@@ -170,11 +170,11 @@
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Entry date</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Entry date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ entry.entry_date }}</p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Posted at</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Posted at") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">
       {% if entry.posted_at %}
         {{ entry.posted_at[:10] }}
@@ -184,29 +184,29 @@
     </p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Reference</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Reference") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">
       {% if entry.reference %}{{ entry.reference }}{% else %}<span class="ink-4">—</span>{% endif %}
     </p>
   </div>
   <div class="card rounded-xl p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">Version</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Version") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ entry.version }}</p>
   </div>
 </div>
 
 {# ── Lines — debit / credit ledger layout ── #}
-<h2 class="text-base font-semibold ink-1 mb-3">Lines</h2>
+<h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>
 <div class="card rounded-xl shadow-sm overflow-x-auto mb-8" id="lines-table">
   <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs w-8">#</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Tax Code</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Debit</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Credit</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Tax Code") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Debit") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Credit") }}</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-[color:var(--line-soft)]">
@@ -253,7 +253,7 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-6 text-center ink-4">No lines.</td>
+          <td colspan="6" class="px-4 py-6 text-center ink-4">{{ _("No lines.") }}</td>
         </tr>
       {% endif %}
     </tbody>
@@ -261,9 +261,9 @@
       <tr class="font-semibold" {% if not balanced %}style="background:var(--neg-tint);"{% else %}style="background:var(--paper-2);"{% endif %}>
         <td colspan="4" class="px-4 py-3 text-right text-sm
           {% if not balanced %}{% else %}ink-2{% endif %}" {% if not balanced %}style="color:var(--neg);"{% endif %}>
-          Totals
+          {{ _("Totals") }}
           {% if not balanced %}
-          <span class="ml-2 text-xs font-normal" style="color:var(--neg);">(unbalanced — data integrity warning)</span>
+          <span class="ml-2 text-xs font-normal" style="color:var(--neg);">({{ _("unbalanced — data integrity warning") }})</span>
           {% endif %}
         </td>
         <td class="px-4 py-3 text-right tabular-nums text-sm
@@ -281,7 +281,7 @@
 
 {# ── Change log stub ── #}
 <div class="card rounded-xl px-4 py-6 text-center text-sm ink-4" style="border-style:dashed;">
-  Change log view — TODO
+  {{ _("Change log view — TODO") }}
 </div>
 
 {% endif %}{# end if entry #}

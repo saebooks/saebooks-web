@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 {% import "_components/kebab_menu.html" as km %}
 
-{% block title %}Account Ranges — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Account Ranges") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}
@@ -17,7 +17,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Account Ranges</h1>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Account Ranges") }}</h1>
     {% if not error %}
     <p class="text-sm ink-3 mt-1">{{ ranges|length }} range{{ "s" if ranges|length != 1 else "" }}</p>
     {% endif %}
@@ -26,13 +26,13 @@
     href="/admin/ranges/new"
     class="btn-primary text-sm"
   >
-    New range
+    {{ _("New range") }}
   </a>
 </div>
 
 {# ── Prefix mode selector ── #}
 <div class="card shadow-sm px-5 py-4 mb-6 max-w-md">
-  <h2 class="text-sm font-semibold ink-2 mb-3">Prefix mode</h2>
+  <h2 class="text-sm font-semibold ink-2 mb-3">{{ _("Prefix mode") }}</h2>
   <form method="POST" action="/admin/ranges/prefix_mode" class="flex items-center gap-3">
     {{ csrf_input(request)|safe }}
 
@@ -47,7 +47,7 @@
     <button
       type="submit"
       class="btn-primary text-sm"
-    >Update</button>
+    >{{ _("Update") }}</button>
   </form>
 </div>
 
@@ -63,14 +63,14 @@
     <thead>
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-[color:var(--line)] text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Prefix</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Account type</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Description</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Prefix") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account type") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
         <th scope="col" class="w-8 px-4 py-3"></th>
       </tr>
     </thead>
@@ -80,7 +80,7 @@
         <tr class="hover:bg-[color:var(--paper-2)]">
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ rng.id }}"
-                   aria-label="Select range {{ rng.name }}"
+                   aria-label="{{ _('Select range %(name)s') % {'name': rng.name} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-[color:var(--line)] text-[#194291] focus:ring-[#194291]">
           </td>
@@ -90,11 +90,11 @@
           <td class="px-4 py-3 ink-3 text-xs">{{ rng.description | default("") }}</td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
-              ("edit",   "Edit",   "/admin/ranges/" ~ rng.id ~ "/edit",   "link", false),
-              ("delete", "Delete", "/admin/ranges/" ~ rng.id ~ "/delete", "post", true),
+              ("edit",   _("Edit"),   "/admin/ranges/" ~ rng.id ~ "/edit",   "link", false),
+              ("delete", _("Delete"), "/admin/ranges/" ~ rng.id ~ "/delete", "post", true),
               ] %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/admin/ranges/" ~ rng.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/admin/ranges/" ~ rng.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=rng.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -102,9 +102,9 @@
         {% endfor %}
       {% else %}
         {% import "_partials/empty_state.html" as empty %}
-        {{ empty.row(6, "layers", "No account ranges yet",
-                     "Define a range to map account-code prefixes to types.",
-                     "New range", "/admin/ranges/new") }}
+        {{ empty.row(6, "layers", _("No account ranges yet"),
+                     _("Define a range to map account-code prefixes to types."),
+                     _("New range"), "/admin/ranges/new") }}
       {% endif %}
     </tbody>
   </table>
@@ -117,7 +117,7 @@
      entity="account_ranges",
      action_endpoint="/admin/ranges/bulk",
      actions=[
-       ("delete", "Delete", true),
+       ("delete", _("Delete"), true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

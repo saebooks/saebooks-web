@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if tax_code %}{{ tax_code.code }} — {{ current_brand().name }}{% else %}Tax Code Not Found — {{ current_brand().name }}{% endif %}
+  {% if tax_code %}{{ tax_code.code }} — {{ current_brand().name }}{% else %}{{ _("Tax Code Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -34,7 +34,7 @@
     </div>
     <p class="text-sm ink-3 mt-1">{{ tax_code.name }}</p>
     {% if tax_code.archived_at %}
-    <p class="text-sm mt-1" style="color:var(--warm);">Archived {{ tax_code.archived_at[:10] }}</p>
+    <p class="text-sm mt-1" style="color:var(--warm);">{{ _("Archived %(date)s") % {"date": tax_code.archived_at[:10]} }}</p>
     {% endif %}
   </div>
   <div class="flex items-center gap-3">
@@ -43,7 +43,7 @@
       href="/tax-codes/{{ tax_code.id }}/edit"
       class="btn-secondary text-sm"
     >
-      Edit
+      {{ _("Edit") }}
     </a>
     <form method="POST" action="/tax-codes/{{ tax_code.id }}/archive" class="inline">
     {{ csrf_input(request)|safe }}
@@ -51,47 +51,47 @@
       <input type="hidden" name="version" value="{{ tax_code.version }}">
       <button
         type="submit"
-        onclick="return confirm('Archive this tax code?')"
+        onclick="return confirm('{{ _('Archive this tax code?') }}')"
         class="btn-secondary text-sm"
         style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
-        Archive
+        {{ _("Archive") }}
       </button>
     </form>
     {% endif %}
     <a href="/tax-codes" class="text-sm sae hover:underline">
-      ← Back to tax codes
+      ← {{ _("Back to tax codes") }}
     </a>
   </div>
 </div>
 
 {# ── Detail card ── #}
 <div class="card p-5 mb-6 max-w-lg">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Tax Code Details</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Tax Code Details") }}</h2>
   <dl class="space-y-2 text-sm">
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">Code</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("Code") }}</dt>
       <dd class="ink-1 font-mono font-medium">{{ tax_code.code }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">Name</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("Name") }}</dt>
       <dd class="ink-1">{{ tax_code.name }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">Rate</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("Rate") }}</dt>
       <dd class="ink-1 tabular-nums">{{ num(tax_code.rate|float, 1) }}%</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">Tax system</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("Tax system") }}</dt>
       <dd class="ink-1">{{ tax_code.tax_system }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">Reporting type</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("Reporting type") }}</dt>
       <dd class="ink-1">{{ tax_code.reporting_type | replace("_", " ") | title }}</dd>
     </div>
     {% if tax_code.description %}
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">Description</dt>
+      <dt class="w-36 shrink-0 ink-3">{{ _("Description") }}</dt>
       <dd class="ink-1">{{ tax_code.description }}</dd>
     </div>
     {% endif %}
@@ -100,18 +100,18 @@
 
 {# ── System info ── #}
 <div class="card p-5 mb-6">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">System Info</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("System Info") }}</h2>
   <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">ID</dt>
+      <dt class="shrink-0 ink-3">{{ _("ID") }}</dt>
       <dd class="ink-1 font-mono text-xs">{{ tax_code.id }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">Version</dt>
+      <dt class="shrink-0 ink-3">{{ _("Version") }}</dt>
       <dd class="ink-1">{{ tax_code.version }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">Created</dt>
+      <dt class="shrink-0 ink-3">{{ _("Created") }}</dt>
       <dd class="ink-1">{{ tax_code.created_at[:10] }}</dd>
     </div>
   </dl>
