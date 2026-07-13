@@ -1418,6 +1418,60 @@ async def invoice_pdf(request: Request, invoice_id: str) -> Response | RedirectR
 
 
 # ---------------------------------------------------------------------------
+# E-invoice XML — EE (EN 16931 / Peppol BIS 3.0 UBL). Unlike the PDF above
+# (presentation the web app owns and renders in-process), the e-invoice XML
+# is a statutory compliance artefact the engine owns end-to-end. This route
+# is a thin proxy of GET /api/v1/invoices/{id}/einvoice.xml with the session
+# bearer (same auth idiom as the PDF path). The engine is the single
+# authority on eligibility: it returns 422 with an RFC-7807 problem+json
+# body whose ``detail`` explains the refusal (DRAFT, non-EUR, missing seller
+# registrikood/VAT, missing buyer country). We surface that ``detail`` to
+# the user as a flash — never a bare 500 — and let the engine's own filename
+# (invoice-{number}.xml) ride through in Content-Disposition.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/invoices/{invoice_id}/einvoice.xml", response_model=None)
+async def invoice_einvoice_xml(
+    request: Request, invoice_id: str
+) -> Response | RedirectResponse:
+    """Proxy the engine's EN 16931 / Peppol BIS 3.0 e-invoice XML download."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.get(f"/api/v1/invoices/{invoice_id}/einvoice.xml")
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 404:
+        raise HTTPException(404, detail="Invoice not found")
+    if resp.status_code == 422:
+        # RFC-7807 problem+json — surface the generator's own message, not a
+        # generic error, so the user learns *why* (e.g. "invoice must be
+        # posted", "currency must be EUR"). Flash + redirect back to detail.
+        try:
+            detail = resp.json().get("detail")
+        except Exception:
+            detail = None
+        request.session["flash"] = detail or "E-invoice could not be generated."
+        return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+    if not resp.is_success:
+        raise HTTPException(resp.status_code, detail=f"Upstream returned {resp.status_code}")
+
+    # 200 — stream the XML through, preserving the engine's filename header.
+    disposition = resp.headers.get(
+        "content-disposition", f'inline; filename="invoice-{invoice_id}.xml"'
+    )
+    return Response(
+        content=resp.content,
+        media_type="application/xml",
+        headers={"Content-Disposition": disposition},
+    )
+
+
+# ---------------------------------------------------------------------------
 # Hard-delete: developer-tier only. Client-side gated via the kebab,
 # server-side enforced by the API hard_delete_admin_gate.
 # ---------------------------------------------------------------------------
