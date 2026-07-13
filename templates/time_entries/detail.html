@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Time entry {{ entry.work_date if entry else "" }} — SAE Books{% endblock %}
+{% block title %}{{ _("Time entry %(date)s") % {"date": entry.work_date if entry else ""} }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -16,14 +16,14 @@
   <div>
     <h1 class="font-display text-3xl ink-1">
       <span class="num-display">{{ num(entry.hours|float, 2) }}h</span>
-      on {{ entry.work_date }}
+      {{ _("on %(date)s") % {"date": entry.work_date} }}
     </h1>
     <p class="text-base ink-3 mt-1">
       {% if entry.project_id and project_by_id.get(entry.project_id) %}
-      Project: <strong>{{ project_by_id[entry.project_id].name }}</strong>
+      {{ _("Project:") }} <strong>{{ project_by_id[entry.project_id].name }}</strong>
       {% endif %}
       {% if entry.contact_id and contact_by_id.get(entry.contact_id) %}
-       · Contact: <strong>{{ contact_by_id[entry.contact_id].name }}</strong>
+       · {{ _("Contact:") }} <strong>{{ contact_by_id[entry.contact_id].name }}</strong>
       {% endif %}
     </p>
   </div>
@@ -36,9 +36,9 @@
       {% endif %}">
       {{ entry.approval_status }}
     </span>
-    {% if entry.billable %}<span class="chip">$ billable</span>{% endif %}
+    {% if entry.billable %}<span class="chip">{{ _("$ billable") }}</span>{% endif %}
     {% if entry.invoice_line_id %}
-      <a href="/invoices/" class="chip" title="On invoice line">→ invoiced</a>
+      <a href="/invoices/" class="chip" title="{{ _('On invoice line') }}">{{ _("→ invoiced") }}</a>
     {% endif %}
   </div>
 </div>
@@ -46,52 +46,52 @@
 <div class="grid grid-cols-3 gap-6">
   <div class="col-span-2">
     <div class="card p-6">
-      <p class="nav-section-label mb-4">Entry</p>
+      <p class="nav-section-label mb-4">{{ _("Entry") }}</p>
       <dl class="space-y-3 text-base">
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Description</dt>
+          <dt class="ink-3">{{ _("Description") }}</dt>
           <dd class="col-span-2">{{ entry.description or "—" }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Hours</dt>
+          <dt class="ink-3">{{ _("Hours") }}</dt>
           <dd class="col-span-2 num-display">{{ num(entry.hours|float, 2) }}</dd>
         </div>
         {% if entry.start_time or entry.end_time %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Clock</dt>
+          <dt class="ink-3">{{ _("Clock") }}</dt>
           <dd class="col-span-2 num">{{ entry.start_time or "—" }} → {{ entry.end_time or "—" }}
-            {% if entry.break_minutes %} (break {{ entry.break_minutes }}m){% endif %}
+            {% if entry.break_minutes %} {{ _("(break %(minutes)sm)") % {"minutes": entry.break_minutes} }}{% endif %}
           </dd>
         </div>
         {% endif %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Billable</dt>
+          <dt class="ink-3">{{ _("Billable") }}</dt>
           <dd class="col-span-2">
-            {% if entry.billable %}Yes
-              {% if entry.rate %}@ {{ money(entry.rate|float, grouping=False) }}/h
+            {% if entry.billable %}{{ _("Yes") }}
+              {% if entry.rate %}{{ _("@ %(rate)s/h") % {"rate": money(entry.rate|float, grouping=False)} }}
                 · <span class="num-display">{{ money((entry.rate|float) * (entry.hours|float), grouping=False) }}</span>
               {% endif %}
-            {% else %}No{% endif %}
+            {% else %}{{ _("No") }}{% endif %}
           </dd>
         </div>
         {% if entry.invoice_line_id %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Invoice line</dt>
+          <dt class="ink-3">{{ _("Invoice line") }}</dt>
           <dd class="col-span-2 num">{{ entry.invoice_line_id }}</dd>
         </div>
         {% endif %}
         {% if entry.rejection_reason %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Rejection reason</dt>
+          <dt class="ink-3">{{ _("Rejection reason") }}</dt>
           <dd class="col-span-2" style="color:var(--neg);">{{ entry.rejection_reason }}</dd>
         </div>
         {% endif %}
         <div class="grid grid-cols-3 gap-2 hairline border-t pt-3">
-          <dt class="ink-3">Version</dt>
+          <dt class="ink-3">{{ _("Version") }}</dt>
           <dd class="col-span-2 num">{{ entry.version }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Created / updated</dt>
+          <dt class="ink-3">{{ _("Created / updated") }}</dt>
           <dd class="col-span-2 ink-3 text-sm num">{{ entry.created_at }} · {{ entry.updated_at }}</dd>
         </div>
       </dl>
@@ -100,59 +100,59 @@
 
   <aside class="space-y-4">
     <div class="card p-5">
-      <p class="nav-section-label mb-3">Actions</p>
+      <p class="nav-section-label mb-3">{{ _("Actions") }}</p>
       <div class="space-y-2">
         {% if entry.approval_status in ('DRAFT','REJECTED') or is_feature_enabled("edit_frozen_state") %}
-        <a href="/time-entries/{{ entry.id }}/edit" class="btn btn-primary w-full">{% if entry.approval_status not in ('DRAFT','REJECTED') %}Edit (override){% else %}Edit{% endif %}</a>
+        <a href="/time-entries/{{ entry.id }}/edit" class="btn btn-primary w-full">{% if entry.approval_status not in ('DRAFT','REJECTED') %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
         <form method="POST" action="/time-entries/{{ entry.id }}/submit">
   {{ csrf_input(request)|safe }}
-          <button type="submit" class="btn btn-secondary w-full">Submit for approval</button>
+          <button type="submit" class="btn btn-secondary w-full">{{ _("Submit for approval") }}</button>
         </form>
         <form method="POST" action="/time-entries/{{ entry.id }}/archive"
-              onsubmit="return confirm('Archive this entry?')">
+              onsubmit="return confirm('{{ _('Archive this entry?') }}')">
   {{ csrf_input(request)|safe }}
-          <button type="submit" class="btn btn-danger w-full">Archive</button>
+          <button type="submit" class="btn btn-danger w-full">{{ _("Archive") }}</button>
         </form>
         {% elif entry.approval_status == 'SUBMITTED' %}
         <form method="POST" action="/time-entries/{{ entry.id }}/approve">
   {{ csrf_input(request)|safe }}
-          <button type="submit" class="btn btn-primary w-full">Approve</button>
+          <button type="submit" class="btn btn-primary w-full">{{ _("Approve") }}</button>
         </form>
         <form method="POST" action="/time-entries/{{ entry.id }}/reject">
   {{ csrf_input(request)|safe }}
           <input type="text" name="reason" required placeholder="Reason..."
                  class="w-full rounded-md hairline px-2 py-1.5 mb-2 text-sm">
-          <button type="submit" class="btn btn-danger w-full">Reject</button>
+          <button type="submit" class="btn btn-danger w-full">{{ _("Reject") }}</button>
         </form>
         {% elif entry.approval_status == 'APPROVED' %}
-        <p class="ink-3 text-sm">Approved — awaiting invoice conversion or pay-run lock.</p>
+        <p class="ink-3 text-sm">{{ _("Approved — awaiting invoice conversion or pay-run lock.") }}</p>
         {% if entry.billable and not entry.invoice_line_id %}
         <form method="POST" action="/time-entries/convert-to-invoice">
   {{ csrf_input(request)|safe }}
           <input type="hidden" name="entry_ids" value="{{ entry.id }}">
-          <button type="submit" class="btn btn-primary w-full">Convert to invoice line</button>
+          <button type="submit" class="btn btn-primary w-full">{{ _("Convert to invoice line") }}</button>
         </form>
         {% endif %}
         {% if not entry.invoice_line_id %}
         <form method="POST" action="/time-entries/{{ entry.id }}/revert"
-              onsubmit="return confirm('Revert this entry back to draft so it can be edited or archived?')">
+              onsubmit="return confirm('{{ _('Revert this entry back to draft so it can be edited or archived?') }}')">
   {{ csrf_input(request)|safe }}
-          <button type="submit" class="btn btn-secondary w-full">Revert to draft</button>
+          <button type="submit" class="btn btn-secondary w-full">{{ _("Revert to draft") }}</button>
         </form>
         <p class="ink-3 text-xs mt-2">
-          Revert clears the approval and lets you edit or archive. Already-invoiced entries can't be reverted — void the invoice line first.
+          {{ _("Revert clears the approval and lets you edit or archive. Already-invoiced entries can't be reverted — void the invoice line first.") }}
         </p>
         {% endif %}
         {% elif entry.approval_status == 'LOCKED' %}
-        <p class="ink-3 text-sm">Locked into a pay run — read-only.</p>
+        <p class="ink-3 text-sm">{{ _("Locked into a pay run — read-only.") }}</p>
         {% endif %}
       </div>
     </div>
     <div class="card p-5">
-      <p class="nav-section-label mb-2">Navigate</p>
-      <a href="/time-entries" class="block text-sm sae hover:underline">← All entries</a>
+      <p class="nav-section-label mb-2">{{ _("Navigate") }}</p>
+      <a href="/time-entries" class="block text-sm sae hover:underline">{{ _("← All entries") }}</a>
       <a href="/time-entries/week?week_start={{ entry.work_date }}"
-         class="block text-sm sae hover:underline mt-1">View this week →</a>
+         class="block text-sm sae hover:underline mt-1">{{ _("View this week →") }}</a>
     </div>
   </aside>
 </div>

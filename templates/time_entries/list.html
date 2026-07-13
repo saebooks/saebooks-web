@@ -2,7 +2,7 @@
 
 {% import "_partials/empty_state.html" as empty %}
 
-{% block title %}Time entries — SAE Books{% endblock %}
+{% block title %}{{ _("Time entries") }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -15,87 +15,87 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="font-display text-3xl ink-1">Time entries</h1>
+    <h1 class="font-display text-3xl ink-1">{{ _("Time entries") }}</h1>
     <p class="text-base ink-3 mt-1">
-      Hours logged against projects and contacts.
-      <a href="/time-entries/week" class="sae hover:underline">Switch to weekly grid →</a>
+      {{ _("Hours logged against projects and contacts.") }}
+      <a href="/time-entries/week" class="sae hover:underline">{{ _("Switch to weekly grid →") }}</a>
     </p>
     {% if not error %}
-    <p class="text-base ink-3 mt-1 num">{{ total }} entr{{ "ies" if total != 1 else "y" }}</p>
+    <p class="text-base ink-3 mt-1 num">{{ _("%(n)s entry") % {"n": total} if total == 1 else _("%(n)s entries") % {"n": total} }}</p>
     {% endif %}
   </div>
   <div class="flex gap-2">
-    <a href="/time-entries/week" class="btn btn-secondary">Weekly grid</a>
-    <a href="/time-entries/new" class="btn btn-primary">+ New entry</a>
+    <a href="/time-entries/week" class="btn btn-secondary">{{ _("Weekly grid") }}</a>
+    <a href="/time-entries/new" class="btn btn-primary">+ {{ _("New entry") }}</a>
   </div>
 </div>
 
 {% if error %}
 <div class="card p-3 mb-6 flex items-center justify-between gap-4" style="border-color:var(--neg);">
-  <span class="text-base" style="color:var(--neg);">Couldn't load entries. Please try again.</span>
+  <span class="text-base" style="color:var(--neg);">{{ _("Couldn't load entries. Please try again.") }}</span>
   <button type="button" onclick="window.location.reload()"
-          class="shrink-0 text-sm font-medium underline hover:no-underline" style="color:var(--neg);">Retry</button>
+          class="shrink-0 text-sm font-medium underline hover:no-underline" style="color:var(--neg);">{{ _("Retry") }}</button>
 </div>
 {% endif %}
 
 <form hx-get="/time-entries" hx-push-url="true" hx-target="#entries-table" hx-swap="outerHTML"
       class="mb-4 flex flex-wrap gap-3 items-end">
   <div>
-    <label class="block text-sm ink-3 mb-1">Status</label>
+    <label class="block text-sm ink-3 mb-1">{{ _("Status") }}</label>
     <select name="approval_status" class="rounded-md hairline px-2 py-1.5 bg-paper"
             onchange="this.form.requestSubmit()">
-      <option value="" {% if not filter_approval_status %}selected{% endif %}>All</option>
-      <option value="DRAFT" {% if filter_approval_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-      <option value="SUBMITTED" {% if filter_approval_status == 'SUBMITTED' %}selected{% endif %}>Submitted</option>
-      <option value="APPROVED" {% if filter_approval_status == 'APPROVED' %}selected{% endif %}>Approved</option>
-      <option value="REJECTED" {% if filter_approval_status == 'REJECTED' %}selected{% endif %}>Rejected</option>
-      <option value="LOCKED" {% if filter_approval_status == 'LOCKED' %}selected{% endif %}>Locked</option>
+      <option value="" {% if not filter_approval_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="DRAFT" {% if filter_approval_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="SUBMITTED" {% if filter_approval_status == 'SUBMITTED' %}selected{% endif %}>{{ _("Submitted") }}</option>
+      <option value="APPROVED" {% if filter_approval_status == 'APPROVED' %}selected{% endif %}>{{ _("Approved") }}</option>
+      <option value="REJECTED" {% if filter_approval_status == 'REJECTED' %}selected{% endif %}>{{ _("Rejected") }}</option>
+      <option value="LOCKED" {% if filter_approval_status == 'LOCKED' %}selected{% endif %}>{{ _("Locked") }}</option>
     </select>
   </div>
   <div>
-    <label class="block text-sm ink-3 mb-1">Project</label>
+    <label class="block text-sm ink-3 mb-1">{{ _("Project") }}</label>
     <select name="project_id" class="rounded-md hairline px-2 py-1.5 bg-paper"
             onchange="this.form.requestSubmit()">
-      <option value="">All</option>
+      <option value="">{{ _("All") }}</option>
       {% for p in projects %}
       <option value="{{ p.id }}" {% if filter_project_id == p.id %}selected{% endif %}>{{ p.name }}</option>
       {% endfor %}
     </select>
   </div>
   <div>
-    <label class="block text-sm ink-3 mb-1">Contact</label>
+    <label class="block text-sm ink-3 mb-1">{{ _("Contact") }}</label>
     <select name="contact_id" class="rounded-md hairline px-2 py-1.5 bg-paper"
             onchange="this.form.requestSubmit()">
-      <option value="">All</option>
+      <option value="">{{ _("All") }}</option>
       {% for c in contacts %}
       <option value="{{ c.id }}" {% if filter_contact_id == c.id %}selected{% endif %}>{{ c.name }}</option>
       {% endfor %}
     </select>
   </div>
   <div>
-    <label class="block text-sm ink-3 mb-1">From</label>
+    <label class="block text-sm ink-3 mb-1">{{ _("From") }}</label>
     <input type="date" name="date_from" value="{{ filter_date_from }}"
            class="rounded-md hairline px-2 py-1.5 bg-paper">
   </div>
   <div>
-    <label class="block text-sm ink-3 mb-1">To</label>
+    <label class="block text-sm ink-3 mb-1">{{ _("To") }}</label>
     <input type="date" name="date_to" value="{{ filter_date_to }}"
            class="rounded-md hairline px-2 py-1.5 bg-paper">
   </div>
   <label class="inline-flex items-center gap-2 text-sm ink-1">
     <input type="checkbox" name="billable_only" value="true"
            {% if filter_billable_only %}checked{% endif %}>
-    Billable only
+    {{ _("Billable only") }}
   </label>
   <label class="inline-flex items-center gap-2 text-sm ink-1">
     <input type="checkbox" name="uninvoiced_only" value="true"
            {% if filter_uninvoiced_only %}checked{% endif %}>
-    Uninvoiced only
+    {{ _("Uninvoiced only") }}
   </label>
   <input type="hidden" name="limit" value="{{ limit }}">
   <input type="hidden" name="offset" value="0">
-  <button type="submit" class="btn btn-primary">Filter</button>
-  <a href="/time-entries" class="btn btn-secondary">Reset</a>
+  <button type="submit" class="btn btn-primary">{{ _("Filter") }}</button>
+  <a href="/time-entries" class="btn btn-secondary">{{ _("Reset") }}</a>
 </form>
 
 {% import "_components/kebab_menu.html" as km %}
@@ -104,18 +104,18 @@
     <thead>
       <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
         <th scope="col" class="w-8 px-2 py-2 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-2 py-2 whitespace-nowrap">Date</th>
-        <th scope="col" class="px-2 py-2">Description</th>
-        <th scope="col" class="px-2 py-2">Project</th>
-        <th scope="col" class="px-2 py-2">Contact</th>
-        <th scope="col" class="px-2 py-2 text-right whitespace-nowrap">Hours</th>
-        <th scope="col" class="px-2 py-2 text-right whitespace-nowrap">Rate</th>
-        <th scope="col" class="px-2 py-2 text-right whitespace-nowrap">Amount</th>
-        <th scope="col" class="px-2 py-2 text-center whitespace-nowrap">Status</th>
+        <th scope="col" class="px-2 py-2 whitespace-nowrap">{{ _("Date") }}</th>
+        <th scope="col" class="px-2 py-2">{{ _("Description") }}</th>
+        <th scope="col" class="px-2 py-2">{{ _("Project") }}</th>
+        <th scope="col" class="px-2 py-2">{{ _("Contact") }}</th>
+        <th scope="col" class="px-2 py-2 text-right whitespace-nowrap">{{ _("Hours") }}</th>
+        <th scope="col" class="px-2 py-2 text-right whitespace-nowrap">{{ _("Rate") }}</th>
+        <th scope="col" class="px-2 py-2 text-right whitespace-nowrap">{{ _("Amount") }}</th>
+        <th scope="col" class="px-2 py-2 text-center whitespace-nowrap">{{ _("Status") }}</th>
         <th scope="col" class="w-8 px-2 py-2"></th>
       </tr>
     </thead>
@@ -124,7 +124,7 @@
       <tr class="border-b hairline hover:bg-paper-2" data-status="{{ (e.approval_status or 'draft')|lower }}">
         <td class="px-2 py-2 text-center" onclick="event.stopPropagation()">
           <input type="checkbox" data-row-select data-id="{{ e.id }}"
-                 aria-label="Select time entry {{ e.id }}"
+                 aria-label="{{ _('Select time entry %(id)s') % {'id': e.id} }}"
                  onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </td>
@@ -157,32 +157,32 @@
             {{ e.approval_status }}
           </span>
           {% if e.billable %}<span class="chip ml-1">$</span>{% endif %}
-          {% if e.invoice_line_id %}<span class="chip ml-1" title="On invoice line">→ inv</span>{% endif %}
+          {% if e.invoice_line_id %}<span class="chip ml-1" title="{{ _('On invoice line') }}">{{ _("→ inv") }}</span>{% endif %}
         </td>
         <td class="px-2 py-2 text-right" onclick="event.stopPropagation()">
           {%- set status_lower = (e.approval_status or 'draft')|lower %}
           {%- set te_actions = [
-            ("view", "View", "/time-entries/" ~ e.id, "link", false),
-            ("edit", "Edit", "/time-entries/" ~ e.id ~ "/edit", "link", false),
+            ("view", _("View"), "/time-entries/" ~ e.id, "link", false),
+            ("edit", _("Edit"), "/time-entries/" ~ e.id ~ "/edit", "link", false),
           ] %}
           {%- if status_lower == 'draft' %}
-            {%- set _ = te_actions.append(("submit", "Submit", "/time-entries/" ~ e.id ~ "/submit", "post", false)) %}
+            {%- set _x = te_actions.append(("submit", _("Submit"), "/time-entries/" ~ e.id ~ "/submit", "post", false)) %}
           {%- elif status_lower == 'submitted' %}
-            {%- set _ = te_actions.append(("approve", "Approve", "/time-entries/" ~ e.id ~ "/approve", "post", false)) %}
+            {%- set _x = te_actions.append(("approve", _("Approve"), "/time-entries/" ~ e.id ~ "/approve", "post", false)) %}
           {%- endif %}
           {%- if status_lower != 'locked' %}
-            {%- set _ = te_actions.append(("archive", "Archive", "/time-entries/" ~ e.id ~ "/archive", "post", true)) %}
+            {%- set _x = te_actions.append(("archive", _("Archive"), "/time-entries/" ~ e.id ~ "/archive", "post", true)) %}
           {%- endif %}
           {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = te_actions.append(("hard_delete", "Delete (hard)", "/time-entries/" ~ e.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = te_actions.append(("hard_delete", _("Delete (hard)"), "/time-entries/" ~ e.id ~ "/hard-delete", "post", true)) %}
           {%- endif %}
           {{ km.kebab(row_id=e.id, actions=te_actions, csrf_token=csrf_token if csrf_token is defined else "") }}
         </td>
       </tr>
       {% else %}
-      {{ empty.row(10, "clock", "No time entries yet",
-                   "Log hours against a project or contact to get started.",
-                   "New entry", "/time-entries/new") }}
+      {{ empty.row(10, "clock", _("No time entries yet"),
+                   _("Log hours against a project or contact to get started."),
+                   _("New entry"), "/time-entries/new") }}
       {% endfor %}
     </tbody>
   </table>
@@ -191,10 +191,10 @@
 <div class="mt-4 flex items-center justify-end gap-3">
   <div class="text-sm ink-3 flex gap-2">
     {% if prev_offset is not none %}
-    <a href="?offset={{ prev_offset }}&amp;limit={{ limit }}" class="sae hover:underline">← Prev</a>
+    <a href="?offset={{ prev_offset }}&amp;limit={{ limit }}" class="sae hover:underline">{{ _("← Prev") }}</a>
     {% endif %}
     {% if next_offset is not none %}
-    <a href="?offset={{ next_offset }}&amp;limit={{ limit }}" class="sae hover:underline">Next →</a>
+    <a href="?offset={{ next_offset }}&amp;limit={{ limit }}" class="sae hover:underline">{{ _("Next →") }}</a>
     {% endif %}
   </div>
 </div>
@@ -206,10 +206,10 @@
      entity="time_entries",
      action_endpoint="/time-entries/bulk",
      actions=[
-       ("submit",             "Submit",            false),
-       ("approve",            "Approve",           false),
-       ("convert_to_invoice", "Convert to invoice", false),
-       ("archive",            "Archive",           true),
+       ("submit",             _("Submit"),            false),
+       ("approve",            _("Approve"),           false),
+       ("convert_to_invoice", _("Convert to invoice"), false),
+       ("archive",            _("Archive"),           true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}
