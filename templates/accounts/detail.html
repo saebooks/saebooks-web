@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if account %}{{ account.code }} {{ account.name }} — SAE Books{% else %}Account Not Found — SAE Books{% endif %}
+  {% if account %}{{ account.code }} {{ account.name }} — SAE Books{% else %}{{ _("Account Not Found") }} — SAE Books{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -39,11 +39,11 @@
         {{ account.account_type | replace("_", " ") | title }}
       </span>
       {% if account.is_header %}
-      <span class="badge-ink">Header</span>
+      <span class="badge-ink">{{ _("Header") }}</span>
       {% endif %}
     </div>
     {% if account.archived_at %}
-    <p class="text-sm mt-1" style="color:var(--warm);">Archived {{ account.archived_at[:10] }}</p>
+    <p class="text-sm mt-1" style="color:var(--warm);">{{ _("Archived %(date)s") % {"date": account.archived_at[:10]} }}</p>
     {% endif %}
   </div>
   <div class="flex items-center gap-3">
@@ -52,7 +52,7 @@
       href="/accounts/{{ account.id }}/edit"
       class="btn-secondary text-sm px-4 py-1.5"
     >
-      Edit
+      {{ _("Edit") }}
     </a>
     <form method="POST" action="/accounts/{{ account.id }}/archive" class="inline">
     {{ csrf_input(request)|safe }}
@@ -60,16 +60,16 @@
       <input type="hidden" name="version" value="{{ account.version }}">
       <button
         type="submit"
-        onclick="return confirm('Archive this account?')"
+        onclick="return confirm('{{ _('Archive this account?') }}')"
         class="btn-secondary text-sm px-4 py-1.5"
         style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
       >
-        Archive
+        {{ _("Archive") }}
       </button>
     </form>
     {% endif %}
     <a href="/accounts" class="text-sm sae hover:underline">
-      ← Back to accounts
+      ← {{ _("Back to accounts") }}
     </a>
   </div>
 </div>
@@ -78,35 +78,35 @@
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-6">
 
   <div class="card p-5">
-    <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Account Details</h2>
+    <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Account Details") }}</h2>
     <dl class="space-y-2 text-sm">
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">Account type</dt>
+        <dt class="w-36 shrink-0 ink-3">{{ _("Account type") }}</dt>
         <dd class="ink-1">{{ account.account_type | replace("_", " ") | title }}</dd>
       </div>
       {% if not account.is_header %}
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">Balance</dt>
+        <dt class="w-36 shrink-0 ink-3">{{ _("Balance") }}</dt>
         <dd class="tabular-nums {% if account.balance is defined and account.balance is not none and (account.balance|float) < 0 %}text-[color:var(--neg)]{% else %}ink-1{% endif %}">
           {% if account.balance is not defined or account.balance is none or (account.balance|float) == 0 %}—{% else %}{{ num(account.balance|float, 2) }}{% endif %}
         </dd>
       </div>
       {% endif %}
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">Default tax code</dt>
+        <dt class="w-36 shrink-0 ink-3">{{ _("Default tax code") }}</dt>
         <dd class="ink-1">{{ account.tax_code_default or "—" }}</dd>
       </div>
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">Reconcile</dt>
-        <dd class="ink-1">{{ "Yes" if account.reconcile else "No" }}</dd>
+        <dt class="w-36 shrink-0 ink-3">{{ _("Reconcile") }}</dt>
+        <dd class="ink-1">{{ _("Yes") if account.reconcile else _("No") }}</dd>
       </div>
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">Header account</dt>
-        <dd class="ink-1">{{ "Yes" if account.is_header else "No" }}</dd>
+        <dt class="w-36 shrink-0 ink-3">{{ _("Header account") }}</dt>
+        <dd class="ink-1">{{ _("Yes") if account.is_header else _("No") }}</dd>
       </div>
       {% if account.parent_id %}
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">Parent</dt>
+        <dt class="w-36 shrink-0 ink-3">{{ _("Parent") }}</dt>
         <dd class="ink-1">
           <a href="/accounts/{{ account.parent_id }}" class="sae hover:underline font-mono text-xs">{{ account.parent_id }}</a>
         </dd>
@@ -116,18 +116,18 @@
   </div>
 
   <div class="card p-5">
-    <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">Banking</h2>
+    <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Banking") }}</h2>
     <dl class="space-y-2 text-sm">
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">BSB</dt>
+        <dt class="w-36 shrink-0 ink-3">{{ _("BSB") }}</dt>
         <dd class="ink-1 font-mono">{{ account.bsb or "—" }}</dd>
       </div>
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">Account number</dt>
+        <dt class="w-36 shrink-0 ink-3">{{ _("Account number") }}</dt>
         <dd class="ink-1 font-mono">{{ account.bank_account_number or "—" }}</dd>
       </div>
       <div class="flex gap-2">
-        <dt class="w-36 shrink-0 ink-3">Account title</dt>
+        <dt class="w-36 shrink-0 ink-3">{{ _("Account title") }}</dt>
         <dd class="ink-1">{{ account.bank_account_title or "—" }}</dd>
       </div>
     </dl>
@@ -139,7 +139,7 @@
 <div class="mb-8" id="transactions">
   <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
     <h2 class="text-base font-semibold ink-1">
-      Transactions
+      {{ _("Transactions") }}
       {% if lines_total %}
       <span class="ml-2 text-xs font-normal ink-3">{{ lines_total }} line{{ "s" if lines_total != 1 else "" }}</span>
       {% endif %}
@@ -148,12 +148,12 @@
     {# Date filter — submits as GET so the URL stays shareable. #}
     <form method="get" action="/accounts/{{ account.id }}" class="flex flex-wrap items-end gap-2 text-sm">
       <div class="flex flex-col">
-        <label for="date_from" class="text-xs ink-3 mb-0.5">From</label>
+        <label for="date_from" class="text-xs ink-3 mb-0.5">{{ _("From") }}</label>
         <input type="date" id="date_from" name="date_from" value="{{ date_from }}"
                class="saebooks-input text-sm px-2 py-1">
       </div>
       <div class="flex flex-col">
-        <label for="date_to" class="text-xs ink-3 mb-0.5">To</label>
+        <label for="date_to" class="text-xs ink-3 mb-0.5">{{ _("To") }}</label>
         <input type="date" id="date_to" name="date_to" value="{{ date_to }}"
                class="saebooks-input text-sm px-2 py-1">
       </div>
@@ -161,12 +161,12 @@
       <input type="hidden" name="offset" value="0">
       <button type="submit"
               class="btn-primary text-sm">
-        Filter
+        {{ _("Filter") }}
       </button>
       {% if date_from or date_to %}
       <a href="/accounts/{{ account.id }}"
          class="btn-secondary text-sm px-3 py-1.5">
-        Clear
+        {{ _("Clear") }}
       </a>
       {% endif %}
     </form>
@@ -186,13 +186,13 @@
         <tr>
           {%- import "_sort_macros.html" as srt -%}
           {%- set _filters = {"date_from": date_from, "date_to": date_to} -%}
-          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("date",        "Date",        sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("ref",         "Ref",         sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("description", "Description", sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("debit",       "Debit",       sort, direction, _filters, fragment="transactions") }}</th>
-          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("credit",      "Credit",      sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("date",        _("Date"),        sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("ref",         _("Ref"),         sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-left  font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("description", _("Description"), sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("debit",       _("Debit"),       sort, direction, _filters, fragment="transactions") }}</th>
+          <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link("credit",      _("Credit"),      sort, direction, _filters, fragment="transactions") }}</th>
           <th scope="col" class="px-4 py-2 text-right font-medium ink-3 uppercase tracking-wide text-xs">
-            Balance{% if sort != 'date' or direction != 'asc' %}<span class="ml-1 ink-3" title="Balance is only meaningful when sorted by Date ascending">·</span>{% endif %}
+            {{ _("Balance") }}{% if sort != 'date' or direction != 'asc' %}<span class="ml-1 ink-3" title="{{ _('Balance is only meaningful when sorted by Date ascending') }}">·</span>{% endif %}
           </th>
         </tr>
       </thead>
@@ -201,7 +201,7 @@
         <tr class="bg-[color:var(--paper-2)]">
           <td class="px-4 py-2 ink-3 italic">{{ date_from }}</td>
           <td class="px-4 py-2 ink-3"></td>
-          <td class="px-4 py-2 ink-3 italic">Opening balance</td>
+          <td class="px-4 py-2 ink-3 italic">{{ _("Opening balance") }}</td>
           <td class="px-4 py-2"></td>
           <td class="px-4 py-2"></td>
           <td class="px-4 py-2 text-right font-mono ink-3">{{ opening_balance }}</td>
@@ -230,7 +230,7 @@
       <tfoot class="bg-[color:var(--paper-2)] hairline border-t">
         <tr>
           <td colspan="3" class="px-4 py-2 text-xs font-medium ink-3 uppercase tracking-wide">
-            Page totals
+            {{ _("Page totals") }}
           </td>
           <td class="px-4 py-2 text-right font-mono text-sm ink-1">{{ total_debit }}</td>
           <td class="px-4 py-2 text-right font-mono text-sm ink-1">{{ total_credit }}</td>
@@ -247,8 +247,8 @@
   {% elif not ledger_error %}
   <div class="card px-4 py-8 text-center">
     <p class="text-sm ink-3">
-      {% if date_from or date_to %}No posted journal entries against this account in the selected range.
-      {% else %}No posted journal entries against this account yet.{% endif %}
+      {% if date_from or date_to %}{{ _("No posted journal entries against this account in the selected range.") }}
+      {% else %}{{ _("No posted journal entries against this account yet.") }}{% endif %}
     </p>
   </div>
   {% endif %}
@@ -256,22 +256,22 @@
 
 {# ── System / audit info ── #}
 <div class="card p-5 mb-6">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">System Info</h2>
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("System Info") }}</h2>
   <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">ID</dt>
+      <dt class="shrink-0 ink-3">{{ _("ID") }}</dt>
       <dd class="ink-1 font-mono text-xs">{{ account.id }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">Version</dt>
+      <dt class="shrink-0 ink-3">{{ _("Version") }}</dt>
       <dd class="ink-1">{{ account.version }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">System managed</dt>
-      <dd class="ink-1">{{ "Yes" if account.system_managed else "No" }}</dd>
+      <dt class="shrink-0 ink-3">{{ _("System managed") }}</dt>
+      <dd class="ink-1">{{ _("Yes") if account.system_managed else _("No") }}</dd>
     </div>
     <div class="flex gap-2">
-      <dt class="shrink-0 ink-3">Created</dt>
+      <dt class="shrink-0 ink-3">{{ _("Created") }}</dt>
       <dd class="ink-1">{{ account.created_at[:10] }}</dd>
     </div>
   </dl>
