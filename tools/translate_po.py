@@ -131,6 +131,32 @@ def api_translate(texts: list[str], src: str, tgt: str) -> list[str]:
 _CAP_SUFFIX = "CAP"
 
 
+#: Generic python-format protection — EVERY %(name)s / %(name)d token and
+#: literal %% is swapped for an inert numbered token before MT (the static
+#: PROTECTED list only ever covered %(brand)s; TartuNLP translates the
+#: placeholder NAME otherwise: "%(date)s" -> "% (kuupäev) s", which is an
+#: invalid format spec and a runtime ValueError on render). Tokens are plain
+#: uppercase words, which round-trip MT intact.
+_PYFMT = re.compile(r"%\((\w+)\)[sd]|%%")
+
+
+def _protect_pyfmt(text: str) -> tuple[str, dict[str, str]]:
+    mapping: dict[str, str] = {}
+
+    def _sub(m: "re.Match[str]") -> str:
+        token = f"ZQX{len(mapping)}Z"
+        mapping[token] = m.group(0)
+        return token
+
+    return _PYFMT.sub(_sub, text), mapping
+
+
+def _unprotect_pyfmt(text: str, mapping: dict[str, str]) -> str:
+    for token, original in mapping.items():
+        text = text.replace(token, original)
+    return text
+
+
 def protect(text: str) -> str:
     for term, token in PROTECTED:
         pattern = re.compile(re.escape(term), re.IGNORECASE)
@@ -235,9 +261,13 @@ def translate_locale(locale: str) -> tuple[dict[str, str], list[tuple[str, str]]
         return {}, []
 
     print(f"[{locale}] {len(ids)} untranslated msgid(s)")
-    protected_sources = [protect(msgid) for msgid in ids]
+    pyfmt_pairs = [_protect_pyfmt(msgid) for msgid in ids]
+    protected_sources = [protect(t) for t, _m in pyfmt_pairs]
     translated, leaks_tokens = translate_batch(protected_sources, locale)
     leaks = [(locale, term) for term, _tok in leaks_tokens]
+    translated = [
+        _unprotect_pyfmt(t, m) for t, (_src, m) in zip(translated, pyfmt_pairs)
+    ]
 
     for msgid, msgstr in zip(ids, translated):
         message = catalog.get(msgid)

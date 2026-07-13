@@ -27,8 +27,10 @@ import saebooks_web.i18n as i18n
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def _catalog_message_ids(catalog) -> set[str]:
-    return {m.id for m in catalog if m.id}
+def _catalog_message_ids(catalog) -> set:
+    # Plural messages carry a (singular, plural) list as their id — make it
+    # hashable so the set works for singular and plural entries alike.
+    return {tuple(m.id) if isinstance(m.id, list) else m.id for m in catalog if m.id}
 
 
 def test_babel_cfg_extracts_from_real_template_tree(tmp_path):

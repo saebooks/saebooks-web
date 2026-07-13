@@ -50,7 +50,16 @@ def _make_session_cookie(data: dict) -> str:
     return signer.sign(payload).decode("utf-8")
 
 
-_SESSION_COOKIE = _make_session_cookie({"api_token": "test-token-einvoice"})
+_SESSION_COOKIE = _make_session_cookie(
+    {
+        "api_token": "test-token-einvoice",
+        # Pin the render locale to English so assertions match the source
+        # strings. In production EE-jurisdiction pages render in the
+        # visitor's locale (Estonian); the LocaleMiddleware honours this
+        # session override above the jurisdiction default.
+        "locale": "en",
+    }
+)
 
 _MOCK_INVOICE = {
     "id": _INV_ID,
