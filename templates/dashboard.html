@@ -20,7 +20,7 @@
   <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <span class="nav-section-label">Dashboard</span>
+        <span class="nav-section-label">{{ _("Dashboard") }}</span>
         {% if gst and gst.fy_start %}
         <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
           FY&nbsp;{{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}
@@ -28,7 +28,7 @@
         {% endif %}
       </div>
       <h1 class="font-display text-3xl sm:text-4xl leading-none tracking-tight">
-        <span id="greeting" data-username="{{ request.session.get('username') or '' }}">Today at a glance</span>
+        <span id="greeting" data-username="{{ request.session.get('username') or '' }}">{{ _("Today at a glance") }}</span>
       </h1>
       <p class="mt-2 text-sm ink-3">
         {{ fy_from }} <span class="ink-4">→</span> {{ fy_to }}
@@ -40,25 +40,25 @@
       <button id="customise-toggle" type="button"
               class="chip ink-3 hover:bg-[color:var(--paper-2)]"
               style="border-color:var(--line);"
-              title="Hide/show dashboard widgets">
+              title="{{ _('Hide/show dashboard widgets') }}">
         <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
-        <span data-customise-label>Customise</span>
+        <span data-customise-label>{{ _("Customise") }}</span>
       </button>
       {% if jurisdiction == 'AU' %}
       {% if gst and gst.threshold_crossed %}
         <a href="#gst-tile" class="chip" style="border-color:var(--neg);color:var(--neg);">
           <span class="dot" style="background:var(--neg);"></span>
-          GST · register within 21 days
+          GST · {{ _("register within 21 days") }}
         </a>
       {% elif gst and gst.threshold_approaching %}
         <a href="#gst-tile" class="chip" style="border-color:var(--warm);color:var(--warm);">
           <span class="dot" style="background:var(--warm);"></span>
-          GST · {{ num(gst.pct, 0) }}% of threshold
+          GST · {{ _("%(pct)s%% of threshold") % {"pct": num(gst.pct, 0)} }}
         </a>
       {% else %}
         <span class="chip" style="border-color:var(--pos);color:var(--pos);">
           <span class="dot" style="background:var(--pos);"></span>
-          GST · under threshold
+          GST · {{ _("under threshold") }}
         </span>
       {% endif %}
       {% endif %}
@@ -67,12 +67,12 @@
         <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}"
            class="chip" style="border-color:var(--neg);color:var(--neg);">
           <span class="dot" style="background:var(--neg);"></span>
-          PSI · {{ num(top_customer_pct|float, 0) }}% from 1 customer
+          PSI · {{ _("%(pct)s%% from 1 customer") % {"pct": num(top_customer_pct|float, 0)} }}
         </a>
       {% elif psi_status == "unsure" %}
         <a href="/settings/company" class="chip" style="border-color:var(--warm);color:var(--warm);">
           <span class="dot" style="background:var(--warm);"></span>
-          PSI status · unset
+          {{ _("PSI status · unset") }}
         </a>
       {% endif %}
     </div>
@@ -86,36 +86,36 @@
    ───────────────────────────────────────────────────────────────────────── #}
 <div data-widget-zone="kpi"
      class="grid grid-cols-2 lg:grid-cols-3 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
-  <section data-widget="kpi-ar" data-widget-title="AR · outstanding" data-widget-href="/invoices" class="card bg-paper p-5 rounded-none">
-    <p class="nav-section-label mb-2">AR · outstanding</p>
+  <section data-widget="kpi-ar" data-widget-title="{{ _('AR · outstanding') }}" data-widget-href="/invoices" class="card bg-paper p-5 rounded-none">
+    <p class="nav-section-label mb-2">AR · {{ _("outstanding") }}</p>
     <p class="num-display text-2xl sae">
       {{ money(ar.paid_total|float, decimals=0) }}
       {% if ar.delta_pct is defined and ar.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ar.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ar.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(ar.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
-      {{ ar.paid_count }} invoice{{ '' if ar.paid_count == 1 else 's' }}
+      {{ ngettext("%(n)s invoice", "%(n)s invoices", ar.paid_count) % {"n": ar.paid_count} }}
       {% if ar.overdue_count > 0 %}
-        <span style="color:var(--neg);">· {{ ar.overdue_count }} overdue</span>
+        <span style="color:var(--neg);">· {{ _("%(n)s overdue") % {"n": ar.overdue_count} }}</span>
       {% endif %}
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkAr" data-seed="{{ ar.paid_total|round|int }}" data-tint="var(--sae)"></canvas></div>
   </section>
-  <section data-widget="kpi-ap" data-widget-title="AP · outstanding" data-widget-href="/bills" class="card bg-paper p-5 rounded-none">
-    <p class="nav-section-label mb-2">AP · outstanding</p>
+  <section data-widget="kpi-ap" data-widget-title="{{ _('AP · outstanding') }}" data-widget-href="/bills" class="card bg-paper p-5 rounded-none">
+    <p class="nav-section-label mb-2">AP · {{ _("outstanding") }}</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
       {{ money(ap.paid_total|float, decimals=0) }}
       {% if ap.delta_pct is defined and ap.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if ap.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if ap.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(ap.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
-      {{ ap.paid_count }} bill{{ '' if ap.paid_count == 1 else 's' }}
+      {{ ngettext("%(n)s bill", "%(n)s bills", ap.paid_count) % {"n": ap.paid_count} }}
       {% if ap.due_soon_count > 0 %}
-        <span style="color:var(--warm);">· {{ ap.due_soon_count }} due ≤7d</span>
+        <span style="color:var(--warm);">· {{ _("%(n)s due ≤7d") % {"n": ap.due_soon_count} }}</span>
       {% endif %}
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkAp" data-seed="{{ ap.paid_total|round|int }}" data-tint="var(--sae-2)"></canvas></div>
   </section>
-  <section data-widget="kpi-cash" data-widget-title="Cash · this month" data-widget-href="/payments" class="card bg-paper p-5 rounded-none">
-    <p class="nav-section-label mb-2">Cash · this month</p>
+  <section data-widget="kpi-cash" data-widget-title="{{ _('Cash · this month') }}" data-widget-href="/payments" class="card bg-paper p-5 rounded-none">
+    <p class="nav-section-label mb-2">{{ _("Cash · this month") }}</p>
     <p class="num-display text-2xl" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
       {% if cash.net < 0 %}−{% endif %}{{ money(cash.net|abs|float, decimals=0) }}
       {% if cash.delta_pct is defined and cash.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if cash.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if cash.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(cash.delta_pct|abs, 1) }}%</span>{% endif %}
@@ -130,18 +130,18 @@
   {% if jurisdiction == 'AU' %}
   {# GST turnover tile — default HIDDEN. Under-$75k orgs belong on Cashbook;
      this only resurfaces if a user explicitly adds it via Customise. #}
-  <section data-widget="kpi-gst" data-widget-title="GST turnover · YTD"
+  <section data-widget="kpi-gst" data-widget-title="{{ _('GST turnover · YTD') }}"
            data-widget-default-hidden="1"
            data-widget-href="/reports"
            class="card bg-paper p-5 rounded-none">
-    <p class="nav-section-label mb-2">GST turnover · YTD</p>
+    <p class="nav-section-label mb-2">{{ _("GST turnover · YTD") }}</p>
     <p class="num-display text-2xl"
        style="color: {% if gst and gst.threshold_crossed %}var(--neg){% elif gst and gst.threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
       {{ money((gst.ytd_turnover if gst else 0)|float, decimals=0) }}
       {% if gst.delta_pct is defined and gst.delta_pct is not none %}<span class="num text-xs ml-2" style="color: {% if gst.delta_pct >= 0 %}var(--pos){% else %}var(--neg){% endif %};">{% if gst.delta_pct >= 0 %}▲{% else %}▼{% endif %} {{ num(gst.delta_pct|abs, 1) }}%</span>{% endif %}
     </p>
     <p class="mt-1 text-xs ink-3">
-      of $75,000 threshold
+      {{ _("of $75,000 threshold") }}
       {% if gst %} · <span class="num">{{ num(gst.pct, 0) }}%</span>{% endif %}
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkGst" data-seed="{{ (gst.ytd_turnover if gst else 0)|round|int }}" data-tint="var(--warm)"></canvas></div>
@@ -161,30 +161,30 @@
   <div class="lg:col-span-2 space-y-6">
 
     {# Cash flow card with sparkline #}
-    <section data-widget="cashflow" data-widget-title="Cash flow · this month" data-widget-href="/payments" class="card p-6">
+    <section data-widget="cashflow" data-widget-title="{{ _('Cash flow · this month') }}" data-widget-href="/payments" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
-          <p class="nav-section-label">Cash flow · this month</p>
+          <p class="nav-section-label">{{ _("Cash flow · this month") }}</p>
           <h2 class="font-display text-2xl mt-1">
-            Net <span class="num-display" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
+            {{ _("Net") }} <span class="num-display" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
               {% if cash.net < 0 %}−{% endif %}{{ money(cash.net|abs|float) }}
             </span>
           </h2>
         </div>
         <a href="/payments" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
-          all payments →
+          {{ _("all payments →") }}
         </a>
       </div>
       <div class="relative w-full" style="height:72px;"><canvas id="cashSpark"></canvas></div>
       <div class="hairline mt-5 pt-4 grid grid-cols-2 gap-4">
         <div>
-          <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Payments in</p>
+          <p class="text-[11px] font-mono uppercase tracking-wider ink-3">{{ _("Payments in") }}</p>
           <p class="num-display text-xl pos mt-1">
             {{ money(cash.in_total|float) }}
           </p>
         </div>
         <div class="border-l hairline pl-4">
-          <p class="text-[11px] font-mono uppercase tracking-wider ink-3">Payments out</p>
+          <p class="text-[11px] font-mono uppercase tracking-wider ink-3">{{ _("Payments out") }}</p>
           <p class="num-display text-xl neg mt-1">
             {{ money(cash.out_total|float) }}
           </p>
@@ -193,30 +193,30 @@
     </section>
 
     {# AR aging #}
-    <section data-widget="ar-aging" data-widget-title="Receivables aging" data-widget-href="/invoices" class="card p-6">
+    <section data-widget="ar-aging" data-widget-title="{{ _('Receivables aging') }}" data-widget-href="/invoices" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
-          <p class="nav-section-label">Receivables aging</p>
+          <p class="nav-section-label">{{ _("Receivables aging") }}</p>
           <h2 class="font-display text-xl mt-1">
-            Money owed to you
+            {{ _("Money owed to you") }}
           </h2>
         </div>
         <a href="/invoices" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
-          invoices →
+          {{ _("invoices →") }}
         </a>
       </div>
       <table class="sae-table w-full">
         <thead>
           <tr>
-            <th class="text-left">State</th>
-            <th class="text-right">Count</th>
-            <th class="text-right">Amount</th>
+            <th class="text-left">{{ _("State") }}</th>
+            <th class="text-right">{{ _("Count") }}</th>
+            <th class="text-right">{{ _("Amount") }}</th>
           </tr>
         </thead>
         <tbody>
           <tr data-widget-href="/invoices?status=draft">
             <td>
-              <span class="badge-draft">Draft</span>
+              <span class="badge-draft">{{ _("Draft") }}</span>
             </td>
             <td class="text-right num">{{ ar.draft_count }}</td>
             <td class="text-right num">{{ money(ar.draft_total|float) }}</td>
@@ -224,9 +224,9 @@
           <tr data-widget-href="/invoices?status=overdue" {% if ar.overdue_count > 0 %}style="background:rgba(161,67,51,0.04);"{% endif %}>
             <td>
               {% if ar.overdue_count > 0 %}
-                <span class="badge-overdue">Overdue</span>
+                <span class="badge-overdue">{{ _("Overdue") }}</span>
               {% else %}
-                <span class="ink-3">Overdue</span>
+                <span class="ink-3">{{ _("Overdue") }}</span>
               {% endif %}
             </td>
             <td class="text-right num" {% if ar.overdue_count > 0 %}style="color:var(--neg);font-weight:600;"{% endif %}>
@@ -238,7 +238,7 @@
           </tr>
           <tr data-widget-href="/invoices?status=open">
             <td>
-              <span class="badge-open">Open</span>
+              <span class="badge-open">{{ _("Open") }}</span>
             </td>
             <td class="text-right num">{{ ar.paid_count }}</td>
             <td class="text-right num">{{ money(ar.paid_total|float) }}</td>
@@ -248,30 +248,30 @@
     </section>
 
     {# AP aging #}
-    <section data-widget="ap-aging" data-widget-title="Payables aging" data-widget-href="/bills" class="card p-6">
+    <section data-widget="ap-aging" data-widget-title="{{ _('Payables aging') }}" data-widget-href="/bills" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
-          <p class="nav-section-label">Payables aging</p>
+          <p class="nav-section-label">{{ _("Payables aging") }}</p>
           <h2 class="font-display text-xl mt-1">
-            Money you owe
+            {{ _("Money you owe") }}
           </h2>
         </div>
         <a href="/bills" class="text-xs sae hover:underline font-mono uppercase tracking-wider">
-          bills →
+          {{ _("bills →") }}
         </a>
       </div>
       <table class="sae-table w-full">
         <thead>
           <tr>
-            <th class="text-left">State</th>
-            <th class="text-right">Count</th>
-            <th class="text-right">Amount</th>
+            <th class="text-left">{{ _("State") }}</th>
+            <th class="text-right">{{ _("Count") }}</th>
+            <th class="text-right">{{ _("Amount") }}</th>
           </tr>
         </thead>
         <tbody>
           <tr data-widget-href="/bills?status=draft">
             <td>
-              <span class="badge-draft">Draft</span>
+              <span class="badge-draft">{{ _("Draft") }}</span>
             </td>
             <td class="text-right num">{{ ap.draft_count }}</td>
             <td class="text-right num">{{ money(ap.draft_total|float) }}</td>
@@ -279,9 +279,9 @@
           <tr data-widget-href="/bills?status=due-soon" {% if ap.due_soon_count > 0 %}style="background:rgba(200,155,60,0.05);"{% endif %}>
             <td>
               {% if ap.due_soon_count > 0 %}
-                <span class="badge-pending">Due ≤ 7d</span>
+                <span class="badge-pending">{{ _("Due ≤ 7d") }}</span>
               {% else %}
-                <span class="ink-3">Due ≤ 7d</span>
+                <span class="ink-3">{{ _("Due ≤ 7d") }}</span>
               {% endif %}
             </td>
             <td class="text-right num" {% if ap.due_soon_count > 0 %}style="color:var(--warm);font-weight:600;"{% endif %}>
@@ -293,7 +293,7 @@
           </tr>
           <tr data-widget-href="/bills?status=open">
             <td>
-              <span class="badge-open">Open</span>
+              <span class="badge-open">{{ _("Open") }}</span>
             </td>
             <td class="text-right num">{{ ap.paid_count }}</td>
             <td class="text-right num">{{ money(ap.paid_total|float) }}</td>
@@ -304,12 +304,12 @@
 
     {# Weekly takings — preserved, restyled #}
     {% if takings %}
-    <section data-widget="weekly-takings" data-widget-title="Weekly takings" data-widget-href="/payments" class="card p-6">
+    <section data-widget="weekly-takings" data-widget-title="{{ _('Weekly takings') }}" data-widget-href="/payments" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
-          <p class="nav-section-label">Weekly takings</p>
+          <p class="nav-section-label">{{ _("Weekly takings") }}</p>
           <h2 class="font-display text-xl mt-1">
-            Cash through the door
+            {{ _("Cash through the door") }}
           </h2>
           <p class="text-xs ink-3 mt-1 font-mono">
             {{ takings.this_start }} → {{ takings.this_end }}
@@ -324,11 +324,11 @@
       </div>
       <div class="grid grid-cols-2 gap-4">
         <div class="hairline rounded-md p-3">
-          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">This week</p>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("This week") }}</p>
           <p class="num-display text-xl mt-1">{{ money(takings.this_week|float) }}</p>
         </div>
         <div class="hairline rounded-md p-3">
-          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">Prior week</p>
+          <p class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Prior week") }}</p>
           <p class="num-display text-xl mt-1 ink-2">{{ money(takings.last_week|float) }}</p>
           <p class="text-[10px] font-mono ink-4 mt-1">{{ takings.last_start }} – {{ takings.last_end }}</p>
         </div>
@@ -343,13 +343,13 @@
     {% if jurisdiction == 'AU' %}
     {# GST gauge — DEFAULT HIDDEN. Under-$75k orgs belong on Cashbook;
        this only resurfaces if a user explicitly adds it via Customise. #}
-    <section id="gst-tile" data-widget="gst-tile" data-widget-title="GST turnover · YTD"
+    <section id="gst-tile" data-widget="gst-tile" data-widget-title="{{ _('GST turnover · YTD') }}"
              data-widget-default-hidden="1"
              class="card p-6 relative overflow-hidden">
       <div class="dot-grid absolute inset-0 -z-10 opacity-40"></div>
-      <p class="nav-section-label">GST · {% if gst and gst.fy_start %}FY {{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}{% else %}this FY{% endif %}</p>
+      <p class="nav-section-label">GST · {% if gst and gst.fy_start %}FY {{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}{% else %}{{ _("this FY") }}{% endif %}</p>
       <h2 class="font-display text-xl mt-1 mb-4">
-        Turnover tracker
+        {{ _("Turnover tracker") }}
       </h2>
 
       {# Gauge dial #}
@@ -376,13 +376,13 @@
 
       <dl class="mt-4 space-y-2">
         <div class="flex justify-between hairline-b pb-2">
-          <dt class="text-xs ink-3">YTD turnover</dt>
+          <dt class="text-xs ink-3">{{ _("YTD turnover") }}</dt>
           <dd class="num text-sm" style="font-weight:600;">
             {{ money((gst.ytd_turnover if gst else 0)|float) }}
           </dd>
         </div>
         <div class="flex justify-between">
-          <dt class="text-xs ink-3">Threshold</dt>
+          <dt class="text-xs ink-3">{{ _("Threshold") }}</dt>
           <dd class="num text-sm ink-2">$75,000.00</dd>
         </div>
       </dl>
@@ -392,15 +392,15 @@
           <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
              target="_blank" rel="noopener"
              class="btn-primary w-full justify-center" style="background:var(--neg);border-color:var(--neg);">
-            Register with ATO · 21d window
+            {{ _("Register with ATO · 21d window") }}
           </a>
         {% elif gst and gst.threshold_approaching %}
           <a href="/settings/company" class="btn-secondary w-full justify-center">
-            Update GST status
+            {{ _("Update GST status") }}
           </a>
         {% else %}
           <a href="/reports" class="btn-secondary w-full justify-center">
-            View reports
+            {{ _("View reports") }}
           </a>
         {% endif %}
       </div>
@@ -408,12 +408,12 @@
     {% endif %}
 
     {# Recent activity #}
-    <section data-widget="recent-activity" data-widget-title="Recent activity" class="card p-6">
+    <section data-widget="recent-activity" data-widget-title="{{ _('Recent activity') }}" class="card p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
-          <p class="nav-section-label">Recent activity</p>
+          <p class="nav-section-label">{{ _("Recent activity") }}</p>
           <h2 class="font-display text-xl mt-1">
-            Latest in the ledger
+            {{ _("Latest in the ledger") }}
           </h2>
         </div>
       </div>
@@ -445,7 +445,7 @@
         {% endfor %}
       </ol>
       {% else %}
-      <p class="text-sm ink-3 py-6 text-center font-mono">— no recent activity —</p>
+      <p class="text-sm ink-3 py-6 text-center font-mono">{{ _("— no recent activity —") }}</p>
       {% endif %}
     </section>
 
@@ -458,20 +458,20 @@
    loud red/amber banners with prose under hairlines.
    ───────────────────────────────────────────────────────────────────────── #}
 {% if (jurisdiction == 'AU' and gst and (gst.threshold_crossed or gst.threshold_approaching)) or concentration_warning or psi_status == "unsure" %}
-<section data-widget="compliance" data-widget-title="Compliance notes" class="card-hero p-6">
-  <p class="nav-section-label mb-4">Compliance notes</p>
+<section data-widget="compliance" data-widget-title="{{ _('Compliance notes') }}" class="card-hero p-6">
+  <p class="nav-section-label mb-4">{{ _("Compliance notes") }}</p>
   <div class="space-y-4 text-sm">
 
     {% if jurisdiction == 'AU' and gst and gst.threshold_crossed %}
     <div class="flex gap-3">
       <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full" style="background:var(--neg);"></span>
       <div>
-        <p class="font-medium ink-1">GST registration threshold crossed</p>
+        <p class="font-medium ink-1">{{ _("GST registration threshold crossed") }}</p>
         <p class="ink-3 mt-1">
-          Your YTD turnover is <span class="num" style="color:var(--neg);font-weight:600;">{{ money(gst.ytd_turnover|float) }}</span>,
-          above the $75,000 GST registration threshold. You must register with the ATO within 21 days.
+          {{ _("Your YTD turnover is") }} <span class="num" style="color:var(--neg);font-weight:600;">{{ money(gst.ytd_turnover|float) }}</span>,
+          {{ _("above the $75,000 GST registration threshold. You must register with the ATO within 21 days.") }}
           <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
-             target="_blank" rel="noopener" class="sae hover:underline">Register with ATO →</a>
+             target="_blank" rel="noopener" class="sae hover:underline">{{ _("Register with ATO →") }}</a>
         </p>
       </div>
     </div>
@@ -479,12 +479,12 @@
     <div class="flex gap-3">
       <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full" style="background:var(--warm);"></span>
       <div>
-        <p class="font-medium ink-1">Approaching GST registration threshold</p>
+        <p class="font-medium ink-1">{{ _("Approaching GST registration threshold") }}</p>
         <p class="ink-3 mt-1">
-          YTD turnover <span class="num" style="font-weight:600;">{{ money(gst.ytd_turnover|float) }}</span> ({{ num(gst.pct, 0) }}% of $75k).
-          Once you exceed the threshold you have 21 days to register.
+          {{ _("YTD turnover") }} <span class="num" style="font-weight:600;">{{ money(gst.ytd_turnover|float) }}</span> ({{ num(gst.pct, 0) }}% {{ _("of $75k") }}).
+          {{ _("Once you exceed the threshold you have 21 days to register.") }}
           <a href="https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst"
-             target="_blank" rel="noopener" class="sae hover:underline">ATO registration info →</a>
+             target="_blank" rel="noopener" class="sae hover:underline">{{ _("ATO registration info →") }}</a>
         </p>
       </div>
     </div>
@@ -494,15 +494,15 @@
     <div class="flex gap-3">
       <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full" style="background:var(--neg);"></span>
       <div>
-        <p class="font-medium ink-1">Revenue concentration · PSI 80/20 rule</p>
+        <p class="font-medium ink-1">{{ _("Revenue concentration · PSI 80/20 rule") }}</p>
         <p class="ink-3 mt-1">
-          {% if top_customer_name %}<strong class="ink-1">{{ top_customer_name }}</strong> accounts{% else %}A single customer accounts{% endif %}
-          for <span class="num" style="color:var(--neg);font-weight:600;">{{ num(top_customer_pct|float, 1) }}%</span>
-          of invoiced revenue ({{ fy_from }} – {{ fy_to }}). The ATO's 80/20 rule may apply.
-          <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}" class="sae hover:underline">Breakdown →</a>
+          {% if top_customer_name %}<strong class="ink-1">{{ top_customer_name }}</strong> {{ _("accounts") }}{% else %}{{ _("A single customer accounts") }}{% endif %}
+          {{ _("for") }} <span class="num" style="color:var(--neg);font-weight:600;">{{ num(top_customer_pct|float, 1) }}%</span>
+          {{ _("of invoiced revenue") }} ({{ fy_from }} – {{ fy_to }}). {{ _("The ATO's 80/20 rule may apply.") }}
+          <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}" class="sae hover:underline">{{ _("Breakdown →") }}</a>
           <span class="ink-4">·</span>
           <a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/personal-services-income"
-             target="_blank" rel="noopener" class="sae hover:underline">PSI guide →</a>
+             target="_blank" rel="noopener" class="sae hover:underline">{{ _("PSI guide →") }}</a>
         </p>
       </div>
     </div>
@@ -512,11 +512,10 @@
     <div class="flex gap-3">
       <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full" style="background:var(--warm);"></span>
       <div>
-        <p class="font-medium ink-1">PSI classification not set</p>
+        <p class="font-medium ink-1">{{ _("PSI classification not set") }}</p>
         <p class="ink-3 mt-1">
-          If most of your income is from personal services (e.g. contracting), claiming spouse wages,
-          a second vehicle, or home-office deductions without a PSI determination is a common audit trigger.
-          <a href="/settings/company" class="sae hover:underline">Set PSI status →</a>
+          {{ _("If most of your income is from personal services (e.g. contracting), claiming spouse wages, a second vehicle, or home-office deductions without a PSI determination is a common audit trigger.") }}
+          <a href="/settings/company" class="sae hover:underline">{{ _("Set PSI status →") }}</a>
         </p>
       </div>
     </div>
@@ -531,33 +530,33 @@
    ───────────────────────────────────────────────────────────────────────── #}
 {% from "_funnel_macros.html" import funnel %}
 
-<section data-widget="sales-pipeline" data-widget-title="Sales pipeline"
+<section data-widget="sales-pipeline" data-widget-title="{{ _('Sales pipeline') }}"
          data-widget-default-hidden="1"
          data-widget-href="/invoices">
-  {{ funnel(sales_pipeline, title="Sales pipeline", as_of=today_iso) }}
+  {{ funnel(sales_pipeline, title=_("Sales pipeline"), as_of=today_iso) }}
 </section>
 
-<section data-widget="bills-pipeline" data-widget-title="Bills pipeline"
+<section data-widget="bills-pipeline" data-widget-title="{{ _('Bills pipeline') }}"
          data-widget-default-hidden="1"
          data-widget-href="/bills">
-  {{ funnel(bills_pipeline, title="Bills pipeline", as_of=today_iso) }}
+  {{ funnel(bills_pipeline, title=_("Bills pipeline"), as_of=today_iso) }}
 </section>
 
-<section data-widget="top-vendors-month" data-widget-title="Top vendors · this month"
+<section data-widget="top-vendors-month" data-widget-title="{{ _('Top vendors · this month') }}"
          data-widget-default-hidden="1"
          data-widget-href="/expenses-overview"
          class="card p-6">
   <div class="flex items-start justify-between mb-4">
-    <p class="nav-section-label">Top vendors · this month</p>
-    <a href="/expenses-overview" class="text-xs sae hover:underline">View all →</a>
+    <p class="nav-section-label">{{ _("Top vendors · this month") }}</p>
+    <a href="/expenses-overview" class="text-xs sae hover:underline">{{ _("View all →") }}</a>
   </div>
   {% if top_vendors_month %}
   <table class="w-full text-sm">
     <thead>
       <tr class="ink-3 text-[10px] font-mono uppercase tracking-wider border-b hairline">
-        <th class="text-left py-2 font-normal">Vendor</th>
-        <th class="text-right py-2 font-normal">Bills</th>
-        <th class="text-right py-2 font-normal">Total</th>
+        <th class="text-left py-2 font-normal">{{ _("Vendor") }}</th>
+        <th class="text-right py-2 font-normal">{{ _("Bills") }}</th>
+        <th class="text-right py-2 font-normal">{{ _("Total") }}</th>
       </tr>
     </thead>
     <tbody>
@@ -573,7 +572,7 @@
     </tbody>
   </table>
   {% else %}
-  <p class="ink-3 text-sm">No bills this month yet.</p>
+  <p class="ink-3 text-sm">{{ _("No bills this month yet.") }}</p>
   {% endif %}
 </section>
 
@@ -872,20 +871,20 @@ function kpiSpark(canvasId, seed, tintCss) {
 
 <div id="customise-rail" aria-hidden="true">
   <button id="add-widget-btn" type="button" class="btn btn-secondary">
-    <i data-lucide="plus" class="w-4 h-4"></i> Add widget
+    <i data-lucide="plus" class="w-4 h-4"></i> {{ _("Add widget") }}
   </button>
-  <div id="widget-trash">Drag here to hide</div>
-  <button id="customise-reset" type="button" class="btn btn-secondary" title="Reset layout to defaults">
-    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+  <div id="widget-trash">{{ _("Drag here to hide") }}</div>
+  <button id="customise-reset" type="button" class="btn btn-secondary" title="{{ _('Reset layout to defaults') }}">
+    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> {{ _("Reset") }}
   </button>
 </div>
 
 <dialog id="add-widget-dialog">
-  <h3 class="font-display text-lg mb-2">Add widget</h3>
-  <p class="text-xs ink-3 mb-2">Hidden widgets you can return to the dashboard:</p>
+  <h3 class="font-display text-lg mb-2">{{ _("Add widget") }}</h3>
+  <p class="text-xs ink-3 mb-2">{{ _("Hidden widgets you can return to the dashboard:") }}</p>
   <ul id="add-widget-list"></ul>
   <div class="flex justify-end gap-2 mt-3">
-    <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-widget-dialog').close()">Close</button>
+    <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-widget-dialog').close()">{{ _("Close") }}</button>
   </div>
 </dialog>
 

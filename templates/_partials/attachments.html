@@ -27,7 +27,7 @@
 
   {# ── Vault disabled ── #}
   <div class="bg-[color:var(--paper-2)] rounded-xl border border-dashed hairline px-4 py-4 text-sm ink-3">
-    Attachments are disabled for this instance.
+    {{ _("Attachments are disabled for this instance.") }}
   </div>
 
   {% else %}
@@ -38,11 +38,11 @@
     <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
       <thead class="bg-[color:var(--paper-2)]">
         <tr>
-          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">File</th>
-          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Size</th>
-          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs hidden sm:table-cell">Uploaded by</th>
-          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs hidden md:table-cell">Date</th>
-          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Actions</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("File") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Size") }}</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs hidden sm:table-cell">{{ _("Uploaded by") }}</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs hidden md:table-cell">{{ _("Date") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Actions") }}</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-[color:var(--line)]">
@@ -66,17 +66,17 @@
               href="/attachments/{{ att.id }}/download"
               class="inline-flex items-center rounded-md bg-[#194291] px-2.5 py-1 text-xs font-medium text-white
                      hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-1 mr-2"
-            >Download</a>
+            >{{ _("Download") }}</a>
             <button
               type="button"
               hx-delete="/attachments/{{ att.id }}?entity_kind={{ entity_kind }}&entity_id={{ entity_id }}"
               hx-target="#attachments-{{ entity_kind }}-{{ entity_id }}"
               hx-swap="outerHTML"
-              hx-confirm="Delete '{{ att.filename }}'? This cannot be undone."
+              hx-confirm="{{ _('Delete “%(name)s”? This cannot be undone.') % {'name': att.filename} }}"
               class="inline-flex items-center rounded-md bg-[color:var(--neg-tint)] px-2.5 py-1 text-xs font-medium text-[color:var(--neg)]
                      hover:bg-[color:var(--neg-tint)] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1
                      border border-[color:var(--neg)]"
-            >Delete</button>
+            >{{ _("Delete") }}</button>
           </td>
         </tr>
         {% endif %}
@@ -85,7 +85,7 @@
     </table>
   </div>
   {% else %}
-  <p class="text-sm ink-3 mb-4">No attachments yet.</p>
+  <p class="text-sm ink-3 mb-4">{{ _("No attachments yet.") }}</p>
   {% endif %}
 
   {# ── Upload form ── #}
@@ -112,7 +112,7 @@
       class="rounded-md bg-[#194291] px-3 py-1.5 text-xs font-medium text-white
              hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-1
              whitespace-nowrap"
-    >Upload</button>
+    >{{ _("Upload") }}</button>
   </form>
 
   {% if upload_error %}
