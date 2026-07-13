@@ -18,15 +18,15 @@
     <thead>
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">SKU</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Type</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">Sale price</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">On hand</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("SKU") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Type") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Sale price") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("On hand") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -39,7 +39,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ item.id }}"
-                   aria-label="Select item {{ item.name }}"
+                   aria-label="{{ _('Select item %(name)s') % {'name': item.name} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -65,11 +65,11 @@
           </td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
-              ("view",    "View",    "/items/" ~ item.id,             "link", false),
-              ("edit",    "Edit",    "/items/" ~ item.id ~ "/edit",   "link", false),
-              ("archive", "Archive", "/items/" ~ item.id ~ "/archive","post", true),            ] %}
+              ("view",    _("View"),    "/items/" ~ item.id,             "link", false),
+              ("edit",    _("Edit"),    "/items/" ~ item.id ~ "/edit",   "link", false),
+              ("archive", _("Archive"), "/items/" ~ item.id ~ "/archive","post", true),            ] %}
               {%- if is_feature_enabled("hard_delete") %}
-              {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/items/" ~ item.id ~ "/hard-delete", "post", true)) %}
+              {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/items/" ~ item.id ~ "/hard-delete", "post", true)) %}
               {%- endif %}
             {{ km.kebab(row_id=item.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -77,12 +77,12 @@
         {% endfor %}
       {% else %}
         {% if not filter_item_type %}
-        {{ empty.row(7, "package", "No items yet",
-                     "Add your first product or service to start invoicing.",
-                     "New item", "/items/new") }}
+        {{ empty.row(7, "package", _("No items yet"),
+                     _("Add your first product or service to start invoicing."),
+                     _("New item"), "/items/new") }}
         {% else %}
-        {{ empty.row(7, "search-x", "No items match this filter",
-                     "Try clearing the type filter above.") }}
+        {{ empty.row(7, "search-x", _("No items match this filter"),
+                     _("Try clearing the type filter above.")) }}
         {% endif %}
       {% endif %}
     </tbody>
@@ -93,7 +93,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(start)s–%(end)s of %(total)s") % {"start": offset + 1, "end": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -104,7 +104,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="btn-secondary text-sm px-3 py-1.5"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -114,7 +114,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="btn-secondary text-sm px-3 py-1.5"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>

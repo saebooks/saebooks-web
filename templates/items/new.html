@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}New Item — SAE Books{% endblock %}
+{% block title %}{{ _("New Item") }} — SAE Books{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">New Item</h1>
-  <a href="/items" class="text-sm sae hover:underline">← Back to items</a>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New Item") }}</h1>
+  <a href="/items" class="text-sm sae hover:underline">{{ _("← Back to items") }}</a>
 </div>
 
 <div class="card shadow-sm px-6 py-6 max-w-2xl">
@@ -24,13 +24,13 @@
         type="submit"
         class="btn-primary text-sm px-5 py-2"
       >
-        Save item
+        {{ _("Save item") }}
       </button>
       <a
         href="/items"
         class="btn-secondary text-sm px-5 py-2"
       >
-        Cancel
+        {{ _("Cancel") }}
       </a>
     </div>
 
