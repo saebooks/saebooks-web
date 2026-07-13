@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Cannot Edit Recurring Invoice — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Cannot Edit Recurring Invoice") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold ink-1">Cannot Edit Recurring Invoice</h1>
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Cannot Edit Recurring Invoice") }}</h1>
   {% if ri %}
-  <a href="/recurring-invoices/{{ ri.id }}" class="text-sm sae hover:underline">← Back to recurring invoice</a>
+  <a href="/recurring-invoices/{{ ri.id }}" class="text-sm sae hover:underline">← {{ _("Back to recurring invoice") }}</a>
   {% else %}
-  <a href="/recurring-invoices" class="text-sm sae hover:underline">← Back to recurring invoices</a>
+  <a href="/recurring-invoices" class="text-sm sae hover:underline">← {{ _("Back to recurring invoices") }}</a>
   {% endif %}
 </div>
 
 <div class="card px-6 py-5 text-sm ink-2 max-w-xl" style="border-color:var(--warm);">
   <p class="font-semibold mb-2" style="color:var(--warm);">
-    This recurring invoice has status {{ ri.status | capitalize }} and cannot be edited.
+    {{ _("This recurring invoice has status %(status)s and cannot be edited.") % {"status": ri.status | capitalize} }}
   </p>
   <p>
-    Ended recurring invoices are read-only. Archive or create a new one if changes are needed.
+    {{ _("Ended recurring invoices are read-only. Archive or create a new one if changes are needed.") }}
   </p>
 </div>
 

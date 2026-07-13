@@ -18,16 +18,16 @@
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Frequency</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Next run</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">End date</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Auto post</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Status</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Frequency") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Next run") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("End date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Auto post") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -41,7 +41,7 @@
         >
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ ri.id }}"
-                   aria-label="Select recurring invoice {{ ri.name }}"
+                   aria-label="{{ _('Select recurring invoice %(name)s') % {'name': ri.name} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -55,9 +55,9 @@
           <td class="px-4 py-3 ink-2">{{ ri.end_date or "—" }}</td>
           <td class="px-4 py-3 ink-2">
             {% if ri.auto_post %}
-              <span class="badge-sae">Yes</span>
+              <span class="badge-sae">{{ _("Yes") }}</span>
             {% else %}
-              <span class="badge-draft">No</span>
+              <span class="badge-draft">{{ _("No") }}</span>
             {% endif %}
           </td>
           <td class="px-4 py-3">
@@ -69,19 +69,19 @@
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (ri.status or 'active')|lower %}
             {%- set actions = [
-              ("view", "View", "/recurring-invoices/" ~ ri.id,       "link", false),
-              ("edit", "Edit", "/recurring-invoices/" ~ ri.id ~ "/edit", "link", false),
+              ("view", _("View"), "/recurring-invoices/" ~ ri.id,       "link", false),
+              ("edit", _("Edit"), "/recurring-invoices/" ~ ri.id ~ "/edit", "link", false),
             ] %}
             {%- if status_lower == 'active' %}
-              {%- set _ = actions.append(("pause",   "Pause",   "/recurring-invoices/" ~ ri.id ~ "/pause",   "post", false)) %}
+              {%- set _x = actions.append(("pause",   _("Pause"),   "/recurring-invoices/" ~ ri.id ~ "/pause",   "post", false)) %}
             {%- elif status_lower == 'paused' %}
-              {%- set _ = actions.append(("resume",  "Resume",  "/recurring-invoices/" ~ ri.id ~ "/resume",  "post", false)) %}
+              {%- set _x = actions.append(("resume",  _("Resume"),  "/recurring-invoices/" ~ ri.id ~ "/resume",  "post", false)) %}
             {%- endif %}
             {%- if status_lower != 'ended' %}
-              {%- set _ = actions.append(("archive", "Archive", "/recurring-invoices/" ~ ri.id ~ "/archive", "post", true)) %}
+              {%- set _x = actions.append(("archive", _("Archive"), "/recurring-invoices/" ~ ri.id ~ "/archive", "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/recurring-invoices/" ~ ri.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/recurring-invoices/" ~ ri.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=ri.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
@@ -89,12 +89,12 @@
         {% endfor %}
       {% else %}
         {% if filter_status or filter_search %}
-        {{ empty.row(8, "search-x", "No recurring invoices match these filters",
-                     "Try clearing the filters above.") }}
+        {{ empty.row(8, "search-x", _("No recurring invoices match these filters"),
+                     _("Try clearing the filters above.")) }}
         {% else %}
-        {{ empty.row(8, "repeat", "No recurring invoices yet",
-                     "Set up an invoice that bills a customer on a schedule.",
-                     "New recurring invoice", "/recurring-invoices/new") }}
+        {{ empty.row(8, "repeat", _("No recurring invoices yet"),
+                     _("Set up an invoice that bills a customer on a schedule."),
+                     _("New recurring invoice"), "/recurring-invoices/new") }}
         {% endif %}
       {% endif %}
     </tbody>
@@ -105,7 +105,7 @@
 {% if prev_offset is not none or next_offset is not none %}
 <div class="mt-4 flex items-center justify-between text-sm ink-2">
   <div>
-    Showing {{ offset + 1 }}–{{ [offset + limit, total] | min }} of {{ total }}
+    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": ([offset + limit, total] | min), "total": total} }}
   </div>
   <div class="flex gap-3">
     {% if prev_offset is not none %}
@@ -116,7 +116,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="btn-secondary text-sm"
-    >Previous</a>
+    >{{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
     <a
@@ -126,7 +126,7 @@
       hx-swap="outerHTML"
       hx-push-url="true"
       class="btn-secondary text-sm"
-    >Next</a>
+    >{{ _("Next") }}</a>
     {% endif %}
   </div>
 </div>
