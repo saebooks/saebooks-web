@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Subscription active — SAE Books{% endblock %}
+{% block title %}{{ _("Subscription active") }} — SAE Books{% endblock %}
 
 {% block content %}
 <div class="flex min-h-[70vh] items-center justify-center">
@@ -13,17 +13,16 @@
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
       </div>
-      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Thank you — your subscription is active</h1>
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ _("Thank you — your subscription is active") }}</h1>
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        Stripe will email you a receipt shortly. Your account has been
-        upgraded — refresh the dashboard to see the new edition.
+        {{ _("Stripe will email you a receipt shortly. Your account has been upgraded — refresh the dashboard to see the new edition.") }}
       </p>
       {% if session_id %}
-      <p class="text-xs text-gray-400 dark:text-gray-500 mt-4 break-all">Session: {{ session_id }}</p>
+      <p class="text-xs text-gray-400 dark:text-gray-500 mt-4 break-all">{{ _("Session: %(id)s") % {"id": session_id} }}</p>
       {% endif %}
       <div class="mt-6">
         <a href="/" class="inline-flex items-center justify-center rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]">
-          Go to dashboard
+          {{ _("Go to dashboard") }}
         </a>
       </div>
     </div>
