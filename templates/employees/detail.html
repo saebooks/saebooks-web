@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Employee {{ employee.employee_number if employee else "" }} — SAE Books{% endblock %}
+{% block title %}{{ _("Employee %(number)s") % {"number": employee.employee_number if employee else ""} }} — SAE Books{% endblock %}
 
 {% block content %}
 
@@ -19,27 +19,27 @@
       <span class="num text-lg ink-3 ml-2">#{{ employee.employee_number }}</span>
     </h1>
     <p class="text-base ink-3 mt-1">
-      Started {{ employee.start_date }}
-      {% if employee.end_date %} · Terminated {{ employee.end_date }}{% endif %}
-      {% if employee.employment_basis == 'F' %} · Full time
-      {% elif employee.employment_basis == 'P' %} · Part time
-      {% elif employee.employment_basis == 'C' %} · Casual
-      {% elif employee.employment_basis == 'L' %} · Labour hire
-      {% elif employee.employment_basis == 'V' %} · Voluntary agreement
-      {% elif employee.employment_basis == 'N' %} · Non-employee
+      {{ _("Started %(date)s") % {"date": employee.start_date} }}
+      {% if employee.end_date %} · {{ _("Terminated %(date)s") % {"date": employee.end_date} }}{% endif %}
+      {% if employee.employment_basis == 'F' %} · {{ _("Full time") }}
+      {% elif employee.employment_basis == 'P' %} · {{ _("Part time") }}
+      {% elif employee.employment_basis == 'C' %} · {{ _("Casual") }}
+      {% elif employee.employment_basis == 'L' %} · {{ _("Labour hire") }}
+      {% elif employee.employment_basis == 'V' %} · {{ _("Voluntary agreement") }}
+      {% elif employee.employment_basis == 'N' %} · {{ _("Non-employee") }}
       {% endif %}
     </p>
   </div>
   <div class="flex gap-2">
     {% if employee.end_date %}
-    <span class="chip chip-neg">Terminated</span>
+    <span class="chip chip-neg">{{ _("Terminated") }}</span>
     {% elif employee.archived_at %}
-    <span class="chip chip-ink">Archived</span>
+    <span class="chip chip-ink">{{ _("Archived") }}</span>
     {% else %}
-    <span class="chip chip-pos">Active</span>
+    <span class="chip chip-pos">{{ _("Active") }}</span>
     {% endif %}
     {% if employee.has_bank %}
-    <span class="chip chip-ink">Bank configured</span>
+    <span class="chip chip-ink">{{ _("Bank configured") }}</span>
     {% endif %}
   </div>
 </div>
@@ -51,14 +51,14 @@
 
     {# Identity #}
     <div class="card p-6">
-      <p class="nav-section-label mb-4">Identity</p>
+      <p class="nav-section-label mb-4">{{ _("Identity") }}</p>
       <dl class="space-y-3 text-base">
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Employee number</dt>
+          <dt class="ink-3">{{ _("Employee number") }}</dt>
           <dd class="col-span-2 num">{{ employee.employee_number }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Contact</dt>
+          <dt class="ink-3">{{ _("Contact") }}</dt>
           <dd class="col-span-2">
             {% if contact %}
             <a href="/contacts/{{ employee.contact_id }}" class="sae hover:underline">{{ contact.name }}</a>
@@ -68,30 +68,30 @@
           </dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Start date</dt>
+          <dt class="ink-3">{{ _("Start date") }}</dt>
           <dd class="col-span-2 num">{{ employee.start_date }}</dd>
         </div>
         {% if employee.dob %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Date of birth</dt>
+          <dt class="ink-3">{{ _("Date of birth") }}</dt>
           <dd class="col-span-2 num">{{ employee.dob }}</dd>
         </div>
         {% endif %}
         {% if employee.end_date %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Termination date</dt>
+          <dt class="ink-3">{{ _("Termination date") }}</dt>
           <dd class="col-span-2 num text-rose-700">{{ employee.end_date }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Termination reason</dt>
+          <dt class="ink-3">{{ _("Termination reason") }}</dt>
           <dd class="col-span-2">
-            {% if employee.termination_reason == 'V' %}Voluntary cessation
-            {% elif employee.termination_reason == 'I' %}Ill health
-            {% elif employee.termination_reason == 'D' %}Deceased
-            {% elif employee.termination_reason == 'R' %}Redundancy
-            {% elif employee.termination_reason == 'F' %}Dismissal
-            {% elif employee.termination_reason == 'C' %}Contract cessation
-            {% elif employee.termination_reason == 'T' %}Transfer to associated entity
+            {% if employee.termination_reason == 'V' %}{{ _("Voluntary cessation") }}
+            {% elif employee.termination_reason == 'I' %}{{ _("Ill health") }}
+            {% elif employee.termination_reason == 'D' %}{{ _("Deceased") }}
+            {% elif employee.termination_reason == 'R' %}{{ _("Redundancy") }}
+            {% elif employee.termination_reason == 'F' %}{{ _("Dismissal") }}
+            {% elif employee.termination_reason == 'C' %}{{ _("Contract cessation") }}
+            {% elif employee.termination_reason == 'T' %}{{ _("Transfer to associated entity") }}
             {% else %}{{ employee.termination_reason or "—" }}{% endif %}
           </dd>
         </div>
@@ -101,26 +101,26 @@
 
     {# Tax / STP #}
     <div class="card p-6">
-      <p class="nav-section-label mb-4">Tax and STP</p>
+      <p class="nav-section-label mb-4">{{ _("Tax and STP") }}</p>
 
       {# TFN reveal block #}
       <div class="rounded-md p-4 mb-4"
            style="background: var(--sae-tint); border: 1px solid var(--sae-tint-2);">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-medium" style="color: var(--sae-2);">Tax File Number</p>
+            <p class="text-sm font-medium" style="color: var(--sae-2);">{{ _("Tax File Number") }}</p>
             {% if tfn_plaintext %}
             <p class="num text-lg mt-1" style="color: var(--ink);">{{ tfn_plaintext }}</p>
-            <p class="text-xs mt-1 ink-3">Access to this TFN has been recorded in the audit log.</p>
+            <p class="text-xs mt-1 ink-3">{{ _("Access to this TFN has been recorded in the audit log.") }}</p>
             {% else %}
             <p class="num text-base mt-1 ink-3">{{ employee.tfn_masked or "XXX-XXX-NNN" }}</p>
             {% endif %}
           </div>
           {% if not tfn_plaintext %}
           <form method="POST" action="/employees/{{ employee.id }}/reveal-tfn"
-                onsubmit="return confirm('Revealing this TFN will be recorded in the audit log. Continue?')">
+                onsubmit="return confirm('{{ _('Revealing this TFN will be recorded in the audit log. Continue?') }}')">
             {{ csrf_input(request)|safe }}
-            <button type="submit" class="btn btn-secondary">Reveal TFN</button>
+            <button type="submit" class="btn btn-secondary">{{ _("Reveal TFN") }}</button>
           </form>
           {% endif %}
         </div>
@@ -128,61 +128,61 @@
 
       <dl class="space-y-3 text-base">
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">TFN status</dt>
+          <dt class="ink-3">{{ _("TFN status") }}</dt>
           <dd class="col-span-2">
-            {% if employee.tfn_status == 'PROVIDED' %}<span class="chip chip-pos">Provided</span>
-            {% elif employee.tfn_status == 'NOT_PROVIDED' %}<span class="chip">Not provided</span>
-            {% elif employee.tfn_status == 'NEW_PAYEE_30D' %}<span class="chip chip-warm">New payee (30d)</span>
-            {% elif employee.tfn_status == 'APPLIED_FOR' %}<span class="chip chip-warm">Applied for</span>
-            {% elif employee.tfn_status == 'EXEMPT_PENSIONER' %}<span class="chip chip-ink">Exempt — pensioner</span>
-            {% elif employee.tfn_status == 'EXEMPT_UNDER_18' %}<span class="chip chip-ink">Exempt — under 18</span>
+            {% if employee.tfn_status == 'PROVIDED' %}<span class="chip chip-pos">{{ _("Provided") }}</span>
+            {% elif employee.tfn_status == 'NOT_PROVIDED' %}<span class="chip">{{ _("Not provided") }}</span>
+            {% elif employee.tfn_status == 'NEW_PAYEE_30D' %}<span class="chip chip-warm">{{ _("New payee (30d)") }}</span>
+            {% elif employee.tfn_status == 'APPLIED_FOR' %}<span class="chip chip-warm">{{ _("Applied for") }}</span>
+            {% elif employee.tfn_status == 'EXEMPT_PENSIONER' %}<span class="chip chip-ink">{{ _("Exempt — pensioner") }}</span>
+            {% elif employee.tfn_status == 'EXEMPT_UNDER_18' %}<span class="chip chip-ink">{{ _("Exempt — under 18") }}</span>
             {% else %}<span class="chip">{{ employee.tfn_status }}</span>{% endif %}
           </dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Employment basis</dt>
+          <dt class="ink-3">{{ _("Employment basis") }}</dt>
           <dd class="col-span-2">
-            {% if employee.employment_basis == 'F' %}F — Full time
-            {% elif employee.employment_basis == 'P' %}P — Part time
-            {% elif employee.employment_basis == 'C' %}C — Casual
-            {% elif employee.employment_basis == 'L' %}L — Labour hire
-            {% elif employee.employment_basis == 'V' %}V — Voluntary agreement
-            {% elif employee.employment_basis == 'N' %}N — Non-employee
+            {% if employee.employment_basis == 'F' %}{{ _("F — Full time") }}
+            {% elif employee.employment_basis == 'P' %}{{ _("P — Part time") }}
+            {% elif employee.employment_basis == 'C' %}{{ _("C — Casual") }}
+            {% elif employee.employment_basis == 'L' %}{{ _("L — Labour hire") }}
+            {% elif employee.employment_basis == 'V' %}{{ _("V — Voluntary agreement") }}
+            {% elif employee.employment_basis == 'N' %}{{ _("N — Non-employee") }}
             {% else %}{{ employee.employment_basis }}{% endif %}
           </dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Income stream</dt>
+          <dt class="ink-3">{{ _("Income stream") }}</dt>
           <dd class="col-span-2 num">{{ employee.income_stream_type }}</dd>
         </div>
         {% if employee.tax_treatment_code %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Tax treatment</dt>
+          <dt class="ink-3">{{ _("Tax treatment") }}</dt>
           <dd class="col-span-2 num">{{ employee.tax_treatment_code }}</dd>
         </div>
         {% endif %}
         {% if employee.payg_branch_code %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">PAYG branch</dt>
+          <dt class="ink-3">{{ _("PAYG branch") }}</dt>
           <dd class="col-span-2 num">{{ employee.payg_branch_code }}</dd>
         </div>
         {% endif %}
         <div class="grid grid-cols-3 gap-2 pt-1 hairline border-t">
-          <dt class="ink-3">Tax-free threshold</dt>
-          <dd class="col-span-2">{{ "Yes" if employee.claims_tax_free_threshold else "No" }}</dd>
+          <dt class="ink-3">{{ _("Tax-free threshold") }}</dt>
+          <dd class="col-span-2">{{ _("Yes") if employee.claims_tax_free_threshold else _("No") }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">AU resident</dt>
-          <dd class="col-span-2">{{ "Yes" if employee.is_australian_resident else "No" }}</dd>
+          <dt class="ink-3">{{ _("AU resident") }}</dt>
+          <dd class="col-span-2">{{ _("Yes") if employee.is_australian_resident else _("No") }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">STSL / HECS</dt>
-          <dd class="col-span-2">{{ "Yes" if employee.study_training_support_loan else "No" }}</dd>
+          <dt class="ink-3">{{ _("STSL / HECS") }}</dt>
+          <dd class="col-span-2">{{ _("Yes") if employee.study_training_support_loan else _("No") }}</dd>
         </div>
         {% if employee.working_holiday_maker %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Working holiday maker</dt>
-          <dd class="col-span-2">Yes · country {{ employee.whm_country_code }}</dd>
+          <dt class="ink-3">{{ _("Working holiday maker") }}</dt>
+          <dd class="col-span-2">{{ _("Yes · country %(code)s") % {"code": employee.whm_country_code} }}</dd>
         </div>
         {% endif %}
       </dl>
@@ -191,7 +191,7 @@
     {# Address #}
     {% if employee.address_line1 or employee.suburb %}
     <div class="card p-6">
-      <p class="nav-section-label mb-4">Address</p>
+      <p class="nav-section-label mb-4">{{ _("Address") }}</p>
       <address class="text-base not-italic space-y-1">
         {% if employee.address_line1 %}<p>{{ employee.address_line1 }}</p>{% endif %}
         {% if employee.address_line2 %}<p>{{ employee.address_line2 }}</p>{% endif %}
@@ -205,32 +205,32 @@
 
     {# Pay shape #}
     <div class="card p-6">
-      <p class="nav-section-label mb-4">Pay shape</p>
+      <p class="nav-section-label mb-4">{{ _("Pay shape") }}</p>
       <dl class="space-y-3 text-base">
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Frequency</dt>
+          <dt class="ink-3">{{ _("Frequency") }}</dt>
           <dd class="col-span-2 num">{{ employee.pay_frequency|lower|capitalize }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Basis</dt>
+          <dt class="ink-3">{{ _("Basis") }}</dt>
           <dd class="col-span-2">{{ employee.pay_basis|lower|capitalize }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Base rate</dt>
+          <dt class="ink-3">{{ _("Base rate") }}</dt>
           <dd class="col-span-2 num-display">{{ money(employee.base_rate|float, decimals=4, grouping=False) }}</dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Weekly hours</dt>
+          <dt class="ink-3">{{ _("Weekly hours") }}</dt>
           <dd class="col-span-2 num">{{ num(employee.weekly_hours|float, 2) }}h</dd>
         </div>
         {% if employee.payslip_email %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Payslip email</dt>
+          <dt class="ink-3">{{ _("Payslip email") }}</dt>
           <dd class="col-span-2">{{ employee.payslip_email }}</dd>
         </div>
         {% endif %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Payslip delivery</dt>
+          <dt class="ink-3">{{ _("Payslip delivery") }}</dt>
           <dd class="col-span-2">{{ employee.payslip_delivery|lower|capitalize }}</dd>
         </div>
       </dl>
@@ -238,10 +238,10 @@
 
     {# Super + bank #}
     <div class="card p-6">
-      <p class="nav-section-label mb-4">Super and bank</p>
+      <p class="nav-section-label mb-4">{{ _("Super and bank") }}</p>
       <dl class="space-y-3 text-base">
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Super fund</dt>
+          <dt class="ink-3">{{ _("Super fund") }}</dt>
           <dd class="col-span-2">
             {% if super_fund %}
             <a href="/super-funds/{{ employee.super_fund_id }}" class="sae hover:underline">{{ super_fund.name }}</a>
@@ -252,17 +252,17 @@
         </div>
         {% if employee.super_member_number %}
         <div class="grid grid-cols-3 gap-2">
-          <dt class="ink-3">Member number</dt>
+          <dt class="ink-3">{{ _("Member number") }}</dt>
           <dd class="col-span-2 num">{{ employee.super_member_number }}</dd>
         </div>
         {% endif %}
         <div class="grid grid-cols-3 gap-2 hairline border-t pt-3">
-          <dt class="ink-3">Bank account</dt>
+          <dt class="ink-3">{{ _("Bank account") }}</dt>
           <dd class="col-span-2">
             {% if employee.has_bank %}
-            <span class="chip chip-ink">Configured — revealed during pay run</span>
+            <span class="chip chip-ink">{{ _("Configured — revealed during pay run") }}</span>
             {% else %}
-            <span class="ink-3 text-sm">Not set</span>
+            <span class="ink-3 text-sm">{{ _("Not set") }}</span>
             {% endif %}
           </dd>
         </div>
@@ -273,19 +273,19 @@
     <div class="card p-4">
       <dl class="flex flex-wrap gap-6 text-sm">
         <div>
-          <dt class="ink-3 text-xs uppercase tracking-wide">Version</dt>
+          <dt class="ink-3 text-xs uppercase tracking-wide">{{ _("Version") }}</dt>
           <dd class="num">{{ employee.version }}</dd>
         </div>
         <div>
-          <dt class="ink-3 text-xs uppercase tracking-wide">Payee ID (BMS)</dt>
+          <dt class="ink-3 text-xs uppercase tracking-wide">{{ _("Payee ID (BMS)") }}</dt>
           <dd class="num text-xs ink-3">{{ employee.payee_id_bms }}</dd>
         </div>
         <div>
-          <dt class="ink-3 text-xs uppercase tracking-wide">Created</dt>
+          <dt class="ink-3 text-xs uppercase tracking-wide">{{ _("Created") }}</dt>
           <dd class="num text-xs ink-3">{{ employee.created_at }}</dd>
         </div>
         <div>
-          <dt class="ink-3 text-xs uppercase tracking-wide">Updated</dt>
+          <dt class="ink-3 text-xs uppercase tracking-wide">{{ _("Updated") }}</dt>
           <dd class="num text-xs ink-3">{{ employee.updated_at }}</dd>
         </div>
       </dl>
@@ -296,60 +296,60 @@
   {# ── Sidebar actions ─────────────────────────────────────────────────── #}
   <aside class="space-y-4">
     <div class="card p-5">
-      <p class="nav-section-label mb-3">Actions</p>
+      <p class="nav-section-label mb-3">{{ _("Actions") }}</p>
       <div class="space-y-2">
         {% if not employee.archived_at %}
-        <a href="/employees/{{ employee.id }}/edit" class="btn btn-primary w-full">Edit</a>
+        <a href="/employees/{{ employee.id }}/edit" class="btn btn-primary w-full">{{ _("Edit") }}</a>
 
         {% if not employee.end_date %}
         {# Terminate modal trigger — inline form #}
         <button onclick="document.getElementById('terminate-panel').classList.toggle('hidden')"
-                class="btn btn-secondary w-full">Terminate</button>
+                class="btn btn-secondary w-full">{{ _("Terminate") }}</button>
         <div id="terminate-panel" class="hidden mt-2 rounded-md p-4 border hairline" style="background: var(--paper-2);">
           <form method="POST" action="/employees/{{ employee.id }}/terminate">
             {{ csrf_input(request)|safe }}
             <div class="mb-3">
-              <label class="block text-sm ink-3 mb-1">Last day of employment *</label>
+              <label class="block text-sm ink-3 mb-1">{{ _("Last day of employment") }} *</label>
               <input type="date" name="end_date" required
                      class="w-full rounded-md hairline px-3 py-2 bg-paper">
             </div>
             <div class="mb-3">
-              <label class="block text-sm ink-3 mb-1">Cessation type (STP2) *</label>
+              <label class="block text-sm ink-3 mb-1">{{ _("Cessation type (STP2)") }} *</label>
               <select name="reason" required
                       class="w-full rounded-md hairline px-3 py-2 bg-paper">
-                <option value="V">V — Voluntary</option>
-                <option value="I">I — Ill health</option>
-                <option value="D">D — Deceased</option>
-                <option value="R">R — Redundancy</option>
-                <option value="F">F — Dismissal</option>
-                <option value="C">C — Contract cessation</option>
-                <option value="T">T — Transfer to associated entity</option>
+                <option value="V">{{ _("V — Voluntary") }}</option>
+                <option value="I">{{ _("I — Ill health") }}</option>
+                <option value="D">{{ _("D — Deceased") }}</option>
+                <option value="R">{{ _("R — Redundancy") }}</option>
+                <option value="F">{{ _("F — Dismissal") }}</option>
+                <option value="C">{{ _("C — Contract cessation") }}</option>
+                <option value="T">{{ _("T — Transfer to associated entity") }}</option>
               </select>
             </div>
-            <button type="submit" class="btn btn-danger w-full">Confirm termination</button>
+            <button type="submit" class="btn btn-danger w-full">{{ _("Confirm termination") }}</button>
           </form>
         </div>
         {% endif %}
 
         <form method="POST" action="/employees/{{ employee.id }}/archive"
-              onsubmit="return confirm('Archive this employee? The record is kept for STP history.')">
+              onsubmit="return confirm('{{ _('Archive this employee? The record is kept for STP history.') }}')">
           {{ csrf_input(request)|safe }}
-          <button type="submit" class="btn btn-danger w-full">Archive</button>
+          <button type="submit" class="btn btn-danger w-full">{{ _("Archive") }}</button>
         </form>
         {% else %}
-        <p class="ink-3 text-sm">Archived on {{ employee.archived_at }}.</p>
+        <p class="ink-3 text-sm">{{ _("Archived on %(date)s.") % {"date": employee.archived_at} }}</p>
         {% endif %}
       </div>
     </div>
 
     <div class="card p-5">
-      <p class="nav-section-label mb-2">Navigate</p>
-      <a href="/employees" class="block text-sm sae hover:underline">← All employees</a>
+      <p class="nav-section-label mb-2">{{ _("Navigate") }}</p>
+      <a href="/employees" class="block text-sm sae hover:underline">{{ _("← All employees") }}</a>
       {% if super_fund %}
       <a href="/super-funds/{{ employee.super_fund_id }}"
          class="block text-sm sae hover:underline mt-1">{{ super_fund.name }} →</a>
       {% endif %}
-      <a href="/pay-run" class="block text-sm sae hover:underline mt-1">Pay runs →</a>
+      <a href="/pay-run" class="block text-sm sae hover:underline mt-1">{{ _("Pay runs →") }}</a>
     </div>
   </aside>
 
