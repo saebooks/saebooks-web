@@ -3,7 +3,7 @@
 {% import "_components/kebab_menu.html" as km %}
 {% import "_partials/empty_state.html" as empty %}
 
-{% block title %}Bank Rules — SAE Books{% endblock %}
+{% block title %}{{ _("Bank Rules") }} — SAE Books{% endblock %}
 
 {% block content %}
 {% set is_admin = (request.session.get("user_role") == "admin") %}
@@ -18,9 +18,9 @@
 
 <div class="flex items-center justify-between mb-6">
   <div>
-    <h1 class="text-2xl font-semibold ink-1">Bank Rules</h1>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Bank Rules") }}</h1>
     {% if not error %}
-    <p class="text-sm ink-3 mt-1">{{ rules|length }} rule{{ "s" if rules|length != 1 else "" }}</p>
+    <p class="text-sm ink-3 mt-1">{{ ngettext("%(n)s rule", "%(n)s rules", rules|length) % {"n": rules|length} }}</p>
     {% endif %}
   </div>
   <div class="flex items-center gap-3">
@@ -32,14 +32,14 @@
         class="btn-primary text-sm"
         style="background:var(--pos);border-color:var(--pos);box-shadow:none;"
       >
-        Apply All Rules
+        {{ _("Apply All Rules") }}
       </button>
     </form>
     <a
       href="/bank-rules/new"
       class="btn-primary text-sm"
     >
-      New rule
+      {{ _("New rule") }}
     </a>
   </div>
 </div>
@@ -56,14 +56,14 @@
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
         <th scope="col" class="w-8 px-4 py-3 text-center">
-          <input type="checkbox" data-select-all aria-label="Select all rows on this page"
+          <input type="checkbox" data-select-all aria-label="{{ _('Select all rows on this page') }}"
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Priority</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Name</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Match</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">Action</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Priority") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Match") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Action") }}</th>
         <th scope="col" class="w-8 px-4 py-3"></th>
       </tr>
     </thead>
@@ -73,7 +73,7 @@
         <tr class="hover:bg-[color:var(--paper-2)]">
           <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
             <input type="checkbox" data-row-select data-id="{{ rule.id }}"
-                   aria-label="Select rule {{ rule.name or rule.id }}"
+                   aria-label="{{ _('Select rule %(name)s') % {'name': rule.name or rule.id} }}"
                    onclick="event.stopPropagation(); window.__listTable && window.__listTable.toggleSelection(this)"
                    class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
           </td>
@@ -86,28 +86,28 @@
           </td>
           <td class="px-4 py-3 ink-2 text-xs">
             {% if rule.action_account_id %}
-              Account: <span class="font-mono">{{ rule.action_account_id }}</span>
+              {{ _("Account:") }} <span class="font-mono">{{ rule.action_account_id }}</span>
             {% endif %}
             {% if rule.action_tax_code_id %}
-              <span class="ink-3 ml-1">Tax: {{ rule.action_tax_code_id }}</span>
+              <span class="ink-3 ml-1">{{ _("Tax:") }} {{ rule.action_tax_code_id }}</span>
             {% endif %}
           </td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
-              ("edit",   "Edit",   "/bank-rules/" ~ rule.id ~ "/edit",   "link", false),
-              ("delete", "Delete", "/bank-rules/" ~ rule.id ~ "/delete", "post", true),
+              ("edit",   _("Edit"),   "/bank-rules/" ~ rule.id ~ "/edit",   "link", false),
+              ("delete", _("Delete"), "/bank-rules/" ~ rule.id ~ "/delete", "post", true),
               ] %}
             {%- if is_feature_enabled("hard_delete") %}
-            {%- set _ = actions.append(("hard_delete", "Delete (hard)", "/bank-rules/" ~ rule.id ~ "/hard-delete", "post", true)) %}
+            {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/bank-rules/" ~ rule.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}
             {{ km.kebab(row_id=rule.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
           </td>
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(6, "filter", "No bank rules yet",
-                     "Rules auto-categorise imported bank lines as they arrive.",
-                     "New rule", "/bank-rules/new") }}
+        {{ empty.row(6, "filter", _("No bank rules yet"),
+                     _("Rules auto-categorise imported bank lines as they arrive."),
+                     _("New rule"), "/bank-rules/new") }}
       {% endif %}
     </tbody>
   </table>
