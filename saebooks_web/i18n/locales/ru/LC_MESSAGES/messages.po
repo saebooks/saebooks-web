@@ -8,17 +8,72 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-13 01:12+0300\n"
+"POT-Creation-Date: 2026-07-13 11:16+0300\n"
 "PO-Revision-Date: 2026-07-12 11:41+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
 "Language-Team: ru <LL@li.org>\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#: saebooks_web/eid_sso.py:94
+msgid "You declined the sign-in request on your device."
+msgstr "Вы отклонили запрос на вход на своём устройстве."
+
+#: saebooks_web/eid_sso.py:95 saebooks_web/eid_sso.py:221
+msgid "The request expired before it was confirmed. Please try again."
+msgstr "Срок действия запроса истёк до подтверждения. Пожалуйста, попробуйте ещё раз."
+
+#: saebooks_web/eid_sso.py:96
+msgid "The wrong verification code was chosen. Please try again."
+msgstr "Выбран неверный контрольный код. Пожалуйста, попробуйте ещё раз."
+
+#: saebooks_web/eid_sso.py:97
+msgid "No active Smart-ID or Mobiil-ID account was found for these details."
+msgstr "По этим данным не найдена активная учётная запись Smart-ID или Mobiil-ID."
+
+#: saebooks_web/eid_sso.py:98
+msgid "The eID service is temporarily unavailable. Please try again shortly."
+msgstr "Служба eID временно недоступна. Пожалуйста, попробуйте немного позже."
+
+#: saebooks_web/eid_sso.py:99
+msgid "The authentication response could not be verified."
+msgstr "Не удалось проверить ответ аутентификации."
+
+#: saebooks_web/eid_sso.py:100
+msgid "eID sign-in is not configured on this server."
+msgstr "Вход через eID не настроен на этом сервере."
+
+#: saebooks_web/eid_sso.py:101
+msgid "eID sign-in failed. Please try again."
+msgstr "Вход через eID не удался. Пожалуйста, попробуйте ещё раз."
+
+#: saebooks_web/eid_sso.py:173
+msgid "That does not look like a valid Estonian personal code."
+msgstr "Это не похоже на действительный эстонский личный код."
+
+#: saebooks_web/eid_sso.py:214
+msgid "This sign-in attempt has expired. Please start again."
+msgstr "Эта попытка входа истекла. Пожалуйста, начните заново."
+
+#: saebooks_web/eid_sso.py:272
+msgid "Could not resolve your account email. Please re-login and retry."
+msgstr "Не удалось определить адрес электронной почты вашей учётной записи. Войдите заново и повторите попытку."
+
+#: saebooks_web/eid_sso.py:280
+msgid "This personal code is already linked to a different account."
+msgstr "Этот личный код уже привязан к другой учётной записи."
+
+#: saebooks_web/eid_sso.py:316
+msgid "Your identity was verified, but no account is linked to this personal code yet. Sign in with your password first, then link your eID under Settings."
+msgstr "Ваша личность подтверждена, но к этому личному коду ещё не привязана учётная запись. Сначала войдите с паролем, затем привяжите eID в настройках."
+
+#: saebooks_web/eid_sso.py:326
+msgid "Sign-in failed on the server. Please try again."
+msgstr "Вход не удался на сервере. Пожалуйста, попробуйте ещё раз."
 
 #: saebooks_web/routes/companies.py:178
 #, fuzzy
@@ -33,9 +88,7 @@ msgstr "Registrikood должна быть ровно 8 цифр."
 #: saebooks_web/routes/companies.py:182
 #, fuzzy
 msgid "KMV/VAT number must be \"EE\" followed by 9 digits, e.g. EE123456789."
-msgstr ""
-"KMV/VAT номер должен быть \"EE\", за которым следует девять цифр, "
-"например: EE123456789."
+msgstr "KMV/VAT номер должен быть \"EE\", за которым следует девять цифр, например: EE123456789."
 
 #: saebooks_web/routes/companies.py:209
 #, fuzzy
@@ -54,13 +107,8 @@ msgstr "Противоположность изоляции"
 
 #: templates/demo_isolation.html:12
 #, fuzzy
-msgid ""
-"Your sandbox is a separate database tenant — the same isolation a paying "
-"customer gets, enforced by Postgres row-level security, not a UI filter."
-msgstr ""
-"Ваш песочный ящик — отдельный арендатор базы данных — та же изоляция, "
-"которую получает платящий клиент, обеспечиваемая службой безопасности "
-"постгресского уровня, а не фильтром UI."
+msgid "Your sandbox is a separate database tenant — the same isolation a paying customer gets, enforced by Postgres row-level security, not a UI filter."
+msgstr "Ваш песочный ящик — отдельный арендатор базы данных — та же изоляция, которую получает платящий клиент, обеспечиваемая службой безопасности постгресского уровня, а не фильтром UI."
 
 #: templates/demo_isolation.html:20
 #, fuzzy
@@ -79,12 +127,8 @@ msgstr "Foreign contact ID"
 
 #: templates/demo_isolation.html:35
 #, fuzzy
-msgid ""
-"Paste any other demo's contact ID and try to read it with your own "
-"session."
-msgstr ""
-"Поместите любой другой пропуск демо и попытайтесь прочесть его на своей "
-"сессии."
+msgid "Paste any other demo's contact ID and try to read it with your own session."
+msgstr "Поместите любой другой пропуск демо и попытайтесь прочесть его на своей сессии."
 
 #: templates/demo_isolation.html:43
 #, fuzzy
@@ -98,12 +142,8 @@ msgstr "Результат"
 
 #: templates/demo_isolation.html:66
 #, fuzzy
-msgid ""
-"The row does not exist for you. That is Postgres row-level security, not "
-"a hidden filter."
-msgstr ""
-"Эта строка не существует для тебя. Это охрана Постгресского уровня, а не "
-"скрытый фильтр."
+msgid "The row does not exist for you. That is Postgres row-level security, not a hidden filter."
+msgstr "Эта строка не существует для тебя. Это охрана Постгресского уровня, а не скрытый фильтр."
 
 #: templates/demo_isolation.html:68
 #, fuzzy
@@ -112,12 +152,8 @@ msgstr "Введите действующий контактный ID (UUID)."
 
 #: templates/demo_isolation.html:70
 #, fuzzy
-msgid ""
-"Unexpected: the row was visible. Isolation should have hidden it — please"
-" report this."
-msgstr ""
-"Неожиданно: строка была видимой. Изоляция должна была скрыть это — "
-"пожалуйста, сообщите об этом."
+msgid "Unexpected: the row was visible. Isolation should have hidden it — please report this."
+msgstr "Неожиданно: строка была видимой. Изоляция должна была скрыть это — пожалуйста, сообщите об этом."
 
 #: templates/demo_isolation.html:72
 #, fuzzy
@@ -129,12 +165,65 @@ msgstr "Запрос вернул неожиданный статус."
 msgid "Read the isolation policy source"
 msgstr "Прочти источник политики изоляции."
 
+#: templates/auth/_eid_error.html:10
+msgid "Try again"
+msgstr "Попробовать ещё раз"
+
+#: templates/auth/_eid_forms.html:13 templates/auth/_eid_forms.html:38
+msgid "Personal code"
+msgstr "Личный код"
+
+#: templates/auth/_eid_forms.html:24
+msgid "Continue with Smart-ID"
+msgstr "Продолжить со Smart-ID"
+
+#: templates/auth/_eid_forms.html:47
+msgid "Phone number"
+msgstr "Номер телефона"
+
+#: templates/auth/_eid_forms.html:58
+msgid "Continue with Mobiil-ID"
+msgstr "Продолжить с Mobiil-ID"
+
+#: templates/auth/_eid_link_success.html:5
+msgid "eID linked"
+msgstr "eID привязан"
+
+#: templates/auth/_eid_link_success.html:7
+#, python-format
+msgid "Your account is now linked to personal code %(masked)s. You can sign in with Smart-ID or Mobiil-ID from the login page."
+msgstr "Ваша учётная запись теперь привязана к личному коду %(masked)s. Вы можете входить через Smart-ID или Mobiil-ID со страницы входа."
+
+#: templates/auth/_eid_pending.html:11
+msgid "Check your device and confirm only if you see this code:"
+msgstr "Проверьте своё устройство и подтверждайте только при совпадении этого кода:"
+
+#: templates/auth/_eid_pending.html:16
+msgid "Waiting for confirmation…"
+msgstr "Ожидание подтверждения…"
+
+#: templates/auth/eid_login.html:3 templates/auth/eid_login.html:10
+msgid "Sign in with eID"
+msgstr "Войти через eID"
+
+#: templates/auth/eid_login.html:13
+msgid "Use your Estonian Smart-ID or Mobiil-ID. Your account must already be linked to your personal code."
+msgstr "Используйте свой эстонский Smart-ID или Mobiil-ID. Учётная запись должна быть заранее привязана к вашему личному коду."
+
+#: templates/auth/eid_login.html:20
+msgid "Sign in with email and password instead"
+msgstr "Войти с электронной почтой и паролем"
+
 #: templates/auth/login.html:13
 #, fuzzy, python-format
 msgid "Enter your %(brand)s email address and password."
 msgstr "Введите свой адрес электронной почты %(brand)s и пароль."
 
-#: templates/auth/login.html:125
+#: templates/auth/login.html:101
+msgid "Sign in with Smart-ID / Mobiil-ID"
+msgstr "Войти через Smart-ID / Mobiil-ID"
+
+#: templates/auth/login.html:137
 #, fuzzy, python-format
 msgid "New to %(brand)s?"
 msgstr "Новый для %(brand)s?"
@@ -176,12 +265,8 @@ msgstr "KMV/ Номер НДС"
 
 #: templates/companies/new.html:183
 #, fuzzy
-msgid ""
-"Format: EE followed by 9 digits. Optional — leave blank if not yet VAT-"
-"registered."
-msgstr ""
-"Формат: ЕЕ, за которым следуют 9 цифр. Optional — leave black if not yet "
-"ever registered VAT."
+msgid "Format: EE followed by 9 digits. Optional — leave blank if not yet VAT-registered."
+msgstr "Формат: ЕЕ, за которым следуют 9 цифр. Optional — leave black if not yet ever registered VAT."
 
 #: templates/companies/new.html:192
 #, fuzzy
@@ -210,10 +295,37 @@ msgstr "Эстонская стандартная карта (e/deful)"
 
 #: templates/companies/new.html:216
 #, fuzzy
-msgid ""
-"The Estonian standard chart of accounts is applied automatically when the"
-" company is created."
-msgstr ""
-"Эстонская стандартная схема счетов применяется автоматически при создании"
-" компании."
+msgid "The Estonian standard chart of accounts is applied automatically when the company is created."
+msgstr "Эстонская стандартная схема счетов применяется автоматически при создании компании."
+
+#: templates/settings/eid.html:3 templates/settings/eid.html:7
+#, fuzzy
+msgid "Estonian eID"
+msgstr "Эстония (ЭЭ)"
+
+#: templates/settings/eid.html:9
+msgid "Link your Estonian personal code to this account to sign in with Smart-ID or Mobiil-ID. Linking requires one eID authentication to prove the code is yours."
+msgstr "Привяжите свой эстонский личный код к этой учётной записи, чтобы входить через Smart-ID или Mobiil-ID. Для привязки требуется одна аутентификация eID, подтверждающая, что код принадлежит вам."
+
+#: templates/settings/eid.html:14
+msgid "Linked personal code"
+msgstr "Привязанный личный код"
+
+#: templates/settings/eid.html:18
+#, python-format
+msgid "linked %(when)s"
+msgstr "привязан %(when)s"
+
+#: templates/settings/eid.html:24
+msgid "Remove link"
+msgstr "Удалить привязку"
+
+#~ msgid "Company created. Estonian jurisdiction, registrikood and KMV/VAT number were captured but could not be saved yet — the engine does not accept these fields on company creation. This is tracked separately; the values above were not persisted."
+#~ msgstr "Компания была создана. Эстонская юрисдикция, номер registrikood и KMV/VAT были записаны, однако их не удалось сохранить — двигатель не принимает эти поля при создании компании. Этот показатель отслеживается отдельно; вышеуказанные значения не сохранялись."
+
+#~ msgid "Estonian company creation is in progress. These fields are captured here but the server does not yet persist them — see the note after you submit."
+#~ msgstr "В настоящее время ведется работа по созданию эстонской компании. Эти поля зафиксированы здесь, но сервер еще не сохранил их — см. примечание после того, как вы представите."
+
+#~ msgid "The engine's Estonian chart template is registered but not yet implemented — this selector is future-ready, not active."
+#~ msgstr "Эстонская карточка двигателя зарегистрирована, но еще не внедрена — этот выборщик готов к будущему, а не активен."
 
