@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Search{% if q %} — {{ q }}{% endif %} — SAE Books{% endblock %}
+{% block title %}{{ _("Search") }}{% if q %} — {{ q }}{% endif %} — SAE Books{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto">
 
-  <h1 class="text-2xl font-semibold ink-1 mb-6">Search</h1>
+  <h1 class="text-2xl font-semibold ink-1 mb-6">{{ _("Search") }}</h1>
 
   {# Search form — pre-filled with current query #}
   <form action="/search" method="GET" class="flex gap-2 mb-8">
@@ -13,7 +13,7 @@
       type="search"
       name="q"
       value="{{ q }}"
-      placeholder="Search contacts, invoices, bills, accounts…"
+      placeholder="{{ _('Search contacts, invoices, bills, accounts…') }}"
       autofocus
       class="saebooks-input flex-1 px-4 py-2 text-sm"
     >
@@ -21,7 +21,7 @@
       type="submit"
       class="rounded-lg bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291]"
     >
-      Search
+      {{ _("Search") }}
     </button>
   </form>
 
