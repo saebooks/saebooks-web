@@ -1,8 +1,8 @@
 <div class="p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded text-sm">
   <p class="font-semibold dark:text-white">{{ result.get("entity", {}).get("legalName", {}).get("name", result.get("lei", "")) }}</p>
-  <p class="text-gray-600 dark:text-gray-300 text-xs mt-1">LEI: {{ result.get("lei", "") }}</p>
+  <p class="text-gray-600 dark:text-gray-300 text-xs mt-1">{{ _("LEI: %(lei)s") % {"lei": result.get("lei", "")} }}</p>
   {% set reg = result.get("registration", {}) %}
   {% if reg %}
-  <p class="text-gray-500 dark:text-gray-400 text-xs">Status: {{ reg.get("status", "") }}</p>
+  <p class="text-gray-500 dark:text-gray-400 text-xs">{{ _("Status: %(status)s") % {"status": reg.get("status", "")} }}</p>
   {% endif %}
 </div>
