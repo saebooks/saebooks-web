@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}About Cashbook — SAE Books{% endblock %}
+{% block title %}About Cashbook — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -33,7 +33,7 @@
 
     <p>
       It's free. There's no signup funnel, no usage limit, no upsell pop-up. The free
-      Community edition of <a href="https://saebooks.com.au" class="sae hover:underline">SAE Books</a>
+      Community edition of <a href="https://saebooks.com.au" class="sae hover:underline">{{ current_brand().name }}</a>
       runs Cashbook out of the box, and your data lives on your own server (or on the
       demo server, if this is the public demo).
     </p>
@@ -72,7 +72,7 @@
       <ul class="space-y-2 text-sm">
         <li><a href="https://saebooks.com.au/cashbook" target="_blank" rel="noopener" class="sae hover:underline">Full Cashbook pitch →</a></li>
         <li><a href="https://saebooks.com.au/#editions" target="_blank" rel="noopener" class="sae hover:underline">Editions and pricing →</a></li>
-        <li><a href="https://github.com/sae-engineering" target="_blank" rel="noopener" class="sae hover:underline">SAE Books on GitHub →</a></li>
+        <li><a href="https://github.com/sae-engineering" target="_blank" rel="noopener" class="sae hover:underline">{{ current_brand().name }} on GitHub →</a></li>
       </ul>
     </div>
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Cashbook — SAE Books{% endblock %}
+{% block title %}Cashbook — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -204,7 +204,7 @@
       </ul>
       <div class="mt-4">
         <a href="https://saebooks.com.au/#editions" target="_blank" rel="noopener" class="btn-primary">
-          See full SAE Books
+          See full {{ current_brand().name }}
         </a>
       </div>
     </div>

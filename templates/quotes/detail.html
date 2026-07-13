@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if quote %}Quote {{ quote.number or quote.id }} — SAE Books{% else %}Quote Not Found — SAE Books{% endif %}
+  {% if quote %}Quote {{ quote.number or quote.id }} — {{ current_brand().name }}{% else %}Quote Not Found — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

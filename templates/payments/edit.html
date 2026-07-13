@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if payment %}Edit Payment {{ payment.reference or payment.number or payment.id }} — SAE Books{% else %}Edit Payment — SAE Books{% endif %}
+  {% if payment %}Edit Payment {{ payment.reference or payment.number or payment.id }} — {{ current_brand().name }}{% else %}Edit Payment — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

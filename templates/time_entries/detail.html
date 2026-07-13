@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Time entry {{ entry.work_date if entry else "" }} — SAE Books{% endblock %}
+{% block title %}Time entry {{ entry.work_date if entry else "" }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 

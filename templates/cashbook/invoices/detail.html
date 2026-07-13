@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ invoice.number or "Draft" }} — Cashbook — SAE Books{% endblock %}
+{% block title %}{{ invoice.number or "Draft" }} — Cashbook — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 

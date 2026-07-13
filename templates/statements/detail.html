@@ -2,7 +2,7 @@
 {% import "_partials/empty_state.html" as empty %}
 
 {% block title %}
-  {% if statement %}{{ statement.supplier_name | default("Statement") }} — {% endif %}Supplier Statement — SAE Books
+  {% if statement %}{{ statement.supplier_name | default("Statement") }} — {% endif %}Supplier Statement — {{ current_brand().name }}
 {% endblock %}
 
 {% block content %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if po %}Purchase order {{ po.number or po.id }} — SAE Books{% else %}Not found — SAE Books{% endif %}
+  {% if po %}Purchase order {{ po.number or po.id }} — {{ current_brand().name }}{% else %}Not found — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

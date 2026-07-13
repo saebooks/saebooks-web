@@ -124,6 +124,34 @@ async def test_companies_list_renders(respx_mock: respx.MockRouter) -> None:
     assert "11 111 111 111" in resp.text
 
 
+@pytest.mark.anyio
+@respx.mock
+async def test_companies_list_title_uses_brand_config(
+    respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """W6: the page <title> is composed from the brand config
+    (saebooks_web/brand.py), not a hardcoded "SAE Books" literal — under
+    SAEBOOKS_BRAND=tasur the title says Tasur and never SAE Books."""
+    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur")
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(200, json=_MOCK_COMPANIES)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/license").mock(
+        return_value=Response(200, json=_LICENSE_ENTERPRISE)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _ADMIN_COOKIE},
+    ) as client:
+        resp = await client.get("/companies")
+
+    assert resp.status_code == 200
+    assert "<title>Companies — Tasur</title>" in resp.text
+    assert "SAE Books" not in resp.text
+
+
 # ---------------------------------------------------------------------------
 # 2. GET /companies/new — form renders for admin
 # ---------------------------------------------------------------------------

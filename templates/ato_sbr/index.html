@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}ATO SBR — Admin — SAE Books{% endblock %}
+{% block title %}ATO SBR — Admin — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -19,7 +19,7 @@
 <div class="card px-4 py-4 text-sm ink-2" style="border-color:var(--warm);">
   <p class="font-medium ink-1">ATO SBR feature is not enabled in this edition.</p>
   <p class="mt-1 text-xs ink-3">
-    This feature is available in SAE Books Enterprise. Contact your administrator or see the
+    This feature is available in {{ current_brand().name }} Enterprise. Contact your administrator or see the
     <a href="/admin/license" class="underline sae">licence page</a> for details.
   </p>
 </div>

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Upgrade to Full SAE Books{% endblock %}
+{% block title %}Upgrade to Full {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="max-w-lg mx-auto">
-  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Upgrade to Full SAE Books</h1>
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Upgrade to Full {{ current_brand().name }}</h1>
   <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Unlock double-entry bookkeeping, invoicing, bills, payroll and more.</p>
 
   {% if flash %}

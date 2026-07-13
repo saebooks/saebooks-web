@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if bill %}Edit Bill {{ bill.number or bill.id }} — SAE Books{% else %}Edit Bill — SAE Books{% endif %}
+  {% if bill %}Edit Bill {{ bill.number or bill.id }} — {{ current_brand().name }}{% else %}Edit Bill — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}
