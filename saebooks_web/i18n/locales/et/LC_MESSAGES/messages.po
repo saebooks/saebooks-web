@@ -1004,8 +1004,8 @@ msgstr "tasumata"
 #, python-format
 msgid "%(n)s invoice"
 msgid_plural "%(n)s invoices"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s arve"
+msgstr[1] "%(n)s arvet"
 
 #: templates/dashboard.html:98 templates/overviews/customer_hub.html:110
 #: templates/overviews/expenses.html:69 templates/overviews/sales.html:95
@@ -1367,18 +1367,17 @@ msgid "Isolation proof"
 msgstr "Isolatsiooni tõestus"
 
 #: templates/demo_isolation.html:12
-#, fuzzy
 msgid ""
 "Your sandbox is a separate database tenant — the same isolation a paying "
 "customer gets, enforced by Postgres row-level security, not a UI filter."
 msgstr ""
-"Teie liivakast on eraldi andmebaasi üürnik — sama isolatsiooni saab "
+"Teie liivakast on eraldi andmebaasi rentnik — sama isolatsiooni saab "
 "maksev klient, mida jõustab Postgres reatasandi turvalisus, mitte UI "
 "filter."
 
 #: templates/demo_isolation.html:20
 msgid "Your tenant"
-msgstr "Teie üürnik"
+msgstr "Teie rentnik"
 
 #: templates/demo_isolation.html:24
 msgid "Your company"
@@ -1629,9 +1628,8 @@ msgid "Private sandbox"
 msgstr "Privaatne liivakast"
 
 #: templates/_partials/demo_banner.html:25
-#, fuzzy
 msgid "tenant"
-msgstr "Üürnik"
+msgstr "Rentnik"
 
 #: templates/_partials/demo_banner.html:28 templates/quotes/detail.html:290
 msgid "created"
@@ -2649,34 +2647,31 @@ msgstr "Tulemusi pole."
 
 #: templates/admin/tenants.html:3
 msgid "Tenant switcher"
-msgstr "Üürniku vahetaja"
+msgstr "Rentniku vahetaja"
 
 #: templates/admin/tenants.html:8
 msgid "Developer · Tenant Switcher"
-msgstr "Arendaja · Üürnik Switcher"
+msgstr "Arendaja · Rentnik Switcher"
 
 #: templates/admin/tenants.html:9
-#, fuzzy
 msgid "Active tenant"
-msgstr "Aktiivne üürnik"
+msgstr "Aktiivne rentnik"
 
 #: templates/admin/tenants.html:11
-#, fuzzy
 msgid ""
 "The active tenant scopes every API query this session makes. Switching "
 "sends an"
 msgstr ""
-"Aktiivne üürnik skandeerib iga API päringu, mida see sessioon teeb. "
+"Aktiivne rentnik skandeerib iga API päringu, mida see sessioon teeb. "
 "Lülitamine saadab"
 
 #: templates/admin/tenants.html:11
-#, fuzzy
 msgid ""
 "header on every outbound request; clearing reverts to your user's bound "
 "tenant."
 msgstr ""
 "päis igal väljamineval soovil; revertide puhastamine teie kasutaja seotud"
-" üürnikule."
+" rentnikule."
 
 #: templates/admin/tenants.html:25
 msgid "Override active"
@@ -2688,7 +2683,7 @@ msgstr "Tühjenda alistus"
 
 #: templates/admin/tenants.html:39
 msgid "Tenant"
-msgstr "Üürnik"
+msgstr "Rentnik"
 
 #: templates/admin/tenants.html:40
 #, fuzzy
@@ -2711,9 +2706,8 @@ msgid "Switch"
 msgstr "Vaheta"
 
 #: templates/admin/tenants.html:64
-#, fuzzy
 msgid "No tenants visible (admin role required)."
-msgstr "Üürnikke pole näha (vajalik admin roll)."
+msgstr "Rentnikke pole näha (vajalik admin roll)."
 
 #: templates/ai_extraction/_result_fragment.html:28
 #, python-format
@@ -3388,7 +3382,7 @@ msgstr "Teie nimi"
 #: templates/purchase_orders/_form_fields.html:81 templates/quotes/list.html:61
 #: templates/settings/company.html:308
 msgid "optional"
-msgstr "vabatahtlik"
+msgstr "valikuline"
 
 #: templates/auth/signup.html:89
 msgid "At least 10 characters"
@@ -6653,16 +6647,15 @@ msgstr "versioon"
 
 #: templates/email_log/detail.html:160
 msgid "tenant:"
-msgstr "üürnik:"
+msgstr "rentnik:"
 
 #: templates/email_log/list.html:14
-#, fuzzy
 msgid ""
 "Every outbound email attempt — blocked or actual — for this tenant. "
 "Tamper-evident: DB-level trigger blocks UPDATE on locked columns + all "
 "DELETE. Bytes of each attached PDF stored inline + SHA-256 verified."
 msgstr ""
-"Iga väljaminev e-posti katse — blokeeritud või tegelik — selle üürniku "
+"Iga väljaminev e-posti katse — blokeeritud või tegelik — selle rentniku "
 "jaoks. Võltsimiskindel: andmebaasi tasemel päästik blokeerib UPDATE "
 "lukustatud veergudel + kõik DELETE. Iga lisatud PDF-i baidid "
 "salvestatakse reasiseselt + SHA-256 kontrollitud."
@@ -6738,7 +6731,7 @@ msgstr "Renditööjõud"
 
 #: templates/employees/detail.html:28
 msgid "Voluntary agreement"
-msgstr "Vabatahtlik kokkulepe"
+msgstr "Valikuline kokkulepe"
 
 #: templates/employees/detail.html:29 templates/employees/list.html:99
 msgid "Non-employee"
@@ -6778,7 +6771,7 @@ msgstr "Lõpetamise põhjus"
 
 #: templates/employees/detail.html:88
 msgid "Voluntary cessation"
-msgstr "Vabatahtlik lõpetamine"
+msgstr "Valikuline lõpetamine"
 
 #: templates/employees/detail.html:89
 msgid "Ill health"
@@ -6891,7 +6884,7 @@ msgstr "L — Renditööjõud"
 #: templates/employees/detail.html:149 templates/employees/edit.html:69
 #: templates/employees/new.html:70
 msgid "V — Voluntary agreement"
-msgstr "V — Vabatahtlik kokkulepe"
+msgstr "V — Valikuline kokkulepe"
 
 #: templates/employees/detail.html:150 templates/employees/edit.html:70
 #: templates/employees/new.html:71
@@ -7006,7 +6999,7 @@ msgstr "Cessation tüüp (STP2)"
 
 #: templates/employees/detail.html:320
 msgid "V — Voluntary"
-msgstr "V — Vabatahtlik"
+msgstr "V — Valikuline"
 
 #: templates/employees/detail.html:321
 msgid "I — Ill health"
@@ -7123,7 +7116,7 @@ msgstr "JPD — ühine naftaarendus"
 
 #: templates/employees/edit.html:113 templates/employees/new.html:118
 msgid "VOL — Voluntary agreement"
-msgstr "VOL — Vabatahtlik kokkulepe"
+msgstr "VOL — Valikuline kokkulepe"
 
 #: templates/employees/edit.html:114 templates/employees/new.html:119
 msgid "LAB — Labour hire"
@@ -8275,13 +8268,12 @@ msgid "Mint new address"
 msgstr "Loo uus aadress"
 
 #: templates/inbox/email_addresses.html:50
-#, fuzzy
 msgid ""
 "The token is server-generated and unguessable. Mint one address per "
 "company on a multi-entity tenant."
 msgstr ""
 "Token on serveri poolt loodud ja hindamatu. Mint üks aadress ettevõtte "
-"kohta mitmeliikmelisele üürnikule."
+"kohta mitmeliikmelisele rentnikule."
 
 #: templates/inbox/email_addresses.html:60
 msgid "Company routing"
@@ -8417,7 +8409,11 @@ msgid_plural ""
 "%(count)s other open documents in the inbox share this vendor and invoice"
 " number — check before publishing (publishing is still allowed):"
 msgstr[0] ""
+"%(count)s teine avatud dokument postkastis jagab sama tarnijat ja "
+"arvenumbrit — kontrolli enne avaldamist (avaldamine on siiski lubatud):"
 msgstr[1] ""
+"%(count)s teist avatud dokumenti postkastis jagavad sama tarnijat ja "
+"arvenumbrit — kontrolli enne avaldamist (avaldamine on siiski lubatud):"
 
 #: templates/inbox/review.html:88
 msgid "ref"
@@ -10734,7 +10730,7 @@ msgstr "Vaikimisi dok tüübi kohta. Ületada ühe saatmise kohta."
 
 #: templates/quotes/email_compose.html:68
 msgid "customer@example.com, optional second@example.com"
-msgstr "klient@example.com, vabatahtlik teine@example.com"
+msgstr "klient@example.com, valikuline teine@example.com"
 
 #: templates/quotes/email_compose.html:70
 msgid "Comma-separated."
@@ -10946,7 +10942,7 @@ msgstr "Ankrupäev"
 
 #: templates/recurring_invoices/_form_fields.html:149
 msgid "(1–31, optional)"
-msgstr "(1-31, vabatahtlik)"
+msgstr "(1-31, valikuline)"
 
 #: templates/recurring_invoices/_form_fields.html:158
 #: templates/statements/detail.html:414
