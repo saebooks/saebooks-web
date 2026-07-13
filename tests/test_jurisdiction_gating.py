@@ -272,7 +272,15 @@ async def test_nav_ee_hides_bas_and_ato_sbr_shows_tax_codes(
     _register_mocks(respx_mock)
 
     session = _make_session_cookie(
-        {"api_token": "test-token-jurisdiction", "user_role": "admin"}
+        {
+            "api_token": "test-token-jurisdiction",
+            "user_role": "admin",
+            # Pin the render locale to English so assertions match the
+            # source strings. In production EE-jurisdiction nav renders in
+            # the visitor's locale (Estonian); the LocaleMiddleware honours
+            # this session override above the jurisdiction default.
+            "locale": "en",
+        }
     )
     async with AsyncClient(
         transport=ASGITransport(app=app),
