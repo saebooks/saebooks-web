@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Expense %(number)s") % {"number": expense.number or expense.id} }} — SAE Books{% endblock %}
+{% block title %}{{ _("Expense %(number)s") % {"number": expense.number or expense.id} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 

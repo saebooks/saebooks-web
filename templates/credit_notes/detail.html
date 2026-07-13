@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if credit_note %}Credit Note {{ credit_note.number or credit_note.id }} — SAE Books{% else %}Credit Note Not Found — SAE Books{% endif %}
+  {% if credit_note %}Credit Note {{ credit_note.number or credit_note.id }} — {{ current_brand().name }}{% else %}Credit Note Not Found — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

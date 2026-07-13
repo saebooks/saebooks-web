@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if item %}Edit {{ item.sku }} — SAE Books{% else %}Edit Item — SAE Books{% endif %}
+  {% if item %}Edit {{ item.sku }} — {{ current_brand().name }}{% else %}Edit Item — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

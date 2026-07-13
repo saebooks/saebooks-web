@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if payment %}{{ _("Payment %(reference)s") % {"reference": payment.reference or payment.number or payment.id} }} — SAE Books{% else %}{{ _("Payment Not Found") }} — SAE Books{% endif %}
+  {% if payment %}{{ _("Payment %(reference)s") % {"reference": payment.reference or payment.number or payment.id} }} — {{ current_brand().name }}{% else %}{{ _("Payment Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

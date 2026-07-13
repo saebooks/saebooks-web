@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if invoice %}Edit Invoice {{ invoice.number or invoice.id }} — SAE Books{% else %}Edit Invoice — SAE Books{% endif %}
+  {% if invoice %}Edit Invoice {{ invoice.number or invoice.id }} — {{ current_brand().name }}{% else %}Edit Invoice — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

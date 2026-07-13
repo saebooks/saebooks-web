@@ -35,8 +35,8 @@
           hx-target="#review-flag-{{ entity_id }}"
           hx-swap="outerHTML"
           class="icon-btn icon-btn-danger"
-          title="{% if _note %}Flagged: {{ _note }} — click to clear{% else %}Flagged for review — click to clear{% endif %}"
-          aria-label="Clear review flag"
+          title="{% if _note %}{{ _('Flagged: %(note)s — click to clear') % {'note': _note} }}{% else %}{{ _('Flagged for review — click to clear') }}{% endif %}"
+          aria-label="{{ _('Clear review flag') }}"
           aria-pressed="true">
     <i data-lucide="flag" class="w-4 h-4" style="fill:currentColor;color:var(--warm);"></i>
   </button>
@@ -46,8 +46,8 @@
           hx-target="#review-flag-{{ entity_id }}"
           hx-swap="outerHTML"
           class="icon-btn"
-          title="Flag for review"
-          aria-label="Flag for review"
+          title="{{ _('Flag for review') }}"
+          aria-label="{{ _('Flag for review') }}"
           aria-pressed="false">
     <i data-lucide="flag" class="w-4 h-4"></i>
   </button>
@@ -58,7 +58,7 @@
   {%- if flagged -%}
   <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">
     <i data-lucide="flag" class="w-4 h-4" style="fill:currentColor;"></i>
-    Flagged for review
+    {{ _("Flagged for review") }}
   </span>
   {%- if _note %}<span class="text-sm ink-2">— {{ _note }}</span>{%- endif %}
   <button type="button"
@@ -67,17 +67,17 @@
           hx-swap="outerHTML"
           class="btn-secondary text-sm py-1.5">
     <i data-lucide="flag-off" class="w-4 h-4"></i>
-    <span>Clear flag</span>
+    <span>{{ _("Clear flag") }}</span>
   </button>
   {%- else -%}
-  <span class="text-sm ink-3">Not flagged.</span>
+  <span class="text-sm ink-3">{{ _("Not flagged.") }}</span>
   <button type="button"
           hx-post="{{ _set_url }}"
           hx-target="#review-flag-{{ entity_id }}"
           hx-swap="outerHTML"
           class="btn-secondary text-sm py-1.5">
     <i data-lucide="flag" class="w-4 h-4"></i>
-    <span>Flag for review</span>
+    <span>{{ _("Flag for review") }}</span>
   </button>
   {%- endif -%}
 </div>

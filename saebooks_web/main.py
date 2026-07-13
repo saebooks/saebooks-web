@@ -140,12 +140,16 @@ from saebooks_web.render import router as render_router
 # Internal server-to-server outbound email (engine #32) — token-gated,
 # exempt from session auth (same /internal/ skip lists as render).
 from saebooks_web.comms import router as comms_router
+from saebooks_web.brand import current_brand
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
 
+# SAEBOOKS_BRAND is a deployment-level env var (one value per process, per
+# brand.py's own docstring) — safe to resolve once here at app-construction
+# time, same as reading any other env-backed setting at import time.
 app = FastAPI(
-    title="SAE Books Web",
+    title=f"{current_brand().name} Web",
     description="Thin Jinja2 + HTMX frontend for saebooks-api",
     version="0.1.3",
     docs_url="/api/docs",  # keep /docs free from accidental exposure

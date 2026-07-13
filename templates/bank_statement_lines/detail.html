@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if line %}{{ line.txn_date }} — Bank Statement Line — SAE Books{% else %}Bank Statement Line Not Found — SAE Books{% endif %}
+  {% if line %}{{ line.txn_date }} — Bank Statement Line — {{ current_brand().name }}{% else %}Bank Statement Line Not Found — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

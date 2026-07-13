@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Cashbook Report — SAE Books{% endblock %}
+{% block title %}Cashbook Report — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -109,7 +109,7 @@
       <span class="reg-mark"></span>
       <h2 class="nav-section-label">Activity Statement preview</h2>
     </div>
-    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Lodgement → SAE Books Pro</span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Lodgement → {{ current_brand().name }} Pro</span>
   </div>
   <dl class="divide-y" style="border-color:var(--line);">
     <div class="flex justify-between px-6 py-3 text-sm">

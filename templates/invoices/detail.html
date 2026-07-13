@@ -4,7 +4,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if invoice %}Invoice {{ invoice.number or invoice.id }} — SAE Books{% else %}Invoice Not Found — SAE Books{% endif %}
+  {% if invoice %}Invoice {{ invoice.number or invoice.id }} — {{ current_brand().name }}{% else %}Invoice Not Found — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

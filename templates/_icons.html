@@ -15,37 +15,44 @@
    for a flex-row of action icons in a table cell.
 #}
 
-{% macro view(href, label="View") %}
+{% macro view(href, label=None) %}
+{% set label = label or _("View") %}
 <a href="{{ href }}" class="icon-btn" title="{{ label }}" aria-label="{{ label }}">
   <i data-lucide="eye" class="w-4 h-4"></i>
 </a>
 {% endmacro %}
 
-{% macro edit(href, label="Edit") %}
+{% macro edit(href, label=None) %}
+{% set label = label or _("Edit") %}
 <a href="{{ href }}" class="icon-btn" title="{{ label }}" aria-label="{{ label }}">
   <i data-lucide="pencil" class="w-4 h-4"></i>
 </a>
 {% endmacro %}
 
-{% macro duplicate(href, label="Duplicate") %}
+{% macro duplicate(href, label=None) %}
+{% set label = label or _("Duplicate") %}
 <a href="{{ href }}" class="icon-btn" title="{{ label }}" aria-label="{{ label }}">
   <i data-lucide="copy" class="w-4 h-4"></i>
 </a>
 {% endmacro %}
 
-{% macro use(href, label="Use") %}
+{% macro use(href, label=None) %}
+{% set label = label or _("Use") %}
 <a href="{{ href }}" class="icon-btn" title="{{ label }}" aria-label="{{ label }}">
   <i data-lucide="play" class="w-4 h-4"></i>
 </a>
 {% endmacro %}
 
-{% macro unarchive(href, label="Restore") %}
+{% macro unarchive(href, label=None) %}
+{% set label = label or _("Restore") %}
 <a href="{{ href }}" class="icon-btn" title="{{ label }}" aria-label="{{ label }}">
   <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
 </a>
 {% endmacro %}
 
-{% macro soft_delete(action, csrf, version, confirm_text="Delete this item?", label="Delete") %}
+{% macro soft_delete(action, csrf, version, confirm_text=None, label=None) %}
+{% set confirm_text = confirm_text or _("Delete this item?") %}
+{% set label = label or _("Delete") %}
 <form method="POST" action="{{ action }}" class="inline" onsubmit="return confirm('{{ confirm_text|e }}');">
   {{ csrf|safe }}
   <input type="hidden" name="version" value="{{ version | default('') }}">
@@ -55,7 +62,9 @@
 </form>
 {% endmacro %}
 
-{% macro archive(action, csrf, version, confirm_text="Archive this item?", label="Archive") %}
+{% macro archive(action, csrf, version, confirm_text=None, label=None) %}
+{% set confirm_text = confirm_text or _("Archive this item?") %}
+{% set label = label or _("Archive") %}
 <form method="POST" action="{{ action }}" class="inline" onsubmit="return confirm('{{ confirm_text|e }}');">
   {{ csrf|safe }}
   <input type="hidden" name="version" value="{{ version | default('') }}">
@@ -70,15 +79,16 @@
    per the brief. The endpoint is the resource's DELETE route plus
    ?hard=true (e.g. /api/v1/invoices/{id}?hard=true) and the admin gate on
    the API side returns 403 if the requester is not admin. #}
-{% macro hard_delete(api_url, name="this record", redirect="/") %}
+{% macro hard_delete(api_url, name=None, redirect="/") %}
+{% set name = name or _("this record") %}
 <button
   type="button"
   class="icon-btn icon-btn-flame"
-  title="Hard-delete (admin only)"
-  aria-label="Hard-delete (admin only)"
+  title="{{ _('Hard-delete (admin only)') }}"
+  aria-label="{{ _('Hard-delete (admin only)') }}"
   hx-delete="{{ api_url }}{% if '?' in api_url %}&{% else %}?{% endif %}hard=true"
   hx-headers='{"X-Admin": "true"}'
-  hx-confirm="Permanently delete {{ name }}? This snapshots to audit_log and cannot be undone."
+  hx-confirm="{{ _('Permanently delete %(name)s? This snapshots to audit_log and cannot be undone.') % {'name': name} }}"
   hx-on::after-request="if (event.detail.successful) window.location='{{ redirect }}';"
 >
   <i data-lucide="flame" class="w-4 h-4"></i>

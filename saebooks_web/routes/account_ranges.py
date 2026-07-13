@@ -58,10 +58,10 @@ def _require_auth(request: Request) -> str | None:
 
 
 def _require_admin(request: Request) -> bool:
-    """True if session is SAE staff or tenant admin."""
+    """True if session is SAE staff or tenant owner/admin."""
     role = request.session.get("user_role", "")
     is_staff = bool(request.session.get("is_sae_staff"))
-    return is_staff or role == "admin"
+    return is_staff or role in ("owner", "admin")
 
 
 def _parse_errors(resp_json: dict) -> dict[str, str]:

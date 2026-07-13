@@ -2,7 +2,7 @@
 {% import "_icons.html" as icons %}
 
 {% block title %}
-  {% if bill %}{{ _("Bill %(number)s") % {"number": bill.number or bill.id} }} — SAE Books{% else %}{{ _("Bill Not Found") }} — SAE Books{% endif %}
+  {% if bill %}{{ _("Bill %(number)s") % {"number": bill.number or bill.id} }} — {{ current_brand().name }}{% else %}{{ _("Bill Not Found") }} — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

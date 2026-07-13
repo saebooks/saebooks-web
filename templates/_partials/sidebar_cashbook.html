@@ -20,48 +20,48 @@
 {% endmacro %}
 
 <div>
-  {{ nav_item("/cashbook", "Cashbook overview") }}
-  {{ nav_item("/cashbook/entries", "Money in / out", "/cashbook/entries") }}
+  {{ nav_item("/cashbook", _("Cashbook overview")) }}
+  {{ nav_item("/cashbook/entries", _("Money in / out"), "/cashbook/entries") }}
 </div>
 
 <div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">Sales</div>
-  {{ nav_item("/cashbook/invoices", "Invoices", "/cashbook/invoices") }}
-  {{ nav_item("/cashbook/quotes", "Quotes", "/cashbook/quotes") }}
-  {{ nav_item("/contacts", "Contacts", "/contacts") }}
+  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">{{ _("Sales") }}</div>
+  {{ nav_item("/cashbook/invoices", _("Invoices"), "/cashbook/invoices") }}
+  {{ nav_item("/cashbook/quotes", _("Quotes"), "/cashbook/quotes") }}
+  {{ nav_item("/contacts", _("Contacts"), "/contacts") }}
 </div>
 
 <div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">Purchases</div>
-  {{ nav_item("/expenses", "Expenses", "/expenses") }}
+  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">{{ _("Purchases") }}</div>
+  {{ nav_item("/expenses", _("Expenses"), "/expenses") }}
 </div>
 
 <div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">People &amp; payroll</div>
-  {{ nav_item("/employees", "Employees", "/employees") }}
-  {{ nav_item("/super-funds", "Super funds", "/super-funds") }}
-  {{ nav_item("/pay-run", "Pay runs", "/pay-run") }}
-  {{ nav_item("/time-entries", "Time tracking", "/time-entries") }}
+  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">{{ _("People & payroll") }}</div>
+  {{ nav_item("/employees", _("Employees"), "/employees") }}
+  {{ nav_item("/super-funds", _("Super funds"), "/super-funds") }}
+  {{ nav_item("/pay-run", _("Pay runs"), "/pay-run") }}
+  {{ nav_item("/time-entries", _("Time tracking"), "/time-entries") }}
 </div>
 
 <div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">Reports</div>
-  {{ nav_item("/cashbook/report", "Cashbook report", "/cashbook/report") }}
-  {{ nav_item("/reports/bas-summary", "BAS", "/reports/bas-summary") }}
-  {{ nav_item("/reports/profit-loss", "Profit &amp; loss", "/reports/profit-loss") }}
+  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">{{ _("Reports") }}</div>
+  {{ nav_item("/cashbook/report", _("Cashbook report"), "/cashbook/report") }}
+  {{ nav_item("/reports/bas-summary", _("BAS"), "/reports/bas-summary") }}
+  {{ nav_item("/reports/profit-loss", _("Profit & loss"), "/reports/profit-loss") }}
 </div>
 
 <div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
   <a href="/settings/company"
      class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    Settings
+    {{ _("Settings") }}
   </a>
   <a href="/cashbook/about"
      class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/cashbook/about') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    About Cashbook
+    {{ _("About Cashbook") }}
   </a>
   <a href="/cashbook/upgrade"
      class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path.startswith('/cashbook/upgrade') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
-    Upgrade to full
+    {{ _("Upgrade to full") }}
   </a>
 </div>

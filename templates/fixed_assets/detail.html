@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if asset %}{{ asset.code }} — Fixed Asset — SAE Books{% else %}Fixed Asset Not Found — SAE Books{% endif %}
+  {% if asset %}{{ asset.code }} — Fixed Asset — {{ current_brand().name }}{% else %}Fixed Asset Not Found — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

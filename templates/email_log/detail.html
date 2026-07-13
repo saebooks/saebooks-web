@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Email send log %(id)s") % {"id": entry.id[:8]} }} — SAE Books{% endblock %}
+{% block title %}{{ _("Email send log %(id)s") % {"id": entry.id[:8]} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="mb-4">

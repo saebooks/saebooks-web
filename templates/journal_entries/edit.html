@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {% if entry %}Edit Journal Entry {{ entry.ref or entry.id }} — SAE Books{% else %}Edit Journal Entry — SAE Books{% endif %}
+  {% if entry %}Edit Journal Entry {{ entry.ref or entry.id }} — {{ current_brand().name }}{% else %}Edit Journal Entry — {{ current_brand().name }}{% endif %}
 {% endblock %}
 
 {% block content %}

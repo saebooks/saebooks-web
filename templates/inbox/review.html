@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "inbox/_macros.html" as chips %}
 
-{% block title %}{{ _("Review %(filename)s") % {"filename": doc.filename} }} — SAE Books{% endblock %}
+{% block title %}{{ _("Review %(filename)s") % {"filename": doc.filename} }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 

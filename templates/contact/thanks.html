@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Message sent — SAE Books{% endblock %}
+{% block title %}Message sent — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 <div class="flex min-h-[70vh] items-center justify-center">
@@ -22,7 +22,7 @@
          class="inline-block rounded-md bg-[#194291] px-4 py-2 text-sm font-medium
                 text-white hover:bg-[#133372] focus:outline-none focus:ring-2
                 focus:ring-[#194291] focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-        Back to SAE Books
+        Back to {{ current_brand().name }}
       </a>
 
     </div>
