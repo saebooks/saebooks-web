@@ -1,0 +1,29 @@
+{#
+  Degraded panel — rendered when a downstream module is unavailable
+  (connection failure / engine module-unavailable 503). Degraded ≠
+  not-entitled: this is visually distinct from the 404 feature-disabled
+  upsell pattern. Context: module_id (str|None), detail (str, shown to
+  dev instances only).
+
+  Used two ways:
+    - full-page fallback via main.py's ModuleUnavailable exception handler
+    - inline per-tile include (e.g. dashboard tiles) — same markup
+#}
+<div class="flex flex-col items-center justify-center text-center py-10 px-4"
+     data-degraded-panel{% if module_id %} data-module-id="{{ module_id }}"{% endif %}>
+  <div class="mb-3" aria-hidden="true" style="color: var(--warn, #d97706);">
+    <i data-lucide="plug-zap" class="w-10 h-10"></i>
+  </div>
+  <p class="text-sm font-medium mb-1" style="color: var(--ink);">
+    {{ _("This feature is temporarily unavailable") }}
+  </p>
+  <p class="text-xs ink-3 mb-4 max-w-sm">
+    {{ _("The rest of the app keeps working — try this page again in a moment.") }}
+    {% if detail and is_dev_edition() %}
+    <span class="block mt-1 font-mono text-[10px] opacity-70">{{ detail }}</span>
+    {% endif %}
+  </p>
+  <a href="{{ request.url.path }}" class="btn-secondary text-sm">
+    <i data-lucide="refresh-cw" class="w-4 h-4"></i>{{ _("Retry") }}
+  </a>
+</div>

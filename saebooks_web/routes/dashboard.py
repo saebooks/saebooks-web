@@ -26,6 +26,7 @@ Auth guard: redirect to /login (303) if no session token.
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -35,6 +36,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.module_gate import ModuleUnavailable
+
+logger = logging.getLogger("saebooks_web.dashboard")
 
 router = APIRouter()
 
@@ -94,13 +98,17 @@ def _week_range(offset_weeks: int = 0) -> tuple[str, str]:
 
 
 async def _fetch_json(client, path: str, params: dict | None = None) -> dict:
-    """GET path and return parsed JSON; return empty dict on non-2xx."""
-    try:
-        resp = await client.get(path, params=params or {})
-        if resp.is_success:
-            return resp.json()
-    except Exception:
-        pass
+    """GET path and return parsed JSON. Raises ModuleUnavailable on
+    connection failure / engine module-unavailable 503 (via api_client.py's
+    event hook + exception wrapping). A non-2xx status that isn't a
+    ModuleUnavailable-triggering 503 still returns {} (unchanged behavior
+    for 401/404/other statuses at this tile-fetch layer — the dashboard
+    route doesn't do per-tile auth redirects today and that isn't being
+    added here).
+    """
+    resp = await client.get(path, params=params or {})
+    if resp.is_success:
+        return resp.json()
     return {}
 
 
@@ -577,23 +585,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
     fy_from, fy_to = _au_fy_range()
 
     async with api_client(request) as client:
-        (
-            draft_invoices_raw,
-            open_invoices_raw,
-            paid_inv_raw,
-            draft_bills_raw,
-            open_bills_raw,
-            paid_bills_raw,
-            payments_raw,
-            recent_invoices_raw,
-            recent_bills_raw,
-            recent_payments_raw,
-            recent_je_raw,
-            recent_contacts_raw,
-            ytd_turnover_raw,
-            companies_raw,
-            revenue_concentration_raw,
-        ) = await asyncio.gather(
+        gather_results = await asyncio.gather(
             # AR tile — open invoices are POSTED (overdue computed in Python)
             _fetch_items(client, "/api/v1/invoices",
                          {"status": "DRAFT", "page": 1, "page_size": 100}),
@@ -631,7 +623,73 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             # Revenue concentration — PSI 80/20 warning (current AU FY)
             _fetch_json(client, "/api/v1/reports/revenue_by_customer",
                         {"from_date": fy_from, "to_date": fy_to}),
+            # One failing tile must degrade that tile, not 500 the page:
+            # without return_exceptions the first raise cancels the other
+            # in-flight fetches and the whole dashboard dies.
+            return_exceptions=True,
         )
+
+    _TILE_NAMES = [
+        "draft_invoices", "open_invoices", "paid_invoices",
+        "draft_bills", "open_bills", "paid_bills",
+        "payments", "recent_invoices", "recent_bills", "recent_payments",
+        "recent_je", "recent_contacts", "ytd_turnover", "companies",
+        "revenue_concentration",
+    ]
+    # The three _fetch_json slots default to {} not [].
+    _DICT_SLOTS = {"ytd_turnover", "companies", "revenue_concentration"}
+    degraded_fetches: set[str] = set()
+    _by_name: dict[str, object] = {}
+    for name, r in zip(_TILE_NAMES, gather_results, strict=True):
+        if isinstance(r, ModuleUnavailable):
+            degraded_fetches.add(name)
+            _by_name[name] = {} if name in _DICT_SLOTS else []
+        elif isinstance(r, BaseException):
+            # Non-ModuleUnavailable exception — genuinely unexpected; still
+            # degrade the tile rather than 500ing the whole page, but log
+            # it since it's not the anticipated failure mode.
+            logger.warning("dashboard tile %s failed unexpectedly: %r", name, r)
+            degraded_fetches.add(name)
+            _by_name[name] = {} if name in _DICT_SLOTS else []
+        else:
+            _by_name[name] = r
+
+    (
+        draft_invoices_raw,
+        open_invoices_raw,
+        paid_inv_raw,
+        draft_bills_raw,
+        open_bills_raw,
+        paid_bills_raw,
+        payments_raw,
+        recent_invoices_raw,
+        recent_bills_raw,
+        recent_payments_raw,
+        recent_je_raw,
+        recent_contacts_raw,
+        ytd_turnover_raw,
+        companies_raw,
+        revenue_concentration_raw,
+    ) = (_by_name[n] for n in _TILE_NAMES)
+
+    # Map raw-fetch names → the dashboard tiles they feed; a tile is
+    # degraded if ANY of its input fetches degraded.
+    _TILE_INPUTS = {
+        "ar": {"draft_invoices", "open_invoices", "paid_invoices"},
+        "ap": {"draft_bills", "open_bills", "paid_bills"},
+        "cash": {"payments"},
+        "takings": {"payments"},
+        "gst": {"ytd_turnover"},
+        "recent": {"recent_invoices", "recent_bills", "recent_payments",
+                   "recent_je", "recent_contacts"},
+        "sales_pipeline": {"draft_invoices", "open_invoices", "payments"},
+        "bills_pipeline": {"draft_bills", "open_bills", "payments"},
+        "top_vendors_month": {"draft_bills", "open_bills", "recent_contacts"},
+        "psi": {"companies", "revenue_concentration"},
+    }
+    degraded_tiles = {
+        tile for tile, inputs in _TILE_INPUTS.items() if inputs & degraded_fetches
+    }
 
     # Handle 401 edge case — if all lists are empty and the token is gone,
     # we let the page render empty rather than soft-looping.  The user can
@@ -694,5 +752,6 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "bills_pipeline": bills_pipeline,
             "top_vendors_month": top_vendors_month,
             "today_iso": date.today().isoformat(),
+            "degraded_tiles": degraded_tiles,
         },
     )

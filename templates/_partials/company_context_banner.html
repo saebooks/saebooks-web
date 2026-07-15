@@ -1,0 +1,15 @@
+{#
+  App-wide degrade banner — shown when CompanyContextMiddleware couldn't
+  fetch the company list (engine down / slow / errored). Cross-cutting
+  infrastructure signal, deliberately distinct from the per-module
+  degraded_panel.html (banner = full-width top strip; module panel =
+  inline content-area replacement).
+#}
+{% if request.state.company_context_unavailable %}
+<div class="w-full text-sm px-4 py-2 flex items-center gap-2"
+     style="background: color-mix(in srgb, var(--warn, #d97706) 12%, var(--paper)); border-bottom: 1px solid color-mix(in srgb, var(--warn, #d97706) 35%, transparent); color: var(--ink);"
+     data-company-context-banner>
+  <i data-lucide="alert-triangle" class="w-4 h-4" style="color: var(--warn, #d97706);"></i>
+  {{ _("Company list is temporarily unavailable — showing your last-known company. Some switching features may not work.") }}
+</div>
+{% endif %}

@@ -87,6 +87,7 @@
 <div data-widget-zone="kpi"
      class="grid grid-cols-2 lg:grid-cols-3 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
   <section data-widget="kpi-ar" data-widget-title="{{ _('AR · outstanding') }}" data-widget-href="/invoices" class="card bg-paper p-5 rounded-none">
+      {% if "ar" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
     <p class="nav-section-label mb-2">AR · {{ _("outstanding") }}</p>
     <p class="num-display text-2xl sae">
       {{ money(ar.paid_total|float, decimals=0) }}
@@ -99,8 +100,10 @@
       {% endif %}
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkAr" data-seed="{{ ar.paid_total|round|int }}" data-tint="var(--sae)"></canvas></div>
-  </section>
+  {% endif %}
+    </section>
   <section data-widget="kpi-ap" data-widget-title="{{ _('AP · outstanding') }}" data-widget-href="/bills" class="card bg-paper p-5 rounded-none">
+      {% if "ap" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
     <p class="nav-section-label mb-2">AP · {{ _("outstanding") }}</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
       {{ money(ap.paid_total|float, decimals=0) }}
@@ -113,8 +116,10 @@
       {% endif %}
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkAp" data-seed="{{ ap.paid_total|round|int }}" data-tint="var(--sae-2)"></canvas></div>
-  </section>
+  {% endif %}
+    </section>
   <section data-widget="kpi-cash" data-widget-title="{{ _('Cash · this month') }}" data-widget-href="/payments" class="card bg-paper p-5 rounded-none">
+      {% if "cash" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
     <p class="nav-section-label mb-2">{{ _("Cash · this month") }}</p>
     <p class="num-display text-2xl" style="color: {% if cash.net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
       {% if cash.net < 0 %}−{% endif %}{{ money(cash.net|abs|float, decimals=0) }}
@@ -126,7 +131,8 @@
       <span class="neg">▼ {{ money(cash.out_total|float, decimals=0) }}</span>
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkCash" data-seed="{{ (cash.in_total + cash.out_total)|round|int }}" data-tint="var(--pos)"></canvas></div>
-  </section>
+  {% endif %}
+    </section>
   {% if jurisdiction == 'AU' %}
   {# GST turnover tile — default HIDDEN. Under-$75k orgs belong on Cashbook;
      this only resurfaces if a user explicitly adds it via Customise. #}
@@ -134,6 +140,7 @@
            data-widget-default-hidden="1"
            data-widget-href="/reports"
            class="card bg-paper p-5 rounded-none">
+      {% if "gst" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
     <p class="nav-section-label mb-2">{{ _("GST turnover · YTD") }}</p>
     <p class="num-display text-2xl"
        style="color: {% if gst and gst.threshold_crossed %}var(--neg){% elif gst and gst.threshold_approaching %}var(--warm){% else %}var(--sae){% endif %};">
@@ -145,7 +152,8 @@
       {% if gst %} · <span class="num">{{ num(gst.pct, 0) }}%</span>{% endif %}
     </p>
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkGst" data-seed="{{ (gst.ytd_turnover if gst else 0)|round|int }}" data-tint="var(--warm)"></canvas></div>
-  </section>
+  {% endif %}
+    </section>
   {% endif %}
 </div>
 
@@ -162,6 +170,7 @@
 
     {# Cash flow card with sparkline #}
     <section data-widget="cashflow" data-widget-title="{{ _('Cash flow · this month') }}" data-widget-href="/payments" class="card p-6">
+      {% if "cash" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">{{ _("Cash flow · this month") }}</p>
@@ -190,10 +199,12 @@
           </p>
         </div>
       </div>
+    {% endif %}
     </section>
 
     {# AR aging #}
     <section data-widget="ar-aging" data-widget-title="{{ _('Receivables aging') }}" data-widget-href="/invoices" class="card p-6">
+      {% if "ar" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">{{ _("Receivables aging") }}</p>
@@ -245,10 +256,12 @@
           </tr>
         </tbody>
       </table>
+    {% endif %}
     </section>
 
     {# AP aging #}
     <section data-widget="ap-aging" data-widget-title="{{ _('Payables aging') }}" data-widget-href="/bills" class="card p-6">
+      {% if "ap" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">{{ _("Payables aging") }}</p>
@@ -300,11 +313,13 @@
           </tr>
         </tbody>
       </table>
+    {% endif %}
     </section>
 
     {# Weekly takings — preserved, restyled #}
     {% if takings %}
     <section data-widget="weekly-takings" data-widget-title="{{ _('Weekly takings') }}" data-widget-href="/payments" class="card p-6">
+      {% if "takings" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">{{ _("Weekly takings") }}</p>
@@ -333,6 +348,7 @@
           <p class="text-[10px] font-mono ink-4 mt-1">{{ takings.last_start }} – {{ takings.last_end }}</p>
         </div>
       </div>
+    {% endif %}
     </section>
     {% endif %}
   </div>
@@ -346,6 +362,7 @@
     <section id="gst-tile" data-widget="gst-tile" data-widget-title="{{ _('GST turnover · YTD') }}"
              data-widget-default-hidden="1"
              class="card p-6 relative overflow-hidden">
+      {% if "gst" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
       <div class="dot-grid absolute inset-0 -z-10 opacity-40"></div>
       <p class="nav-section-label">GST · {% if gst and gst.fy_start %}FY {{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}{% else %}{{ _("this FY") }}{% endif %}</p>
       <h2 class="font-display text-xl mt-1 mb-4">
@@ -404,11 +421,13 @@
           </a>
         {% endif %}
       </div>
+    {% endif %}
     </section>
     {% endif %}
 
     {# Recent activity #}
     <section data-widget="recent-activity" data-widget-title="{{ _('Recent activity') }}" class="card p-6">
+      {% if "recent" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="nav-section-label">{{ _("Recent activity") }}</p>
@@ -447,6 +466,7 @@
       {% else %}
       <p class="text-sm ink-3 py-6 text-center font-mono">{{ _("— no recent activity —") }}</p>
       {% endif %}
+    {% endif %}
     </section>
 
   </aside>
@@ -459,6 +479,7 @@
    ───────────────────────────────────────────────────────────────────────── #}
 {% if (jurisdiction == 'AU' and gst and (gst.threshold_crossed or gst.threshold_approaching)) or concentration_warning or psi_status == "unsure" %}
 <section data-widget="compliance" data-widget-title="{{ _('Compliance notes') }}" class="card-hero p-6">
+      {% if "psi" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
   <p class="nav-section-label mb-4">{{ _("Compliance notes") }}</p>
   <div class="space-y-4 text-sm">
 
@@ -521,7 +542,8 @@
     </div>
     {% endif %}
   </div>
-</section>
+{% endif %}
+    </section>
 {% endif %}
 
 {# ─────────────────────────────────────────────────────────────────────────
@@ -533,19 +555,24 @@
 <section data-widget="sales-pipeline" data-widget-title="{{ _('Sales pipeline') }}"
          data-widget-default-hidden="1"
          data-widget-href="/invoices">
+      {% if "sales_pipeline" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
   {{ funnel(sales_pipeline, title=_("Sales pipeline"), as_of=today_iso) }}
-</section>
+{% endif %}
+    </section>
 
 <section data-widget="bills-pipeline" data-widget-title="{{ _('Bills pipeline') }}"
          data-widget-default-hidden="1"
          data-widget-href="/bills">
+      {% if "bills_pipeline" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
   {{ funnel(bills_pipeline, title=_("Bills pipeline"), as_of=today_iso) }}
-</section>
+{% endif %}
+    </section>
 
 <section data-widget="top-vendors-month" data-widget-title="{{ _('Top vendors · this month') }}"
          data-widget-default-hidden="1"
          data-widget-href="/expenses-overview"
          class="card p-6">
+      {% if "top_vendors_month" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
   <div class="flex items-start justify-between mb-4">
     <p class="nav-section-label">{{ _("Top vendors · this month") }}</p>
     <a href="/expenses-overview" class="text-xs sae hover:underline">{{ _("View all →") }}</a>
@@ -574,7 +601,8 @@
   {% else %}
   <p class="ink-3 text-sm">{{ _("No bills this month yet.") }}</p>
   {% endif %}
-</section>
+{% endif %}
+    </section>
 
 {% endblock %}
 

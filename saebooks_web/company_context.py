@@ -51,6 +51,10 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
         request.state.active_company_id = None
         request.state.active_company_name = None
         request.state.active_company_jurisdiction = None
+        # Typed cross-cutting failure surface (M2 step 8a): base.html renders
+        # an app-wide amber banner when the company list couldn't be fetched,
+        # instead of the failure being silently swallowed at debug level.
+        request.state.company_context_unavailable = False
         try:
             token = request.session.get("api_token") if "session" in request.scope else None
         except Exception:
@@ -68,6 +72,8 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                         "/api/v1/companies",
                         params={"page": 1, "page_size": 50},
                     )
+                if r.status_code != 200:
+                    request.state.company_context_unavailable = True
                 if r.status_code == 200:
                     items = []
                     for it in r.json().get("items", []):
@@ -166,6 +172,16 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                                 "CompanyContextMiddleware: jurisdiction lookup skipped (%s)",
                                 juris_exc,
                             )
+            except (httpx.RequestError, httpx.TimeoutException) as exc:
+                request.state.company_context_unavailable = True
+                logger.warning(
+                    "CompanyContextMiddleware: upstream unavailable (%s)", exc
+                )
             except Exception as exc:
-                logger.debug("CompanyContextMiddleware: skipped (%s)", exc)
+                # Unexpected shape/parsing error — still degrade the banner,
+                # but log at a level that surfaces it (was silently `debug`).
+                request.state.company_context_unavailable = True
+                logger.warning(
+                    "CompanyContextMiddleware: unexpected failure (%s)", exc
+                )
         return await call_next(request)
