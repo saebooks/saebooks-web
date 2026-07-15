@@ -30,10 +30,20 @@ from fastapi.responses import RedirectResponse
 from starlette.requests import Request
 
 
-class ModuleUnavailable(Exception):
+class ModuleUnavailable(httpx.RequestError):
     """Raised when a downstream module is down: connection failure, timeout,
     or the engine's module-unavailable 503 stub. Caught by main.py's
     exception_handler and rendered as the shared degraded-panel partial.
+
+    Subclasses ``httpx.RequestError`` DELIBERATELY: 16 modules (tax_returns,
+    billing, public_auth, the SSO flows, …) have deliberate
+    ``except httpx.RequestError`` branches with tailored UX (inline error /
+    flash+redirect). Wrapping their transport errors in a non-RequestError
+    type would silently bypass every one of them and replace their curated
+    error surfaces with the generic degraded panel (caught by
+    test_tax_returns_*_network_error). As a subclass, those sites keep
+    working byte-for-byte; only routes with NO handler fall through to
+    main.py's degraded-panel handler.
     """
 
     def __init__(self, module_id: str | None = None, detail: str = "") -> None:

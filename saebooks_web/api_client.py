@@ -79,9 +79,12 @@ async def api_client(request: Request) -> AsyncGenerator[httpx.AsyncClient, None
     ) as client:
         try:
             yield client
+        except ModuleUnavailable:
+            # Already the right type (raised by the response event hook,
+            # carrying module_id) — don't double-wrap and lose it.
+            raise
         except (httpx.RequestError, httpx.TimeoutException) as exc:
             # Connection-level failure (engine down / unreachable / timed
-            # out). ModuleUnavailable raised from the response hook is NOT
-            # an httpx.RequestError, so it propagates through unwrapped —
-            # it's already the right type.
+            # out) → typed. ModuleUnavailable subclasses RequestError so
+            # existing per-route `except httpx.RequestError` UX still fires.
             raise ModuleUnavailable(detail=str(exc)) from exc
