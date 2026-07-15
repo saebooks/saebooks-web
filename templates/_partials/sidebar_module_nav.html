@@ -1,0 +1,36 @@
+{#
+  Registry-driven nav rows (M2 step 9) — included once inside each existing
+  <details> section AFTER its static links, parameterized by:
+    {% set _nav_group = "banking" %}{% include "_partials/sidebar_module_nav.html" %}
+  `module_registry` is request.state.module_registry (set by
+  ModuleRegistryMiddleware): dict keyed by module id, each value carrying
+  id/label/kind/group/state (+ merged entitled/health). Modules that already
+  have a hardcoded static link are filtered out upstream
+  (module_registry._ALREADY_STATIC_MODULE_IDS).
+
+  Conventions:
+  - state == "planned"           → muted "coming soon" row, no href.
+  - entitled + enforced          → link with health dot (green ok / amber
+                                   degraded-or-unavailable).
+  - NOT entitled + enforced      → omitted entirely (404-not-403
+                                   no-advertise convention, web-side too).
+#}
+{% for mod in (module_registry or {}).values() if mod.group == _nav_group %}
+  {% if mod.state == "planned" %}
+  <div class="nav-item is-sub opacity-40 cursor-not-allowed" title="{{ _('Coming soon to your edition') }}">
+    <i data-lucide="{{ mod.icon | default('circle-dashed') }}" class="nav-ico"></i>{{ mod.label }}
+    <span class="ml-auto text-[10px] uppercase tracking-wide">{{ _("soon") }}</span>
+  </div>
+  {% elif mod.entitled and mod.href %}
+  {# Entitled rows render ONLY with a known href (module_registry's
+     _MODULE_HREFS map) — never a fabricated dead link. #}
+  <a href="{{ mod.href }}" class="nav-item is-sub {% if path.startswith(mod.href) %}active{% endif %}">
+    <i data-lucide="{{ mod.icon | default('puzzle') }}" class="nav-ico"></i>{{ mod.label }}
+    {% if mod.health == "degraded" or mod.health == "unavailable" %}
+    <span class="ml-auto w-1.5 h-1.5 rounded-full" style="background: var(--warn, #d97706);" title="{{ mod.health }}"></span>
+    {% elif mod.health == "ok" %}
+    <span class="ml-auto w-1.5 h-1.5 rounded-full" style="background: var(--pos);"></span>
+    {% endif %}
+  </a>
+  {% endif %}
+{% endfor %}

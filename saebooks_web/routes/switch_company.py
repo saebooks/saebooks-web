@@ -34,6 +34,8 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse
 
+from saebooks_web.module_registry import fetch_module_usage
+
 router = APIRouter()
 
 
@@ -82,5 +84,10 @@ async def switch_company(request: Request, company_id: UUID) -> RedirectResponse
     if allowed and target not in allowed:
         raise HTTPException(404, "Company not available to this user")
     request.session["active_company_id"] = target
+    # Module-usage snapshot trigger point 2 of 2 (M2 step 9a): the active
+    # company just changed, so the effective edition / per-module
+    # entitlement may have too. Never blocks the switch — fetch swallows
+    # its own failures. (Trigger point 1 is auth.py post-login.)
+    await fetch_module_usage(request)
     redirect_to = _safe_redirect_target(request.headers.get("referer"))
     return RedirectResponse(url=redirect_to, status_code=303)

@@ -45,12 +45,31 @@ def is_feature_enabled(flag: str) -> bool:
     return flag in _EDITION_FLAGS.get(edition, frozenset())
 
 
-def current_edition() -> str:
+def current_edition(request=None) -> str:
     """Return the active edition string (e.g. ``"developer"``, ``"pro"``).
 
-    Templates use this to render the edition badge in the side-nav, swap
-    in a distinct colour on dev instances, etc.
+    Per-request effective edition, sourced from the session-cached
+    ``/api/v1/modules/usage`` payload (fetched at login + company switch —
+    see ``module_registry.fetch_module_usage``), so a launch-promo user's
+    badge agrees with the registry-driven nav on the same page (M2 step
+    9a). Falls back to the ``SAEBOOKS_EDITION`` env var when no usage
+    snapshot exists (logged-out pages, pre-login, or the registry endpoints
+    unavailable) — matches the pre-9a behaviour exactly in those cases.
+
+    ``request`` is optional so legacy no-arg template calls keep working;
+    they just get the env-var answer.
     """
+    if request is not None:
+        try:
+            usage = (
+                request.session.get("module_usage")
+                if "session" in request.scope
+                else None
+            )
+        except Exception:
+            usage = None
+        if usage and usage.get("effective_edition"):
+            return str(usage["effective_edition"]).strip().lower()
     return _current_edition()
 
 
