@@ -140,6 +140,9 @@ async def test_ri_archive_button_guard(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/recurring_invoices/{_RI_ID}").mock(
         return_value=Response(200, json=_MOCK_RI_ARCHIVED)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
+        return_value=Response(200, json={"id": _CONTACT_ID, "name": "Archive Guard Contact"})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

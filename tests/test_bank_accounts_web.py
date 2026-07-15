@@ -38,6 +38,10 @@ _MOCK_ACCOUNT = {
     "version": 1,
     "created_at": "2024-06-01T09:00:00Z",
     "archived_at": None,
+    # The list route requests include_balance=true&include_statement_balance=true
+    # and the table template renders these unconditionally when not None.
+    "balance": 5000.0,
+    "statement_balance": 5000.0,
 }
 
 _MOCK_ACCOUNTS_RESPONSE = {
@@ -115,6 +119,9 @@ async def test_bank_accounts_detail_renders(respx_mock: respx.MockRouter) -> Non
     """GET /bank-accounts/{id} renders account code, name, BSB."""
     respx_mock.get(f"{_API_BASE}/api/v1/bank_accounts/{_ACCOUNT_ID}").mock(
         return_value=Response(200, json=_MOCK_ACCOUNT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/bank_statement_lines").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
     )
 
     async with AsyncClient(

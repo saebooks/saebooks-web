@@ -26,20 +26,26 @@ from saebooks_web.main import app
 
 _API_BASE = settings.api_url.rstrip("/")
 
-_MOCK_AUDIT_HTML = """
-<div class="audit-snapshots">
-  <table>
-    <thead><tr><th>Timestamp</th><th>Action</th><th>Entity</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>2026-04-25T10:00:00</td>
-        <td>CREATE</td>
-        <td>journal_entries / abcdef12</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-"""
+# The web route now proxies GET /api/v1/admin/audit-log (JSON, {items, total})
+# and renders its own template, translating each AuditLogEntry
+# ({id, entity, entity_id, op, actor, at, version, payload}) into the
+# template's field names ({id, table_name, row_id, action, performed_by,
+# performed_at}) — see saebooks_web/routes/admin.py::audit_log.
+_MOCK_AUDIT_JSON = {
+    "items": [
+        {
+            "id": "aaaaaaaa-0000-0000-0000-000000000001",
+            "entity": "journal_entries",
+            "entity_id": "abcdef12-0000-0000-0000-000000000000",
+            "op": "create",
+            "actor": "admin",
+            "at": "2026-04-25T10:00:00",
+            "version": 1,
+            "payload": {},
+        }
+    ],
+    "total": 1,
+}
 
 
 def _make_session_cookie(data: dict) -> str:
@@ -82,12 +88,8 @@ async def test_audit_log_requires_auth() -> None:
 @respx.mock
 async def test_audit_log_renders(respx_mock: respx.MockRouter) -> None:
     """GET /admin/audit returns 200 with audit log heading."""
-    respx_mock.get(f"{_API_BASE}/admin/audit").mock(
-        return_value=Response(
-            200,
-            content=_MOCK_AUDIT_HTML.encode(),
-            headers={"content-type": "text/html"},
-        )
+    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
+        return_value=Response(200, json=_MOCK_AUDIT_JSON)
     )
 
     async with AsyncClient(
@@ -111,7 +113,7 @@ async def test_audit_log_renders(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_audit_log_api_error(respx_mock: respx.MockRouter) -> None:
     """GET /admin/audit with API 500 shows error banner."""
-    respx_mock.get(f"{_API_BASE}/admin/audit").mock(
+    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
         return_value=Response(500, json={"detail": "Internal server error"})
     )
 
@@ -135,12 +137,8 @@ async def test_audit_log_api_error(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_audit_log_filter_params(respx_mock: respx.MockRouter) -> None:
     """GET /admin/audit?entity_type=journal_entries echoes filter in form."""
-    respx_mock.get(f"{_API_BASE}/admin/audit").mock(
-        return_value=Response(
-            200,
-            content=_MOCK_AUDIT_HTML.encode(),
-            headers={"content-type": "text/html"},
-        )
+    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
+        return_value=Response(200, json=_MOCK_AUDIT_JSON)
     )
 
     async with AsyncClient(
@@ -164,24 +162,26 @@ async def test_audit_log_filter_params(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_audit_log_pagination_next(respx_mock: respx.MockRouter) -> None:
     """GET /admin/audit with JSON response has_next=True shows next-page link."""
-    respx_mock.get(f"{_API_BASE}/admin/audit").mock(
+    # has_next is derived by the route as (offset + len(items)) < total, so
+    # a page 1 (offset 0) response with 1 item and total=2 triggers it.
+    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
         return_value=Response(
             200,
             json={
-                "snapshots": [
+                "items": [
                     {
                         "id": "aaaaaaaa-0000-0000-0000-000000000001",
-                        "action": "CREATE",
-                        "table_name": "journal_entries",
-                        "row_id": "bbbbbbb1",
-                        "performed_by": "admin",
-                        "performed_at": "2026-04-25T10:00:00",
+                        "entity": "journal_entries",
+                        "entity_id": "bbbbbbb1-0000-0000-0000-000000000000",
+                        "op": "create",
+                        "actor": "admin",
+                        "at": "2026-04-25T10:00:00",
+                        "version": 1,
+                        "payload": {},
                     }
                 ],
-                "has_next": True,
-                "tables": ["journal_entries"],
+                "total": 2,
             },
-            headers={"content-type": "application/json"},
         )
     )
 

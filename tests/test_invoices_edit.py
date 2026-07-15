@@ -3,7 +3,7 @@
 Eight tests:
 1. test_edit_requires_auth              — GET /invoices/{id}/edit without session -> 303 /login
 2. test_edit_form_renders_for_draft     — mock DRAFT invoice -> form with version hidden input + lines
-3. test_edit_blocked_for_posted         — mock POSTED invoice -> blocked page (422), no form
+3. test_edit_blocked_for_voided         — mock VOIDED invoice -> blocked page (422), no form
 4. test_edit_success_redirects          — POST with valid body; mock PATCH 200 -> 303 to detail
 5. test_edit_sends_if_match_header      — assert outbound PATCH included If-Match: <version>
 6. test_edit_conflict_shows_banner      — mock PATCH 409 + re-GET -> amber banner + new version
@@ -85,6 +85,10 @@ _MOCK_INVOICE_DRAFT = {
 
 _MOCK_INVOICE_POSTED = {**_MOCK_INVOICE_DRAFT, "status": "POSTED", "version": 4}
 
+# VOIDED is the only status the edit route still blocks (POSTED became
+# editable — see saebooks_web/routes/invoices.py `_LOCKED_STATUSES`).
+_MOCK_INVOICE_VOIDED = {**_MOCK_INVOICE_DRAFT, "status": "VOIDED", "version": 4}
+
 # A newer server version returned after a 409 conflict.
 _MOCK_INVOICE_V4 = {**_MOCK_INVOICE_DRAFT, "version": 4, "notes": "Updated by someone else"}
 
@@ -111,6 +115,9 @@ def _mock_dropdowns(respx_mock: respx.MockRouter) -> None:
     )
     respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
         return_value=Response(200, json=_MOCK_TAX_CODES)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/projects").mock(
+        return_value=Response(200, json={"items": []})
     )
 
 
@@ -169,16 +176,22 @@ async def test_edit_form_renders_for_draft(respx_mock: respx.MockRouter) -> None
 
 
 # ---------------------------------------------------------------------------
-# 3. Edit blocked for POSTED invoice
+# 3. Edit blocked for VOIDED invoice
 # ---------------------------------------------------------------------------
+# NOTE: this test used to exercise a POSTED invoice, but POSTED invoices are
+# now editable by design (see `_LOCKED_STATUSES` in
+# saebooks_web/routes/invoices.py — "POSTED invoices are mutable ... per
+# Richard's admin-discretion policy", commit ea31997). VOIDED is the only
+# status the route still blocks, so this test was retargeted to VOIDED to
+# keep coverage of the locked-status guard.
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_edit_blocked_for_posted(respx_mock: respx.MockRouter) -> None:
-    """GET /invoices/{id}/edit for a POSTED invoice shows blocked page, not the form."""
+async def test_edit_blocked_for_voided(respx_mock: respx.MockRouter) -> None:
+    """GET /invoices/{id}/edit for a VOIDED invoice shows blocked page, not the form."""
     respx_mock.get(f"{_API_BASE}/api/v1/invoices/{_INVOICE_ID}").mock(
-        return_value=Response(200, json=_MOCK_INVOICE_POSTED)
+        return_value=Response(200, json=_MOCK_INVOICE_VOIDED)
     )
 
     async with AsyncClient(

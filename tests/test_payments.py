@@ -109,6 +109,9 @@ async def test_payments_list_renders_table(respx_mock: respx.MockRouter) -> None
     respx_mock.get(f"{_API_BASE}/api/v1/payments").mock(
         return_value=Response(200, json=_MOCK_PAYMENTS_RESPONSE)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -130,6 +133,9 @@ async def test_payments_list_partial_htmx(respx_mock: respx.MockRouter) -> None:
     """GET /payments with HX-Request header returns the fragment, not a full page."""
     respx_mock.get(f"{_API_BASE}/api/v1/payments").mock(
         return_value=Response(200, json=_MOCK_PAYMENTS_RESPONSE)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(
@@ -155,6 +161,9 @@ async def test_payments_detail_renders(respx_mock: respx.MockRouter) -> None:
     """GET /payments/{id} renders the reference and the allocation row."""
     respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
         return_value=Response(200, json=_MOCK_PAYMENT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
 
     async with AsyncClient(

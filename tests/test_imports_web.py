@@ -204,14 +204,18 @@ async def test_imports_bank_preview_requires_auth() -> None:
 @pytest.mark.anyio
 @respx.mock
 async def test_imports_bank_preview_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/imports/bank/preview with API 200 -> preview HTML rendered."""
-    respx_mock.post(f"{_API_BASE}/admin/imports/bank/preview").mock(
-        return_value=Response(
-            200,
-            content=_BANK_PREVIEW_HTML.encode(),
-            headers={"content-type": "text/html"},
-        )
+    """POST /admin/imports/bank/preview with API 200 -> preview HTML rendered.
+
+    The Cat-C rewrite proxies through the wizard API (POST /api/v1/imports/wizards
+    to start, then POST .../{id}/step to record the uploaded content) rather than
+    a single passthrough call to /admin/imports/bank/preview.
+    """
+    respx_mock.post(f"{_API_BASE}/api/v1/imports/wizards").mock(
+        return_value=Response(201, json={"wizard_id": "wiz-bank-1"})
     )
+    respx_mock.post(
+        url__regex=rf"^{_API_BASE}/api/v1/imports/wizards/[^/]+/step$"
+    ).mock(return_value=Response(200, json={"status": "ok"}))
 
     csv_content = b"date,description,amount\n2026-04-01,OFFICE SUPPLIES,-250.00\n"
 
@@ -238,8 +242,12 @@ async def test_imports_bank_preview_success(respx_mock: respx.MockRouter) -> Non
 @pytest.mark.anyio
 @respx.mock
 async def test_imports_bank_preview_api_error(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/imports/bank/preview with API 400 -> error shown on page."""
-    respx_mock.post(f"{_API_BASE}/admin/imports/bank/preview").mock(
+    """POST /admin/imports/bank/preview with API 400 -> error shown on page.
+
+    With no in-session wizard, the route starts one first via
+    POST /api/v1/imports/wizards; a non-2xx there surfaces as the error.
+    """
+    respx_mock.post(f"{_API_BASE}/api/v1/imports/wizards").mock(
         return_value=Response(400, json={"detail": "Unrecognised CSV format"})
     )
 
@@ -265,14 +273,20 @@ async def test_imports_bank_preview_api_error(respx_mock: respx.MockRouter) -> N
 @pytest.mark.anyio
 @respx.mock
 async def test_imports_bank_apply_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/imports/bank/apply with API 200 -> done page rendered."""
-    respx_mock.post(f"{_API_BASE}/admin/imports/bank/apply").mock(
-        return_value=Response(
-            200,
-            content=_BANK_DONE_HTML.encode(),
-            headers={"content-type": "text/html"},
-        )
+    """POST /admin/imports/bank/apply with API 200 -> done page rendered.
+
+    Legacy direct-form path (raw + account_id, no wizard_id in session):
+    the route starts a wizard, steps it with the raw content, then commits.
+    """
+    respx_mock.post(f"{_API_BASE}/api/v1/imports/wizards").mock(
+        return_value=Response(201, json={"wizard_id": "wiz-bank-2"})
     )
+    respx_mock.post(
+        url__regex=rf"^{_API_BASE}/api/v1/imports/wizards/[^/]+/step$"
+    ).mock(return_value=Response(200, json={"status": "ok"}))
+    respx_mock.post(
+        url__regex=rf"^{_API_BASE}/api/v1/imports/wizards/[^/]+/commit$"
+    ).mock(return_value=Response(200, json={"inserted": 1, "total": 1}))
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -386,14 +400,18 @@ async def test_imports_coa_preview_requires_auth() -> None:
 @pytest.mark.anyio
 @respx.mock
 async def test_imports_coa_preview_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/imports/coa/preview with API 200 -> diff preview rendered."""
-    respx_mock.post(f"{_API_BASE}/admin/imports/coa/preview").mock(
-        return_value=Response(
-            200,
-            content=_COA_PREVIEW_HTML.encode(),
-            headers={"content-type": "text/html"},
-        )
+    """POST /admin/imports/coa/preview with API 200 -> diff preview rendered.
+
+    The Cat-C rewrite proxies through the wizard API (POST /api/v1/imports/wizards
+    to start, then POST .../{id}/step to record the uploaded CSV) and renders a
+    lightweight row-count preview server-side rather than a diff table.
+    """
+    respx_mock.post(f"{_API_BASE}/api/v1/imports/wizards").mock(
+        return_value=Response(201, json={"wizard_id": "wiz-coa-1"})
     )
+    respx_mock.post(
+        url__regex=rf"^{_API_BASE}/api/v1/imports/wizards/[^/]+/step$"
+    ).mock(return_value=Response(200, json={"status": "ok"}))
 
     coa_csv = b"code,name,account_type,parent_code,tax_code_default,reconcile\n1010,Cash,ASSET,,,false\n"
 
@@ -408,7 +426,8 @@ async def test_imports_coa_preview_success(respx_mock: respx.MockRouter) -> None
         )
 
     assert resp.status_code == 200
-    assert "coa-diff" in resp.text or "Changes" in resp.text
+    assert "Preview" in resp.text
+    assert "account rows to import" in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -419,13 +438,22 @@ async def test_imports_coa_preview_success(respx_mock: respx.MockRouter) -> None
 @pytest.mark.anyio
 @respx.mock
 async def test_imports_coa_apply_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/imports/coa/apply with API 303 -> redirect to CoA page."""
-    respx_mock.post(f"{_API_BASE}/admin/imports/coa/apply").mock(
-        return_value=Response(
-            303,
-            headers={"location": "/admin/imports/coa?added=1&updated=0"},
-        )
+    """POST /admin/imports/coa/apply with API 303 -> redirect to CoA page.
+
+    Legacy direct-form path (raw only, no wizard_id in session): the route
+    starts a wizard, steps it with the raw content, then commits via
+    POST /api/v1/imports/wizards/{id}/commit and redirects with the commit
+    result as query params.
+    """
+    respx_mock.post(f"{_API_BASE}/api/v1/imports/wizards").mock(
+        return_value=Response(201, json={"wizard_id": "wiz-coa-2"})
     )
+    respx_mock.post(
+        url__regex=rf"^{_API_BASE}/api/v1/imports/wizards/[^/]+/step$"
+    ).mock(return_value=Response(200, json={"status": "ok"}))
+    respx_mock.post(
+        url__regex=rf"^{_API_BASE}/api/v1/imports/wizards/[^/]+/commit$"
+    ).mock(return_value=Response(200, json={"added": 1, "updated": 0}))
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

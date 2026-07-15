@@ -114,6 +114,9 @@ async def test_invoices_list_renders_table(respx_mock: respx.MockRouter) -> None
     respx_mock.get(f"{_API_BASE}/api/v1/invoices").mock(
         return_value=Response(200, json=_MOCK_INVOICES_RESPONSE)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -135,6 +138,9 @@ async def test_invoices_list_partial_htmx(respx_mock: respx.MockRouter) -> None:
     """GET /invoices with HX-Request header returns the fragment, not a full page."""
     respx_mock.get(f"{_API_BASE}/api/v1/invoices").mock(
         return_value=Response(200, json=_MOCK_INVOICES_RESPONSE)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(

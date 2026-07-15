@@ -122,6 +122,9 @@ async def test_credit_notes_list_renders_row(respx_mock: respx.MockRouter) -> No
     respx_mock.get(f"{_API_BASE}/api/v1/credit_notes").mock(
         return_value=Response(200, json=_MOCK_CNS_RESPONSE)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -143,6 +146,9 @@ async def test_credit_notes_list_partial_htmx(respx_mock: respx.MockRouter) -> N
     """GET /credit-notes with HX-Request header returns the fragment, not a full page."""
     respx_mock.get(f"{_API_BASE}/api/v1/credit_notes").mock(
         return_value=Response(200, json=_MOCK_CNS_RESPONSE)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(

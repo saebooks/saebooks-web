@@ -178,6 +178,9 @@ async def test_ri_generate_button_shown_active(respx_mock: respx.MockRouter) -> 
     respx_mock.get(
         f"{_API_BASE}/api/v1/recurring_invoices/{_RI_ID}"
     ).mock(return_value=Response(200, json=_MOCK_RI_ACTIVE))
+    respx_mock.get(
+        f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}"
+    ).mock(return_value=Response(200, json={"id": _CONTACT_ID, "name": "Generate Test Contact"}))
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -203,6 +206,9 @@ async def test_ri_generate_button_hidden_paused(respx_mock: respx.MockRouter) ->
     respx_mock.get(
         f"{_API_BASE}/api/v1/recurring_invoices/{_RI_ID}"
     ).mock(return_value=Response(200, json=_MOCK_RI_PAUSED))
+    respx_mock.get(
+        f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}"
+    ).mock(return_value=Response(200, json={"id": _CONTACT_ID, "name": "Generate Test Contact"}))
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

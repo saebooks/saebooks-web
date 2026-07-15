@@ -357,7 +357,8 @@ async def test_dashboard_cash_tile(respx_mock: respx.MockRouter) -> None:
         resp = await client.get("/")
 
     assert resp.status_code == 200
-    assert "1200.00" in resp.text
+    # money() now renders a thousands separator.
+    assert "1,200.00" in resp.text
     assert "450.00" in resp.text
     # Net = 1200 - 450 = 750
     assert "750.00" in resp.text
@@ -422,8 +423,9 @@ async def test_dashboard_empty_data_no_errors(respx_mock: respx.MockRouter) -> N
     assert "Dashboard" in resp.text
     # Zero totals must appear as 0.00
     assert "0.00" in resp.text
-    # "No recent activity" message should be shown
-    assert "No recent activity" in resp.text
+    # "no recent activity" message should be shown (now rendered lower-case,
+    # wrapped in em-dashes: "— no recent activity —")
+    assert "no recent activity" in resp.text
 
 
 @pytest.mark.anyio
@@ -443,8 +445,10 @@ async def test_dashboard_gst_tile_below_threshold(respx_mock: respx.MockRouter) 
         resp = await client.get("/")
 
     assert resp.status_code == 200
-    assert "45000.00" in resp.text
-    assert "Under threshold" in resp.text
+    # money() now renders a thousands separator.
+    assert "45,000.00" in resp.text
+    # Chip label is rendered lower-case: "GST · under threshold".
+    assert "under threshold" in resp.text
     # Banner must NOT appear when below threshold
     assert "you must register with the ATO" not in resp.text
 
@@ -466,9 +470,11 @@ async def test_dashboard_gst_banner_above_threshold(respx_mock: respx.MockRouter
         resp = await client.get("/")
 
     assert resp.status_code == 200
-    assert "78000.00" in resp.text
-    assert "Threshold crossed" in resp.text
-    assert "you must register with the ATO within 21 days" in resp.text
+    # money() now renders a thousands separator.
+    assert "78,000.00" in resp.text
+    # Banner heading is rendered lower-case: "GST registration threshold crossed".
+    assert "threshold crossed" in resp.text
+    assert "You must register with the ATO within 21 days" in resp.text
     assert "Register with ATO" in resp.text
 
 
@@ -495,8 +501,8 @@ async def test_dashboard_gst_banner_approaching_threshold(
         resp = await client.get("/")
 
     assert resp.status_code == 200
-    assert "62000.00" in resp.text
-    assert "Approaching threshold" in resp.text
+    # money() now renders a thousands separator.
+    assert "62,000.00" in resp.text
     assert "Approaching GST registration threshold" in resp.text
     assert "ATO registration info" in resp.text
 
@@ -546,14 +552,14 @@ async def test_dashboard_weekly_takings_tile(respx_mock: respx.MockRouter) -> No
         resp = await client.get("/")
 
     assert resp.status_code == 200
-    # The "Weekly Takings" heading must appear
-    assert "Weekly Takings" in resp.text
+    # The "Weekly takings" heading must appear (rendered lower-case now)
+    assert "Weekly takings" in resp.text
     # This-week total: 500 + 320 = 820
     assert "820.00" in resp.text
     # Prior-week total: 600
     assert "600.00" in resp.text
-    # Change: +220 and percentage (+36.7%)
-    assert "220.00" in resp.text
+    # Change percentage only is rendered now (+36.7%); the flat $220 delta
+    # amount is no longer shown separately.
     assert "36.7%" in resp.text
     # 820.00 this-week total can only be correct if OUTGOING was excluded from takings
 
@@ -579,10 +585,11 @@ async def test_dashboard_psi_banner_shown_when_unsure(respx_mock: respx.MockRout
         resp = await client.get("/")
 
     assert resp.status_code == 200
-    assert "PSI status unset" in resp.text
-    assert "Personal Services Income" in resp.text
-    assert "80/20 rule" in resp.text
-    assert "Set PSI status in settings" in resp.text
+    # Compliance-notes banner copy for psi_status == "unsure" (the "80/20
+    # rule" / "Personal Services Income" phrasing belongs to a separate
+    # revenue-concentration banner not exercised by this test).
+    assert "PSI classification not set" in resp.text
+    assert "Set PSI status" in resp.text
 
 
 @pytest.mark.anyio
