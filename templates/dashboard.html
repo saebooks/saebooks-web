@@ -618,11 +618,19 @@
     var username = (el.dataset.username || '').trim();
     var first = username.split(/[\s.@]/)[0]; // strip surname / domain / dot-suffix
     var h = new Date().getHours();
+    // Greeting variants are server-translated (locale catalog); JS only
+    // picks by local hour.
+    var parts = {
+      night: {{ _("Hello") | tojson }},
+      morning: {{ _("Good morning") | tojson }},
+      afternoon: {{ _("Good afternoon") | tojson }},
+      evening: {{ _("Good evening") | tojson }}
+    };
     var part;
-    if (h < 5)       part = 'Hello';          // 00:00–04:59
-    else if (h < 12) part = 'Good morning';   // 05:00–11:59
-    else if (h < 18) part = 'Good afternoon'; // 12:00–17:59
-    else             part = 'Good evening';   // 18:00–23:59
+    if (h < 5)       part = parts.night;      // 00:00–04:59
+    else if (h < 12) part = parts.morning;    // 05:00–11:59
+    else if (h < 18) part = parts.afternoon;  // 12:00–17:59
+    else             part = parts.evening;    // 18:00–23:59
     el.textContent = first ? (part + ', ' + first) : (part);
   } catch (e) { /* keep default fallback */ }
 })();
