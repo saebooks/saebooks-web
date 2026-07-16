@@ -231,6 +231,20 @@ def _register_mocks(
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/ytd_turnover(\?.*)?$").mock(
         return_value=Response(200, json=ytd_data or _ytd_response())
     )
+    # Companies (PSI status; also hit by CompanyContextMiddleware) and
+    # revenue concentration — since the M2 degrade layer, an unmocked
+    # fetch degrades the compliance tile instead of being silently
+    # swallowed, hiding the GST/PSI banners these tests assert on.
+    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/companies(\?.*)?$").mock(
+        return_value=Response(200, json={"items": []})
+    )
+    respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/reports/revenue_by_customer(\?.*)?$"
+    ).mock(return_value=Response(200, json={"rows": []}))
+    # Module registry catalogue (ModuleRegistryMiddleware) — keep quiet.
+    respx_mock.get(f"{_API_BASE}/api/v1/modules").mock(
+        return_value=Response(200, json={"modules": []})
+    )
 
 
 # ---------------------------------------------------------------------------
