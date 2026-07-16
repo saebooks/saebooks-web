@@ -36,6 +36,10 @@ import httpx
 from fastapi import Request
 
 from saebooks_web.config import settings
+from saebooks_web.module_gate import (
+    ModuleUnavailable,
+    _module_unavailable_response_hook,
+)
 
 
 @asynccontextmanager
@@ -71,5 +75,16 @@ async def api_client(request: Request) -> AsyncGenerator[httpx.AsyncClient, None
         base_url=settings.api_url,
         headers=headers,
         timeout=10.0,
+        event_hooks={"response": [_module_unavailable_response_hook]},
     ) as client:
-        yield client
+        try:
+            yield client
+        except ModuleUnavailable:
+            # Already the right type (raised by the response event hook,
+            # carrying module_id) — don't double-wrap and lose it.
+            raise
+        except (httpx.RequestError, httpx.TimeoutException) as exc:
+            # Connection-level failure (engine down / unreachable / timed
+            # out) → typed. ModuleUnavailable subclasses RequestError so
+            # existing per-route `except httpx.RequestError` UX still fires.
+            raise ModuleUnavailable(detail=str(exc)) from exc

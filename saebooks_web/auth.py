@@ -26,6 +26,7 @@ from saebooks_web.authentik_sso import authentik_enabled
 from saebooks_web.config import settings
 from saebooks_web.discourse_sso import discourse_enabled
 from saebooks_web.eid_sso import eid_enabled
+from saebooks_web.module_registry import fetch_module_usage
 from saebooks_web.webauthn_sso import webauthn_enabled
 
 
@@ -145,6 +146,12 @@ async def login_submit(
         # /auth/me failed — log in but no staff/role context.
         request.session["is_sae_staff"] = False
         request.session["user_role"] = ""
+
+    # Module-usage snapshot trigger point 1 of 2 (M2 step 9a): fetch on
+    # login so the edition badge + registry nav reflect this user's
+    # effective edition. Never blocks login — fetch_module_usage swallows
+    # its own failures. (Trigger point 2 is switch_company.py.)
+    await fetch_module_usage(request)
 
     return RedirectResponse(url="/", status_code=303)
 

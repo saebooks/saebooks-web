@@ -62,7 +62,11 @@ from saebooks_web.security import (  # placement is load-bearing — see module 
 from saebooks_web.security.trusted_header import TrustedHeaderAuthMiddleware
 from saebooks_web.cf_access import CFAccessAuthMiddleware
 from saebooks_web.webauthn_sso import router as webauthn_router
+from fastapi.templating import Jinja2Templates
+
 from saebooks_web.company_context import CompanyContextMiddleware
+from saebooks_web.module_gate import ModuleUnavailable
+from saebooks_web.module_registry import ModuleRegistryMiddleware
 from saebooks_web.i18n.middleware import LocaleMiddleware
 from saebooks_web.security.demo_autologin import DemoAutoLoginMiddleware
 
@@ -157,6 +161,28 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
+# Module-unavailable degrade layer (M2 step 7) — fallback full-page handler
+# for routes that don't catch ModuleUnavailable themselves. HTMX fragment
+# routes that want an inline degraded panel catch it locally and render the
+# same partial.
+# ---------------------------------------------------------------------------
+_ERROR_TEMPLATES = Jinja2Templates(
+    directory=str(pathlib.Path(__file__).resolve().parent.parent / "templates")
+)
+
+
+@app.exception_handler(ModuleUnavailable)
+async def module_unavailable_handler(
+    request: Request, exc: ModuleUnavailable
+) -> Response:
+    return _ERROR_TEMPLATES.TemplateResponse(
+        request,
+        "_partials/degraded_panel.html",
+        {"module_id": exc.module_id, "detail": exc.detail},
+        status_code=503,
+    )
+
+# ---------------------------------------------------------------------------
 # Static files — built Tailwind CSS (and any future static assets).
 # In Docker the file is baked in at /app/static/tailwind.css by the tailwind
 # build stage.  For local dev, run `./scripts/build_css.sh --watch` in a
@@ -228,6 +254,12 @@ app.add_middleware(LocaleMiddleware)
 # DemoAutoLogin below) so it runs AFTER them and sees the just-minted
 # token on the same request.
 app.add_middleware(CompanyContextMiddleware)
+
+# Registry-driven nav (M2 step 9) — sets request.state.module_registry from
+# the process-cached module catalogue + session-cached usage snapshot. Same
+# inside-SessionMiddleware placement as CompanyContextMiddleware; separate
+# class so cross-cutting concerns stay independently failable.
+app.add_middleware(ModuleRegistryMiddleware)
 
 # Authentik forward-auth: mint a session from x-authentik-* headers when
 # SAEBOOKS_WEB_TRUSTED_HEADERS=1. Added after CSRF/Locale/CompanyContext

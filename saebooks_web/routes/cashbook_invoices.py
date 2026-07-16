@@ -46,20 +46,30 @@ def _require_auth(request: Request) -> str | None:
 
 
 async def _get_active_company(request: Request) -> dict | None:
-    try:
-        async with api_client(request) as client:
-            resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
-        if resp.is_success:
-            items = resp.json().get("items", [])
-            if items:
-                return items[0]
-    except Exception:
-        pass
+    """Return the active company, or None if genuinely absent.
+
+    Raises ModuleUnavailable (propagated from api_client.py) if the engine
+    is unreachable — the caller (_guard) must NOT swallow that into the
+    generic 'wrong mode' message: engine-down and wrong-bookkeeping-mode
+    are different facts and send the user down different troubleshooting
+    paths (M2 step 10).
+    """
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+    if resp.is_success:
+        items = resp.json().get("items", [])
+        if items:
+            return items[0]
     return None
 
 
 async def _guard(request: Request) -> tuple[dict | None, RedirectResponse | None]:
-    """Return (company, redirect). If redirect is non-None, caller should return it."""
+    """Return (company, redirect). If redirect is non-None, caller should return it.
+
+    Engine unavailable → ModuleUnavailable propagates uncaught to main.py's
+    module_unavailable_handler (degraded panel, 503). Not a cashbook
+    company → the existing flash-redirect, unchanged.
+    """
     if not _require_auth(request):
         return None, RedirectResponse(url="/login", status_code=303)
     company = await _get_active_company(request)

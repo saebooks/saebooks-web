@@ -437,7 +437,7 @@
            alt="{{ brand.wordmark_alt }}"
            class="h-14"
            style="max-width: 240px;">
-      {% set _edition = current_edition() %}
+      {% set _edition = current_edition(request) %}
       <div class="text-[10px] font-mono">
         <span class="ink-3">v2026.05 ·</span>
         {% if _edition == "developer" %}
@@ -451,6 +451,10 @@
     {# Navigation #}
     <nav class="flex-1 px-3 py-3 space-y-2 text-sm">
       {% set path = request.url.path %}
+      {# Registry-driven nav modules (M2 step 9) — merged catalogue+usage
+         dict set by ModuleRegistryMiddleware; {} when logged out /
+         registry unavailable (nav then renders static links only). #}
+      {% set module_registry = request.state.module_registry | default({}) %}
       {% set username = request.session.get("username", "") %}
       {% set user_role = request.session.get("user_role", "") %}
       {# Active company jurisdiction ("AU", "EE", ...) — set by
@@ -604,6 +608,7 @@
             <i data-lucide="list-tree" class="nav-ico"></i>{{ _("Accounts") }}
           </a>
         </div>
+        {% set _nav_group = "accounting" %}{% include "_partials/sidebar_module_nav.html" %}
       </details>
 
       {% set banking_open = path.startswith('/bank-accounts')
@@ -633,6 +638,7 @@
             <i data-lucide="wand-sparkles" class="nav-ico"></i>{{ _("Bank Rules") }}
           </a>
         </div>
+        {% set _nav_group = "banking" %}{% include "_partials/sidebar_module_nav.html" %}
       </details>
 
       {% set inventory_open = path.startswith('/inventory') or path.startswith('/items') %}
@@ -694,6 +700,7 @@
           </a>
           {% endif %}
         </div>
+        {% set _nav_group = "compliance" %}{% include "_partials/sidebar_module_nav.html" %}
       </details>
 
       {% set reports_open = (path.startswith('/reports') and path != '/reports/bas-summary') %}
@@ -739,6 +746,7 @@
             <i data-lucide="calculator" class="nav-ico"></i>{{ _("Prorate Calculator") }}
           </a>
         </div>
+        {% set _nav_group = "assets" %}{% include "_partials/sidebar_module_nav.html" %}
       </details>
 
       {% set admin_open = path == '/profile'
@@ -789,7 +797,30 @@
           </a>
           {% endif %}
         </div>
+        {% set _nav_group = "admin" %}{% include "_partials/sidebar_module_nav.html" %}
       </details>
+
+      {# Catch-all for registry modules whose group has no matching section
+         (integrations/settings/imports/capture/projects/core/…). Only
+         planned ("coming soon") and href-mapped entitled rows render, so
+         this section stays hidden until it has content. (M2 step 9) #}
+      {% set _mapped_groups = ["banking", "accounting", "admin", "assets", "compliance"] %}
+      {% set _overflow = (module_registry or {}).values()
+           | rejectattr("group", "in", _mapped_groups)
+           | selectattr("state", "equalto", "planned") | list %}
+      {% if _overflow %}
+      <details class="group" data-section="coming-soon">
+        <summary class="nav-section-label cursor-pointer select-none">{{ _("Coming soon") }}</summary>
+        <div class="space-y-0.5 mt-1">
+          {% for mod in _overflow %}
+          <div class="nav-item is-sub opacity-40 cursor-not-allowed" title="{{ _('Coming soon to your edition') }}">
+            <i data-lucide="{{ mod.icon | default('circle-dashed') }}" class="nav-ico"></i>{{ mod.label }}
+            <span class="ml-auto text-[10px] uppercase tracking-wide">{{ _("soon") }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
 
       {% endif %}{# end bookkeeping_mode != cashbook #}
     </nav>
@@ -967,6 +998,10 @@
     {# Page content #}
     <main id="main" tabindex="-1" class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 sm:py-8">
       <div class="max-w-[1320px] mx-auto">
+        {# App-wide company-context degrade banner (M2 step 8a) — renders
+           only when CompanyContextMiddleware flagged the company list as
+           unavailable this request. #}
+        {% include "_partials/company_context_banner.html" %}
         {# Passive ephemeral-demo badge — renders only for a provisioned demo
            session (gated on the demo_tenant_id session marker inside). #}
         {% include "_partials/demo_banner.html" %}
