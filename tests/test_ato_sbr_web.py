@@ -5,12 +5,16 @@
 3.  test_ato_sbr_feature_disabled         — GET /admin/ato-sbr with API 404 -> feature-disabled notice
 4.  test_ato_sbr_api_error                — GET /admin/ato-sbr with API 500 -> error banner
 5.  test_ato_sbr_keystore_requires_auth   — POST /admin/ato-sbr/keystore without session -> 303
-6.  test_ato_sbr_keystore_success         — POST with file + pass -> API 303 -> redirected
-7.  test_ato_sbr_ssid_requires_auth       — POST /admin/ato-sbr/ssid without session -> 303
-8.  test_ato_sbr_ssid_success             — POST ssid -> API 303 -> redirected
-9.  test_ato_sbr_confirm_success          — POST confirm -> API 303 -> redirected
-10. test_ato_sbr_test_success             — POST test env -> API 303 -> redirected
-11. test_ato_sbr_clear_success            — POST clear -> API 303 -> redirected
+6.  test_ato_sbr_keystore_success         — POST with file + pass -> API 201 -> redirected
+7.  test_ato_sbr_ssid_requires_auth       — POST /admin/ato-sbr/onboarding/start without session -> 303
+                                             (repointed: the flat ssid/confirm/test/clear action
+                                             endpoints from the pre-W3 API no longer exist — see the
+                                             docstring on this test for the mapping to the current
+                                             stepped onboarding wizard)
+8.  test_ato_sbr_ssid_success             — POST onboarding/start -> API 201 -> redirected
+9.  test_ato_sbr_confirm_success          — POST onboarding/{id}/step -> API 200 -> redirected
+10. test_ato_sbr_test_success             — POST /admin/ato-sbr/ping -> API 200 -> redirected
+11. test_ato_sbr_clear_success            — POST keystore/{id}/delete -> API 204 -> redirected
 12. test_ato_sbr_nav_link                 — GET /accounts shows ATO SBR nav link
 13. test_ato_sbr_keystore_get_anon        — GET /admin/ato-sbr/keystore anon -> 303 /login (no two-hop)
 14. test_ato_sbr_keystore_get_forbidden   — GET /admin/ato-sbr/keystore bookkeeper -> 403 direct
@@ -83,13 +87,15 @@ async def test_ato_sbr_requires_auth() -> None:
 @pytest.mark.anyio
 @respx.mock
 async def test_ato_sbr_renders(respx_mock: respx.MockRouter) -> None:
-    """GET /admin/ato-sbr with API 200 -> wizard page rendered."""
-    respx_mock.get(f"{_API_BASE}/admin/ato-sbr").mock(
-        return_value=Response(
-            200,
-            content=_WIZARD_HTML.encode(),
-            headers={"content-type": "text/html"},
-        )
+    """GET /admin/ato-sbr with API 200 -> wizard page rendered.
+
+    The Cat-C (W3) rewrite fetches keystore entries from
+    GET /api/v1/ato_sbr/keystore (JSON) and renders them server-side via
+    templates/ato_sbr/index.html, rather than proxying raw HTML from
+    /admin/ato-sbr on the API.
+    """
+    respx_mock.get(f"{_API_BASE}/api/v1/ato_sbr/keystore").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with AsyncClient(
@@ -113,7 +119,7 @@ async def test_ato_sbr_renders(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_ato_sbr_feature_disabled(respx_mock: respx.MockRouter) -> None:
     """GET /admin/ato-sbr with API 404 -> feature-disabled notice shown."""
-    respx_mock.get(f"{_API_BASE}/admin/ato-sbr").mock(
+    respx_mock.get(f"{_API_BASE}/api/v1/ato_sbr/keystore").mock(
         return_value=Response(404, json={"detail": "Feature not enabled"})
     )
 
@@ -137,7 +143,7 @@ async def test_ato_sbr_feature_disabled(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_ato_sbr_api_error(respx_mock: respx.MockRouter) -> None:
     """GET /admin/ato-sbr with API 500 -> error banner shown."""
-    respx_mock.get(f"{_API_BASE}/admin/ato-sbr").mock(
+    respx_mock.get(f"{_API_BASE}/api/v1/ato_sbr/keystore").mock(
         return_value=Response(500, json={"detail": "Internal error"})
     )
 
@@ -179,12 +185,14 @@ async def test_ato_sbr_keystore_requires_auth() -> None:
 @pytest.mark.anyio
 @respx.mock
 async def test_ato_sbr_keystore_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/ato-sbr/keystore with API 303 -> redirected to wizard."""
-    respx_mock.post(f"{_API_BASE}/admin/ato-sbr/keystore").mock(
-        return_value=Response(
-            303,
-            headers={"location": "/admin/ato-sbr?message=keystore+loaded+(CN=SAE)"},
-        )
+    """POST /admin/ato-sbr/keystore with API 201 -> redirected to wizard.
+
+    The Cat-C rewrite proxies straight to POST /api/v1/ato_sbr/keystore and
+    expects a 201 with the created entry (not a 303 passthrough); the web
+    route itself issues the 303 redirect back to /admin/ato-sbr with a flash.
+    """
+    respx_mock.post(f"{_API_BASE}/api/v1/ato_sbr/keystore").mock(
+        return_value=Response(201, json={"abn_or_name": "SAE"})
     )
 
     ks_xml = b"<keystore><entry><alias>key</alias></entry></keystore>"
@@ -212,31 +220,42 @@ async def test_ato_sbr_keystore_success(respx_mock: respx.MockRouter) -> None:
 
 @pytest.mark.anyio
 async def test_ato_sbr_ssid_requires_auth() -> None:
-    """POST /admin/ato-sbr/ssid without session -> 303 /login."""
+    """POST /admin/ato-sbr/onboarding/start without session -> 303 /login.
+
+    The Cat-C (W3) rewrite deleted the flat ssid/confirm/test/clear action
+    endpoints entirely and replaced them with a stepped onboarding wizard
+    (POST /admin/ato-sbr/onboarding/start, POST .../onboarding/{id}/step,
+    POST /admin/ato-sbr/ping). This is a feature rewrite, not harness drift:
+    there is no longer a POST /admin/ato-sbr/ssid route at all (it 404s
+    before an auth check can even run), so this test is repointed to the
+    closest surviving auth-gated onboarding action.
+    """
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
         follow_redirects=False,
     ) as client:
-        resp = await client.post("/admin/ato-sbr/ssid", data={"ssid": "SB12345678"})
+        resp = await client.post(
+            "/admin/ato-sbr/onboarding/start", data={"flow": "machine_credential"}
+        )
 
     assert resp.status_code == 303
     assert resp.headers["location"] == "/login"
 
 
 # ---------------------------------------------------------------------------
-# 8. SSID save success
+# 8. SSID save success (repointed — see note in ssid_requires_auth above)
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_ato_sbr_ssid_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/ato-sbr/ssid with API 303 -> redirected to wizard."""
-    respx_mock.post(f"{_API_BASE}/admin/ato-sbr/ssid").mock(
+    """POST /admin/ato-sbr/onboarding/start with API 201 -> redirected to the wizard."""
+    respx_mock.post(f"{_API_BASE}/api/v1/ato_sbr/onboarding/wizards").mock(
         return_value=Response(
-            303,
-            headers={"location": "/admin/ato-sbr?message=ssid+saved"},
+            201,
+            json={"wizard_id": "wiz-001", "current_step": "mygovid", "step_index": 0, "step_count": 5},
         )
     )
 
@@ -246,25 +265,30 @@ async def test_ato_sbr_ssid_success(respx_mock: respx.MockRouter) -> None:
         cookies={settings.session_cookie_name: _SESSION_COOKIE},
         follow_redirects=False,
     ) as client:
-        resp = await client.post("/admin/ato-sbr/ssid", data={"ssid": "SB12345678"})
+        resp = await client.post(
+            "/admin/ato-sbr/onboarding/start", data={"flow": "machine_credential"}
+        )
 
     assert resp.status_code == 303
     assert "/admin/ato-sbr" in resp.headers["location"]
 
 
 # ---------------------------------------------------------------------------
-# 9. Confirm step
+# 9. Confirm step (repointed to the onboarding wizard step endpoint —
+#    see note in ssid_requires_auth above)
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_ato_sbr_confirm_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/ato-sbr/confirm -> API 303 -> redirected."""
-    respx_mock.post(f"{_API_BASE}/admin/ato-sbr/confirm").mock(
+    """POST /admin/ato-sbr/onboarding/{id}/step -> API 200 -> redirected."""
+    respx_mock.post(
+        f"{_API_BASE}/api/v1/ato_sbr/onboarding/wizards/wiz-001/step"
+    ).mock(
         return_value=Response(
-            303,
-            headers={"location": "/admin/ato-sbr?message=step+mygovid+confirmed"},
+            200,
+            json={"status": "in_progress", "current_step": "ram", "step_index": 1, "step_count": 5},
         )
     )
 
@@ -274,26 +298,27 @@ async def test_ato_sbr_confirm_success(respx_mock: respx.MockRouter) -> None:
         cookies={settings.session_cookie_name: _SESSION_COOKIE},
         follow_redirects=False,
     ) as client:
-        resp = await client.post("/admin/ato-sbr/confirm", data={"step": "mygovid"})
+        resp = await client.post(
+            "/admin/ato-sbr/onboarding/wiz-001/step",
+            data={"current_step": "0", "mygovid_confirmed": "on"},
+        )
 
     assert resp.status_code == 303
     assert "/admin/ato-sbr" in resp.headers["location"]
 
 
 # ---------------------------------------------------------------------------
-# 10. Smoke test
+# 10. Smoke test (repointed to the ping endpoint — see note in
+#     ssid_requires_auth above)
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_ato_sbr_test_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/ato-sbr/test -> API 303 -> redirected with test result."""
-    respx_mock.post(f"{_API_BASE}/admin/ato-sbr/test").mock(
-        return_value=Response(
-            303,
-            headers={"location": "/admin/ato-sbr?test=ok&test_env=EVTE&message=connection+ok"},
-        )
+    """POST /admin/ato-sbr/ping -> API 200 (ok) -> redirected with a flash message."""
+    respx_mock.post(f"{_API_BASE}/api/v1/ato_sbr/ping").mock(
+        return_value=Response(200, json={"ok": True, "latency_ms": 42})
     )
 
     async with AsyncClient(
@@ -302,26 +327,25 @@ async def test_ato_sbr_test_success(respx_mock: respx.MockRouter) -> None:
         cookies={settings.session_cookie_name: _SESSION_COOKIE},
         follow_redirects=False,
     ) as client:
-        resp = await client.post("/admin/ato-sbr/test", data={"environment": "EVTE"})
+        resp = await client.post("/admin/ato-sbr/ping", data={"keystore_id": "ks-1"})
 
     assert resp.status_code == 303
     assert "/admin/ato-sbr" in resp.headers["location"]
 
 
 # ---------------------------------------------------------------------------
-# 11. Clear config
+# 11. Clear config (repointed to soft-delete a keystore entry — the closest
+#     surviving "remove configured credential" action; see note in
+#     ssid_requires_auth above)
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_ato_sbr_clear_success(respx_mock: respx.MockRouter) -> None:
-    """POST /admin/ato-sbr/clear -> API 303 -> redirected to wizard."""
-    respx_mock.post(f"{_API_BASE}/admin/ato-sbr/clear").mock(
-        return_value=Response(
-            303,
-            headers={"location": "/admin/ato-sbr?message=config+cleared"},
-        )
+    """POST /admin/ato-sbr/keystore/{id}/delete -> API 204 -> redirected to wizard."""
+    respx_mock.delete(f"{_API_BASE}/api/v1/ato_sbr/keystore/ks-1").mock(
+        return_value=Response(204)
     )
 
     async with AsyncClient(
@@ -330,7 +354,7 @@ async def test_ato_sbr_clear_success(respx_mock: respx.MockRouter) -> None:
         cookies={settings.session_cookie_name: _SESSION_COOKIE},
         follow_redirects=False,
     ) as client:
-        resp = await client.post("/admin/ato-sbr/clear")
+        resp = await client.post("/admin/ato-sbr/keystore/ks-1/delete")
 
     assert resp.status_code == 303
     assert "/admin/ato-sbr" in resp.headers["location"]

@@ -125,6 +125,12 @@ async def test_journal_entries_list_renders_row(respx_mock: respx.MockRouter) ->
     respx_mock.get(f"{_API_BASE}/api/v1/journal_entries").mock(
         return_value=Response(200, json=_MOCK_JES_RESPONSE)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json={"items": []})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/journal_entries/_filter_options").mock(
+        return_value=Response(200, json={"posted_by": [], "ref_prefixes": []})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

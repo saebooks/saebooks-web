@@ -26,6 +26,14 @@
   </div>
 </div>
 
+{# ── Review flag (Gap 3, 0157) ── #}
+<section class="mb-7">
+  <p class="nav-section-label mb-2">{{ _("Review") }}</p>
+  {% with flag_base="/expenses", entity_id=expense.id, flagged=expense.flagged_for_review, review_note=expense.review_note, compact=False %}
+    {% include "_partials/review_flag.html" %}
+  {% endwith %}
+</section>
+
 <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-base mb-6">
   <div>
     <dt class="font-medium text-gray-500">{{ _("Paid from") }}</dt>

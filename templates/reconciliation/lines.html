@@ -19,8 +19,9 @@
     {% if not error %}
     <p class="text-sm ink-3 mt-1">
       {{ ngettext("%(n)s unmatched line", "%(n)s unmatched lines", lines|length) % {"n": lines|length} }}
-      · <span class="num-display">{{ _("Total unmatched:") }} {{ num( lines | sum(attribute='amount') | float, 2 ) }}</span>
+      · <span class="num-display">{{ _("Total unmatched:") }} {{ num( lines | map(attribute='amount') | map('float') | sum, 2 ) }}</span>
     </p>
+    {% endif %}
   </div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
     <div class="card p-3">

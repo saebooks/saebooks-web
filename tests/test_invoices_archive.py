@@ -194,5 +194,7 @@ async def test_invoice_archive_button_hidden_when_posted(
     assert resp.status_code == 200
     # Archive form must not be present for POSTED invoices.
     assert f"/invoices/{_INVOICE_ID}/archive" not in resp.text
-    # Edit button must also be absent (same DRAFT guard).
-    assert f"/invoices/{_INVOICE_ID}/edit" not in resp.text
+    # The plain "Edit" link is DRAFT-only; POSTED invoices instead show the
+    # dev-tier "Edit (override)" link (see templates/invoices/detail.html).
+    assert "Edit (override)" in resp.text
+    assert ">{}</a>".format("Edit") not in resp.text

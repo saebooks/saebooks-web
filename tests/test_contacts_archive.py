@@ -148,6 +148,9 @@ async def test_contact_archive_button_hidden_when_already_archived(
     respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(200, json=_MOCK_CONTACT_ARCHIVED)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -169,6 +172,9 @@ async def test_contact_archive_button_shown_when_active(
     """Detail page for an active contact shows the archive form."""
     respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(200, json=_MOCK_CONTACT_ACTIVE)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
 
     async with AsyncClient(

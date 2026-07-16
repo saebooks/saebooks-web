@@ -3,7 +3,7 @@
 Eight tests:
 1. test_edit_requires_auth              — GET /bills/{id}/edit without session -> 303 /login
 2. test_edit_form_renders_for_draft     — mock DRAFT bill -> form with version hidden input + lines
-3. test_edit_blocked_for_posted         — mock POSTED bill -> blocked page (422), no form
+3. test_edit_blocked_for_voided         — mock VOIDED bill -> blocked page (422), no form
 4. test_edit_success_redirects          — POST with valid body; mock PATCH 200 -> 303 to detail
 5. test_edit_sends_if_match_header      — assert outbound PATCH included If-Match: <version>
 6. test_edit_conflict_shows_banner      — mock PATCH 409 + re-GET -> amber banner + new version
@@ -85,6 +85,10 @@ _MOCK_BILL_DRAFT = {
 
 _MOCK_BILL_POSTED = {**_MOCK_BILL_DRAFT, "status": "POSTED", "version": 4}
 
+# VOIDED is the only status the edit route still blocks (POSTED became
+# editable — see saebooks_web/routes/bills.py `_LOCKED_STATUSES`).
+_MOCK_BILL_VOIDED = {**_MOCK_BILL_DRAFT, "status": "VOIDED", "version": 4}
+
 # A newer server version returned after a 409 conflict.
 _MOCK_BILL_V4 = {**_MOCK_BILL_DRAFT, "version": 4, "notes": "Updated by someone else"}
 
@@ -111,6 +115,9 @@ def _mock_dropdowns(respx_mock: respx.MockRouter) -> None:
     )
     respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
         return_value=Response(200, json=_MOCK_TAX_CODES)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/projects").mock(
+        return_value=Response(200, json={"items": []})
     )
 
 
@@ -169,16 +176,21 @@ async def test_edit_form_renders_for_draft(respx_mock: respx.MockRouter) -> None
 
 
 # ---------------------------------------------------------------------------
-# 3. Edit blocked for POSTED bill
+# 3. Edit blocked for VOIDED bill
 # ---------------------------------------------------------------------------
+# NOTE: this test used to exercise a POSTED bill, but POSTED bills are now
+# editable by design (see `_LOCKED_STATUSES` in saebooks_web/routes/bills.py,
+# matching the same policy applied to invoices). VOIDED is the only status
+# the route still blocks, so this test was retargeted to VOIDED to keep
+# coverage of the locked-status guard.
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_edit_blocked_for_posted(respx_mock: respx.MockRouter) -> None:
-    """GET /bills/{id}/edit for a POSTED bill shows blocked page, not the form."""
+async def test_edit_blocked_for_voided(respx_mock: respx.MockRouter) -> None:
+    """GET /bills/{id}/edit for a VOIDED bill shows blocked page, not the form."""
     respx_mock.get(f"{_API_BASE}/api/v1/bills/{_BILL_ID}").mock(
-        return_value=Response(200, json=_MOCK_BILL_POSTED)
+        return_value=Response(200, json=_MOCK_BILL_VOIDED)
     )
 
     async with AsyncClient(

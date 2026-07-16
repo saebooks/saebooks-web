@@ -116,9 +116,8 @@ async def test_audit_forbidden_for_tenant_admin(respx_mock: respx.MockRouter) ->
 @respx.mock
 async def test_audit_allowed_for_staff(respx_mock: respx.MockRouter) -> None:
     """SAE staff must get 200 on GET /admin/audit."""
-    respx_mock.get(f"{_API_BASE}/admin/audit").mock(
-        return_value=Response(200, content=b"<html>audit</html>",
-                              headers={"content-type": "text/html"})
+    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
     )
     async with AsyncClient(
         transport=ASGITransport(app=app),

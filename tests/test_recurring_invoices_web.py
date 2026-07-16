@@ -138,6 +138,9 @@ async def test_recurring_invoices_detail_lines(respx_mock: respx.MockRouter) -> 
     respx_mock.get(f"{_API_BASE}/api/v1/recurring_invoices/{_RI_ID}").mock(
         return_value=Response(200, json=_MOCK_RI)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
+        return_value=Response(200, json={"id": _CONTACT_ID, "name": "Retainer Contact"})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

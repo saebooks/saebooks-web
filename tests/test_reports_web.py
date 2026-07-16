@@ -295,6 +295,9 @@ async def test_balance_sheet_get_200(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_bas_summary_get_200(respx_mock: respx.MockRouter) -> None:
     """GET /reports/bas-summary returns 200 full page with all BAS labels."""
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(200, json={"items": []})
+    )
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/bas_summary.*$").mock(
         return_value=Response(200, json=_BAS_REMIT)
     )
@@ -325,6 +328,9 @@ async def test_bas_summary_get_200(respx_mock: respx.MockRouter) -> None:
 async def test_bas_summary_shows_remit_or_refund(respx_mock: respx.MockRouter) -> None:
     """BAS summary shows REMIT when net_gst > 0 and REFUND when net_gst < 0."""
     # First: REMIT scenario
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(200, json={"items": []})
+    )
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/bas_summary.*$").mock(
         return_value=Response(200, json=_BAS_REMIT)
     )
@@ -341,6 +347,9 @@ async def test_bas_summary_shows_remit_or_refund(respx_mock: respx.MockRouter) -
 
     # Second: REFUND scenario — clear mocks and re-register
     respx_mock.reset()
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(200, json={"items": []})
+    )
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/bas_summary.*$").mock(
         return_value=Response(200, json=_BAS_REFUND)
     )
@@ -475,7 +484,7 @@ async def test_cashflow_get_200(respx_mock: respx.MockRouter) -> None:
 
     assert resp.status_code == 200
     assert "<html" in resp.text
-    assert "Cashflow Statement" in resp.text
+    assert "Cash Flow Statement" in resp.text
     assert "Operating Activities" in resp.text
     assert "Investing Activities" in resp.text
     assert "Financing Activities" in resp.text
@@ -501,8 +510,8 @@ async def test_cashflow_net_change_displayed(respx_mock: respx.MockRouter) -> No
 
     assert "3750.00" in resp_pos.text
     assert "Net Change in Cash" in resp_pos.text
-    # Positive: should have green styling
-    assert "green" in resp_pos.text
+    # Positive: should have "positive" (green) design-token styling
+    assert "var(--pos)" in resp_pos.text
 
     # Negative net change
     respx_mock.reset()
@@ -518,8 +527,8 @@ async def test_cashflow_net_change_displayed(respx_mock: respx.MockRouter) -> No
         resp_neg = await client.get("/reports/cashflow")
 
     assert "-2000.00" in resp_neg.text
-    # Negative: should have red styling on the net-change block
-    assert "red" in resp_neg.text
+    # Negative: should have "negative" (red) design-token styling on the net-change block
+    assert "var(--neg)" in resp_neg.text
 
 
 @pytest.mark.anyio

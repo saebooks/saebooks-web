@@ -96,9 +96,12 @@ async def test_budget_vs_actual_get_200(respx_mock: respx.MockRouter) -> None:
     # Variance column present (positive and negative)
     assert "500.00" in resp.text
     assert "-500.00" in resp.text
-    # Colour-coded variance — green for positive, red for negative
-    assert "green" in resp.text
-    assert "red" in resp.text
+    # Colour-coded variance — design-system tokens for positive/negative
+    # (the report grid moved off literal Tailwind green/red classes onto
+    # var(--pos)/var(--neg) CSS custom properties, see
+    # templates/reports/_budget_vs_actual_table.html).
+    assert "var(--pos)" in resp.text
+    assert "var(--neg)" in resp.text
 
 
 @pytest.mark.anyio

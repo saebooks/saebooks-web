@@ -94,6 +94,9 @@ def _mock_dropdowns(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
         return_value=Response(200, json=_MOCK_TAX_CODES)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/projects").mock(
+        return_value=Response(200, json={"items": []})
+    )
 
 
 # ---------------------------------------------------------------------------

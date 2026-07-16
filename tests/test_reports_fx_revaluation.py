@@ -192,4 +192,5 @@ async def test_fx_revaluation_empty_items(respx_mock: respx.MockRouter) -> None:
     assert resp.status_code == 200
     assert "<html" in resp.text
     # Empty state message
-    assert "No foreign-currency documents found" in resp.text
+    # Empty-state message (see templates/reports/_fx_revaluation_table.html)
+    assert "no foreign-currency documents found" in resp.text

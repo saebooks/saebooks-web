@@ -145,5 +145,5 @@ async def test_revenue_by_customer_no_rows(respx_mock: respx.MockRouter) -> None
     assert "<html" in resp.text
     # No concentration warning
     assert "concentration_warning" not in resp.text or "concentration risk" not in resp.text
-    # Empty-state message
-    assert "No invoiced revenue" in resp.text
+    # Empty-state message (see templates/reports/_revenue_by_customer_table.html)
+    assert "no invoiced revenue found" in resp.text

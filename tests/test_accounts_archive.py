@@ -137,6 +137,9 @@ async def test_account_archive_button_not_shown(respx_mock: respx.MockRouter) ->
     respx_mock.get(f"{_API_BASE}/api/v1/accounts/{_ACCOUNT_ID}").mock(
         return_value=Response(200, json=_MOCK_ACCOUNT_ARCHIVED)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts/{_ACCOUNT_ID}/ledger").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

@@ -44,6 +44,7 @@ _MOCK_ACCOUNT = {
     "version": 1,
     "created_at": "2026-01-01T00:00:00Z",
     "archived_at": None,
+    "balance": "5000.00",
 }
 
 _MOCK_ACCOUNTS_RESPONSE = {
@@ -110,6 +111,9 @@ async def test_accounts_detail_renders(respx_mock: respx.MockRouter) -> None:
     """GET /accounts/{id} renders the account name on the detail page."""
     respx_mock.get(f"{_API_BASE}/api/v1/accounts/{_ACCOUNT_ID}").mock(
         return_value=Response(200, json=_MOCK_ACCOUNT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts/{_ACCOUNT_ID}/ledger").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
     )
 
     async with AsyncClient(

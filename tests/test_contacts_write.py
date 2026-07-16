@@ -89,6 +89,9 @@ async def test_contact_detail_renders(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(200, json=_MOCK_CONTACT)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

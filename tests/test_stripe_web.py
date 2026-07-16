@@ -101,7 +101,8 @@ async def test_stripe_button_shown_for_posted_no_link(
         resp = await client.get(f"/invoices/{_INVOICE_ID}")
 
     assert resp.status_code == 200
-    assert "Send Payment Link" in resp.text
+    # Button copy is sentence case ("Send payment link"), not title case.
+    assert "Send payment link" in resp.text
     assert f"/invoices/{_INVOICE_ID}/stripe-payment-link" in resp.text
 
 
@@ -131,10 +132,11 @@ async def test_stripe_copy_button_shown_when_link_exists(
         resp = await client.get(f"/invoices/{_INVOICE_ID}")
 
     assert resp.status_code == 200
-    assert "Copy Link" in resp.text
+    # Button copy is sentence case ("Copy link"), not title case.
+    assert "Copy link" in resp.text
     assert "https://buy.stripe.com/test_abc123" in resp.text
-    # Send Payment Link button must NOT be present when link already exists
-    assert "Send Payment Link" not in resp.text
+    # Send payment link button must NOT be present when link already exists
+    assert "Send payment link" not in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -194,7 +196,8 @@ async def test_stripe_payment_link_happy_path(
 
     assert resp.status_code == 200
     assert _URL in resp.text
-    assert "Copy Link" in resp.text
+    # Button copy is sentence case ("Copy link"), not title case.
+    assert "Copy link" in resp.text
 
 
 # ---------------------------------------------------------------------------

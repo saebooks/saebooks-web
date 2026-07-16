@@ -122,6 +122,9 @@ async def test_payment_post_conflict(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
         return_value=Response(200, json=_MOCK_PAYMENT_DRAFT)
     )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
+    )
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -167,6 +170,9 @@ async def test_payment_post_validation_error(respx_mock: respx.MockRouter) -> No
     # Follow the redirect and verify the flash message appears.
     respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
         return_value=Response(200, json=_MOCK_PAYMENT_DRAFT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -227,6 +233,9 @@ async def test_payment_void_button_not_shown_for_draft(
     """Detail page for a DRAFT payment must not render the void form; Post form must be present."""
     respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
         return_value=Response(200, json=_MOCK_PAYMENT_DRAFT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/attachments").mock(
+        return_value=Response(200, json=[])
     )
 
     async with AsyncClient(

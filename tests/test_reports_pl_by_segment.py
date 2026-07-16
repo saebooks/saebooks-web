@@ -140,9 +140,12 @@ async def test_pl_by_segment_get_200(respx_mock: respx.MockRouter) -> None:
     # Net profit values
     assert "3200.00" in resp.text
     assert "-1500.00" in resp.text
-    # Colour coding — green for positive profit, red for negative
-    assert "green" in resp.text
-    assert "red" in resp.text
+    # Colour coding — design-system tokens for positive/negative profit
+    # (moved off literal Tailwind green/red classes onto var(--pos)/
+    # var(--neg) CSS custom properties, see
+    # templates/reports/_pl_by_segment_table.html).
+    assert "var(--pos)" in resp.text
+    assert "var(--neg)" in resp.text
 
 
 @pytest.mark.anyio
