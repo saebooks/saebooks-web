@@ -267,7 +267,7 @@ async def test_concurrent_real_requests_dashboard_au_vs_ee_jurisdiction(
 
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/companies(\?.*)?$").mock(side_effect=_companies)
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_codes(\?.*)?$").mock(side_effect=_tax_codes)
-    _register_mocks(respx_mock)
+    _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     au_cookie = _session_cookie(au_token)
     ee_cookie = _session_cookie(ee_token)

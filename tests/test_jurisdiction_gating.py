@@ -149,7 +149,7 @@ async def test_jurisdiction_defaults_to_au_when_tax_codes_empty(
     The ambiguity is now loud (a logged warning), not silent."""
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction=None)
-    _register_mocks(respx_mock)
+    _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     with caplog.at_level("WARNING", logger="saebooks_web.company_context"):
         async with _client() as client:
@@ -175,7 +175,7 @@ async def test_jurisdiction_resolves_from_tax_codes_response(
     resolved jurisdiction through to the rendered nav."""
     _mock_companies(respx_mock, _EE_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="EE")
-    _register_mocks(respx_mock)
+    _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     async with _client() as client:
         resp = await client.get("/")
@@ -199,6 +199,7 @@ async def test_dashboard_au_regression_gst_widgets_present(
     _mock_tax_codes(respx_mock, jurisdiction="AU")
     _register_mocks(
         respx_mock,
+        register_shared_side_fetches=False,
         ytd_data=_ytd_response(ytd_turnover=45000.0, threshold_crossed=False),
     )
 
@@ -219,6 +220,7 @@ async def test_dashboard_ee_hides_gst_widgets(respx_mock: respx.MockRouter) -> N
     _mock_tax_codes(respx_mock, jurisdiction="EE")
     _register_mocks(
         respx_mock,
+        register_shared_side_fetches=False,
         ytd_data=_ytd_response(ytd_turnover=78000.0, threshold_crossed=True),
     )
 
@@ -243,7 +245,7 @@ async def test_dashboard_ee_hides_gst_widgets(respx_mock: respx.MockRouter) -> N
 async def test_nav_au_shows_bas_and_ato_sbr_links(respx_mock: respx.MockRouter) -> None:
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="AU")
-    _register_mocks(respx_mock)
+    _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     session = _make_session_cookie(
         {"api_token": "test-token-jurisdiction", "user_role": "admin"}
@@ -269,7 +271,7 @@ async def test_nav_ee_hides_bas_and_ato_sbr_shows_tax_codes(
 ) -> None:
     _mock_companies(respx_mock, _EE_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="EE")
-    _register_mocks(respx_mock)
+    _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     session = _make_session_cookie(
         {
@@ -409,7 +411,7 @@ async def test_jurisdiction_lookup_uses_limit_not_page_size(
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/tax_codes(\?.*)?$").mock(
         side_effect=_capture
     )
-    _register_mocks(respx_mock)
+    _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     async with _client() as client:
         resp = await client.get("/")

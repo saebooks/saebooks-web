@@ -167,6 +167,7 @@ def _register_mocks(
     recent_je: list | None = None,
     recent_contacts: list | None = None,
     ytd_data: dict | None = None,
+    register_shared_side_fetches: bool = True,
 ) -> None:
     """Register all API mocks that the dashboard fires in parallel.
 
@@ -231,20 +232,24 @@ def _register_mocks(
     respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/reports/ytd_turnover(\?.*)?$").mock(
         return_value=Response(200, json=ytd_data or _ytd_response())
     )
-    # Companies (PSI status; also hit by CompanyContextMiddleware) and
-    # revenue concentration — since the M2 degrade layer, an unmocked
-    # fetch degrades the compliance tile instead of being silently
-    # swallowed, hiding the GST/PSI banners these tests assert on.
-    respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/companies(\?.*)?$").mock(
-        return_value=Response(200, json={"items": []})
-    )
-    respx_mock.get(
-        url__regex=rf"^{_API_BASE}/api/v1/reports/revenue_by_customer(\?.*)?$"
-    ).mock(return_value=Response(200, json={"rows": []}))
-    # Module registry catalogue (ModuleRegistryMiddleware) — keep quiet.
-    respx_mock.get(f"{_API_BASE}/api/v1/modules").mock(
-        return_value=Response(200, json={"modules": []})
-    )
+    # Companies (PSI status; also hit by CompanyContextMiddleware),
+    # revenue concentration, and the module catalogue — since the M2
+    # degrade layer, an unmocked fetch degrades the compliance tile
+    # instead of being silently swallowed, hiding the GST/PSI banners
+    # these tests assert on. Callers that register their OWN
+    # companies/tax_codes mocks (test_jurisdiction_gating,
+    # test_i18n_concurrency) pass register_shared_side_fetches=False so
+    # these catch-alls can't shadow their jurisdiction-bearing payloads.
+    if register_shared_side_fetches:
+        respx_mock.get(url__regex=rf"^{_API_BASE}/api/v1/companies(\?.*)?$").mock(
+            return_value=Response(200, json={"items": []})
+        )
+        respx_mock.get(
+            url__regex=rf"^{_API_BASE}/api/v1/reports/revenue_by_customer(\?.*)?$"
+        ).mock(return_value=Response(200, json={"rows": []}))
+        respx_mock.get(f"{_API_BASE}/api/v1/modules").mock(
+            return_value=Response(200, json={"modules": []})
+        )
 
 
 # ---------------------------------------------------------------------------
