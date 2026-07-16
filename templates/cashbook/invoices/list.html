@@ -44,7 +44,7 @@
         </div>
 
         <div class="text-right">
-          <p class="num-display text-lg ink-1">${{ "%.2f"|format(inv.total|float) }}</p>
+          <p class="num-display text-lg ink-1">{{ money(inv.total|float) }}</p>
           <div class="mt-1">
             {% if inv.status|lower == 'voided' %}
               <span class="badge-overdue">{{ _("Voided") }}</span>

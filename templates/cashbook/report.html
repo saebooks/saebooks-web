@@ -62,17 +62,17 @@
 <section class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-paper-2 rounded-xl overflow-hidden mb-6 hairline">
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">{{ _("Cash in") }}</p>
-    <p class="num-display text-2xl pos">${{ "%.2f"|format((summary.income_total or 0)|float) }}</p>
+    <p class="num-display text-2xl pos">{{ money((summary.income_total or 0)|float) }}</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">{{ _("Cash out") }}</p>
-    <p class="num-display text-2xl neg">${{ "%.2f"|format((summary.expense_total or 0)|float) }}</p>
+    <p class="num-display text-2xl neg">{{ money((summary.expense_total or 0)|float) }}</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">{{ _("Net") }}</p>
     {% set net = (summary.net or 0)|float %}
     <p class="num-display text-2xl" style="color:{% if net >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
-      {% if net < 0 %}−{% endif %}${{ "%.2f"|format(net|abs) }}
+      {% if net < 0 %}−{% endif %}{{ money(net|abs) }}
     </p>
   </div>
 </section>
@@ -85,13 +85,13 @@
   {% if gst_col > 0 %}
   <div class="card p-4">
     <p class="nav-section-label mb-1">{{ _("GST collected") }}</p>
-    <p class="num-display text-xl ink-1">${{ "%.2f"|format(gst_col) }}</p>
+    <p class="num-display text-xl ink-1">{{ money(gst_col) }}</p>
   </div>
   {% endif %}
   {% if gst_paid > 0 %}
   <div class="card p-4">
     <p class="nav-section-label mb-1">{{ _("GST paid") }}</p>
-    <p class="num-display text-xl ink-1">${{ "%.2f"|format(gst_paid) }}</p>
+    <p class="num-display text-xl ink-1">{{ money(gst_paid) }}</p>
   </div>
   {% endif %}
 </div>
@@ -114,24 +114,24 @@
   <dl class="divide-y" style="border-color:var(--line);">
     <div class="flex justify-between px-6 py-3 text-sm">
       <dt class="ink-2">{{ _("G1 — Total sales (incl. GST)") }}</dt>
-      <dd class="num ink-1">${{ "%.2f"|format(bas_g1) }}</dd>
+      <dd class="num ink-1">{{ money(bas_g1) }}</dd>
     </div>
     <div class="flex justify-between px-6 py-3 text-sm">
       <dt class="ink-2">{{ _("G11 — Non-capital purchases") }}</dt>
-      <dd class="num ink-1">${{ "%.2f"|format(bas_g11) }}</dd>
+      <dd class="num ink-1">{{ money(bas_g11) }}</dd>
     </div>
     <div class="flex justify-between px-6 py-3 text-sm">
       <dt class="ink-2">{{ _("1A — GST on sales") }}</dt>
-      <dd class="num ink-1">${{ "%.2f"|format(bas_1a) }}</dd>
+      <dd class="num ink-1">{{ money(bas_1a) }}</dd>
     </div>
     <div class="flex justify-between px-6 py-3 text-sm">
       <dt class="ink-2">{{ _("1B — GST on purchases") }}</dt>
-      <dd class="num ink-1">${{ "%.2f"|format(bas_1b) }}</dd>
+      <dd class="num ink-1">{{ money(bas_1b) }}</dd>
     </div>
     <div class="flex justify-between px-6 py-3 text-sm bg-sae-tint">
       <dt class="font-semibold ink-1">{% if bas_net >= 0 %}{{ _("Net GST payable") }}{% else %}{{ _("Net GST refundable") }}{% endif %}</dt>
       <dd class="num-display ink-1" style="color:{% if bas_net >= 0 %}var(--ink-1){% else %}var(--pos){% endif %};">
-        ${{ "%.2f"|format(bas_net|abs) }}
+        {{ money(bas_net|abs) }}
       </dd>
     </div>
   </dl>
@@ -169,7 +169,7 @@
         </td>
         <td class="text-right num ink-3">{{ row.count }}</td>
         <td class="text-right num" style="font-weight:600;color:{% if row.direction == 'income' %}var(--pos){% else %}var(--neg){% endif %};">
-          ${{ "%.2f"|format(row.amount|float) }}
+          {{ money(row.amount|float) }}
         </td>
       </tr>
       {% endfor %}

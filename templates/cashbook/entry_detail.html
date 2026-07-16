@@ -27,7 +27,7 @@
       </p>
       <p class="num-display text-4xl"
          style="color:{% if entry.direction == 'income' %}var(--pos){% else %}var(--neg){% endif %};">
-        {% if entry.direction == 'expense' %}−{% endif %}${{ "%.2f"|format(entry.amount|float) }}
+        {% if entry.direction == 'expense' %}−{% endif %}{{ money(entry.amount|float) }}
       </p>
     </div>
     <span class="chip
@@ -56,7 +56,7 @@
     {% if entry.gst_amount and entry.gst_amount|float > 0 %}
     <div class="flex items-baseline gap-3 hairline-b pb-2">
       <dt class="w-28 nav-section-label">{{ _("GST") }}</dt>
-      <dd class="ink-1 num">${{ "%.2f"|format(entry.gst_amount|float) }}</dd>
+      <dd class="ink-1 num">{{ money(entry.gst_amount|float) }}</dd>
     </div>
     {% endif %}
     {% if entry.journal_entry_ref %}

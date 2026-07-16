@@ -82,7 +82,7 @@
         {% for line in quote.lines %}
         <tr>
           <td class="ink-1">{{ line.description }}</td>
-          <td class="text-right num-display ink-1">${{ "%.2f"|format(line.line_total|float) }}</td>
+          <td class="text-right num-display ink-1">{{ money(line.line_total|float) }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -90,15 +90,15 @@
     <div class="hairline-t px-6 py-4 space-y-2 text-sm">
       <div class="flex justify-between">
         <span class="ink-2">{{ _("Subtotal") }}</span>
-        <span class="num ink-1">${{ "%.2f"|format(quote.subtotal|float) }}</span>
+        <span class="num ink-1">{{ money(quote.subtotal|float) }}</span>
       </div>
       <div class="flex justify-between">
         <span class="ink-2">{{ _("GST") }}</span>
-        <span class="num ink-1">${{ "%.2f"|format(quote.tax_total|float) }}</span>
+        <span class="num ink-1">{{ money(quote.tax_total|float) }}</span>
       </div>
       <div class="flex justify-between hairline-t pt-2">
         <span class="font-semibold ink-1">{{ _("Total") }}</span>
-        <span class="num-display text-lg ink-1">${{ "%.2f"|format(quote.total|float) }}</span>
+        <span class="num-display text-lg ink-1">{{ money(quote.total|float) }}</span>
       </div>
     </div>
   </div>

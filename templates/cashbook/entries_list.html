@@ -79,7 +79,7 @@
           <div class="text-[11px] num ink-3 mt-0.5">{{ entry.entry_date }}</div>
         </div>
         <div class="num text-sm" style="font-weight:600;color:{% if entry.direction == 'income' %}var(--pos){% else %}var(--neg){% endif %};">
-          ${{ "%.2f"|format(entry.amount|float) }}
+          {{ money(entry.amount|float) }}
         </div>
       </a>
     </li>

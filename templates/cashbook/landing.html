@@ -72,7 +72,6 @@
           <div>
             <label for="amount" class="cb-label">{{ _("Amount") }}</label>
             <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center ink-3 text-base pointer-events-none num">$</span>
               <input type="number" id="amount" name="amount" min="0.01" step="0.01" inputmode="decimal"
                      value="{{ form_values.amount if form_values else '' }}"
                      placeholder="0.00"
@@ -168,7 +167,7 @@
               <div class="text-[11px] num ink-3 mt-0.5">{{ entry.entry_date }}</div>
             </div>
             <div class="num text-sm" style="font-weight:600;color:{% if entry.direction == 'income' %}var(--pos){% else %}var(--neg){% endif %};">
-              ${{ "%.2f"|format(entry.amount|float) }}
+              {{ money(entry.amount|float) }}
             </div>
           </a>
         </li>
@@ -221,13 +220,13 @@
         <div>
           <dt class="text-[11px] font-mono uppercase tracking-wider ink-3">{{ _("Cash in") }}</dt>
           <dd class="num-display text-xl pos">
-            ${{ "%.2f"|format((summary.income_total or 0)|float) }}
+            {{ money((summary.income_total or 0)|float) }}
           </dd>
         </div>
         <div>
           <dt class="text-[11px] font-mono uppercase tracking-wider ink-3">{{ _("Cash out") }}</dt>
           <dd class="num-display text-xl neg">
-            ${{ "%.2f"|format((summary.expense_total or 0)|float) }}
+            {{ money((summary.expense_total or 0)|float) }}
           </dd>
         </div>
         <div class="hairline pt-3">
@@ -235,7 +234,7 @@
           <dd class="num-display text-2xl"
               style="color: {% if (summary.net or 0)|float >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
             {% set net = (summary.net or 0)|float %}
-            {% if net < 0 %}−{% endif %}${{ "%.2f"|format(net|abs) }}
+            {% if net < 0 %}−{% endif %}{{ money(net|abs) }}
           </dd>
         </div>
       </dl>
