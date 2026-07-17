@@ -228,7 +228,7 @@ _TURNSTILE_GATE_HTML = """\
     <div class="error-msg">{error_msg}</div>
     <form method="POST" action="{provision_path}">
       <div class="cf-wrap">
-        <div class="cf-turnstile" data-sitekey="{site_key}" data-theme="auto" data-callback="onTurnstileSuccess"></div>
+        <div class="cf-turnstile" data-sitekey="{site_key}" data-theme="auto" data-callback="onTurnstileSuccess" data-error-callback="onTurnstileError" data-retry="auto" data-retry-interval="4000" data-refresh-expired="auto"></div>
       </div>
       <noscript><p style="color:#991b1b;margin-bottom:1rem">JavaScript must be enabled to use this demo.</p></noscript>
     </form>
@@ -240,6 +240,25 @@ _TURNSTILE_GATE_HTML = """\
     // on completion (invisible/managed run automatically, the checkbox on click).
     function onTurnstileSuccess(token) {{
       document.querySelector('form').submit();
+    }}
+    // The challenge can crash transiently (network blips, privacy shields).
+    // Reset it twice before surfacing a human-readable failure — without
+    // this, visitors sit on a dead "Error!" widget with no way forward.
+    var _tsErrors = 0;
+    function onTurnstileError(code) {{
+      _tsErrors += 1;
+      if (_tsErrors <= 2 && window.turnstile) {{
+        try {{ window.turnstile.reset(); }} catch (e) {{}}
+        return true;
+      }}
+      var el = document.querySelector('.error-msg');
+      if (el) {{
+        el.style.display = 'block';
+        el.textContent = 'The human check could not load (code ' + code +
+          '). Refresh the page to retry; if it keeps failing, try another ' +
+          'browser or disable content blockers for this site.';
+      }}
+      return true;
     }}
   </script>
 </body>
