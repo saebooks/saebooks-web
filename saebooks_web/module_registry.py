@@ -117,11 +117,41 @@ def invalidate_catalogue_cache() -> None:
     _catalogue_cached_at = 0.0
 
 
+def _slim_usage(usage: dict) -> dict:
+    """Reduce the usage payload to the fields the web layer actually reads.
+
+    The session lives in a signed cookie; the raw payload (31 modules with
+    caps blocks) pushes the cookie past the 4096-byte browser limit and the
+    login silently loops. Keep only ``edition`` / ``effective_edition``
+    (features.current_edition) and per-module ``entitled`` / ``health``
+    (merged_module_registry), with ``modules`` re-keyed by id — the API
+    ships a list, but the nav merge looks entries up by module id.
+    """
+    raw_modules = usage.get("modules") or []
+    if isinstance(raw_modules, dict):  # tolerate a future dict-shaped payload
+        raw_modules = [
+            {"id": mid, **(entry or {})} for mid, entry in raw_modules.items()
+        ]
+    modules: dict[str, dict] = {}
+    for entry in raw_modules:
+        if isinstance(entry, dict) and entry.get("id"):
+            modules[str(entry["id"])] = {
+                "entitled": bool(entry.get("entitled", False)),
+                "health": entry.get("health"),
+            }
+    return {
+        "edition": usage.get("edition"),
+        "effective_edition": usage.get("effective_edition"),
+        "modules": modules,
+    }
+
+
 async def fetch_module_usage(request: Request) -> dict:
     """GET /api/v1/modules/usage — bearer-gated, per-tenant.
 
     Called at login (auth.py) and company switch (switch_company.py) ONLY.
-    Stores the payload in ``request.session["module_usage"]`` so
+    Stores a slimmed snapshot (see ``_slim_usage``) in
+    ``request.session["module_usage"]`` so
     ``features.current_edition(request)`` and the nav middleware can read
     it without another HTTP call. Failure leaves any previous snapshot in
     place (stale beats absent for nav purposes) and never raises.
@@ -130,7 +160,7 @@ async def fetch_module_usage(request: Request) -> dict:
         async with api_client(request) as client:
             resp = await client.get("/api/v1/modules/usage")
         if resp.is_success:
-            usage = resp.json()
+            usage = _slim_usage(resp.json())
             request.session["module_usage"] = usage
             return usage
         logger.warning("module usage fetch returned HTTP %s", resp.status_code)
