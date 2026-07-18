@@ -38,6 +38,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.i18n import gettext as _
+from saebooks_web.module_gate import ModuleUnavailable
 
 router = APIRouter()
 
@@ -132,39 +134,44 @@ async def close_year_form(
     equity_accounts: list = []
     preview: dict = {}
     error: str | None = None
+    degraded = False
+    retained: str | None = None
 
-    async with api_client(request) as client:
-        acc_resp = await client.get(
-            "/api/v1/accounts", params={"account_type": "EQUITY", "limit": 200}
-        )
-        if acc_resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if acc_resp.is_success:
-            equity_accounts = acc_resp.json().get("items", [])
-
-        retained = retained_earnings_account_id or next(
-            (
-                a["id"]
-                for a in equity_accounts
-                if "retained" in (a.get("name", "") or "").lower()
-            ),
-            (equity_accounts[0]["id"] if equity_accounts else None),
-        )
-        if retained:
-            pv = await client.get(
-                "/api/v1/period-close/preview",
-                params={
-                    "through_date": through_,
-                    "retained_earnings_account_id": retained,
-                },
+    try:
+        async with api_client(request) as client:
+            acc_resp = await client.get(
+                "/api/v1/accounts", params={"account_type": "EQUITY", "limit": 200}
             )
-            if pv.is_success:
-                preview = pv.json()
+            if acc_resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if acc_resp.is_success:
+                equity_accounts = acc_resp.json().get("items", [])
+
+            retained = retained_earnings_account_id or next(
+                (
+                    a["id"]
+                    for a in equity_accounts
+                    if "retained" in (a.get("name", "") or "").lower()
+                ),
+                (equity_accounts[0]["id"] if equity_accounts else None),
+            )
+            if retained:
+                pv = await client.get(
+                    "/api/v1/period-close/preview",
+                    params={
+                        "through_date": through_,
+                        "retained_earnings_account_id": retained,
+                    },
+                )
+                if pv.is_success:
+                    preview = pv.json()
+                else:
+                    error = _("The report could not be loaded (HTTP %(code)s).") % {"code": pv.status_code}
             else:
-                error = f"Preview unavailable: HTTP {pv.status_code}"
-        else:
-            error = "No equity account found for retained earnings."
+                error = "No equity account found for retained earnings."
+    except ModuleUnavailable:
+        degraded = True
 
     flash = request.session.pop("flash", None)
     ctx = {
@@ -176,6 +183,7 @@ async def close_year_form(
         "preview": preview,
         "error": error,
         "flash": flash,
+        "degraded": degraded,
     }
     return _TEMPLATES.TemplateResponse(request, "reports/close_year.html", ctx)
 
@@ -424,67 +432,71 @@ async def statement_pack(
     bs_prior_raw: dict = {}
     company: dict = {}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        if comparative:
-            (
-                pl_resp, bs_resp, tb_resp, co_resp,
-                pl_prior_resp, bs_prior_resp,
-            ) = await asyncio.gather(
-                client.get(
-                    "/api/v1/reports/profit_loss",
-                    params={"from_date": from_, "to_date": to_},
-                ),
-                client.get(
-                    "/api/v1/reports/balance_sheet", params={"as_of_date": as_of}
-                ),
-                client.get(
-                    "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
-                ),
-                client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
-                # Prior-year fetches — in same gather to avoid serialisation.
-                client.get(
-                    "/api/v1/reports/profit_loss",
-                    params={"from_date": prior_from, "to_date": prior_to},
-                ),
-                client.get(
-                    "/api/v1/reports/balance_sheet",
-                    params={"as_of_date": prior_as_of},
-                ),
-            )
-            if pl_prior_resp.is_success:
-                pl_prior_raw = pl_prior_resp.json()
-            if bs_prior_resp.is_success:
-                bs_prior_raw = bs_prior_resp.json()
-        else:
-            pl_resp, bs_resp, tb_resp, co_resp = await asyncio.gather(
-                client.get(
-                    "/api/v1/reports/profit_loss",
-                    params={"from_date": from_, "to_date": to_},
-                ),
-                client.get(
-                    "/api/v1/reports/balance_sheet", params={"as_of_date": as_of}
-                ),
-                client.get(
-                    "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
-                ),
-                client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
-            )
+    try:
+        async with api_client(request) as client:
+            if comparative:
+                (
+                    pl_resp, bs_resp, tb_resp, co_resp,
+                    pl_prior_resp, bs_prior_resp,
+                ) = await asyncio.gather(
+                    client.get(
+                        "/api/v1/reports/profit_loss",
+                        params={"from_date": from_, "to_date": to_},
+                    ),
+                    client.get(
+                        "/api/v1/reports/balance_sheet", params={"as_of_date": as_of}
+                    ),
+                    client.get(
+                        "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
+                    ),
+                    client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
+                    # Prior-year fetches — in same gather to avoid serialisation.
+                    client.get(
+                        "/api/v1/reports/profit_loss",
+                        params={"from_date": prior_from, "to_date": prior_to},
+                    ),
+                    client.get(
+                        "/api/v1/reports/balance_sheet",
+                        params={"as_of_date": prior_as_of},
+                    ),
+                )
+                if pl_prior_resp.is_success:
+                    pl_prior_raw = pl_prior_resp.json()
+                if bs_prior_resp.is_success:
+                    bs_prior_raw = bs_prior_resp.json()
+            else:
+                pl_resp, bs_resp, tb_resp, co_resp = await asyncio.gather(
+                    client.get(
+                        "/api/v1/reports/profit_loss",
+                        params={"from_date": from_, "to_date": to_},
+                    ),
+                    client.get(
+                        "/api/v1/reports/balance_sheet", params={"as_of_date": as_of}
+                    ),
+                    client.get(
+                        "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
+                    ),
+                    client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
+                )
 
-        if 401 in (pl_resp.status_code, bs_resp.status_code, tb_resp.status_code):
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if pl_resp.is_success:
-            pl_report = pl_resp.json()
-        else:
-            error = f"API error: HTTP {pl_resp.status_code}"
-        if bs_resp.is_success:
-            bs_report = bs_resp.json()
-        if tb_resp.is_success:
-            tb_report = tb_resp.json()
-        if co_resp.is_success:
-            items = co_resp.json().get("items", [])
-            company = items[0] if items else {}
+            if 401 in (pl_resp.status_code, bs_resp.status_code, tb_resp.status_code):
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if pl_resp.is_success:
+                pl_report = pl_resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": pl_resp.status_code}
+            if bs_resp.is_success:
+                bs_report = bs_resp.json()
+            if tb_resp.is_success:
+                tb_report = tb_resp.json()
+            if co_resp.is_success:
+                items = co_resp.json().get("items", [])
+                company = items[0] if items else {}
+    except ModuleUnavailable:
+        degraded = True
 
     # Build comparative data structures (empty when comparative=False).
     comp_pl: dict = {}
@@ -504,6 +516,7 @@ async def statement_pack(
         "to_date": to_,
         "prepared": _today(),
         "error": error,
+        "degraded": degraded,
         # Comparative context — passed to pack-local markup only.
         # The shared fragment includes (_profit_loss_table, _balance_sheet_table,
         # _trial_balance_table) receive only their own report variable and are
@@ -530,24 +543,29 @@ async def aged_receivables(
     as_of = as_of_date or _today()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/aged_receivables",
-            params={"as_of_date": as_of},
-        )
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(
+                "/api/v1/reports/aged_receivables",
+                params={"as_of_date": as_of},
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
         "as_of_date": as_of,
         "error": error,
+        "degraded": degraded,
         "report_title": "Aged Receivables",
         "report_url": "/reports/aged-receivables",
     }
@@ -577,24 +595,29 @@ async def aged_payables(
     as_of = as_of_date or _today()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/aged_payables",
-            params={"as_of_date": as_of},
-        )
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(
+                "/api/v1/reports/aged_payables",
+                params={"as_of_date": as_of},
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
         "as_of_date": as_of,
         "error": error,
+        "degraded": degraded,
         "report_title": "Aged Payables",
         "report_url": "/reports/aged-payables",
     }
@@ -636,59 +659,63 @@ async def profit_loss(
     error: str | None = None
     gst: dict = {}
     comp_pl: dict = {}
+    degraded = False
 
     from_date_obj = date.fromisoformat(from_)
     to_date_obj = date.fromisoformat(to_)
     prior_from = _subtract_one_year(from_date_obj).isoformat()
     prior_to = _subtract_one_year(to_date_obj).isoformat()
 
-    async with api_client(request) as client:
-        if comparative:
-            pl_resp, pl_prior_resp, ytd_resp = await asyncio.gather(
-                client.get(
-                    "/api/v1/reports/profit_loss",
-                    params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
-                ),
-                client.get(
-                    "/api/v1/reports/profit_loss",
-                    params={"from_date": prior_from, "to_date": prior_to, "include_draft": str(include_draft).lower()},
-                ),
-                client.get("/api/v1/reports/ytd_turnover"),
-            )
-        else:
-            pl_resp, ytd_resp = await asyncio.gather(
-                client.get(
-                    "/api/v1/reports/profit_loss",
-                    params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
-                ),
-                client.get("/api/v1/reports/ytd_turnover"),
-            )
-            pl_prior_resp = None
+    try:
+        async with api_client(request) as client:
+            if comparative:
+                pl_resp, pl_prior_resp, ytd_resp = await asyncio.gather(
+                    client.get(
+                        "/api/v1/reports/profit_loss",
+                        params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
+                    ),
+                    client.get(
+                        "/api/v1/reports/profit_loss",
+                        params={"from_date": prior_from, "to_date": prior_to, "include_draft": str(include_draft).lower()},
+                    ),
+                    client.get("/api/v1/reports/ytd_turnover"),
+                )
+            else:
+                pl_resp, ytd_resp = await asyncio.gather(
+                    client.get(
+                        "/api/v1/reports/profit_loss",
+                        params={"from_date": from_, "to_date": to_, "include_draft": str(include_draft).lower()},
+                    ),
+                    client.get("/api/v1/reports/ytd_turnover"),
+                )
+                pl_prior_resp = None
 
-        if pl_resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if pl_resp.is_success:
-            report = pl_resp.json()
-        else:
-            error = f"API error: HTTP {pl_resp.status_code}"
+            if pl_resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if pl_resp.is_success:
+                report = pl_resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": pl_resp.status_code}
 
-        if comparative and pl_prior_resp is not None and pl_prior_resp.is_success:
-            comp_pl = _build_comparative_pl(report, pl_prior_resp.json())
+            if comparative and pl_prior_resp is not None and pl_prior_resp.is_success:
+                comp_pl = _build_comparative_pl(report, pl_prior_resp.json())
 
-        if ytd_resp.is_success:
-            ytd_data = ytd_resp.json()
-            ytd = float(ytd_data.get("ytd_turnover", 0))
-            threshold = float(ytd_data.get("threshold", 75000))
-            gst = {
-                "ytd_turnover": ytd,
-                "threshold": threshold,
-                "threshold_crossed": bool(ytd_data.get("threshold_crossed", False)),
-                "threshold_approaching": bool(ytd_data.get("threshold_approaching", False)),
-                "pct": min(ytd / threshold * 100 if threshold else 0.0, 100.0),
-                "fy_start": ytd_data.get("fy_start", ""),
-                "fy_end": ytd_data.get("fy_end", ""),
-            }
+            if ytd_resp.is_success:
+                ytd_data = ytd_resp.json()
+                ytd = float(ytd_data.get("ytd_turnover", 0))
+                threshold = float(ytd_data.get("threshold", 75000))
+                gst = {
+                    "ytd_turnover": ytd,
+                    "threshold": threshold,
+                    "threshold_crossed": bool(ytd_data.get("threshold_crossed", False)),
+                    "threshold_approaching": bool(ytd_data.get("threshold_approaching", False)),
+                    "pct": min(ytd / threshold * 100 if threshold else 0.0, 100.0),
+                    "fy_start": ytd_data.get("fy_start", ""),
+                    "fy_end": ytd_data.get("fy_end", ""),
+                }
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
@@ -701,6 +728,7 @@ async def profit_loss(
         "comp_pl": comp_pl,
         "prior_from": prior_from,
         "prior_to": prior_to,
+        "degraded": degraded,
     }
 
     template = (
@@ -735,33 +763,37 @@ async def balance_sheet(
     report: dict = {}
     error: str | None = None
     comp_bs: dict = {}
+    degraded = False
 
     as_of_obj = date.fromisoformat(as_of)
     prior_as_of = _subtract_one_year(as_of_obj).isoformat()
 
-    async with api_client(request) as client:
-        if comparative:
-            bs_resp, bs_prior_resp = await asyncio.gather(
-                client.get("/api/v1/reports/balance_sheet", params={"as_of_date": as_of}),
-                client.get("/api/v1/reports/balance_sheet", params={"as_of_date": prior_as_of}),
-            )
-        else:
-            bs_resp = await client.get(
-                "/api/v1/reports/balance_sheet",
-                params={"as_of_date": as_of},
-            )
-            bs_prior_resp = None
+    try:
+        async with api_client(request) as client:
+            if comparative:
+                bs_resp, bs_prior_resp = await asyncio.gather(
+                    client.get("/api/v1/reports/balance_sheet", params={"as_of_date": as_of}),
+                    client.get("/api/v1/reports/balance_sheet", params={"as_of_date": prior_as_of}),
+                )
+            else:
+                bs_resp = await client.get(
+                    "/api/v1/reports/balance_sheet",
+                    params={"as_of_date": as_of},
+                )
+                bs_prior_resp = None
 
-        if bs_resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if bs_resp.is_success:
-            report = bs_resp.json()
-        else:
-            error = f"API error: HTTP {bs_resp.status_code}"
+            if bs_resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if bs_resp.is_success:
+                report = bs_resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": bs_resp.status_code}
 
-        if comparative and bs_prior_resp is not None and bs_prior_resp.is_success:
-            comp_bs = _build_comparative_bs(report, bs_prior_resp.json())
+            if comparative and bs_prior_resp is not None and bs_prior_resp.is_success:
+                comp_bs = _build_comparative_bs(report, bs_prior_resp.json())
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
@@ -770,6 +802,7 @@ async def balance_sheet(
         "comparative": comparative,
         "comp_bs": comp_bs,
         "prior_as_of": prior_as_of,
+        "degraded": degraded,
     }
 
     template = (
@@ -799,35 +832,40 @@ async def bas_summary(
     to_ = to_date or _today()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        # Fetch company GST registration date so we can split G1 for mid-quarter
-        # registrations (ATO compliance — HOBB-3).
-        gst_effective_date: str | None = None
-        clist_resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
-        if clist_resp.is_success:
-            companies = clist_resp.json().get("items", [])
-            if companies:
-                gst_effective_date = companies[0].get("gst_effective_date") or None
+    try:
+        async with api_client(request) as client:
+            # Fetch company GST registration date so we can split G1 for mid-quarter
+            # registrations (ATO compliance — HOBB-3).
+            gst_effective_date: str | None = None
+            clist_resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+            if clist_resp.is_success:
+                companies = clist_resp.json().get("items", [])
+                if companies:
+                    gst_effective_date = companies[0].get("gst_effective_date") or None
 
-        params: dict = {"from_date": from_, "to_date": to_}
-        if gst_effective_date:
-            params["registration_effective_date"] = gst_effective_date
+            params: dict = {"from_date": from_, "to_date": to_}
+            if gst_effective_date:
+                params["registration_effective_date"] = gst_effective_date
 
-        resp = await client.get("/api/v1/reports/bas_summary", params=params)
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+            resp = await client.get("/api/v1/reports/bas_summary", params=params)
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
         "from_date": from_,
         "to_date": to_,
         "error": error,
+        "degraded": degraded,
     }
 
     template = (
@@ -857,25 +895,30 @@ async def cashflow(
     to_ = to_date or _today()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/cashflow",
-            params={"from_date": from_, "to_date": to_},
-        )
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(
+                "/api/v1/reports/cashflow",
+                params={"from_date": from_, "to_date": to_},
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
         "from_date": from_,
         "to_date": to_,
         "error": error,
+        "degraded": degraded,
     }
 
     template = (
@@ -904,30 +947,35 @@ async def depreciation_schedule(
     as_of = as_of_date or _today()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
     params: dict = {"as_of_date": as_of}
     # Omit method param when "all" or not supplied
     if method and method != "all":
         params["method"] = method
 
-    async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/depreciation_schedule",
-            params=params,
-        )
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(
+                "/api/v1/reports/depreciation_schedule",
+                params=params,
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
         "as_of_date": as_of,
         "method": method or "all",
         "error": error,
+        "degraded": degraded,
     }
 
     template = (
@@ -955,24 +1003,29 @@ async def fx_revaluation(
     as_of = as_of_date or _today()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/fx_revaluation",
-            params={"as_of_date": as_of},
-        )
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(
+                "/api/v1/reports/fx_revaluation",
+                params={"as_of_date": as_of},
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
         "as_of_date": as_of,
         "error": error,
+        "degraded": degraded,
     }
 
     template = (
@@ -1008,78 +1061,82 @@ async def trial_balance(
     report: dict = {}
     error: str | None = None
     comp_tb: list[dict] = []
+    degraded = False
 
     as_of_obj = date.fromisoformat(as_of)
     prior_as_of = _subtract_one_year(as_of_obj).isoformat()
 
-    async with api_client(request) as client:
-        if comparative:
-            tb_resp, tb_prior_resp = await asyncio.gather(
-                client.get(
+    try:
+        async with api_client(request) as client:
+            if comparative:
+                tb_resp, tb_prior_resp = await asyncio.gather(
+                    client.get(
+                        "/api/v1/reports/trial_balance",
+                        params={
+                            "as_of_date": as_of,
+                            "include_zero_balance": str(include_zero_balance).lower(),
+                        },
+                    ),
+                    client.get(
+                        "/api/v1/reports/trial_balance",
+                        params={
+                            "as_of_date": prior_as_of,
+                            "include_zero_balance": str(include_zero_balance).lower(),
+                        },
+                    ),
+                )
+            else:
+                tb_resp = await client.get(
                     "/api/v1/reports/trial_balance",
                     params={
                         "as_of_date": as_of,
                         "include_zero_balance": str(include_zero_balance).lower(),
                     },
-                ),
-                client.get(
-                    "/api/v1/reports/trial_balance",
-                    params={
-                        "as_of_date": prior_as_of,
-                        "include_zero_balance": str(include_zero_balance).lower(),
-                    },
-                ),
-            )
-        else:
-            tb_resp = await client.get(
-                "/api/v1/reports/trial_balance",
-                params={
-                    "as_of_date": as_of,
-                    "include_zero_balance": str(include_zero_balance).lower(),
-                },
-            )
-            tb_prior_resp = None
+                )
+                tb_prior_resp = None
 
-        if tb_resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if tb_resp.is_success:
-            report = tb_resp.json()
-        else:
-            error = f"API error: HTTP {tb_resp.status_code}"
+            if tb_resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if tb_resp.is_success:
+                report = tb_resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": tb_resp.status_code}
 
-        if comparative and tb_prior_resp is not None and tb_prior_resp.is_success:
-            # Build comparative line list: current accounts enriched with prior balance.
-            prior_accounts = tb_prior_resp.json().get("accounts", [])
-            prior_by_id: dict[str, dict] = {a["account_id"]: a for a in prior_accounts if a.get("account_id")}
-            current_ids: set[str] = set()
-            merged: list[dict] = []
-            for acct in report.get("accounts", []):
-                aid = acct.get("account_id", "")
-                current_ids.add(aid)
-                prior = prior_by_id.get(aid, {})
-                merged.append({
-                    **acct,
-                    "prior_balance": float(prior.get("balance", 0) or 0),
-                    "prior_debit_total": float(prior.get("debit_total", 0) or 0),
-                    "prior_credit_total": float(prior.get("credit_total", 0) or 0),
-                })
-            # Append prior-only accounts
-            for aid, acct in prior_by_id.items():
-                if aid not in current_ids:
+            if comparative and tb_prior_resp is not None and tb_prior_resp.is_success:
+                # Build comparative line list: current accounts enriched with prior balance.
+                prior_accounts = tb_prior_resp.json().get("accounts", [])
+                prior_by_id: dict[str, dict] = {a["account_id"]: a for a in prior_accounts if a.get("account_id")}
+                current_ids: set[str] = set()
+                merged: list[dict] = []
+                for acct in report.get("accounts", []):
+                    aid = acct.get("account_id", "")
+                    current_ids.add(aid)
+                    prior = prior_by_id.get(aid, {})
                     merged.append({
-                        "account_id": aid,
-                        "code": acct.get("code", ""),
-                        "name": acct.get("name", ""),
-                        "account_type": acct.get("account_type", ""),
-                        "debit_total": 0.0,
-                        "credit_total": 0.0,
-                        "balance": 0.0,
-                        "prior_balance": float(acct.get("balance", 0) or 0),
-                        "prior_debit_total": float(acct.get("debit_total", 0) or 0),
-                        "prior_credit_total": float(acct.get("credit_total", 0) or 0),
+                        **acct,
+                        "prior_balance": float(prior.get("balance", 0) or 0),
+                        "prior_debit_total": float(prior.get("debit_total", 0) or 0),
+                        "prior_credit_total": float(prior.get("credit_total", 0) or 0),
                     })
-            comp_tb = merged
+                # Append prior-only accounts
+                for aid, acct in prior_by_id.items():
+                    if aid not in current_ids:
+                        merged.append({
+                            "account_id": aid,
+                            "code": acct.get("code", ""),
+                            "name": acct.get("name", ""),
+                            "account_type": acct.get("account_type", ""),
+                            "debit_total": 0.0,
+                            "credit_total": 0.0,
+                            "balance": 0.0,
+                            "prior_balance": float(acct.get("balance", 0) or 0),
+                            "prior_debit_total": float(acct.get("debit_total", 0) or 0),
+                            "prior_credit_total": float(acct.get("credit_total", 0) or 0),
+                        })
+                comp_tb = merged
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
@@ -1089,6 +1146,7 @@ async def trial_balance(
         "comparative": comparative,
         "comp_tb": comp_tb,
         "prior_as_of": prior_as_of,
+        "degraded": degraded,
     }
 
     template = (
@@ -1117,23 +1175,27 @@ async def budget_vs_actual(
     yr = year if year is not None else _current_year()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
     params: dict = {"year": yr}
     if month is not None:
         params["month"] = month
 
-    async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/budget_vs_actual",
-            params=params,
-        )
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(
+                "/api/v1/reports/budget_vs_actual",
+                params=params,
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
@@ -1141,6 +1203,7 @@ async def budget_vs_actual(
         "month": month,
         "current_year": _current_year(),
         "error": error,
+        "degraded": degraded,
     }
 
     template = (
@@ -1171,19 +1234,23 @@ async def pl_by_segment(
     to_ = to_date or _month_end()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/pl_by_segment",
-            params={"from_date": from_, "to_date": to_, "segment_type": segment_type},
-        )
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(
+                "/api/v1/reports/pl_by_segment",
+                params={"from_date": from_, "to_date": to_, "segment_type": segment_type},
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
@@ -1191,6 +1258,7 @@ async def pl_by_segment(
         "to_date": to_,
         "segment_type": segment_type,
         "error": error,
+        "degraded": degraded,
     }
 
     template = (
@@ -1220,25 +1288,30 @@ async def revenue_by_customer(
     to_ = to_date or _month_end()
     report: dict = {}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        resp = await client.get(
-            "/api/v1/reports/revenue_by_customer",
-            params={"from_date": from_, "to_date": to_},
-        )
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(
+                "/api/v1/reports/revenue_by_customer",
+                params={"from_date": from_, "to_date": to_},
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+    except ModuleUnavailable:
+        degraded = True
 
     ctx = {
         "report": report,
         "from_date": from_,
         "to_date": to_,
         "error": error,
+        "degraded": degraded,
     }
 
     template = (
@@ -1283,50 +1356,54 @@ async def bas_payg_review(
     report: dict = {}
     payg = {"w1_total_gross": 0.0, "w2_tax_withheld": 0.0, "pay_run_count": 0}
     error: str | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        # --- GST labels (BAS summary, with mid-period registration split) ---
-        gst_effective_date: str | None = None
-        clist = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
-        if clist.is_success:
-            items = clist.json().get("items", [])
-            if items:
-                gst_effective_date = items[0].get("gst_effective_date") or None
+    try:
+        async with api_client(request) as client:
+            # --- GST labels (BAS summary, with mid-period registration split) ---
+            gst_effective_date: str | None = None
+            clist = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+            if clist.is_success:
+                items = clist.json().get("items", [])
+                if items:
+                    gst_effective_date = items[0].get("gst_effective_date") or None
 
-        params: dict = {"from_date": from_, "to_date": to_}
-        if gst_effective_date:
-            params["registration_effective_date"] = gst_effective_date
-        resp = await client.get("/api/v1/reports/bas_summary", params=params)
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if resp.is_success:
-            report = resp.json()
-        else:
-            error = f"GST API error: {_detail_or_status(resp)}"
+            params: dict = {"from_date": from_, "to_date": to_}
+            if gst_effective_date:
+                params["registration_effective_date"] = gst_effective_date
+            resp = await client.get("/api/v1/reports/bas_summary", params=params)
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                report = resp.json()
+            else:
+                error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
 
-        # --- PAYG withholding from pay-runs in the period ---
-        pr = await client.get("/api/v1/pay-runs", params={"limit": 500, "offset": 0})
-        if pr.is_success:
-            w1 = 0.0
-            w2 = 0.0
-            count = 0
-            for run in pr.json().get("items", []):
-                pay_date = run.get("payment_date") or run.get("period_end")
-                if not (pay_date and from_ <= pay_date <= to_):
-                    continue
-                count += 1
-                for line in run.get("lines", []):
-                    try:
-                        w1 += float(line.get("gross") or 0)
-                        w2 += float(line.get("tax") or 0)
-                    except (TypeError, ValueError):
+            # --- PAYG withholding from pay-runs in the period ---
+            pr = await client.get("/api/v1/pay-runs", params={"limit": 500, "offset": 0})
+            if pr.is_success:
+                w1 = 0.0
+                w2 = 0.0
+                count = 0
+                for run in pr.json().get("items", []):
+                    pay_date = run.get("payment_date") or run.get("period_end")
+                    if not (pay_date and from_ <= pay_date <= to_):
                         continue
-            payg = {
-                "w1_total_gross": round(w1, 2),
-                "w2_tax_withheld": round(w2, 2),
-                "pay_run_count": count,
-            }
+                    count += 1
+                    for line in run.get("lines", []):
+                        try:
+                            w1 += float(line.get("gross") or 0)
+                            w2 += float(line.get("tax") or 0)
+                        except (TypeError, ValueError):
+                            continue
+                payg = {
+                    "w1_total_gross": round(w1, 2),
+                    "w2_tax_withheld": round(w2, 2),
+                    "pay_run_count": count,
+                }
+    except ModuleUnavailable:
+        degraded = True
 
     # Amount payable to ATO = net GST (1A - 1B) + PAYG withheld (W2).
     # PAYG instalment (5A/T7) is not modelled in the engine — entered on the
@@ -1345,6 +1422,7 @@ async def bas_payg_review(
         "net_gst": net_gst,
         "amount_payable": amount_payable,
         "error": error,
+        "degraded": degraded,
     }
     template = (
         "reports/_bas_payg_table.html"
