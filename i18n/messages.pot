@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-16 22:02+1000\n"
+"POT-Creation-Date: 2026-07-18 21:11+1000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -87,6 +87,220 @@ msgstr ""
 
 #: saebooks_web/routes/companies.py:209
 msgid "Company created."
+msgstr ""
+
+#: saebooks_web/routes/group_overview.py:150
+#, python-format
+msgid "The company list could not be loaded (HTTP %(code)s)."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:242 saebooks_web/routes/inbox.py:350
+#: saebooks_web/routes/inbox.py:614
+#, python-format
+msgid "API error: HTTP %(code)s"
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:401
+#, python-format
+msgid "Minted %(address)s — documents emailed there land in this inbox."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:404
+msgid "Email-in is not available on this edition."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:406
+#, python-format
+msgid "Mint failed: HTTP %(code)s"
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:433
+msgid "Address revoked — it stops routing on the next mail poll."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:437
+msgid "Address not found (or email-in is not available)."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:440
+#, python-format
+msgid "Revoke failed: HTTP %(code)s"
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:465
+msgid "No file selected."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:470
+msgid "The selected file is empty."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:505
+#, python-format
+msgid "“%(filename)s” is already in the inbox — showing the existing document."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:510
+#, python-format
+msgid "Upload failed (HTTP %(code)s)"
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:726
+msgid "Missing document version — please retry."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:743
+msgid "Version conflict — refresh and try again."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:752
+#, python-format
+msgid "Save failed: HTTP %(code)s"
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:760
+msgid "Review saved."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:771
+msgid "This document hasn't been extracted yet — re-run extraction (or wait for the sweep) before publishing. Saving and rejecting still work."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:778
+msgid "Company is required to publish."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:780
+msgid "Contact is required to publish."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:786
+msgid "Payment account is required."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:788
+msgid "Date is required."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:791
+msgid "At least one line is required."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:847
+msgid "This document can no longer be published — its status changed (perhaps in another window)."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:872
+msgid "Publish already in progress — retry in a second."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:883
+#, python-format
+msgid "Published as DRAFT %(kind)s — source document attached."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:894
+#, python-format
+msgid "Publish failed: HTTP %(code)s"
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:941
+msgid "AI extraction is not enabled on this edition — key the document manually."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:945
+msgid "Document is not in a re-extractable state."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:947
+#, python-format
+msgid "Extraction retry failed: HTTP %(code)s"
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:951
+msgid "Extraction re-run complete."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:972
+msgid "Pick a reject reason."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:989
+msgid "Document rejected."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:992
+msgid "Document can no longer be rejected."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:994
+#, python-format
+msgid "Reject failed: HTTP %(code)s"
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:1025
+msgid "No vendor name to create a contact from."
+msgstr ""
+
+#: saebooks_web/routes/inbox.py:1038
+#, python-format
+msgid "Contact create failed (HTTP %(code)s)"
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:58
+#, python-format
+msgid "The reconciliation data could not be loaded (HTTP %(code)s)."
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:219
+#: saebooks_web/routes/reconciliation.py:272
+#: saebooks_web/routes/reconciliation.py:381
+msgid "The accounting engine could not be reached — nothing was changed. Try again in a moment."
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:228
+msgid "Line matched."
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:230
+#, python-format
+msgid "Match failed (HTTP %(code)s)."
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:281
+msgid "Line unmatched."
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:283
+#, python-format
+msgid "Unmatch failed (HTTP %(code)s)."
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:395
+#, python-format
+msgid "Auto-match complete — %(n)s line(s) matched."
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:398
+#: saebooks_web/routes/reconciliation.py:400
+msgid "Auto-match complete."
+msgstr ""
+
+#: saebooks_web/routes/reconciliation.py:402
+#, python-format
+msgid "Auto-match failed (HTTP %(code)s)."
+msgstr ""
+
+#: saebooks_web/routes/reports.py:170 saebooks_web/routes/reports.py:490
+#: saebooks_web/routes/reports.py:560 saebooks_web/routes/reports.py:612
+#: saebooks_web/routes/reports.py:699 saebooks_web/routes/reports.py:791
+#: saebooks_web/routes/reports.py:859 saebooks_web/routes/reports.py:912
+#: saebooks_web/routes/reports.py:969 saebooks_web/routes/reports.py:1020
+#: saebooks_web/routes/reports.py:1104 saebooks_web/routes/reports.py:1196
+#: saebooks_web/routes/reports.py:1251 saebooks_web/routes/reports.py:1305
+#: saebooks_web/routes/reports.py:1381
+#, python-format
+msgid "The report could not be loaded (HTTP %(code)s)."
 msgstr ""
 
 #: templates/_funnel_macros.html:32 templates/_funnel_macros.html:78
@@ -436,7 +650,7 @@ msgstr ""
 msgid "One-off suppliers"
 msgstr ""
 
-#: templates/base.html:569 templates/base.html:968
+#: templates/base.html:569 templates/base.html:973
 msgid "People"
 msgstr ""
 
@@ -500,7 +714,7 @@ msgid "Statement Lines"
 msgstr ""
 
 #: templates/bank_statement_lines/detail.html:127 templates/base.html:635
-#: templates/reconciliation/index.html:3 templates/reconciliation/lines.html:3
+#: templates/reconciliation/index.html:3 templates/reconciliation/lines.html:4
 msgid "Reconciliation"
 msgstr ""
 
@@ -576,63 +790,68 @@ msgstr ""
 msgid "Statements"
 msgstr ""
 
-#: templates/base.html:729
+#: templates/base.html:721 templates/group/overview.html:3
+#: templates/group/overview.html:15
+msgid "Group Overview"
+msgstr ""
+
+#: templates/base.html:734
 msgid "Assets & Setup"
 msgstr ""
 
-#: templates/base.html:734 templates/fixed_assets/list.html:3
+#: templates/base.html:739 templates/fixed_assets/list.html:3
 #: templates/fixed_assets/list.html:15
 msgid "Fixed Assets"
 msgstr ""
 
-#: templates/base.html:737 templates/budgets/list.html:3
+#: templates/base.html:742 templates/budgets/list.html:3
 #: templates/budgets/list.html:15
 msgid "Budgets"
 msgstr ""
 
-#: templates/base.html:740 templates/payments/_form_fields.html:134
+#: templates/base.html:745 templates/payments/_form_fields.html:134
 msgid "Allocations"
 msgstr ""
 
-#: templates/base.html:743 templates/projects/list.html:3
+#: templates/base.html:748 templates/projects/list.html:3
 #: templates/projects/list.html:16
 msgid "Projects"
 msgstr ""
 
-#: templates/base.html:746
+#: templates/base.html:751
 msgid "Prorate Calculator"
 msgstr ""
 
 #: templates/admin/audit_log.html:3 templates/admin/license.html:3
 #: templates/admin/sql_tool.html:3 templates/ato_sbr/index.html:3
 #: templates/ato_sbr/index.html:8 templates/ato_sbr/wizard.html:3
-#: templates/ato_sbr/wizard.html:8 templates/base.html:758
+#: templates/ato_sbr/wizard.html:8 templates/base.html:763
 #: templates/imports/landing.html:3
 msgid "Admin"
 msgstr ""
 
-#: templates/base.html:763
+#: templates/base.html:768
 msgid "Profile"
 msgstr ""
 
-#: templates/_partials/sidebar_cashbook.html:57
-#: templates/bad_debts/list.html:42 templates/base.html:766
+#: templates/_partials/sidebar_cashbook.html:62
+#: templates/bad_debts/list.html:42 templates/base.html:771
 msgid "Settings"
 msgstr ""
 
-#: templates/admin/license.html:3 templates/base.html:769
+#: templates/admin/license.html:3 templates/base.html:774
 msgid "Licence"
 msgstr ""
 
-#: templates/base.html:772
+#: templates/base.html:777
 msgid "Companies"
 msgstr ""
 
-#: templates/base.html:776
+#: templates/base.html:781
 msgid "Ranges"
 msgstr ""
 
-#: templates/base.html:779 templates/imports/bank.html:16
+#: templates/base.html:784 templates/imports/bank.html:16
 #: templates/imports/bank_done.html:8 templates/imports/bank_preview.html:8
 #: templates/imports/coa.html:29 templates/imports/coa_preview.html:8
 #: templates/imports/landing.html:3
@@ -640,104 +859,104 @@ msgid "Imports"
 msgstr ""
 
 #: templates/admin/sql_tool.html:3 templates/admin/sql_tool.html:9
-#: templates/base.html:783
+#: templates/base.html:788
 msgid "SQL Tool"
 msgstr ""
 
-#: templates/base.html:787 templates/email_log/list.html:10
+#: templates/base.html:792 templates/email_log/list.html:10
 msgid "Audit"
 msgstr ""
 
-#: templates/base.html:790
+#: templates/base.html:795
 msgid "License audit"
 msgstr ""
 
-#: templates/base.html:793 templates/branches/edit.html:6
+#: templates/base.html:798 templates/branches/edit.html:6
 #: templates/branches/list.html:2 templates/branches/list.html:7
 #: templates/branches/new.html:6
 msgid "Branches"
 msgstr ""
 
-#: templates/base.html:796
+#: templates/base.html:801
 msgid "Email log"
 msgstr ""
 
-#: templates/base.html:813
+#: templates/base.html:818
 msgid "Coming soon"
 msgstr ""
 
-#: templates/_partials/sidebar_module_nav.html:20 templates/base.html:816
+#: templates/_partials/sidebar_module_nav.html:20 templates/base.html:821
 msgid "Coming soon to your edition"
 msgstr ""
 
-#: templates/_partials/sidebar_module_nav.html:22 templates/base.html:818
+#: templates/_partials/sidebar_module_nav.html:22 templates/base.html:823
 msgid "soon"
 msgstr ""
 
-#: templates/base.html:832
+#: templates/base.html:837
 msgid "live"
 msgstr ""
 
-#: templates/base.html:833
+#: templates/base.html:838
 msgid "ok"
 msgstr ""
 
-#: templates/base.html:846
+#: templates/base.html:851
 msgid "Sign out"
 msgstr ""
 
-#: templates/base.html:865
+#: templates/base.html:870
 msgid "Open menu"
 msgstr ""
 
-#: templates/base.html:878
+#: templates/base.html:883
 msgid "Books"
 msgstr ""
 
-#: templates/base.html:918
+#: templates/base.html:923
 msgid "Language"
 msgstr ""
 
-#: templates/base.html:939
+#: templates/base.html:944
 msgid "Search (⌘K)"
 msgstr ""
 
-#: templates/base.html:946
+#: templates/base.html:951
 msgid "Create"
 msgstr ""
 
-#: templates/base.html:952 templates/overviews/customer_hub.html:11
+#: templates/base.html:957 templates/overviews/customer_hub.html:11
 #: templates/payments/_form_fields.html:43
 #: templates/payments/_form_fields.html:51
 msgid "Customers"
 msgstr ""
 
 #: templates/bad_debts/list.html:78 templates/bad_debts/recovery_prompt.html:31
-#: templates/base.html:953 templates/cashbook/invoices/detail.html:26
+#: templates/base.html:958 templates/cashbook/invoices/detail.html:26
 #: templates/invoices/detail.html:39 templates/payments/_allocation_row.html:5
 #: templates/payments/detail.html:122
 msgid "Invoice"
 msgstr ""
 
-#: templates/base.html:954 templates/cashbook/quotes/detail.html:26
+#: templates/base.html:959 templates/cashbook/quotes/detail.html:26
 #: templates/quotes/detail.html:37
 msgid "Quote"
 msgstr ""
 
-#: templates/base.html:955 templates/overviews/sales.html:61
+#: templates/base.html:960 templates/overviews/sales.html:61
 msgid "Receive payment"
 msgstr ""
 
-#: templates/base.html:956 templates/overviews/sales.html:64
+#: templates/base.html:961 templates/overviews/sales.html:64
 #: templates/payments/detail.html:124
 msgid "Credit note"
 msgstr ""
 
-#: templates/base.html:957 templates/overviews/sales.html:67
+#: templates/base.html:962 templates/overviews/sales.html:67
 msgid "Recurring invoice"
 msgstr ""
 
-#: templates/bad_debts/list.html:79 templates/base.html:958
+#: templates/bad_debts/list.html:79 templates/base.html:963
 #: templates/cashbook/invoices/detail.html:46
 #: templates/cashbook/invoices/edit.html:35
 #: templates/cashbook/invoices/new.html:28
@@ -754,34 +973,34 @@ msgstr ""
 #: templates/quotes/_form_fields.html:28 templates/quotes/_table.html:26
 #: templates/quotes/list.html:59 templates/recurring/hub.html:68
 #: templates/recurring_invoices/_form_fields.html:54
-#: templates/reports/_revenue_by_customer_table.html:55
+#: templates/reports/_revenue_by_customer_table.html:59
 msgid "Customer"
 msgstr ""
 
-#: templates/base.html:961 templates/payments/_form_fields.html:36
+#: templates/base.html:966 templates/payments/_form_fields.html:36
 #: templates/payments/_form_fields.html:58
 msgid "Suppliers"
 msgstr ""
 
-#: templates/base.html:962 templates/bills/detail.html:36
+#: templates/base.html:967 templates/bills/detail.html:36
 #: templates/payments/_allocation_row.html:6 templates/payments/detail.html:123
 msgid "Bill"
 msgstr ""
 
-#: templates/base.html:963
+#: templates/base.html:968
 msgid "Expense (paid)"
 msgstr ""
 
-#: templates/base.html:964 templates/overviews/expenses.html:40
+#: templates/base.html:969 templates/overviews/expenses.html:40
 #: templates/overviews/inventory.html:25
 msgid "Purchase order"
 msgstr ""
 
-#: templates/base.html:965 templates/overviews/expenses.html:43
+#: templates/base.html:970 templates/overviews/expenses.html:43
 msgid "Pay bill"
 msgstr ""
 
-#: templates/base.html:966 templates/bills/_form_fields.html:20
+#: templates/base.html:971 templates/bills/_form_fields.html:20
 #: templates/bills/_table.html:32 templates/bills/list.html:60
 #: templates/contacts/_form_fields.html:37 templates/contacts/detail.html:40
 #: templates/contacts/list.html:51 templates/contacts/list.html:98
@@ -795,64 +1014,64 @@ msgstr ""
 msgid "Supplier"
 msgstr ""
 
-#: templates/base.html:969
+#: templates/base.html:974
 msgid "Employee"
 msgstr ""
 
-#: templates/base.html:970 templates/employees/detail.html:244
+#: templates/base.html:975 templates/employees/detail.html:244
 #: templates/employees/edit.html:263 templates/employees/list.html:40
 #: templates/employees/new.html:276 templates/super_funds/detail.html:3
 msgid "Super fund"
 msgstr ""
 
-#: templates/base.html:971
+#: templates/base.html:976
 msgid "Time entry"
 msgstr ""
 
-#: templates/base.html:972 templates/time_entries/list.html:28
+#: templates/base.html:977 templates/time_entries/list.html:28
 msgid "Weekly grid"
 msgstr ""
 
-#: templates/base.html:973 templates/overviews/expenses.html:46
+#: templates/base.html:978 templates/overviews/expenses.html:46
 msgid "Pay run"
 msgstr ""
 
-#: templates/base.html:976
+#: templates/base.html:981
 msgid "Banking & Books"
 msgstr ""
 
-#: templates/base.html:977
+#: templates/base.html:982
 msgid "Journal entry"
 msgstr ""
 
-#: templates/base.html:978
+#: templates/base.html:983
 msgid "Transfer"
 msgstr ""
 
-#: templates/base.html:979 templates/employees/detail.html:260
+#: templates/base.html:984 templates/employees/detail.html:260
 #: templates/payments/_form_fields.html:118
 #: templates/super_funds/detail.html:74
 msgid "Bank account"
 msgstr ""
 
-#: templates/base.html:980
+#: templates/base.html:985
 msgid "Bank rule"
 msgstr ""
 
-#: templates/accounts/detail.html:100 templates/base.html:981
-#: templates/reconciliation/index.html:46
+#: templates/accounts/detail.html:100 templates/base.html:986
+#: templates/reconciliation/index.html:54
 msgid "Reconcile"
 msgstr ""
 
 #: templates/allocations/detail.html:84 templates/bank_rules/new.html:123
-#: templates/base.html:982 templates/bills/_form_fields.html:161
+#: templates/base.html:987 templates/bills/_form_fields.html:161
 #: templates/bills/_line_row.html:5 templates/budgets/_form_fields.html:42
 #: templates/budgets/_form_fields.html:46 templates/budgets/_table.html:25
 #: templates/budgets/detail.html:88 templates/contacts/detail.html:136
 #: templates/credit_notes/_form_fields.html:169
-#: templates/credit_notes/_line_row.html:18 templates/expenses/new.html:81
-#: templates/inbox/review.html:223 templates/invoices/_form_fields.html:141
-#: templates/invoices/_line_row.html:7
+#: templates/credit_notes/_line_row.html:18 templates/dashboard.html:692
+#: templates/expenses/new.html:81 templates/inbox/review.html:223
+#: templates/invoices/_form_fields.html:141 templates/invoices/_line_row.html:7
 #: templates/journal_entries/_form_fields.html:110
 #: templates/journal_entries/_line_row.html:18
 #: templates/journal_entries/detail.html:205
@@ -863,39 +1082,39 @@ msgstr ""
 #: templates/recurring_invoices/_form_fields.html:232
 #: templates/recurring_invoices/_line_row.html:18
 #: templates/recurring_invoices/detail.html:200
-#: templates/reports/_balance_sheet_table.html:46
-#: templates/reports/_balance_sheet_table.html:85
-#: templates/reports/_balance_sheet_table.html:124
-#: templates/reports/_balance_sheet_table.html:188
-#: templates/reports/_balance_sheet_table.html:228
-#: templates/reports/_balance_sheet_table.html:268
-#: templates/reports/_budget_vs_actual_table.html:30
-#: templates/reports/_profit_loss_table.html:33
-#: templates/reports/_profit_loss_table.html:78
-#: templates/reports/_profit_loss_table.html:154
-#: templates/reports/_profit_loss_table.html:204
-#: templates/reports/close_year.html:57
-#: templates/reports/statement_pack.html:96
-#: templates/reports/statement_pack.html:139
-#: templates/reports/statement_pack.html:233
-#: templates/reports/statement_pack.html:272
-#: templates/reports/statement_pack.html:311
+#: templates/reports/_balance_sheet_table.html:50
+#: templates/reports/_balance_sheet_table.html:89
+#: templates/reports/_balance_sheet_table.html:128
+#: templates/reports/_balance_sheet_table.html:192
+#: templates/reports/_balance_sheet_table.html:232
+#: templates/reports/_balance_sheet_table.html:272
+#: templates/reports/_budget_vs_actual_table.html:34
+#: templates/reports/_profit_loss_table.html:37
+#: templates/reports/_profit_loss_table.html:82
+#: templates/reports/_profit_loss_table.html:158
+#: templates/reports/_profit_loss_table.html:208
+#: templates/reports/close_year.html:61
+#: templates/reports/statement_pack.html:100
+#: templates/reports/statement_pack.html:143
+#: templates/reports/statement_pack.html:237
+#: templates/reports/statement_pack.html:276
+#: templates/reports/statement_pack.html:315
 msgid "Account"
 msgstr ""
 
-#: templates/base.html:985 templates/credit_notes/_form_fields.html:143
+#: templates/base.html:990 templates/credit_notes/_form_fields.html:143
 msgid "Other"
 msgstr ""
 
-#: templates/base.html:986
+#: templates/base.html:991
 msgid "Product / service"
 msgstr ""
 
-#: templates/base.html:987
+#: templates/base.html:992
 msgid "Fixed asset"
 msgstr ""
 
-#: templates/base.html:988 templates/bills/_form_fields.html:166
+#: templates/base.html:993 templates/bills/_form_fields.html:166
 #: templates/bills/_line_row.html:44 templates/invoices/_form_fields.html:146
 #: templates/invoices/_line_row.html:47
 #: templates/purchase_orders/_form_fields.html:141
@@ -905,40 +1124,41 @@ msgstr ""
 msgid "Project"
 msgstr ""
 
-#: templates/base.html:989 templates/reports/_budget_vs_actual_table.html:31
+#: templates/base.html:994 templates/dashboard.html:693
+#: templates/reports/_budget_vs_actual_table.html:35
 #: templates/reports/budget_vs_actual.html:16 templates/reports/index.html:113
 msgid "Budget"
 msgstr ""
 
-#: templates/base.html:990
+#: templates/base.html:995
 msgid "Import…"
 msgstr ""
 
-#: templates/base.html:991
+#: templates/base.html:996
 msgid "AI assistant"
 msgstr ""
 
-#: templates/base.html:1019
+#: templates/base.html:1024
 msgid "Type a command, page, or transaction…"
 msgstr ""
 
-#: templates/base.html:1024
+#: templates/base.html:1029
 msgid "navigate"
 msgstr ""
 
-#: templates/base.html:1025
+#: templates/base.html:1030
 msgid "select"
 msgstr ""
 
-#: templates/base.html:1026
+#: templates/base.html:1031
 msgid "close"
 msgstr ""
 
-#: templates/base.html:1045
+#: templates/base.html:1050
 msgid "Toggle theme (⌘⇧L)"
 msgstr ""
 
-#: templates/base.html:1046
+#: templates/base.html:1051
 msgid "Toggle dark mode"
 msgstr ""
 
@@ -1031,7 +1251,7 @@ msgstr ""
 msgid "Cash flow · this month"
 msgstr ""
 
-#: templates/cashbook/landing.html:234 templates/cashbook/report.html:72
+#: templates/cashbook/landing.html:233 templates/cashbook/report.html:72
 #: templates/dashboard.html:178
 msgid "Net"
 msgstr ""
@@ -1084,9 +1304,9 @@ msgstr ""
 #: templates/overviews/expenses.html:169 templates/overviews/sales.html:200
 #: templates/payments/_form_fields.html:82
 #: templates/payments/_form_fields.html:147 templates/payments/_table.html:25
-#: templates/payments/detail.html:94 templates/reconciliation/lines.html:70
-#: templates/reports/_profit_loss_table.html:157
-#: templates/reports/_profit_loss_table.html:207
+#: templates/payments/detail.html:94 templates/reconciliation/lines.html:76
+#: templates/reports/_profit_loss_table.html:161
+#: templates/reports/_profit_loss_table.html:211
 #: templates/statements/detail.html:210 templates/tax_returns/detail.html:88
 #: templates/time_entries/list.html:117
 msgid "Amount"
@@ -1274,6 +1494,7 @@ msgstr ""
 #: templates/credit_notes/detail.html:131
 #: templates/credit_notes/detail.html:177
 #: templates/credit_notes/detail.html:212 templates/dashboard.html:586
+#: templates/dashboard.html:638 templates/dashboard.html:708
 #: templates/expenses/_table.html:32 templates/expenses/detail.html:65
 #: templates/inbox/_table.html:20 templates/inbox/review.html:451
 #: templates/invoices/_table.html:34 templates/invoices/detail.html:114
@@ -1286,10 +1507,10 @@ msgstr ""
 #: templates/purchase_orders/detail.html:212 templates/quotes/_table.html:27
 #: templates/quotes/detail.html:160 templates/quotes/detail.html:201
 #: templates/quotes/detail.html:226
-#: templates/reports/_aged_payables_table.html:32
-#: templates/reports/_aged_payables_table.html:48
-#: templates/reports/_aged_receivables_table.html:33
-#: templates/reports/_revenue_by_customer_table.html:74
+#: templates/reports/_aged_payables_table.html:36
+#: templates/reports/_aged_payables_table.html:52
+#: templates/reports/_aged_receivables_table.html:37
+#: templates/reports/_revenue_by_customer_table.html:78
 msgid "Total"
 msgstr ""
 
@@ -1297,44 +1518,115 @@ msgstr ""
 msgid "No bills this month yet."
 msgstr ""
 
+#: templates/dashboard.html:609 templates/dashboard.html:615
+msgid "Aged AR vs AP"
+msgstr ""
+
+#: templates/dashboard.html:616 templates/dashboard.html:657
+#: templates/dashboard.html:686
+msgid "Full report →"
+msgstr ""
+
+#: templates/dashboard.html:622
+msgid "Bucket"
+msgstr ""
+
+#: templates/dashboard.html:623
+msgid "Receivable"
+msgstr ""
+
 #: templates/dashboard.html:624
+msgid "Payable"
+msgstr ""
+
+#: templates/dashboard.html:645
+msgid "No aged balances to show."
+msgstr ""
+
+#: templates/dashboard.html:650 templates/dashboard.html:656
+msgid "Profit · this month"
+msgstr ""
+
+#: templates/dashboard.html:661 templates/overviews/inventory.html:73
+#: templates/reports/index.html:131
+#: templates/reports/revenue_by_customer.html:16
+msgid "Revenue"
+msgstr ""
+
+#: templates/_partials/sidebar_cashbook.html:36 templates/accounts/list.html:45
+#: templates/dashboard.html:665 templates/expenses/list.html:3
+#: templates/expenses/list.html:15 templates/journal_entries/list.html:105
+#: templates/reports/_profit_loss_table.html:77
+#: templates/reports/_profit_loss_table.html:203
+#: templates/reports/statement_pack.html:138
+msgid "Expenses"
+msgstr ""
+
+#: templates/dashboard.html:669
+msgid "Net profit"
+msgstr ""
+
+#: templates/dashboard.html:672
+#, python-format
+msgid "%(pct)s%% margin"
+msgstr ""
+
+#: templates/dashboard.html:679 templates/dashboard.html:685
+msgid "Budget vs actual · this month"
+msgstr ""
+
+#: templates/dashboard.html:694
+#: templates/reports/_budget_vs_actual_table.html:36
+msgid "Actual"
+msgstr ""
+
+#: templates/dashboard.html:695
+#: templates/reports/_budget_vs_actual_table.html:37
+msgid "Variance"
+msgstr ""
+
+#: templates/dashboard.html:716
+msgid "No budget set for this month — create one under Budgets."
+msgstr ""
+
+#: templates/dashboard.html:738
 msgid "Hello"
 msgstr ""
 
-#: templates/dashboard.html:625
+#: templates/dashboard.html:739
 msgid "Good morning"
 msgstr ""
 
-#: templates/dashboard.html:626
+#: templates/dashboard.html:740
 msgid "Good afternoon"
 msgstr ""
 
-#: templates/dashboard.html:627
+#: templates/dashboard.html:741
 msgid "Good evening"
 msgstr ""
 
-#: templates/dashboard.html:910 templates/dashboard.html:919
+#: templates/dashboard.html:1024 templates/dashboard.html:1033
 msgid "Add widget"
 msgstr ""
 
-#: templates/dashboard.html:912
+#: templates/dashboard.html:1026
 msgid "Drag here to hide"
 msgstr ""
 
-#: templates/dashboard.html:913
+#: templates/dashboard.html:1027
 msgid "Reset layout to defaults"
 msgstr ""
 
-#: templates/dashboard.html:914 templates/employees/list.html:56
+#: templates/dashboard.html:1028 templates/employees/list.html:56
 #: templates/time_entries/list.html:98
 msgid "Reset"
 msgstr ""
 
-#: templates/dashboard.html:920
+#: templates/dashboard.html:1034
 msgid "Hidden widgets you can return to the dashboard:"
 msgstr ""
 
-#: templates/dashboard.html:923 templates/purchase_orders/_table.html:80
+#: templates/dashboard.html:1037 templates/purchase_orders/_table.html:80
 #: templates/purchase_orders/detail.html:93
 msgid "Close"
 msgstr ""
@@ -1419,11 +1711,11 @@ msgstr ""
 #: templates/items/_form_fields.html:76 templates/items/_table.html:27
 #: templates/items/list.html:39 templates/parties/contacts_bucket.html:58
 #: templates/payments/_form_fields.html:145 templates/payments/detail.html:112
-#: templates/reports/_fx_revaluation_table.html:36
-#: templates/reports/_profit_loss_table.html:156
-#: templates/reports/_profit_loss_table.html:206
-#: templates/reports/_trial_balance_table.html:48
-#: templates/reports/_trial_balance_table.html:88
+#: templates/reports/_fx_revaluation_table.html:40
+#: templates/reports/_profit_loss_table.html:160
+#: templates/reports/_profit_loss_table.html:210
+#: templates/reports/_trial_balance_table.html:52
+#: templates/reports/_trial_balance_table.html:92
 #: templates/statements/detail.html:207 templates/super_funds/detail.html:41
 #: templates/super_funds/list.html:42
 msgid "Type"
@@ -1444,10 +1736,10 @@ msgstr ""
 #: templates/bills/new.html:26 templates/branches/edit.html:36
 #: templates/branches/new.html:40 templates/budgets/edit.html:70
 #: templates/budgets/edit.html:77 templates/budgets/new.html:33
-#: templates/cashbook/entry_edit.html:118
-#: templates/cashbook/invoices/edit.html:103
-#: templates/cashbook/invoices/new.html:96
-#: templates/cashbook/quotes/edit.html:99 templates/cashbook/quotes/new.html:89
+#: templates/cashbook/entry_edit.html:117
+#: templates/cashbook/invoices/edit.html:102
+#: templates/cashbook/invoices/new.html:95
+#: templates/cashbook/quotes/edit.html:98 templates/cashbook/quotes/new.html:88
 #: templates/cashbook/upgrade_confirm.html:49
 #: templates/contacts/cleanup.html:79 templates/contacts/edit.html:51
 #: templates/contacts/edit.html:53 templates/contacts/new.html:23
@@ -1521,7 +1813,7 @@ msgstr ""
 #: templates/bank_statement_lines/detail.html:50 templates/bills/_table.html:30
 #: templates/cashbook/entry_detail.html:43
 #: templates/cashbook/entry_edit.html:58 templates/cashbook/landing.html:65
-#: templates/cashbook/quotes/edit.html:83 templates/cashbook/quotes/new.html:73
+#: templates/cashbook/quotes/edit.html:82 templates/cashbook/quotes/new.html:72
 #: templates/contacts/detail.html:255 templates/credit_notes/_table.html:26
 #: templates/expenses/_table.html:29 templates/expenses/new.html:24
 #: templates/inbox/_table.html:19 templates/inbox/review.html:170
@@ -1529,7 +1821,7 @@ msgstr ""
 #: templates/journal_entries/_table.html:55
 #: templates/overviews/expenses.html:168 templates/overviews/sales.html:199
 #: templates/payments/_table.html:21 templates/payments/detail.html:90
-#: templates/quotes/_table.html:24 templates/reconciliation/lines.html:67
+#: templates/quotes/_table.html:24 templates/reconciliation/lines.html:73
 #: templates/reconciliation/suggest.html:41
 #: templates/statements/detail.html:206 templates/statements/detail.html:441
 #: templates/time_entries/edit.html:26 templates/time_entries/list.html:111
@@ -1647,15 +1939,6 @@ msgstr ""
 msgid "Contacts"
 msgstr ""
 
-#: templates/_partials/sidebar_cashbook.html:36 templates/accounts/list.html:45
-#: templates/expenses/list.html:3 templates/expenses/list.html:15
-#: templates/journal_entries/list.html:105
-#: templates/reports/_profit_loss_table.html:73
-#: templates/reports/_profit_loss_table.html:199
-#: templates/reports/statement_pack.html:134
-msgid "Expenses"
-msgstr ""
-
 #: templates/_partials/sidebar_cashbook.html:40
 msgid "People & payroll"
 msgstr ""
@@ -1672,21 +1955,21 @@ msgstr ""
 msgid "Cashbook report"
 msgstr ""
 
-#: templates/_partials/sidebar_cashbook.html:50
+#: templates/_partials/sidebar_cashbook.html:54
 #: templates/reports/bas_summary.html:16 templates/reports/index.html:86
 msgid "BAS"
 msgstr ""
 
-#: templates/_partials/sidebar_cashbook.html:51
+#: templates/_partials/sidebar_cashbook.html:56
 msgid "Profit & loss"
 msgstr ""
 
-#: templates/_partials/sidebar_cashbook.html:61 templates/cashbook/about.html:3
+#: templates/_partials/sidebar_cashbook.html:66 templates/cashbook/about.html:3
 #: templates/cashbook/about.html:20
 msgid "About Cashbook"
 msgstr ""
 
-#: templates/_partials/sidebar_cashbook.html:65
+#: templates/_partials/sidebar_cashbook.html:70
 msgid "Upgrade to full"
 msgstr ""
 
@@ -1720,8 +2003,8 @@ msgstr ""
 #: templates/recurring/hub.html:67 templates/recurring/hub.html:118
 #: templates/recurring_invoices/_form_fields.html:34
 #: templates/recurring_invoices/_table.html:25
-#: templates/reports/_trial_balance_table.html:47
-#: templates/reports/_trial_balance_table.html:87
+#: templates/reports/_trial_balance_table.html:51
+#: templates/reports/_trial_balance_table.html:91
 #: templates/settings/security.html:25 templates/tax_codes/_form_fields.html:47
 #: templates/tax_codes/_table.html:26 templates/tax_codes/detail.html:77
 msgid "Name"
@@ -1746,9 +2029,9 @@ msgstr ""
 #: templates/bank_statement_lines/detail.html:81
 #: templates/bills/_form_fields.html:162 templates/bills/_line_row.html:16
 #: templates/bills/detail.html:122 templates/cashbook/entry_detail.html:52
-#: templates/cashbook/entry_edit.html:97
+#: templates/cashbook/entry_edit.html:96
 #: templates/cashbook/invoices/edit.html:53
-#: templates/cashbook/invoices/new.html:46 templates/cashbook/landing.html:112
+#: templates/cashbook/invoices/new.html:46 templates/cashbook/landing.html:111
 #: templates/credit_notes/_form_fields.html:170
 #: templates/credit_notes/_line_row.html:35
 #: templates/credit_notes/_line_row.html:41
@@ -1768,16 +2051,16 @@ msgstr ""
 #: templates/purchase_orders/detail.html:151
 #: templates/quotes/_form_fields.html:105 templates/quotes/_line_row.html:16
 #: templates/quotes/_line_row.html:18 templates/quotes/detail.html:198
-#: templates/reconciliation/lines.html:68
+#: templates/reconciliation/lines.html:74
 #: templates/reconciliation/suggest.html:43 templates/recurring/hub.html:119
 #: templates/recurring_invoices/_form_fields.html:233
 #: templates/recurring_invoices/_line_row.html:35
 #: templates/recurring_invoices/_line_row.html:41
 #: templates/recurring_invoices/detail.html:199
-#: templates/reports/_bas_payg_table.html:31
-#: templates/reports/_bas_payg_table.html:92
-#: templates/reports/_bas_summary_table.html:33
-#: templates/reports/_depreciation_schedule_table.html:31
+#: templates/reports/_bas_payg_table.html:35
+#: templates/reports/_bas_payg_table.html:96
+#: templates/reports/_bas_summary_table.html:37
+#: templates/reports/_depreciation_schedule_table.html:35
 #: templates/statements/detail.html:209
 #: templates/tax_codes/_form_fields.html:121 templates/tax_codes/detail.html:94
 #: templates/time_entries/detail.html:52 templates/time_entries/edit.html:37
@@ -1901,25 +2184,25 @@ msgstr ""
 #: templates/bank_accounts/detail.html:82 templates/branches/list.html:23
 #: templates/branches/new.html:20 templates/fixed_assets/_table.html:25
 #: templates/overviews/gst.html:158 templates/projects/_table.html:25
-#: templates/projects/detail.html:95 templates/reconciliation/index.html:31
-#: templates/reports/_balance_sheet_table.html:47
-#: templates/reports/_balance_sheet_table.html:86
-#: templates/reports/_balance_sheet_table.html:125
-#: templates/reports/_balance_sheet_table.html:189
-#: templates/reports/_balance_sheet_table.html:229
-#: templates/reports/_balance_sheet_table.html:269
-#: templates/reports/_budget_vs_actual_table.html:29
-#: templates/reports/_profit_loss_table.html:34
-#: templates/reports/_profit_loss_table.html:79
-#: templates/reports/_profit_loss_table.html:155
-#: templates/reports/_profit_loss_table.html:205
-#: templates/reports/_trial_balance_table.html:46
-#: templates/reports/_trial_balance_table.html:86
-#: templates/reports/statement_pack.html:97
-#: templates/reports/statement_pack.html:140
-#: templates/reports/statement_pack.html:234
-#: templates/reports/statement_pack.html:273
-#: templates/reports/statement_pack.html:312
+#: templates/projects/detail.html:95 templates/reconciliation/index.html:39
+#: templates/reports/_balance_sheet_table.html:51
+#: templates/reports/_balance_sheet_table.html:90
+#: templates/reports/_balance_sheet_table.html:129
+#: templates/reports/_balance_sheet_table.html:193
+#: templates/reports/_balance_sheet_table.html:233
+#: templates/reports/_balance_sheet_table.html:273
+#: templates/reports/_budget_vs_actual_table.html:33
+#: templates/reports/_profit_loss_table.html:38
+#: templates/reports/_profit_loss_table.html:83
+#: templates/reports/_profit_loss_table.html:159
+#: templates/reports/_profit_loss_table.html:209
+#: templates/reports/_trial_balance_table.html:50
+#: templates/reports/_trial_balance_table.html:90
+#: templates/reports/statement_pack.html:101
+#: templates/reports/statement_pack.html:144
+#: templates/reports/statement_pack.html:238
+#: templates/reports/statement_pack.html:277
+#: templates/reports/statement_pack.html:316
 #: templates/tax_codes/_form_fields.html:46 templates/tax_codes/_table.html:25
 #: templates/tax_codes/detail.html:73
 msgid "Code"
@@ -1934,11 +2217,11 @@ msgstr ""
 #: templates/bank_accounts/detail.html:174
 #: templates/bank_statement_lines/_table.html:28
 #: templates/bank_statement_lines/detail.html:63
-#: templates/reports/_balance_sheet_table.html:190
-#: templates/reports/_balance_sheet_table.html:230
-#: templates/reports/_balance_sheet_table.html:270
-#: templates/reports/_trial_balance_table.html:51
-#: templates/reports/_trial_balance_table.html:91
+#: templates/reports/_balance_sheet_table.html:194
+#: templates/reports/_balance_sheet_table.html:234
+#: templates/reports/_balance_sheet_table.html:274
+#: templates/reports/_trial_balance_table.html:55
+#: templates/reports/_trial_balance_table.html:95
 msgid "Balance"
 msgstr ""
 
@@ -2131,7 +2414,7 @@ msgstr ""
 #: templates/journal_entries/_form_fields.html:113
 #: templates/journal_entries/_line_row.html:64
 #: templates/journal_entries/detail.html:208
-#: templates/journal_templates/new.html:56 templates/reports/close_year.html:57
+#: templates/journal_templates/new.html:56 templates/reports/close_year.html:61
 msgid "Debit"
 msgstr ""
 
@@ -2139,7 +2422,7 @@ msgstr ""
 #: templates/journal_entries/_form_fields.html:114
 #: templates/journal_entries/_line_row.html:80
 #: templates/journal_entries/detail.html:209
-#: templates/journal_templates/new.html:57 templates/reports/close_year.html:57
+#: templates/journal_templates/new.html:57 templates/reports/close_year.html:61
 msgid "Credit"
 msgstr ""
 
@@ -2283,9 +2566,9 @@ msgstr ""
 
 #: templates/accounts/edit.html:63 templates/allocations/edit.html:114
 #: templates/bank_accounts/edit.html:64 templates/bills/edit.html:49
-#: templates/budgets/edit.html:63 templates/cashbook/entry_edit.html:117
-#: templates/cashbook/invoices/edit.html:102
-#: templates/cashbook/quotes/edit.html:98 templates/contacts/edit.html:49
+#: templates/budgets/edit.html:63 templates/cashbook/entry_edit.html:116
+#: templates/cashbook/invoices/edit.html:101
+#: templates/cashbook/quotes/edit.html:97 templates/contacts/edit.html:49
 #: templates/credit_notes/edit.html:63 templates/employees/edit.html:317
 #: templates/fixed_assets/edit.html:64 templates/invoices/edit.html:55
 #: templates/items/edit.html:63 templates/journal_entries/edit.html:63
@@ -2350,31 +2633,31 @@ msgid "All accounts"
 msgstr ""
 
 #: templates/accounts/list.html:41 templates/journal_entries/list.html:101
-#: templates/reports/_balance_sheet_table.html:41
-#: templates/reports/_balance_sheet_table.html:183
-#: templates/reports/statement_pack.html:228
+#: templates/reports/_balance_sheet_table.html:45
+#: templates/reports/_balance_sheet_table.html:187
+#: templates/reports/statement_pack.html:232
 msgid "Assets"
 msgstr ""
 
 #: templates/accounts/list.html:42 templates/journal_entries/list.html:102
-#: templates/reports/_balance_sheet_table.html:80
-#: templates/reports/_balance_sheet_table.html:223
-#: templates/reports/statement_pack.html:267
+#: templates/reports/_balance_sheet_table.html:84
+#: templates/reports/_balance_sheet_table.html:227
+#: templates/reports/statement_pack.html:271
 msgid "Liabilities"
 msgstr ""
 
 #: templates/accounts/list.html:43 templates/journal_entries/list.html:103
-#: templates/reports/_balance_sheet_table.html:119
-#: templates/reports/_balance_sheet_table.html:263
-#: templates/reports/statement_pack.html:306
+#: templates/reports/_balance_sheet_table.html:123
+#: templates/reports/_balance_sheet_table.html:267
+#: templates/reports/statement_pack.html:310
 msgid "Equity"
 msgstr ""
 
 #: templates/accounts/list.html:44 templates/journal_entries/list.html:104
-#: templates/reports/_profit_loss_table.html:28
-#: templates/reports/_profit_loss_table.html:149
-#: templates/reports/_profit_loss_table.html:167
-#: templates/reports/statement_pack.html:91
+#: templates/reports/_profit_loss_table.html:32
+#: templates/reports/_profit_loss_table.html:153
+#: templates/reports/_profit_loss_table.html:171
+#: templates/reports/statement_pack.html:95
 msgid "Income"
 msgstr ""
 
@@ -2493,7 +2776,7 @@ msgstr ""
 #: templates/projects/list.html:38 templates/purchase_orders/_table.html:27
 #: templates/purchase_orders/list.html:39 templates/quotes/_table.html:28
 #: templates/quotes/detail.html:261 templates/quotes/list.html:45
-#: templates/reconciliation/lines.html:71
+#: templates/reconciliation/lines.html:77
 #: templates/reconciliation/suggest.html:44 templates/recurring/hub.html:71
 #: templates/recurring_invoices/_table.html:30
 #: templates/recurring_invoices/list.html:38
@@ -2675,9 +2958,9 @@ msgid "Target accounts"
 msgstr ""
 
 #: templates/allocations/detail.html:85
-#: templates/reports/_bas_payg_table.html:30
-#: templates/reports/_bas_payg_table.html:91
-#: templates/reports/_bas_summary_table.html:32
+#: templates/reports/_bas_payg_table.html:34
+#: templates/reports/_bas_payg_table.html:95
+#: templates/reports/_bas_summary_table.html:36
 #: templates/tax_returns/detail.html:87
 msgid "Label"
 msgstr ""
@@ -3399,9 +3682,9 @@ msgstr ""
 
 #: templates/bank_accounts/_form_fields.html:97
 #: templates/bank_rules/edit.html:144 templates/bank_rules/new.html:141
-#: templates/cashbook/entry_edit.html:97
+#: templates/cashbook/entry_edit.html:96
 #: templates/cashbook/invoices/edit.html:45
-#: templates/cashbook/invoices/new.html:38 templates/cashbook/landing.html:112
+#: templates/cashbook/invoices/new.html:38 templates/cashbook/landing.html:111
 #: templates/cashbook/quotes/edit.html:48 templates/cashbook/quotes/new.html:38
 #: templates/credit_notes/_form_fields.html:105
 #: templates/credit_notes/_form_fields.html:125
@@ -3791,8 +4074,8 @@ msgstr ""
 #: templates/journal_entries/_form_fields.html:60
 #: templates/journal_entries/detail.html:187
 #: templates/payments/_form_fields.html:107 templates/payments/_table.html:22
-#: templates/payments/detail.html:102 templates/reconciliation/lines.html:69
-#: templates/reports/_fx_revaluation_table.html:37
+#: templates/payments/detail.html:102 templates/reconciliation/lines.html:75
+#: templates/reports/_fx_revaluation_table.html:41
 #: templates/statements/detail.html:208 templates/tax_returns/detail.html:134
 msgid "Reference"
 msgstr ""
@@ -3804,9 +4087,9 @@ msgstr ""
 #: templates/invoices/_table.html:33 templates/payments/_form_fields.html:29
 #: templates/payments/_table.html:24 templates/payments/list.html:52
 #: templates/recurring_invoices/detail.html:146
-#: templates/reports/_aged_payables_table.html:28
-#: templates/reports/_aged_receivables_table.html:29
-#: templates/reports/_fx_revaluation_table.html:38
+#: templates/reports/_aged_payables_table.html:32
+#: templates/reports/_aged_receivables_table.html:33
+#: templates/reports/_fx_revaluation_table.html:42
 #: templates/time_entries/edit.html:51 templates/time_entries/list.html:66
 #: templates/time_entries/list.html:114 templates/time_entries/new.html:51
 msgid "Contact"
@@ -4039,8 +4322,8 @@ msgid "Bill number"
 msgstr ""
 
 #: templates/bills/_form_fields.html:95
-#: templates/cashbook/invoices/edit.html:83
-#: templates/cashbook/invoices/new.html:76
+#: templates/cashbook/invoices/edit.html:82
+#: templates/cashbook/invoices/new.html:75
 #: templates/credit_notes/_form_fields.html:86
 #: templates/credit_notes/detail.html:127
 #: templates/invoices/_form_fields.html:100
@@ -4052,8 +4335,8 @@ msgid "Issue date"
 msgstr ""
 
 #: templates/bills/_form_fields.html:105
-#: templates/cashbook/invoices/edit.html:92
-#: templates/cashbook/invoices/new.html:85
+#: templates/cashbook/invoices/edit.html:91
+#: templates/cashbook/invoices/new.html:84
 #: templates/invoices/_form_fields.html:111
 msgid "Due date"
 msgstr ""
@@ -4064,10 +4347,10 @@ msgid "Supplier reference"
 msgstr ""
 
 #: templates/bills/_form_fields.html:127 templates/companies/new.html:192
-#: templates/contacts/detail.html:124
+#: templates/contacts/detail.html:124 templates/group/overview.html:54
 #: templates/purchase_orders/_form_fields.html:95
 #: templates/quotes/detail.html:184
-#: templates/reports/_fx_revaluation_table.html:39
+#: templates/reports/_fx_revaluation_table.html:43
 msgid "Currency"
 msgstr ""
 
@@ -4898,7 +5181,7 @@ msgstr ""
 #: templates/cashbook/entries_list.html:45
 #: templates/cashbook/entry_detail.html:26
 #: templates/cashbook/entry_edit.html:44 templates/cashbook/landing.html:53
-#: templates/cashbook/landing.html:222 templates/cashbook/report.html:64
+#: templates/cashbook/landing.html:221 templates/cashbook/report.html:64
 #: templates/cashbook/report.html:165
 msgid "Cash in"
 msgstr ""
@@ -4906,14 +5189,14 @@ msgstr ""
 #: templates/cashbook/entries_list.html:46
 #: templates/cashbook/entry_detail.html:26
 #: templates/cashbook/entry_edit.html:51 templates/cashbook/landing.html:58
-#: templates/cashbook/landing.html:228 templates/cashbook/report.html:68
+#: templates/cashbook/landing.html:227 templates/cashbook/report.html:68
 #: templates/cashbook/report.html:167
 msgid "Cash out"
 msgstr ""
 
 #: templates/cashbook/entries_list.html:50
 #: templates/cashbook/entry_detail.html:47
-#: templates/cashbook/entry_edit.html:80 templates/cashbook/landing.html:90
+#: templates/cashbook/entry_edit.html:79 templates/cashbook/landing.html:89
 #: templates/cashbook/report.html:153
 msgid "Category"
 msgstr ""
@@ -4978,15 +5261,15 @@ msgstr ""
 msgid "Modified elsewhere. Latest server version shown — review and resubmit."
 msgstr ""
 
-#: templates/cashbook/entry_edit.html:83 templates/cashbook/landing.html:94
+#: templates/cashbook/entry_edit.html:82 templates/cashbook/landing.html:93
 msgid "— Select category —"
 msgstr ""
 
-#: templates/cashbook/entry_edit.html:111 templates/cashbook/landing.html:129
+#: templates/cashbook/entry_edit.html:110 templates/cashbook/landing.html:128
 msgid "Includes GST"
 msgstr ""
 
-#: templates/cashbook/entry_edit.html:155 templates/cashbook/landing.html:327
+#: templates/cashbook/entry_edit.html:154 templates/cashbook/landing.html:326
 #, python-format
 msgid "— includes $%(amount)s GST"
 msgstr ""
@@ -5003,23 +5286,23 @@ msgstr ""
 msgid "Quick entry"
 msgstr ""
 
-#: templates/cashbook/landing.html:116
+#: templates/cashbook/landing.html:115
 msgid "e.g. Coffee with client"
 msgstr ""
 
-#: templates/cashbook/landing.html:137 templates/cashbook/landing.html:297
+#: templates/cashbook/landing.html:136 templates/cashbook/landing.html:296
 msgid "Add cash in"
 msgstr ""
 
-#: templates/cashbook/landing.html:137 templates/cashbook/landing.html:297
+#: templates/cashbook/landing.html:136 templates/cashbook/landing.html:296
 msgid "Add cash out"
 msgstr ""
 
-#: templates/cashbook/landing.html:147
+#: templates/cashbook/landing.html:146
 msgid "Recent entries"
 msgstr ""
 
-#: templates/cashbook/landing.html:150 templates/overviews/customer_hub.html:64
+#: templates/cashbook/landing.html:149 templates/overviews/customer_hub.html:64
 #: templates/overviews/customer_hub.html:112
 #: templates/overviews/expenses.html:160 templates/overviews/expenses.html:244
 #: templates/overviews/expenses.html:267 templates/overviews/inventory.html:127
@@ -5029,48 +5312,48 @@ msgstr ""
 msgid "all →"
 msgstr ""
 
-#: templates/cashbook/landing.html:179
+#: templates/cashbook/landing.html:178
 msgid "— no entries yet —"
 msgstr ""
 
-#: templates/cashbook/landing.html:180
+#: templates/cashbook/landing.html:179
 msgid "Use the form above to log your first transaction."
 msgstr ""
 
-#: templates/cashbook/landing.html:192 templates/statements/detail.html:88
+#: templates/cashbook/landing.html:191 templates/statements/detail.html:88
 msgid "Dismiss"
 msgstr ""
 
-#: templates/cashbook/landing.html:195
+#: templates/cashbook/landing.html:194
 msgid "When you outgrow Cashbook"
 msgstr ""
 
-#: templates/cashbook/landing.html:198
+#: templates/cashbook/landing.html:197
 msgid "Bills, feeds, BAS — same data."
 msgstr ""
 
-#: templates/cashbook/landing.html:201
+#: templates/cashbook/landing.html:200
 msgid "Bank feeds when you connect your bank"
 msgstr ""
 
-#: templates/cashbook/landing.html:202
+#: templates/cashbook/landing.html:201
 msgid "BAS prefilled and lodged with the ATO"
 msgstr ""
 
-#: templates/cashbook/landing.html:203
+#: templates/cashbook/landing.html:202
 msgid "Bills + due-date tracking"
 msgstr ""
 
-#: templates/cashbook/landing.html:207
+#: templates/cashbook/landing.html:206
 #, python-format
 msgid "See full %(brand)s"
 msgstr ""
 
-#: templates/cashbook/landing.html:218 templates/cashbook/report.html:30
+#: templates/cashbook/landing.html:217 templates/cashbook/report.html:30
 msgid "This month"
 msgstr ""
 
-#: templates/cashbook/landing.html:245 templates/overviews/expenses.html:131
+#: templates/cashbook/landing.html:244 templates/overviews/expenses.html:131
 #: templates/overviews/sales.html:160
 msgid "full report →"
 msgstr ""
@@ -5254,9 +5537,9 @@ msgstr ""
 msgid "Drafts only. Once sent, you'll need to void and re-issue (ATO audit trail)."
 msgstr ""
 
-#: templates/cashbook/invoices/edit.html:78
-#: templates/cashbook/invoices/new.html:71
-#: templates/cashbook/quotes/edit.html:78 templates/cashbook/quotes/new.html:68
+#: templates/cashbook/invoices/edit.html:77
+#: templates/cashbook/invoices/new.html:70
+#: templates/cashbook/quotes/edit.html:77 templates/cashbook/quotes/new.html:67
 msgid "Charging GST (10%)"
 msgstr ""
 
@@ -5291,12 +5574,12 @@ msgstr ""
 msgid "New invoice"
 msgstr ""
 
-#: templates/cashbook/invoices/new.html:95
-#: templates/cashbook/quotes/new.html:88 templates/expenses/new.html:96
+#: templates/cashbook/invoices/new.html:94
+#: templates/cashbook/quotes/new.html:87 templates/expenses/new.html:96
 msgid "Save draft"
 msgstr ""
 
-#: templates/cashbook/invoices/new.html:100
+#: templates/cashbook/invoices/new.html:99
 msgid "Drafts can be edited freely. Once sent, only Void is available (ATO audit trail)."
 msgstr ""
 
@@ -5325,7 +5608,7 @@ msgid "Invoiced"
 msgstr ""
 
 #: templates/cashbook/quotes/detail.html:69
-#: templates/cashbook/quotes/edit.html:89 templates/cashbook/quotes/new.html:79
+#: templates/cashbook/quotes/edit.html:88 templates/cashbook/quotes/new.html:78
 #: templates/quotes/detail.html:156
 msgid "Expires"
 msgstr ""
@@ -5372,7 +5655,7 @@ msgstr ""
 msgid "What for"
 msgstr ""
 
-#: templates/cashbook/quotes/edit.html:95 templates/cashbook/quotes/new.html:85
+#: templates/cashbook/quotes/edit.html:94 templates/cashbook/quotes/new.html:84
 msgid "Total amount including GST if charging it."
 msgstr ""
 
@@ -5852,7 +6135,7 @@ msgid "Post-sale rebate or hold-back received from a manufacturer or supplier. S
 msgstr ""
 
 #: templates/credit_notes/_form_fields.html:45
-#: templates/reports/_profit_loss_table.html:225
+#: templates/reports/_profit_loss_table.html:229
 msgid "Cost of Sales"
 msgstr ""
 
@@ -5914,7 +6197,7 @@ msgid "Select credit note %(number)s"
 msgstr ""
 
 #: templates/credit_notes/_table.html:66
-#: templates/reports/_fx_revaluation_table.html:52
+#: templates/reports/_fx_revaluation_table.html:56
 msgid "INV"
 msgstr ""
 
@@ -6896,10 +7179,10 @@ msgid "Unit"
 msgstr ""
 
 #: templates/expenses/detail.html:81 templates/journal_entries/detail.html:264
-#: templates/reports/_budget_vs_actual_table.html:61
-#: templates/reports/_depreciation_schedule_table.html:68
-#: templates/reports/_trial_balance_table.html:70
-#: templates/reports/_trial_balance_table.html:108
+#: templates/reports/_budget_vs_actual_table.html:65
+#: templates/reports/_depreciation_schedule_table.html:72
+#: templates/reports/_trial_balance_table.html:74
+#: templates/reports/_trial_balance_table.html:112
 msgid "Totals"
 msgstr ""
 
@@ -7000,7 +7283,7 @@ msgstr ""
 
 #: templates/fixed_assets/_form_fields.html:149
 #: templates/fixed_assets/_table.html:27 templates/fixed_assets/detail.html:70
-#: templates/reports/_depreciation_schedule_table.html:33
+#: templates/reports/_depreciation_schedule_table.html:37
 msgid "Cost"
 msgstr ""
 
@@ -7210,7 +7493,7 @@ msgstr ""
 
 #: templates/fixed_assets/detail.html:106
 #: templates/payments/_form_fields.html:93 templates/payments/detail.html:98
-#: templates/reports/_depreciation_schedule_table.html:32
+#: templates/reports/_depreciation_schedule_table.html:36
 #: templates/reports/depreciation_schedule.html:34
 msgid "Method"
 msgstr ""
@@ -7353,6 +7636,74 @@ msgstr ""
 msgid "Save fixed asset"
 msgstr ""
 
+#: templates/group/overview.html:12
+msgid "Enterprise"
+msgstr ""
+
+#: templates/group/overview.html:16
+#, python-format
+msgid "Month to date · %(from)s → %(to)s"
+msgstr ""
+
+#: templates/group/overview.html:36
+msgid "Multi-company management requires a Business or higher edition"
+msgstr ""
+
+#: templates/group/overview.html:37
+msgid "The group overview compares every company in your tenant side by side once multi-company is enabled."
+msgstr ""
+
+#: templates/group/overview.html:41
+msgid "Only one company in this tenant"
+msgstr ""
+
+#: templates/group/overview.html:43
+msgid "The group overview becomes useful once a second company exists."
+msgstr ""
+
+#: templates/group/overview.html:44
+msgid "Add a company"
+msgstr ""
+
+#: templates/group/overview.html:53 templates/inbox/review.html:132
+#: templates/projects/detail.html:139
+msgid "Company"
+msgstr ""
+
+#: templates/group/overview.html:55
+msgid "Revenue · MTD"
+msgstr ""
+
+#: templates/group/overview.html:56
+msgid "Net profit · MTD"
+msgstr ""
+
+#: templates/group/overview.html:57
+msgid "AR outstanding"
+msgstr ""
+
+#: templates/group/overview.html:58
+msgid "AP outstanding"
+msgstr ""
+
+#: templates/group/overview.html:69
+msgid "This company's figures are temporarily unavailable."
+msgstr ""
+
+#: templates/group/overview.html:85
+#, python-format
+msgid "Total · %(currency)s"
+msgstr ""
+
+#: templates/group/overview.html:98
+msgid "Companies report in different currencies — subtotals are shown per currency, not translated."
+msgstr ""
+
+#: templates/group/overview.html:101
+#, python-format
+msgid "%(n)s more company(ies) not shown — the overview fans out to the first %(max)s."
+msgstr ""
+
 #: templates/imports/bank.html:3 templates/imports/bank.html:22
 msgid "Import Bank Statement"
 msgstr ""
@@ -7407,7 +7758,7 @@ msgid "Bank Statement Preview"
 msgstr ""
 
 #: templates/imports/bank_preview.html:12 templates/imports/coa_preview.html:12
-#: templates/reports/close_year.html:48
+#: templates/reports/close_year.html:52
 msgid "Preview"
 msgstr ""
 
@@ -7759,10 +8110,6 @@ msgstr ""
 
 #: templates/inbox/review.html:129
 msgid "Always created as a DRAFT — posting stays a deliberate second step on the record."
-msgstr ""
-
-#: templates/inbox/review.html:132 templates/projects/detail.html:139
-msgid "Company"
 msgstr ""
 
 #: templates/inbox/review.html:134
@@ -8612,11 +8959,11 @@ msgid "AP aging"
 msgstr ""
 
 #: templates/overviews/expenses.html:135 templates/overviews/sales.html:165
-#: templates/reports/_balance_sheet_table.html:48
-#: templates/reports/_balance_sheet_table.html:87
-#: templates/reports/_balance_sheet_table.html:126
-#: templates/reports/_profit_loss_table.html:35
-#: templates/reports/_profit_loss_table.html:80
+#: templates/reports/_balance_sheet_table.html:52
+#: templates/reports/_balance_sheet_table.html:91
+#: templates/reports/_balance_sheet_table.html:130
+#: templates/reports/_profit_loss_table.html:39
+#: templates/reports/_profit_loss_table.html:84
 msgid "Current"
 msgstr ""
 
@@ -8880,11 +9227,6 @@ msgstr ""
 
 #: templates/overviews/inventory.html:70 templates/overviews/inventory.html:101
 msgid "Item"
-msgstr ""
-
-#: templates/overviews/inventory.html:73 templates/reports/index.html:131
-#: templates/reports/revenue_by_customer.html:16
-msgid "Revenue"
 msgstr ""
 
 #: templates/overviews/inventory.html:88
@@ -9898,62 +10240,62 @@ msgstr ""
 msgid "Save quote"
 msgstr ""
 
-#: templates/reconciliation/index.html:16
+#: templates/reconciliation/index.html:17
 msgid "Bank Reconciliation"
 msgstr ""
 
-#: templates/reconciliation/index.html:17
+#: templates/reconciliation/index.html:18
 msgid "Select an account to reconcile"
 msgstr ""
 
-#: templates/reconciliation/index.html:32
+#: templates/reconciliation/index.html:40
 msgid "Account Name"
 msgstr ""
 
-#: templates/reconciliation/index.html:53
+#: templates/reconciliation/index.html:61
 msgid "No reconcilable accounts found. Enable reconciliation on a bank or cash account."
 msgstr ""
 
-#: templates/reconciliation/lines.html:17
+#: templates/reconciliation/lines.html:19
 msgid "Account Reconciliation"
 msgstr ""
 
-#: templates/reconciliation/lines.html:21
+#: templates/reconciliation/lines.html:23
 #, python-format
 msgid "%(n)s unmatched line"
 msgid_plural "%(n)s unmatched lines"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/reconciliation/lines.html:22
+#: templates/reconciliation/lines.html:24
 msgid "Total unmatched:"
 msgstr ""
 
-#: templates/reconciliation/lines.html:28
-msgid "Statement balance"
-msgstr ""
-
-#: templates/reconciliation/lines.html:32
-msgid "Books balance"
-msgstr ""
-
-#: templates/reconciliation/lines.html:36
-msgid "To reconcile"
-msgstr ""
-
-#: templates/reconciliation/lines.html:41
+#: templates/reconciliation/lines.html:29
 msgid "All Accounts"
 msgstr ""
 
-#: templates/reconciliation/lines.html:51
+#: templates/reconciliation/lines.html:35
 msgid "Auto Match All"
 msgstr ""
 
-#: templates/reconciliation/lines.html:95
+#: templates/reconciliation/lines.html:49
+msgid "Statement balance"
+msgstr ""
+
+#: templates/reconciliation/lines.html:53
+msgid "Books balance"
+msgstr ""
+
+#: templates/reconciliation/lines.html:57
+msgid "To reconcile"
+msgstr ""
+
+#: templates/reconciliation/lines.html:100
 msgid "Suggest"
 msgstr ""
 
-#: templates/reconciliation/lines.html:102
+#: templates/reconciliation/lines.html:107
 msgid "No unmatched lines — all bank statement lines are reconciled."
 msgstr ""
 
@@ -10236,571 +10578,563 @@ msgstr ""
 msgid "Save recurring invoice"
 msgstr ""
 
-#: templates/reports/_aged_payables_table.html:16
-#: templates/reports/_aged_receivables_table.html:16
-#: templates/reports/_balance_sheet_table.html:16
-#: templates/reports/_bas_payg_table.html:9
-#: templates/reports/_bas_summary_table.html:16
-#: templates/reports/_budget_vs_actual_table.html:16
-#: templates/reports/_cashflow_table.html:16
-#: templates/reports/_depreciation_schedule_table.html:16
-#: templates/reports/_pl_by_segment_table.html:16
-#: templates/reports/_profit_loss_table.html:16
-#: templates/reports/_revenue_by_customer_table.html:16
-#: templates/reports/_trial_balance_table.html:16
+#: templates/reports/_aged_payables_table.html:20
+#: templates/reports/_aged_receivables_table.html:20
+#: templates/reports/_balance_sheet_table.html:20
+#: templates/reports/_bas_payg_table.html:13
+#: templates/reports/_bas_summary_table.html:20
+#: templates/reports/_budget_vs_actual_table.html:20
+#: templates/reports/_cashflow_table.html:20
+#: templates/reports/_depreciation_schedule_table.html:20
+#: templates/reports/_pl_by_segment_table.html:20
+#: templates/reports/_profit_loss_table.html:20
+#: templates/reports/_revenue_by_customer_table.html:20
+#: templates/reports/_trial_balance_table.html:20
 msgid "Loading..."
 msgstr ""
 
-#: templates/reports/_aged_payables_table.html:57
+#: templates/reports/_aged_payables_table.html:61
 #, python-format
 msgid "— no outstanding payables as at %(date)s —"
 msgstr ""
 
-#: templates/reports/_aged_payables_table.html:65
-#: templates/reports/_aged_receivables_table.html:81
-#: templates/reports/_balance_sheet_table.html:304
-#: templates/reports/_bas_payg_table.html:145
-#: templates/reports/_bas_summary_table.html:134
-#: templates/reports/_budget_vs_actual_table.html:76
-#: templates/reports/_cashflow_table.html:137
-#: templates/reports/_depreciation_schedule_table.html:80
-#: templates/reports/_fx_revaluation_table.html:105
-#: templates/reports/_pl_by_segment_table.html:87
-#: templates/reports/_profit_loss_table.html:271
-#: templates/reports/_revenue_by_customer_table.html:86
-#: templates/reports/_trial_balance_table.html:119
+#: templates/reports/_aged_payables_table.html:69
+#: templates/reports/_aged_receivables_table.html:85
+#: templates/reports/_balance_sheet_table.html:308
+#: templates/reports/_bas_payg_table.html:149
+#: templates/reports/_bas_summary_table.html:138
+#: templates/reports/_budget_vs_actual_table.html:80
+#: templates/reports/_cashflow_table.html:141
+#: templates/reports/_depreciation_schedule_table.html:84
+#: templates/reports/_fx_revaluation_table.html:109
+#: templates/reports/_pl_by_segment_table.html:91
+#: templates/reports/_profit_loss_table.html:275
+#: templates/reports/_revenue_by_customer_table.html:90
+#: templates/reports/_trial_balance_table.html:123
 msgid "— no data —"
 msgstr ""
 
-#: templates/reports/_aged_receivables_table.html:49
+#: templates/reports/_aged_receivables_table.html:53
 msgid "Trade Debtors"
 msgstr ""
 
-#: templates/reports/_aged_receivables_table.html:58
+#: templates/reports/_aged_receivables_table.html:62
 msgid "Retentions Receivable"
 msgstr ""
 
-#: templates/reports/_aged_receivables_table.html:73
+#: templates/reports/_aged_receivables_table.html:77
 #, python-format
 msgid "— no outstanding receivables as at %(date)s —"
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:29
-#: templates/reports/_balance_sheet_table.html:171
-#: templates/reports/statement_pack.html:216
+#: templates/reports/_balance_sheet_table.html:33
+#: templates/reports/_balance_sheet_table.html:175
+#: templates/reports/statement_pack.html:220
 msgid "Balance sheet is balanced."
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:34
-#: templates/reports/_balance_sheet_table.html:176
-#: templates/reports/statement_pack.html:221
+#: templates/reports/_balance_sheet_table.html:38
+#: templates/reports/_balance_sheet_table.html:180
+#: templates/reports/statement_pack.html:225
 #, python-format
 msgid "Balance sheet is NOT balanced — difference: %(diff)s"
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:49
-#: templates/reports/_balance_sheet_table.html:88
-#: templates/reports/_balance_sheet_table.html:127
-#: templates/reports/_profit_loss_table.html:36
-#: templates/reports/_profit_loss_table.html:81
-#: templates/reports/_trial_balance_table.html:74
+#: templates/reports/_balance_sheet_table.html:53
+#: templates/reports/_balance_sheet_table.html:92
+#: templates/reports/_balance_sheet_table.html:131
+#: templates/reports/_profit_loss_table.html:40
+#: templates/reports/_profit_loss_table.html:85
+#: templates/reports/_trial_balance_table.html:78
 #: templates/reports/statement_pack.html:57
-#: templates/reports/statement_pack.html:99
-#: templates/reports/statement_pack.html:142
-#: templates/reports/statement_pack.html:236
-#: templates/reports/statement_pack.html:275
-#: templates/reports/statement_pack.html:314
+#: templates/reports/statement_pack.html:103
+#: templates/reports/statement_pack.html:146
+#: templates/reports/statement_pack.html:240
+#: templates/reports/statement_pack.html:279
+#: templates/reports/statement_pack.html:318
 msgid "Prior year"
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:64
-#: templates/reports/_balance_sheet_table.html:205
-#: templates/reports/statement_pack.html:251
+#: templates/reports/_balance_sheet_table.html:68
+#: templates/reports/_balance_sheet_table.html:209
+#: templates/reports/statement_pack.html:255
 msgid "— no asset accounts —"
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:69
-#: templates/reports/_balance_sheet_table.html:211
-#: templates/reports/statement_pack.html:256
+#: templates/reports/_balance_sheet_table.html:73
+#: templates/reports/_balance_sheet_table.html:215
+#: templates/reports/statement_pack.html:260
 msgid "Total Assets"
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:103
-#: templates/reports/_balance_sheet_table.html:245
-#: templates/reports/statement_pack.html:290
+#: templates/reports/_balance_sheet_table.html:107
+#: templates/reports/_balance_sheet_table.html:249
+#: templates/reports/statement_pack.html:294
 msgid "— no liability accounts —"
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:108
-#: templates/reports/_balance_sheet_table.html:251
-#: templates/reports/statement_pack.html:295
+#: templates/reports/_balance_sheet_table.html:112
+#: templates/reports/_balance_sheet_table.html:255
+#: templates/reports/statement_pack.html:299
 msgid "Total Liabilities"
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:142
-#: templates/reports/_balance_sheet_table.html:285
-#: templates/reports/statement_pack.html:329
+#: templates/reports/_balance_sheet_table.html:146
+#: templates/reports/_balance_sheet_table.html:289
+#: templates/reports/statement_pack.html:333
 msgid "— no equity accounts —"
 msgstr ""
 
-#: templates/reports/_balance_sheet_table.html:147
-#: templates/reports/_balance_sheet_table.html:291
-#: templates/reports/statement_pack.html:334
+#: templates/reports/_balance_sheet_table.html:151
+#: templates/reports/_balance_sheet_table.html:295
+#: templates/reports/statement_pack.html:338
 msgid "Total Equity"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:25
+#: templates/reports/_bas_payg_table.html:29
 msgid "GST — Goods & Services Tax"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:32
-#: templates/reports/_bas_payg_table.html:93
-#: templates/reports/_bas_summary_table.html:34
+#: templates/reports/_bas_payg_table.html:36
+#: templates/reports/_bas_payg_table.html:97
+#: templates/reports/_bas_summary_table.html:38
 msgid "Amount (AUD)"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:38
+#: templates/reports/_bas_payg_table.html:42
 msgid "Total sales (GST-inclusive)"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:43
+#: templates/reports/_bas_payg_table.html:47
 msgid "Export sales"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:48
+#: templates/reports/_bas_payg_table.html:52
 msgid "Other GST-free sales"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:53
+#: templates/reports/_bas_payg_table.html:57
 msgid "Capital acquisitions"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:58
+#: templates/reports/_bas_payg_table.html:62
 msgid "Other (non-capital) acquisitions"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:64
+#: templates/reports/_bas_payg_table.html:68
 msgid "GST on sales"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:69
+#: templates/reports/_bas_payg_table.html:73
 msgid "GST on purchases (input tax credits)"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:73
-#: templates/reports/_bas_summary_table.html:105
+#: templates/reports/_bas_payg_table.html:77
+#: templates/reports/_bas_summary_table.html:109
 msgid "Net GST"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:74
-#: templates/reports/_bas_summary_table.html:106
+#: templates/reports/_bas_payg_table.html:78
+#: templates/reports/_bas_summary_table.html:110
 msgid "1A minus 1B"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:84
+#: templates/reports/_bas_payg_table.html:88
 msgid "PAYG Withholding — from pay-runs"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:86
+#: templates/reports/_bas_payg_table.html:90
 #, python-format
 msgid "%(n)s pay-run in period"
 msgid_plural "%(n)s pay-runs in period"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/reports/_bas_payg_table.html:99
+#: templates/reports/_bas_payg_table.html:103
 msgid "Total salary, wages and other payments (gross)"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:104
+#: templates/reports/_bas_payg_table.html:108
 msgid "Amount withheld from W1 payments (PAYG)"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:111
+#: templates/reports/_bas_payg_table.html:115
 msgid "No pay-runs in this period — W1/W2 are zero."
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:120
+#: templates/reports/_bas_payg_table.html:124
 #, python-format
 msgid "%(label)s is not derived here — it's an income-tax pre-payment set by the ATO and entered directly on the lodged BAS. Add it to the amount below if your BAS shows one."
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:120
+#: templates/reports/_bas_payg_table.html:124
 msgid "PAYG instalment (5A / T7)"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:128
+#: templates/reports/_bas_payg_table.html:132
 msgid "Amount payable to ATO"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:129
-#: templates/reports/_bas_payg_table.html:137
+#: templates/reports/_bas_payg_table.html:133
+#: templates/reports/_bas_payg_table.html:141
 #, python-format
 msgid "Net GST (%(gst)s) + PAYG withheld (%(payg)s)"
 msgstr ""
 
-#: templates/reports/_bas_payg_table.html:136
+#: templates/reports/_bas_payg_table.html:140
 msgid "Net refund from ATO"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:27
+#: templates/reports/_bas_summary_table.html:31
 msgid "Business Activity Statement Summary"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:42
+#: templates/reports/_bas_summary_table.html:46
 msgid "Total Sales (taxable, GST-exclusive base)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:45
+#: templates/reports/_bas_summary_table.html:49
 #, python-format
 msgid "Split at %(date)s"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:53
+#: templates/reports/_bas_summary_table.html:57
 msgid "G1 pre-reg"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:54
+#: templates/reports/_bas_summary_table.html:58
 msgid "Sales before GST registration (not included in 1A)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:58
+#: templates/reports/_bas_summary_table.html:62
 msgid "G1 post-reg"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:59
+#: templates/reports/_bas_summary_table.html:63
 #, python-format
 msgid "Sales from %(date)s onwards (feeds 1A)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:65
+#: templates/reports/_bas_summary_table.html:69
 msgid "Export Sales (always 0 — not tracked in v1)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:70
+#: templates/reports/_bas_summary_table.html:74
 msgid "Other GST-Free Sales"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:75
+#: templates/reports/_bas_summary_table.html:79
 msgid "Capital Acquisitions (always 0 — not tracked in v1)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:80
+#: templates/reports/_bas_summary_table.html:84
 msgid "Other Acquisitions (taxable expenses, GST-inclusive)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:91
+#: templates/reports/_bas_summary_table.html:95
 msgid "GST on Sales (post-registration G1 x 10%)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:93
+#: templates/reports/_bas_summary_table.html:97
 msgid "GST on Sales (G1 x 10%)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:100
+#: templates/reports/_bas_summary_table.html:104
 msgid "GST on Purchases / Input Tax Credits (G11 x 1/11)"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:117
+#: templates/reports/_bas_summary_table.html:121
 msgid "REMIT to ATO"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:118
+#: templates/reports/_bas_summary_table.html:122
 msgid "Net GST is positive — you owe this amount to the ATO."
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:125
+#: templates/reports/_bas_summary_table.html:129
 msgid "REFUND from ATO"
 msgstr ""
 
-#: templates/reports/_bas_summary_table.html:126
+#: templates/reports/_bas_summary_table.html:130
 msgid "Net GST is negative — the ATO owes you a refund."
 msgstr ""
 
-#: templates/reports/_budget_vs_actual_table.html:32
-msgid "Actual"
-msgstr ""
-
-#: templates/reports/_budget_vs_actual_table.html:33
-msgid "Variance"
-msgstr ""
-
-#: templates/reports/_budget_vs_actual_table.html:34
+#: templates/reports/_budget_vs_actual_table.html:38
 msgid "Variance %"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:32
+#: templates/reports/_cashflow_table.html:36
 msgid "Operating Activities"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:37
-#: templates/reports/_profit_loss_table.html:120
-#: templates/reports/_profit_loss_table.html:257
-#: templates/reports/statement_pack.html:179
+#: templates/reports/_cashflow_table.html:41
+#: templates/reports/_profit_loss_table.html:124
+#: templates/reports/_profit_loss_table.html:261
+#: templates/reports/statement_pack.html:183
 msgid "Net Profit"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:42
+#: templates/reports/_cashflow_table.html:46
 msgid "Adjustment"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:49
+#: templates/reports/_cashflow_table.html:53
 msgid "Total Operating Activities"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:59
+#: templates/reports/_cashflow_table.html:63
 msgid "Investing Activities"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:64
+#: templates/reports/_cashflow_table.html:68
 msgid "Asset Purchases"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:68
+#: templates/reports/_cashflow_table.html:72
 msgid "Asset Disposals"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:74
+#: templates/reports/_cashflow_table.html:78
 msgid "Total Investing Activities"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:84
+#: templates/reports/_cashflow_table.html:88
 msgid "Financing Activities"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:89
+#: templates/reports/_cashflow_table.html:93
 msgid "Loan Proceeds"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:93
+#: templates/reports/_cashflow_table.html:97
 msgid "Loan Repayments"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:99
+#: templates/reports/_cashflow_table.html:103
 msgid "Total Financing Activities"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:109
-#: templates/reports/_cashflow_table.html:114
+#: templates/reports/_cashflow_table.html:113
+#: templates/reports/_cashflow_table.html:118
 msgid "Net Change in Cash"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:124
+#: templates/reports/_cashflow_table.html:128
 msgid "Opening Cash"
 msgstr ""
 
-#: templates/reports/_cashflow_table.html:128
+#: templates/reports/_cashflow_table.html:132
 msgid "Closing Cash"
 msgstr ""
 
-#: templates/reports/_depreciation_schedule_table.html:30
+#: templates/reports/_depreciation_schedule_table.html:34
 msgid "Asset #"
 msgstr ""
 
-#: templates/reports/_depreciation_schedule_table.html:34
+#: templates/reports/_depreciation_schedule_table.html:38
 msgid "Residual Value"
 msgstr ""
 
-#: templates/reports/_depreciation_schedule_table.html:35
+#: templates/reports/_depreciation_schedule_table.html:39
 msgid "Book Value"
 msgstr ""
 
-#: templates/reports/_depreciation_schedule_table.html:36
+#: templates/reports/_depreciation_schedule_table.html:40
 msgid "Next Month Dep."
 msgstr ""
 
-#: templates/reports/_depreciation_schedule_table.html:37
+#: templates/reports/_depreciation_schedule_table.html:41
 msgid "Fully Dep."
 msgstr ""
 
-#: templates/reports/_depreciation_schedule_table.html:53
+#: templates/reports/_depreciation_schedule_table.html:57
 msgid "Fully depreciated"
 msgstr ""
 
-#: templates/reports/_depreciation_schedule_table.html:55
+#: templates/reports/_depreciation_schedule_table.html:59
 msgid "Not fully depreciated"
 msgstr ""
 
-#: templates/reports/_depreciation_schedule_table.html:62
+#: templates/reports/_depreciation_schedule_table.html:66
 msgid "— no assets found for this period —"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:16
+#: templates/reports/_fx_revaluation_table.html:20
 #: templates/settings/security.html:40
 msgid "Loading…"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:40
+#: templates/reports/_fx_revaluation_table.html:44
 msgid "Original Amount"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:41
+#: templates/reports/_fx_revaluation_table.html:45
 msgid "Amount Paid"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:42
+#: templates/reports/_fx_revaluation_table.html:46
 msgid "Outstanding (Foreign)"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:43
+#: templates/reports/_fx_revaluation_table.html:47
 #, python-format
 msgid "Outstanding (%(currency)s)"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:54
+#: templates/reports/_fx_revaluation_table.html:58
 msgid "BILL"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:74
+#: templates/reports/_fx_revaluation_table.html:78
 msgid "— no foreign-currency documents found for this date —"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:81
+#: templates/reports/_fx_revaluation_table.html:85
 #, python-format
 msgid "Total Revaluation Gain / Loss (%(currency)s)"
 msgstr ""
 
-#: templates/reports/_fx_revaluation_table.html:97
+#: templates/reports/_fx_revaluation_table.html:101
 #, python-format
 msgid "%(n)s document with foreign currency exposure as at %(date)s"
 msgid_plural "%(n)s documents with foreign currency exposure as at %(date)s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/reports/_pl_by_segment_table.html:31
+#: templates/reports/_pl_by_segment_table.html:35
 msgid "Segment"
 msgstr ""
 
-#: templates/reports/_pl_by_segment_table.html:33
-#: templates/reports/_pl_by_segment_table.html:35
+#: templates/reports/_pl_by_segment_table.html:37
+#: templates/reports/_pl_by_segment_table.html:39
 msgid "Net Profit:"
 msgstr ""
 
-#: templates/reports/_pl_by_segment_table.html:57
+#: templates/reports/_pl_by_segment_table.html:61
 #, python-format
 msgid "Total %(account_type)s"
 msgstr ""
 
-#: templates/reports/_pl_by_segment_table.html:68
-#: templates/reports/_pl_by_segment_table.html:73
+#: templates/reports/_pl_by_segment_table.html:72
+#: templates/reports/_pl_by_segment_table.html:77
 #, python-format
 msgid "Net Profit — %(segment)s"
 msgstr ""
 
-#: templates/reports/_pl_by_segment_table.html:83
+#: templates/reports/_pl_by_segment_table.html:87
 msgid "— no segments found for the selected period —"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:52
-#: templates/reports/_profit_loss_table.html:181
-#: templates/reports/statement_pack.html:114
+#: templates/reports/_profit_loss_table.html:56
+#: templates/reports/_profit_loss_table.html:185
+#: templates/reports/statement_pack.html:118
 msgid "— no income for this period —"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:58
-#: templates/reports/_profit_loss_table.html:187
-#: templates/reports/statement_pack.html:119
+#: templates/reports/_profit_loss_table.html:62
+#: templates/reports/_profit_loss_table.html:191
+#: templates/reports/statement_pack.html:123
 msgid "Total Income"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:97
-#: templates/reports/_profit_loss_table.html:239
-#: templates/reports/statement_pack.html:157
+#: templates/reports/_profit_loss_table.html:101
+#: templates/reports/_profit_loss_table.html:243
+#: templates/reports/statement_pack.html:161
 msgid "— no expenses for this period —"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:103
-#: templates/reports/_profit_loss_table.html:245
-#: templates/reports/statement_pack.html:162
+#: templates/reports/_profit_loss_table.html:107
+#: templates/reports/_profit_loss_table.html:249
+#: templates/reports/statement_pack.html:166
 msgid "Total Expenses"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:123
-#: templates/reports/_profit_loss_table.html:131
-#: templates/reports/statement_pack.html:182
-#: templates/reports/statement_pack.html:190
+#: templates/reports/_profit_loss_table.html:127
+#: templates/reports/_profit_loss_table.html:135
+#: templates/reports/statement_pack.html:186
+#: templates/reports/statement_pack.html:194
 msgid "Prior:"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:128
-#: templates/reports/_profit_loss_table.html:262
-#: templates/reports/statement_pack.html:187
+#: templates/reports/_profit_loss_table.html:132
+#: templates/reports/_profit_loss_table.html:266
+#: templates/reports/statement_pack.html:191
 msgid "Net Loss"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:175
+#: templates/reports/_profit_loss_table.html:179
 msgid "Other Income"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:217
+#: templates/reports/_profit_loss_table.html:221
 msgid "Expense"
 msgstr ""
 
-#: templates/reports/_profit_loss_table.html:233
+#: templates/reports/_profit_loss_table.html:237
 msgid "Other Expense"
 msgstr ""
 
-#: templates/reports/_revenue_by_customer_table.html:27
+#: templates/reports/_revenue_by_customer_table.html:31
 msgid "a single customer"
 msgstr ""
 
-#: templates/reports/_revenue_by_customer_table.html:38
+#: templates/reports/_revenue_by_customer_table.html:42
 #, python-format
 msgid "Revenue concentration risk — %(pct)s%% from one customer"
 msgstr ""
 
-#: templates/reports/_revenue_by_customer_table.html:41
+#: templates/reports/_revenue_by_customer_table.html:45
 #, python-format
 msgid "accounts for %(pct)s%% of your revenue in this period."
 msgstr ""
 
-#: templates/reports/_revenue_by_customer_table.html:42
+#: templates/reports/_revenue_by_customer_table.html:46
 msgid "The ATO's 80/20 rule means income may be classified as Personal Services Income (PSI) if ≥80 per cent comes from one source. Diversifying your client base or obtaining a Personal Services Business (PSB) determination can affect which deductions you can claim."
 msgstr ""
 
-#: templates/reports/_revenue_by_customer_table.html:44
+#: templates/reports/_revenue_by_customer_table.html:48
 msgid "ATO PSI guide →"
 msgstr ""
 
-#: templates/reports/_revenue_by_customer_table.html:56
+#: templates/reports/_revenue_by_customer_table.html:60
 msgid "Revenue (ex-GST)"
 msgstr ""
 
-#: templates/reports/_revenue_by_customer_table.html:57
+#: templates/reports/_revenue_by_customer_table.html:61
 msgid "Share of total (%)"
 msgstr ""
 
-#: templates/reports/_revenue_by_customer_table.html:82
+#: templates/reports/_revenue_by_customer_table.html:86
 msgid "— no invoiced revenue found for the selected period —"
 msgstr ""
 
-#: templates/reports/_trial_balance_table.html:29
+#: templates/reports/_trial_balance_table.html:33
 msgid "Balanced"
 msgstr ""
 
-#: templates/reports/_trial_balance_table.html:30
+#: templates/reports/_trial_balance_table.html:34
 msgid "Debits equal credits."
 msgstr ""
 
-#: templates/reports/_trial_balance_table.html:35
+#: templates/reports/_trial_balance_table.html:39
 msgid "UNBALANCED"
 msgstr ""
 
-#: templates/reports/_trial_balance_table.html:36
+#: templates/reports/_trial_balance_table.html:40
 msgid "Debits do not equal credits — check your journals."
 msgstr ""
 
-#: templates/reports/_trial_balance_table.html:49
-#: templates/reports/_trial_balance_table.html:89
+#: templates/reports/_trial_balance_table.html:53
+#: templates/reports/_trial_balance_table.html:93
 msgid "Debits"
 msgstr ""
 
-#: templates/reports/_trial_balance_table.html:50
-#: templates/reports/_trial_balance_table.html:90
+#: templates/reports/_trial_balance_table.html:54
+#: templates/reports/_trial_balance_table.html:94
 msgid "Credits"
 msgstr ""
 
-#: templates/reports/_trial_balance_table.html:52
+#: templates/reports/_trial_balance_table.html:56
 msgid "Prior balance"
 msgstr ""
 
@@ -10829,8 +11163,8 @@ msgstr ""
 #: templates/reports/balance_sheet.html:20
 #: templates/reports/depreciation_schedule.html:20
 #: templates/reports/fx_revaluation.html:20
-#: templates/reports/statement_pack.html:205
-#: templates/reports/statement_pack.html:352
+#: templates/reports/statement_pack.html:209
+#: templates/reports/statement_pack.html:356
 #, python-format
 msgid "As at %(date)s"
 msgstr ""
@@ -10952,36 +11286,36 @@ msgstr ""
 msgid "Zeros every income, expense and cost-of-sales account into retained earnings through the chosen date, then locks the period so no back-dated entry lands in a closed year. Admin only."
 msgstr ""
 
-#: templates/reports/close_year.html:37
+#: templates/reports/close_year.html:41
 msgid "Through"
 msgstr ""
 
-#: templates/reports/close_year.html:41
+#: templates/reports/close_year.html:45
 msgid "Retained earnings"
 msgstr ""
 
-#: templates/reports/close_year.html:54
+#: templates/reports/close_year.html:58
 msgid "Net profit to close:"
 msgstr ""
 
-#: templates/reports/close_year.html:72
+#: templates/reports/close_year.html:76
 #, python-format
 msgid "Post the close-year journal and lock the period through %(through)s? This is hard to undo."
 msgstr ""
 
-#: templates/reports/close_year.html:78
+#: templates/reports/close_year.html:82
 msgid "Override reason (only if the close date is already locked)"
 msgstr ""
 
-#: templates/reports/close_year.html:79
+#: templates/reports/close_year.html:83
 msgid "e.g. re-close after adjustment"
 msgstr ""
 
-#: templates/reports/close_year.html:81
+#: templates/reports/close_year.html:85
 msgid "Post close-year journal"
 msgstr ""
 
-#: templates/reports/close_year.html:85
+#: templates/reports/close_year.html:89
 #, python-format
 msgid "Nothing to close through %(through)s — every P&L account is already zero."
 msgstr ""
@@ -11051,7 +11385,7 @@ msgstr ""
 msgid "Ledger"
 msgstr ""
 
-#: templates/reports/index.html:54 templates/reports/statement_pack.html:351
+#: templates/reports/index.html:54 templates/reports/statement_pack.html:355
 #: templates/reports/trial_balance.html:3
 #: templates/reports/trial_balance.html:19
 msgid "Trial Balance"
@@ -11202,69 +11536,69 @@ msgstr ""
 msgid "Run"
 msgstr ""
 
-#: templates/reports/statement_pack.html:72
+#: templates/reports/statement_pack.html:76
 msgid "Special Purpose Financial Statements"
 msgstr ""
 
-#: templates/reports/statement_pack.html:73
+#: templates/reports/statement_pack.html:77
 #, python-format
 msgid "For the year ended %(date)s"
 msgstr ""
 
-#: templates/reports/statement_pack.html:74
+#: templates/reports/statement_pack.html:78
 #, python-format
 msgid "Prepared %(date)s"
 msgstr ""
 
-#: templates/reports/statement_pack.html:74
+#: templates/reports/statement_pack.html:78
 msgid "Draft — not certified"
 msgstr ""
 
-#: templates/reports/statement_pack.html:79
+#: templates/reports/statement_pack.html:83
 msgid "Statement of Profit or Loss"
 msgstr ""
 
-#: templates/reports/statement_pack.html:80
+#: templates/reports/statement_pack.html:84
 #, python-format
 msgid "For the period %(from)s → %(to)s"
 msgstr ""
 
-#: templates/reports/statement_pack.html:204
+#: templates/reports/statement_pack.html:208
 msgid "Statement of Financial Position"
 msgstr ""
 
-#: templates/reports/statement_pack.html:205
+#: templates/reports/statement_pack.html:209
 #, python-format
 msgid "(Prior year: %(date)s)"
 msgstr ""
 
-#: templates/reports/statement_pack.html:358
+#: templates/reports/statement_pack.html:362
 msgid "Trustee's Declaration"
 msgstr ""
 
-#: templates/reports/statement_pack.html:359
+#: templates/reports/statement_pack.html:363
 #, python-format
 msgid "In the opinion of the trustee of %(entity)s:"
 msgstr ""
 
-#: templates/reports/statement_pack.html:359
+#: templates/reports/statement_pack.html:363
 msgid "the entity"
 msgstr ""
 
-#: templates/reports/statement_pack.html:361
+#: templates/reports/statement_pack.html:365
 #, python-format
 msgid "the financial statements present fairly the financial position as at %(date)s and the result for the year then ended; and"
 msgstr ""
 
-#: templates/reports/statement_pack.html:362
+#: templates/reports/statement_pack.html:366
 msgid "there are reasonable grounds to believe the entity will be able to pay its debts as and when they become due and payable."
 msgstr ""
 
-#: templates/reports/statement_pack.html:364
+#: templates/reports/statement_pack.html:368
 msgid "Signed for and on behalf of the trustee:"
 msgstr ""
 
-#: templates/reports/statement_pack.html:365
+#: templates/reports/statement_pack.html:369
 msgid "Date:"
 msgstr ""
 
