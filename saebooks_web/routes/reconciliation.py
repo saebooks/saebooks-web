@@ -20,6 +20,14 @@ API endpoints consumed (B/42):
 - POST /api/v1/reconciliation/auto_match?account_id=X → {"matched": N}
 
 Auth guard: redirect to /login (303) if no session token.
+
+Degrade (M2): GET routes catch ModuleUnavailable and render their page
+shell with the shared degraded panel inline; POST routes flash an
+engine-unreachable message and redirect back — no state was changed.
+
+Pagination on the lines page is web-side (slice of the full unmatched
+list): the engine's /api/v1/reconciliation/unmatched does not take
+page params today (SPEC-NEEDED, flagged to engine lane).
 """
 from __future__ import annotations
 
@@ -30,16 +38,26 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.i18n import gettext as _
+from saebooks_web.module_gate import ModuleUnavailable
 
 router = APIRouter()
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
+_LINES_PAGE_SIZE = 50
+
 
 def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
+
+
+def _api_error(status_code: int) -> str:
+    return _("The reconciliation data could not be loaded (HTTP %(code)s).") % {
+        "code": status_code
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -55,19 +73,23 @@ async def reconciliation_index(request: Request) -> HTMLResponse | RedirectRespo
 
     error: str | None = None
     accounts: list[dict] = []
+    degraded = False
 
-    async with api_client(request) as client:
-        resp = await client.get("/api/v1/reconciliation/accounts")
+    try:
+        async with api_client(request) as client:
+            resp = await client.get("/api/v1/reconciliation/accounts")
 
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
 
-        if resp.is_success:
-            payload = resp.json()
-            accounts = payload if isinstance(payload, list) else payload.get("items", [])
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+            if resp.is_success:
+                payload = resp.json()
+                accounts = payload if isinstance(payload, list) else payload.get("items", [])
+            else:
+                error = _api_error(resp.status_code)
+    except ModuleUnavailable:
+        degraded = True
 
     flash = request.session.pop("flash", None)
 
@@ -77,6 +99,7 @@ async def reconciliation_index(request: Request) -> HTMLResponse | RedirectRespo
         {
             "accounts": accounts,
             "error": error,
+            "degraded": degraded,
             "flash": flash,
         },
     )
@@ -95,6 +118,8 @@ async def reconciliation_index(request: Request) -> HTMLResponse | RedirectRespo
 async def reconciliation_lines(
     request: Request,
     account_id: str,
+    offset: int = 0,
+    limit: int = _LINES_PAGE_SIZE,
 ) -> HTMLResponse | RedirectResponse:
     """Render unmatched BSLs for a single reconcilable account."""
     if not _require_auth(request):
@@ -103,35 +128,46 @@ async def reconciliation_lines(
     error: str | None = None
     lines: list[dict] = []
     account: dict | None = None
+    degraded = False
 
-    async with api_client(request) as client:
-        # Fetch the account list to get the account name for display
-        acct_resp = await client.get("/api/v1/reconciliation/accounts")
-        if acct_resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
-        if acct_resp.is_success:
-            all_accounts = acct_resp.json()
-            if isinstance(all_accounts, list):
-                account = next((a for a in all_accounts if a.get("id") == account_id), None)
+    try:
+        async with api_client(request) as client:
+            # Fetch the account list to get the account name for display
+            acct_resp = await client.get("/api/v1/reconciliation/accounts")
+            if acct_resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if acct_resp.is_success:
+                all_accounts = acct_resp.json()
+                if isinstance(all_accounts, list):
+                    account = next((a for a in all_accounts if a.get("id") == account_id), None)
 
-        # Fetch unmatched lines for this account
-        resp = await client.get(
-            "/api/v1/reconciliation/unmatched",
-            params={"account_id": account_id},
-        )
+            # Fetch unmatched lines for this account
+            resp = await client.get(
+                "/api/v1/reconciliation/unmatched",
+                params={"account_id": account_id},
+            )
 
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
 
-        if resp.is_success:
-            payload = resp.json()
-            lines = payload if isinstance(payload, list) else payload.get("items", [])
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+            if resp.is_success:
+                payload = resp.json()
+                lines = payload if isinstance(payload, list) else payload.get("items", [])
+            else:
+                error = _api_error(resp.status_code)
+    except ModuleUnavailable:
+        degraded = True
 
     flash = request.session.pop("flash", None)
+
+    # Web-side pagination — the engine endpoint returns the full unmatched
+    # list (no page params yet; SPEC-NEEDED, see module docstring).
+    total = len(lines)
+    offset = max(offset, 0)
+    limit = limit if 0 < limit <= 200 else _LINES_PAGE_SIZE
+    page_lines = lines[offset : offset + limit]
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -139,8 +175,12 @@ async def reconciliation_lines(
         {
             "account_id": account_id,
             "account": account,
-            "lines": lines,
+            "lines": page_lines,
+            "all_lines_total": total,
+            "offset": offset,
+            "limit": limit,
             "error": error,
+            "degraded": degraded,
             "flash": flash,
         },
     )
@@ -169,24 +209,31 @@ async def reconciliation_match(request: Request) -> RedirectResponse:
     account_id = str(form_data.get("account_id", "")).strip()
 
     payload = {"bsl_id": bsl_id, "entry_id": entry_id}
+    redirect_url = f"/reconciliation/{account_id}/lines" if account_id else "/reconciliation"
 
-    async with api_client(request) as client:
-        resp = await client.post("/api/v1/reconciliation/match", json=payload)
+    try:
+        async with api_client(request) as client:
+            resp = await client.post("/api/v1/reconciliation/match", json=payload)
+    except ModuleUnavailable:
+        request.session["flash"] = _(
+            "The accounting engine could not be reached — nothing was changed. Try again in a moment."
+        )
+        return RedirectResponse(url=redirect_url, status_code=303)
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.is_success:
-        request.session["flash"] = "Line matched."
+        request.session["flash"] = _("Line matched.")
     else:
+        fallback = _("Match failed (HTTP %(code)s).") % {"code": resp.status_code}
         try:
-            detail = resp.json().get("detail", f"Match failed: HTTP {resp.status_code}")
+            detail = resp.json().get("detail", fallback)
         except Exception:
-            detail = f"Match failed: HTTP {resp.status_code}"
+            detail = fallback
         request.session["flash"] = str(detail)
 
-    redirect_url = f"/reconciliation/{account_id}/lines" if account_id else "/reconciliation"
     return RedirectResponse(url=redirect_url, status_code=303)
 
 
@@ -215,24 +262,31 @@ async def reconciliation_unmatch(
 
     form_data = await request.form()
     account_id = str(form_data.get("account_id", "")).strip()
+    redirect_url = f"/reconciliation/{account_id}/lines" if account_id else "/reconciliation"
 
-    async with api_client(request) as client:
-        resp = await client.post(f"/api/v1/reconciliation/unmatch/{bsl_id}")
+    try:
+        async with api_client(request) as client:
+            resp = await client.post(f"/api/v1/reconciliation/unmatch/{bsl_id}")
+    except ModuleUnavailable:
+        request.session["flash"] = _(
+            "The accounting engine could not be reached — nothing was changed. Try again in a moment."
+        )
+        return RedirectResponse(url=redirect_url, status_code=303)
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.is_success:
-        request.session["flash"] = "Line unmatched."
+        request.session["flash"] = _("Line unmatched.")
     else:
+        fallback = _("Unmatch failed (HTTP %(code)s).") % {"code": resp.status_code}
         try:
-            detail = resp.json().get("detail", f"Unmatch failed: HTTP {resp.status_code}")
+            detail = resp.json().get("detail", fallback)
         except Exception:
-            detail = f"Unmatch failed: HTTP {resp.status_code}"
+            detail = fallback
         request.session["flash"] = str(detail)
 
-    redirect_url = f"/reconciliation/{account_id}/lines" if account_id else "/reconciliation"
     return RedirectResponse(url=redirect_url, status_code=303)
 
 
@@ -258,19 +312,23 @@ async def reconciliation_suggest(
 
     error: str | None = None
     suggestions: list[dict] = []
+    degraded = False
 
-    async with api_client(request) as client:
-        resp = await client.get(f"/api/v1/reconciliation/suggest/{bsl_id}")
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(f"/api/v1/reconciliation/suggest/{bsl_id}")
 
-        if resp.status_code == 401:
-            request.session.clear()
-            return RedirectResponse(url="/login", status_code=303)
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
 
-        if resp.is_success:
-            payload = resp.json()
-            suggestions = payload if isinstance(payload, list) else payload.get("items", [])
-        else:
-            error = f"API error: HTTP {resp.status_code}"
+            if resp.is_success:
+                payload = resp.json()
+                suggestions = payload if isinstance(payload, list) else payload.get("items", [])
+            else:
+                error = _api_error(resp.status_code)
+    except ModuleUnavailable:
+        degraded = True
 
     flash = request.session.pop("flash", None)
 
@@ -282,6 +340,7 @@ async def reconciliation_suggest(
             "account_id": account_id or "",
             "suggestions": suggestions,
             "error": error,
+            "degraded": degraded,
             "flash": flash,
         },
     )
@@ -309,11 +368,19 @@ async def reconciliation_auto_match(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    async with api_client(request) as client:
-        resp = await client.post(
-            "/api/v1/reconciliation/auto_match",
-            params={"account_id": account_id},
+    redirect_url = f"/reconciliation/{account_id}/lines"
+
+    try:
+        async with api_client(request) as client:
+            resp = await client.post(
+                "/api/v1/reconciliation/auto_match",
+                params={"account_id": account_id},
+            )
+    except ModuleUnavailable:
+        request.session["flash"] = _(
+            "The accounting engine could not be reached — nothing was changed. Try again in a moment."
         )
+        return RedirectResponse(url=redirect_url, status_code=303)
 
     if resp.status_code == 401:
         request.session.clear()
@@ -324,12 +391,16 @@ async def reconciliation_auto_match(
             data = resp.json()
             matched = data.get("matched", "")
             if matched != "":
-                request.session["flash"] = f"Auto-match complete — {matched} line(s) matched."
+                request.session["flash"] = _(
+                    "Auto-match complete — %(n)s line(s) matched."
+                ) % {"n": matched}
             else:
-                request.session["flash"] = "Auto-match complete."
+                request.session["flash"] = _("Auto-match complete.")
         except Exception:
-            request.session["flash"] = "Auto-match complete."
+            request.session["flash"] = _("Auto-match complete.")
     else:
-        request.session["flash"] = f"Auto-match failed: HTTP {resp.status_code}"
+        request.session["flash"] = _("Auto-match failed (HTTP %(code)s).") % {
+            "code": resp.status_code
+        }
 
-    return RedirectResponse(url=f"/reconciliation/{account_id}/lines", status_code=303)
+    return RedirectResponse(url=redirect_url, status_code=303)

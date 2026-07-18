@@ -168,7 +168,7 @@ async def test_reconciliation_accounts_api_error(respx_mock: respx.MockRouter) -
         resp = await client.get("/reconciliation")
 
     assert resp.status_code == 200
-    assert "API error" in resp.text
+    assert "could not be loaded" in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -343,7 +343,7 @@ async def test_reconciliation_suggest_api_error(respx_mock: respx.MockRouter) ->
         resp = await client.get(f"/reconciliation/{_BSL_ID}/suggest")
 
     assert resp.status_code == 200
-    assert "API error" in resp.text
+    assert "could not be loaded" in resp.text
 
 
 # ---------------------------------------------------------------------------

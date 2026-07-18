@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_pagination_macros.html" as pg %}
 
 {% block title %}{{ _("Reconciliation") }} — {{ account.name if account else account_id }} — {{ current_brand().name }}{% endblock %}
 
@@ -6,8 +7,9 @@
 
 {# ── Flash banner ── #}
 {% if flash %}
-<div class="rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700 mb-6">
-  {{ flash }}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
 </div>
 {% endif %}
 
@@ -16,26 +18,12 @@
     <h1 class="font-display text-2xl">
       {% if account %}{{ account.name }}{% else %}{{ _("Account Reconciliation") }}{% endif %}
     </h1>
-    {% if not error %}
+    {% if not error and not degraded %}
     <p class="text-sm ink-3 mt-1">
-      {{ ngettext("%(n)s unmatched line", "%(n)s unmatched lines", lines|length) % {"n": lines|length} }}
+      {{ ngettext("%(n)s unmatched line", "%(n)s unmatched lines", all_lines_total) % {"n": all_lines_total} }}
       · <span class="num-display">{{ _("Total unmatched:") }} {{ num( lines | map(attribute='amount') | map('float') | sum, 2 ) }}</span>
     </p>
     {% endif %}
-  </div>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-    <div class="card p-3">
-      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Statement balance") }}</p>
-      <p class="font-display text-xl num">{{ num( (account.balance or 0) | float, 2 ) }}</p>
-    </div>
-    <div class="card p-3">
-      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Books balance") }}</p>
-      <p class="font-display text-xl num">{{ num( (account.ledger_balance or 0) | float, 2 ) }}</p>
-    </div>
-    <div class="card p-3 border-sae">
-      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("To reconcile") }}</p>
-      <p class="font-display text-xl num sae">{{ lines|length }}</p>
-    </div>
   </div>
   <div class="flex items-center gap-3">
     <a href="/reconciliation" class="btn-secondary text-sm">{{ _("All Accounts") }}</a>
@@ -43,52 +31,69 @@
     <form method="POST" action="/reconciliation/{{ account_id }}/auto-match">
     {{ csrf_input(request)|safe }}
 
-      <button
-        type="submit"
-        class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white
-               hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-      >
+      <button type="submit" class="btn-primary text-sm">
         {{ _("Auto Match All") }}
       </button>
     </form>
   </div>
 </div>
 
+{% if degraded %}
+<div class="card">
+{% include "_partials/degraded_panel.html" %}
+</div>
+{% else %}
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-6">
+  <div class="card p-3">
+    <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Statement balance") }}</p>
+    <p class="font-display text-xl num">{{ num( (account.balance or 0) | float, 2 ) }}</p>
+  </div>
+  <div class="card p-3">
+    <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Books balance") }}</p>
+    <p class="font-display text-xl num">{{ num( (account.ledger_balance or 0) | float, 2 ) }}</p>
+  </div>
+  <div class="card p-3 border-sae">
+    <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("To reconcile") }}</p>
+    <p class="font-display text-xl num sae">{{ all_lines_total }}</p>
+  </div>
+</div>
+
 {% if error %}
-<div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
-  {{ error }}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
 </div>
 {% endif %}
 
 <div class="card overflow-hidden">
   <table class="sae-table w-full">
-    <thead class="bg-gray-50">
+    <thead>
       <tr>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Reference") }}</th>
-        <th class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
-        <th class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
-        <th class="px-4 py-3"></th>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("Description") }}</th>
+        <th class="text-left">{{ _("Reference") }}</th>
+        <th class="text-right">{{ _("Amount") }}</th>
+        <th class="text-left">{{ _("Status") }}</th>
+        <th></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-gray-100">
+    <tbody>
       {% if lines %}
         {% for line in lines %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ line.txn_date | default("—") }}</td>
-          <td class="px-4 py-3 font-medium text-gray-900">{{ line.description | default("—") }}</td>
-          <td class="px-4 py-3 text-xs text-gray-500">{{ line.reference | default("—") }}</td>
-          <td class="px-4 py-3 text-right font-mono text-xs
-            {% set amt = line.amount | default("0") | string %}
-            {% if amt.startswith('-') %}text-red-700{% else %}text-green-700{% endif %}
-          ">{{ line.amount | default("—") }}</td>
-          <td class="px-4 py-3">
-            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800">
+        <tr class="hover:bg-[color:var(--paper-2)]">
+          <td class="ink-3 font-mono text-xs">{{ line.txn_date | default("—") }}</td>
+          <td class="font-medium ink-1">{{ line.description | default("—") }}</td>
+          <td class="text-xs ink-3">{{ line.reference | default("—") }}</td>
+          {% set amt = line.amount | default("0") | string %}
+          <td class="text-right font-mono text-xs" style="color:{% if amt.startswith('-') %}var(--neg){% else %}var(--pos){% endif %};">{{ line.amount | default("—") }}</td>
+          <td>
+            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                  style="background:color-mix(in srgb, var(--warn, #d97706) 15%, transparent); color:var(--warn, #d97706);">
               {{ line.status | default("UNMATCHED") }}
             </span>
           </td>
-          <td class="px-4 py-3 text-right">
+          <td class="text-right">
             <a
               href="/reconciliation/{{ line.id }}/suggest?account_id={{ account_id }}"
               class="btn-secondary !py-1 !px-3 text-xs"
@@ -98,7 +103,7 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="6" class="px-4 py-8 text-center text-gray-400">
+          <td colspan="6" class="px-4 py-8 text-center ink-3">
             {{ _("No unmatched lines — all bank statement lines are reconciled.") }}
           </td>
         </tr>
@@ -106,5 +111,9 @@
     </tbody>
   </table>
 </div>
+
+{{ pg.page_numbers('/reconciliation/' ~ account_id ~ '/lines', all_lines_total, limit, offset) }}
+
+{% endif %}{# end degraded #}
 
 {% endblock %}
