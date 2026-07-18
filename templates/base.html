@@ -716,6 +716,11 @@
           <a href="/statements" class="nav-item is-sub {% if path.startswith('/statements') or path.startswith('/statement-templates') %}active{% endif %}">
             <i data-lucide="file-check-2" class="nav-ico"></i>{{ _("Statements") }}
           </a>
+          {% if (request.state.companies or []) | length > 1 %}
+          <a href="/group" class="nav-item is-sub {% if path == '/group' %}active{% endif %}">
+            <i data-lucide="building-2" class="nav-ico"></i>{{ _("Group Overview") }}
+          </a>
+          {% endif %}
         </div>
       </details>
 
