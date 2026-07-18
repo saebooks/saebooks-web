@@ -41,6 +41,7 @@ from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
+from saebooks_web.i18n import gettext as _
 
 logger = logging.getLogger("saebooks_web.routes.inbox")
 
@@ -238,7 +239,7 @@ async def inbox_list(
             docs = payload.get("items", [])
             total = payload.get("total", len(docs))
         else:
-            error = f"API error: HTTP {resp.status_code}"
+            error = _("API error: HTTP %(code)s") % {"code": resp.status_code}
 
         s_resp = await client.get("/api/v1/inbox/stats")
         if s_resp.is_success:
@@ -346,7 +347,9 @@ async def inbox_email_addresses(
         elif resp.status_code == 503:
             return _gate_page(request, 503)
         else:
-            request.session["flash"] = f"API error: HTTP {resp.status_code}"
+            request.session["flash"] = _("API error: HTTP %(code)s") % {
+                "code": resp.status_code
+            }
 
         companies: list[dict] = []
         if available:
@@ -394,11 +397,15 @@ async def inbox_email_address_mint(request: Request) -> RedirectResponse:
     if resp.status_code == 201:
         addr = resp.json()
         shown = addr.get("address") or addr.get("token") or "new address"
-        request.session["flash"] = f"Minted {shown} — documents emailed there land in this inbox."
+        request.session["flash"] = _(
+            "Minted %(address)s — documents emailed there land in this inbox."
+        ) % {"address": shown}
     elif resp.status_code == 404:
-        request.session["flash"] = "Email-in is not available on this edition."
+        request.session["flash"] = _("Email-in is not available on this edition.")
     else:
-        request.session["flash"] = f"Mint failed: HTTP {resp.status_code}"
+        request.session["flash"] = _("Mint failed: HTTP %(code)s") % {
+            "code": resp.status_code
+        }
     return RedirectResponse(url="/inbox/email-addresses", status_code=303)
 
 
@@ -422,11 +429,17 @@ async def inbox_email_address_revoke(
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
     if resp.is_success:
-        request.session["flash"] = "Address revoked — it stops routing on the next mail poll."
+        request.session["flash"] = _(
+            "Address revoked — it stops routing on the next mail poll."
+        )
     elif resp.status_code == 404:
-        request.session["flash"] = "Address not found (or email-in is not available)."
+        request.session["flash"] = _(
+            "Address not found (or email-in is not available)."
+        )
     else:
-        request.session["flash"] = f"Revoke failed: HTTP {resp.status_code}"
+        request.session["flash"] = _("Revoke failed: HTTP %(code)s") % {
+            "code": resp.status_code
+        }
     return RedirectResponse(url="/inbox/email-addresses", status_code=303)
 
 
@@ -449,12 +462,12 @@ async def inbox_upload(request: Request) -> HTMLResponse | RedirectResponse:
     form = await request.form()
     file = form.get("file")
     if file is None or isinstance(file, str) or not getattr(file, "filename", None):
-        request.session["flash"] = "No file selected."
+        request.session["flash"] = _("No file selected.")
         return RedirectResponse(url="/inbox", status_code=303)
 
     payload = await file.read()
     if not payload:
-        request.session["flash"] = "The selected file is empty."
+        request.session["flash"] = _("The selected file is empty.")
         return RedirectResponse(url="/inbox", status_code=303)
 
     data: dict[str, str] = {}
@@ -488,13 +501,13 @@ async def inbox_upload(request: Request) -> HTMLResponse | RedirectResponse:
     if resp.is_success:
         doc = resp.json()
         if doc.get("duplicate"):
-            request.session["flash"] = (
-                f"“{doc.get('filename', 'document')}” is already in the "
+            request.session["flash"] = _(
+                "“%(filename)s” is already in the "
                 "inbox — showing the existing document."
-            )
+            ) % {"filename": doc.get("filename", "document")}
         return RedirectResponse(url=f"/inbox/{doc['id']}", status_code=303)
 
-    detail = f"Upload failed (HTTP {resp.status_code})"
+    detail = _("Upload failed (HTTP %(code)s)") % {"code": resp.status_code}
     try:
         body_detail = resp.json().get("detail")
         if isinstance(body_detail, str):
@@ -598,7 +611,9 @@ async def inbox_review(
         if resp.status_code == 503:
             return _gate_page(request, 503)
         if not resp.is_success:
-            request.session["flash"] = f"API error: HTTP {resp.status_code}"
+            request.session["flash"] = _("API error: HTTP %(code)s") % {
+                "code": resp.status_code
+            }
             return RedirectResponse(url="/inbox", status_code=303)
         doc = resp.json()
         return await _render_review(request, client, doc)
@@ -708,7 +723,7 @@ async def inbox_review_submit(
     try:
         version = int(form.get("version", ""))
     except ValueError:
-        request.session["flash"] = "Missing document version — please retry."
+        request.session["flash"] = _("Missing document version — please retry.")
         return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
 
     override = _override_from_form(form)
@@ -724,7 +739,9 @@ async def inbox_review_submit(
         if patch_resp.status_code == 409:
             fresh = await client.get(f"/api/v1/inbox/documents/{document_id}")
             if not fresh.is_success:
-                request.session["flash"] = "Version conflict — refresh and try again."
+                request.session["flash"] = _(
+                    "Version conflict — refresh and try again."
+                )
                 return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
             return await _render_review(
                 request, client, fresh.json(), conflict=True, status_code=409
@@ -732,13 +749,15 @@ async def inbox_review_submit(
         if patch_resp.status_code in (404, 503):
             return _gate_page(request, patch_resp.status_code)
         if not patch_resp.is_success:
-            request.session["flash"] = f"Save failed: HTTP {patch_resp.status_code}"
+            request.session["flash"] = _("Save failed: HTTP %(code)s") % {
+                "code": patch_resp.status_code
+            }
             return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
 
         doc = patch_resp.json()
 
         if action != "publish":
-            request.session["flash"] = "Review saved."
+            request.session["flash"] = _("Review saved.")
             return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
 
         # ── Publish ────────────────────────────────────────────────────
@@ -748,7 +767,7 @@ async def inbox_review_submit(
             # Engine state machine: RECEIVED → PUBLISHED is illegal.
             return await _render_review(
                 request, client, doc,
-                errors={"__all__": (
+                errors={"__all__": _(
                     "This document hasn't been extracted yet — re-run "
                     "extraction (or wait for the sweep) before publishing. "
                     "Saving and rejecting still work."
@@ -756,20 +775,20 @@ async def inbox_review_submit(
                 status_code=409, form_values=form,
             )
         if not company_id:
-            errors["company_id"] = "Company is required to publish."
+            errors["company_id"] = _("Company is required to publish.")
         if not (form.get("contact_id") or "").strip():
-            errors["contact_id"] = "Contact is required to publish."
+            errors["contact_id"] = _("Contact is required to publish.")
         if record_kind == "EXPENSE" and not (
             form.get("payment_account_id") or ""
         ).strip():
             # The engine requires a payment account for EXPENSE only —
             # bills and credit notes don't take one.
-            errors["payment_account_id"] = "Payment account is required."
+            errors["payment_account_id"] = _("Payment account is required.")
         if not (form.get("date") or "").strip():
-            errors["date"] = "Date is required."
+            errors["date"] = _("Date is required.")
         lines = _parse_lines(form)
         if not lines:
-            errors["lines"] = "At least one line is required."
+            errors["lines"] = _("At least one line is required.")
         if errors:
             return await _render_review(
                 request, client, doc, errors=errors, status_code=422,
@@ -824,7 +843,7 @@ async def inbox_review_submit(
             # version conflicts surface on the PATCH above, never here) —
             # e.g. another window already published/rejected the document.
             # Surface the engine's own diagnosis, not a version banner.
-            detail = (
+            detail = _(
                 "This document can no longer be published — its status "
                 "changed (perhaps in another window)."
             )
@@ -849,7 +868,7 @@ async def inbox_review_submit(
             except Exception:
                 code = None
             if code == "request_in_flight":
-                request.session["flash"] = (
+                request.session["flash"] = _(
                     "Publish already in progress — retry in a second."
                 )
                 return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
@@ -860,10 +879,9 @@ async def inbox_review_submit(
             record = body.get("record", {})
             kind = (record.get("kind") or "EXPENSE").upper()
             record_id = record.get("id", "")
-            request.session["flash"] = (
-                f"Published as DRAFT {kind.replace('_', ' ').lower()} — "
-                "source document attached."
-            )
+            request.session["flash"] = _(
+                "Published as DRAFT %(kind)s — source document attached."
+            ) % {"kind": kind.replace("_", " ").lower()}
             detail_url = {
                 "EXPENSE": f"/expenses/{record_id}",
                 "BILL": f"/bills/{record_id}",
@@ -873,7 +891,7 @@ async def inbox_review_submit(
 
         # 422 (e.g. BILL/CREDIT_NOTE before phase 2) and anything else —
         # degrade gracefully: banner on the review page, nothing lost.
-        detail = f"Publish failed: HTTP {pub_resp.status_code}"
+        detail = _("Publish failed: HTTP %(code)s") % {"code": pub_resp.status_code}
         try:
             body_detail = pub_resp.json().get("detail")
             if isinstance(body_detail, str):
@@ -919,16 +937,18 @@ async def inbox_extract_retry(
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
     if resp.status_code == 404:
-        request.session["flash"] = (
+        request.session["flash"] = _(
             "AI extraction is not enabled on this edition — key the "
             "document manually."
         )
     elif resp.status_code == 409:
-        request.session["flash"] = "Document is not in a re-extractable state."
+        request.session["flash"] = _("Document is not in a re-extractable state.")
     elif not resp.is_success:
-        request.session["flash"] = f"Extraction retry failed: HTTP {resp.status_code}"
+        request.session["flash"] = _("Extraction retry failed: HTTP %(code)s") % {
+            "code": resp.status_code
+        }
     else:
-        request.session["flash"] = "Extraction re-run complete."
+        request.session["flash"] = _("Extraction re-run complete.")
     return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
 
 
@@ -949,7 +969,7 @@ async def inbox_reject(
     form = await request.form()
     reason = str(form.get("reason") or "").strip().upper()
     if reason not in _REJECT_REASONS:
-        request.session["flash"] = "Pick a reject reason."
+        request.session["flash"] = _("Pick a reject reason.")
         return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
     note = str(form.get("note") or "").strip() or None
 
@@ -966,12 +986,14 @@ async def inbox_reject(
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
     if resp.is_success:
-        request.session["flash"] = "Document rejected."
+        request.session["flash"] = _("Document rejected.")
         return RedirectResponse(url="/inbox", status_code=303)
     if resp.status_code == 409:
-        request.session["flash"] = "Document can no longer be rejected."
+        request.session["flash"] = _("Document can no longer be rejected.")
     else:
-        request.session["flash"] = f"Reject failed: HTTP {resp.status_code}"
+        request.session["flash"] = _("Reject failed: HTTP %(code)s") % {
+            "code": resp.status_code
+        }
     return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
 
 
@@ -1000,7 +1022,7 @@ async def inbox_quick_contact(
 
     async with api_client(request) as client:
         if not name:
-            error = "No vendor name to create a contact from."
+            error = _("No vendor name to create a contact from.")
         else:
             resp = await client.post(
                 "/api/v1/contacts",
@@ -1013,7 +1035,9 @@ async def inbox_quick_contact(
             if resp.status_code == 201:
                 selected_id = resp.json().get("id", "")
             else:
-                detail = f"Contact create failed (HTTP {resp.status_code})"
+                detail = _("Contact create failed (HTTP %(code)s)") % {
+                    "code": resp.status_code
+                }
                 try:
                     body_detail = resp.json().get("detail")
                     if isinstance(body_detail, str):

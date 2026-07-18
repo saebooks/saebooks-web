@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Group Overview") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="nav-section-label">{{ _("Enterprise") }}</span>
+        <span class="reg-mark"></span>
+      </div>
+      <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("Group Overview") }}</h1>
+      <p class="text-xs ink-3 font-mono mt-2">{{ _("Month to date · %(from)s → %(to)s") % {"from": month_start, "to": today} }}</p>
+    </div>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+
+{% if degraded %}
+<div class="card">
+{% include "_partials/degraded_panel.html" %}
+</div>
+{% elif error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% elif not multi_company_enabled %}
+<div class="card p-8 text-center">
+  <div class="mb-3" aria-hidden="true" style="color:var(--sae);">
+    <i data-lucide="building-2" class="w-10 h-10 inline-block"></i>
+  </div>
+  <p class="text-sm font-medium mb-1">{{ _("Multi-company management requires a Business or higher edition") }}</p>
+  <p class="text-xs ink-3 max-w-md mx-auto">{{ _("The group overview compares every company in your tenant side by side once multi-company is enabled.") }}</p>
+</div>
+{% elif companies_count < 2 %}
+<div class="card p-8 text-center">
+  <p class="text-sm font-medium mb-1">{{ _("Only one company in this tenant") }}</p>
+  <p class="text-xs ink-3 max-w-md mx-auto">
+    {{ _("The group overview becomes useful once a second company exists.") }}
+    <a href="/companies/new" class="sae hover:underline">{{ _("Add a company") }}</a>
+  </p>
+</div>
+{% else %}
+
+<div class="card overflow-x-auto">
+  <table class="sae-table w-full" id="group-overview-table">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Company") }}</th>
+        <th class="text-left">{{ _("Currency") }}</th>
+        <th class="text-right">{{ _("Revenue · MTD") }}</th>
+        <th class="text-right">{{ _("Net profit · MTD") }}</th>
+        <th class="text-right">{{ _("AR outstanding") }}</th>
+        <th class="text-right">{{ _("AP outstanding") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr class="hover:bg-[color:var(--paper-2)]" data-company-row="{{ r.id }}">
+        <td class="ink-1 font-medium">{{ r.name }}</td>
+        {% if r.degraded %}
+        <td colspan="5" class="ink-3 text-xs">
+          <span class="inline-flex items-center gap-1.5" data-row-degraded>
+            <i data-lucide="plug-zap" class="w-3.5 h-3.5" style="color:var(--warn, #d97706);"></i>
+            {{ _("This company's figures are temporarily unavailable.") }}
+          </span>
+        </td>
+        {% else %}
+        <td class="ink-3 font-mono text-xs">{{ r.currency }}</td>
+        <td class="text-right num">{{ money(r.revenue_mtd|float, decimals=0) }}</td>
+        <td class="text-right num" style="color:{% if r.net_profit_mtd|float < 0 %}var(--neg){% else %}var(--pos){% endif %};">{{ money(r.net_profit_mtd|float, decimals=0) }}</td>
+        <td class="text-right num">{{ money(r.ar_total|float, decimals=0) }}</td>
+        <td class="text-right num">{{ money(r.ap_total|float, decimals=0) }}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      {% for currency, t in subtotals.items() %}
+      <tr class="border-t hairline">
+        <td class="py-2 font-medium ink-1">{{ _("Total · %(currency)s") % {"currency": currency} }}</td>
+        <td class="ink-3 font-mono text-xs">{{ currency }}</td>
+        <td class="text-right num-display">{{ money(t.revenue_mtd|float, decimals=0) }}</td>
+        <td class="text-right num-display" style="color:{% if t.net_profit_mtd|float < 0 %}var(--neg){% else %}var(--pos){% endif %};">{{ money(t.net_profit_mtd|float, decimals=0) }}</td>
+        <td class="text-right num-display">{{ money(t.ar_total|float, decimals=0) }}</td>
+        <td class="text-right num-display">{{ money(t.ap_total|float, decimals=0) }}</td>
+      </tr>
+      {% endfor %}
+    </tfoot>
+  </table>
+</div>
+
+{% if subtotals|length > 1 %}
+<p class="text-xs ink-3 mt-3">{{ _("Companies report in different currencies — subtotals are shown per currency, not translated.") }}</p>
+{% endif %}
+{% if truncated %}
+<p class="text-xs ink-3 mt-1">{{ _("%(n)s more company(ies) not shown — the overview fans out to the first %(max)s.") % {"n": truncated, "max": rows|length} }}</p>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

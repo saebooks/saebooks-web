@@ -59,6 +59,10 @@
   <button type="submit" class="btn-secondary text-sm">{{ _("Run") }}</button>
 </form>
 
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% else %}
+
 {% if error %}
 <div class="card p-4 mb-5 border-l-2" style="border-color:var(--danger,#c0392b)">
   <p class="text-sm ink-1">{{ error }}</p>
@@ -364,4 +368,6 @@
   <p class="text-sm ink-2 mt-5">{{ _("Signed for and on behalf of the trustee:") }}</p>
   <p class="num ink-2 mt-8">_______________________________&nbsp;&nbsp;&nbsp;{{ _("Date:") }} ____________</p>
 </section>
+
+{% endif %}{# end degraded #}
 {% endblock %}

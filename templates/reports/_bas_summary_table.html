@@ -1,6 +1,10 @@
 {# HTMX partial — BAS summary table. #}
 <div id="report-content">
 
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% else %}
+
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
   <span class="dot" style="background:var(--neg);"></span>
@@ -134,4 +138,5 @@
 <p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
+{% endif %}{# end degraded #}
 </div>

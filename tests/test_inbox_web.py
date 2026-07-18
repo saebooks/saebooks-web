@@ -877,6 +877,7 @@ async def test_manifest_has_inbox_shortcut() -> None:
 # ---------------------------------------------------------------------------
 
 _BILL_ID = "77777777-7777-7777-7777-777777777777"
+_CREDIT_NOTE_ID = "88888888-8888-8888-8888-888888888888"
 
 
 @pytest.mark.anyio
@@ -960,6 +961,46 @@ async def test_inbox_publish_bill_sends_no_payment_account(
     assert resp.headers["location"] == f"/bills/{_BILL_ID}"
     body = _json.loads(publish_route.calls.last.request.content)
     assert body["record_kind"] == "BILL"
+    assert "payment_account_id" not in body
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_publish_credit_note_sends_no_payment_account(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Same as the BILL case — a CREDIT_NOTE publish must pass web
+    validation without a payment account and must not smuggle a
+    meaningless 'Paid from' into the payload."""
+    respx_mock.patch(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc(version=2, status="READY"))
+    )
+    publish_route = respx_mock.post(
+        f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}/publish"
+    ).mock(
+        return_value=Response(
+            201,
+            json={
+                "document": _doc(version=3, status="PUBLISHED",
+                                 published_record_kind="CREDIT_NOTE",
+                                 published_record_id=_CREDIT_NOTE_ID),
+                "record": {"kind": "CREDIT_NOTE", "id": _CREDIT_NOTE_ID},
+            },
+        )
+    )
+
+    async with _client() as client:
+        resp = await client.post(
+            f"/inbox/{_DOC_ID}/review",
+            data=_review_form(
+                action="publish", record_kind="CREDIT_NOTE", payment_account_id=""
+            ),
+        )
+
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/credit-notes/{_CREDIT_NOTE_ID}"
+    body = _json.loads(publish_route.calls.last.request.content)
+    assert body["record_kind"] == "CREDIT_NOTE"
     assert "payment_account_id" not in body
 
 

@@ -15,6 +15,7 @@ from base64 import b64encode as _b64encode
 from datetime import date, timedelta
 
 import pytest
+import httpx
 import respx
 from httpx import ASGITransport, AsyncClient, Response
 from itsdangerous import TimestampSigner as _TimestampSigner
@@ -250,6 +251,21 @@ def _register_mocks(
         respx_mock.get(f"{_API_BASE}/api/v1/modules").mock(
             return_value=Response(200, json={"modules": []})
         )
+        # Enterprise KPI catalogue-widget fetches (aged AR/AP, MTD P&L,
+        # budget vs actual) — quiet defaults so the widgets render empty
+        # rather than degraded in unrelated tests.
+        respx_mock.get(
+            url__regex=rf"^{_API_BASE}/api/v1/reports/aged_receivables(\?.*)?$"
+        ).mock(return_value=Response(200, json={"buckets": [], "contacts": [], "totals": {}}))
+        respx_mock.get(
+            url__regex=rf"^{_API_BASE}/api/v1/reports/aged_payables(\?.*)?$"
+        ).mock(return_value=Response(200, json={"buckets": [], "contacts": [], "totals": {}}))
+        respx_mock.get(
+            url__regex=rf"^{_API_BASE}/api/v1/reports/profit_loss(\?.*)?$"
+        ).mock(return_value=Response(200, json={"income": {}, "expenses": {}, "net_profit": 0}))
+        respx_mock.get(
+            url__regex=rf"^{_API_BASE}/api/v1/reports/budget_vs_actual(\?.*)?$"
+        ).mock(return_value=Response(200, json={"lines": [], "total_budget": 0, "total_actual": 0, "total_variance": 0}))
 
 
 # ---------------------------------------------------------------------------
@@ -632,3 +648,111 @@ async def test_dashboard_psi_banner_hidden_when_set(respx_mock: respx.MockRouter
 
     assert resp.status_code == 200
     assert "PSI status unset" not in resp.text
+
+
+# ---------------------------------------------------------------------------
+# Enterprise KPI catalogue widgets (M2 enterprise views)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_enterprise_kpi_tiles_render(respx_mock: respx.MockRouter) -> None:
+    """Aged AR/AP, MTD P&L and budget-vs-actual widgets render from report data."""
+    _register_mocks(respx_mock)
+    # Override the quiet defaults with real payloads (respx: last registered
+    # for the same pattern wins on re-registration via route replacement).
+    respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/reports/aged_receivables(\?.*)?$"
+    ).mock(
+        return_value=Response(
+            200,
+            json={
+                "as_of_date": "2026-07-18",
+                "buckets": ["Current", "30d", "60d"],
+                "contacts": [],
+                "totals": {"Current": "100.00", "30d": "50.00", "60d": "0", "total": "150.00"},
+            },
+        )
+    )
+    respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/reports/aged_payables(\?.*)?$"
+    ).mock(
+        return_value=Response(
+            200,
+            json={
+                "as_of_date": "2026-07-18",
+                "buckets": ["Current", "30d", "60d"],
+                "contacts": [],
+                "totals": {"Current": "40.00", "30d": "0", "60d": "0", "total": "40.00"},
+            },
+        )
+    )
+    respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/reports/profit_loss(\?.*)?$"
+    ).mock(
+        return_value=Response(
+            200,
+            json={
+                "income": {"INCOME": [{"account_name": "Sales", "amount": "1000.00"}]},
+                "expenses": {"EXPENSE": [{"account_name": "Rent", "amount": "400.00"}]},
+                "net_profit": "600.00",
+            },
+        )
+    )
+    respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/reports/budget_vs_actual(\?.*)?$"
+    ).mock(
+        return_value=Response(
+            200,
+            json={
+                "lines": [
+                    {"account_name": "Rent", "budget": "500.00", "actual": "400.00", "variance": "100.00"},
+                ],
+                "total_budget": "500.00",
+                "total_actual": "400.00",
+                "total_variance": "100.00",
+            },
+        )
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    assert 'data-widget="aged-ar-ap"' in resp.text
+    assert 'data-widget="pl-snapshot"' in resp.text
+    assert 'data-widget="budget-vs-actual"' in resp.text
+    # P&L snapshot numbers made it through.
+    assert "60%" in resp.text or "60.0%" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_enterprise_kpi_tile_degrades_alone(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Aged-report fetch down → only the aged widget degrades; page is 200."""
+    _register_mocks(respx_mock)
+    respx_mock.get(
+        url__regex=rf"^{_API_BASE}/api/v1/reports/aged_receivables(\?.*)?$"
+    ).mock(side_effect=httpx.ConnectError("aged report down"))
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/")
+
+    assert resp.status_code == 200
+    # The degraded panel appears inside the aged widget…
+    aged_start = resp.text.index('data-widget="aged-ar-ap"')
+    pl_start = resp.text.index('data-widget="pl-snapshot"')
+    assert "data-degraded-panel" in resp.text[aged_start:pl_start]
+    # …and the P&L widget still renders normally.
+    assert "data-degraded-panel" not in resp.text[pl_start:]

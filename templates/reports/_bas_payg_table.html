@@ -1,6 +1,10 @@
 {# HTMX partial — BAS / PAYG review worksheet. #}
 <div id="report-content">
 
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% else %}
+
 <div id="bas-payg-spinner" class="htmx-indicator flex items-center gap-2 text-sm ink-3 font-mono mb-4">
   <svg class="animate-spin h-4 w-4" style="color:var(--sae);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -145,4 +149,5 @@
 <p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
+{% endif %}{# end degraded #}
 </div>
