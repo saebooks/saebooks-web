@@ -66,6 +66,19 @@ def _mock_healthy_except_bills(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/tax_codes").mock(
         return_value=Response(200, json=empty)
     )
+    # Enterprise KPI catalogue-widget fetches — quiet defaults.
+    respx_mock.get(f"{_API_BASE}/api/v1/reports/aged_receivables").mock(
+        return_value=Response(200, json={"buckets": [], "contacts": [], "totals": {}})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reports/aged_payables").mock(
+        return_value=Response(200, json={"buckets": [], "contacts": [], "totals": {}})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reports/profit_loss").mock(
+        return_value=Response(200, json={"income": {}, "expenses": {}, "net_profit": 0})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reports/budget_vs_actual").mock(
+        return_value=Response(200, json={"lines": [], "total_budget": 0, "total_actual": 0, "total_variance": 0})
+    )
 
 
 @pytest.mark.anyio

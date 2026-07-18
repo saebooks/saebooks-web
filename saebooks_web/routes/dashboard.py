@@ -568,6 +568,82 @@ def _top_vendors_month(
 
 
 # ---------------------------------------------------------------------------
+# Enterprise KPI catalogue widgets (default-hidden)
+# ---------------------------------------------------------------------------
+
+
+def _sum_report_lines(sections: dict) -> Decimal:
+    """Sum ``amount`` across every line list in a P&L section dict,
+    whatever the section keys are (INCOME/OTHER_INCOME/EXPENSE/…)."""
+    total = Decimal("0")
+    for lines in (sections or {}).values():
+        if isinstance(lines, list):
+            total += sum(_to_decimal(l.get("amount", 0)) for l in lines if isinstance(l, dict))
+    return total
+
+
+def _aged_snapshot_tile(ar_report: dict, ap_report: dict) -> dict:
+    """Bucketed AR vs AP exposure — credit-control KPI from the aged reports."""
+    def _buckets(report: dict) -> list[dict]:
+        totals = report.get("totals", {}) or {}
+        return [
+            {"bucket": b, "total": _to_decimal(totals.get(b, 0))}
+            for b in report.get("buckets", []) or []
+        ]
+
+    ar_totals = ar_report.get("totals", {}) or {}
+    ap_totals = ap_report.get("totals", {}) or {}
+    return {
+        "ar_buckets": _buckets(ar_report),
+        "ap_buckets": _buckets(ap_report),
+        "ar_total": _to_decimal(ar_totals.get("total", 0)),
+        "ap_total": _to_decimal(ap_totals.get("total", 0)),
+        "as_of": ar_report.get("as_of_date") or ap_report.get("as_of_date") or "",
+    }
+
+
+def _pl_snapshot_tile(pl_report: dict) -> dict:
+    """Month-to-date P&L headline — revenue, expenses, net profit, margin."""
+    revenue = _sum_report_lines(pl_report.get("income", {}))
+    expenses = _sum_report_lines(pl_report.get("expenses", {}))
+    net = _to_decimal(pl_report.get("net_profit", 0))
+    margin = (net / revenue * 100) if revenue else None
+    return {
+        "revenue": revenue,
+        "expenses": expenses,
+        "net_profit": net,
+        "margin_pct": float(margin) if margin is not None else None,
+        "from_date": pl_report.get("from_date", ""),
+        "to_date": pl_report.get("to_date", ""),
+    }
+
+
+def _budget_tile(bva_report: dict) -> dict:
+    """Budget vs actual headline + top absolute variances (current month)."""
+    lines = [l for l in bva_report.get("lines", []) or [] if isinstance(l, dict)]
+    top = sorted(
+        lines,
+        key=lambda l: abs(_to_decimal(l.get("variance", 0))),
+        reverse=True,
+    )[:5]
+    return {
+        "total_budget": _to_decimal(bva_report.get("total_budget", 0)),
+        "total_actual": _to_decimal(bva_report.get("total_actual", 0)),
+        "total_variance": _to_decimal(bva_report.get("total_variance", 0)),
+        "has_budget": bool(lines),
+        "top_lines": [
+            {
+                "account_name": l.get("account_name") or l.get("name") or "—",
+                "budget": _to_decimal(l.get("budget", 0)),
+                "actual": _to_decimal(l.get("actual", 0)),
+                "variance": _to_decimal(l.get("variance", 0)),
+            }
+            for l in top
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
 # Route
 # ---------------------------------------------------------------------------
 
@@ -623,6 +699,13 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             # Revenue concentration — PSI 80/20 warning (current AU FY)
             _fetch_json(client, "/api/v1/reports/revenue_by_customer",
                         {"from_date": fy_from, "to_date": fy_to}),
+            # Enterprise KPI catalogue widgets (default-hidden)
+            _fetch_json(client, "/api/v1/reports/aged_receivables"),
+            _fetch_json(client, "/api/v1/reports/aged_payables"),
+            _fetch_json(client, "/api/v1/reports/profit_loss",
+                        {"from_date": _this_month_range()[0], "to_date": date.today().isoformat()}),
+            _fetch_json(client, "/api/v1/reports/budget_vs_actual",
+                        {"year": date.today().year, "month": date.today().month}),
             # One failing tile must degrade that tile, not 500 the page:
             # without return_exceptions the first raise cancels the other
             # in-flight fetches and the whole dashboard dies.
@@ -635,9 +718,11 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
         "payments", "recent_invoices", "recent_bills", "recent_payments",
         "recent_je", "recent_contacts", "ytd_turnover", "companies",
         "revenue_concentration",
+        "aged_receivables", "aged_payables", "pl_mtd", "budget_actual",
     ]
-    # The three _fetch_json slots default to {} not [].
-    _DICT_SLOTS = {"ytd_turnover", "companies", "revenue_concentration"}
+    # The _fetch_json slots default to {} not [].
+    _DICT_SLOTS = {"ytd_turnover", "companies", "revenue_concentration",
+                   "aged_receivables", "aged_payables", "pl_mtd", "budget_actual"}
     degraded_fetches: set[str] = set()
     _by_name: dict[str, object] = {}
     for name, r in zip(_TILE_NAMES, gather_results, strict=True):
@@ -670,6 +755,10 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
         ytd_turnover_raw,
         companies_raw,
         revenue_concentration_raw,
+        aged_receivables_raw,
+        aged_payables_raw,
+        pl_mtd_raw,
+        budget_actual_raw,
     ) = (_by_name[n] for n in _TILE_NAMES)
 
     # Map raw-fetch names → the dashboard tiles they feed; a tile is
@@ -686,6 +775,9 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
         "bills_pipeline": {"draft_bills", "open_bills", "payments"},
         "top_vendors_month": {"draft_bills", "open_bills", "recent_contacts"},
         "psi": {"companies", "revenue_concentration"},
+        "aged_ar_ap": {"aged_receivables", "aged_payables"},
+        "pl_snapshot": {"pl_mtd"},
+        "budget_vs_actual": {"budget_actual"},
     }
     degraded_tiles = {
         tile for tile, inputs in _TILE_INPUTS.items() if inputs & degraded_fetches
@@ -719,6 +811,9 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
         list(draft_bills_raw) + list(open_bills_raw),
         recent_contacts_raw,
     )
+    aged_ar_ap = _aged_snapshot_tile(aged_receivables_raw, aged_payables_raw)
+    pl_snapshot = _pl_snapshot_tile(pl_mtd_raw)
+    budget_vs_actual = _budget_tile(budget_actual_raw)
 
     first_company = (companies_raw.get("items") or [{}])[0]
     psi_status = first_company.get("psi_status", "unsure") or "unsure"
@@ -751,6 +846,9 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "sales_pipeline": sales_pipeline,
             "bills_pipeline": bills_pipeline,
             "top_vendors_month": top_vendors_month,
+            "aged_ar_ap": aged_ar_ap,
+            "pl_snapshot": pl_snapshot,
+            "budget_vs_actual": budget_vs_actual,
             "today_iso": date.today().isoformat(),
             "degraded_tiles": degraded_tiles,
         },

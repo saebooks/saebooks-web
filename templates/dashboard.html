@@ -604,6 +604,120 @@
 {% endif %}
     </section>
 
+{# ── Enterprise KPI tiles (catalogue, default-hidden) ─────────────────── #}
+
+<section data-widget="aged-ar-ap" data-widget-title="{{ _('Aged AR vs AP') }}"
+         data-widget-default-hidden="1"
+         data-widget-href="/reports/aged-receivables"
+         class="card p-6">
+      {% if "aged_ar_ap" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
+  <div class="flex items-start justify-between mb-4">
+    <p class="nav-section-label">{{ _("Aged AR vs AP") }}</p>
+    <a href="/reports/aged-receivables" class="text-xs sae hover:underline">{{ _("Full report →") }}</a>
+  </div>
+  {% if aged_ar_ap.ar_buckets or aged_ar_ap.ap_buckets %}
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="ink-3 text-[10px] font-mono uppercase tracking-wider border-b hairline">
+        <th class="text-left py-2 font-normal">{{ _("Bucket") }}</th>
+        <th class="text-right py-2 font-normal">{{ _("Receivable") }}</th>
+        <th class="text-right py-2 font-normal">{{ _("Payable") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set ap_by_bucket = {} %}
+      {% for b in aged_ar_ap.ap_buckets %}{% if ap_by_bucket.update({b.bucket: b.total}) %}{% endif %}{% endfor %}
+      {% for b in aged_ar_ap.ar_buckets %}
+      <tr class="border-b hairline">
+        <td class="py-2 ink-2">{{ b.bucket }}</td>
+        <td class="py-2 text-right num">{{ money(b.total|float, decimals=0) }}</td>
+        <td class="py-2 text-right num ink-3">{{ money(ap_by_bucket.get(b.bucket, 0)|float, decimals=0) }}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td class="py-2 font-medium ink-1">{{ _("Total") }}</td>
+        <td class="py-2 text-right num-display" style="color:var(--pos);">{{ money(aged_ar_ap.ar_total|float, decimals=0) }}</td>
+        <td class="py-2 text-right num-display" style="color:var(--neg);">{{ money(aged_ar_ap.ap_total|float, decimals=0) }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% else %}
+  <p class="ink-3 text-sm">{{ _("No aged balances to show.") }}</p>
+  {% endif %}
+{% endif %}
+    </section>
+
+<section data-widget="pl-snapshot" data-widget-title="{{ _('Profit · this month') }}"
+         data-widget-default-hidden="1"
+         data-widget-href="/reports/profit-loss"
+         class="card p-6">
+      {% if "pl_snapshot" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
+  <div class="flex items-start justify-between mb-4">
+    <p class="nav-section-label">{{ _("Profit · this month") }}</p>
+    <a href="/reports/profit-loss" class="text-xs sae hover:underline">{{ _("Full report →") }}</a>
+  </div>
+  <div class="grid grid-cols-3 gap-4 text-sm">
+    <div>
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Revenue") }}</p>
+      <p class="font-display text-xl num">{{ money(pl_snapshot.revenue|float, decimals=0) }}</p>
+    </div>
+    <div>
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Expenses") }}</p>
+      <p class="font-display text-xl num">{{ money(pl_snapshot.expenses|float, decimals=0) }}</p>
+    </div>
+    <div>
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Net profit") }}</p>
+      <p class="font-display text-xl num" style="color:{% if pl_snapshot.net_profit|float < 0 %}var(--neg){% else %}var(--pos){% endif %};">{{ money(pl_snapshot.net_profit|float, decimals=0) }}</p>
+      {% if pl_snapshot.margin_pct is not none %}
+      <p class="text-xs ink-3 mt-1">{{ _("%(pct)s%% margin") % {"pct": num(pl_snapshot.margin_pct, 1)} }}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+    </section>
+
+<section data-widget="budget-vs-actual" data-widget-title="{{ _('Budget vs actual · this month') }}"
+         data-widget-default-hidden="1"
+         data-widget-href="/reports/budget-vs-actual"
+         class="card p-6">
+      {% if "budget_vs_actual" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
+  <div class="flex items-start justify-between mb-4">
+    <p class="nav-section-label">{{ _("Budget vs actual · this month") }}</p>
+    <a href="/reports/budget-vs-actual" class="text-xs sae hover:underline">{{ _("Full report →") }}</a>
+  </div>
+  {% if budget_vs_actual.has_budget %}
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="ink-3 text-[10px] font-mono uppercase tracking-wider border-b hairline">
+        <th class="text-left py-2 font-normal">{{ _("Account") }}</th>
+        <th class="text-right py-2 font-normal">{{ _("Budget") }}</th>
+        <th class="text-right py-2 font-normal">{{ _("Actual") }}</th>
+        <th class="text-right py-2 font-normal">{{ _("Variance") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in budget_vs_actual.top_lines %}
+      <tr class="border-b hairline">
+        <td class="py-2 ink-1">{{ l.account_name }}</td>
+        <td class="py-2 text-right num ink-3">{{ money(l.budget|float, decimals=0) }}</td>
+        <td class="py-2 text-right num">{{ money(l.actual|float, decimals=0) }}</td>
+        <td class="py-2 text-right num" style="color:{% if l.variance|float < 0 %}var(--neg){% else %}var(--pos){% endif %};">{{ money(l.variance|float, decimals=0) }}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td class="py-2 font-medium ink-1">{{ _("Total") }}</td>
+        <td class="py-2 text-right num-display ink-3">{{ money(budget_vs_actual.total_budget|float, decimals=0) }}</td>
+        <td class="py-2 text-right num-display">{{ money(budget_vs_actual.total_actual|float, decimals=0) }}</td>
+        <td class="py-2 text-right num-display" style="color:{% if budget_vs_actual.total_variance|float < 0 %}var(--neg){% else %}var(--pos){% endif %};">{{ money(budget_vs_actual.total_variance|float, decimals=0) }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% else %}
+  <p class="ink-3 text-sm">{{ _("No budget set for this month — create one under Budgets.") }}</p>
+  {% endif %}
+{% endif %}
+    </section>
+
 {% endblock %}
 
 {% block extra_scripts %}
