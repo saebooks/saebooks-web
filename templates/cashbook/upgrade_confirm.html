@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("Upgrade to Full %(brand)s") % {"brand": current_brand().name} }}{% endblock %}
+{% block title %}{{ _("Full accounting") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
 <div class="max-w-lg mx-auto">
-  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ _("Upgrade to Full %(brand)s") % {"brand": current_brand().name} }}</h1>
-  <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ _("Unlock double-entry bookkeeping, invoicing, bills, payroll and more.") }}</p>
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ _("Full accounting") }}</h1>
+  <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+    {{ _("You already own a complete double-entry ledger. Every Cashbook entry you've logged is a real journal entry underneath — Cashbook is just the cash-basis view over it. Switch on the full suite any time, with nothing re-keyed.") }}
+  </p>
 
   {% if flash %}
   <div class="mb-4 rounded-md bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-800 dark:text-green-200">{{ flash }}</div>
@@ -16,33 +18,25 @@
   <div class="mb-4 rounded-md bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">{{ error }}</div>
   {% endif %}
 
-  <div class="rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-300 dark:border-amber-700 p-6 mb-6">
-    <div class="flex items-start gap-3">
-      <svg class="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-      </svg>
-      <div>
-        <p class="font-semibold text-amber-800 dark:text-amber-200 text-sm mb-2">{{ _("This is a one-way change.") }}</p>
-        <p class="text-sm text-amber-700 dark:text-amber-300">
-          {{ _("Once you upgrade, you cannot go back to Cashbook mode for this company. Your existing cashbook entries will keep working — you'll gain access to the full double-entry features (invoicing, bills, payroll, etc.).") }}
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <ul class="text-sm text-gray-700 dark:text-gray-300 space-y-2 mb-8 pl-4 list-disc">
-    <li>{{ _("Your cashbook entries remain accessible under Banking &rsaquo; Journal Entries") }}</li>
-    <li>{{ _("You'll get access to Invoices, Bills, Purchase Orders, Payroll and Reports") }}</li>
-    <li>{{ _("The simplified Cashbook navigation will be replaced with the full sidebar") }}</li>
-    <li>{{ _("This change takes effect immediately") }}</li>
+  <ul class="text-sm text-gray-700 dark:text-gray-300 space-y-2 mb-6 pl-4 list-disc">
+    <li>{{ _("Your existing cashbook entries are already journal entries — nothing is converted or re-keyed when you switch") }}</li>
+    <li>{{ _("They stay accessible under Banking &rsaquo; Journal Entries") }}</li>
+    <li>{{ _("You'll gain the full screens for the same ledger: Invoices, Bills, Purchase Orders, Payroll and Reports") }}</li>
+    <li>{{ _("The simplified Cashbook navigation is replaced with the full sidebar, and this takes effect immediately") }}</li>
   </ul>
+
+  <div class="rounded-md bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 px-4 py-3 mb-6">
+    <p class="text-xs text-gray-500 dark:text-gray-400">
+      {{ _("Note: this switch runs one way — once a company is on full accounting, it can't go back to the simplified Cashbook nav. Nothing is lost; the ledger keeps every entry either way.") }}
+    </p>
+  </div>
 
   <form method="post" action="/cashbook/upgrade">
     {{ csrf_input(request) | safe }}
     <div class="flex gap-3">
       <button type="submit"
               class="rounded-md bg-[#cc0000] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#a30000] focus:outline-none focus:ring-2 focus:ring-[#cc0000] focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-        {{ _("I understand, upgrade now") }}
+        {{ _("Switch on full accounting") }}
       </button>
       <a href="/cashbook"
          class="rounded-md border border-gray-300 dark:border-gray-600 px-6 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
