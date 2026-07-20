@@ -111,3 +111,18 @@ async def test_cashbook_nav_carries_exactly_one_doorway_item(
     _mock_common(respx_mock, "cashbook")
     html = await _get("/cashbook/about")
     assert html.count('href="/cashbook/upgrade"') == 1
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_upgrade_explainer_reads_ownership_not_paywall(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """The explainer page itself renders and carries the ownership framing
+    — never the old "unlock"/paywall wording it replaced."""
+    _mock_common(respx_mock, "cashbook")
+    html = await _get("/cashbook/upgrade")
+    assert "You already own a complete double-entry ledger" in html
+    assert "already journal entries" in html
+    assert "Unlock" not in html
+    assert "Upgrade to Full" not in html
