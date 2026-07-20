@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-18 21:11+1000\n"
+"POT-Creation-Date: 2026-07-20 15:54+0300\n"
 "PO-Revision-Date: 2026-07-12 11:41+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: et\n"
@@ -1838,7 +1838,7 @@ msgstr "kinnituseks."
 #: templates/cashbook/invoices/edit.html:102
 #: templates/cashbook/invoices/new.html:95
 #: templates/cashbook/quotes/edit.html:98 templates/cashbook/quotes/new.html:88
-#: templates/cashbook/upgrade_confirm.html:49
+#: templates/cashbook/upgrade_confirm.html:43
 #: templates/contacts/cleanup.html:79 templates/contacts/edit.html:51
 #: templates/contacts/edit.html:53 templates/contacts/new.html:23
 #: templates/credit_notes/edit.html:70 templates/credit_notes/edit.html:77
@@ -2074,8 +2074,9 @@ msgid "About Cashbook"
 msgstr "Teave Kassaraamatust"
 
 #: templates/_partials/sidebar_cashbook.html:70
-msgid "Upgrade to full"
-msgstr "Uuenda täisversioonile"
+#, fuzzy
+msgid "Full accounting →"
+msgstr "Täielik raamatupidamine →"
 
 #: templates/account_ranges/edit.html:3 templates/account_ranges/edit.html:8
 msgid "Edit Account Range"
@@ -5720,56 +5721,70 @@ msgstr "— selle perioodi andmed puuduvad —"
 
 #: templates/cashbook/upgrade_confirm.html:3
 #: templates/cashbook/upgrade_confirm.html:8
-#, python-format
-msgid "Upgrade to Full %(brand)s"
-msgstr "Uuenda täisversioonile %(brand)s"
+#, fuzzy
+msgid "Full accounting"
+msgstr "Täielik raamatupidamine"
 
-#: templates/cashbook/upgrade_confirm.html:9
-msgid "Unlock double-entry bookkeeping, invoicing, bills, payroll and more."
+#: templates/cashbook/upgrade_confirm.html:10
+#, fuzzy
+msgid ""
+"You already own a complete double-entry ledger. Every Cashbook entry "
+"you've logged is a real journal entry underneath — Cashbook is just the "
+"cash-basis view over it. Switch on the full suite any time, with nothing "
+"re-keyed."
 msgstr ""
-"Ava kahekordne raamatupidamine, arveldus, ostuarved, palgaarvestus ja "
-"palju muud."
+"Omate juba täielikku topeltsissepääsu pearaamatut. Iga Cashbooki kirje, "
+"mille oled loginud, on all tõeline päeviku kanne — Cashbook on lihtsalt "
+"cash-basis vaade selle üle. Lülita iga kell täis sviidi sisse, midagi "
+"ümber ei klapi."
+
+#: templates/cashbook/upgrade_confirm.html:22
+#, fuzzy
+msgid ""
+"Your existing cashbook entries are already journal entries — nothing is "
+"converted or re-keyed when you switch"
+msgstr ""
+"Teie olemasolevad cashbooki sissekanded on juba päeviku sissekanded — "
+"midagi ei konverteerita ega ümberklahvita, kui lülitate"
+
+#: templates/cashbook/upgrade_confirm.html:23
+#, fuzzy
+msgid "They stay accessible under Banking &rsaquo; Journal Entries"
+msgstr "Need jäävad panganduse all ligipääsetavaks › Ajakirja sissekanded"
+
+#: templates/cashbook/upgrade_confirm.html:24
+#, fuzzy
+msgid ""
+"You'll gain the full screens for the same ledger: Invoices, Bills, "
+"Purchase Orders, Payroll and Reports"
+msgstr ""
+"Saavad samale pearaamatule täisekraanid: Arved, arved, Ostutellimused, "
+"Palgaarved ja aruanded"
 
 #: templates/cashbook/upgrade_confirm.html:25
-msgid "This is a one-way change."
-msgstr "See on ühesuunaline muutus."
-
-#: templates/cashbook/upgrade_confirm.html:27
+#, fuzzy
 msgid ""
-"Once you upgrade, you cannot go back to Cashbook mode for this company. "
-"Your existing cashbook entries will keep working — you'll gain access to "
-"the full double-entry features (invoicing, bills, payroll, etc.)."
+"The simplified Cashbook navigation is replaced with the full sidebar, and"
+" this takes effect immediately"
 msgstr ""
-"Pärast üleminekut ei saa selle ettevõtte juures Kassaraamatu režiimi "
-"tagasi minna. Sinu senised kassaraamatu kanded jäävad tööle — saad "
-"ligipääsu kõigile kahekordse kirjendamise funktsioonidele (arveldus, "
-"ostuarved, palgaarvestus jne)."
+"Lihtsustatud Cashbooki navigeerimine asendatakse täieliku külgribaga ja "
+"see jõustub kohe"
 
-#: templates/cashbook/upgrade_confirm.html:34
+#: templates/cashbook/upgrade_confirm.html:30
+#, fuzzy
 msgid ""
-"Your cashbook entries remain accessible under Banking &rsaquo; Journal "
-"Entries"
+"Note: this switch runs one way — once a company is on full accounting, it"
+" can't go back to the simplified Cashbook nav. Nothing is lost; the "
+"ledger keeps every entry either way."
 msgstr ""
-"Teie kassaraamatu kanded jäävad kättesaadavaks jaotises Pank &rsaquo; "
-"Kanded"
+"Märkus: see lüliti töötab ühtepidi — kui ettevõte on täisarvel, ei saa ta"
+" minna tagasi lihtsustatud Cashbooki navi juurde. Midagi pole kadunud; "
+"pearaamat hoiab igat sissekannet nii või teisiti."
 
-#: templates/cashbook/upgrade_confirm.html:35
-msgid "You'll get access to Invoices, Bills, Purchase Orders, Payroll and Reports"
-msgstr ""
-"Saad ligipääsu arvetele, ostuarvetele, ostutellimustele, palgaarvestusele"
-" ja aruannetele"
-
-#: templates/cashbook/upgrade_confirm.html:36
-msgid "The simplified Cashbook navigation will be replaced with the full sidebar"
-msgstr "Lihtsustatud Kassaraamatu navigeerimine asendatakse täieliku külgribaga"
-
-#: templates/cashbook/upgrade_confirm.html:37
-msgid "This change takes effect immediately"
-msgstr "See muudatus jõustub kohe"
-
-#: templates/cashbook/upgrade_confirm.html:45
-msgid "I understand, upgrade now"
-msgstr "Saan aru, uuenda kohe"
+#: templates/cashbook/upgrade_confirm.html:39
+#, fuzzy
+msgid "Switch on full accounting"
+msgstr "Lülita sisse täielik raamatupidamine"
 
 #: templates/cashbook/invoices/detail.html:9
 #: templates/cashbook/invoices/new.html:9
