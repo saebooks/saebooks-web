@@ -507,6 +507,13 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
 # ---------------------------------------------------------------------------
 
 
+@router.get("/admin/api-tokens", response_model=None, include_in_schema=False)
+async def api_tokens_legacy_redirect() -> RedirectResponse:
+    """MCP/connector docs historically said tokens are issued at
+    /admin/api-tokens; keep that path working."""
+    return RedirectResponse(url="/settings/api-tokens", status_code=308)
+
+
 @router.get("/settings/api-tokens", response_class=HTMLResponse, response_model=None)
 async def api_tokens_page(request: Request) -> HTMLResponse | RedirectResponse:
     """List personal API tokens and offer to issue a new one."""
