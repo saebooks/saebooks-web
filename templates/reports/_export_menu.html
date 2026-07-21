@@ -1,0 +1,28 @@
+{#
+  Export menu — CSV / Excel / (optional PDF), JS-free <details> disclosure.
+
+  Downloads stream through the web→engine proxy at /reports/export/{name}
+  (see saebooks_web.routes.reports.report_export), which honours the same
+  session auth as the page. GET-only, so no CSRF token needed.
+
+  Params (passed via include with context):
+    export_base : engine export stem, e.g. "profit_loss" (→ .csv / .xlsx)
+    export_qs   : URL query string carrying the page's current period/filters
+                  (already url-safe key=value&… — build with |urlencode per value)
+    pdf_href    : optional full href for a PDF export; omit/falsey to hide PDF
+#}
+<details class="export-menu relative inline-block">
+  <summary class="btn-secondary text-sm cursor-pointer select-none" style="list-style:none;">
+    {{ _("Export") }} ▾
+  </summary>
+  <div class="absolute right-0 mt-1 card p-1 z-20 min-w-[10rem] shadow-lg">
+    <a href="/reports/export/{{ export_base }}.csv?{{ export_qs }}"
+       class="block px-3 py-1.5 text-sm hover:underline font-mono">{{ _("CSV") }}</a>
+    <a href="/reports/export/{{ export_base }}.xlsx?{{ export_qs }}"
+       class="block px-3 py-1.5 text-sm hover:underline font-mono">{{ _("Excel (.xlsx)") }}</a>
+    {% if pdf_href %}
+    <a href="{{ pdf_href }}" target="_blank" rel="noopener noreferrer"
+       class="block px-3 py-1.5 text-sm hover:underline font-mono">{{ _("PDF") }}</a>
+    {% endif %}
+  </div>
+</details>

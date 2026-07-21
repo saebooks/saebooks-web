@@ -1642,3 +1642,89 @@ async def statement_pack_pdf(
             "Cache-Control": "private, max-age=0, must-revalidate",
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# GET /reports/export/{name} — generic report-export download proxy
+#
+# Streams a CSV / XLSX / PDF export from the engine back to the browser with
+# the engine's own Content-Type + Content-Disposition (filename). GET-only, so
+# no CSRF; the same session auth as every other report view. ``name`` is an
+# allowlisted stem so a caller cannot proxy an arbitrary engine path.
+# ---------------------------------------------------------------------------
+
+# Web export name → engine endpoint. The name embeds the extension so one route
+# serves all three formats; the map is the security boundary (no open proxy).
+_EXPORT_ENGINE_PATHS: dict[str, str] = {
+    "profit_loss.csv": "/api/v1/reports/profit_loss.csv",
+    "profit_loss.xlsx": "/api/v1/reports/profit_loss.xlsx",
+    "profit_loss.pdf": "/api/v1/reports/profit_loss.pdf",
+    "balance_sheet.csv": "/api/v1/reports/balance_sheet.csv",
+    "balance_sheet.xlsx": "/api/v1/reports/balance_sheet.xlsx",
+    "balance_sheet.pdf": "/api/v1/reports/balance_sheet.pdf",
+    "trial_balance.csv": "/api/v1/reports/trial_balance.csv",
+    "trial_balance.xlsx": "/api/v1/reports/trial_balance.xlsx",
+    "trial_balance.pdf": "/api/v1/reports/trial_balance.pdf",
+    "aged_receivables.csv": "/api/v1/reports/aged_receivables.csv",
+    "aged_receivables.xlsx": "/api/v1/reports/aged_receivables.xlsx",
+    "aged_payables.csv": "/api/v1/reports/aged_payables.csv",
+    "aged_payables.xlsx": "/api/v1/reports/aged_payables.xlsx",
+    "cashflow.csv": "/api/v1/reports/cashflow.csv",
+    "cashflow.xlsx": "/api/v1/reports/cashflow.xlsx",
+    "bas_summary.csv": "/api/v1/reports/bas_summary.csv",
+    "bas_summary.xlsx": "/api/v1/reports/bas_summary.xlsx",
+    "revenue_by_customer.csv": "/api/v1/reports/revenue_by_customer.csv",
+    "revenue_by_customer.xlsx": "/api/v1/reports/revenue_by_customer.xlsx",
+    "pl_by_segment.csv": "/api/v1/reports/pl_by_segment.csv",
+    "pl_by_segment.xlsx": "/api/v1/reports/pl_by_segment.xlsx",
+    "cashbook_summary.csv": "/api/v1/cashbook/summary.csv",
+    "cashbook_summary.xlsx": "/api/v1/cashbook/summary.xlsx",
+    "statement_pack.pdf": "/api/v1/reports/statement_pack.pdf",
+}
+
+_EXPORT_FALLBACK_MEDIA: dict[str, str] = {
+    "csv": "text/csv; charset=utf-8",
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "pdf": "application/pdf",
+}
+
+
+@router.get("/reports/export/{name}", response_model=None)
+async def report_export(request: Request, name: str) -> Response | RedirectResponse:
+    """Proxy a report export (CSV/XLSX/PDF) from the engine to the browser.
+
+    Forwards the page's current query params (from_date/to_date/as_of_date/
+    include_draft/comparative/segment_type/…) verbatim to the allowlisted
+    engine endpoint and streams the bytes back with the engine's headers.
+    """
+    from fastapi import HTTPException
+
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    engine_path = _EXPORT_ENGINE_PATHS.get(name)
+    if engine_path is None:
+        raise HTTPException(404, detail="Unknown export")
+
+    params = dict(request.query_params)
+    async with api_client(request) as client:
+        resp = await client.get(engine_path, params=params)
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code != 200:
+        raise HTTPException(resp.status_code, detail=f"Upstream returned {resp.status_code}")
+
+    ext = name.rsplit(".", 1)[-1]
+    fallback_media = _EXPORT_FALLBACK_MEDIA.get(ext, "application/octet-stream")
+    return Response(
+        content=resp.content,
+        media_type=resp.headers.get("content-type", fallback_media),
+        headers={
+            "Content-Disposition": resp.headers.get(
+                "content-disposition", f'attachment; filename="{name}"'
+            ),
+            "Cache-Control": "private, max-age=0, must-revalidate",
+        },
+    )

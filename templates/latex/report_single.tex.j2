@@ -1,0 +1,157 @@
+{#
+  report_single.tex.j2 — a single financial report (P&L | Balance Sheet |
+  Trial Balance) as a standalone PDF. Reuses the statement_pack look
+  (_preamble, saegreen, longtables) but as one report with a company/period
+  header rather than the full special-purpose pack (cover + trustee decl).
+
+  Context keys (all string values MUST be |latex_escape'd):
+    kind         str   "profit_loss" | "balance_sheet" | "trial_balance"
+    company      dict  legal_name, name, acn, abn
+    title        str   human report title, e.g. "Profit & Loss"
+    period_label str   e.g. "For the period 2026-07-01 to 2026-07-22"
+    prepared     str   ISO preparation date
+    pl_report    dict  PnLReport JSON        (kind == profit_loss)
+    bs_report    dict  BSReport JSON         (kind == balance_sheet)
+    tb_report    dict  TrialBalanceReport JSON (kind == trial_balance)
+#}
+{% macro fmt_amount(v) -%}
+  {%- if v is not none and v != 0 -%}{{ "%.2f"|format(v|float) | latex_escape }}{%- else -%}---{%- endif -%}
+{%- endmacro %}
+{% macro fmt_amount_plain(v) -%}{{ "%.2f"|format(v|float) | latex_escape }}{%- endmacro %}
+{% include '_preamble.tex.j2' %}
+
+\begin{document}
+\markboth{ {{ title | latex_escape }} }{}
+
+\begin{center}
+  {\LARGE\bfseries\color{saegreen} {{ (company.legal_name or company.name) | latex_escape }} }\\[2mm]
+  {% if company.acn -%}{\small ACN {{ company.acn | latex_escape }}}\\[0.5mm]{%- endif %}
+  {% if company.abn -%}{\small ABN {{ company.abn | latex_escape }}}\\[0.5mm]{%- endif %}
+  \vspace{3mm}
+  {\Large {{ title | latex_escape }}}\\[1mm]
+  {\small\itshape {{ period_label | latex_escape }}}\\[1mm]
+  {\footnotesize\color{midgrey}Prepared {{ prepared | latex_escape }} \textbullet{} \textsc{Draft --- not certified}}
+\end{center}
+\vspace{6mm}
+
+{% if kind == 'profit_loss' %}
+{% set income_lines = pl_report.income.get("INCOME", []) + pl_report.income.get("OTHER_INCOME", []) %}
+{% set expense_lines = pl_report.expenses.get("EXPENSE", []) + pl_report.expenses.get("COST_OF_SALES", []) + pl_report.expenses.get("OTHER_EXPENSE", []) %}
+\begin{longtable}{>{\raggedright\arraybackslash}p{9cm} r r}
+  \toprule
+  \textbf{Account} & \textbf{Code} & \textbf{Amount \$} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{l}{\textit{(continued)}} \\
+  \toprule
+  \textbf{Account} & \textbf{Code} & \textbf{Amount \$} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \multicolumn{3}{l}{\textbf{\color{saegreen}Income}} \\[1mm]
+  {% if income_lines %}
+    {% for line in income_lines %}
+  {{ line.account_name | latex_escape }} & {\small {{ line.code | latex_escape }}} & {{ fmt_amount(line.amount) }} \\
+    {% endfor %}
+  {% else %}
+  \multicolumn{3}{c}{\textit{\color{midgrey}No income for this period}} \\
+  {% endif %}
+  \midrule
+  \textbf{Total Income} & & \textbf{ {{ fmt_amount_plain(pl_report.income.total_income) }} } \\[4mm]
+  \multicolumn{3}{l}{\textbf{\color{saegreen}Expenses}} \\[1mm]
+  {% if expense_lines %}
+    {% for line in expense_lines %}
+  {{ line.account_name | latex_escape }} & {\small {{ line.code | latex_escape }}} & {{ fmt_amount(line.amount) }} \\
+    {% endfor %}
+  {% else %}
+  \multicolumn{3}{c}{\textit{\color{midgrey}No expenses for this period}} \\
+  {% endif %}
+  \midrule
+  \textbf{Total Expenses} & & \textbf{ {{ fmt_amount_plain(pl_report.expenses.total_expenses) }} } \\
+  \midrule\midrule
+  {% if pl_report.net_profit >= 0 %}
+  \textbf{\color{saegreen}Net Profit} & & \textbf{\color{saegreen} {{ fmt_amount_plain(pl_report.net_profit) }} } \\
+  {% else %}
+  \textbf{\color{red}Net Loss} & & \textbf{\color{red} {{ fmt_amount_plain(pl_report.net_profit) }} } \\
+  {% endif %}
+  \bottomrule
+\end{longtable}
+
+{% elif kind == 'balance_sheet' %}
+\begin{longtable}{>{\raggedright\arraybackslash}p{9cm} r r}
+  \toprule
+  \textbf{Account} & \textbf{Code} & \textbf{Balance \$} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{l}{\textit{(continued)}} \\
+  \toprule
+  \textbf{Account} & \textbf{Code} & \textbf{Balance \$} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \multicolumn{3}{l}{\textbf{\color{saegreen}Assets}} \\[1mm]
+  {% for line in bs_report.assets.get("ASSET", []) %}
+  {{ line.account_name | latex_escape }} & {\small {{ line.code | latex_escape }}} & {{ fmt_amount(line.balance) }} \\
+  {% else %}
+  \multicolumn{3}{c}{\textit{\color{midgrey}No asset accounts}} \\
+  {% endfor %}
+  \midrule
+  \textbf{Total Assets} & & \textbf{ {{ fmt_amount_plain(bs_report.assets.total_assets) }} } \\[4mm]
+  \multicolumn{3}{l}{\textbf{\color{saegreen}Liabilities}} \\[1mm]
+  {% for line in bs_report.liabilities.get("LIABILITY", []) %}
+  {{ line.account_name | latex_escape }} & {\small {{ line.code | latex_escape }}} & {{ fmt_amount(line.balance) }} \\
+  {% else %}
+  \multicolumn{3}{c}{\textit{\color{midgrey}No liability accounts}} \\
+  {% endfor %}
+  \midrule
+  \textbf{Total Liabilities} & & \textbf{ {{ fmt_amount_plain(bs_report.liabilities.total_liabilities) }} } \\[4mm]
+  \multicolumn{3}{l}{\textbf{\color{saegreen}Equity}} \\[1mm]
+  {% for line in bs_report.equity.get("EQUITY", []) %}
+  {{ line.account_name | latex_escape }} & {\small {{ line.code | latex_escape }}} & {{ fmt_amount(line.balance) }} \\
+  {% else %}
+  \multicolumn{3}{c}{\textit{\color{midgrey}No equity accounts}} \\
+  {% endfor %}
+  \midrule
+  \textbf{Total Equity} & & \textbf{ {{ fmt_amount_plain(bs_report.equity.total_equity) }} } \\
+  \bottomrule
+\end{longtable}
+
+{% elif kind == 'trial_balance' %}
+{% if tb_report.balanced %}
+\textcolor{saegreen}{\textbf{$\checkmark$\ Trial balance is balanced.}}
+{% else %}
+\textcolor{red}{\textbf{Trial balance is NOT balanced.}}
+{% endif %}
+\vspace{4mm}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{6.5cm} r r r}
+  \toprule
+  \textbf{Account} & \textbf{Code} & \textbf{Debit \$} & \textbf{Credit \$} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{4}{l}{\textit{(continued)}} \\
+  \toprule
+  \textbf{Account} & \textbf{Code} & \textbf{Debit \$} & \textbf{Credit \$} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  {% if tb_report.accounts %}
+    {% for line in tb_report.accounts %}
+  {{ line.name | latex_escape }} & {\small {{ line.code | latex_escape }}} &
+  {{ fmt_amount(line.debit_total) }} & {{ fmt_amount(line.credit_total) }} \\
+    {% endfor %}
+  {% else %}
+  \multicolumn{4}{c}{\textit{\color{midgrey}No posted transactions for this period}} \\
+  {% endif %}
+  \midrule
+  \textbf{Totals} & &
+  \textbf{ {{ fmt_amount_plain(tb_report.total_debits) }} } &
+  \textbf{ {{ fmt_amount_plain(tb_report.total_credits) }} } \\
+  \bottomrule
+\end{longtable}
+{% endif %}
+
+\end{document}

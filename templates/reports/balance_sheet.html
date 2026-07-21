@@ -19,7 +19,11 @@
       <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("Balance Sheet") }}</h1>
       {% if report %}<p class="text-xs ink-3 font-mono mt-2">{{ _("As at %(date)s") % {"date": report.get("as_of_date", as_of_date)} }}</p>{% endif %}
     </div>
-    <button type="button" onclick="window.print()" class="btn-secondary text-sm">{{ _("Print") }}</button>
+    <div class="flex items-center gap-2">
+      {% set export_qs = "as_of_date=" ~ as_of_date %}
+      {% with export_base = "balance_sheet", pdf_href = "/reports/export/balance_sheet.pdf?" ~ export_qs %}{% include "reports/_export_menu.html" %}{% endwith %}
+      <button type="button" onclick="window.print()" class="btn-secondary text-sm">{{ _("Print") }}</button>
+    </div>
   </div>
   <div class="drafting mt-4"></div>
 </header>
