@@ -272,8 +272,8 @@ async def test_admin_audit_200_for_richard_after_login(
         "role": "admin",
         "tenant_id": "00000000-0000-0000-0000-000000000001",
     }))
-    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
-        return_value=Response(200, json={"items": [], "total": 0}),
+    respx_mock.get(f"{_API_BASE}/api/v1/audit-log").mock(
+        return_value=Response(200, json={"items": [], "total": 0, "limit": 50, "offset": 0}),
     )
 
     async with AsyncClient(

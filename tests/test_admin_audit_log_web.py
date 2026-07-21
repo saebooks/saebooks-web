@@ -26,7 +26,7 @@ from saebooks_web.main import app
 
 _API_BASE = settings.api_url.rstrip("/")
 
-# The web route now proxies GET /api/v1/admin/audit-log (JSON, {items, total})
+# The web route now proxies GET /api/v1/audit-log (JSON, {items, total})
 # and renders its own template, translating each AuditLogEntry
 # ({id, entity, entity_id, op, actor, at, version, payload}) into the
 # template's field names ({id, table_name, row_id, action, performed_by,
@@ -35,16 +35,18 @@ _MOCK_AUDIT_JSON = {
     "items": [
         {
             "id": "aaaaaaaa-0000-0000-0000-000000000001",
-            "entity": "journal_entries",
-            "entity_id": "abcdef12-0000-0000-0000-000000000000",
-            "op": "create",
-            "actor": "admin",
-            "at": "2026-04-25T10:00:00",
-            "version": 1,
-            "payload": {},
+            "actor_user_id": "abcdef12-0000-0000-0000-000000000000",
+            "action": "create",
+            "table_name": "journal_entries",
+            "row_id": "bbbbbbb1-0000-0000-0000-000000000000",
+            "row_snapshot": {},
+            "reason": None,
+            "at": "2026-04-25T10:00:00+00:00",
         }
     ],
     "total": 1,
+    "limit": 50,
+    "offset": 0,
 }
 
 
@@ -54,9 +56,10 @@ def _make_session_cookie(data: dict) -> str:
     return signer.sign(payload).decode("utf-8")
 
 
-# /admin/audit is staff-only — use a staff session for the positive-path tests.
+# /admin/audit is customer-facing (company admin) — positive-path tests use
+# a plain tenant-admin session, NOT staff.
 _SESSION_COOKIE = _make_session_cookie(
-    {"api_token": "test-token-audit", "user_role": "admin", "is_sae_staff": True}
+    {"api_token": "test-token-audit", "user_role": "admin", "is_sae_staff": False}
 )
 
 
@@ -88,7 +91,7 @@ async def test_audit_log_requires_auth() -> None:
 @respx.mock
 async def test_audit_log_renders(respx_mock: respx.MockRouter) -> None:
     """GET /admin/audit returns 200 with audit log heading."""
-    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
+    respx_mock.get(f"{_API_BASE}/api/v1/audit-log").mock(
         return_value=Response(200, json=_MOCK_AUDIT_JSON)
     )
 
@@ -113,7 +116,7 @@ async def test_audit_log_renders(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_audit_log_api_error(respx_mock: respx.MockRouter) -> None:
     """GET /admin/audit with API 500 shows error banner."""
-    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
+    respx_mock.get(f"{_API_BASE}/api/v1/audit-log").mock(
         return_value=Response(500, json={"detail": "Internal server error"})
     )
 
@@ -137,7 +140,7 @@ async def test_audit_log_api_error(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_audit_log_filter_params(respx_mock: respx.MockRouter) -> None:
     """GET /admin/audit?entity_type=journal_entries echoes filter in form."""
-    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
+    respx_mock.get(f"{_API_BASE}/api/v1/audit-log").mock(
         return_value=Response(200, json=_MOCK_AUDIT_JSON)
     )
 
@@ -164,23 +167,25 @@ async def test_audit_log_pagination_next(respx_mock: respx.MockRouter) -> None:
     """GET /admin/audit with JSON response has_next=True shows next-page link."""
     # has_next is derived by the route as (offset + len(items)) < total, so
     # a page 1 (offset 0) response with 1 item and total=2 triggers it.
-    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
+    respx_mock.get(f"{_API_BASE}/api/v1/audit-log").mock(
         return_value=Response(
             200,
             json={
                 "items": [
                     {
                         "id": "aaaaaaaa-0000-0000-0000-000000000001",
-                        "entity": "journal_entries",
-                        "entity_id": "bbbbbbb1-0000-0000-0000-000000000000",
-                        "op": "create",
-                        "actor": "admin",
-                        "at": "2026-04-25T10:00:00",
-                        "version": 1,
-                        "payload": {},
+                        "actor_user_id": "abcdef12-0000-0000-0000-000000000000",
+                        "action": "create",
+                        "table_name": "journal_entries",
+                        "row_id": "bbbbbbb1-0000-0000-0000-000000000000",
+                        "row_snapshot": {},
+                        "reason": None,
+                        "at": "2026-04-25T10:00:00+00:00",
                     }
                 ],
                 "total": 2,
+                "limit": 50,
+                "offset": 0,
             },
         )
     )

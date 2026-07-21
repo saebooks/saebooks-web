@@ -70,7 +70,7 @@ _STAFF_COOKIE = _make_session_cookie(
 
 
 # ---------------------------------------------------------------------------
-# Staff-only routes: GET /admin/audit
+# Customer-admin route: GET /admin/audit (staff-only: /admin/sql-tool)
 # ---------------------------------------------------------------------------
 
 
@@ -95,11 +95,12 @@ async def test_audit_forbidden_for_bookkeeper(respx_mock: respx.MockRouter) -> N
 
 @pytest.mark.anyio
 @respx.mock
-async def test_audit_forbidden_for_tenant_admin(respx_mock: respx.MockRouter) -> None:
-    """Tenant admin (non-staff) must get 403 on GET /admin/audit."""
-    respx_mock.get(f"{_API_BASE}/admin/audit").mock(
-        return_value=Response(200, content=b"<html>audit</html>",
-                              headers={"content-type": "text/html"})
+async def test_audit_allowed_for_tenant_admin(respx_mock: respx.MockRouter) -> None:
+    """Tenant admin must get 200 on GET /admin/audit — their own tenant's
+    audit trail is customer-facing (upstream /api/v1/audit-log is
+    tenant-scoped + RLS-enforced)."""
+    respx_mock.get(f"{_API_BASE}/api/v1/audit-log").mock(
+        return_value=Response(200, json={"items": [], "total": 0, "limit": 50, "offset": 0})
     )
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -109,15 +110,15 @@ async def test_audit_forbidden_for_tenant_admin(respx_mock: respx.MockRouter) ->
     ) as client:
         resp = await client.get("/admin/audit")
 
-    assert resp.status_code == 403, f"Expected 403 for tenant admin on /admin/audit, got {resp.status_code}"
+    assert resp.status_code == 200, f"Expected 200 for tenant admin on /admin/audit, got {resp.status_code}"
 
 
 @pytest.mark.anyio
 @respx.mock
 async def test_audit_allowed_for_staff(respx_mock: respx.MockRouter) -> None:
     """SAE staff must get 200 on GET /admin/audit."""
-    respx_mock.get(f"{_API_BASE}/api/v1/admin/audit-log").mock(
-        return_value=Response(200, json={"items": [], "total": 0})
+    respx_mock.get(f"{_API_BASE}/api/v1/audit-log").mock(
+        return_value=Response(200, json={"items": [], "total": 0, "limit": 50, "offset": 0})
     )
     async with AsyncClient(
         transport=ASGITransport(app=app),
