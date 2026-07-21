@@ -97,6 +97,32 @@
   {% endif %}
 </div>
 
+{# ── Stock — live read from GET /items/{id}/stock (inventory items only).
+     inventory_value is engine-computed (on_hand_qty × WAC); the panel hides
+     itself if the stock call failed rather than erroring the page. #}
+{% if stock %}
+<div class="card p-5 mb-6">
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Stock") }}</h2>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div>
+      <p class="text-xs ink-3 uppercase tracking-wide">{{ _("On hand") }}</p>
+      <p class="mt-1 text-lg font-semibold ink-1 tabular-nums">{{ stock.on_hand_qty }}</p>
+    </div>
+    <div>
+      <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Weighted average cost") }}</p>
+      <p class="mt-1 text-lg font-semibold ink-1 tabular-nums">{{ num(stock.wac_cost|float, 4) }}</p>
+    </div>
+    <div>
+      <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Inventory value") }}</p>
+      <p class="mt-1 text-lg font-semibold ink-1 tabular-nums">{{ num(stock.inventory_value|float, 2) }}</p>
+    </div>
+  </div>
+  <p class="mt-3 text-xs ink-3">
+    {{ _("Stock moves with posted purchases and sales of this item — bills and invoices are the record of receipt and issue.") }}
+  </p>
+</div>
+{% endif %}
+
 {# ── Accounts ── #}
 <div class="card p-5 mb-6">
   <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Linked Accounts") }}</h2>

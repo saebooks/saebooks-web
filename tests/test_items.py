@@ -110,6 +110,21 @@ async def test_items_detail_renders(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/items/{_ITEM_ID}").mock(
         return_value=Response(200, json=_MOCK_ITEM)
     )
+    # Inventory items also trigger the live stock read (panel tested in
+    # test_item_stock_web.py).
+    respx_mock.get(f"{_API_BASE}/api/v1/items/{_ITEM_ID}/stock").mock(
+        return_value=Response(
+            200,
+            json={
+                "item_id": _ITEM_ID,
+                "sku": "WIDGET-001",
+                "item_type": "inventory",
+                "on_hand_qty": "150",
+                "wac_cost": "22.5000",
+                "inventory_value": "3375.0000",
+            },
+        )
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

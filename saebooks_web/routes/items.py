@@ -492,13 +492,24 @@ async def item_detail(
                 status_code=resp.status_code,
             )
 
-    item = resp.json()
+        item = resp.json()
+
+        # Live stock levels for inventory items — GET /items/{id}/stock is
+        # the canonical read (adds inventory_value = on_hand_qty * WAC). The
+        # engine 404s it for service items and archived items; any failure
+        # just hides the panel rather than erroring the page.
+        stock = None
+        if item.get("item_type") == "inventory" and not item.get("archived_at"):
+            stock_resp = await client.get(f"/api/v1/items/{item_id}/stock")
+            if stock_resp.is_success:
+                stock = stock_resp.json()
+
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "items/detail.html",
-        {"item": item, "error": None, "flash": flash},
+        {"item": item, "error": None, "flash": flash, "stock": stock},
     )
 
 
