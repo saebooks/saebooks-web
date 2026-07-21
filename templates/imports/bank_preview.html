@@ -28,6 +28,15 @@
 <div class="card p-4">
   {{ proxy_html | safe }}
 </div>
+<form method="post" action="/admin/imports/bank/apply" class="mt-4 flex items-center gap-3">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="wizard_id" value="{{ wizard_id }}">
+  {% if account_id %}<input type="hidden" name="account_id" value="{{ account_id }}">{% endif %}
+  <button type="submit" class="btn-primary text-sm">
+    {{ _("Import Transactions") }}
+  </button>
+  <a href="/admin/imports/bank" class="text-sm ink-3 hover:ink-2">{{ _("Cancel") }}</a>
+</form>
 {% else %}
 <div class="text-sm ink-3">{{ _("No preview data available.") }}</div>
 {% endif %}
