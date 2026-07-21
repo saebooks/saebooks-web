@@ -50,6 +50,7 @@ from __future__ import annotations
 import html as _html
 import logging
 import os
+import re
 import urllib.parse
 from datetime import datetime, timezone
 
@@ -60,6 +61,7 @@ from starlette.responses import HTMLResponse, RedirectResponse
 
 from saebooks_web.brand import current_brand
 from saebooks_web.config import settings
+from saebooks_web.i18n.middleware import SESSION_LOCALE_KEY
 
 _log = logging.getLogger("saebooks_web.demo_autologin")
 
@@ -159,6 +161,112 @@ def _source_ip(request: Request) -> str | None:
     return request.client.host if request.client is not None else None
 
 
+
+# ---------------------------------------------------------------------------
+# Gate localisation (beta sweep 2026-07-22, QA items 3/10/21).
+#
+# The gate is served on demo.tasur.ee where the primary audience is Estonian;
+# copy is selected per request: explicit ?lang= -> the tasur.ee/<lang>/
+# referrer -> Accept-Language -> brand default (tasur -> et, saebooks -> en).
+# The chosen language rides a hidden form field into the provision POST and is
+# pinned into the session as the locale override (SESSION_LOCALE_KEY), so the
+# provisioned app opens in the language the visitor saw on the gate. The
+# in-app language menu (POST /set-locale) writes the same key and therefore
+# still overrides it.
+#
+# TTL copy states the real reaper policy: DEMO_IDLE_TTL (default 1800 s) idle
+# OR DEMO_MAX_AGE (default 7200 s) age, whichever comes first — i.e.
+# "30 min idle, 2 h max". Keep in sync with _partials/demo_banner.html.
+# ---------------------------------------------------------------------------
+
+_GATE_LANGS = ("et", "ru", "en")
+
+_GATE_COPY: dict[str, dict[str, str]] = {
+    "en": {
+        "title_word": "Demo",
+        "notice": "Your demo is private and isolated — deleted after 30 minutes of inactivity (2 hours maximum).",
+        "noscript_msg": "JavaScript must be enabled to use this demo.",
+        "err_not_completed": "Challenge not completed — please try again.",
+        "err_verify": "Verification failed — please try again.",
+        "err_capacity": "Demo capacity reached — please try again in a moment.",
+    },
+    "et": {
+        "title_word": "Demo",
+        "notice": "Sinu demo on privaatne ja isoleeritud — kustutatakse 30 minuti tegevusetuse järel (maksimaalselt 2 tundi).",
+        "noscript_msg": "Demo kasutamiseks peab JavaScript olema lubatud.",
+        "err_not_completed": "Kontroll jäi lõpetamata — palun proovi uuesti.",
+        "err_verify": "Kontroll ebaõnnestus — palun proovi uuesti.",
+        "err_capacity": "Demo on hetkel täis — palun proovi mõne hetke pärast uuesti.",
+    },
+    "ru": {
+        "title_word": "Демо",
+        "notice": "Ваша демо-версия приватна и изолирована — удаляется после 30 минут бездействия (максимум 2 часа).",
+        "noscript_msg": "Для работы демо необходимо включить JavaScript.",
+        "err_not_completed": "Проверка не завершена — попробуйте ещё раз.",
+        "err_verify": "Проверка не пройдена — попробуйте ещё раз.",
+        "err_capacity": "Демо сейчас заполнено — попробуйте снова через минуту.",
+    },
+}
+
+# Per-brand, per-language tagline + feature bullets. English comes from the
+# Brand dataclass itself; non-English gate copy is deploy copy owned here.
+_GATE_BRAND_COPY: dict[str, dict[str, dict]] = {
+    "tasur": {
+        "et": {
+            "tagline": "Eesti väikeettevõtte raamatupidamine",
+            "features": (
+                "Täielik kahekordne raamatupidamine",
+                "Müügiarved, ostuarved ja maksed",
+                "Käibemaks ja KMD",
+                "Pangatehingute sobitamine",
+            ),
+        },
+        "ru": {
+            "tagline": "Бухгалтерия для малого бизнеса Эстонии",
+            "features": (
+                "Полноценный двойной учёт",
+                "Счета, закупки и платежи",
+                "Käibemaks и декларация KMD",
+                "Сверка банковских операций",
+            ),
+        },
+    },
+}
+
+
+def _entry_lang(request: Request) -> str | None:
+    """Explicit demo-entry language: ?lang= or a /et|/ru|/en referrer path."""
+    q = (request.query_params.get("lang") or "").strip().lower()
+    if q in _GATE_LANGS:
+        return q
+    ref = request.headers.get("referer", "")
+    if ref:
+        try:
+            path = urllib.parse.urlsplit(ref).path or ""
+        except ValueError:
+            path = ""
+        m = re.match(r"^/(et|ru|en)(?:/|$)", path, re.IGNORECASE)
+        if m:
+            return m.group(1).lower()
+    return None
+
+
+def _accept_lang(request: Request) -> str | None:
+    header = request.headers.get("accept-language") or ""
+    for part in header.split(","):
+        base = part.split(";", 1)[0].strip().lower().split("-")[0]
+        if base in _GATE_LANGS:
+            return base
+    return None
+
+
+def _gate_lang(request: Request) -> str:
+    lang = _entry_lang(request) or _accept_lang(request)
+    if lang:
+        return lang
+    return "et" if current_brand().key == "tasur" else "en"
+
+
 # ---------------------------------------------------------------------------
 # Turnstile landing page (inline HTML — no Jinja2 template dependency
 # needed here; keep the gate self-contained within the middleware module).
@@ -166,11 +274,11 @@ def _source_ip(request: Request) -> str | None:
 
 _TURNSTILE_GATE_HTML = """\
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="{lang}" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{brand_name} — Demo</title>
+  <title>{brand_name} — {title_word}</title>
   <script>
     (function () {{
       var stored = localStorage.getItem('saebooks-theme');
@@ -212,6 +320,9 @@ _TURNSTILE_GATE_HTML = """\
     .features li::before {{ content: "✓ "; color: var(--primary); font-weight: 700; }}
     .cf-wrap {{ display: flex; justify-content: center; margin-bottom: 1rem; }}
     .notice {{ font-size: .75rem; opacity: .5; margin-top: 1rem; }}
+    .langs {{ font-size: .75rem; margin-top: .75rem; opacity: .75; }}
+    .langs a {{ color: var(--primary); text-decoration: none; margin: 0 .3rem; }}
+    .langs a.active {{ font-weight: 700; text-decoration: underline; }}
     .error-msg {{
       background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;
       border-radius: .5rem; padding: .75rem 1rem; margin-bottom: 1rem;
@@ -227,12 +338,14 @@ _TURNSTILE_GATE_HTML = """\
     <ul class="features">{features_html}</ul>
     <div class="error-msg">{error_msg}</div>
     <form method="POST" action="{provision_path}">
+      <input type="hidden" name="lang" value="{lang}">
       <div class="cf-wrap">
-        <div class="cf-turnstile" data-sitekey="{site_key}" data-theme="auto" data-callback="onTurnstileSuccess" data-error-callback="onTurnstileError" data-retry="auto" data-retry-interval="4000" data-refresh-expired="auto"></div>
+        <div class="cf-turnstile" data-sitekey="{site_key}" data-theme="auto" data-language="{lang}" data-callback="onTurnstileSuccess" data-error-callback="onTurnstileError" data-retry="auto" data-retry-interval="4000" data-refresh-expired="auto"></div>
       </div>
-      <noscript><p style="color:#991b1b;margin-bottom:1rem">JavaScript must be enabled to use this demo.</p></noscript>
+      <noscript><p style="color:#991b1b;margin-bottom:1rem">{noscript_msg}</p></noscript>
     </form>
-    <div class="notice">Your demo is private, isolated and auto-deleted after 2 hours.</div>
+    <div class="notice">{notice}</div>
+    <div class="langs">{lang_links}</div>
   </div>
   <script>
     // Auto-submit the form once Turnstile resolves. The widget div wires
@@ -495,25 +608,44 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
             _log.warning("turnstile verify transport error: %r", exc)
             return False
 
-    def _turnstile_gate_response(self, error_msg: str = "") -> HTMLResponse:
+    def _turnstile_gate_response(
+        self, request: Request, error_msg: str = "", lang: str | None = None
+    ) -> HTMLResponse:
         """Return the Turnstile landing page HTML response.
 
-        Brand name, tagline and feature bullets are pulled from the active
-        brand (``SAEBOOKS_BRAND``) so a Tasur (EE) deployment renders Estonian
-        copy with no code edit — see ``saebooks_web/brand.py``.
+        Brand name, tagline and feature bullets come from the active brand
+        (``SAEBOOKS_BRAND``); language is negotiated per request (?lang ->
+        referrer -> Accept-Language -> brand default) and the localised
+        tagline/features come from ``_GATE_BRAND_COPY``.
         """
         brand = current_brand()
+        lang = lang if lang in _GATE_LANGS else _gate_lang(request)
+        copy = _GATE_COPY[lang]
+        brand_copy = _GATE_BRAND_COPY.get(brand.key, {}).get(lang, {})
+        tagline = brand_copy.get("tagline", brand.demo_tagline)
+        features = brand_copy.get("features", brand.demo_features)
         features_html = "".join(
-            f"<li>{_html.escape(feat)}</li>" for feat in brand.demo_features
+            f"<li>{_html.escape(feat)}</li>" for feat in features
+        )
+        lang_links = " · ".join(
+            '<a href="?lang={0}"{1}>{2}</a>'.format(
+                code, ' class="active"' if code == lang else "", code.upper()
+            )
+            for code in _GATE_LANGS
         )
         rendered = _TURNSTILE_GATE_HTML.format(
             brand_name=_html.escape(brand.name),
-            tagline=_html.escape(brand.demo_tagline),
+            tagline=_html.escape(tagline),
             features_html=features_html,
             site_key=_turnstile_site_key(),
             provision_path=_TURNSTILE_PROVISION_PATH,
             error_msg=error_msg,
             error_display="block" if error_msg else "none",
+            lang=lang,
+            title_word=copy["title_word"],
+            notice=copy["notice"],
+            noscript_msg=copy["noscript_msg"],
+            lang_links=lang_links,
         )
         return HTMLResponse(content=rendered, status_code=200)
 
@@ -560,7 +692,7 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
         # ------------------------------------------------------------------ #
         if _turnstile_enabled():
             # Show the Turnstile challenge; provisioning happens on POST.
-            return self._turnstile_gate_response()
+            return self._turnstile_gate_response(request)
 
         # Turnstile off — provision directly (original behaviour for new visitors).
         data = await self._provision(request)
@@ -570,6 +702,11 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         self._apply_provision_to_session(request, data)
+        entry = _entry_lang(request)
+        if entry:
+            # Arrived from tasur.ee/<lang>/ (or ?lang=) — open the app in
+            # that language. The in-app switcher writes the same key.
+            request.session[SESSION_LOCALE_KEY] = entry
 
         if path == "/":
             land = _land_path()
@@ -590,27 +727,35 @@ class DemoAutoLoginMiddleware(BaseHTTPMiddleware):
         except Exception:
             form_data = {}
 
+        lang = (form_data.get("lang") or "").strip().lower()
+        if lang not in _GATE_LANGS:
+            lang = _gate_lang(request)
+
         cf_token = form_data.get("cf-turnstile-response", "").strip()
         if not cf_token:
             _log.warning("turnstile provision: no cf-turnstile-response in POST body")
             return self._turnstile_gate_response(
-                error_msg="Challenge not completed — please try again."
+                request, error_msg=_GATE_COPY[lang]["err_not_completed"], lang=lang
             )
 
         verified = await self._verify_turnstile(cf_token, ip)
         if not verified:
             _log.warning("turnstile provision: token verification failed")
             return self._turnstile_gate_response(
-                error_msg="Verification failed — please try again."
+                request, error_msg=_GATE_COPY[lang]["err_verify"], lang=lang
             )
 
         data = await self._provision(request)
         if data is None:
             return self._turnstile_gate_response(
-                error_msg="Demo capacity reached — please try again in a moment."
+                request, error_msg=_GATE_COPY[lang]["err_capacity"], lang=lang
             )
 
         self._apply_provision_to_session(request, data)
+        # Open the provisioned app in the language the gate was shown in;
+        # the in-app language menu (POST /set-locale) writes the same key
+        # and still overrides this.
+        request.session[SESSION_LOCALE_KEY] = lang
 
         land = _land_path()
         return RedirectResponse(land, status_code=303)

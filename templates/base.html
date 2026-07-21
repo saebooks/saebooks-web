@@ -859,7 +859,13 @@
     <div class="border-t hairline">
       <div class="px-3 py-2">
         <div class="status-strip flex items-center justify-between gap-2">
+          {% set _pill_juris = request.state.active_company_jurisdiction or "AU" %}
+          {% if _pill_juris == 'AU' %}
           <span class="flex items-center gap-1.5"><span class="dot" style="background: var(--pos);"></span>ATO · {{ _("live") }}</span>
+          {% else %}
+          {# Non-AU (e.g. EE): no ATO rail — show a neutral ledger pill. #}
+          <span class="flex items-center gap-1.5"><span class="dot" style="background: var(--pos);"></span>{{ _("Ledger") }} · {{ _("live") }}</span>
+          {% endif %}
           <span class="flex items-center gap-1.5"><span class="dot" style="background: var(--pos);"></span>API · {{ _("ok") }}</span>
         </div>
       </div>

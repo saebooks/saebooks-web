@@ -21,9 +21,14 @@
     <div>
       <div class="flex items-center gap-2 mb-1">
         <span class="nav-section-label">{{ _("Dashboard") }}</span>
-        {% if gst and gst.fy_start %}
+        {% if jurisdiction == 'AU' and gst and gst.fy_start %}
         <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
           FY&nbsp;{{ gst.fy_start[:4] }}–{{ gst.fy_end[2:4] }}
+        </span>
+        {% elif jurisdiction != 'AU' %}
+        {# Non-AU (e.g. EE): financial year = calendar year. #}
+        <span class="text-[10px] font-mono uppercase tracking-wider ink-3">
+          FY&nbsp;{{ fy_from[:4] }}
         </span>
         {% endif %}
       </div>
@@ -61,7 +66,6 @@
           GST · {{ _("under threshold") }}
         </span>
       {% endif %}
-      {% endif %}
 
       {% if concentration_warning %}
         <a href="/reports/revenue-by-customer?from_date={{ fy_from }}&amp;to_date={{ fy_to }}"
@@ -74,6 +78,7 @@
           <span class="dot" style="background:var(--warm);"></span>
           {{ _("PSI status · unset") }}
         </a>
+      {% endif %}
       {% endif %}
     </div>
   </div>
@@ -477,7 +482,7 @@
    Detail strips — only render if there's something to say. Replaces the
    loud red/amber banners with prose under hairlines.
    ───────────────────────────────────────────────────────────────────────── #}
-{% if (jurisdiction == 'AU' and gst and (gst.threshold_crossed or gst.threshold_approaching)) or concentration_warning or psi_status == "unsure" %}
+{% if jurisdiction == 'AU' and ((gst and (gst.threshold_crossed or gst.threshold_approaching)) or concentration_warning or psi_status == "unsure") %}
 <section data-widget="compliance" data-widget-title="{{ _('Compliance notes') }}" class="card-hero p-6">
       {% if "psi" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
   <p class="nav-section-label mb-4">{{ _("Compliance notes") }}</p>
