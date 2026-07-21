@@ -462,6 +462,12 @@
          populated, e.g. logged out) so AU behaviour is unchanged when the
          signal is unavailable. #}
       {% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}
+      {# Bookkeeping mode drives the whole sidebar. The cashbook_* routes pass
+         it explicitly in their context; every other page relies on the
+         middleware-resolved request.state value so a cashbook company gets the
+         cashbook sidebar consistently (not just on cashbook pages). Falls back
+         to "full" when unresolved. #}
+      {% set bookkeeping_mode = bookkeeping_mode | default(request.state.active_company_bookkeeping_mode | default("full", true), true) %}
 
       {% if bookkeeping_mode == "cashbook" %}
         {% include "_partials/sidebar_cashbook.html" %}
@@ -634,6 +640,13 @@
           <a href="/reconciliation" class="nav-item is-sub {% if path.startswith('/reconciliation') %}active{% endif %}">
             <i data-lucide="git-pull-request" class="nav-ico"></i>{{ _("Reconciliation") }}
           </a>
+          {% if user_role in ('owner', 'admin') or request.session.get('is_sae_staff') %}
+          {# Import a bank statement (CSV/OFX). The route lives under /admin/imports
+             but a user reconciling looks for it here in Banking, not under Admin. #}
+          <a href="/admin/imports/bank" class="nav-item is-sub {% if path.startswith('/admin/imports/bank') %}active{% endif %}">
+            <i data-lucide="upload" class="nav-ico"></i>{{ _("Import Statement") }}
+          </a>
+          {% endif %}
           <a href="/bank-rules" class="nav-item is-sub {% if path.startswith('/bank-rules') %}active{% endif %}">
             <i data-lucide="wand-sparkles" class="nav-ico"></i>{{ _("Bank Rules") }}
           </a>

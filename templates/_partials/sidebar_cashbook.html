@@ -37,6 +37,18 @@
 </div>
 
 <div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
+  {# Cashbook companies bank-reconcile too: import a statement, then match the
+     lines against the cash-basis records. Statement import/reconcile is CORE
+     bookkeeping (community-available), not a paid bank-feed. #}
+  <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">{{ _("Banking") }}</div>
+  {{ nav_item("/reconciliation", _("Reconciliation"), "/reconciliation") }}
+  {{ nav_item("/bank-statement-lines", _("Statement lines"), "/bank-statement-lines") }}
+  {% if user_role in ('owner', 'admin') or request.session.get('is_sae_staff') %}
+  {{ nav_item("/admin/imports/bank", _("Import statement"), "/admin/imports/bank") }}
+  {% endif %}
+</div>
+
+<div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
   <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1 px-2">{{ _("People & payroll") }}</div>
   {{ nav_item("/employees", _("Employees"), "/employees") }}
   {{ nav_item("/super-funds", _("Super funds"), "/super-funds") }}

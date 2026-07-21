@@ -119,16 +119,25 @@ async def imports_bank_form(request: Request) -> HTMLResponse | RedirectResponse
     bank_accounts: list[dict] = []
     error: str | None = None
 
+    # A bank statement line's ``account_id`` is a foreign key to the CHART OF
+    # ACCOUNTS (accounts.id), and the reconcile screen keys off that same set,
+    # so the import account picker MUST offer the reconcilable ledger accounts
+    # — NOT the separate BankAccount payment-details entity (/api/v1/bank_accounts),
+    # which is empty on a fresh install and whose ids are not valid BSL targets.
+    # (The old /api/v1/bank-accounts call also 404'd — hyphen vs the engine's
+    # /api/v1/reconciliation/accounts path — so the picker was always empty and
+    # import was impossible.) reconciliation/accounts returns a bare list of
+    # {id, code, name}.
     async with api_client(request) as client:
-        resp = await client.get("/api/v1/bank-accounts", params={"limit": 200, "offset": 0})
+        resp = await client.get("/api/v1/reconciliation/accounts")
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
         if resp.is_success:
             payload = resp.json()
-            bank_accounts = payload.get("items", payload) if isinstance(payload, dict) else payload
+            bank_accounts = payload if isinstance(payload, list) else payload.get("items", [])
         else:
-            error = f"Could not load bank accounts: HTTP {resp.status_code}"
+            error = f"Could not load accounts: HTTP {resp.status_code}"
 
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(

@@ -159,9 +159,16 @@ async def test_imports_bank_requires_auth() -> None:
 @pytest.mark.anyio
 @respx.mock
 async def test_imports_bank_renders(respx_mock: respx.MockRouter) -> None:
-    """GET /admin/imports/bank shows file upload form with account picker."""
-    respx_mock.get(f"{_API_BASE}/api/v1/bank-accounts").mock(
-        return_value=Response(200, json={"items": [_MOCK_BANK_ACCT], "total": 1})
+    """GET /admin/imports/bank shows file upload form with account picker.
+
+    The picker is populated from /api/v1/reconciliation/accounts — the
+    reconcilable CHART accounts a statement line's account_id must FK to —
+    NOT the /api/v1/bank-accounts BankAccount entity (which 404'd on the
+    hyphen path and is empty on a fresh install, making import impossible).
+    reconciliation/accounts returns a BARE LIST of {id, code, name}.
+    """
+    route = respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
+        return_value=Response(200, json=[_MOCK_BANK_ACCT])
     )
 
     async with AsyncClient(
@@ -172,7 +179,9 @@ async def test_imports_bank_renders(respx_mock: respx.MockRouter) -> None:
         resp = await client.get("/admin/imports/bank")
 
     assert resp.status_code == 200
+    assert route.called  # regression: picker sourced from reconciliation/accounts
     assert "Business Cheque" in resp.text
+    assert f'value="{_ACCT_ID}"' in resp.text  # option carries the chart-account id
     assert "Preview Import" in resp.text
     assert "enctype" in resp.text  # multipart form
 
