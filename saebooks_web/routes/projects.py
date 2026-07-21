@@ -104,6 +104,9 @@ async def projects_list(
             payload = resp.json()
             projects = payload.get("items", [])
             total = payload.get("total", len(projects))
+        elif resp.status_code == 404:
+            # Feature not enabled on this edition
+            error = "Projects require the Offline edition or higher."
         else:
             error = f"API error: HTTP {resp.status_code}"
 

@@ -417,6 +417,9 @@ async def budgets_list(
             payload = resp.json()
             budgets = payload.get("items", [])
             total = payload.get("total", len(budgets))
+        elif resp.status_code == 404:
+            # Feature not enabled on this edition
+            error = "Budgets require the Offline edition or higher."
         else:
             error = f"API error: HTTP {resp.status_code}"
 

@@ -269,11 +269,13 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
             status_code=400,
         )
 
-    # Build a simple preview from the raw content (line count, first 10 rows).
-    lines_info = [ln.strip() for ln in raw.splitlines() if ln.strip()][:12]
+    # Build a simple preview from the raw content (row count, first 10 lines).
+    all_lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+    # The first line is the CSV header, not a transaction row.
+    data_count = max(0, len(all_lines) - 1)
     proxy_html = (
-        f"<p><strong>Preview:</strong> {len(lines_info)} rows detected.</p>"
-        f"<pre>{'\\n'.join(lines_info[:10])}</pre>"
+        f"<p><strong>Preview:</strong> {data_count} rows detected.</p>"
+        f"<pre>{'\\n'.join(all_lines[:10])}</pre>"
     )
 
     return _TEMPLATES.TemplateResponse(

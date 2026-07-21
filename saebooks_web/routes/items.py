@@ -81,6 +81,9 @@ async def items_list(
             payload = resp.json()
             items = payload.get("items", [])
             total = payload.get("total", len(items))
+        elif resp.status_code == 404:
+            # Feature not enabled on this edition
+            error = "Items and inventory require the Offline edition or higher."
         else:
             error = f"API error: HTTP {resp.status_code}"
 

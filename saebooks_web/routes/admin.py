@@ -5,7 +5,7 @@ Route map
 GET  /admin/sql-tool             — SQL editor + results (HTMX inline)
 POST /admin/sql-tool/execute     — execute query, render results fragment
 GET  /admin/audit                — paginated audit log with entity_type + date filters
-GET  /admin/audit/{snapshot_id}  — single snapshot detail (proxied)
+(audit detail: row_snapshot comes inline on the list endpoint)
 
 API endpoints consumed:
 - GET  /admin/sql          → HTML (we proxy to our own templates instead, using API data)
@@ -25,7 +25,7 @@ API endpoints consumed:
   Alternatively: render our own templates using the API's underlying data.
   We choose to render our own templates for nav consistency.
 
-  Audit JSON API:   GET /api/v1/audit (paginated snapshots list)
+  Audit JSON API:   GET /api/v1/audit-log (tenant-scoped, admin-gated)
   SQL is admin-only; no JSON API — we proxy the form POST and return the raw response.
 
 Auth guard: redirect to /login (303) if no session token.
@@ -191,31 +191,35 @@ async def audit_log(
 ) -> HTMLResponse | RedirectResponse:
     """Render the paginated audit log list.
 
-    Calls ``GET /api/v1/admin/audit-log`` (JSON) on the upstream API and
+    Calls ``GET /api/v1/audit-log`` (JSON) on the upstream API — the
+    tenant-scoped, admin-gated audit trail (RLS-enforced upstream) — and
     renders rows in our own template.
 
-    The upstream returns ``AuditLogEntry`` rows ({id, entity, entity_id,
-    op, actor, at, version, payload}) — we translate them to the field
+    The upstream returns rows ({id, actor_user_id, action, table_name,
+    row_id, row_snapshot, reason, at}) — we translate them to the field
     names the template was written against ({id, table_name, row_id,
     action, performed_by, performed_at}).
 
-    SAE staff only — cross-tenant data.
+    Company admin — a tenant's own audit trail is customer-facing.
+    (The cross-tenant staff surface is the SQL tool, which stays
+    ``_is_sae_staff``.)
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
-    if not _is_sae_staff(request):
-        return HTMLResponse("Forbidden — SAE staff only", status_code=403)
+    if not _is_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
 
     page_size = 50
     offset = max(0, (page - 1) * page_size)
     params: dict[str, object] = {"limit": page_size, "offset": offset}
     if entity_type:
-        params["route"] = entity_type
-    # API expects ISO datetimes; date strings are accepted as date-only ISO.
+        params["table"] = entity_type
+    # Upstream 422s naive datetimes; the form gives date-only strings, so
+    # expand to UTC day bounds.
     if date_from:
-        params["from_ts"] = date_from
+        params["at_from"] = f"{date_from}T00:00:00+00:00"
     if date_to:
-        params["to_ts"] = date_to
+        params["at_to"] = f"{date_to}T23:59:59+00:00"
 
     snapshots: list[dict] = []
     has_next = False
@@ -223,7 +227,7 @@ async def audit_log(
     entity_types: list[str] = []
 
     async with api_client(request) as client:
-        resp = await client.get("/api/v1/admin/audit-log", params=params)
+        resp = await client.get("/api/v1/audit-log", params=params)
 
     if resp.status_code == 401:
         request.session.clear()
@@ -236,14 +240,13 @@ async def audit_log(
         has_next = (offset + len(items)) < total
         # Translate API field names → template field names.
         for r in items:
-            payload = r.get("payload") or {}
             snapshots.append(
                 {
                     "id": r.get("id"),
-                    "table_name": r.get("entity") or "—",
-                    "row_id": str(r.get("entity_id") or ""),
-                    "action": (r.get("op") or "").upper() or "—",
-                    "performed_by": r.get("actor") or payload.get("user_id") or "system",
+                    "table_name": r.get("table_name") or "—",
+                    "row_id": str(r.get("row_id") or ""),
+                    "action": (r.get("action") or "").upper() or "—",
+                    "performed_by": str(r.get("actor_user_id") or "system"),
                     "performed_at": r.get("at"),
                 }
             )
