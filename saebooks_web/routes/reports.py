@@ -30,13 +30,14 @@ from __future__ import annotations
 
 import asyncio
 import calendar
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import period
 from saebooks_web.api_client import api_client
 from saebooks_web.i18n import gettext as _
 from saebooks_web.module_gate import ModuleUnavailable
@@ -58,15 +59,20 @@ def _require_admin(request: Request) -> bool:
     return bool(request.session.get("is_sae_staff")) or role in ("owner", "admin")
 
 
-def _last_fy_end() -> str:
-    """Most recent 30 June (AU FY end), ISO string."""
-    from datetime import date as _date
+def _last_fy_end(fin_year_start_month: int = 7) -> str:
+    """End date (ISO string) of the most recently completed financial year.
 
-    today = _date.today()
-    end = _date(today.year, 6, 30)
-    if end > today:
-        end = _date(today.year - 1, 6, 30)
-    return end.isoformat()
+    Named "_last_fy_end" (not "_au…") — derives from the company's actual
+    ``fin_year_start_month`` via ``saebooks_web.period.fy_bounds_containing``
+    rather than hardcoding 30 June. Defaults to the AU 1 Jul-30 Jun FY when
+    no month is supplied (matches the historical behaviour for callers that
+    haven't been updated to pass one).
+    """
+    today = date.today()
+    fy_start, _fy_end = period.fy_bounds_containing(
+        today, fin_year_start_month=fin_year_start_month
+    )
+    return (fy_start - timedelta(days=1)).isoformat()
 
 
 def _today() -> str:
@@ -98,6 +104,91 @@ def _current_year() -> int:
 
 def _is_htmx(request: Request) -> bool:
     return request.headers.get("HX-Request") == "true"
+
+
+# ---------------------------------------------------------------------------
+# Period picker — shared preset resolution for from/to-date report routes.
+#
+# Precedence: (1) an explicit preset/from_date/to_date on THIS request wins;
+# (2) otherwise the period persisted in the session from the last
+# period-aware page (dashboard or another report) is replayed — presets are
+# re-resolved against *today* so "This FY" stays correct as days roll over,
+# a stored custom range is replayed verbatim; (3) otherwise the route's own
+# hardcoded default (unchanged behaviour for a fresh session / no params).
+# ---------------------------------------------------------------------------
+
+
+def _period_preset_options() -> list[tuple[str, str]]:
+    """Preset (value, label) pairs for the period-picker partial.
+
+    Built inside a request-handling function (not at module import time) so
+    ``_()`` resolves the current request's locale — see
+    ``saebooks_web/i18n/__init__.py``'s module docstring on why gettext is
+    call-time, not env-bound.
+    """
+    return [
+        ("this_fy", _("This FY")),
+        ("last_fy", _("Last FY")),
+        ("calendar_ytd", _("Calendar year to date")),
+        ("trailing_12", _("Trailing 12 months")),
+        ("this_quarter", _("This quarter")),
+    ]
+
+
+async def _fetch_fin_year_start_month(client) -> int:
+    """Fetch the active company's fin_year_start_month; 7 (AU default) on any failure."""
+    return await period.fetch_fin_year_start_month(client)
+
+
+async def _resolve_period_for_request(
+    request: Request,
+    client,
+    preset: str | None,
+    from_date: str | None,
+    to_date: str | None,
+    default_from: str,
+    default_to: str,
+) -> tuple[str, str, str]:
+    """Resolve the effective (from_date, to_date, active_preset) for a
+    period-aware report route, applying session persistence.
+
+    Always writes the resolved period back to the session so the next
+    period-aware page picks it up.
+    """
+    explicit = bool(preset or from_date or to_date)
+
+    if explicit:
+        if preset in period.PRESET_IDS:
+            fin_year_start_month = await _fetch_fin_year_start_month(client)
+            from_, to_, active = period.resolve_period(
+                preset, fin_year_start_month=fin_year_start_month
+            )
+        else:
+            from_ = from_date or default_from
+            to_ = to_date or default_to
+            active = "custom"
+    else:
+        sess_preset = request.session.get("period_preset")
+        if sess_preset in period.PRESET_IDS:
+            fin_year_start_month = await _fetch_fin_year_start_month(client)
+            from_, to_, active = period.resolve_period(
+                sess_preset, fin_year_start_month=fin_year_start_month
+            )
+        elif (
+            sess_preset == "custom"
+            and request.session.get("period_from")
+            and request.session.get("period_to")
+        ):
+            from_ = request.session["period_from"]
+            to_ = request.session["period_to"]
+            active = "custom"
+        else:
+            from_, to_, active = default_from, default_to, "custom"
+
+    request.session["period_preset"] = active
+    request.session["period_from"] = from_
+    request.session["period_to"] = to_
+    return from_, to_, active
 
 
 # ---------------------------------------------------------------------------
@@ -139,6 +230,14 @@ async def close_year_form(
 
     try:
         async with api_client(request) as client:
+            if not through:
+                # Default "through" date is the end of the LAST completed
+                # financial year — derive it from the company's actual
+                # fin_year_start_month, not a hardcoded 30 June (a non-AU /
+                # calendar-year-FY company's last FY doesn't end 30 June).
+                fin_year_start_month = await _fetch_fin_year_start_month(client)
+                through_ = _last_fy_end(fin_year_start_month)
+
             acc_resp = await client.get(
                 "/api/v1/accounts", params={"account_type": "EQUITY", "limit": 200}
             )
@@ -410,20 +509,7 @@ async def statement_pack(
         return RedirectResponse(url="/login", status_code=303)
 
     today = date.today()
-    fy_start = date(
-        today.year if today.month >= 7 else today.year - 1, 7, 1
-    ).isoformat()
     as_of = as_of_date or _today()
-    from_ = from_date or fy_start
-    to_ = to_date or as_of
-
-    # Derive prior-period dates (safe leap-day guard via _subtract_one_year).
-    from_date_obj = date.fromisoformat(from_)
-    to_date_obj = date.fromisoformat(to_)
-    as_of_obj = date.fromisoformat(as_of)
-    prior_from = _subtract_one_year(from_date_obj).isoformat()
-    prior_to = _subtract_one_year(to_date_obj).isoformat()
-    prior_as_of = _subtract_one_year(as_of_obj).isoformat()
 
     pl_report: dict = {}
     bs_report: dict = {}
@@ -433,12 +519,43 @@ async def statement_pack(
     company: dict = {}
     error: str | None = None
     degraded = False
+    # Default fy_start below is overwritten once the company's actual
+    # fin_year_start_month is known; kept as a same-shape fallback so the
+    # variable is always bound even if the company fetch below fails.
+    fy_start = date(today.year if today.month >= 7 else today.year - 1, 7, 1).isoformat()
+    from_ = from_date or fy_start
+    to_ = to_date or as_of
 
     try:
         async with api_client(request) as client:
+            # Fetch the company FIRST (not in the big gather below) — its
+            # fin_year_start_month drives the default `from_` (statement
+            # pack defaults to "this financial year to date", which for a
+            # non-AU / non-default company is NOT 1 July). Reused as the
+            # `company` context var below instead of a second fetch.
+            co_resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
+            if co_resp.is_success:
+                items = co_resp.json().get("items", [])
+                company = items[0] if items else {}
+            if not from_date:
+                fin_year_start_month = company.get("fin_year_start_month") or 7
+                fy_start_d, _fy_end_d = period.fy_bounds_containing(
+                    today, fin_year_start_month=fin_year_start_month
+                )
+                from_ = fy_start_d.isoformat()
+                to_ = to_date or as_of
+
+            # Derive prior-period dates (safe leap-day guard via _subtract_one_year).
+            from_date_obj = date.fromisoformat(from_)
+            to_date_obj = date.fromisoformat(to_)
+            as_of_obj = date.fromisoformat(as_of)
+            prior_from = _subtract_one_year(from_date_obj).isoformat()
+            prior_to = _subtract_one_year(to_date_obj).isoformat()
+            prior_as_of = _subtract_one_year(as_of_obj).isoformat()
+
             if comparative:
                 (
-                    pl_resp, bs_resp, tb_resp, co_resp,
+                    pl_resp, bs_resp, tb_resp,
                     pl_prior_resp, bs_prior_resp,
                 ) = await asyncio.gather(
                     client.get(
@@ -451,7 +568,6 @@ async def statement_pack(
                     client.get(
                         "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
                     ),
-                    client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
                     # Prior-year fetches — in same gather to avoid serialisation.
                     client.get(
                         "/api/v1/reports/profit_loss",
@@ -467,7 +583,7 @@ async def statement_pack(
                 if bs_prior_resp.is_success:
                     bs_prior_raw = bs_prior_resp.json()
             else:
-                pl_resp, bs_resp, tb_resp, co_resp = await asyncio.gather(
+                pl_resp, bs_resp, tb_resp = await asyncio.gather(
                     client.get(
                         "/api/v1/reports/profit_loss",
                         params={"from_date": from_, "to_date": to_},
@@ -478,7 +594,6 @@ async def statement_pack(
                     client.get(
                         "/api/v1/reports/trial_balance", params={"as_of_date": as_of}
                     ),
-                    client.get("/api/v1/companies", params={"limit": 1, "offset": 0}),
                 )
 
             if 401 in (pl_resp.status_code, bs_resp.status_code, tb_resp.status_code):
@@ -492,11 +607,19 @@ async def statement_pack(
                 bs_report = bs_resp.json()
             if tb_resp.is_success:
                 tb_report = tb_resp.json()
-            if co_resp.is_success:
-                items = co_resp.json().get("items", [])
-                company = items[0] if items else {}
     except ModuleUnavailable:
         degraded = True
+    # prior_from/prior_to/prior_as_of are only bound inside the try block
+    # above; if a ModuleUnavailable was raised before they were computed
+    # (company fetch itself failing at the connection level), fall back to
+    # the safe pre-loop defaults so the ctx dict build below never NameErrors.
+    if degraded:
+        from_date_obj = date.fromisoformat(from_)
+        to_date_obj = date.fromisoformat(to_)
+        as_of_obj = date.fromisoformat(as_of)
+        prior_from = _subtract_one_year(from_date_obj).isoformat()
+        prior_to = _subtract_one_year(to_date_obj).isoformat()
+        prior_as_of = _subtract_one_year(as_of_obj).isoformat()
 
     # Build comparative data structures (empty when comparative=False).
     comp_pl: dict = {}
@@ -640,6 +763,7 @@ async def profit_loss(
     request: Request,
     from_date: str | None = None,
     to_date: str | None = None,
+    preset: str | None = None,
     include_draft: bool = False,
     comparative: bool = False,
 ) -> HTMLResponse | RedirectResponse:
@@ -649,25 +773,37 @@ async def profit_loss(
     and passes comp_pl into the template context for the shared fragment to render
     a second "Prior year" column.  Default is False — single-column behaviour
     unchanged for all existing callers.
+
+    ``preset`` (This FY / Last FY / Calendar YTD / Trailing 12 months / This
+    quarter) resolves via ``saebooks_web.period`` and takes precedence over
+    from_date/to_date; the resolved period is persisted to the session (see
+    ``_resolve_period_for_request``) so other period-aware pages pick it up.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    from_ = from_date or _month_start()
-    to_ = to_date or _today()
     report: dict = {}
     error: str | None = None
     gst: dict = {}
     comp_pl: dict = {}
     degraded = False
-
-    from_date_obj = date.fromisoformat(from_)
-    to_date_obj = date.fromisoformat(to_)
-    prior_from = _subtract_one_year(from_date_obj).isoformat()
-    prior_to = _subtract_one_year(to_date_obj).isoformat()
+    from_ = from_date or _month_start()
+    to_ = to_date or _today()
+    prior_from = _subtract_one_year(date.fromisoformat(from_)).isoformat()
+    prior_to = _subtract_one_year(date.fromisoformat(to_)).isoformat()
+    active_preset = "custom"
 
     try:
         async with api_client(request) as client:
+            from_, to_, active_preset = await _resolve_period_for_request(
+                request, client, preset, from_date, to_date,
+                default_from=_month_start(), default_to=_today(),
+            )
+            from_date_obj = date.fromisoformat(from_)
+            to_date_obj = date.fromisoformat(to_)
+            prior_from = _subtract_one_year(from_date_obj).isoformat()
+            prior_to = _subtract_one_year(to_date_obj).isoformat()
+
             if comparative:
                 pl_resp, pl_prior_resp, ytd_resp = await asyncio.gather(
                     client.get(
@@ -729,6 +865,8 @@ async def profit_loss(
         "prior_from": prior_from,
         "prior_to": prior_to,
         "degraded": degraded,
+        "active_preset": active_preset,
+        "preset_options": _period_preset_options(),
     }
 
     template = (
@@ -886,19 +1024,25 @@ async def cashflow(
     request: Request,
     from_date: str | None = None,
     to_date: str | None = None,
+    preset: str | None = None,
 ) -> HTMLResponse | RedirectResponse:
     """Cashflow statement — operating / investing / financing waterfall."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    from_ = from_date or _month_start()
-    to_ = to_date or _today()
     report: dict = {}
     error: str | None = None
     degraded = False
+    from_ = from_date or _month_start()
+    to_ = to_date or _today()
+    active_preset = "custom"
 
     try:
         async with api_client(request) as client:
+            from_, to_, active_preset = await _resolve_period_for_request(
+                request, client, preset, from_date, to_date,
+                default_from=_month_start(), default_to=_today(),
+            )
             resp = await client.get(
                 "/api/v1/reports/cashflow",
                 params={"from_date": from_, "to_date": to_},
@@ -919,6 +1063,8 @@ async def cashflow(
         "to_date": to_,
         "error": error,
         "degraded": degraded,
+        "active_preset": active_preset,
+        "preset_options": _period_preset_options(),
     }
 
     template = (
@@ -1224,20 +1370,26 @@ async def pl_by_segment(
     request: Request,
     from_date: str | None = None,
     to_date: str | None = None,
+    preset: str | None = None,
     segment_type: str = "project",
 ) -> HTMLResponse | RedirectResponse:
     """P&L by segment report — net profit per project/department/cost-centre."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    from_ = from_date or _month_start()
-    to_ = to_date or _month_end()
     report: dict = {}
     error: str | None = None
     degraded = False
+    from_ = from_date or _month_start()
+    to_ = to_date or _month_end()
+    active_preset = "custom"
 
     try:
         async with api_client(request) as client:
+            from_, to_, active_preset = await _resolve_period_for_request(
+                request, client, preset, from_date, to_date,
+                default_from=_month_start(), default_to=_month_end(),
+            )
             resp = await client.get(
                 "/api/v1/reports/pl_by_segment",
                 params={"from_date": from_, "to_date": to_, "segment_type": segment_type},
@@ -1259,6 +1411,8 @@ async def pl_by_segment(
         "segment_type": segment_type,
         "error": error,
         "degraded": degraded,
+        "active_preset": active_preset,
+        "preset_options": _period_preset_options(),
     }
 
     template = (
@@ -1279,19 +1433,25 @@ async def revenue_by_customer(
     request: Request,
     from_date: str | None = None,
     to_date: str | None = None,
+    preset: str | None = None,
 ) -> HTMLResponse | RedirectResponse:
     """Revenue by customer report — invoiced revenue (ex-GST) per contact."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    from_ = from_date or _month_start()
-    to_ = to_date or _month_end()
     report: dict = {}
     error: str | None = None
     degraded = False
+    from_ = from_date or _month_start()
+    to_ = to_date or _month_end()
+    active_preset = "custom"
 
     try:
         async with api_client(request) as client:
+            from_, to_, active_preset = await _resolve_period_for_request(
+                request, client, preset, from_date, to_date,
+                default_from=_month_start(), default_to=_month_end(),
+            )
             resp = await client.get(
                 "/api/v1/reports/revenue_by_customer",
                 params={"from_date": from_, "to_date": to_},
@@ -1312,6 +1472,8 @@ async def revenue_by_customer(
         "to_date": to_,
         "error": error,
         "degraded": degraded,
+        "active_preset": active_preset,
+        "preset_options": _period_preset_options(),
     }
 
     template = (

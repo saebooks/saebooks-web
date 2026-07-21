@@ -26,6 +26,7 @@
 
 <form hx-get="/reports/revenue-by-customer" hx-target="#report-content" hx-swap="innerHTML" hx-indicator="#report-spinner"
       class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
+  {% include "_partials/period_picker.html" %}
   <div>
     <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From date") }}</label>
     <input id="from_date" type="date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">

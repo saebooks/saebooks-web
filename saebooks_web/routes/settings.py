@@ -115,6 +115,13 @@ async def company_settings(
             form[f"address_{key}"] = str(addr.get(key) or "")
         form["gst_registered"] = "true" if company.get("gst_registered") else ""
         form["gst_effective_date"] = str(company.get("gst_effective_date") or "")
+        form["fin_year_start_month"] = str(company.get("fin_year_start_month") or 7)
+        # fin_year_start_day doesn't exist on the engine yet (see
+        # ~/records/saebooks/period-picker-engine-spec-2026-07-21.md) — only
+        # populate the form key when the company payload actually has it, so
+        # the template's "is not none" gate degrades correctly either way.
+        if company.get("fin_year_start_day") is not None:
+            form["fin_year_start_day"] = str(company.get("fin_year_start_day"))
         form["psi_status"] = str(company.get("psi_status") or "unsure")
         # Bad-debt write-off & recovery policy (Phase 2 / Task 8).
         form["writeoff_mode"] = str(company.get("writeoff_mode") or "review")
@@ -198,6 +205,29 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
 
     # gst_registered is a checkbox — present in form data only when checked.
     payload["gst_registered"] = "gst_registered" in form_data
+
+    # Financial year start month — engine supports this today (CompanyUpdate.
+    # fin_year_start_month). "fin_year_start_day" is deliberately NOT sent:
+    # the engine schema doesn't model it yet (see
+    # ~/records/saebooks/period-picker-engine-spec-2026-07-21.md) and would
+    # silently drop an unknown field, making the save look like it worked
+    # when it didn't. The settings template only renders that input
+    # (enabled) when the company payload already carries the field, so it
+    # is only ever submitted once the engine actually supports it.
+    fy_month_raw = form.get("fin_year_start_month", "").strip()
+    if fy_month_raw:
+        try:
+            payload["fin_year_start_month"] = int(fy_month_raw)
+        except ValueError:
+            payload["fin_year_start_month"] = fy_month_raw
+    if "fin_year_start_day" in form:
+        day_raw = form.get("fin_year_start_day", "").strip()
+        if day_raw:
+            try:
+                payload["fin_year_start_day"] = int(day_raw)
+            except ValueError:
+                payload["fin_year_start_day"] = day_raw
+
     psi_status = form.get("psi_status", "").strip()
     if psi_status in ("yes", "no", "unsure"):
         payload["psi_status"] = psi_status

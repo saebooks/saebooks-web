@@ -35,7 +35,9 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import period
 from saebooks_web.api_client import api_client
+from saebooks_web.i18n import gettext as _
 from saebooks_web.module_gate import ModuleUnavailable
 
 logger = logging.getLogger("saebooks_web.dashboard")
@@ -66,15 +68,83 @@ def _this_month_range() -> tuple[str, str]:
     return first.isoformat(), today.isoformat()
 
 
-def _au_fy_range() -> tuple[str, str]:
-    """Return (from, to) ISO date strings for the current Australian FY.
+def _fy_range(fin_year_start_month: int = 7) -> tuple[str, str]:
+    """Return (from, to) ISO date strings for the current financial year.
 
-    Australian FY runs 1 July - 30 June.  If today is before 1 July of the
-    current calendar year the FY started on 1 July of the prior year.
+    Derives from the company's ``fin_year_start_month`` (default 7 = AU,
+    1 July) via ``saebooks_web.period`` — was hardcoded to the AU 1 Jul-30
+    Jun financial year regardless of the company's actual setting; a
+    calendar-year-FY (e.g. Estonian) company now gets 1 January correctly.
+    Used for the PSI 80/20 revenue-concentration check, which is inherently
+    an FY-scoped compliance check (not user-selectable via the period
+    picker — see ``_resolve_pl_snapshot_period`` for the picker-driven P&L
+    snapshot tile).
     """
     today = date.today()
-    fy_start = date(today.year, 7, 1) if today.month >= 7 else date(today.year - 1, 7, 1)
+    fy_start, _fy_end = period.fy_bounds_containing(
+        today, fin_year_start_month=fin_year_start_month
+    )
     return fy_start.isoformat(), today.isoformat()
+
+
+def _pl_snapshot_preset_options() -> list[tuple[str, str]]:
+    """Preset (value, label) pairs for the P&L snapshot's period picker."""
+    return [
+        ("this_fy", _("This FY")),
+        ("last_fy", _("Last FY")),
+        ("calendar_ytd", _("Calendar year to date")),
+        ("trailing_12", _("Trailing 12 months")),
+        ("this_quarter", _("This quarter")),
+    ]
+
+
+def _resolve_pl_snapshot_period(
+    request: Request,
+    preset: str | None,
+    from_date: str | None,
+    to_date: str | None,
+    fin_year_start_month: int,
+) -> tuple[str, str, str]:
+    """Resolve the P&L snapshot tile's (from, to, active_preset).
+
+    Same precedence as ``reports._resolve_period_for_request``: explicit
+    query params > session-persisted period (shared with the report pages
+    via the same "period_preset"/"period_from"/"period_to" session keys) >
+    the tile's own default (this month, unchanged for a fresh session).
+    """
+    default_from, default_to = _this_month_range()
+    explicit = bool(preset or from_date or to_date)
+
+    if explicit:
+        if preset in period.PRESET_IDS:
+            from_, to_, active = period.resolve_period(
+                preset, fin_year_start_month=fin_year_start_month
+            )
+        else:
+            from_ = from_date or default_from
+            to_ = to_date or default_to
+            active = "custom"
+    else:
+        sess_preset = request.session.get("period_preset")
+        if sess_preset in period.PRESET_IDS:
+            from_, to_, active = period.resolve_period(
+                sess_preset, fin_year_start_month=fin_year_start_month
+            )
+        elif (
+            sess_preset == "custom"
+            and request.session.get("period_from")
+            and request.session.get("period_to")
+        ):
+            from_ = request.session["period_from"]
+            to_ = request.session["period_to"]
+            active = "custom"
+        else:
+            from_, to_, active = default_from, default_to, "custom"
+
+    request.session["period_preset"] = active
+    request.session["period_from"] = from_
+    request.session["period_to"] = to_
+    return from_, to_, active
 
 
 def _week_range(offset_weeks: int = 0) -> tuple[str, str]:
@@ -649,18 +719,35 @@ def _budget_tile(bva_report: dict) -> dict:
 
 
 @router.get("/", response_class=HTMLResponse, response_model=None)
-async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
+async def dashboard(
+    request: Request,
+    preset: str | None = None,
+    from_date: str | None = None,
+    to_date: str | None = None,
+) -> HTMLResponse | RedirectResponse:
     """Render the dashboard home page.
 
     Fires all API calls in parallel via asyncio.gather, then computes tile
     data in Python and renders the template.
+
+    ``preset``/``from_date``/``to_date`` drive ONLY the P&L snapshot tile's
+    period (see ``_resolve_pl_snapshot_period``) — the other tiles keep
+    their own intrinsic windows (this week vs last week, 30-day cash
+    sparkline, as-of-today aged AR/AP) which aren't meaningfully
+    picker-selectable. The PSI 80/20 revenue-concentration check stays
+    pinned to the company's actual financial year regardless of the
+    picker — it's a compliance check, not a user preference.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    fy_from, fy_to = _au_fy_range()
-
     async with api_client(request) as client:
+        fin_year_start_month = await period.fetch_fin_year_start_month(client)
+        fy_from, fy_to = _fy_range(fin_year_start_month)
+        pl_from, pl_to, pl_active_preset = _resolve_pl_snapshot_period(
+            request, preset, from_date, to_date, fin_year_start_month
+        )
+
         gather_results = await asyncio.gather(
             # AR tile — open invoices are POSTED (overdue computed in Python)
             _fetch_items(client, "/api/v1/invoices",
@@ -703,7 +790,7 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             _fetch_json(client, "/api/v1/reports/aged_receivables"),
             _fetch_json(client, "/api/v1/reports/aged_payables"),
             _fetch_json(client, "/api/v1/reports/profit_loss",
-                        {"from_date": _this_month_range()[0], "to_date": date.today().isoformat()}),
+                        {"from_date": pl_from, "to_date": pl_to}),
             _fetch_json(client, "/api/v1/reports/budget_vs_actual",
                         {"year": date.today().year, "month": date.today().month}),
             # One failing tile must degrade that tile, not 500 the page:
@@ -848,6 +935,8 @@ async def dashboard(request: Request) -> HTMLResponse | RedirectResponse:
             "top_vendors_month": top_vendors_month,
             "aged_ar_ap": aged_ar_ap,
             "pl_snapshot": pl_snapshot,
+            "pl_active_preset": pl_active_preset,
+            "pl_preset_options": _pl_snapshot_preset_options(),
             "budget_vs_actual": budget_vs_actual,
             "today_iso": date.today().isoformat(),
             "degraded_tiles": degraded_tiles,

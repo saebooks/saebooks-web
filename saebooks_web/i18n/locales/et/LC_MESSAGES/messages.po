@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-20 15:54+0300\n"
+"POT-Creation-Date: 2026-07-21 21:49+1000\n"
 "PO-Revision-Date: 2026-07-12 11:41+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: et\n"
@@ -101,6 +101,31 @@ msgstr ""
 #: saebooks_web/routes/companies.py:209
 msgid "Company created."
 msgstr "Ettevõte loodud."
+
+#: saebooks_web/routes/dashboard.py:93 saebooks_web/routes/reports.py:130
+#: templates/cashbook/report.html:30
+msgid "This FY"
+msgstr "See FY"
+
+#: saebooks_web/routes/dashboard.py:94 saebooks_web/routes/reports.py:131
+#: templates/cashbook/report.html:30
+msgid "Last FY"
+msgstr "Viimane FY"
+
+#: saebooks_web/routes/dashboard.py:95 saebooks_web/routes/reports.py:132
+#, fuzzy
+msgid "Calendar year to date"
+msgstr "Kalendriaasta senini"
+
+#: saebooks_web/routes/dashboard.py:96 saebooks_web/routes/reports.py:133
+#, fuzzy
+msgid "Trailing 12 months"
+msgstr "12 kuud"
+
+#: saebooks_web/routes/dashboard.py:97 saebooks_web/routes/reports.py:134
+#: templates/cashbook/report.html:30
+msgid "This quarter"
+msgstr "See kvartal"
 
 #: saebooks_web/routes/group_overview.py:150
 #, fuzzy, python-format
@@ -345,14 +370,14 @@ msgstr "Sobituse väärtus"
 msgid "Auto-match failed (HTTP %(code)s)."
 msgstr "Automatš ebaõnnestus (HTTP %(code)s)."
 
-#: saebooks_web/routes/reports.py:170 saebooks_web/routes/reports.py:490
-#: saebooks_web/routes/reports.py:560 saebooks_web/routes/reports.py:612
-#: saebooks_web/routes/reports.py:699 saebooks_web/routes/reports.py:791
-#: saebooks_web/routes/reports.py:859 saebooks_web/routes/reports.py:912
-#: saebooks_web/routes/reports.py:969 saebooks_web/routes/reports.py:1020
-#: saebooks_web/routes/reports.py:1104 saebooks_web/routes/reports.py:1196
-#: saebooks_web/routes/reports.py:1251 saebooks_web/routes/reports.py:1305
-#: saebooks_web/routes/reports.py:1381
+#: saebooks_web/routes/reports.py:269 saebooks_web/routes/reports.py:605
+#: saebooks_web/routes/reports.py:683 saebooks_web/routes/reports.py:735
+#: saebooks_web/routes/reports.py:835 saebooks_web/routes/reports.py:929
+#: saebooks_web/routes/reports.py:997 saebooks_web/routes/reports.py:1056
+#: saebooks_web/routes/reports.py:1115 saebooks_web/routes/reports.py:1166
+#: saebooks_web/routes/reports.py:1250 saebooks_web/routes/reports.py:1342
+#: saebooks_web/routes/reports.py:1403 saebooks_web/routes/reports.py:1465
+#: saebooks_web/routes/reports.py:1543
 #, fuzzy, python-format
 msgid "The report could not be loaded (HTTP %(code)s)."
 msgstr "Aruannet ei saanud laadida (HTTP %(code)s)."
@@ -1130,7 +1155,7 @@ msgstr "Sobita"
 #: templates/budgets/_form_fields.html:46 templates/budgets/_table.html:25
 #: templates/budgets/detail.html:88 templates/contacts/detail.html:136
 #: templates/credit_notes/_form_fields.html:169
-#: templates/credit_notes/_line_row.html:18 templates/dashboard.html:692
+#: templates/credit_notes/_line_row.html:18 templates/dashboard.html:703
 #: templates/expenses/new.html:81 templates/inbox/review.html:223
 #: templates/invoices/_form_fields.html:141 templates/invoices/_line_row.html:7
 #: templates/journal_entries/_form_fields.html:110
@@ -1179,13 +1204,13 @@ msgstr "Põhivara"
 #: templates/bills/_line_row.html:44 templates/invoices/_form_fields.html:146
 #: templates/invoices/_line_row.html:47
 #: templates/purchase_orders/_form_fields.html:141
-#: templates/reports/pl_by_segment.html:41 templates/time_entries/edit.html:42
+#: templates/reports/pl_by_segment.html:42 templates/time_entries/edit.html:42
 #: templates/time_entries/list.html:56 templates/time_entries/list.html:113
 #: templates/time_entries/new.html:42
 msgid "Project"
 msgstr "Projekt"
 
-#: templates/base.html:994 templates/dashboard.html:693
+#: templates/base.html:994 templates/dashboard.html:704
 #: templates/reports/_budget_vs_actual_table.html:35
 #: templates/reports/budget_vs_actual.html:16 templates/reports/index.html:113
 msgid "Budget"
@@ -1342,7 +1367,7 @@ msgid "invoices →"
 msgstr "arved →"
 
 #: templates/contacts/_form_fields.html:60 templates/dashboard.html:222
-#: templates/dashboard.html:279 templates/settings/company.html:375
+#: templates/dashboard.html:279 templates/settings/company.html:447
 msgid "State"
 msgstr "Osariik"
 
@@ -1567,7 +1592,7 @@ msgstr "Tarnija"
 #: templates/credit_notes/detail.html:131
 #: templates/credit_notes/detail.html:177
 #: templates/credit_notes/detail.html:212 templates/dashboard.html:586
-#: templates/dashboard.html:638 templates/dashboard.html:708
+#: templates/dashboard.html:638 templates/dashboard.html:719
 #: templates/expenses/_table.html:32 templates/expenses/detail.html:65
 #: templates/inbox/_table.html:20 templates/inbox/review.html:451
 #: templates/invoices/_table.html:34 templates/invoices/detail.html:114
@@ -1596,8 +1621,8 @@ msgstr "Sel kuul veel arveid ei ole."
 msgid "Aged AR vs AP"
 msgstr "Vananenud AR vs AP"
 
-#: templates/dashboard.html:616 templates/dashboard.html:657
-#: templates/dashboard.html:686
+#: templates/dashboard.html:616 templates/dashboard.html:660
+#: templates/dashboard.html:697
 #, fuzzy
 msgid "Full report →"
 msgstr "täielik aruanne →"
@@ -1622,19 +1647,25 @@ msgstr "Ostuvõlad"
 msgid "No aged balances to show."
 msgstr "Vanuselisi saldosid pole ette näidata."
 
-#: templates/dashboard.html:650 templates/dashboard.html:656
-#, fuzzy
-msgid "Profit · this month"
-msgstr "Sularaha · sel kuul"
+#: templates/dashboard.html:650 templates/dashboard.html:657
+#: templates/reports/index.html:36 templates/reports/profit_loss.html:3
+#: templates/reports/profit_loss.html:19
+msgid "Profit & Loss"
+msgstr "Kasumiaruanne"
 
-#: templates/dashboard.html:661 templates/overviews/inventory.html:73
+#: templates/_partials/period_picker.html:20 templates/dashboard.html:662
+#, fuzzy
+msgid "Period"
+msgstr "Periood"
+
+#: templates/dashboard.html:672 templates/overviews/inventory.html:73
 #: templates/reports/index.html:131
 #: templates/reports/revenue_by_customer.html:16
 msgid "Revenue"
 msgstr "Tulud"
 
 #: templates/_partials/sidebar_cashbook.html:36 templates/accounts/list.html:45
-#: templates/dashboard.html:665 templates/expenses/list.html:3
+#: templates/dashboard.html:676 templates/expenses/list.html:3
 #: templates/expenses/list.html:15 templates/journal_entries/list.html:105
 #: templates/reports/_profit_loss_table.html:77
 #: templates/reports/_profit_loss_table.html:203
@@ -1642,74 +1673,74 @@ msgstr "Tulud"
 msgid "Expenses"
 msgstr "Kulud"
 
-#: templates/dashboard.html:669
+#: templates/dashboard.html:680
 #, fuzzy
 msgid "Net profit"
 msgstr "Netokasum"
 
-#: templates/dashboard.html:672
+#: templates/dashboard.html:683
 #, fuzzy, python-format
 msgid "%(pct)s%% margin"
 msgstr "%(pct)s%% / kuu"
 
-#: templates/dashboard.html:679 templates/dashboard.html:685
+#: templates/dashboard.html:690 templates/dashboard.html:696
 #, fuzzy
 msgid "Budget vs actual · this month"
 msgstr "Eelarve vs tegelik"
 
-#: templates/dashboard.html:694
+#: templates/dashboard.html:705
 #: templates/reports/_budget_vs_actual_table.html:36
 msgid "Actual"
 msgstr "Tegelik"
 
-#: templates/dashboard.html:695
+#: templates/dashboard.html:706
 #: templates/reports/_budget_vs_actual_table.html:37
 msgid "Variance"
 msgstr "Hälve"
 
-#: templates/dashboard.html:716
+#: templates/dashboard.html:727
 #, fuzzy
 msgid "No budget set for this month — create one under Budgets."
 msgstr "Selle kuu eelarve ei ole ette nähtud — looge eelarve alusel üks."
 
-#: templates/dashboard.html:738
+#: templates/dashboard.html:749
 msgid "Hello"
 msgstr "Tere"
 
-#: templates/dashboard.html:739
+#: templates/dashboard.html:750
 msgid "Good morning"
 msgstr "Tere hommikust"
 
-#: templates/dashboard.html:740
+#: templates/dashboard.html:751
 msgid "Good afternoon"
 msgstr "Tere päevast"
 
-#: templates/dashboard.html:741
+#: templates/dashboard.html:752
 msgid "Good evening"
 msgstr "Tere õhtust"
 
-#: templates/dashboard.html:1024 templates/dashboard.html:1033
+#: templates/dashboard.html:1035 templates/dashboard.html:1044
 msgid "Add widget"
 msgstr "Lisa vidin"
 
-#: templates/dashboard.html:1026
+#: templates/dashboard.html:1037
 msgid "Drag here to hide"
 msgstr "Lohista siia peitu"
 
-#: templates/dashboard.html:1027
+#: templates/dashboard.html:1038
 msgid "Reset layout to defaults"
 msgstr "Lähtesta paigutus vaikeseadetele"
 
-#: templates/dashboard.html:1028 templates/employees/list.html:56
+#: templates/dashboard.html:1039 templates/employees/list.html:56
 #: templates/time_entries/list.html:98
 msgid "Reset"
 msgstr "Lähtesta"
 
-#: templates/dashboard.html:1034
+#: templates/dashboard.html:1045
 msgid "Hidden widgets you can return to the dashboard:"
 msgstr "Varjatud vidinad, mille saad töölauale tagasi tuua:"
 
-#: templates/dashboard.html:1037 templates/purchase_orders/_table.html:80
+#: templates/dashboard.html:1048 templates/purchase_orders/_table.html:80
 #: templates/purchase_orders/detail.html:93
 msgid "Close"
 msgstr "Sulge"
@@ -1996,6 +2027,11 @@ msgstr "hävib 30 minuti jooksul pärast tegevusetust"
 #: templates/_partials/demo_banner.html:33
 msgid "View isolation proof"
 msgstr "Vaata isolatsiooni tõestust"
+
+#: templates/_partials/period_picker.html:31
+#, fuzzy
+msgid "Custom range"
+msgstr "Kohandatud valik"
 
 #: templates/_partials/review_flag.html:38
 #, python-format
@@ -3657,7 +3693,7 @@ msgstr "Teie nimi"
 #: templates/payments/_form_fields.html:118
 #: templates/purchase_orders/_form_fields.html:65
 #: templates/purchase_orders/_form_fields.html:81 templates/quotes/list.html:61
-#: templates/settings/company.html:308
+#: templates/settings/company.html:380
 msgid "optional"
 msgstr "valikuline"
 
@@ -5066,62 +5102,63 @@ msgid "— select month —"
 msgstr "- vali kuu -"
 
 #: templates/budgets/_form_fields.html:107 templates/budgets/detail.html:8
-#: templates/budgets/list.html:56
+#: templates/budgets/list.html:56 templates/settings/company.html:212
 msgid "January"
 msgstr "Jaanuar"
 
 #: templates/budgets/_form_fields.html:107 templates/budgets/detail.html:8
-#: templates/budgets/list.html:56
+#: templates/budgets/list.html:56 templates/settings/company.html:212
 msgid "February"
 msgstr "Veebruar"
 
 #: templates/budgets/_form_fields.html:107 templates/budgets/detail.html:8
-#: templates/budgets/list.html:56
+#: templates/budgets/list.html:56 templates/settings/company.html:212
 msgid "March"
 msgstr "Märts"
 
 #: templates/budgets/_form_fields.html:107 templates/budgets/detail.html:8
-#: templates/budgets/list.html:56
+#: templates/budgets/list.html:56 templates/settings/company.html:212
 msgid "April"
 msgstr "Aprill"
 
 #: templates/budgets/_form_fields.html:108 templates/budgets/_table.html:46
 #: templates/budgets/detail.html:8 templates/budgets/list.html:57
+#: templates/settings/company.html:213
 msgid "May"
 msgstr "Mai"
 
 #: templates/budgets/_form_fields.html:108 templates/budgets/detail.html:8
-#: templates/budgets/list.html:57
+#: templates/budgets/list.html:57 templates/settings/company.html:213
 msgid "June"
 msgstr "Juuni"
 
 #: templates/budgets/_form_fields.html:108 templates/budgets/detail.html:8
-#: templates/budgets/list.html:57
+#: templates/budgets/list.html:57 templates/settings/company.html:213
 msgid "July"
 msgstr "Juuli"
 
 #: templates/budgets/_form_fields.html:108 templates/budgets/detail.html:8
-#: templates/budgets/list.html:57
+#: templates/budgets/list.html:57 templates/settings/company.html:213
 msgid "August"
 msgstr "August"
 
 #: templates/budgets/_form_fields.html:109 templates/budgets/detail.html:8
-#: templates/budgets/list.html:58
+#: templates/budgets/list.html:58 templates/settings/company.html:214
 msgid "September"
 msgstr "September"
 
 #: templates/budgets/_form_fields.html:109 templates/budgets/detail.html:8
-#: templates/budgets/list.html:58
+#: templates/budgets/list.html:58 templates/settings/company.html:214
 msgid "October"
 msgstr "Oktoober"
 
 #: templates/budgets/_form_fields.html:109 templates/budgets/detail.html:8
-#: templates/budgets/list.html:58
+#: templates/budgets/list.html:58 templates/settings/company.html:214
 msgid "November"
 msgstr "November"
 
 #: templates/budgets/_form_fields.html:109 templates/budgets/detail.html:8
-#: templates/budgets/list.html:58
+#: templates/budgets/list.html:58 templates/settings/company.html:214
 msgid "December"
 msgstr "Detsember"
 
@@ -5641,18 +5678,6 @@ msgstr "Sularaha aruanne"
 msgid "Totals by period"
 msgstr "Kokkuvõtted perioodide lõikes"
 
-#: templates/cashbook/report.html:30
-msgid "This quarter"
-msgstr "See kvartal"
-
-#: templates/cashbook/report.html:30
-msgid "This FY"
-msgstr "See FY"
-
-#: templates/cashbook/report.html:30
-msgid "Last FY"
-msgstr "Viimane FY"
-
 #: templates/cashbook/report.html:37
 msgid "Custom:"
 msgstr "Kohandatud:"
@@ -6120,7 +6145,7 @@ msgstr "Telefon"
 #: templates/contacts/_form_fields.html:55 templates/contacts/detail.html:103
 #: templates/employees/detail.html:194 templates/employees/edit.html:168
 #: templates/employees/new.html:176 templates/inbox/email_addresses.html:59
-#: templates/settings/company.html:330
+#: templates/settings/company.html:402
 msgid "Address"
 msgstr "Aadress"
 
@@ -6134,16 +6159,16 @@ msgstr "Aadressirida 2"
 
 #: templates/contacts/_form_fields.html:59 templates/contacts/list.html:80
 #: templates/parties/contacts_bucket.html:61
-#: templates/settings/company.html:362
+#: templates/settings/company.html:434
 msgid "City"
 msgstr "Linn"
 
 #: templates/contacts/_form_fields.html:61 templates/employees/edit.html:195
-#: templates/employees/new.html:203 templates/settings/company.html:391
+#: templates/employees/new.html:203 templates/settings/company.html:463
 msgid "Postcode"
 msgstr "Postkood"
 
-#: templates/contacts/_form_fields.html:62 templates/settings/company.html:404
+#: templates/contacts/_form_fields.html:62 templates/settings/company.html:476
 msgid "Country"
 msgstr "Riik"
 
@@ -11810,12 +11835,12 @@ msgstr "Alates kuupäevast"
 #: templates/reports/balance_sheet.html:39 templates/reports/bas_payg.html:40
 #: templates/reports/bas_summary.html:37
 #: templates/reports/budget_vs_actual.html:48
-#: templates/reports/cashflow.html:37
+#: templates/reports/cashflow.html:38
 #: templates/reports/depreciation_schedule.html:43
 #: templates/reports/fx_revaluation.html:33
-#: templates/reports/pl_by_segment.html:46
-#: templates/reports/profit_loss.html:49
-#: templates/reports/revenue_by_customer.html:37
+#: templates/reports/pl_by_segment.html:47
+#: templates/reports/profit_loss.html:50
+#: templates/reports/revenue_by_customer.html:38
 #: templates/reports/trial_balance.html:45
 msgid "Refresh"
 msgstr "Värskenda"
@@ -11843,7 +11868,7 @@ msgid "Statement"
 msgstr "Aruanne"
 
 #: templates/reports/balance_sheet.html:37
-#: templates/reports/profit_loss.html:47
+#: templates/reports/profit_loss.html:48
 #: templates/reports/trial_balance.html:43
 msgid "Compare to prior year"
 msgstr "Võrrelge eelneva aastaga"
@@ -11862,16 +11887,16 @@ msgid "GST (1A/1B) and PAYG withholding (W1/W2) worksheet for the period."
 msgstr "Perioodi GST (1A/1B) ja PAYG kinnipidamise (W1/W2) tööleht."
 
 #: templates/reports/bas_payg.html:33 templates/reports/bas_summary.html:30
-#: templates/reports/cashflow.html:30 templates/reports/pl_by_segment.html:30
-#: templates/reports/profit_loss.html:30
-#: templates/reports/revenue_by_customer.html:30
+#: templates/reports/cashflow.html:31 templates/reports/pl_by_segment.html:31
+#: templates/reports/profit_loss.html:31
+#: templates/reports/revenue_by_customer.html:31
 msgid "From date"
 msgstr "Alates kuupäevast"
 
 #: templates/reports/bas_payg.html:37 templates/reports/bas_summary.html:34
-#: templates/reports/cashflow.html:34 templates/reports/pl_by_segment.html:34
-#: templates/reports/profit_loss.html:34
-#: templates/reports/revenue_by_customer.html:34
+#: templates/reports/cashflow.html:35 templates/reports/pl_by_segment.html:35
+#: templates/reports/profit_loss.html:35
+#: templates/reports/revenue_by_customer.html:35
 msgid "To date"
 msgstr "Kuni kuupäev"
 
@@ -12009,11 +12034,6 @@ msgstr "Raamatukogu"
 msgid "Financial statements and analysis"
 msgstr "Finantsaruanded ja analüüs"
 
-#: templates/reports/index.html:36 templates/reports/profit_loss.html:3
-#: templates/reports/profit_loss.html:19
-msgid "Profit & Loss"
-msgstr "Kasumiaruanne"
-
 #: templates/reports/index.html:37
 msgid "Income, expenses and net profit for a date range."
 msgstr "Tulud, kulud ja puhaskasum kuupäevavahemiku jaoks."
@@ -12113,37 +12133,37 @@ msgstr "Avatud välisvaluutas müügi- ja ostuarved, ümber hinnatud hetkekursig
 msgid "GST 1A/1B plus PAYG withholding W1/W2 and amount payable to the ATO."
 msgstr "GST 1A/1B pluss PAYG kinnipidamine W1/W2 ja ATO-le makstav summa."
 
-#: templates/reports/pl_by_segment.html:38
+#: templates/reports/pl_by_segment.html:39
 msgid "Segment type"
 msgstr "Segmendi tüüp"
 
-#: templates/reports/pl_by_segment.html:42
+#: templates/reports/pl_by_segment.html:43
 msgid "Department"
 msgstr "Osakond"
 
-#: templates/reports/pl_by_segment.html:43
+#: templates/reports/pl_by_segment.html:44
 msgid "Cost Centre"
 msgstr "Kulukeskus"
 
-#: templates/reports/profit_loss.html:41
+#: templates/reports/profit_loss.html:42
 msgid "Include drafts"
 msgstr "Kaasa mustandid"
 
-#: templates/reports/profit_loss.html:57
+#: templates/reports/profit_loss.html:58
 msgid "GST threshold crossed — register within 21 days"
 msgstr "GST lävend ületatud — registreeri 21 päeva jooksul"
 
-#: templates/reports/profit_loss.html:59
+#: templates/reports/profit_loss.html:60
 #, python-format
 msgid "Approaching $75k GST threshold (%(pct)s%%)"
 msgstr "Läheneb $75k GST lävele (%(pct)s%%)"
 
-#: templates/reports/profit_loss.html:62
+#: templates/reports/profit_loss.html:63
 #, python-format
 msgid "AUD %(amount)s YTD"
 msgstr "AUD %(amount)s YTD"
 
-#: templates/reports/profit_loss.html:65
+#: templates/reports/profit_loss.html:66
 msgid "ATO →"
 msgstr "ATO →"
 
@@ -12316,11 +12336,49 @@ msgstr "Kehtiv kuupäev"
 msgid "date registration began"
 msgstr "kuupäev, mil registreerimine algas"
 
-#: templates/settings/company.html:193
+#: templates/settings/company.html:192
+#, fuzzy
+msgid "Financial year"
+msgstr "Majandusaasta"
+
+#: templates/settings/company.html:195
+#, fuzzy
+msgid ""
+"Drives the reports period picker's financial-year presets and the year-"
+"end close default. Australian companies default to 1 July."
+msgstr ""
+"Ajendab aruannete perioodi valija majandusaasta eelseadistusi ja "
+"aastalõpu sulgemist. Austraalia firmad vaikimisi 1. juulile."
+
+#: templates/settings/company.html:201
+#, fuzzy
+msgid "Start month"
+msgstr "Alguskuu"
+
+#: templates/settings/company.html:225
+#, fuzzy
+msgid "Start day"
+msgstr "Alguspäev"
+
+#: templates/settings/company.html:252
+#, fuzzy
+msgid ""
+"Custom start day is coming soon — every financial year currently starts "
+"on the 1st of the start month."
+msgstr ""
+"Custom stardipäev on peagi saabumas — iga majandusaasta algab praegu "
+"stardikuu 1. kuupäeval."
+
+#: templates/settings/company.html:257
+#, fuzzy
+msgid "Coming soon — day is fixed to the 1st for now."
+msgstr "Varsti saabumine — päev on praeguseks fikseeritud 1."
+
+#: templates/settings/company.html:265
 msgid "Business Classification (PSI)"
 msgstr "Äriklassifikatsioon (PSI)"
 
-#: templates/settings/company.html:196
+#: templates/settings/company.html:268
 msgid ""
 "If most of your income comes from your personal skills or efforts, the "
 "ATO may classify it as Personal Services Income (PSI). This affects which"
@@ -12330,27 +12388,27 @@ msgstr ""
 "pingutustest, võib ATO selle liigitada personaalsete teenuste "
 "sissetulekuks (PSI). See mõjutab, milliseid mahaarvamisi saate nõuda."
 
-#: templates/settings/company.html:199
+#: templates/settings/company.html:271
 msgid "80/20 rule & PSI info →"
 msgstr "80/20 reegel & PSI info →"
 
-#: templates/settings/company.html:204
+#: templates/settings/company.html:276
 msgid "Yes — I have a PSI determination (or clearly pass the 80/20 test)"
 msgstr "Jah — mul on PSI otsus (või läbin selgelt 80/20 testi)"
 
-#: templates/settings/company.html:205
+#: templates/settings/company.html:277
 msgid "No — I am not a Personal Services Business"
 msgstr "Ei — ma ei ole Personal Services Business"
 
-#: templates/settings/company.html:206
+#: templates/settings/company.html:278
 msgid "Unsure — I need to check my PSI status"
 msgstr "Pole kindel — pean kontrollima oma PSI staatust"
 
-#: templates/settings/company.html:224
+#: templates/settings/company.html:296
 msgid "Bad-debt write-off & recovery"
 msgstr "Lootusetu nõude mahakandmine ja sissenõudmine"
 
-#: templates/settings/company.html:227
+#: templates/settings/company.html:299
 #, python-format
 msgid ""
 "How %(brand)s handles invoices that go unpaid long enough to be treated "
@@ -12361,11 +12419,11 @@ msgstr ""
 "neid lugeda lootusetuks nõudeks, ja raha, mis hiljem laekub juba maha "
 "kantud nõude katteks."
 
-#: templates/settings/company.html:232
+#: templates/settings/company.html:304
 msgid "Write-off mode"
 msgstr "Mahakandmise režiim"
 
-#: templates/settings/company.html:235
+#: templates/settings/company.html:307
 msgid ""
 "Review — flag overdue invoices on a candidate screen; I write each one "
 "off manually"
@@ -12373,21 +12431,21 @@ msgstr ""
 "Ülevaatus — märgi ületähtajalised arved kandidaatide ekraanile; kannan "
 "igaühe käsitsi maha"
 
-#: templates/settings/company.html:236
+#: templates/settings/company.html:308
 msgid ""
 "Auto — a scheduled job writes off invoices past the threshold "
 "automatically"
 msgstr "Auto — plaaniline töö kannab künnise ületanud arved automaatselt maha"
 
-#: templates/settings/company.html:237
+#: templates/settings/company.html:309
 msgid "Manual — no prompts; I write off invoices myself when I choose"
 msgstr "Käsitsi — viipeid pole; kannan arved ise maha, millal soovin"
 
-#: templates/settings/company.html:258
+#: templates/settings/company.html:330
 msgid "Write-off threshold (days past due)"
 msgstr "Mahakandmise künnis (päevi üle tähtaja)"
 
-#: templates/settings/company.html:273
+#: templates/settings/company.html:345
 msgid ""
 "An invoice older than this many days past its due date, with a balance "
 "owing, becomes a write-off candidate. Default 90."
@@ -12395,11 +12453,11 @@ msgstr ""
 "Arve, mis on maksetähtajast rohkem kui nii mitu päeva vanem ja millel on "
 "tasumata saldo, muutub mahakandmise kandidaadiks. Vaikimisi 90."
 
-#: templates/settings/company.html:282
+#: templates/settings/company.html:354
 msgid "Recovery mode"
 msgstr "Taasterežiim"
 
-#: templates/settings/company.html:285
+#: templates/settings/company.html:357
 msgid ""
 "Smart prompt — when a receipt matches a customer with a written-off "
 "invoice, ask whether to treat it as a bad-debt recovery"
@@ -12407,11 +12465,11 @@ msgstr ""
 "Nutikas viip — kui laekumine sobib kliendiga, kellel on maha kantud arve,"
 " küsi, kas käsitleda seda lootusetu nõude tagasilaekumisena"
 
-#: templates/settings/company.html:286
+#: templates/settings/company.html:358
 msgid "Manual — never prompt; I record recoveries myself"
 msgstr "Käsitsi — ei küsi kunagi; salvestan tagasilaekumised ise"
 
-#: templates/settings/company.html:287
+#: templates/settings/company.html:359
 msgid ""
 "Reopen — (coming soon) re-open the original invoice instead of posting a "
 "recovery"
@@ -12419,15 +12477,15 @@ msgstr ""
 "Taasavamine — (tuleb varsti) avatakse tagasilaekumise postitamise asemel "
 "algne arve uuesti"
 
-#: templates/settings/company.html:308
+#: templates/settings/company.html:380
 msgid "Bad-debt recovery account"
 msgstr "Lootusetu nõude sissenõudmise konto"
 
-#: templates/settings/company.html:315
+#: templates/settings/company.html:387
 msgid "leave blank — engine resolves 4-1290 Bad Debt Recovery"
 msgstr "jäta tühjaks — mootor kasutab kontot 4-1290 Bad Debt Recovery"
 
-#: templates/settings/company.html:322
+#: templates/settings/company.html:394
 msgid ""
 "Account code recovered amounts are credited to. Blank lets the engine use"
 " the default 4-1290 Bad Debt Recovery account."
@@ -12435,19 +12493,19 @@ msgstr ""
 "Kontokood, kuhu tagasilaekunud summad krediteeritakse. Tühjaks jätmisel "
 "kasutab mootor vaikimisi kontot 4-1290 Bad Debt Recovery."
 
-#: templates/settings/company.html:333
+#: templates/settings/company.html:405
 msgid "Line 1"
 msgstr "Rida 1"
 
-#: templates/settings/company.html:347
+#: templates/settings/company.html:419
 msgid "Line 2"
 msgstr "Rida 2"
 
-#: templates/settings/company.html:426
+#: templates/settings/company.html:498
 msgid "Save settings"
 msgstr "Salvesta seaded"
 
-#: templates/settings/company.html:435
+#: templates/settings/company.html:507
 msgid "No company record found. Contact your administrator."
 msgstr "Firmakirjet ei leitud. Võta ühendust oma administraatoriga."
 

@@ -1,0 +1,33 @@
+{#
+  Period picker — preset chip row for a from/to-date report form.
+
+  MUST be included INSIDE the enclosing <form> (it renders <button
+  type="submit" name="preset" value="...">) so a click submits the form
+  exactly like the existing "Refresh" button, carrying every other field
+  already in that form (from_date/to_date/comparative/segment_type/etc.)
+  along with it. The route resolves `preset` via
+  saebooks_web.period.resolve_period() — see reports.py's
+  `_resolve_period_for_request` helper.
+
+  Context (from the parent template, passed through via default Jinja
+  include-with-context):
+    preset_options  — list[(value, label)] built in the ROUTE (not this
+                       partial) so labels go through the extraction-safe
+                       i18n path already used by cashbook.py's preset row.
+    active_preset   — the currently-resolved preset id ("this_fy", …,
+                       or "custom" for an explicit/typed range).
+#}
+<div class="flex flex-wrap gap-1.5 mb-1 w-full" role="group" aria-label="{{ _('Period') }}">
+  {% for pvalue, plabel in preset_options %}
+  <button type="submit" name="preset" value="{{ pvalue }}"
+          class="chip text-xs"
+          {% if active_preset == pvalue %}aria-current="true" style="border-color:var(--sae);color:var(--sae);"{% endif %}>
+    {{ plabel }}
+  </button>
+  {% endfor %}
+  <button type="submit" name="preset" value="custom"
+          class="chip text-xs"
+          {% if active_preset == 'custom' %}aria-current="true" style="border-color:var(--sae);color:var(--sae);"{% endif %}>
+    {{ _("Custom range") }}
+  </button>
+</div>

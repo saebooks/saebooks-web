@@ -187,6 +187,78 @@
     </fieldset>
     {% endif %}{# jurisdiction == 'AU' — ABN + GST registration fieldset #}
 
+    {# ── Financial year ── #}
+    <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
+      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Financial year") }}</legend>
+
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+        {{ _("Drives the reports period picker's financial-year presets and the year-end close default. Australian companies default to 1 July.") }}
+      </p>
+
+      <div class="flex flex-wrap items-end gap-4">
+        <div>
+          <label for="fin_year_start_month" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ _("Start month") }}
+          </label>
+          <select
+            id="fin_year_start_month"
+            name="fin_year_start_month"
+            class="block w-40 rounded-md border {{ 'border-red-400 dark:border-red-500' if errors.get('fin_year_start_month') else 'border-gray-300 dark:border-gray-600' }}
+                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                   px-3 py-2 text-sm shadow-sm
+                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+          >
+            {% for m, mlabel in [
+                (1, _('January')), (2, _('February')), (3, _('March')), (4, _('April')),
+                (5, _('May')), (6, _('June')), (7, _('July')), (8, _('August')),
+                (9, _('September')), (10, _('October')), (11, _('November')), (12, _('December'))] %}
+            <option value="{{ m }}" {% if (form.get('fin_year_start_month', '7')|int) == m %}selected{% endif %}>{{ mlabel }}</option>
+            {% endfor %}
+          </select>
+          {% if errors.get('fin_year_start_month') %}
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['fin_year_start_month'] }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="fin_year_start_day" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ _("Start day") }}
+          </label>
+          {# Day-of-month precision is gated on an engine field
+             (fin_year_start_day) that doesn't exist yet — see
+             ~/records/saebooks/period-picker-engine-spec-2026-07-21.md.
+             We detect its presence on the company payload rather than
+             hardcoding a flag: once the engine field lands, this control
+             unlocks with no further web change needed. #}
+          {% if company.get('fin_year_start_day') is not none %}
+          <input
+            type="number"
+            id="fin_year_start_day"
+            name="fin_year_start_day"
+            min="1"
+            max="31"
+            value="{{ form.get('fin_year_start_day', company.get('fin_year_start_day', 1)) }}"
+            class="block w-24 rounded-md border border-gray-300 dark:border-gray-600
+                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                   px-3 py-2 text-sm shadow-sm
+                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+          >
+          {% else %}
+          <input
+            type="number"
+            id="fin_year_start_day"
+            value="1"
+            disabled
+            title="{{ _('Custom start day is coming soon — every financial year currently starts on the 1st of the start month.') }}"
+            class="block w-24 rounded-md border border-gray-300 dark:border-gray-600
+                   bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400
+                   px-3 py-2 text-sm shadow-sm cursor-not-allowed"
+          >
+          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ _("Coming soon — day is fixed to the 1st for now.") }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </fieldset>
 
     {# ── PSI (Personal Services Income) classification ── #}
     <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">

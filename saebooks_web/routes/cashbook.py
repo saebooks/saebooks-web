@@ -36,6 +36,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import period
 from saebooks_web.api_client import api_client
 from saebooks_web.brand import current_brand
 
@@ -86,11 +87,18 @@ def _year_start_str() -> str:
     return today.replace(month=1, day=1).isoformat()
 
 
-def _au_fy_start_str() -> str:
-    today = date.today()
-    if today.month >= 7:
-        return date(today.year, 7, 1).isoformat()
-    return date(today.year - 1, 7, 1).isoformat()
+def _au_fy_start_str(fin_year_start_month: int = 7) -> str:
+    """Return the ISO date of the start of the financial year containing today.
+
+    Named "_au" for history (the AU 1-Jul default) but now derives from the
+    company's actual ``fin_year_start_month`` (via ``saebooks_web.period``)
+    rather than hardcoding 1 July — a calendar-year-FY (e.g. Estonian)
+    company gets 1 January. See ``saebooks_web.period`` module docstring.
+    """
+    fy_start, _fy_end = period.fy_bounds_containing(
+        date.today(), fin_year_start_month=fin_year_start_month
+    )
+    return fy_start.isoformat()
 
 
 def _company_age_days(company: dict) -> int:
@@ -734,18 +742,15 @@ async def cashbook_report(
         to_date = today.isoformat()
         active_preset = "this_quarter"
     elif preset == "this_fy":
-        from_date = _au_fy_start_str()
+        fin_year_start_month = company.get("fin_year_start_month") or 7
+        from_date = _au_fy_start_str(fin_year_start_month)
         to_date = today.isoformat()
         active_preset = "this_fy"
     elif preset == "last_fy":
-        if today.month >= 7:
-            fy_start = date(today.year - 1, 7, 1)
-            fy_end = date(today.year, 6, 30)
-        else:
-            fy_start = date(today.year - 2, 7, 1)
-            fy_end = date(today.year - 1, 6, 30)
-        from_date = fy_start.isoformat()
-        to_date = fy_end.isoformat()
+        fin_year_start_month = company.get("fin_year_start_month") or 7
+        from_date, to_date, _active = period.resolve_period(
+            "last_fy", fin_year_start_month=fin_year_start_month, today=today
+        )
         active_preset = "last_fy"
     else:
         if not from_date:

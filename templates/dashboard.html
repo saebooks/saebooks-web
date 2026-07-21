@@ -647,14 +647,25 @@
 {% endif %}
     </section>
 
-<section data-widget="pl-snapshot" data-widget-title="{{ _('Profit · this month') }}"
+<section data-widget="pl-snapshot" data-widget-title="{{ _('Profit & Loss') }}"
          data-widget-default-hidden="1"
          data-widget-href="/reports/profit-loss"
          class="card p-6">
       {% if "pl_snapshot" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
-  <div class="flex items-start justify-between mb-4">
-    <p class="nav-section-label">{{ _("Profit · this month") }}</p>
+  <div class="flex items-start justify-between mb-2">
+    <div>
+      <p class="nav-section-label">{{ _("Profit & Loss") }}</p>
+      {% if pl_snapshot.from_date %}<p class="text-[11px] ink-3 font-mono mt-0.5">{{ pl_snapshot.from_date }} → {{ pl_snapshot.to_date }}</p>{% endif %}
+    </div>
     <a href="/reports/profit-loss" class="text-xs sae hover:underline">{{ _("Full report →") }}</a>
+  </div>
+  <div class="flex flex-wrap gap-1.5 mb-4" role="group" aria-label="{{ _('Period') }}">
+    {% for pvalue, plabel in pl_preset_options %}
+    <a href="/?preset={{ pvalue }}" class="chip text-xs"
+       {% if pl_active_preset == pvalue %}aria-current="true" style="border-color:var(--sae);color:var(--sae);"{% endif %}>
+      {{ plabel }}
+    </a>
+    {% endfor %}
   </div>
   <div class="grid grid-cols-3 gap-4 text-sm">
     <div>

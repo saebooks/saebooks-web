@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: saebooks-web VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-20 15:54+0300\n"
+"POT-Creation-Date: 2026-07-21 21:49+1000\n"
 "PO-Revision-Date: 2026-07-12 11:41+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -103,6 +103,31 @@ msgstr ""
 #: saebooks_web/routes/companies.py:209
 msgid "Company created."
 msgstr "Компания была создана."
+
+#: saebooks_web/routes/dashboard.py:93 saebooks_web/routes/reports.py:130
+#: templates/cashbook/report.html:30
+msgid "This FY"
+msgstr "Этот FY"
+
+#: saebooks_web/routes/dashboard.py:94 saebooks_web/routes/reports.py:131
+#: templates/cashbook/report.html:30
+msgid "Last FY"
+msgstr "Прошлый FY"
+
+#: saebooks_web/routes/dashboard.py:95 saebooks_web/routes/reports.py:132
+#, fuzzy
+msgid "Calendar year to date"
+msgstr "Календарный год до настоящего времени"
+
+#: saebooks_web/routes/dashboard.py:96 saebooks_web/routes/reports.py:133
+#, fuzzy
+msgid "Trailing 12 months"
+msgstr "Запугивание 12 месяцев"
+
+#: saebooks_web/routes/dashboard.py:97 saebooks_web/routes/reports.py:134
+#: templates/cashbook/report.html:30
+msgid "This quarter"
+msgstr "В этом квартале"
 
 #: saebooks_web/routes/group_overview.py:150
 #, fuzzy, python-format
@@ -349,14 +374,14 @@ msgstr "Значение соответствия"
 msgid "Auto-match failed (HTTP %(code)s)."
 msgstr "Автоматический матч провалился (HTTP %(code)s)."
 
-#: saebooks_web/routes/reports.py:170 saebooks_web/routes/reports.py:490
-#: saebooks_web/routes/reports.py:560 saebooks_web/routes/reports.py:612
-#: saebooks_web/routes/reports.py:699 saebooks_web/routes/reports.py:791
-#: saebooks_web/routes/reports.py:859 saebooks_web/routes/reports.py:912
-#: saebooks_web/routes/reports.py:969 saebooks_web/routes/reports.py:1020
-#: saebooks_web/routes/reports.py:1104 saebooks_web/routes/reports.py:1196
-#: saebooks_web/routes/reports.py:1251 saebooks_web/routes/reports.py:1305
-#: saebooks_web/routes/reports.py:1381
+#: saebooks_web/routes/reports.py:269 saebooks_web/routes/reports.py:605
+#: saebooks_web/routes/reports.py:683 saebooks_web/routes/reports.py:735
+#: saebooks_web/routes/reports.py:835 saebooks_web/routes/reports.py:929
+#: saebooks_web/routes/reports.py:997 saebooks_web/routes/reports.py:1056
+#: saebooks_web/routes/reports.py:1115 saebooks_web/routes/reports.py:1166
+#: saebooks_web/routes/reports.py:1250 saebooks_web/routes/reports.py:1342
+#: saebooks_web/routes/reports.py:1403 saebooks_web/routes/reports.py:1465
+#: saebooks_web/routes/reports.py:1543
 #, fuzzy, python-format
 msgid "The report could not be loaded (HTTP %(code)s)."
 msgstr "Доклад не мог быть загружен (HTTP %(code)s)."
@@ -1135,7 +1160,7 @@ msgstr "Сверить"
 #: templates/budgets/_form_fields.html:46 templates/budgets/_table.html:25
 #: templates/budgets/detail.html:88 templates/contacts/detail.html:136
 #: templates/credit_notes/_form_fields.html:169
-#: templates/credit_notes/_line_row.html:18 templates/dashboard.html:692
+#: templates/credit_notes/_line_row.html:18 templates/dashboard.html:703
 #: templates/expenses/new.html:81 templates/inbox/review.html:223
 #: templates/invoices/_form_fields.html:141 templates/invoices/_line_row.html:7
 #: templates/journal_entries/_form_fields.html:110
@@ -1184,13 +1209,13 @@ msgstr "Основное средство"
 #: templates/bills/_line_row.html:44 templates/invoices/_form_fields.html:146
 #: templates/invoices/_line_row.html:47
 #: templates/purchase_orders/_form_fields.html:141
-#: templates/reports/pl_by_segment.html:41 templates/time_entries/edit.html:42
+#: templates/reports/pl_by_segment.html:42 templates/time_entries/edit.html:42
 #: templates/time_entries/list.html:56 templates/time_entries/list.html:113
 #: templates/time_entries/new.html:42
 msgid "Project"
 msgstr "Проект"
 
-#: templates/base.html:994 templates/dashboard.html:693
+#: templates/base.html:994 templates/dashboard.html:704
 #: templates/reports/_budget_vs_actual_table.html:35
 #: templates/reports/budget_vs_actual.html:16 templates/reports/index.html:113
 msgid "Budget"
@@ -1350,7 +1375,7 @@ msgid "invoices →"
 msgstr "Счета →"
 
 #: templates/contacts/_form_fields.html:60 templates/dashboard.html:222
-#: templates/dashboard.html:279 templates/settings/company.html:375
+#: templates/dashboard.html:279 templates/settings/company.html:447
 msgid "State"
 msgstr "Штат"
 
@@ -1579,7 +1604,7 @@ msgstr "Поставщик"
 #: templates/credit_notes/detail.html:131
 #: templates/credit_notes/detail.html:177
 #: templates/credit_notes/detail.html:212 templates/dashboard.html:586
-#: templates/dashboard.html:638 templates/dashboard.html:708
+#: templates/dashboard.html:638 templates/dashboard.html:719
 #: templates/expenses/_table.html:32 templates/expenses/detail.html:65
 #: templates/inbox/_table.html:20 templates/inbox/review.html:451
 #: templates/invoices/_table.html:34 templates/invoices/detail.html:114
@@ -1608,8 +1633,8 @@ msgstr "В этом месяце еще никаких счетов."
 msgid "Aged AR vs AP"
 msgstr "Стареющий АР против АР"
 
-#: templates/dashboard.html:616 templates/dashboard.html:657
-#: templates/dashboard.html:686
+#: templates/dashboard.html:616 templates/dashboard.html:660
+#: templates/dashboard.html:697
 #, fuzzy
 msgid "Full report →"
 msgstr "Полный отчет →"
@@ -1634,19 +1659,25 @@ msgstr "Кредиторская задолженность"
 msgid "No aged balances to show."
 msgstr "Никаких старых балансов."
 
-#: templates/dashboard.html:650 templates/dashboard.html:656
-#, fuzzy
-msgid "Profit · this month"
-msgstr "Наличные в этом месяце"
+#: templates/dashboard.html:650 templates/dashboard.html:657
+#: templates/reports/index.html:36 templates/reports/profit_loss.html:3
+#: templates/reports/profit_loss.html:19
+msgid "Profit & Loss"
+msgstr "Отчёт о прибылях и убытках"
 
-#: templates/dashboard.html:661 templates/overviews/inventory.html:73
+#: templates/_partials/period_picker.html:20 templates/dashboard.html:662
+#, fuzzy
+msgid "Period"
+msgstr "Период"
+
+#: templates/dashboard.html:672 templates/overviews/inventory.html:73
 #: templates/reports/index.html:131
 #: templates/reports/revenue_by_customer.html:16
 msgid "Revenue"
 msgstr "Выручка"
 
 #: templates/_partials/sidebar_cashbook.html:36 templates/accounts/list.html:45
-#: templates/dashboard.html:665 templates/expenses/list.html:3
+#: templates/dashboard.html:676 templates/expenses/list.html:3
 #: templates/expenses/list.html:15 templates/journal_entries/list.html:105
 #: templates/reports/_profit_loss_table.html:77
 #: templates/reports/_profit_loss_table.html:203
@@ -1654,76 +1685,76 @@ msgstr "Выручка"
 msgid "Expenses"
 msgstr "Расходы"
 
-#: templates/dashboard.html:669
+#: templates/dashboard.html:680
 #, fuzzy
 msgid "Net profit"
 msgstr "Чистая прибыль"
 
-#: templates/dashboard.html:672
+#: templates/dashboard.html:683
 #, fuzzy, python-format
 msgid "%(pct)s%% margin"
 msgstr "%(pct)s%% / месяц"
 
-#: templates/dashboard.html:679 templates/dashboard.html:685
+#: templates/dashboard.html:690 templates/dashboard.html:696
 #, fuzzy
 msgid "Budget vs actual · this month"
 msgstr "Бюджет и факт"
 
-#: templates/dashboard.html:694
+#: templates/dashboard.html:705
 #: templates/reports/_budget_vs_actual_table.html:36
 msgid "Actual"
 msgstr "Факт"
 
-#: templates/dashboard.html:695
+#: templates/dashboard.html:706
 #: templates/reports/_budget_vs_actual_table.html:37
 msgid "Variance"
 msgstr "Отклонение"
 
-#: templates/dashboard.html:716
+#: templates/dashboard.html:727
 #, fuzzy
 msgid "No budget set for this month — create one under Budgets."
 msgstr ""
 "Никаких бюджетных ассигнований на этот месяц не предусмотрено — создать "
 "один бюджет по бюджетам."
 
-#: templates/dashboard.html:738
+#: templates/dashboard.html:749
 msgid "Hello"
 msgstr "Здравствуйте"
 
-#: templates/dashboard.html:739
+#: templates/dashboard.html:750
 msgid "Good morning"
 msgstr "Доброе утро"
 
-#: templates/dashboard.html:740
+#: templates/dashboard.html:751
 msgid "Good afternoon"
 msgstr "Добрый день"
 
-#: templates/dashboard.html:741
+#: templates/dashboard.html:752
 msgid "Good evening"
 msgstr "Добрый вечер"
 
-#: templates/dashboard.html:1024 templates/dashboard.html:1033
+#: templates/dashboard.html:1035 templates/dashboard.html:1044
 msgid "Add widget"
 msgstr "Добавить виджет"
 
-#: templates/dashboard.html:1026
+#: templates/dashboard.html:1037
 msgid "Drag here to hide"
 msgstr "Перетащите сюда, чтобы скрыть"
 
-#: templates/dashboard.html:1027
+#: templates/dashboard.html:1038
 msgid "Reset layout to defaults"
 msgstr "Сбросить макет к настройкам по умолчанию"
 
-#: templates/dashboard.html:1028 templates/employees/list.html:56
+#: templates/dashboard.html:1039 templates/employees/list.html:56
 #: templates/time_entries/list.html:98
 msgid "Reset"
 msgstr "Сбросить"
 
-#: templates/dashboard.html:1034
+#: templates/dashboard.html:1045
 msgid "Hidden widgets you can return to the dashboard:"
 msgstr "Скрытые виджеты, которые можно вернуть на рабочий стол:"
 
-#: templates/dashboard.html:1037 templates/purchase_orders/_table.html:80
+#: templates/dashboard.html:1048 templates/purchase_orders/_table.html:80
 #: templates/purchase_orders/detail.html:93
 msgid "Close"
 msgstr "Закрыть"
@@ -2012,6 +2043,11 @@ msgstr "Самоуничтожение после 30 минут бездейст
 #: templates/_partials/demo_banner.html:33
 msgid "View isolation proof"
 msgstr "Просмотреть доказательство изоляции"
+
+#: templates/_partials/period_picker.html:31
+#, fuzzy
+msgid "Custom range"
+msgstr "Сборный диапазон"
 
 #: templates/_partials/review_flag.html:38
 #, python-format
@@ -3681,7 +3717,7 @@ msgstr "Ваше имя"
 #: templates/payments/_form_fields.html:118
 #: templates/purchase_orders/_form_fields.html:65
 #: templates/purchase_orders/_form_fields.html:81 templates/quotes/list.html:61
-#: templates/settings/company.html:308
+#: templates/settings/company.html:380
 msgid "optional"
 msgstr "необязательно"
 
@@ -5108,62 +5144,63 @@ msgid "— select month —"
 msgstr "- выбор месяца -"
 
 #: templates/budgets/_form_fields.html:107 templates/budgets/detail.html:8
-#: templates/budgets/list.html:56
+#: templates/budgets/list.html:56 templates/settings/company.html:212
 msgid "January"
 msgstr "Январь"
 
 #: templates/budgets/_form_fields.html:107 templates/budgets/detail.html:8
-#: templates/budgets/list.html:56
+#: templates/budgets/list.html:56 templates/settings/company.html:212
 msgid "February"
 msgstr "Февраль"
 
 #: templates/budgets/_form_fields.html:107 templates/budgets/detail.html:8
-#: templates/budgets/list.html:56
+#: templates/budgets/list.html:56 templates/settings/company.html:212
 msgid "March"
 msgstr "Март"
 
 #: templates/budgets/_form_fields.html:107 templates/budgets/detail.html:8
-#: templates/budgets/list.html:56
+#: templates/budgets/list.html:56 templates/settings/company.html:212
 msgid "April"
 msgstr "Апрель"
 
 #: templates/budgets/_form_fields.html:108 templates/budgets/_table.html:46
 #: templates/budgets/detail.html:8 templates/budgets/list.html:57
+#: templates/settings/company.html:213
 msgid "May"
 msgstr "Май"
 
 #: templates/budgets/_form_fields.html:108 templates/budgets/detail.html:8
-#: templates/budgets/list.html:57
+#: templates/budgets/list.html:57 templates/settings/company.html:213
 msgid "June"
 msgstr "Июнь"
 
 #: templates/budgets/_form_fields.html:108 templates/budgets/detail.html:8
-#: templates/budgets/list.html:57
+#: templates/budgets/list.html:57 templates/settings/company.html:213
 msgid "July"
 msgstr "Июль"
 
 #: templates/budgets/_form_fields.html:108 templates/budgets/detail.html:8
-#: templates/budgets/list.html:57
+#: templates/budgets/list.html:57 templates/settings/company.html:213
 msgid "August"
 msgstr "Август"
 
 #: templates/budgets/_form_fields.html:109 templates/budgets/detail.html:8
-#: templates/budgets/list.html:58
+#: templates/budgets/list.html:58 templates/settings/company.html:214
 msgid "September"
 msgstr "Сентябрь"
 
 #: templates/budgets/_form_fields.html:109 templates/budgets/detail.html:8
-#: templates/budgets/list.html:58
+#: templates/budgets/list.html:58 templates/settings/company.html:214
 msgid "October"
 msgstr "Октябрь"
 
 #: templates/budgets/_form_fields.html:109 templates/budgets/detail.html:8
-#: templates/budgets/list.html:58
+#: templates/budgets/list.html:58 templates/settings/company.html:214
 msgid "November"
 msgstr "Ноябрь"
 
 #: templates/budgets/_form_fields.html:109 templates/budgets/detail.html:8
-#: templates/budgets/list.html:58
+#: templates/budgets/list.html:58 templates/settings/company.html:214
 msgid "December"
 msgstr "Декабрь"
 
@@ -5685,18 +5722,6 @@ msgstr "Отчёт по наличным"
 msgid "Totals by period"
 msgstr "Общая сумма в разбивке по периодам"
 
-#: templates/cashbook/report.html:30
-msgid "This quarter"
-msgstr "В этом квартале"
-
-#: templates/cashbook/report.html:30
-msgid "This FY"
-msgstr "Этот FY"
-
-#: templates/cashbook/report.html:30
-msgid "Last FY"
-msgstr "Прошлый FY"
-
 #: templates/cashbook/report.html:37
 msgid "Custom:"
 msgstr "Произвольный период:"
@@ -6167,7 +6192,7 @@ msgstr "Телефон"
 #: templates/contacts/_form_fields.html:55 templates/contacts/detail.html:103
 #: templates/employees/detail.html:194 templates/employees/edit.html:168
 #: templates/employees/new.html:176 templates/inbox/email_addresses.html:59
-#: templates/settings/company.html:330
+#: templates/settings/company.html:402
 msgid "Address"
 msgstr "Адрес"
 
@@ -6181,16 +6206,16 @@ msgstr "Адрес, строка 2"
 
 #: templates/contacts/_form_fields.html:59 templates/contacts/list.html:80
 #: templates/parties/contacts_bucket.html:61
-#: templates/settings/company.html:362
+#: templates/settings/company.html:434
 msgid "City"
 msgstr "Город"
 
 #: templates/contacts/_form_fields.html:61 templates/employees/edit.html:195
-#: templates/employees/new.html:203 templates/settings/company.html:391
+#: templates/employees/new.html:203 templates/settings/company.html:463
 msgid "Postcode"
 msgstr "Почтовый индекс"
 
-#: templates/contacts/_form_fields.html:62 templates/settings/company.html:404
+#: templates/contacts/_form_fields.html:62 templates/settings/company.html:476
 msgid "Country"
 msgstr "Страна"
 
@@ -11914,12 +11939,12 @@ msgstr "На дату"
 #: templates/reports/balance_sheet.html:39 templates/reports/bas_payg.html:40
 #: templates/reports/bas_summary.html:37
 #: templates/reports/budget_vs_actual.html:48
-#: templates/reports/cashflow.html:37
+#: templates/reports/cashflow.html:38
 #: templates/reports/depreciation_schedule.html:43
 #: templates/reports/fx_revaluation.html:33
-#: templates/reports/pl_by_segment.html:46
-#: templates/reports/profit_loss.html:49
-#: templates/reports/revenue_by_customer.html:37
+#: templates/reports/pl_by_segment.html:47
+#: templates/reports/profit_loss.html:50
+#: templates/reports/revenue_by_customer.html:38
 #: templates/reports/trial_balance.html:45
 msgid "Refresh"
 msgstr "Обновление"
@@ -11947,7 +11972,7 @@ msgid "Statement"
 msgstr "Отчёт"
 
 #: templates/reports/balance_sheet.html:37
-#: templates/reports/profit_loss.html:47
+#: templates/reports/profit_loss.html:48
 #: templates/reports/trial_balance.html:43
 msgid "Compare to prior year"
 msgstr "Сопоставление с предыдущим годом"
@@ -11966,16 +11991,16 @@ msgid "GST (1A/1B) and PAYG withholding (W1/W2) worksheet for the period."
 msgstr "GST (1A/1B) и рабочий лист PAYG (W1/W2) за данный период."
 
 #: templates/reports/bas_payg.html:33 templates/reports/bas_summary.html:30
-#: templates/reports/cashflow.html:30 templates/reports/pl_by_segment.html:30
-#: templates/reports/profit_loss.html:30
-#: templates/reports/revenue_by_customer.html:30
+#: templates/reports/cashflow.html:31 templates/reports/pl_by_segment.html:31
+#: templates/reports/profit_loss.html:31
+#: templates/reports/revenue_by_customer.html:31
 msgid "From date"
 msgstr "С даты"
 
 #: templates/reports/bas_payg.html:37 templates/reports/bas_summary.html:34
-#: templates/reports/cashflow.html:34 templates/reports/pl_by_segment.html:34
-#: templates/reports/profit_loss.html:34
-#: templates/reports/revenue_by_customer.html:34
+#: templates/reports/cashflow.html:35 templates/reports/pl_by_segment.html:35
+#: templates/reports/profit_loss.html:35
+#: templates/reports/revenue_by_customer.html:35
 msgid "To date"
 msgstr "По дату"
 
@@ -12112,11 +12137,6 @@ msgstr "Библиотека"
 msgid "Financial statements and analysis"
 msgstr "Финансовая отчётность и анализ"
 
-#: templates/reports/index.html:36 templates/reports/profit_loss.html:3
-#: templates/reports/profit_loss.html:19
-msgid "Profit & Loss"
-msgstr "Отчёт о прибылях и убытках"
-
 #: templates/reports/index.html:37
 msgid "Income, expenses and net profit for a date range."
 msgstr "Поступления, расходы и чистая прибыль за определенный срок."
@@ -12220,37 +12240,37 @@ msgstr ""
 msgid "GST 1A/1B plus PAYG withholding W1/W2 and amount payable to the ATO."
 msgstr "GST 1A/1B плюс удержание PAYG W1/W2 и сумма, подлежащая уплате ATO."
 
-#: templates/reports/pl_by_segment.html:38
+#: templates/reports/pl_by_segment.html:39
 msgid "Segment type"
 msgstr "Тип сегмента"
 
-#: templates/reports/pl_by_segment.html:42
+#: templates/reports/pl_by_segment.html:43
 msgid "Department"
 msgstr "Департамент"
 
-#: templates/reports/pl_by_segment.html:43
+#: templates/reports/pl_by_segment.html:44
 msgid "Cost Centre"
 msgstr "Центр расходов"
 
-#: templates/reports/profit_loss.html:41
+#: templates/reports/profit_loss.html:42
 msgid "Include drafts"
 msgstr "Включить черновики"
 
-#: templates/reports/profit_loss.html:57
+#: templates/reports/profit_loss.html:58
 msgid "GST threshold crossed — register within 21 days"
 msgstr "Превышен порог GST — зарегистрируйтесь в течение 21 дня"
 
-#: templates/reports/profit_loss.html:59
+#: templates/reports/profit_loss.html:60
 #, python-format
 msgid "Approaching $75k GST threshold (%(pct)s%%)"
 msgstr "Приближается порог GST $75k (%(pct)s%%)"
 
-#: templates/reports/profit_loss.html:62
+#: templates/reports/profit_loss.html:63
 #, python-format
 msgid "AUD %(amount)s YTD"
 msgstr "AUD %(amount)s YTD"
 
-#: templates/reports/profit_loss.html:65
+#: templates/reports/profit_loss.html:66
 msgid "ATO →"
 msgstr "ATO →"
 
@@ -12424,11 +12444,49 @@ msgstr "Дата вступления в силу"
 msgid "date registration began"
 msgstr "дата начала регистрации"
 
-#: templates/settings/company.html:193
+#: templates/settings/company.html:192
+#, fuzzy
+msgid "Financial year"
+msgstr "Финансовый год"
+
+#: templates/settings/company.html:195
+#, fuzzy
+msgid ""
+"Drives the reports period picker's financial-year presets and the year-"
+"end close default. Australian companies default to 1 July."
+msgstr ""
+"Ведёт отчетный период к финансовому году пикера и к концу года — к "
+"близкому дефолту. Австралийские компании не действуют до 1 июля."
+
+#: templates/settings/company.html:201
+#, fuzzy
+msgid "Start month"
+msgstr "Начало месяца"
+
+#: templates/settings/company.html:225
+#, fuzzy
+msgid "Start day"
+msgstr "День начала"
+
+#: templates/settings/company.html:252
+#, fuzzy
+msgid ""
+"Custom start day is coming soon — every financial year currently starts "
+"on the 1st of the start month."
+msgstr ""
+"Скоро наступит день индивидуального начала — каждый финансовый год в "
+"настоящее время начинается с 1-го месяца начала."
+
+#: templates/settings/company.html:257
+#, fuzzy
+msgid "Coming soon — day is fixed to the 1st for now."
+msgstr "Скоро — день уже назначен на первый день."
+
+#: templates/settings/company.html:265
 msgid "Business Classification (PSI)"
 msgstr "Классификация предприятий (ПСИ)"
 
-#: templates/settings/company.html:196
+#: templates/settings/company.html:268
 msgid ""
 "If most of your income comes from your personal skills or efforts, the "
 "ATO may classify it as Personal Services Income (PSI). This affects which"
@@ -12438,29 +12496,29 @@ msgstr ""
 "усилий, ATO может классифицировать его как доход от личных услуг (ПСИ). "
 "Это влияет на то, какие вычеты вы можете заявить."
 
-#: templates/settings/company.html:199
+#: templates/settings/company.html:271
 msgid "80/20 rule & PSI info →"
 msgstr "80/20 правило & PSI info →"
 
-#: templates/settings/company.html:204
+#: templates/settings/company.html:276
 msgid "Yes — I have a PSI determination (or clearly pass the 80/20 test)"
 msgstr ""
 "Да — У меня есть определение ПСИ (или очевидно пройденное испытание "
 "80/20)."
 
-#: templates/settings/company.html:205
+#: templates/settings/company.html:277
 msgid "No — I am not a Personal Services Business"
 msgstr "Нет — я не Personal Services Business"
 
-#: templates/settings/company.html:206
+#: templates/settings/company.html:278
 msgid "Unsure — I need to check my PSI status"
 msgstr "Не уверен — мне нужно проверить статус ПСИ."
 
-#: templates/settings/company.html:224
+#: templates/settings/company.html:296
 msgid "Bad-debt write-off & recovery"
 msgstr "Списание и взыскание безнадёжной задолженности"
 
-#: templates/settings/company.html:227
+#: templates/settings/company.html:299
 #, python-format
 msgid ""
 "How %(brand)s handles invoices that go unpaid long enough to be treated "
@@ -12471,11 +12529,11 @@ msgstr ""
 "долго, чтобы считаться безнадёжной задолженностью, и деньги, которые "
 "впоследствии поступают в счёт уже списанной задолженности."
 
-#: templates/settings/company.html:232
+#: templates/settings/company.html:304
 msgid "Write-off mode"
 msgstr "Режим списания"
 
-#: templates/settings/company.html:235
+#: templates/settings/company.html:307
 msgid ""
 "Review — flag overdue invoices on a candidate screen; I write each one "
 "off manually"
@@ -12483,7 +12541,7 @@ msgstr ""
 "Обзор — отметить просроченные счета на экране кандидатов; я списываю "
 "каждый из них вручную."
 
-#: templates/settings/company.html:236
+#: templates/settings/company.html:308
 msgid ""
 "Auto — a scheduled job writes off invoices past the threshold "
 "automatically"
@@ -12491,15 +12549,15 @@ msgstr ""
 "Автоматически — запланированное задание автоматически списывает счета, "
 "превысившие пороговое значение."
 
-#: templates/settings/company.html:237
+#: templates/settings/company.html:309
 msgid "Manual — no prompts; I write off invoices myself when I choose"
 msgstr "Вручную — без подсказок; я списываю счета сам, когда решу."
 
-#: templates/settings/company.html:258
+#: templates/settings/company.html:330
 msgid "Write-off threshold (days past due)"
 msgstr "Порог списания (дней просрочки)"
 
-#: templates/settings/company.html:273
+#: templates/settings/company.html:345
 msgid ""
 "An invoice older than this many days past its due date, with a balance "
 "owing, becomes a write-off candidate. Default 90."
@@ -12508,11 +12566,11 @@ msgstr ""
 "с непогашенным остатком, становится кандидатом на списание. По умолчанию "
 "— 90."
 
-#: templates/settings/company.html:282
+#: templates/settings/company.html:354
 msgid "Recovery mode"
 msgstr "Режим взыскания"
 
-#: templates/settings/company.html:285
+#: templates/settings/company.html:357
 msgid ""
 "Smart prompt — when a receipt matches a customer with a written-off "
 "invoice, ask whether to treat it as a bad-debt recovery"
@@ -12520,11 +12578,11 @@ msgstr ""
 "Умная подсказка — когда поступление соответствует клиенту со списанным "
 "счётом, спросить, считать ли это взысканием безнадёжной задолженности."
 
-#: templates/settings/company.html:286
+#: templates/settings/company.html:358
 msgid "Manual — never prompt; I record recoveries myself"
 msgstr "Вручную — никогда не спрашивать; я записываю взыскания самостоятельно."
 
-#: templates/settings/company.html:287
+#: templates/settings/company.html:359
 msgid ""
 "Reopen — (coming soon) re-open the original invoice instead of posting a "
 "recovery"
@@ -12532,15 +12590,15 @@ msgstr ""
 "Повторное открытие — (скоро) открыть исходный счёт заново вместо "
 "проведения взыскания."
 
-#: templates/settings/company.html:308
+#: templates/settings/company.html:380
 msgid "Bad-debt recovery account"
 msgstr "Счёт взыскания безнадёжной задолженности"
 
-#: templates/settings/company.html:315
+#: templates/settings/company.html:387
 msgid "leave blank — engine resolves 4-1290 Bad Debt Recovery"
 msgstr "оставьте пустым — движок использует счёт 4-1290 Bad Debt Recovery"
 
-#: templates/settings/company.html:322
+#: templates/settings/company.html:394
 msgid ""
 "Account code recovered amounts are credited to. Blank lets the engine use"
 " the default 4-1290 Bad Debt Recovery account."
@@ -12548,19 +12606,19 @@ msgstr ""
 "Код счёта, на который зачисляются возвращённые суммы. Если оставить "
 "пустым, движок использует счёт по умолчанию 4-1290 Bad Debt Recovery."
 
-#: templates/settings/company.html:333
+#: templates/settings/company.html:405
 msgid "Line 1"
 msgstr "Строка 1"
 
-#: templates/settings/company.html:347
+#: templates/settings/company.html:419
 msgid "Line 2"
 msgstr "Строка 2"
 
-#: templates/settings/company.html:426
+#: templates/settings/company.html:498
 msgid "Save settings"
 msgstr "Сохранить настройки"
 
-#: templates/settings/company.html:435
+#: templates/settings/company.html:507
 msgid "No company record found. Contact your administrator."
 msgstr "Запись о компании не найдена. Свяжитесь со своим администратором."
 
