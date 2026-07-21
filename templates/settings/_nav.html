@@ -21,6 +21,9 @@
   {{ _tab("/bank-accounts", _("Banking"), _path.startswith("/bank-accounts") or _path.startswith("/bank-rules")) }}
   {% endif %}
   {{ _tab("/settings/users", _("Users"), _path.startswith("/settings/users")) }}
+  {% if _mode == "full" and (request.session.get("user_role", "") in ("owner", "admin") or request.session.get("is_sae_staff")) %}
+  {{ _tab("/settings/period-locks", _("Period locks"), _path.startswith("/settings/period-locks")) }}
+  {% endif %}
   {{ _tab("/settings/api-tokens", _("API tokens"), _path.startswith("/settings/api-tokens")) }}
   {{ _tab("/settings/preferences", _("Preferences"), _path.startswith("/settings/preferences")) }}
 </nav>

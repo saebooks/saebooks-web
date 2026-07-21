@@ -56,6 +56,10 @@
           _("Financial-year start, GST registration and business classification.")) }}
   {{ card("/tax-codes", "percent", _("Tax codes"),
           _("The GST / tax rates applied across your invoices and bills.")) }}
+  {% if request.session.get("user_role", "") in ("owner", "admin") or request.session.get("is_sae_staff") %}
+  {{ card("/settings/period-locks", "lock", _("Period locks"),
+          _("Lock finished periods so nothing changes after a BAS is lodged.")) }}
+  {% endif %}
 </div>
 {% endif %}
 

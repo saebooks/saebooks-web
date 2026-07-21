@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Period locks") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("Period locks") }}</h1>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ _("Stop anything being posted into a finished period — lock a quarter after you lodge its BAS, or a year after year-end close.") }}</p>
+</div>
+
+{% include "settings/_nav.html" %}
+
+{% if flash %}
+<div class="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-700 dark:text-green-400 mb-6">{{ flash }}</div>
+{% endif %}
+
+{% if error %}
+<div class="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400 mb-6">{{ error }}</div>
+{% endif %}
+
+<div class="max-w-3xl">
+
+  {# ── Effective boundary ── #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-5 py-4 mb-6">
+    <p class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ _("Books locked through") }}</p>
+    {% if effective_locked_through %}
+    <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100 tabular-nums">{{ effective_locked_through }}</p>
+    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("Nothing can be posted, edited or voided on or before this date without an admin override reason.") }}</p>
+    {% else %}
+    <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">{{ _("Open") }}</p>
+    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("No period is locked — every date in your books accepts postings.") }}</p>
+    {% endif %}
+  </div>
+
+  {# ── Add a lock ── #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-5 py-4 mb-6">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Add a lock") }}</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("The new date must extend beyond the current boundary. Good bookkeeping: lock each quarter as soon as its BAS is lodged.") }}</p>
+    <form method="POST" action="/settings/period-locks" class="flex flex-wrap items-end gap-3">
+      {{ csrf_input(request)|safe }}
+      <div>
+        <label for="locked_through" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ _("Lock through") }} <span class="text-red-600">*</span></label>
+        <input type="date" id="locked_through" name="locked_through" required
+               class="saebooks-input text-sm">
+      </div>
+      <div class="grow min-w-[16rem]">
+        <label for="reason" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ _("Reason") }} <span class="text-gray-400 font-normal">{{ _("(optional)") }}</span></label>
+        <input type="text" id="reason" name="reason" maxlength="200"
+               placeholder="{{ _('e.g. Q4 FY26 BAS lodged') }}"
+               class="saebooks-input w-full text-sm">
+      </div>
+      <button type="submit" class="btn-primary text-sm">{{ _("Lock period") }}</button>
+    </form>
+  </div>
+
+  {# ── Lock history ── #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    {% if locks %}
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-900/40 text-left text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        <tr>
+          <th class="px-4 py-2">{{ _("Locked through") }}</th>
+          <th class="px-4 py-2">{{ _("Locked at") }}</th>
+          <th class="px-4 py-2">{{ _("By") }}</th>
+          <th class="px-4 py-2">{{ _("Reason") }}</th>
+          <th class="px-4 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        {% for lock in locks %}
+        <tr>
+          <td class="px-4 py-2 text-gray-900 dark:text-gray-100 tabular-nums font-medium">
+            {{ lock.locked_through }}
+            {% if lock.locked_through == effective_locked_through %}
+            <span class="ml-1 inline-flex items-center rounded-full bg-[#eaf0fa] dark:bg-[#194291]/30 px-2 py-0.5 text-[10px] text-[#194291] dark:text-[#bdd0eb]">{{ _("effective") }}</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 text-gray-500 dark:text-gray-400 tabular-nums">{{ lock.locked_at[:10] }}</td>
+          <td class="px-4 py-2 text-gray-500 dark:text-gray-400">{{ lock.locked_by or "—" }}</td>
+          <td class="px-4 py-2 text-gray-500 dark:text-gray-400">{{ lock.reason or "—" }}</td>
+          <td class="px-4 py-2 text-right">
+            <form method="POST" action="/settings/period-locks/{{ lock.id }}/remove" class="inline"
+                  onsubmit="var r = prompt('{{ _('Why is this lock being removed? The reason is written to the audit log.') }}'); if (!r) return false; this.reason.value = r; return true;">
+              {{ csrf_input(request)|safe }}
+              <input type="hidden" name="reason" value="">
+              <button type="submit" class="text-xs text-red-600 dark:text-red-400 hover:underline">{{ _("Remove") }}</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">{{ _("No locks yet. The whole ledger is open for posting.") }}</div>
+    {% endif %}
+  </div>
+
+  <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+    {{ _("Removing a lock is audited — the row, who removed it and why are kept forever. The year-end close also creates a lock:") }}
+    <a href="/reports/close-year" class="text-[#194291] dark:text-[#bdd0eb] hover:underline">{{ _("Year-end close") }}</a>
+  </p>
+
+</div>
+
+{% endblock %}

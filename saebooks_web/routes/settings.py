@@ -27,6 +27,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.i18n import gettext as _
 
 # Dates this far in the past trigger the retroactive-recompute confirmation step.
 _BACKDATE_CONFIRM_DAYS = 21
@@ -714,3 +715,157 @@ async def preferences_page(request: Request) -> HTMLResponse | RedirectResponse:
             "flash": flash,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Period locks — /settings/period-locks (ADMIN only)
+# ---------------------------------------------------------------------------
+
+
+def _require_admin(request: Request) -> bool:
+    """True if the session is SAE staff or a tenant owner/admin (period locks)."""
+    role = request.session.get("user_role", "")
+    return bool(request.session.get("is_sae_staff")) or role in ("owner", "admin")
+
+
+def _parse_lock_error(resp) -> str:
+    """Human-readable message from the period-lock endpoints' error shapes.
+
+    409 (non-advancing lock) and 422 (blank reason) carry a plain-string
+    ``detail``; pydantic validation carries the usual list shape."""
+    try:
+        body = resp.json()
+    except Exception:
+        return f"API error: HTTP {resp.status_code}"
+    detail = body.get("detail")
+    if isinstance(detail, str):
+        return detail
+    if isinstance(detail, list) and detail:
+        first = detail[0]
+        if isinstance(first, dict):
+            return str(first.get("msg", first))
+        return str(first)
+    return f"API error: HTTP {resp.status_code}"
+
+
+@router.get("/settings/period-locks", response_class=HTMLResponse, response_model=None)
+async def period_locks_page(request: Request) -> HTMLResponse | RedirectResponse:
+    """List the company's period-lock history + the effective boundary.
+
+    The engine enforces posting against ``max(locked_through)`` across every
+    lock row; ``effective_locked_through`` is that date (or null when the
+    books are fully open)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
+
+    locks: list[dict] = []
+    effective: str | None = None
+    error: str | None = None
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/period-close/locks")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.is_success:
+        payload = resp.json()
+        locks = payload.get("items", [])
+        effective = payload.get("effective_locked_through")
+    elif resp.status_code == 403:
+        error = _("You don't have permission to manage period locks.")
+    else:
+        error = _parse_lock_error(resp)
+
+    flash = request.session.pop("flash", None)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "settings/period_locks.html",
+        {
+            "locks": locks,
+            "effective_locked_through": effective,
+            "error": error,
+            "flash": flash,
+            "today": date.today().isoformat(),
+            "mode": getattr(request.state, "active_company_bookkeeping_mode", "full") or "full",
+        },
+    )
+
+
+@router.post("/settings/period-locks", response_class=HTMLResponse, response_model=None)
+async def period_lock_create(request: Request) -> HTMLResponse | RedirectResponse:
+    """Add a lock: POST /api/v1/period-close/locks.
+
+    201 -> flash success. 409 (doesn't extend beyond the current boundary)
+    and 422 -> flash the engine's message. Always redirects back to the
+    list — the form is two fields, re-rendering it isn't worth the state."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
+
+    form = await request.form()
+    locked_through = str(form.get("locked_through", "")).strip()
+    reason = str(form.get("reason", "")).strip()
+    if not locked_through:
+        request.session["flash"] = _("A lock date is required.")
+        return RedirectResponse(url="/settings/period-locks", status_code=303)
+
+    body: dict[str, str] = {"locked_through": locked_through}
+    if reason:
+        body["reason"] = reason
+
+    async with api_client(request) as client:
+        resp = await client.post("/api/v1/period-close/locks", json=body)
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 201:
+        request.session["flash"] = _(
+            "Period locked through %(date)s — nothing can be posted on or before this date."
+        ) % {"date": locked_through}
+    else:
+        request.session["flash"] = _parse_lock_error(resp)
+    return RedirectResponse(url="/settings/period-locks", status_code=303)
+
+
+@router.post(
+    "/settings/period-locks/{lock_id}/remove",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def period_lock_remove(request: Request, lock_id: str) -> HTMLResponse | RedirectResponse:
+    """Remove a lock row: DELETE /api/v1/period-close/locks/{id}?reason=…
+
+    The engine requires a forensic reason and writes it to the audit log
+    with a snapshot of the removed row. Enforcement recedes to whatever
+    ``max(locked_through)`` remains."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _require_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
+
+    form = await request.form()
+    reason = str(form.get("reason", "")).strip()
+    if not reason:
+        request.session["flash"] = _("A reason is required to remove a period lock.")
+        return RedirectResponse(url="/settings/period-locks", status_code=303)
+
+    async with api_client(request) as client:
+        resp = await client.delete(
+            f"/api/v1/period-close/locks/{lock_id}", params={"reason": reason}
+        )
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code == 204:
+        request.session["flash"] = _("Period lock removed — the boundary recedes to the latest remaining lock.")
+    elif resp.status_code == 404:
+        request.session["flash"] = _("Period lock not found.")
+    else:
+        request.session["flash"] = _parse_lock_error(resp)
+    return RedirectResponse(url="/settings/period-locks", status_code=303)
