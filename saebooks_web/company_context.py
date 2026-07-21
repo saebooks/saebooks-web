@@ -51,6 +51,14 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
         request.state.active_company_id = None
         request.state.active_company_name = None
         request.state.active_company_jurisdiction = None
+        # Active company's bookkeeping mode ("full" | "cashbook"). base.html
+        # branches the whole sidebar on this — previously it was only passed in
+        # the per-route context of the cashbook_* routes, so a cashbook company
+        # saw the FULL sidebar on every other page (dashboard, settings, …).
+        # Resolving it here makes the nav mode-consistent app-wide. Defaults to
+        # "full" so logged-out / unresolved contexts keep the historical
+        # full-nav behaviour (and existing render tests are unaffected).
+        request.state.active_company_bookkeeping_mode = "full"
         # Typed cross-cutting failure surface (M2 step 8a): base.html renders
         # an app-wide amber banner when the company list couldn't be fetched,
         # instead of the failure being silently swallowed at debug level.
@@ -83,6 +91,11 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                             "id": it["id"],
                             "name": it.get("trading_name") or it.get("name") or it.get("legal_name") or "(unnamed)",
                             "created_at": it.get("created_at") or "",
+                            # Carried so the active company's mode can be
+                            # resolved below without a second fetch. CompanyOut
+                            # has exposed bookkeeping_mode for a while; absent =
+                            # older engine -> default "full".
+                            "bookkeeping_mode": it.get("bookkeeping_mode") or "full",
                         })
                     # Order matches the API's get_active_company_id fallback
                     # (oldest company first by created_at). Without this, the
@@ -103,6 +116,9 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                     if active is not None:
                         request.state.active_company_id = active["id"]
                         request.state.active_company_name = active["name"]
+                        request.state.active_company_bookkeeping_mode = (
+                            active.get("bookkeeping_mode") or "full"
+                        )
                         # Resolve jurisdiction — see module docstring: CompanyOut
                         # doesn't expose Company.jurisdiction, so proxy off the
                         # default (no explicit ``jurisdiction`` param) response

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Preferences") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("Preferences") }}</h1>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ _("Language, appearance and how your books are kept.") }}</p>
+</div>
+
+{% include "settings/_nav.html" %}
+
+{% if flash %}
+<div class="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-700 dark:text-green-400 mb-6">{{ flash }}</div>
+{% endif %}
+
+<div class="max-w-2xl space-y-6">
+
+  {# ── Language ── #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Language") }}</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("The language the interface is shown in.") }}</p>
+    <form method="POST" action="/set-locale" class="flex items-end gap-3">
+      {{ csrf_input(request)|safe }}
+      <div>
+        <select name="locale"
+          class="block w-48 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+          {% for code, label in [('en', _('English')), ('et', _('Estonian')), ('ru', _('Russian'))] %}
+          <option value="{{ code }}" {% if active_locale == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372]">{{ _("Save") }}</button>
+    </form>
+  </div>
+
+  {# ── Appearance ── #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Appearance") }}</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("Switch between light and dark using the toggle in the bottom-right of any page (or ⌘⇧L). Your choice is remembered on this device.") }}</p>
+    <button type="button" onclick="document.getElementById('theme-toggle') && document.getElementById('theme-toggle').click()"
+      class="inline-flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+      <i data-lucide="sun-moon" class="w-4 h-4"></i>{{ _("Toggle light / dark") }}
+    </button>
+  </div>
+
+  {# ── Bookkeeping mode ── #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Bookkeeping mode") }}</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("How much of the accounting engine is exposed for this company.") }}</p>
+    <div class="flex items-center gap-3">
+      {% if mode == 'cashbook' %}
+      <span class="inline-flex items-center rounded-full bg-[#eaf0fa] dark:bg-[#194291]/30 px-3 py-1 text-sm font-medium text-[#194291] dark:text-[#bdd0eb]">{{ _("Cashbook (single-entry)") }}</span>
+      <a href="/cashbook/upgrade" class="text-sm text-[#194291] dark:text-[#8aa9d8] underline">{{ _("Switch to full accounting →") }}</a>
+      {% else %}
+      <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-sm font-medium text-green-700 dark:text-green-400">{{ _("Full accounting (double-entry)") }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

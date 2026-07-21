@@ -768,7 +768,7 @@
       </details>
 
       {% set admin_open = path == '/profile'
-                          or path.startswith('/settings/company')
+                          or path.startswith('/settings')
                           or path.startswith('/companies')
                           or path.startswith('/admin') %}
       <details class="group" data-section="admin" {% if admin_open %}open{% endif %}>
@@ -780,7 +780,7 @@
           <a href="/profile" class="nav-item is-sub {% if path == '/profile' %}active{% endif %}">
             <i data-lucide="user-circle" class="nav-ico"></i>{{ _("Profile") }}
           </a>
-          <a href="/settings/company" class="nav-item is-sub {% if path == '/settings/company' %}active{% endif %}">
+          <a href="/settings" class="nav-item is-sub {% if path == '/settings' or path.startswith('/settings/') %}active{% endif %}">
             <i data-lucide="cog" class="nav-ico"></i>{{ _("Settings") }}
           </a>
           <a href="/admin/license" class="nav-item is-sub {% if path == '/admin/license' %}active{% endif %}">

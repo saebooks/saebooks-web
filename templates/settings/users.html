@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Users & roles") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("Users & roles") }}</h1>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ _("The people who can sign in to your books.") }}</p>
+</div>
+
+{% include "settings/_nav.html" %}
+
+{% if error %}
+<div class="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400 mb-6">{{ error }}</div>
+{% endif %}
+
+{% if degraded %}
+{# M2 module-degrade: multi-user management isn't on this edition — a banner, not a blank page. #}
+<div class="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-5 py-4 text-sm text-amber-800 dark:text-amber-300">
+  <p class="font-semibold mb-1">{{ _("Team management isn't available on your edition") }}</p>
+  <p>{{ _("This edition is single-user. Inviting teammates and assigning roles is a paid feature.") }}</p>
+</div>
+{% else %}
+
+<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden max-w-3xl">
+  {% if users %}
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 dark:bg-gray-900/40 text-left text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500">
+      <tr>
+        <th class="px-4 py-2">{{ _("Name") }}</th>
+        <th class="px-4 py-2">{{ _("Email") }}</th>
+        <th class="px-4 py-2">{{ _("Role") }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+      {% for u in users %}
+      <tr>
+        <td class="px-4 py-2 text-gray-900 dark:text-gray-100">
+          {{ u.get('display_name') or u.get('username') or '—' }}
+          {% if u.get('email') and u.get('email') == current_email %}
+          <span class="ml-1 inline-flex items-center rounded-full bg-[#eaf0fa] dark:bg-[#194291]/30 px-2 py-0.5 text-[10px] text-[#194291] dark:text-[#bdd0eb]">{{ _("you") }}</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-2 text-gray-500 dark:text-gray-400">{{ u.get('email') or '—' }}</td>
+        <td class="px-4 py-2">
+          <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300 capitalize">{{ u.get('role') or '—' }}</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">{{ _("No users to show.") }}</div>
+  {% endif %}
+</div>
+<p class="mt-3 text-xs text-gray-400 dark:text-gray-500 max-w-3xl">
+  {{ _("Adding, removing and re-roling users is managed by an administrator. Contact yours to change access.") }}
+</p>
+
+{% endif %}{# not degraded #}
+
+{% endblock %}

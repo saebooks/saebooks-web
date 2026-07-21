@@ -1,12 +1,21 @@
-"""Company settings view — Lane D.
+"""Settings area — a coherent hub over every company/tenant setting.
 
-GET  /settings/company  — load first company from API, render form
-POST /settings/company  — PATCH first company with If-Match; PRG on success
-GET  /settings/company/backdate-gst-confirm  — confirmation step for backdated GST date
+Routes
+------
+GET  /settings                     — hub: grouped cards linking every setting
+GET  /settings/company             — organisation / financial / policy form
+POST /settings/company             — PATCH the active company with If-Match
+GET  /settings/company/backdate-gst-confirm  — (kept) backdate confirm step
+GET  /settings/api-tokens          — list + issue personal API tokens
+POST /settings/api-tokens          — create a token (shown once)
+POST /settings/api-tokens/{id}/revoke — revoke a token
+GET  /settings/users               — team members (read-only; degrades if 404)
+GET  /settings/preferences         — locale / theme / bookkeeping-mode surface
 
-The company entity has an ``address`` JSONB field sent as a nested dict.
-Address sub-fields are submitted as ``address_line1``, ``address_city``, etc.
-and assembled into ``{"line1": ..., "city": ..., ...}`` (empty strings stripped).
+The web tier holds no business rules — it renders what the engine returns and
+posts back what the user submits. Validation (field formats, fin-year day/month
+cross-checks, optimistic-lock versions) is the engine's; this layer only surfaces
+the 422/409 responses readably.
 """
 from __future__ import annotations
 
@@ -34,12 +43,51 @@ def _require_auth(request: Request) -> str | None:
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Company field maps
 # ---------------------------------------------------------------------------
 
-_TOP_FIELDS = ("name", "legal_name", "trading_name", "abn")
+# Plain free-text fields, always safe to clear (send stripped-or-None). ``name``
+# is required (min_length=1) so it is handled separately — never blanked.
+_TEXT_FIELDS = (
+    "legal_name",
+    "trading_name",
+    "abn",
+    "acn",
+    "phone",
+    "email",
+    "website",
+    "default_payment_terms",
+    "payment_terms_text",
+    "terms_url",
+    "bank_name",
+    "bank_bsb",
+    "bank_account_number",
+    "bank_account_name",
+)
 _ADDR_KEYS = ("line1", "line2", "city", "state", "postcode", "country")
-_GST_FIELDS = ("gst_registered", "gst_effective_date")
+
+# Enum passthroughs — recognised values only; engine does authoritative check.
+_PSI_VALUES = ("yes", "no", "unsure")
+_WRITEOFF_MODES = ("review", "auto", "manual")
+_RECOVERY_MODES = ("smart_prompt", "manual", "reopen")
+_COSTING_METHODS = ("weighted_average", "fifo", "quantity_only")
+_LIFECYCLE_VALUES = ("active", "dormant", "in_liquidation", "deregistered")
+
+# Full-accounting-only fields — hidden and NOT submitted in cashbook mode so a
+# single-entry user never sees (or accidentally sets) accrual-only policy.
+_FULL_ONLY_ENUM = {
+    "psi_status": _PSI_VALUES,
+    "writeoff_mode": _WRITEOFF_MODES,
+    "recovery_mode": _RECOVERY_MODES,
+    "costing_method": _COSTING_METHODS,
+}
+_FULL_ONLY_CLEARABLE_TEXT = (
+    "bad_debt_recovery_account",
+    "ar_control_account_code",
+    "ap_control_account_code",
+    "asset_disposal_gain_account_code",
+    "asset_disposal_loss_account_code",
+)
 
 
 def _build_address(form: dict[str, str]) -> dict[str, str | None] | None:
@@ -52,10 +100,103 @@ def _build_address(form: dict[str, str]) -> dict[str, str | None] | None:
     for key in _ADDR_KEYS:
         val = form.get(f"address_{key}", "").strip() or None
         addr[key] = val
-    # Only include the address field in the payload when at least one key exists.
     if any(v is not None for v in addr.values()):
         return addr
     return None
+
+
+def _company_mode(company: dict | None) -> str:
+    """Bookkeeping mode of the company record ("full" | "cashbook")."""
+    return (company or {}).get("bookkeeping_mode") or "full"
+
+
+def _prefill_form(company: dict) -> dict[str, str]:
+    """Flatten a company record into a form dict for pre-filling the template."""
+    form: dict[str, str] = {}
+    form["name"] = str(company.get("name") or "")
+    for field in _TEXT_FIELDS:
+        form[field] = str(company.get(field) or "")
+
+    form["version"] = str(company.get("version", ""))
+    form["base_currency"] = str(company.get("base_currency") or "AUD")
+
+    addr = company.get("address") or {}
+    for key in _ADDR_KEYS:
+        form[f"address_{key}"] = str(addr.get(key) or "")
+
+    # tax_registered is the engine field (the checkbox was historically — and
+    # wrongly — bound to a non-existent ``gst_registered`` key, so registration
+    # state never round-tripped). gst_effective_date names the AU workflow.
+    form["tax_registered"] = "true" if company.get("tax_registered") else ""
+    form["gst_effective_date"] = str(company.get("gst_effective_date") or "")
+
+    form["fin_year_start_month"] = str(company.get("fin_year_start_month") or 7)
+    # Day-of-month precision unlocks only once the engine payload carries the
+    # field; detected on the record rather than a hardcoded flag.
+    if company.get("fin_year_start_day") is not None:
+        form["fin_year_start_day"] = str(company.get("fin_year_start_day"))
+
+    form["lifecycle_status"] = str(company.get("lifecycle_status") or "active")
+    form["psi_status"] = str(company.get("psi_status") or "unsure")
+
+    form["writeoff_mode"] = str(company.get("writeoff_mode") or "review")
+    form["writeoff_threshold_days"] = str(company.get("writeoff_threshold_days") or 90)
+    form["recovery_mode"] = str(company.get("recovery_mode") or "smart_prompt")
+    form["costing_method"] = str(company.get("costing_method") or "weighted_average")
+    for field in _FULL_ONLY_CLEARABLE_TEXT:
+        form[field] = str(company.get(field) or "")
+
+    # EE company-registry identifiers (read-through; NULL for AU companies).
+    form["registrikood"] = str(company.get("registrikood") or "")
+    form["kmv_number"] = str(company.get("kmv_number") or "")
+    return form
+
+
+def _company_context(
+    request: Request,
+    *,
+    company: dict | None,
+    form: dict[str, str],
+    errors: dict[str, str],
+    conflict: bool,
+    flash: str | None,
+    error: str | None,
+) -> dict:
+    """Shared template context for settings/company.html."""
+    return {
+        "company": company,
+        "form": form,
+        "errors": errors,
+        "conflict": conflict,
+        "flash": flash,
+        "error": error,
+        "mode": _company_mode(company),
+        "jurisdiction": getattr(request.state, "active_company_jurisdiction", None) or "AU",
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /settings — hub
+# ---------------------------------------------------------------------------
+
+
+@router.get("/settings", response_class=HTMLResponse, response_model=None)
+async def settings_hub(request: Request) -> HTMLResponse | RedirectResponse:
+    """Grouped landing page linking every settings surface."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    mode = getattr(request.state, "active_company_bookkeeping_mode", "full") or "full"
+    flash = request.session.pop("flash", None)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "settings/index.html",
+        {
+            "mode": mode,
+            "jurisdiction": getattr(request.state, "active_company_jurisdiction", None) or "AU",
+            "user_role": request.session.get("user_role", ""),
+            "flash": flash,
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -68,11 +209,7 @@ async def company_settings(
     request: Request,
     company_id: str | None = Query(default=None),
 ) -> HTMLResponse | RedirectResponse:
-    """Render the company settings form.
-
-    If ``company_id`` query param is provided, fetches that specific company.
-    Otherwise falls back to the first company in the list.
-    """
+    """Render the company settings form."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -85,13 +222,9 @@ async def company_settings(
         else:
             resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
 
-    # We intentionally do NOT clear the session and redirect to /login on a
-    # 401 from the upstream API. Most other pages (dashboard, list views)
-    # tolerate a transient 401 by rendering with empty data; only this
-    # route used to bounce the user out, which felt broken because every
-    # other link in the nav worked. If the upstream actually rejects the
-    # token, the user can use the navbar Sign-In control — we don't punt
-    # them out from a deep link.
+    # We intentionally do NOT clear the session on a 401 here — other pages
+    # tolerate a transient 401 by rendering empty; only this route used to
+    # bounce the user out, which felt broken.
     if resp.is_success:
         if company_id:
             company = resp.json()
@@ -104,44 +237,21 @@ async def company_settings(
     else:
         error = f"API error: HTTP {resp.status_code}"
 
-    # Build a flat form dict from the company record for pre-filling.
-    form: dict[str, str] = {}
-    if company:
-        for field in _TOP_FIELDS:
-            form[field] = str(company.get(field) or "")
-        form["version"] = str(company.get("version", ""))
-        addr = company.get("address") or {}
-        for key in _ADDR_KEYS:
-            form[f"address_{key}"] = str(addr.get(key) or "")
-        form["gst_registered"] = "true" if company.get("gst_registered") else ""
-        form["gst_effective_date"] = str(company.get("gst_effective_date") or "")
-        form["fin_year_start_month"] = str(company.get("fin_year_start_month") or 7)
-        # fin_year_start_day doesn't exist on the engine yet (see
-        # ~/records/saebooks/period-picker-engine-spec-2026-07-21.md) — only
-        # populate the form key when the company payload actually has it, so
-        # the template's "is not none" gate degrades correctly either way.
-        if company.get("fin_year_start_day") is not None:
-            form["fin_year_start_day"] = str(company.get("fin_year_start_day"))
-        form["psi_status"] = str(company.get("psi_status") or "unsure")
-        # Bad-debt write-off & recovery policy (Phase 2 / Task 8).
-        form["writeoff_mode"] = str(company.get("writeoff_mode") or "review")
-        form["writeoff_threshold_days"] = str(company.get("writeoff_threshold_days") or 90)
-        form["recovery_mode"] = str(company.get("recovery_mode") or "smart_prompt")
-        form["bad_debt_recovery_account"] = str(company.get("bad_debt_recovery_account") or "")
-
+    form = _prefill_form(company) if company else {}
     flash = request.session.pop("flash", None)
 
     return _TEMPLATES.TemplateResponse(
         request,
         "settings/company.html",
-        {
-            "company": company,
-            "form": form,
-            "errors": {},
-            "conflict": False,
-            "flash": flash,
-            "error": error,
-        },
+        _company_context(
+            request,
+            company=company,
+            form=form,
+            errors={},
+            conflict=False,
+            flash=flash,
+            error=error,
+        ),
     )
 
 
@@ -150,16 +260,88 @@ async def company_settings(
 # ---------------------------------------------------------------------------
 
 
+def _build_company_payload(form: dict[str, str], form_data, *, mode: str, jurisdiction: str) -> dict[str, object]:
+    """Assemble the PATCH payload from the submitted form.
+
+    Only recognised fields are forwarded; unknown/blank enum values are dropped
+    and let the engine own validation. Full-accounting-only policy fields are
+    skipped entirely in cashbook mode.
+    """
+    payload: dict[str, object] = {}
+
+    # Required text — only send when non-empty so we never blank the name.
+    name = form.get("name", "").strip()
+    if name:
+        payload["name"] = name
+
+    # Optional text — present-but-empty clears (send None).
+    for field in _TEXT_FIELDS:
+        if field in form:
+            payload[field] = form.get(field, "").strip() or None
+
+    addr = _build_address(form)
+    if addr is not None:
+        payload["address"] = addr
+
+    # GST/tax registration (checkbox present only when checked).
+    payload["tax_registered"] = "tax_registered" in form_data
+    gst_date = form.get("gst_effective_date", "").strip()
+    if gst_date:
+        payload["gst_effective_date"] = gst_date
+
+    # Financial year — month always; day only once the engine models it (the
+    # disabled placeholder input carries no name, so it is absent until then).
+    fy_month_raw = form.get("fin_year_start_month", "").strip()
+    if fy_month_raw:
+        payload["fin_year_start_month"] = _as_int(fy_month_raw)
+    if "fin_year_start_day" in form:
+        day_raw = form.get("fin_year_start_day", "").strip()
+        if day_raw:
+            payload["fin_year_start_day"] = _as_int(day_raw)
+
+    # Entity lifecycle.
+    lifecycle = form.get("lifecycle_status", "").strip()
+    if lifecycle in _LIFECYCLE_VALUES:
+        payload["lifecycle_status"] = lifecycle
+
+    # EE company-registry identifiers — only meaningful on EE companies.
+    if jurisdiction == "EE":
+        for field in ("registrikood", "kmv_number"):
+            if field in form:
+                payload[field] = form.get(field, "").strip() or None
+
+    # base_currency is deliberately read-only on this form: changing it on a
+    # company with posted transactions is not a label edit. Never submitted.
+
+    if mode != "full":
+        return payload
+
+    # --- full-accounting-only policy fields ---
+    for field, allowed in _FULL_ONLY_ENUM.items():
+        val = form.get(field, "").strip()
+        if val in allowed:
+            payload[field] = val
+    threshold_raw = form.get("writeoff_threshold_days", "").strip()
+    if threshold_raw:
+        payload["writeoff_threshold_days"] = _as_int(threshold_raw)
+    for field in _FULL_ONLY_CLEARABLE_TEXT:
+        if field in form:
+            payload[field] = form.get(field, "").strip() or None
+    return payload
+
+
+def _as_int(raw: str) -> object:
+    """Int-or-passthrough: forward a non-numeric string so the engine 422s
+    (and the per-field error renders) rather than swallowing it."""
+    try:
+        return int(raw)
+    except ValueError:
+        return raw
+
+
 @router.post("/settings/company", response_class=HTMLResponse, response_model=None)
 async def company_settings_update(request: Request) -> HTMLResponse | RedirectResponse:
-    """Submit the company settings form — PATCH with If-Match.
-
-    Outcomes:
-    - 200 OK        -> flash "Company settings saved." + 303 redirect to self
-    - 409 Conflict  -> re-render with conflict message + server's current version
-    - 422           -> re-render with per-field validation errors
-    - other errors  -> re-render with generic error message
-    """
+    """Submit the company settings form — PATCH with If-Match."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -169,8 +351,7 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
     company_id: str | None = form.get("company_id") or None
     version = form.get("version", "")
 
-    # Guard: company_id is missing when no company existed at page-load time.
-    # Re-resolve from the API before proceeding so we don't build a broken URL.
+    # Re-resolve company_id when it wasn't on the page (no company at load).
     if not company_id:
         async with api_client(request) as client:
             _clist = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
@@ -182,93 +363,26 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
         return _TEMPLATES.TemplateResponse(
             request,
             "settings/company.html",
-            {
-                "company": None,
-                "form": form,
-                "errors": {"__all__": "No company record found — contact your administrator."},
-                "conflict": False,
-                "flash": None,
-                "error": None,
-            },
+            _company_context(
+                request,
+                company=None,
+                form=form,
+                errors={"__all__": "No company record found — contact your administrator."},
+                conflict=False,
+                flash=None,
+                error=None,
+            ),
         )
 
-    # Build the PATCH payload.
-    payload: dict[str, object] = {}
-    for field in _TOP_FIELDS:
-        val = form.get(field, "").strip() or None
-        if val is not None:
-            payload[field] = val
+    mode = form.get("bookkeeping_mode") or "full"
+    jurisdiction = getattr(request.state, "active_company_jurisdiction", None) or "AU"
+    payload = _build_company_payload(form, form_data, mode=mode, jurisdiction=jurisdiction)
 
-    addr = _build_address(form)
-    if addr is not None:
-        payload["address"] = addr
-
-    # gst_registered is a checkbox — present in form data only when checked.
-    payload["gst_registered"] = "gst_registered" in form_data
-
-    # Financial year start month — engine supports this today (CompanyUpdate.
-    # fin_year_start_month). "fin_year_start_day" is deliberately NOT sent:
-    # the engine schema doesn't model it yet (see
-    # ~/records/saebooks/period-picker-engine-spec-2026-07-21.md) and would
-    # silently drop an unknown field, making the save look like it worked
-    # when it didn't. The settings template only renders that input
-    # (enabled) when the company payload already carries the field, so it
-    # is only ever submitted once the engine actually supports it.
-    fy_month_raw = form.get("fin_year_start_month", "").strip()
-    if fy_month_raw:
-        try:
-            payload["fin_year_start_month"] = int(fy_month_raw)
-        except ValueError:
-            payload["fin_year_start_month"] = fy_month_raw
-    if "fin_year_start_day" in form:
-        day_raw = form.get("fin_year_start_day", "").strip()
-        if day_raw:
-            try:
-                payload["fin_year_start_day"] = int(day_raw)
-            except ValueError:
-                payload["fin_year_start_day"] = day_raw
-
-    psi_status = form.get("psi_status", "").strip()
-    if psi_status in ("yes", "no", "unsure"):
-        payload["psi_status"] = psi_status
-    # Bad-debt write-off & recovery policy (Phase 2 / Task 8). Mirror the
-    # psi_status passthrough: only include a field when the form submitted a
-    # recognised value, and let the engine schema do the authoritative
-    # validation (returns 422 on bad input, surfaced per-field below).
-    writeoff_mode = form.get("writeoff_mode", "").strip()
-    if writeoff_mode in ("review", "auto", "manual"):
-        payload["writeoff_mode"] = writeoff_mode
-    threshold_raw = form.get("writeoff_threshold_days", "").strip()
-    if threshold_raw:
-        try:
-            payload["writeoff_threshold_days"] = int(threshold_raw)
-        except ValueError:
-            # Non-numeric — forward the raw string so the engine returns 422
-            # and the per-field error renders, rather than swallowing it.
-            payload["writeoff_threshold_days"] = threshold_raw
-    recovery_mode = form.get("recovery_mode", "").strip()
-    if recovery_mode in ("smart_prompt", "manual", "reopen"):
-        payload["recovery_mode"] = recovery_mode
-    # Recovery account: a present-but-empty field clears the override (None);
-    # only send the key when the field was part of the form at all.
-    if "bad_debt_recovery_account" in form:
-        acct = form.get("bad_debt_recovery_account", "").strip()
-        payload["bad_debt_recovery_account"] = acct or None
     gst_date = form.get("gst_effective_date", "").strip()
     backdate_confirmed = form.get("backdate_confirmed", "") == "true"
-    if gst_date:
-        payload["gst_effective_date"] = gst_date
 
-    # If the date is significantly in the past AND there are pre-registration
-    # invoices that would need credit notes, show the backdate-confirm page.
-    #
-    # Past behaviour fired the confirm for any date >21 days ago. That mis-
-    # handles the common scenario where a long-standing GST-registered
-    # business is just recording its historical effective date in the books
-    # — no backdating event is occurring, the ATO already has the
-    # registration on file, and there are no pre-registration invoices to
-    # re-issue. We only block the save when the preview reports
-    # ``invoice_count > 0``; otherwise the save proceeds silently.
+    # Backdate confirmation: only block the save when the preview reports
+    # pre-registration invoices that would need credit notes.
     if gst_date and not backdate_confirmed:
         try:
             eff_date = date.fromisoformat(gst_date)
@@ -294,7 +408,6 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
                             "form": form,
                         },
                     )
-                # else: no pre-registration invoices — fall through and save
         except ValueError:
             pass  # unparseable date — let the API return 422
 
@@ -328,21 +441,21 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
             server_company = latest.json()
 
         server_version = str(server_company.get("version", ""))
-        # Keep user's submitted values but bump version.
         conflict_form = dict(form)
         conflict_form["version"] = server_version
 
         return _TEMPLATES.TemplateResponse(
             request,
             "settings/company.html",
-            {
-                "company": server_company,
-                "form": conflict_form,
-                "errors": {},
-                "conflict": True,
-                "flash": None,
-                "error": None,
-            },
+            _company_context(
+                request,
+                company=server_company,
+                form=conflict_form,
+                errors={},
+                conflict=True,
+                flash=None,
+                error=None,
+            ),
             status_code=409,
         )
 
@@ -364,7 +477,7 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
     else:
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
-    # Re-fetch the company to have a valid object for the template.
+    # Re-fetch the company for a valid object to re-render against.
     company: dict | None = None
     async with api_client(request) as client:
         clist = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
@@ -376,13 +489,221 @@ async def company_settings_update(request: Request) -> HTMLResponse | RedirectRe
     return _TEMPLATES.TemplateResponse(
         request,
         "settings/company.html",
+        _company_context(
+            request,
+            company=company,
+            form=form,
+            errors=errors,
+            conflict=False,
+            flash=None,
+            error=None,
+        ),
+        status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET/POST /settings/api-tokens
+# ---------------------------------------------------------------------------
+
+
+@router.get("/settings/api-tokens", response_class=HTMLResponse, response_model=None)
+async def api_tokens_page(request: Request) -> HTMLResponse | RedirectResponse:
+    """List personal API tokens and offer to issue a new one."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    tokens: list[dict] = []
+    error: str | None = None
+    degraded = False
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/api-tokens")
+    if resp.is_success:
+        payload = resp.json()
+        tokens = payload if isinstance(payload, list) else payload.get("items", [])
+    elif resp.status_code == 404:
+        degraded = True
+    elif resp.status_code == 401:
+        error = "Your session may have expired — please sign in again."
+    else:
+        error = f"API error: HTTP {resp.status_code}"
+
+    # A freshly-issued token cleartext is stashed once in the session by the
+    # POST handler (it is never retrievable again) and consumed here.
+    new_token = request.session.pop("new_api_token", None)
+    flash = request.session.pop("flash", None)
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "settings/api_tokens.html",
         {
-            "company": company,
-            "form": form,
-            "errors": errors,
-            "conflict": False,
+            "tokens": tokens,
+            "new_token": new_token,
+            "flash": flash,
+            "error": error,
+            "degraded": degraded,
+            "errors": {},
+            "mode": getattr(request.state, "active_company_bookkeeping_mode", "full") or "full",
+        },
+    )
+
+
+@router.post("/settings/api-tokens", response_class=HTMLResponse, response_model=None)
+async def api_tokens_create(request: Request) -> HTMLResponse | RedirectResponse:
+    """Issue a new API token; stash the one-time cleartext in the session."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    name = str(form_data.get("name", "")).strip()
+    ttl_raw = str(form_data.get("ttl_days", "")).strip()
+
+    if not name:
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "settings/api_tokens.html",
+            {
+                "tokens": await _list_tokens(request),
+                "new_token": None,
+                "flash": None,
+                "error": None,
+                "degraded": False,
+                "errors": {"name": "Give the token a name so you can recognise it later."},
+                "mode": getattr(request.state, "active_company_bookkeeping_mode", "full") or "full",
+            },
+            status_code=422,
+        )
+
+    body: dict[str, object] = {"name": name}
+    if ttl_raw:
+        try:
+            body["ttl_days"] = int(ttl_raw)
+        except ValueError:
+            pass
+
+    async with api_client(request) as client:
+        resp = await client.post("/api/v1/api-tokens", json=body)
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    if resp.status_code in (200, 201):
+        data = resp.json()
+        # Cleartext is shown ONCE. It is the user's own credential rendered in
+        # their own browser — never logged or echoed elsewhere.
+        request.session["new_api_token"] = {
+            "name": data.get("name", name),
+            "token": data.get("token", ""),
+            "prefix": data.get("token_prefix", ""),
+        }
+        request.session["flash"] = "API token created."
+        return RedirectResponse(url="/settings/api-tokens", status_code=303)
+
+    errors: dict[str, str] = {}
+    if resp.status_code == 422:
+        errors["name"] = "The engine rejected that token name."
+    else:
+        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "settings/api_tokens.html",
+        {
+            "tokens": await _list_tokens(request),
+            "new_token": None,
             "flash": None,
             "error": None,
+            "degraded": False,
+            "errors": errors,
+            "mode": getattr(request.state, "active_company_bookkeeping_mode", "full") or "full",
         },
-        status_code=422 if resp.status_code == 422 else resp.status_code,
+        status_code=resp.status_code if resp.status_code >= 400 else 422,
+    )
+
+
+@router.post("/settings/api-tokens/{token_id}/revoke", response_class=HTMLResponse, response_model=None)
+async def api_tokens_revoke(request: Request, token_id: str) -> RedirectResponse:
+    """Revoke a token by id."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.delete(f"/api/v1/api-tokens/{token_id}")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    request.session["flash"] = (
+        "API token revoked." if resp.is_success else f"Could not revoke token (HTTP {resp.status_code})."
+    )
+    return RedirectResponse(url="/settings/api-tokens", status_code=303)
+
+
+async def _list_tokens(request: Request) -> list[dict]:
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/api-tokens")
+    if resp.is_success:
+        payload = resp.json()
+        return payload if isinstance(payload, list) else payload.get("items", [])
+    return []
+
+
+# ---------------------------------------------------------------------------
+# GET /settings/users
+# ---------------------------------------------------------------------------
+
+
+@router.get("/settings/users", response_class=HTMLResponse, response_model=None)
+async def users_page(request: Request) -> HTMLResponse | RedirectResponse:
+    """Read-only team roster. Degrades to an M2 banner when the module is
+    unavailable on this edition (404) rather than showing a blank page."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    users: list[dict] = []
+    error: str | None = None
+    degraded = False
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/users")
+    if resp.is_success:
+        payload = resp.json()
+        users = payload if isinstance(payload, list) else payload.get("items", [])
+    elif resp.status_code == 404:
+        degraded = True
+    elif resp.status_code in (401, 403):
+        error = "You don't have permission to view team members, or your session expired."
+    else:
+        error = f"API error: HTTP {resp.status_code}"
+
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "settings/users.html",
+        {
+            "users": users,
+            "error": error,
+            "degraded": degraded,
+            "current_email": request.session.get("username", ""),
+            "mode": getattr(request.state, "active_company_bookkeeping_mode", "full") or "full",
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /settings/preferences
+# ---------------------------------------------------------------------------
+
+
+@router.get("/settings/preferences", response_class=HTMLResponse, response_model=None)
+async def preferences_page(request: Request) -> HTMLResponse | RedirectResponse:
+    """Locale, theme and bookkeeping-mode surface (read-through)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    flash = request.session.pop("flash", None)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "settings/preferences.html",
+        {
+            "mode": getattr(request.state, "active_company_bookkeeping_mode", "full") or "full",
+            "jurisdiction": getattr(request.state, "active_company_jurisdiction", None) or "AU",
+            "active_locale": getattr(request.state, "locale", None) or request.session.get("locale", "en"),
+            "flash": flash,
+        },
     )

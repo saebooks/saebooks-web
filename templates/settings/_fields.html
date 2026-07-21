@@ -1,0 +1,84 @@
+{# Reusable settings form-field macros.
+
+   Match the existing company.html Tailwind idioms (gray borders + dark
+   variants, brand-blue #194291 focus ring, red border/hint on error). Keeping
+   these in one place is what makes the reworked, field-dense settings form
+   maintainable and visually consistent.
+
+   Usage:
+     {% from "settings/_fields.html" import text_field, select_field, textarea_field %}
+     {{ text_field("phone", _("Phone"), form, errors) }}
+#}
+
+{% macro _err_border(name, errors) -%}
+{{ 'border-red-400 dark:border-red-500' if errors.get(name) else 'border-gray-300 dark:border-gray-600' }}
+{%- endmacro %}
+
+{% macro _base_input_classes(name, errors) -%}
+block w-full rounded-md border {{ _err_border(name, errors) }}
+bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+placeholder:text-gray-400 dark:placeholder:text-gray-500
+px-3 py-2 text-sm shadow-sm
+focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]
+{%- endmacro %}
+
+{% macro _field_error(name, errors) -%}
+{% if errors.get(name) %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors.get(name) }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro text_field(name, label, form, errors, type="text", placeholder="", hint="", required=False, optional=False) %}
+<div class="mb-5">
+  <label for="{{ name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+    {{ label }}
+    {% if required %}<span class="text-[color:var(--neg)]">*</span>{% endif %}
+    {% if optional %}<span class="text-gray-400 dark:text-gray-500 font-normal">({{ _("optional") }})</span>{% endif %}
+  </label>
+  <input
+    type="{{ type }}"
+    id="{{ name }}"
+    name="{{ name }}"
+    value="{{ form.get(name, '') }}"
+    {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+    {% if required %}required{% endif %}
+    class="{{ _base_input_classes(name, errors) }}"
+  >
+  {% if hint %}<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ hint }}</p>{% endif %}
+  {{ _field_error(name, errors) }}
+</div>
+{% endmacro %}
+
+{% macro select_field(name, label, form, errors, options, hint="") %}
+{# options: list of (value, label) tuples #}
+<div class="mb-5">
+  <label for="{{ name }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ label }}</label>
+  <select
+    id="{{ name }}"
+    name="{{ name }}"
+    class="block w-full rounded-md border {{ _err_border(name, errors) }}
+           bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+           px-3 py-2 text-sm shadow-sm
+           focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
+  >
+    {% for val, opt_label in options %}
+    <option value="{{ val }}" {% if form.get(name, '')|string == val|string %}selected{% endif %}>{{ opt_label }}</option>
+    {% endfor %}
+  </select>
+  {% if hint %}<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ hint }}</p>{% endif %}
+  {{ _field_error(name, errors) }}
+</div>
+{% endmacro %}
+
+{% macro readonly_field(name, label, value, hint="") %}
+<div class="mb-5">
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ label }}</label>
+  <input
+    type="text"
+    value="{{ value }}"
+    disabled
+    class="block w-full rounded-md border border-gray-300 dark:border-gray-600
+           bg-gray-100 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400
+           px-3 py-2 text-sm shadow-sm cursor-not-allowed"
+  >
+  {% if hint %}<p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ hint }}</p>{% endif %}
+</div>
+{% endmacro %}

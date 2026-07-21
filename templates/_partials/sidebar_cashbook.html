@@ -69,8 +69,8 @@
 </div>
 
 <div class="border-t border-gray-100 dark:border-gray-700 pt-3 mt-3">
-  <a href="/settings/company"
-     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings/company' %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+  <a href="/settings"
+     class="flex items-center px-2 py-1.5 rounded-md text-xs {% if path == '/settings' or path.startswith('/settings/') %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb] font-medium{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
     {{ _("Settings") }}
   </a>
   <a href="/cashbook/about"

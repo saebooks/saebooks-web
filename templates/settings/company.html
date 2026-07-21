@@ -1,12 +1,18 @@
 {% extends "base.html" %}
+{% from "settings/_fields.html" import text_field, select_field, readonly_field %}
 
 {% block title %}{{ _("Company Settings") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
-<div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("Company Settings") }}</h1>
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("Company details") }}</h1>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+    {{ _("Who you are, how you get paid, and how your books are set up.") }}
+  </p>
 </div>
+
+{% include "settings/_nav.html" %}
 
 {# ── Flash banner (success) ── #}
 {% if flash %}
@@ -24,17 +30,11 @@
 
 {# ── Conflict banner ── #}
 {% if conflict %}
-<div
-  id="conflict-banner"
-  class="rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 px-4 py-4 text-sm text-amber-800 dark:text-amber-300 mb-6"
-  role="alert"
->
-  <p class="font-semibold mb-1">
-    {{ _("Someone else has updated this company record.") }}
-  </p>
-  <p>
-    {{ _("Your submitted values are preserved below with the server's current version applied. Save again to apply your changes on top of the latest record.") }}
-  </p>
+<div id="conflict-banner"
+     class="rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 px-4 py-4 text-sm text-amber-800 dark:text-amber-300 mb-6"
+     role="alert">
+  <p class="font-semibold mb-1">{{ _("Someone else has updated this company record.") }}</p>
+  <p>{{ _("Your submitted values are preserved below with the server's current version applied. Save again to apply your changes on top of the latest record.") }}</p>
 </div>
 {% endif %}
 
@@ -51,141 +51,49 @@
   <form method="POST" action="/settings/company" novalidate>
     {{ csrf_input(request)|safe }}
 
-
-    {# Hidden fields: version for optimistic locking, company_id for the PATCH URL #}
     <input type="hidden" name="version" value="{{ form.get('version', '') }}">
     <input type="hidden" name="company_id" value="{{ company.id if company else '' }}">
+    {# Mode is echoed back so the POST handler applies only the sections this
+       edition actually rendered (cashbook hides accrual-only policy). #}
+    <input type="hidden" name="bookkeeping_mode" value="{{ mode }}">
 
-    {# ── Company name ── #}
-    <div class="mb-5">
-      <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        {{ _("Company name") }} <span class="text-[color:var(--neg)]">*</span>
-      </label>
-      <input
-        type="text"
-        id="name"
-        name="name"
-        value="{{ form.get('name', '') }}"
-        required
-        class="block w-full rounded-md border {{ 'border-red-400 dark:border-red-500' if errors.get('name') else 'border-gray-300 dark:border-gray-600' }}
-               bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-               px-3 py-2 text-sm shadow-sm
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-      >
-      {% if errors.get('name') %}
-      <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors.get('name') }}</p>
-      {% endif %}
-    </div>
+    {# ══ Organisation ══ #}
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">{{ _("Organisation") }}</h2>
 
-    {# ── Legal name ── #}
-    <div class="mb-5">
-      <label for="legal_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Legal name") }}</label>
-      <input
-        type="text"
-        id="legal_name"
-        name="legal_name"
-        value="{{ form.get('legal_name', '') }}"
-        class="block w-full rounded-md border {{ 'border-red-400 dark:border-red-500' if errors.get('legal_name') else 'border-gray-300 dark:border-gray-600' }}
-               bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-               px-3 py-2 text-sm shadow-sm
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-      >
-      {% if errors.get('legal_name') %}
-      <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors.get('legal_name') }}</p>
-      {% endif %}
-    </div>
-
-    {# ── Trading name ── #}
-    <div class="mb-5">
-      <label for="trading_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Trading name") }}</label>
-      <input
-        type="text"
-        id="trading_name"
-        name="trading_name"
-        value="{{ form.get('trading_name', '') }}"
-        class="block w-full rounded-md border border-gray-300 dark:border-gray-600
-               bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-               px-3 py-2 text-sm shadow-sm
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-      >
-    </div>
-
-    {# Active company jurisdiction ("AU", "EE", ...) — see company_context.py.
-       ABN and the GST-registration fieldset are Australian-specific: ABN is
-       the Australian Business Number, and the $75k GST-registration
-       threshold/backdate workflow below only applies under AU GST law.
-       Falls back to "AU" when unresolved so existing AU behaviour is
-       unchanged. #}
-    {% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}
+    {{ text_field("name", _("Company name"), form, errors, required=True) }}
+    {{ text_field("legal_name", _("Legal name"), form, errors) }}
+    {{ text_field("trading_name", _("Trading name"), form, errors) }}
 
     {% if jurisdiction == 'AU' %}
-    {# ── ABN ── #}
-    <div class="mb-5">
-      <label for="abn" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("ABN") }}</label>
-      <input
-        type="text"
-        id="abn"
-        name="abn"
-        value="{{ form.get('abn', '') }}"
-        placeholder="XX XXX XXX XXX"
-        class="block w-full rounded-md border {{ 'border-red-400 dark:border-red-500' if errors.get('abn') else 'border-gray-300 dark:border-gray-600' }}
-               bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-               placeholder:text-gray-400 dark:placeholder:text-gray-500
-               px-3 py-2 text-sm shadow-sm
-               focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-      >
-      {% if errors.get('abn') %}
-      <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors.get('abn') }}</p>
-      {% endif %}
-    </div>
+    {{ text_field("abn", _("ABN"), form, errors, placeholder="XX XXX XXX XXX") }}
+    {{ text_field("acn", _("ACN"), form, errors, optional=True, placeholder="XXX XXX XXX",
+                  hint=_("Australian Company Number — for companies registered with ASIC.")) }}
+    {% endif %}
 
-    {# ── GST registration fieldset ── #}
-    <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
-      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("GST Registration") }}</legend>
+    {{ select_field("lifecycle_status", _("Entity status"), form, errors, [
+        ('active', _('Active')),
+        ('dormant', _('Dormant')),
+        ('in_liquidation', _('In liquidation')),
+        ('deregistered', _('Deregistered'))],
+        hint=_("The legal status of the entity. Leave as Active for a normal trading business.")) }}
 
-      <div class="mb-3 flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="gst_registered"
-          name="gst_registered"
-          value="true"
-          {% if form.get('gst_registered') %}checked{% endif %}
-          class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
-          onchange="document.getElementById('gst_date_row').style.display = this.checked ? '' : 'none'"
-        >
-        <label for="gst_registered" class="text-sm text-gray-700 dark:text-gray-300">{{ _("Registered for GST") }}</label>
-      </div>
+    {% if jurisdiction == 'EE' %}
+    {{ text_field("registrikood", _("Registrikood"), form, errors,
+                  hint=_("Estonian business registry code (äriregistri kood).")) }}
+    {{ text_field("kmv_number", _("KMKR number"), form, errors, optional=True,
+                  hint=_("Estonian VAT number, if registered.")) }}
+    {% endif %}
 
-      <div
-        id="gst_date_row"
-        {% if not form.get('gst_registered') %}style="display:none"{% endif %}
-      >
-        <label for="gst_effective_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ _("Effective date") }} <span class="text-gray-400 dark:text-gray-500 font-normal">({{ _("date registration began") }})</span>
-        </label>
-        <input
-          type="date"
-          id="gst_effective_date"
-          name="gst_effective_date"
-          value="{{ form.get('gst_effective_date', '') }}"
-          class="block w-48 rounded-md border {{ 'border-red-400 dark:border-red-500' if errors.get('gst_effective_date') else 'border-gray-300 dark:border-gray-600' }}
-                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                 px-3 py-2 text-sm shadow-sm
-                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-        >
-        {# Note: no inline "21-days-ago" warning. Recording an existing
-           long-standing GST registration is normal — the ATO already has
-           the registration on file and there is no notification rule
-           triggered by entering the date here. The POST handler still
-           shows a backdate-confirm page IF there are pre-registration
-           invoices that need credit notes (scenario B), but a clean
-           books with no historical invoices saves without prompting. #}
-        {% if errors.get('gst_effective_date') %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors.get('gst_effective_date') }}</p>
-        {% endif %}
-      </div>
-    </fieldset>
-    {% endif %}{# jurisdiction == 'AU' — ABN + GST registration fieldset #}
+    {# ══ Contact & letterhead ══ #}
+    <h2 class="mt-8 text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">{{ _("Contact & letterhead") }}</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("Shown in the header of the invoices, quotes and statements you send.") }}</p>
+
+    {{ text_field("phone", _("Phone"), form, errors, optional=True) }}
+    {{ text_field("email", _("Email"), form, errors, type="email", optional=True) }}
+    {{ text_field("website", _("Website"), form, errors, optional=True, placeholder="https://…") }}
+
+    {# ══ Financial year & tax ══ #}
+    <h2 id="financial" class="mt-8 text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">{{ _("Financial year & tax") }}</h2>
 
     {# ── Financial year ── #}
     <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
@@ -197,17 +105,11 @@
 
       <div class="flex flex-wrap items-end gap-4">
         <div>
-          <label for="fin_year_start_month" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {{ _("Start month") }}
-          </label>
-          <select
-            id="fin_year_start_month"
-            name="fin_year_start_month"
+          <label for="fin_year_start_month" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Start month") }}</label>
+          <select id="fin_year_start_month" name="fin_year_start_month"
             class="block w-40 rounded-md border {{ 'border-red-400 dark:border-red-500' if errors.get('fin_year_start_month') else 'border-gray-300 dark:border-gray-600' }}
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                   px-3 py-2 text-sm shadow-sm
-                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-          >
+                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm
+                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
             {% for m, mlabel in [
                 (1, _('January')), (2, _('February')), (3, _('March')), (4, _('April')),
                 (5, _('May')), (6, _('June')), (7, _('July')), (8, _('August')),
@@ -221,85 +123,133 @@
         </div>
 
         <div>
-          <label for="fin_year_start_day" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            {{ _("Start day") }}
-          </label>
-          {# Day-of-month precision is gated on an engine field
-             (fin_year_start_day) that doesn't exist yet — see
-             ~/records/saebooks/period-picker-engine-spec-2026-07-21.md.
-             We detect its presence on the company payload rather than
-             hardcoding a flag: once the engine field lands, this control
-             unlocks with no further web change needed. #}
+          <label for="fin_year_start_day" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Start day") }}</label>
+          {# Day-of-month precision unlocks the moment the engine payload carries
+             fin_year_start_day; detected on the record, not a hardcoded flag. #}
           {% if company.get('fin_year_start_day') is not none %}
-          <input
-            type="number"
-            id="fin_year_start_day"
-            name="fin_year_start_day"
-            min="1"
-            max="31"
+          <input type="number" id="fin_year_start_day" name="fin_year_start_day" min="1" max="31"
             value="{{ form.get('fin_year_start_day', company.get('fin_year_start_day', 1)) }}"
-            class="block w-24 rounded-md border border-gray-300 dark:border-gray-600
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                   px-3 py-2 text-sm shadow-sm
-                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-          >
+            class="block w-24 rounded-md border {{ 'border-red-400 dark:border-red-500' if errors.get('fin_year_start_day') else 'border-gray-300 dark:border-gray-600' }}
+                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm
+                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+          {% if errors.get('fin_year_start_day') %}
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['fin_year_start_day'] }}</p>
+          {% endif %}
           {% else %}
-          <input
-            type="number"
-            id="fin_year_start_day"
-            value="1"
-            disabled
+          <input type="number" id="fin_year_start_day" value="1" disabled
             title="{{ _('Custom start day is coming soon — every financial year currently starts on the 1st of the start month.') }}"
             class="block w-24 rounded-md border border-gray-300 dark:border-gray-600
-                   bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400
-                   px-3 py-2 text-sm shadow-sm cursor-not-allowed"
-          >
+                   bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-3 py-2 text-sm shadow-sm cursor-not-allowed">
           <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ _("Coming soon — day is fixed to the 1st for now.") }}</p>
           {% endif %}
         </div>
       </div>
     </fieldset>
 
+    {% if jurisdiction == 'AU' %}
+    {# ── GST registration fieldset ── #}
+    <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
+      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("GST Registration") }}</legend>
+
+      <div class="mb-3 flex items-center gap-2">
+        <input type="checkbox" id="tax_registered" name="tax_registered" value="true"
+          {% if form.get('tax_registered') %}checked{% endif %}
+          class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
+          onchange="document.getElementById('gst_date_row').style.display = this.checked ? '' : 'none'">
+        <label for="tax_registered" class="text-sm text-gray-700 dark:text-gray-300">{{ _("Registered for GST") }}</label>
+      </div>
+
+      <div id="gst_date_row" {% if not form.get('tax_registered') %}style="display:none"{% endif %}>
+        <label for="gst_effective_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ _("Effective date") }} <span class="text-gray-400 dark:text-gray-500 font-normal">({{ _("date registration began") }})</span>
+        </label>
+        <input type="date" id="gst_effective_date" name="gst_effective_date" value="{{ form.get('gst_effective_date', '') }}"
+          class="block w-48 rounded-md border {{ 'border-red-400 dark:border-red-500' if errors.get('gst_effective_date') else 'border-gray-300 dark:border-gray-600' }}
+                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm
+                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+        {% if errors.get('gst_effective_date') %}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors.get('gst_effective_date') }}</p>
+        {% endif %}
+      </div>
+    </fieldset>
+    {% endif %}{# jurisdiction == 'AU' #}
+
+    {{ readonly_field("base_currency", _("Base currency"), form.get('base_currency', 'AUD'),
+        hint=_("The currency your ledger is kept in. Set when the company was created — changing it after transactions are posted isn't a simple edit, so contact support if you need to.")) }}
+
+    {% if mode == 'full' %}
     {# ── PSI (Personal Services Income) classification ── #}
     <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
       <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Business Classification (PSI)") }}</legend>
-
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
         {{ _("If most of your income comes from your personal skills or efforts, the ATO may classify it as Personal Services Income (PSI). This affects which deductions you can claim.") }}
         <a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/personal-services-income"
-           target="_blank" rel="noopener" class="text-[#194291] dark:text-[#8aa9d8] underline ml-1">
-          {{ _("80/20 rule & PSI info →") }}
-        </a>
+           target="_blank" rel="noopener" class="text-[#194291] dark:text-[#8aa9d8] underline ml-1">{{ _("80/20 rule & PSI info →") }}</a>
       </p>
-
       <div class="flex flex-col gap-2">
         {% for val, label in [('yes', _('Yes — I have a PSI determination (or clearly pass the 80/20 test)')),
                                ('no',  _('No — I am not a Personal Services Business')),
                                ('unsure', _('Unsure — I need to check my PSI status'))] %}
         <label class="flex items-start gap-2 cursor-pointer">
-          <input
-            type="radio"
-            name="psi_status"
-            value="{{ val }}"
-            {% if form.get('psi_status', 'unsure') == val %}checked{% endif %}
-            class="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
-          >
+          <input type="radio" name="psi_status" value="{{ val }}" {% if form.get('psi_status', 'unsure') == val %}checked{% endif %}
+            class="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]">
           <span class="text-sm text-gray-700 dark:text-gray-300">{{ label }}</span>
         </label>
         {% endfor %}
       </div>
+    </fieldset>
+    {% endif %}{# mode == full — PSI #}
 
+    {# ══ How you get paid ══ #}
+    <h2 class="mt-8 text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">{{ _("How you get paid") }}</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("Remittance details and payment terms printed on the documents you issue. Used when no bank account is flagged to show on invoices.") }}</p>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>{{ text_field("bank_name", _("Bank name"), form, errors, optional=True) }}</div>
+      <div>{{ text_field("bank_account_name", _("Account name"), form, errors, optional=True) }}</div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      {% if jurisdiction == 'AU' %}
+      <div>{{ text_field("bank_bsb", _("BSB"), form, errors, optional=True, placeholder="XXX-XXX") }}</div>
+      {% endif %}
+      <div>{{ text_field("bank_account_number", _("Account number"), form, errors, optional=True) }}</div>
+    </div>
+    {{ text_field("default_payment_terms", _("Default payment terms"), form, errors, optional=True,
+                  placeholder=_("e.g. Net 14 days"), hint=_("Pre-fills the payment terms on new invoices and credit notes.")) }}
+    {{ text_field("payment_terms_text", _("Payment terms (long form)"), form, errors, optional=True,
+                  hint=_("Full terms text shown on documents, if you use one.")) }}
+    {{ text_field("terms_url", _("Terms & conditions URL"), form, errors, optional=True, placeholder="https://…") }}
+
+    {% if mode == 'full' %}
+    {# ══ Accounting policy ══ #}
+    <h2 class="mt-8 text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">{{ _("Accounting policy") }}</h2>
+
+    {{ select_field("costing_method", _("Inventory costing method"), form, errors, [
+        ('weighted_average', _('Weighted average')),
+        ('fifo', _('First in, first out (FIFO)')),
+        ('quantity_only', _('Track quantity only'))],
+        hint=_("How the cost of inventory items is calculated when they're sold.")) }}
+
+    <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
+      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Control account overrides") }}</legend>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+        {{ _("Leave blank to use the standard accounts. Only change these if your chart of accounts uses different codes.") }}
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>{{ text_field("ar_control_account_code", _("Accounts receivable"), form, errors, optional=True, placeholder="1-1200") }}</div>
+        <div>{{ text_field("ap_control_account_code", _("Accounts payable"), form, errors, optional=True, placeholder="2-1200") }}</div>
+        <div>{{ text_field("asset_disposal_gain_account_code", _("Asset disposal — gain"), form, errors, optional=True, placeholder="4-9100") }}</div>
+        <div>{{ text_field("asset_disposal_loss_account_code", _("Asset disposal — loss"), form, errors, optional=True, placeholder="6-9100") }}</div>
+      </div>
     </fieldset>
 
-    {# ── Bad-debt write-off & recovery policy (Phase 2 / Task 8) ── #}
+    {# ── Bad-debt write-off & recovery policy ── #}
     <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
       <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Bad-debt write-off & recovery") }}</legend>
-
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
         {{ _("How %(brand)s handles invoices that go unpaid long enough to be treated as a bad debt, and money that later comes in against a debt already written off.") % {"brand": current_brand().name} }}
       </p>
 
-      {# Write-off mode — radio group, mirrors the psi_status pattern. #}
       <div class="mb-4">
         <span class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ _("Write-off mode") }}</span>
         <div class="flex flex-col gap-2">
@@ -308,48 +258,26 @@
               ('auto',   _('Auto — a scheduled job writes off invoices past the threshold automatically')),
               ('manual', _('Manual — no prompts; I write off invoices myself when I choose'))] %}
           <label class="flex items-start gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="writeoff_mode"
-              value="{{ val }}"
-              {% if form.get('writeoff_mode', 'review') == val %}checked{% endif %}
-              class="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
-            >
+            <input type="radio" name="writeoff_mode" value="{{ val }}" {% if form.get('writeoff_mode', 'review') == val %}checked{% endif %}
+              class="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]">
             <span class="text-sm text-gray-700 dark:text-gray-300">{{ label }}</span>
           </label>
           {% endfor %}
         </div>
-        {% if errors.get('writeoff_mode') %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['writeoff_mode'] }}</p>
-        {% endif %}
+        {% if errors.get('writeoff_mode') %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['writeoff_mode'] }}</p>{% endif %}
       </div>
 
-      {# Write-off threshold (days). #}
       <div class="mb-4">
-        <label for="writeoff_threshold_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ _("Write-off threshold (days past due)") }}
-        </label>
-        <input
-          type="number"
-          id="writeoff_threshold_days"
-          name="writeoff_threshold_days"
-          min="1"
-          step="1"
+        <label for="writeoff_threshold_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Write-off threshold (days past due)") }}</label>
+        <input type="number" id="writeoff_threshold_days" name="writeoff_threshold_days" min="1" step="1"
           value="{{ form.get('writeoff_threshold_days', '90') }}"
           class="block w-40 rounded-md border border-gray-300 dark:border-gray-600
-                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                 px-3 py-2 text-sm shadow-sm
-                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-        >
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {{ _("An invoice older than this many days past its due date, with a balance owing, becomes a write-off candidate. Default 90.") }}
-        </p>
-        {% if errors.get('writeoff_threshold_days') %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['writeoff_threshold_days'] }}</p>
-        {% endif %}
+                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm
+                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("An invoice older than this many days past its due date, with a balance owing, becomes a write-off candidate. Default 90.") }}</p>
+        {% if errors.get('writeoff_threshold_days') %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['writeoff_threshold_days'] }}</p>{% endif %}
       </div>
 
-      {# Recovery mode — radio group. #}
       <div class="mb-4">
         <span class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ _("Recovery mode") }}</span>
         <div class="flex flex-col gap-2">
@@ -358,143 +286,67 @@
               ('manual',       _('Manual — never prompt; I record recoveries myself')),
               ('reopen',       _('Reopen — (coming soon) re-open the original invoice instead of posting a recovery'))] %}
           <label class="flex items-start gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="recovery_mode"
-              value="{{ val }}"
-              {% if form.get('recovery_mode', 'smart_prompt') == val %}checked{% endif %}
-              class="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
-            >
+            <input type="radio" name="recovery_mode" value="{{ val }}" {% if form.get('recovery_mode', 'smart_prompt') == val %}checked{% endif %}
+              class="mt-0.5 h-4 w-4 border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]">
             <span class="text-sm text-gray-700 dark:text-gray-300">{{ label }}</span>
           </label>
           {% endfor %}
         </div>
-        {% if errors.get('recovery_mode') %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['recovery_mode'] }}</p>
-        {% endif %}
+        {% if errors.get('recovery_mode') %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors['recovery_mode'] }}</p>{% endif %}
       </div>
 
-      {# Optional recovery account override. #}
       <div class="mb-1">
-        <label for="bad_debt_recovery_account" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ _("Bad-debt recovery account") }} <span class="text-gray-400 font-normal">({{ _("optional") }})</span>
-        </label>
-        <input
-          type="text"
-          id="bad_debt_recovery_account"
-          name="bad_debt_recovery_account"
-          value="{{ form.get('bad_debt_recovery_account', '') }}"
-          placeholder="{{ _('leave blank — engine resolves 4-1290 Bad Debt Recovery') }}"
-          class="block w-full rounded-md border border-gray-300 dark:border-gray-600
-                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                 px-3 py-2 text-sm shadow-sm
-                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-        >
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {{ _("Account code recovered amounts are credited to. Blank lets the engine use the default 4-1290 Bad Debt Recovery account.") }}
-        </p>
+        {{ text_field("bad_debt_recovery_account", _("Bad-debt recovery account"), form, errors, optional=True,
+            placeholder=_("leave blank — engine resolves 4-1290 Bad Debt Recovery"),
+            hint=_("Account code recovered amounts are credited to. Blank lets the engine use the default 4-1290 Bad Debt Recovery account.")) }}
       </div>
-
     </fieldset>
+    {% endif %}{# mode == full — accounting policy #}
 
-    {# ── Address fieldset ── #}
+    {# ══ Address ══ #}
+    <h2 class="mt-8 text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">{{ _("Address") }}</h2>
     <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
-      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Address") }}</legend>
+      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Registered / postal address") }}</legend>
 
       <div class="mb-3">
         <label for="address_line1" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Line 1") }}</label>
-        <input
-          type="text"
-          id="address_line1"
-          name="address_line1"
-          value="{{ form.get('address_line1', '') }}"
-          class="block w-full rounded-md border border-gray-300 dark:border-gray-600
-                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                 px-3 py-2 text-sm shadow-sm
-                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-        >
+        <input type="text" id="address_line1" name="address_line1" value="{{ form.get('address_line1', '') }}"
+          class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
       </div>
-
       <div class="mb-3">
         <label for="address_line2" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Line 2") }}</label>
-        <input
-          type="text"
-          id="address_line2"
-          name="address_line2"
-          value="{{ form.get('address_line2', '') }}"
-          class="block w-full rounded-md border border-gray-300 dark:border-gray-600
-                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                 px-3 py-2 text-sm shadow-sm
-                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-        >
+        <input type="text" id="address_line2" name="address_line2" value="{{ form.get('address_line2', '') }}"
+          class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
       </div>
-
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div>
           <label for="address_city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("City") }}</label>
-          <input
-            type="text"
-            id="address_city"
-            name="address_city"
-            value="{{ form.get('address_city', '') }}"
-            class="block w-full rounded-md border border-gray-300 dark:border-gray-600
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                   px-3 py-2 text-sm shadow-sm
-                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-          >
+          <input type="text" id="address_city" name="address_city" value="{{ form.get('address_city', '') }}"
+            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
         </div>
         <div>
           <label for="address_state" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("State") }}</label>
-          <input
-            type="text"
-            id="address_state"
-            name="address_state"
-            value="{{ form.get('address_state', '') }}"
-            class="block w-full rounded-md border border-gray-300 dark:border-gray-600
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                   px-3 py-2 text-sm shadow-sm
-                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-          >
+          <input type="text" id="address_state" name="address_state" value="{{ form.get('address_state', '') }}"
+            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
         </div>
       </div>
-
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label for="address_postcode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Postcode") }}</label>
-          <input
-            type="text"
-            id="address_postcode"
-            name="address_postcode"
-            value="{{ form.get('address_postcode', '') }}"
-            class="block w-full rounded-md border border-gray-300 dark:border-gray-600
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                   px-3 py-2 text-sm shadow-sm
-                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-          >
+          <input type="text" id="address_postcode" name="address_postcode" value="{{ form.get('address_postcode', '') }}"
+            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
         </div>
         <div>
           <label for="address_country" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("Country") }}</label>
-          <input
-            type="text"
-            id="address_country"
-            name="address_country"
-            value="{{ form.get('address_country', '') }}"
-            class="block w-full rounded-md border border-gray-300 dark:border-gray-600
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                   px-3 py-2 text-sm shadow-sm
-                   focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]"
-          >
+          <input type="text" id="address_country" name="address_country" value="{{ form.get('address_country', '') }}"
+            class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
         </div>
       </div>
-
     </fieldset>
 
     <div class="mt-6 flex items-center gap-3">
-      <button
-        type="submit"
-        class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white
-               hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-      >
+      <button type="submit"
+        class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2 dark:focus:ring-offset-gray-800">
         {{ _("Save settings") }}
       </button>
     </div>

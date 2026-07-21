@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Settings") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("Settings") }}</h1>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+    {{ _("Everything about your organisation, people, banking and preferences in one place.") }}
+  </p>
+</div>
+
+{% if flash %}
+<div class="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-700 dark:text-green-400 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+{% include "settings/_nav.html" %}
+
+{% macro card(href, icon, title, desc) %}
+<a href="{{ href }}"
+   class="group block rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800
+          px-5 py-4 shadow-sm hover:border-[#194291] dark:hover:border-[#8aa9d8] transition-colors">
+  <div class="flex items-start gap-3">
+    <span class="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb]">
+      <i data-lucide="{{ icon }}" class="w-5 h-5"></i>
+    </span>
+    <div class="min-w-0">
+      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-[#194291] dark:group-hover:text-[#bdd0eb]">{{ title }}</p>
+      <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ desc }}</p>
+    </div>
+  </div>
+</a>
+{% endmacro %}
+
+{% macro group(heading) %}
+<h2 class="mt-8 mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{{ heading }}</h2>
+{% endmacro %}
+
+{# ── Organisation ── #}
+{{ group(_("Organisation")) }}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {{ card("/settings/company", "building", _("Company details"),
+          _("Name, ABN, contact, addresses and how you get paid.")) }}
+  {{ card("/companies", "building-2", _("Companies"),
+          _("Switch between, add or archive the companies you keep books for.")) }}
+</div>
+
+{# ── Financial year & tax (full accounting only) ── #}
+{% if mode == "full" %}
+{{ group(_("Financial year & tax")) }}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {{ card("/settings/company#financial", "calendar-range", _("Financial year & GST"),
+          _("Financial-year start, GST registration and business classification.")) }}
+  {{ card("/tax-codes", "percent", _("Tax codes"),
+          _("The GST / tax rates applied across your invoices and bills.")) }}
+</div>
+{% endif %}
+
+{# ── Users & API access ── #}
+{{ group(_("Users & API access")) }}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {{ card("/settings/users", "users", _("Users & roles"),
+          _("The people who can sign in to your books and what they can do.")) }}
+  {{ card("/settings/api-tokens", "key-round", _("API tokens"),
+          _("Personal tokens for the CLI, MCP tools and integrations.")) }}
+  {{ card("/profile", "user-circle", _("Your profile"),
+          _("Your display name and password.")) }}
+</div>
+
+{# ── Banking (full accounting only) ── #}
+{% if mode == "full" %}
+{{ group(_("Banking")) }}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {{ card("/bank-accounts", "landmark", _("Bank accounts"),
+          _("The accounts you reconcile and show on invoices.")) }}
+  {{ card("/bank-rules", "wand-2", _("Bank rules"),
+          _("Automatic categorisation for imported bank lines.")) }}
+</div>
+{% endif %}
+
+{# ── Preferences & edition ── #}
+{{ group(_("Preferences")) }}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {{ card("/settings/preferences", "sliders-horizontal", _("Preferences"),
+          _("Language, theme and bookkeeping mode.")) }}
+  {{ card("/admin/license", "shield-check", _("Modules & edition"),
+          _("Your edition and which modules are switched on.")) }}
+</div>
+
+{% endblock %}

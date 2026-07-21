@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% from "settings/_fields.html" import text_field %}
+
+{% block title %}{{ _("API tokens") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("API tokens") }}</h1>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+    {{ _("Personal tokens authenticate the command-line tools, MCP integrations and scripts you connect to your books.") }}
+  </p>
+</div>
+
+{% include "settings/_nav.html" %}
+
+{% if flash %}
+<div class="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-700 dark:text-green-400 mb-6">{{ flash }}</div>
+{% endif %}
+{% if error %}
+<div class="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400 mb-6">{{ error }}</div>
+{% endif %}
+{% if errors.__all__ is defined and errors.__all__ %}
+<div class="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400 mb-6">{{ errors.__all__ }}</div>
+{% endif %}
+
+{% if degraded %}
+{# M2 module-degrade: this edition doesn't expose API tokens — a banner, not a blank page. #}
+<div class="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-5 py-4 text-sm text-amber-800 dark:text-amber-300">
+  <p class="font-semibold mb-1">{{ _("API tokens aren't available on your edition") }}</p>
+  <p>{{ _("Programmatic access is a paid feature. The rest of your settings are unaffected.") }}</p>
+</div>
+{% else %}
+
+{# ── One-time token reveal ── #}
+{% if new_token %}
+<div class="rounded-xl border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 px-5 py-4 mb-6">
+  <p class="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">{{ _("Token created — copy it now") }}</p>
+  <p class="text-xs text-green-700 dark:text-green-400 mb-3">{{ _("This is the only time the full token is shown. Store it somewhere safe; you can't see it again.") }}</p>
+  <div class="flex items-center gap-2">
+    <code id="new-token-value" class="flex-1 block rounded-md bg-white dark:bg-gray-900 border border-green-300 dark:border-green-700 px-3 py-2 text-xs font-mono text-gray-900 dark:text-gray-100 break-all">{{ new_token.token }}</code>
+    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('new-token-value').textContent)"
+      class="shrink-0 rounded-md bg-[#194291] px-3 py-2 text-xs font-medium text-white hover:bg-[#133372]">{{ _("Copy") }}</button>
+  </div>
+</div>
+{% endif %}
+
+{# ── Create token ── #}
+<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5 mb-6 max-w-2xl">
+  <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ _("Create a token") }}</h2>
+  <form method="POST" action="/settings/api-tokens" novalidate>
+    {{ csrf_input(request)|safe }}
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-[16rem]">
+        {{ text_field("name", _("Name"), {}, errors, placeholder=_("e.g. Laptop CLI, MCP server")) }}
+      </div>
+      <div>
+        <label for="ttl_days" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ _("Expires in (days)") }} <span class="text-gray-400 dark:text-gray-500 font-normal">({{ _("optional") }})</span>
+        </label>
+        <input type="number" id="ttl_days" name="ttl_days" min="1" max="3650" placeholder="{{ _('never') }}"
+          class="block w-36 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+      </div>
+      <div class="mb-5">
+        <button type="submit" class="rounded-md bg-[#194291] px-5 py-2 text-sm font-medium text-white hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291]">{{ _("Create token") }}</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{# ── Existing tokens ── #}
+<div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden max-w-3xl">
+  <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ _("Your tokens") }}</h2>
+  </div>
+  {% if tokens %}
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 dark:bg-gray-900/40 text-left text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500">
+      <tr>
+        <th class="px-4 py-2">{{ _("Name") }}</th>
+        <th class="px-4 py-2">{{ _("Prefix") }}</th>
+        <th class="px-4 py-2">{{ _("Last used") }}</th>
+        <th class="px-4 py-2">{{ _("Status") }}</th>
+        <th class="px-4 py-2 text-right">{{ _("Action") }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+      {% for t in tokens %}
+      <tr>
+        <td class="px-4 py-2 text-gray-900 dark:text-gray-100">{{ t.get('name') or '—' }}</td>
+        <td class="px-4 py-2 font-mono text-xs text-gray-500 dark:text-gray-400">{{ t.get('token_prefix') or '—' }}…</td>
+        <td class="px-4 py-2 text-gray-500 dark:text-gray-400">{{ (t.get('last_used_at') or '')[:10] or _('never') }}</td>
+        <td class="px-4 py-2">
+          {% if t.get('revoked_at') or t.get('active') == false %}
+          <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-500 dark:text-gray-400">{{ _("Revoked") }}</span>
+          {% else %}
+          <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs text-green-700 dark:text-green-400">{{ _("Active") }}</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-2 text-right">
+          {% if not (t.get('revoked_at') or t.get('active') == false) %}
+          <form method="POST" action="/settings/api-tokens/{{ t.get('id') }}/revoke" class="inline"
+                onsubmit="return confirm('{{ _('Revoke this token? Anything using it will stop working.') }}')">
+            {{ csrf_input(request)|safe }}
+            <button type="submit" class="text-xs font-medium text-red-600 dark:text-red-400 hover:underline">{{ _("Revoke") }}</button>
+          </form>
+          {% else %}
+          <span class="text-xs text-gray-400 dark:text-gray-600">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">{{ _("No tokens yet. Create one above to connect a tool.") }}</div>
+  {% endif %}
+</div>
+
+{% endif %}{# not degraded #}
+
+{% endblock %}

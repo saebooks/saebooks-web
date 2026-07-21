@@ -194,8 +194,8 @@ async def test_company_settings_nav_link(respx_mock: respx.MockRouter) -> None:
         resp = await client.get("/contacts")
 
     assert resp.status_code == 200
-    # Nav link to the settings page is rendered (case-insensitive check).
-    assert "/settings/company" in resp.text
+    # Nav link now points at the Settings hub (/settings), not the company page.
+    assert 'href="/settings"' in resp.text
     assert "settings" in resp.text.lower()
 
 
@@ -229,7 +229,7 @@ async def test_company_settings_gst_backdate_shows_confirm(respx_mock: respx.Moc
                 "company_id": _COMPANY_ID,
                 "name": "Acme Pty Ltd",
                 "version": "3",
-                "gst_registered": "true",
+                "tax_registered": "true",
                 "gst_effective_date": old_date,
             },
         )
@@ -266,7 +266,7 @@ async def test_company_settings_gst_backdate_confirmed_saves(respx_mock: respx.M
                 "company_id": _COMPANY_ID,
                 "name": "Acme Pty Ltd",
                 "version": "3",
-                "gst_registered": "true",
+                "tax_registered": "true",
                 "gst_effective_date": old_date,
                 "backdate_confirmed": "true",
             },
@@ -301,7 +301,7 @@ async def test_company_settings_gst_recent_date_no_confirm(respx_mock: respx.Moc
                 "company_id": _COMPANY_ID,
                 "name": "Acme Pty Ltd",
                 "version": "3",
-                "gst_registered": "true",
+                "tax_registered": "true",
                 "gst_effective_date": recent_date,
             },
         )
@@ -348,7 +348,7 @@ async def test_company_settings_gst_old_date_no_invoices_skips_confirm(
                 "company_id": _COMPANY_ID,
                 "name": "Acme Pty Ltd",
                 "version": "3",
-                "gst_registered": "true",
+                "tax_registered": "true",
                 "gst_effective_date": old_date,
             },
         )

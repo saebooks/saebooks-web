@@ -1,0 +1,26 @@
+{# Settings sub-navigation — a consistent tab bar across every settings page so
+   the area reads as one coherent surface. `active` is the current tab key.
+   Full-accounting-only tabs (Tax codes, Banking) are hidden in cashbook mode.
+   `mode` and `jurisdiction` come from the route context. #}
+{% set _mode = mode | default("full") %}
+{% set _path = request.url.path %}
+
+{% macro _tab(href, label, is_active) %}
+<a href="{{ href }}"
+   class="whitespace-nowrap px-3 py-2 text-sm font-medium rounded-md
+          {% if is_active %}bg-[#eaf0fa] dark:bg-[#194291]/30 text-[#194291] dark:text-[#bdd0eb]{% else %}text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}">
+  {{ label }}
+</a>
+{% endmacro %}
+
+<nav class="mb-6 flex flex-wrap items-center gap-1 border-b border-gray-200 dark:border-gray-700 pb-3">
+  {{ _tab("/settings", _("Overview"), _path == "/settings") }}
+  {{ _tab("/settings/company", _("Organisation"), _path.startswith("/settings/company")) }}
+  {% if _mode == "full" %}
+  {{ _tab("/tax-codes", _("Tax codes"), _path.startswith("/tax-codes")) }}
+  {{ _tab("/bank-accounts", _("Banking"), _path.startswith("/bank-accounts") or _path.startswith("/bank-rules")) }}
+  {% endif %}
+  {{ _tab("/settings/users", _("Users"), _path.startswith("/settings/users")) }}
+  {{ _tab("/settings/api-tokens", _("API tokens"), _path.startswith("/settings/api-tokens")) }}
+  {{ _tab("/settings/preferences", _("Preferences"), _path.startswith("/settings/preferences")) }}
+</nav>
