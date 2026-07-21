@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("New Transfer") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New Transfer") }}</h1>
+  <a href="/transfers" class="text-sm sae hover:underline">← {{ _("Back to transfers") }}</a>
+</div>
+
+<div class="card px-6 py-6 max-w-2xl">
+  <form method="POST" action="/transfers/new" novalidate>
+    {{ csrf_input(request)|safe }}
+
+    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+    {% if errors.get("__all__") %}
+    <div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+      <span class="dot" style="background:var(--neg);"></span>
+      <span class="text-sm" style="color:var(--neg);">{{ errors["__all__"] }}</span>
+    </div>
+    {% endif %}
+
+    <div class="card p-3 mb-6 text-sm ink-2" style="border-color:var(--sae);">
+      <p class="font-semibold mb-1 ink-1">{{ _("The no-manual-journal-entry way to move money") }}</p>
+      <p>{{ _("Use a transfer to move money between two of this company's own balance-sheet accounts — a credit-card paydown, a director's-loan repayment, or a bank-to-bank move. It posts one balanced journal entry automatically. Never hand-write a journal entry for this.") }}</p>
+    </div>
+
+    <fieldset class="space-y-4">
+      <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Transfer details") }}</legend>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label for="from_account_id" class="block text-sm font-medium ink-2 mb-1">
+            {{ _("From account") }} <span style="color:var(--neg);">*</span>
+          </label>
+          <select
+            id="from_account_id"
+            name="from_account_id"
+            required
+            class="saebooks-input w-full"
+            {% if errors.get('from_account_id') %}style="border-color:var(--neg);"{% endif %}
+          >
+            <option value="" disabled {% if not form.get("from_account_id") %}selected{% endif %}>{{ _("Select account…") }}</option>
+            {% for acct in accounts %}
+            <option value="{{ acct.id }}" {% if form.get("from_account_id") == acct.id %}selected{% endif %}>
+              {{ acct.code }} — {{ acct.name }}
+            </option>
+            {% endfor %}
+          </select>
+          {% if errors.get("from_account_id") %}
+          <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["from_account_id"] }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="to_account_id" class="block text-sm font-medium ink-2 mb-1">
+            {{ _("To account") }} <span style="color:var(--neg);">*</span>
+          </label>
+          <select
+            id="to_account_id"
+            name="to_account_id"
+            required
+            class="saebooks-input w-full"
+            {% if errors.get('to_account_id') %}style="border-color:var(--neg);"{% endif %}
+          >
+            <option value="" disabled {% if not form.get("to_account_id") %}selected{% endif %}>{{ _("Select account…") }}</option>
+            {% for acct in accounts %}
+            <option value="{{ acct.id }}" {% if form.get("to_account_id") == acct.id %}selected{% endif %}>
+              {{ acct.code }} — {{ acct.name }}
+            </option>
+            {% endfor %}
+          </select>
+          {% if errors.get("to_account_id") %}
+          <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["to_account_id"] }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label for="amount" class="block text-sm font-medium ink-2 mb-1">
+            {{ _("Amount") }} <span style="color:var(--neg);">*</span>
+          </label>
+          <input
+            type="number"
+            id="amount"
+            name="amount"
+            step="0.01"
+            min="0.01"
+            value="{{ form.get('amount', '') }}"
+            required
+            class="saebooks-input w-full"
+            {% if errors.get('amount') %}style="border-color:var(--neg);"{% endif %}
+          >
+          {% if errors.get("amount") %}
+          <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["amount"] }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="transfer_date" class="block text-sm font-medium ink-2 mb-1">
+            {{ _("Transfer date") }} <span style="color:var(--neg);">*</span>
+          </label>
+          <input
+            type="date"
+            id="transfer_date"
+            name="transfer_date"
+            value="{{ form.get('transfer_date', '') }}"
+            required
+            class="saebooks-input w-full"
+            {% if errors.get('transfer_date') %}style="border-color:var(--neg);"{% endif %}
+          >
+          {% if errors.get("transfer_date") %}
+          <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["transfer_date"] }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label for="reference" class="block text-sm font-medium ink-2 mb-1">
+          {{ _("Reference") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
+        </label>
+        <input
+          type="text"
+          id="reference"
+          name="reference"
+          maxlength="64"
+          value="{{ form.get('reference', '') }}"
+          class="saebooks-input w-full"
+        >
+      </div>
+
+      <div>
+        <label for="description" class="block text-sm font-medium ink-2 mb-1">
+          {{ _("Description") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          rows="3"
+          class="saebooks-input w-full"
+          placeholder="{{ _('e.g. Credit card paydown from the operating account') }}"
+        >{{ form.get("description", "") }}</textarea>
+      </div>
+    </fieldset>
+
+    <div class="mt-8 flex items-center gap-3">
+      <button type="submit" class="btn-primary text-sm">
+        {{ _("Record and post transfer") }}
+      </button>
+      <a href="/transfers" class="btn-secondary text-sm">
+        {{ _("Cancel") }}
+      </a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

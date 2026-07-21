@@ -1,0 +1,77 @@
+{#
+  _line_row.html — single receipt line-item row.
+
+  ReceiptLineIn is {description, account_id, tax_code_id, amount} — a flat
+  amount, NOT quantity * unit_price (that's the credit_notes/invoices/SCN
+  shape). Used both for the full new-receipt form and as an HTMX fragment
+  from GET /receipts/_add_line?index=N.
+
+  Expected context variables:
+    index      : int
+    line       : dict  — pre-filled values (empty dict for a blank row)
+    accounts   : list  — account dicts [{id, name, code}, ...]
+    tax_codes  : list  — tax code dicts [{id, name, rate}, ...]
+#}
+<tr class="line-row border-b hairline">
+  <td class="px-3 py-2" data-label="{{ _('Account') }}">
+    <select
+      name="lines[{{ index }}][account_id]"
+      aria-label="{{ _('Account, row %(index)s') % {'index': index} }}"
+      class="saebooks-input w-full"
+    >
+      <option value="">{{ _("— account —") }}</option>
+      {% for acct in accounts %}
+      <option value="{{ acct.id }}" {% if line.get("account_id") == acct.id %}selected{% endif %}>
+        {{ acct.code }} — {{ acct.name }}
+      </option>
+      {% endfor %}
+    </select>
+  </td>
+
+  <td class="px-3 py-2" data-label="{{ _('Description') }}">
+    <input
+      type="text"
+      name="lines[{{ index }}][description]"
+      aria-label="{{ _('Description, row %(index)s') % {'index': index} }}"
+      value="{{ line.get('description', '') }}"
+      placeholder="{{ _('Description') }}"
+      class="saebooks-input w-full"
+    >
+  </td>
+
+  <td class="px-3 py-2 w-32" data-label="{{ _('Amount') }}">
+    <input
+      type="number"
+      name="lines[{{ index }}][amount]"
+      aria-label="{{ _('Amount, row %(index)s') % {'index': index} }}"
+      value="{{ line.get('amount', '') }}"
+      step="0.01"
+      min="0"
+      class="saebooks-input w-full text-right"
+    >
+  </td>
+
+  <td class="px-3 py-2 w-32" data-label="{{ _('Tax') }}">
+    <select
+      name="lines[{{ index }}][tax_code_id]"
+      aria-label="{{ _('Tax code, row %(index)s') % {'index': index} }}"
+      class="saebooks-input w-full"
+    >
+      <option value="">{{ _("— none —") }}</option>
+      {% for t in tax_codes %}
+      <option value="{{ t.id }}" {% if line.get("tax_code_id") == t.id %}selected{% endif %}>
+        {{ t.name }}
+      </option>
+      {% endfor %}
+    </select>
+  </td>
+
+  <td class="px-3 py-2 w-10">
+    <button
+      type="button"
+      class="text-sm ink-3 hover:text-[color:var(--neg)]"
+      aria-label="{{ _('Remove row') }}"
+      onclick="this.closest('tr').remove()"
+    >&times;</button>
+  </td>
+</tr>

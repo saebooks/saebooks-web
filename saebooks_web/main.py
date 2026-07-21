@@ -96,6 +96,9 @@ from saebooks_web.routes.budgets import router as budgets_router
 from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.parties import router as parties_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
+from saebooks_web.routes.transfers import router as transfers_router
+from saebooks_web.routes.receipts import router as receipts_router
+from saebooks_web.routes.supplier_credit_notes import router as supplier_credit_notes_router
 from saebooks_web.routes.dashboard import router as dashboard_router
 from saebooks_web.routes.demo_isolation import router as demo_isolation_router
 from saebooks_web.routes.switch_company import router as switch_company_router
@@ -419,6 +422,9 @@ app.include_router(purchase_orders_router)
 app.include_router(proration_router)
 app.include_router(payments_router)
 app.include_router(credit_notes_router)
+app.include_router(transfers_router)
+app.include_router(receipts_router)
+app.include_router(supplier_credit_notes_router)
 app.include_router(journal_entries_router)
 app.include_router(journal_templates_router)
 app.include_router(accounts_router)

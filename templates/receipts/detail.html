@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if receipt %}{{ _("Receipt %(number)s") % {"number": (receipt.number or receipt.id)} }} — {{ current_brand().name }}{% else %}{{ _("Receipt Not Found") }} — {{ current_brand().name }}{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+{% if receipt %}
+
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-semibold ink-1">
+        {{ _("Receipt %(number)s") % {"number": (receipt.number or "—")} }}
+      </h1>
+      {% if receipt.status == 'POSTED' %}<span class="badge-pos">{{ receipt.status | capitalize }}</span>
+      {% elif receipt.status == 'DRAFT' %}<span class="badge-draft">{{ receipt.status | capitalize }}</span>
+      {% elif receipt.status == 'VOIDED' %}<span class="badge-neg">{{ receipt.status | capitalize }}</span>
+      {% else %}<span class="badge-draft">{{ receipt.status | capitalize }}</span>{% endif %}
+    </div>
+    <p class="text-sm ink-3 mt-1">
+      {{ _("Deposited to: %(account)s") % {"account": bank_account_name or receipt.bank_account_id} }}
+      {% if contact_name %} · {{ _("Contact: %(contact)s") % {"contact": contact_name} }}{% endif %}
+    </p>
+    {% if receipt.reason %}
+    <p class="text-sm ink-3 mt-0.5">
+      {{ _("Reason:") }} <span class="badge-sae">{{ receipt.reason }}</span>
+    </p>
+    {% endif %}
+  </div>
+  <div class="flex items-center gap-3">
+    {% if receipt.status == 'DRAFT' %}
+    <form method="post" action="/receipts/{{ receipt.id }}/post"
+          onsubmit="return confirm('{{ _('Post this receipt?') }}');" class="inline">
+    {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ receipt.version }}">
+      <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">{{ _("Post") }}</button>
+    </form>
+    {% endif %}
+    {% if receipt.status == 'POSTED' %}
+    <form method="post" action="/receipts/{{ receipt.id }}/void"
+          onsubmit="return confirm('{{ _('Void this receipt?') }}');" class="inline">
+    {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ receipt.version }}">
+      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
+    </form>
+    {% endif %}
+    <a href="/receipts" class="text-sm sae hover:underline">← {{ _("Back to receipts") }}</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Receipt date") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1">{{ receipt.receipt_date }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Subtotal") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(receipt.subtotal|float, 2) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Tax") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(receipt.tax_total|float, 2) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Total") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(receipt.total|float, 2) }}</p>
+  </div>
+</div>
+
+<h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>
+<div class="card overflow-x-auto mb-8">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs w-8">#</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Tax") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Total") }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[color:var(--line)]">
+      {% if receipt.lines %}
+        {% for line in receipt.lines %}
+        <tr class="hover:bg-[color:var(--paper-2)]">
+          <td class="px-4 py-3 ink-3">{{ line.line_no }}</td>
+          <td class="px-4 py-3 ink-1">{{ line.description }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(line.amount|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(line.tax_amount|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums font-medium ink-1">{{ num(line.line_total|float, 2) }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="5" class="px-4 py-6 text-center ink-3">{{ _("No lines.") }}</td></tr>
+      {% endif %}
+    </tbody>
+    <tfoot class="bg-[color:var(--paper-2)] border-t hairline">
+      <tr class="font-semibold">
+        <td colspan="4" class="px-4 py-3 text-right text-sm ink-1">{{ _("Total") }}</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">{{ num(receipt.total|float, 2) }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+{% if receipt.notes %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Notes") }}</h2>
+  <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap">{{ receipt.notes }}</div>
+</div>
+{% endif %}
+
+{% if receipt.journal_entry_id %}
+<p class="text-sm ink-3">
+  {{ _("Journal entry:") }}
+  <a href="/journal-entries/{{ receipt.journal_entry_id }}" class="sae hover:underline">{{ _("View entry") }}</a>
+</p>
+{% endif %}
+
+{% endif %}{# end if receipt #}
+
+{% endblock %}

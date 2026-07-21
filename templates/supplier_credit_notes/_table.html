@@ -1,0 +1,91 @@
+{# HTMX partial — supplier credit notes table body + pagination. #}
+{% import "_components/kebab_menu.html" as km %}
+{% import "_partials/empty_state.html" as empty %}
+<div id="supplier-credit-notes-table">
+
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("SCN #") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Supplier") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Applied To") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
+        <th scope="col" class="w-8"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[color:var(--line)]">
+      {% if supplier_credit_notes %}
+        {% for scn in supplier_credit_notes %}
+        <tr class="hover:bg-[color:var(--paper-2)] cursor-pointer" onclick="window.location='/supplier-credit-notes/{{ scn.id }}'">
+          <td class="px-4 py-3 font-medium sae">
+            <a href="/supplier-credit-notes/{{ scn.id }}" class="hover:underline" onclick="event.stopPropagation()">
+              {{ scn.number or "—" }}
+            </a>
+          </td>
+          <td class="px-4 py-3 ink-2">{{ scn.issue_date }}</td>
+          <td class="px-4 py-3 ink-2">
+            {% set _c = contacts_by_id.get(scn.contact_id) if contacts_by_id else None %}
+            {% if _c %}<a href="/contacts/{{ _c.id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ _c.name }}</a>
+            {%- else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 ink-2">
+            {% if scn.original_bill_id %}
+            <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline" onclick="event.stopPropagation()">
+              {{ _("BILL") }} {{ scn.original_bill_id[:8] }}…
+            </a>
+            {% else %}
+            <span class="ink-3">{{ _("Unapplied") }}</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-right ink-1 font-medium tabular-nums">
+            {{ num(scn.total|float, 2) }}
+          </td>
+          <td class="px-4 py-3">
+            {% if scn.status == 'POSTED' %}<span class="badge-pos">{{ scn.status | capitalize }}</span>
+            {% elif scn.status == 'DRAFT' %}<span class="badge-draft">{{ scn.status | capitalize }}</span>
+            {% elif scn.status == 'VOIDED' %}<span class="badge-neg">{{ scn.status | capitalize }}</span>
+            {% else %}<span class="badge-draft">{{ scn.status | capitalize }}</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
+            {%- set status_lower = (scn.status or 'draft')|lower %}
+            {%- set actions = [
+              ("view", _("View"), "/supplier-credit-notes/" ~ scn.id, "link", false),
+            ] %}
+            {%- if status_lower == 'draft' %}
+              {%- set _x = actions.append(("post", _("Post"), "/supplier-credit-notes/" ~ scn.id ~ "/post", "post", false)) %}
+            {%- elif status_lower == 'posted' %}
+              {%- set _x = actions.append(("void", _("Void"), "/supplier-credit-notes/" ~ scn.id ~ "/void", "post", true)) %}
+            {%- endif %}
+            {{ km.kebab(row_id=scn.id, actions=actions, csrf_token=csrf_token if csrf_token is defined else "") }}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {{ empty.row(7, "receipt-text", _("No supplier credit notes yet"),
+                     _("Record a purchase-side correction here — a supplier crediting back an overcharge, a return, or an error on a bill."),
+                     _("New supplier credit note"), "/supplier-credit-notes/new") }}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% import "_pagination_macros.html" as pg %}
+{% set pg_filters = {
+  'status': filter_status,
+  'contact_id': filter_contact_id,
+  'date_from': filter_date_from,
+  'date_to': filter_date_to
+} %}
+{{ pg.page_numbers('/supplier-credit-notes', total, limit, offset, pg_filters, target='#supplier-credit-notes-table') }}
+
+</div>{# end #supplier-credit-notes-table #}

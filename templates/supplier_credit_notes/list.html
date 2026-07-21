@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Supplier Credit Notes") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">{{ _("Supplier Credit Notes") }}</h1>
+    {% if not error %}
+    <p class="text-sm text-gray-500 mt-1">{{ total }} supplier credit note{{ "s" if total != 1 else "" }}</p>
+    {% endif %}
+  </div>
+
+  <a
+    href="/supplier-credit-notes/new"
+    class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
+           hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+  >
+    + {{ _("New supplier credit note") }}
+  </a>
+</div>
+
+<form
+  hx-get="/supplier-credit-notes"
+  hx-target="#supplier-credit-notes-table"
+  hx-swap="outerHTML"
+  hx-push-url="true"
+  class="mb-4 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="status" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Status") }}</label>
+    <select id="status" name="status"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]">
+      <option value="" {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>{{ _("Posted") }}</option>
+      <option value="VOIDED" {% if filter_status == 'VOIDED' %}selected{% endif %}>{{ _("Voided") }}</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Date from") }}</label>
+    <input type="date" id="date_from" name="date_from" value="{{ filter_date_from }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]">
+  </div>
+
+  <div>
+    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Date to") }}</label>
+    <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]">
+  </div>
+
+  <input type="hidden" name="limit" value="{{ limit }}">
+  <input type="hidden" name="offset" value="0">
+
+  <button type="submit" class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
+    {{ _("Filter") }}
+  </button>
+</form>
+
+{% include "supplier_credit_notes/_table.html" %}
+
+<script src="/static/js/list_table.js" defer></script>
+
+{% endblock %}

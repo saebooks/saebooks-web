@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if transfer %}{{ _("Transfer") }} {{ transfer.reference or transfer.id }} — {{ current_brand().name }}{% else %}{{ _("Transfer Not Found") }} — {{ current_brand().name }}{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+{% if transfer %}
+
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-semibold ink-1">
+        {{ _("Transfer") }} {{ transfer.reference or ("#" ~ transfer.id[:8]) }}
+      </h1>
+      {% if transfer.status == 'POSTED' %}<span class="badge-pos">{{ transfer.status | capitalize }}</span>
+      {% elif transfer.status == 'REVERSED' %}<span class="badge-neg">{{ transfer.status | capitalize }}</span>
+      {% else %}<span class="badge-draft">{{ transfer.status | capitalize }}</span>{% endif %}
+    </div>
+    <p class="text-sm ink-3 mt-1">
+      {{ _("From %(from)s to %(to)s") % {
+        "from": (from_account.code ~ " — " ~ from_account.name) if from_account else transfer.from_account_id,
+        "to": (to_account.code ~ " — " ~ to_account.name) if to_account else transfer.to_account_id,
+      } }}
+    </p>
+  </div>
+  <div class="flex items-center gap-3">
+    {% if transfer.status == 'POSTED' %}
+    <form
+      method="post"
+      action="/transfers/{{ transfer.id }}/reverse"
+      onsubmit="return confirm('{{ _('Reverse this transfer? This posts a mirror journal entry and cannot be undone.') }}');"
+      class="inline"
+    >
+    {{ csrf_input(request)|safe }}
+      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
+        {{ _("Reverse") }}
+      </button>
+    </form>
+    {% endif %}
+    <a href="/transfers" class="text-sm sae hover:underline">← {{ _("Back to transfers") }}</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Transfer date") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1">{{ transfer.transfer_date }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Amount") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(transfer.amount|float, 2) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Reference") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1">{{ transfer.reference or "—" }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Journal entry") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1">
+      {% if transfer.journal_entry_id %}
+      <a href="/journal-entries/{{ transfer.journal_entry_id }}" class="sae hover:underline">
+        {{ _("View entry") }}
+      </a>
+      {% else %}—{% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="mb-8">
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Legs") }}</h2>
+  <div class="card overflow-x-auto">
+    <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+      <thead class="bg-[color:var(--paper-2)]">
+        <tr>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Direction") }}</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-[color:var(--line)]">
+        <tr>
+          <td class="px-4 py-3 ink-2">{{ _("From (credited)") }}</td>
+          <td class="px-4 py-3 ink-1">
+            {% if from_account %}
+            <a href="/accounts/{{ from_account.id }}" class="sae hover:underline">{{ from_account.code }} — {{ from_account.name }}</a>
+            {% else %}{{ transfer.from_account_id }}{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right tabular-nums ink-1">{{ num(transfer.amount|float, 2) }}</td>
+        </tr>
+        <tr>
+          <td class="px-4 py-3 ink-2">{{ _("To (debited)") }}</td>
+          <td class="px-4 py-3 ink-1">
+            {% if to_account %}
+            <a href="/accounts/{{ to_account.id }}" class="sae hover:underline">{{ to_account.code }} — {{ to_account.name }}</a>
+            {% else %}{{ transfer.to_account_id }}{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right tabular-nums ink-1">{{ num(transfer.amount|float, 2) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if transfer.description %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Description") }}</h2>
+  <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap">{{ transfer.description }}</div>
+</div>
+{% endif %}
+
+{% endif %}{# end if transfer #}
+
+{% endblock %}

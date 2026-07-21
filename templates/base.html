@@ -538,7 +538,9 @@
                             or path.startswith('/expenses')
                             or path.startswith('/purchase_orders')
                             or path.startswith('/suppliers')
-                            or path.startswith('/one-off-suppliers') %}
+                            or path.startswith('/one-off-suppliers')
+                            or path.startswith('/receipts')
+                            or path.startswith('/supplier-credit-notes') %}
       <details class="group" data-section="suppliers" {% if vendors_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>{{ _("Purchases") }}</span>
@@ -553,6 +555,12 @@
           </a>
           <a href="/expenses" class="nav-item is-sub {% if path.startswith('/expenses') and path != '/expenses-overview' %}active{% endif %}">
             <i data-lucide="credit-card" class="nav-ico"></i>{{ _("Expenses (paid)") }}
+          </a>
+          <a href="/receipts" class="nav-item is-sub {% if path.startswith('/receipts') %}active{% endif %}">
+            <i data-lucide="hand-coins" class="nav-ico"></i>{{ _("Receipts") }}
+          </a>
+          <a href="/supplier-credit-notes" class="nav-item is-sub {% if path.startswith('/supplier-credit-notes') %}active{% endif %}">
+            <i data-lucide="receipt-text" class="nav-ico"></i>{{ _("Supplier Credit Notes") }}
           </a>
           <a href="/purchase_orders" class="nav-item is-sub {% if path.startswith('/purchase_orders') %}active{% endif %}">
             <i data-lucide="shopping-cart" class="nav-ico"></i>{{ _("Purchase Orders") }}
@@ -621,7 +629,8 @@
                             or path.startswith('/bank-statement-lines')
                             or path.startswith('/reconciliation')
                             or path.startswith('/bank-rules')
-                            or path.startswith('/payments') %}
+                            or path.startswith('/payments')
+                            or path.startswith('/transfers') %}
       <details class="group" data-section="banking" {% if banking_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>{{ _("Banking") }}</span>
@@ -633,6 +642,9 @@
           </a>
           <a href="/payments" class="nav-item is-sub {% if path.startswith('/payments') %}active{% endif %}">
             <i data-lucide="banknote" class="nav-ico"></i>{{ _("Payments") }}
+          </a>
+          <a href="/transfers" class="nav-item is-sub {% if path.startswith('/transfers') %}active{% endif %}">
+            <i data-lucide="arrow-right-left" class="nav-ico"></i>{{ _("Transfers") }}
           </a>
           <a href="/bank-statement-lines" class="nav-item is-sub {% if path.startswith('/bank-statement-lines') %}active{% endif %}">
             <i data-lucide="align-justify" class="nav-ico"></i>{{ _("Statement Lines") }}

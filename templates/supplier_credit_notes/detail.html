@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if scn %}{{ _("Supplier Credit Note %(number)s") % {"number": (scn.number or scn.id)} }} — {{ current_brand().name }}{% else %}{{ _("Supplier Credit Note Not Found") }} — {{ current_brand().name }}{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+{% if scn %}
+
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-semibold ink-1">
+        {{ _("Supplier Credit Note %(number)s") % {"number": (scn.number or "—")} }}
+      </h1>
+      {% if scn.status == 'POSTED' %}<span class="badge-pos">{{ scn.status | capitalize }}</span>
+      {% elif scn.status == 'DRAFT' %}<span class="badge-draft">{{ scn.status | capitalize }}</span>
+      {% elif scn.status == 'VOIDED' %}<span class="badge-neg">{{ scn.status | capitalize }}</span>
+      {% else %}<span class="badge-draft">{{ scn.status | capitalize }}</span>{% endif %}
+    </div>
+    <p class="text-sm ink-3 mt-1">{{ _("Supplier: %(contact)s") % {"contact": scn.contact_id} }}</p>
+    {% if scn.supplier_reference %}
+    <p class="text-sm ink-3 mt-0.5">{{ _("Supplier's reference: %(ref)s") % {"ref": scn.supplier_reference} }}</p>
+    {% endif %}
+    {% if scn.reason %}
+    <p class="text-sm ink-3 mt-0.5">
+      {{ _("Reason:") }} <span class="badge-sae">{{ scn.reason }}</span>
+    </p>
+    {% endif %}
+  </div>
+  <div class="flex items-center gap-3">
+    {% if scn.status == 'DRAFT' %}
+    <form method="post" action="/supplier-credit-notes/{{ scn.id }}/post"
+          onsubmit="return confirm('{{ _('Post this supplier credit note?') }}');" class="inline">
+    {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ scn.version }}">
+      <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">{{ _("Post") }}</button>
+    </form>
+    {% endif %}
+    {% if scn.status == 'POSTED' %}
+    <form method="post" action="/supplier-credit-notes/{{ scn.id }}/void"
+          onsubmit="return confirm('{{ _('Void this supplier credit note?') }}');" class="inline">
+    {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ scn.version }}">
+      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
+    </form>
+    {% endif %}
+    <a href="/supplier-credit-notes" class="text-sm sae hover:underline">← {{ _("Back to supplier credit notes") }}</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Issue date") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1">{{ scn.issue_date }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Subtotal") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(scn.subtotal|float, 2) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Tax") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(scn.tax_total|float, 2) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Total") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(scn.total|float, 2) }}</p>
+  </div>
+</div>
+
+<div class="mb-8">
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Applied To") }}</h2>
+  <div class="card px-4 py-3 text-sm ink-2">
+    {% if scn.original_bill_id %}
+    <span class="ink-3">{{ _("Bill:") }} </span>
+    <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline font-medium">{{ scn.original_bill_id }}</a>
+    {% else %}
+    <span class="ink-3">{{ _("Unapplied — not linked to a bill") }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>
+<div class="card overflow-x-auto mb-8">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs w-8">#</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Qty") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Unit price") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Tax") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Total") }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[color:var(--line)]">
+      {% if scn.lines %}
+        {% for line in scn.lines %}
+        <tr class="hover:bg-[color:var(--paper-2)]">
+          <td class="px-4 py-3 ink-3">{{ line.line_no }}</td>
+          <td class="px-4 py-3 ink-1">{{ line.description }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ line.quantity }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(line.unit_price|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">{{ num(line.line_tax|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums font-medium ink-1">{{ num(line.line_total|float, 2) }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="6" class="px-4 py-6 text-center ink-3">{{ _("No lines.") }}</td></tr>
+      {% endif %}
+    </tbody>
+    <tfoot class="bg-[color:var(--paper-2)] border-t hairline">
+      <tr>
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">{{ _("Subtotal") }}</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">{{ num(scn.subtotal|float, 2) }}</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-3">{{ _("Tax") }}</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">{{ num(scn.tax_total|float, 2) }}</td>
+      </tr>
+      <tr class="font-semibold">
+        <td colspan="5" class="px-4 py-3 text-right text-sm ink-1">{{ _("Total") }}</td>
+        <td class="px-4 py-3 text-right tabular-nums text-sm ink-1">{{ num(scn.total|float, 2) }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+{% if scn.notes %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Notes") }}</h2>
+  <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap">{{ scn.notes }}</div>
+</div>
+{% endif %}
+
+{% if scn.journal_entry_id %}
+<p class="text-sm ink-3">
+  {{ _("Journal entry:") }}
+  <a href="/journal-entries/{{ scn.journal_entry_id }}" class="sae hover:underline">{{ _("View entry") }}</a>
+</p>
+{% endif %}
+
+{% endif %}{# end if scn #}
+
+{% endblock %}

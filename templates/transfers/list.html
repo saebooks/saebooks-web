@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Transfers") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-800 mb-6">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900">{{ _("Transfers") }}</h1>
+    <p class="text-sm text-gray-500 mt-1">
+      {{ _("Move money between your own accounts — bank to credit card, bank to director's loan, bank to bank.") }}
+    </p>
+  </div>
+
+  <a
+    href="/transfers/new"
+    class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white
+           hover:bg-[#133372] focus:outline-none focus:ring-2 focus:ring-[#194291] focus:ring-offset-2"
+  >
+    + {{ _("New transfer") }}
+  </a>
+</div>
+
+{# Filter form — HTMX-powered, swaps only the table on submit #}
+<form
+  hx-get="/transfers"
+  hx-target="#transfers-table"
+  hx-swap="outerHTML"
+  hx-push-url="true"
+  class="mb-4 flex flex-wrap gap-3 items-end"
+>
+  <div>
+    <label for="account_id" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Account") }}</label>
+    <select
+      id="account_id"
+      name="account_id"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+      <option value="" {% if not filter_account_id %}selected{% endif %}>{{ _("All accounts") }}</option>
+      {% for acct in accounts_by_id.values() %}
+      <option value="{{ acct.id }}" {% if filter_account_id == acct.id %}selected{% endif %}>
+        {{ acct.code }} — {{ acct.name }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label for="date_from" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Date from") }}</label>
+    <input
+      type="date"
+      id="date_from"
+      name="date_from"
+      value="{{ filter_date_from }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+  </div>
+
+  <div>
+    <label for="date_to" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Date to") }}</label>
+    <input
+      type="date"
+      id="date_to"
+      name="date_to"
+      value="{{ filter_date_to }}"
+      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]"
+    >
+  </div>
+
+  {# carry pagination limit; reset offset to 0 on new filter #}
+  <input type="hidden" name="limit" value="{{ limit }}">
+  <input type="hidden" name="offset" value="0">
+
+  <button
+    type="submit"
+    class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]"
+  >
+    {{ _("Filter") }}
+  </button>
+</form>
+
+{% include "transfers/_table.html" %}
+
+<script src="/static/js/list_table.js" defer></script>
+
+{% endblock %}
