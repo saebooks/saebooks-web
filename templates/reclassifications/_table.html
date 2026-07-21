@@ -1,0 +1,94 @@
+{# HTMX partial — reclassifications table body + prev/next pagination.
+   Rendered standalone for HX-Request fragments; embedded by list.html for
+   the initial full-page load.
+
+   Note: ReclassificationListOut has no ``total`` — pagination is prev/next
+   only (no page-number strip, since we don't know how many pages exist).
+#}
+{% import "_partials/empty_state.html" as empty %}
+<div id="reclassifications-table">
+
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("From account") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("To account") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Reason") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[color:var(--line)]">
+      {% if reclassifications %}
+        {% for r in reclassifications %}
+        <tr
+          class="hover:bg-[color:var(--paper-2)] cursor-pointer"
+          onclick="window.location='/reclassifications/{{ r.id }}'"
+        >
+          <td class="px-4 py-3 ink-2">
+            <a href="/reclassifications/{{ r.id }}" class="hover:underline sae" onclick="event.stopPropagation()">
+              {{ r.reclass_date }}
+            </a>
+          </td>
+          <td class="px-4 py-3 ink-2">
+            {% set _from = accounts_by_id.get(r.from_account_id) %}
+            {{ (_from.code ~ " — " ~ _from.name) if _from else r.from_account_id }}
+          </td>
+          <td class="px-4 py-3 ink-2">
+            {% set _to = accounts_by_id.get(r.to_account_id) %}
+            {{ (_to.code ~ " — " ~ _to.name) if _to else r.to_account_id }}
+          </td>
+          <td class="px-4 py-3 ink-2">{{ r.reason or "—" }}</td>
+          <td class="px-4 py-3 text-right ink-1 font-medium tabular-nums">
+            {{ num(r.amount|float, 2) }}
+          </td>
+          <td class="px-4 py-3">
+            {% if r.status == 'POSTED' %}<span class="badge-pos">{{ r.status | capitalize }}</span>
+            {% elif r.status == 'REVERSED' %}<span class="badge-neg">{{ r.status | capitalize }}</span>
+            {% else %}<span class="badge-draft">{{ r.status | capitalize }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {{ empty.row(6, "shuffle", _("No reclassifications yet"),
+                     _("Coded something to the wrong account? Move the amount here — one balanced correction entry is posted for you, the original record stays untouched, and nobody has to hand-write a journal entry."),
+                     _("New reclassification"), "/reclassifications/new") }}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{# Prev/next only — no total from the engine to build a page-number strip. #}
+<div class="mt-4 flex items-center justify-between">
+  <div>
+    {% if prev_offset is not none %}
+    <a
+      href="/reclassifications?offset={{ prev_offset }}&limit={{ limit }}{% if filter_account_id %}&account_id={{ filter_account_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-get="/reclassifications?offset={{ prev_offset }}&limit={{ limit }}{% if filter_account_id %}&account_id={{ filter_account_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-target="#reclassifications-table" hx-swap="outerHTML" hx-push-url="true"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+    >← {{ _("Previous") }}</a>
+    {% endif %}
+  </div>
+  <div>
+    {% if next_offset is not none %}
+    <a
+      href="/reclassifications?offset={{ next_offset }}&limit={{ limit }}{% if filter_account_id %}&account_id={{ filter_account_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-get="/reclassifications?offset={{ next_offset }}&limit={{ limit }}{% if filter_account_id %}&account_id={{ filter_account_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
+      hx-target="#reclassifications-table" hx-swap="outerHTML" hx-push-url="true"
+      class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+    >{{ _("Next") }} →</a>
+    {% endif %}
+  </div>
+</div>
+
+</div>{# end #reclassifications-table #}

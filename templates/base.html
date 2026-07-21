@@ -601,6 +601,7 @@
 
       {% set accounting_open = path.startswith('/journal-entries')
                                or path.startswith('/journal-templates')
+                               or path.startswith('/reclassifications')
                                or path.startswith('/accounts')
                                or path == '/recurring' %}
       <details class="group" data-section="accounting" {% if accounting_open %}open{% endif %}>
@@ -611,6 +612,9 @@
         <div class="space-y-0.5 mt-1">
           <a href="/journal-entries" class="nav-item is-sub {% if path.startswith('/journal-entries') %}active{% endif %}">
             <i data-lucide="book-open" class="nav-ico"></i>{{ _("Journal Entries") }}
+          </a>
+          <a href="/reclassifications" class="nav-item is-sub {% if path.startswith('/reclassifications') %}active{% endif %}">
+            <i data-lucide="shuffle" class="nav-ico"></i>{{ _("Reclassifications") }}
           </a>
           <a href="/journal-templates" class="nav-item is-sub {% if path.startswith('/journal-templates') %}active{% endif %}">
             <i data-lucide="file-stack" class="nav-ico"></i>{{ _("Templates") }}

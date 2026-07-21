@@ -9,6 +9,11 @@
   <a href="/journal-entries" class="text-sm sae hover:underline">← {{ _("Back to journal entries") }}</a>
 </div>
 
+<div class="card p-3 mb-6 text-sm ink-2 max-w-3xl" style="border-color:var(--sae);">
+  {{ _("Moving a transaction between accounts? Don't hand-write a journal entry —") }}
+  <a href="/reclassifications/new" class="sae hover:underline font-medium">{{ _("use a reclassification") }}</a>{{ _(": it posts the balanced correction for you and keeps the original record untouched.") }}
+</div>
+
 <div class="card rounded-xl shadow-sm px-6 py-6">
   <form method="POST" action="/journal-entries/new" novalidate>
     {{ csrf_input(request)|safe }}
