@@ -77,8 +77,12 @@
             {%- if status_lower == 'draft' %}
               {%- set _x = actions.append(("post", _("Post"), "/invoices/" ~ inv.id ~ "/post", "post", false)) %}
             {%- elif status_lower == 'posted' %}
-              {%- set _x = actions.append(("send",     _("Send"),     "/invoices/" ~ inv.id ~ "/send",     "post", false)) %}
-              {%- set _x = actions.append(("mark_paid",_("Mark Paid"),"/invoices/" ~ inv.id ~ "/mark-paid","post", false)) %}
+              {%- set _x = actions.append(("send", _("Send to customer"), "/invoices/" ~ inv.id ~ "/email", "link", false)) %}
+              {%- set _outstanding = inv.total|float - inv.amount_paid|float %}
+              {%- if _outstanding > 0 %}
+                {%- set _pay_href = "/payments/new?contact_id=" ~ (inv.contact_id|urlencode) ~ "&direction=INCOMING&amount=" ~ ('%.2f'|format(_outstanding)) ~ "&invoice_id=" ~ (inv.id|urlencode) ~ "&reference=" ~ (("Invoice " ~ (inv.number or inv.id))|urlencode) %}
+                {%- set _x = actions.append(("record_payment", _("Record payment"), _pay_href, "link", false)) %}
+              {%- endif %}
               {%- set _x = actions.append(("void",     _("Void"),     "/invoices/" ~ inv.id ~ "/void",     "post", true)) %}
             {%- endif %}
             {%- if status_lower != 'voided' %}

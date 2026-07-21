@@ -96,11 +96,10 @@
      entity="invoices",
      action_endpoint="/invoices/bulk",
      actions=[
-       ("post",      _("Post"),      false),
-       ("send",      _("Send"),      false),
-       ("mark_paid", _("Mark Paid"), false),
-       ("void",      _("Void"),      true),
-       ("delete",    _("Delete"),    true),
+       ("post",      _("Post"),                   false),
+       ("send",      _("Email (default template)"), false),
+       ("void",      _("Void"),                   true),
+       ("delete",    _("Delete"),                 true),
      ],
      csrf_token=csrf_token if csrf_token is defined else "",
 ) }}

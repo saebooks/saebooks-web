@@ -303,12 +303,27 @@ async def payments_list(
 
 
 @router.get("/payments/new", response_class=HTMLResponse, response_model=None)
-async def payment_new_form(request: Request) -> HTMLResponse | RedirectResponse:
-    """Render the empty create-payment form.
+async def payment_new_form(
+    request: Request,
+    contact_id: str | None = None,
+    invoice_id: str | None = None,
+    bill_id: str | None = None,
+    amount: str | None = None,
+    direction: str | None = None,
+    reference: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """Render the create-payment form.
 
     Generates a fresh idempotency key stored in a hidden input to prevent
     double-submit on page reload.  Populates contact and bank-account dropdowns
     from the upstream API.  One blank allocation row is provided as a starter.
+
+    Optional query-string prefill (used by the invoices "Record payment"
+    link — see invoices/_table.html and invoices/detail.html — the safe
+    replacement for a bulk "mark paid" the engine has no endpoint for):
+    ``contact_id``, ``invoice_id`` or ``bill_id``, ``amount``, ``direction``,
+    ``reference``. With no query params this renders exactly as before
+    (blank form, one empty allocation row).
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -318,17 +333,35 @@ async def payment_new_form(request: Request) -> HTMLResponse | RedirectResponse:
     async with api_client(request) as client:
         customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(client)
 
-    initial_allocations = [{"index": 0}]
+    target_id = invoice_id or bill_id
+    if target_id:
+        target_type = "BILL" if bill_id else "INVOICE"
+        initial_allocations = [{
+            "index": 0,
+            "target_type": target_type,
+            "target_id": target_id,
+            "amount": amount or "",
+        }]
+    else:
+        initial_allocations = [{"index": 0}]
+
+    form: dict[str, object] = {
+        "payment_date": today,
+        "direction": direction or "INCOMING",
+        "method": "eft",
+    }
+    if contact_id:
+        form["contact_id"] = contact_id
+    if amount:
+        form["amount"] = amount
+    if reference:
+        form["reference"] = reference
 
     return _TEMPLATES.TemplateResponse(
         request,
         "payments/new.html",
         {
-            "form": {
-                "payment_date": today,
-                "direction": "INCOMING",
-                "method": "eft",
-            },
+            "form": form,
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "customers": customers,

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Send Invoice %(number)s") % {"number": (invoice.number or invoice.id)} }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="/invoices/{{ invoice.id }}" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← {{ _("back to invoice") }}</a>
+</div>
+
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">{{ _("Send Invoice") }}</span>
+  </div>
+  <h1 class="font-display text-2xl leading-none tracking-tight num-display">
+    {{ invoice.number or invoice.id }}
+  </h1>
+  <p class="text-xs ink-3 font-mono mt-2">
+    {{ _("total") }} {{ invoice.currency }} {{ num(invoice.total|float, 2) }}
+  </p>
+</header>
+
+{# ─── Kill-switch banner ─── #}
+<div class="card p-4 mb-5" style="border-color:var(--warm); background:rgba(217,140,0,0.04);">
+  <div class="flex items-start gap-3">
+    <span class="dot mt-1" style="background:var(--warm);"></span>
+    <div class="text-sm ink-1">
+      <div class="font-medium" style="color:var(--warm);">{{ _("Outbound email is BLOCKED") }}</div>
+      <div class="ink-2 mt-1">
+        {{ (_("The pipeline is under construction. Clicking %(send)s below will render the PDF, write the .eml + audit log, but %(noemail)s until both gates are flipped: %(gate1)s AND %(gate2)s. See %(planpath)s.") % {
+          "send": "<b>" ~ _("Send") ~ "</b>",
+          "noemail": "<b>" ~ _("NO email leaves the server") ~ "</b>",
+          "gate1": '<code class="font-mono text-xs">SAEBOOKS_EMAIL_SEND_ENABLED=true</code>',
+          "gate2": '<code class="font-mono text-xs">tenants.outbound_email_enabled=true</code>',
+          "planpath": '<code class="font-mono text-xs">~/.claude/plans/saebooks-pdf-email-pipeline.md</code>',
+        }) | safe }}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if flash %}
+<div class="card p-3 mb-4" style="border-color:var(--{{ flash_kind or 'warm' }});">
+  <div class="text-sm ink-1">{{ flash|safe }}</div>
+</div>
+{% endif %}
+
+<form method="post" action="/invoices/{{ invoice.id }}/email" class="space-y-5">
+  {{ csrf_input(request)|safe }}
+
+  <fieldset class="space-y-4">
+    <legend class="nav-section-label mb-2">{{ _("Envelope") }}</legend>
+
+    <div>
+      <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From") }}</label>
+      <select name="from_addr" required class="saebooks-input">
+        {% for addr in from_options %}
+        <option value="{{ addr }}" {% if addr == default_from %}selected{% endif %}>{{ addr }}</option>
+        {% endfor %}
+      </select>
+      <p class="text-xs ink-3 mt-1 font-mono">{{ _("Default per doc type. Override per send.") }}</p>
+    </div>
+
+    <div>
+      <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+        {{ _("To") }} <span style="color:var(--neg);">*</span>
+      </label>
+      <input type="text" name="to" required value="{{ form.to or default_to }}"
+             placeholder="{{ _('customer@example.com, optional second@example.com') }}"
+             class="saebooks-input">
+      <p class="text-xs ink-3 mt-1 font-mono">{{ _("Comma-separated.") }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Cc") }}</label>
+        <input type="text" name="cc" value="{{ form.cc or '' }}" class="saebooks-input"
+               placeholder="{{ _('(optional)') }}">
+      </div>
+      <div>
+        <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Bcc") }}</label>
+        <input type="text" name="bcc" value="{{ form.bcc or '' }}" class="saebooks-input"
+               placeholder="{{ _('(optional) accounts@saee.com.au for archive') }}">
+      </div>
+    </div>
+
+    <div>
+      <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+        {{ _("Subject") }} <span style="color:var(--neg);">*</span>
+      </label>
+      <input type="text" name="subject" required value="{{ form.subject or default_subject }}"
+             class="saebooks-input" maxlength="255">
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend class="nav-section-label mb-2">{{ _("Body") }}</legend>
+    <textarea name="body_html" required rows="14" class="saebooks-input font-mono text-sm"
+              style="line-height:1.5;">{{ form.body_html or default_body_html }}</textarea>
+    <p class="text-xs ink-3 mt-1 font-mono">{{ _("HTML allowed. Use &lt;p&gt;, &lt;br&gt;, &lt;b&gt;, &lt;i&gt;, &lt;a href=...&gt;.") }}</p>
+  </fieldset>
+
+  <fieldset>
+    <legend class="nav-section-label mb-2">{{ _("Attachment") }}</legend>
+    <div class="card p-3 flex items-center gap-3">
+      <span class="text-xs font-mono ink-3 uppercase tracking-wider">PDF</span>
+      <span class="ink-1 text-sm">{{ _("Tax Invoice") }} {{ invoice.number or invoice.id }}.pdf</span>
+      <span class="ink-3 text-xs font-mono ml-auto">{{ _("auto-attached on send") }}</span>
+      <a href="/invoices/{{ invoice.id }}/pdf" target="_blank" rel="noopener"
+         class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("preview ↗") }}</a>
+    </div>
+  </fieldset>
+
+  <div class="flex items-center justify-between pt-3 border-t" style="border-color:var(--line);">
+    <a href="/invoices/{{ invoice.id }}" class="btn-secondary text-sm">{{ _("Cancel") }}</a>
+    <button type="submit" class="btn-primary text-sm"
+            style="background:var(--warm);border-color:var(--warm);"
+            onclick="return confirm('{{ _('Outbound email is currently BLOCKED. This will write the .eml to outbox + audit log but NOT send. Proceed?') }}');">
+      {{ _("Save to outbox (sending blocked)") }}
+    </button>
+  </div>
+</form>
+{% endblock %}

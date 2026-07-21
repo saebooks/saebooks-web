@@ -63,6 +63,20 @@
         {{ _("Download e-invoice (XML)") }}
       </a>
       {% endif %}
+      {% if invoice.status == 'POSTED' %}
+      <a href="/invoices/{{ invoice.id }}/email" class="btn-secondary text-sm"
+         style="border-color:var(--warm); color:var(--warm);"
+         title="{{ _('Compose email to customer — blocked by kill switch during build') }}">
+        {{ _("Send to customer") }}
+      </a>
+      {% set _outstanding = invoice.total|float - invoice.amount_paid|float %}
+      {% if _outstanding > 0 %}
+      <a href="/payments/new?contact_id={{ invoice.contact_id|urlencode }}&amp;direction=INCOMING&amp;amount={{ '%.2f'|format(_outstanding) }}&amp;invoice_id={{ invoice.id|urlencode }}&amp;reference={{ ('Invoice ' ~ (invoice.number or invoice.id))|urlencode }}"
+         class="btn-secondary text-sm">
+        {{ _("Record payment") }}
+      </a>
+      {% endif %}
+      {% endif %}
       {% if invoice.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
       <a href="/invoices/{{ invoice.id }}/edit" class="btn-secondary text-sm">{% if invoice.status in ('POSTED', 'PAID', 'VOIDED') %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
       {% endif %}
@@ -209,6 +223,43 @@
   <p class="nav-section-label mb-2">{{ _("Attachments") }}</p>
   {% include "_partials/attachments.html" with context %}
 </section>
+
+{# ── Send history ── #}
+{% if email_log %}
+<section class="mb-7">
+  <p class="nav-section-label mb-2">{{ _("Send history") }}</p>
+  <div class="card overflow-hidden">
+    <table class="sae-table w-full text-sm">
+      <thead>
+        <tr>
+          <th class="text-left">{{ _("When") }}</th>
+          <th class="text-left">{{ _("To") }}</th>
+          <th class="text-left">{{ _("Subject") }}</th>
+          <th class="text-left">{{ _("Status") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in email_log %}
+        {% set badge_class = {'sent':'badge-paid','queued':'badge-pending','blocked':'badge-draft','failed':'badge-overdue'}.get(ev.resend_status, 'badge-draft') %}
+        <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/email-log/{{ ev.id }}'">
+          <td class="num font-mono text-xs ink-2">{{ ev.sent_at[:19].replace('T', ' ') }}</td>
+          <td class="font-mono text-xs ink-1">{{ ev.to_addrs | join(', ') }}</td>
+          <td class="ink-1 truncate" style="max-width:280px;">{{ ev.subject }}</td>
+          <td>
+            <span class="{{ badge_class }}">{{ ev.resend_status | capitalize }}</span>
+            {% if ev.kill_switch_reason %}
+              <span class="text-xs ink-3 ml-2" title="{{ ev.kill_switch_reason }}">
+                {{ ev.kill_switch_reason | truncate(60) }}
+              </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
 
 {# ── Change log stub ── #}
 <div class="card p-6 text-center" style="border-style:dashed;">

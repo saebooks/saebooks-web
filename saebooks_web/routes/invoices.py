@@ -43,6 +43,44 @@ def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
 
+# Envelope defaults for the email composer — mirrors quotes.py's
+# _FROM_OPTIONS / _DEFAULT_FROM_BY_DOC_TYPE (see that module for the
+# per-doc-type default rationale). Duplicated rather than imported so this
+# route module stays self-contained, same as quotes.py.
+_FROM_OPTIONS = ("admin@saee.com.au", "accounts@saee.com.au")
+_DEFAULT_FROM_INVOICE = "accounts@saee.com.au"
+
+
+def _default_invoice_email_fields(invoice: dict, customer: dict) -> dict[str, str]:
+    """Build default from/to/subject/body for the invoice email composer.
+
+    Shared by the GET compose form (single invoice, user can edit before
+    sending) and the bulk-send action (which sends these defaults as-is —
+    there is no per-row review UI in a bulk action).
+    """
+    number = invoice.get("number") or invoice.get("id")
+    total = float(invoice.get("total") or 0)
+    currency = invoice.get("currency") or "AUD"
+    due_date = invoice.get("due_date") or ""
+    default_to = customer.get("email", "") or ""
+    default_subject = f"Tax Invoice {number}"
+    default_body_html = (
+        f'<p>Dear {customer.get("name", "team")},</p>\n'
+        f'<p>Please find attached tax invoice <b>{number}</b>.</p>\n'
+        f'<p>Total: {currency} ${total:,.2f}. Payment is due by {due_date or "on receipt"} '
+        f'({invoice.get("payment_terms") or "on receipt"}).</p>\n'
+        f'<p>If you have any questions please reply to this email or call '
+        f'0457 704 373.</p>\n'
+        f'<p>Kind regards,<br>Richard Sauer<br>Director — SAE Engineering</p>'
+    )
+    return {
+        "from_addr": _DEFAULT_FROM_INVOICE,
+        "to": default_to,
+        "subject": default_subject,
+        "body_html": default_body_html,
+    }
+
+
 _INVOICE_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
 
 # See [[saebooks-payment-status-filter-pattern]]. The Status column renders
@@ -1030,16 +1068,127 @@ async def invoice_review_flag(
 # templates/_components/bulk_action_bar.html). Iterates ids and dispatches
 # to the per-row API endpoint. Best-effort: a single failed row doesn't
 # abort the batch; per-id outcomes are accumulated in the flash message.
+#
+# "mark_paid" is deliberately NOT here (and not in the bulk bar / row kebab):
+# the engine has no mark-paid endpoint at all, and the correct replacement —
+# create_payment — requires a bank_account_id + method the engine can't
+# safely default across arbitrary rows. See the "Record payment" per-row
+# link in invoices/_table.html and invoices/detail.html, which routes to
+# /payments/new prefilled instead.
+#
+# "send" is handled by _invoices_bulk_send() below, not this generic
+# dispatch table — POST /api/v1/invoices/{id}/send-email needs a per-row
+# JSON body (to/subject/body) the generic (method, path) shape can't carry,
+# and it returns HTTP 200 even when the kill switch blocks the send, so a
+# bare status-code check would silently misreport "sent".
 # ---------------------------------------------------------------------------
 
 
 _BULK_ACTIONS = {
-    "send":      ("POST", "/api/v1/invoices/{id}/send"),
-    "mark_paid": ("POST", "/api/v1/invoices/{id}/mark-paid"),
     "post":      ("POST", "/api/v1/invoices/{id}/post"),
     "void":      ("POST", "/api/v1/invoices/{id}/void"),
     "delete":    ("DELETE", "/api/v1/invoices/{id}"),
 }
+
+
+async def _invoices_bulk_send(request: Request, ids: list[str]) -> RedirectResponse:
+    """Bulk 'send' — email each POSTED invoice using the same default
+    template as the single-invoice composer (invoice_email_compose). There
+    is no per-row review UI here, so every outcome is reported honestly:
+    sent / blocked (kill switch) / skipped (not POSTED, or no customer
+    email on file) / failed (anything else, incl. transport errors).
+
+    POST /send-email returns HTTP 200 even when the two-key kill switch
+    blocks the send (mode="blocked") — this reads `mode` from the body on
+    every row rather than trusting the status code, so a blocked batch is
+    never reported as "sent".
+    """
+    sent = 0
+    blocked = 0
+    skipped: list[str] = []
+    failed: list[str] = []
+
+    async with api_client(request) as client:
+        for inv_id in ids:
+            iresp = await client.get(f"/api/v1/invoices/{inv_id}")
+            if iresp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if not iresp.is_success:
+                failed.append(f"{inv_id[:8]} (could not load invoice: HTTP {iresp.status_code})")
+                continue
+            invoice = iresp.json()
+            label = invoice.get("number") or inv_id[:8]
+
+            if invoice.get("status") != "POSTED":
+                skipped.append(f"{label} (not posted)")
+                continue
+
+            cresp = await client.get(f"/api/v1/contacts/{invoice['contact_id']}")
+            customer = cresp.json() if cresp.status_code == 200 else {}
+            defaults = _default_invoice_email_fields(invoice, customer)
+
+            if not defaults["to"]:
+                skipped.append(f"{label} (no customer email on file)")
+                continue
+
+            payload = {
+                "from_addr": defaults["from_addr"],
+                "to": [defaults["to"]],
+                "cc": [],
+                "bcc": [],
+                "subject": defaults["subject"],
+                "body_html": defaults["body_html"],
+                "sent_by_user_id": request.session.get("user_id"),
+            }
+            try:
+                resp = await client.post(f"/api/v1/invoices/{inv_id}/send-email", json=payload)
+            except Exception as exc:
+                failed.append(f"{label} (transport error: {exc!s})")
+                continue
+
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if not resp.is_success:
+                msg = ""
+                try:
+                    detail = resp.json().get("detail")
+                    if isinstance(detail, str):
+                        msg = detail
+                except Exception:
+                    pass
+                failed.append(f"{label} ({resp.status_code}{': ' + msg if msg else ''})")
+                continue
+
+            result = resp.json()
+            mode = result.get("mode", "unknown")
+            if mode == "sent":
+                sent += 1
+            elif mode == "blocked":
+                blocked += 1
+            else:
+                detail = result.get("reason") or result.get("errors") or mode
+                failed.append(f"{label} ({mode}: {detail})")
+
+    parts: list[str] = []
+    if sent:
+        parts.append(f"{sent} sent")
+    if blocked:
+        parts.append(f"{blocked} blocked (outbound email is currently disabled)")
+    if skipped:
+        parts.append(
+            f"{len(skipped)} skipped — " + "; ".join(skipped[:5])
+            + (f" … +{len(skipped) - 5} more" if len(skipped) > 5 else "")
+        )
+    if failed:
+        parts.append(
+            f"{len(failed)} failed — " + "; ".join(failed[:5])
+            + (f" … +{len(failed) - 5} more" if len(failed) > 5 else "")
+        )
+
+    request.session["flash"] = "Send: " + (", ".join(parts) if parts else "no rows processed.")
+    return RedirectResponse(url="/invoices", status_code=303)
 
 
 @router.post("/invoices/bulk", response_class=HTMLResponse, response_model=None)
@@ -1047,7 +1196,7 @@ async def invoices_bulk_action(request: Request) -> RedirectResponse:
     """Run an action against many invoices at once.
 
     Form fields:
-      action  — one of: send / mark_paid / post / void / delete
+      action  — one of: send / post / void / delete
       ids[]   — one entry per invoice UUID
 
     Aggregates per-row outcomes into a flash message and redirects back
@@ -1058,13 +1207,17 @@ async def invoices_bulk_action(request: Request) -> RedirectResponse:
 
     form_data = await request.form()
     action = str(form_data.get("action", "")).strip()
-    if action not in _BULK_ACTIONS:
-        request.session["flash"] = f"Unknown bulk action: {action!r}"
-        return RedirectResponse(url="/invoices", status_code=303)
 
     ids = [str(v) for v in form_data.getlist("ids[]") if str(v).strip()]
     if not ids:
         request.session["flash"] = "No rows selected."
+        return RedirectResponse(url="/invoices", status_code=303)
+
+    if action == "send":
+        return await _invoices_bulk_send(request, ids)
+
+    if action not in _BULK_ACTIONS:
+        request.session["flash"] = f"Unknown bulk action: {action!r}"
         return RedirectResponse(url="/invoices", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS[action]
@@ -1186,6 +1339,145 @@ async def invoice_stripe_payment_link(
     )
 
 
+# ---------------------------------------------------------------------------
+# Email an invoice to the customer — GET (composer) + POST (send).
+# Mirrors quotes.py's quote_email_compose / quote_email_send: relays to the
+# engine's POST /api/v1/invoices/{id}/send-email, whose two-key kill switch
+# (SAEBOOKS_EMAIL_SEND_ENABLED env AND tenants.outbound_email_enabled) decides
+# sent vs blocked server-side — this route never makes that call itself.
+#
+# Only POSTED invoices may be sent: the engine does not enforce this on
+# send-email, but a DRAFT is not a finalised tax invoice and emailing one
+# out would be wrong regardless — matches the POSTED-only precedent already
+# set by the Stripe payment link and e-invoice XML routes in this file.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/invoices/{invoice_id}/email", response_class=HTMLResponse, response_model=None)
+async def invoice_email_compose(
+    request: Request, invoice_id: str
+) -> HTMLResponse | RedirectResponse:
+    """Email composer for an invoice — pre-fills To/Subject/Body from invoice+contact."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        iresp = await client.get(f"/api/v1/invoices/{invoice_id}")
+        if iresp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if iresp.status_code == 404:
+            raise HTTPException(404, "Invoice not found")
+        if iresp.status_code != 200:
+            raise HTTPException(iresp.status_code, "Upstream error")
+        invoice = iresp.json()
+
+        cresp = await client.get(f"/api/v1/contacts/{invoice['contact_id']}")
+        customer = cresp.json() if cresp.status_code == 200 else {}
+
+    if invoice.get("status") != "POSTED":
+        request.session["flash"] = "Invoice must be posted before it can be emailed."
+        return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
+
+    defaults = _default_invoice_email_fields(invoice, customer)
+
+    return _TEMPLATES.TemplateResponse(
+        request, "invoices/email_compose.html",
+        {
+            "invoice":            invoice,
+            "form":               {},
+            "from_options":       _FROM_OPTIONS,
+            "default_from":       defaults["from_addr"],
+            "default_to":         defaults["to"],
+            "default_subject":    defaults["subject"],
+            "default_body_html":  defaults["body_html"],
+            "flash":              None,
+            "flash_kind":         None,
+        },
+    )
+
+
+@router.post("/invoices/{invoice_id}/email", response_class=HTMLResponse, response_model=None)
+async def invoice_email_send(
+    request: Request, invoice_id: str
+) -> HTMLResponse | RedirectResponse:
+    """Submit the composer — POST to upstream /api/v1/invoices/{id}/send-email.
+
+    Whether it actually sends or gets blocked is decided server-side by the
+    two-key kill switch. This route just relays + re-renders the form with
+    the result — same contract as quotes.quote_email_send.
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    form_data = await request.form()
+    form = {k: str(v) for k, v in form_data.items() if k != "csrf_token"}
+
+    to_list  = [s.strip() for s in form.get("to", "").split(",") if s.strip()]
+    cc_list  = [s.strip() for s in form.get("cc", "").split(",") if s.strip()]
+    bcc_list = [s.strip() for s in form.get("bcc", "").split(",") if s.strip()]
+
+    payload = {
+        "from_addr":        form.get("from_addr", ""),
+        "to":               to_list,
+        "cc":               cc_list,
+        "bcc":              bcc_list,
+        "subject":          form.get("subject", ""),
+        "body_html":        form.get("body_html", ""),
+        "sent_by_user_id":  request.session.get("user_id"),
+    }
+
+    async with api_client(request) as client:
+        resp = await client.post(f"/api/v1/invoices/{invoice_id}/send-email", json=payload)
+        iresp = await client.get(f"/api/v1/invoices/{invoice_id}")
+        invoice = iresp.json() if iresp.status_code == 200 else {}
+
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+
+    result = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+    mode = result.get("mode", "unknown")
+    if mode == "blocked":
+        flash = (
+            f"🛑 <b>BLOCKED</b> — nothing was sent. "
+            f"Reason: <code>{result.get('reason', 'unknown')}</code>. "
+            f"Outbox copy: <code>{result.get('outbox_path', '?')}</code>. "
+            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+        )
+        flash_kind = "warm"
+    elif mode == "sent":
+        flash = (
+            f"✅ Sent. Resend message id: <code>{result.get('message_id', '?')}</code>. "
+            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+        )
+        flash_kind = "pos"
+    elif mode == "failed":
+        flash = (
+            f"❌ Failed. Errors: <code>{result.get('errors', '?')}</code>. "
+            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
+        )
+        flash_kind = "neg"
+    else:
+        flash = f"Upstream HTTP {resp.status_code}: <code>{(resp.text or '')[:300]}</code>"
+        flash_kind = "neg"
+
+    return _TEMPLATES.TemplateResponse(
+        request, "invoices/email_compose.html",
+        {
+            "invoice":            invoice,
+            "form":               form,
+            "from_options":       _FROM_OPTIONS,
+            "default_from":       _DEFAULT_FROM_INVOICE,
+            "default_to":         "",
+            "default_subject":    "",
+            "default_body_html":  "",
+            "flash":              flash,
+            "flash_kind":         flash_kind,
+        },
+    )
+
+
 @router.get("/invoices/{invoice_id}", response_class=HTMLResponse, response_model=None)
 async def invoice_detail(
     request: Request,
@@ -1205,7 +1497,7 @@ async def invoice_detail(
                 request,
                 "invoices/detail.html",
                 {"invoice": None, "error": "Invoice not found", "flash": None,
-                 "attachments": [], "vault_enabled": False},
+                 "attachments": [], "vault_enabled": False, "email_log": []},
                 status_code=404,
             )
         if not resp.is_success:
@@ -1213,7 +1505,7 @@ async def invoice_detail(
                 request,
                 "invoices/detail.html",
                 {"invoice": None, "error": f"API error: HTTP {resp.status_code}", "flash": None,
-                 "attachments": [], "vault_enabled": False},
+                 "attachments": [], "vault_enabled": False, "email_log": []},
                 status_code=resp.status_code,
             )
 
@@ -1233,6 +1525,17 @@ async def invoice_detail(
     elif att_resp.is_success:
         attachments = att_resp.json()
 
+    # Best-effort: pull send history for this invoice — don't fail the page
+    # if the email-log endpoint is unavailable (mirrors quotes.quote_detail).
+    email_log: list = []
+    try:
+        async with api_client(request) as client:
+            log_resp = await client.get(f"/api/v1/email-log/by-doc/invoice/{invoice_id}")
+        if log_resp.status_code == 200:
+            email_log = log_resp.json().get("items", [])
+    except Exception:
+        email_log = []
+
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
@@ -1244,6 +1547,7 @@ async def invoice_detail(
             "flash": flash,
             "attachments": attachments,
             "vault_enabled": vault_enabled,
+            "email_log": email_log,
         },
     )
 
