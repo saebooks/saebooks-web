@@ -50,6 +50,12 @@ class Brand:
     # Vector favicon, served alongside the PNG renditions where the brand has
     # one. ``None`` = PNG favicons only.
     favicon_svg: str | None = None
+    # Dark-theme primary accent (``--sae``) override. The default ramp is SAE
+    # Books' own; a brand whose identity fixes a different dark accent sets it
+    # here rather than forking the whole variable block. ``None`` = inherit.
+    # Light-theme accent needs no field: the shared ``--sae`` light value is
+    # already #194291, which is the Selge navy.
+    accent_dark: str | None = None
     # Copy for the ephemeral-demo Turnstile gate page (see
     # ``saebooks_web/security/demo_autologin.py``). Kept on the brand so the
     # Tasur (EE) deployment shows Estonian copy purely by setting
@@ -96,6 +102,10 @@ _BRANDS: dict[str, Brand] = {
         favicon_16="/static/brand/tasur-favicon.png",
         favicon_svg="/static/brand/tasur-icon.svg",
         apple_touch_icon="/static/brand/tasur-apple-touch-icon.png",
+        # Selge navy-300 — the round's dark-theme accent (7.0:1 on the dark
+        # background). #194291 never carries text on dark, so the light-theme
+        # value can't simply be reused.
+        accent_dark="#7D9EE8",
         demo_tagline="Estonian small-business accounting",
         demo_features=(
             "Full double-entry ledger",

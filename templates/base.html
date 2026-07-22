@@ -106,6 +106,12 @@
       --surface-2:  #21304b;
     }
 
+    {% if brand.accent_dark %}
+    /* Brand-scoped dark accent — overrides the shared ramp above for a brand
+       whose identity fixes its own dark-theme accent (see brand.py). */
+    html.dark, [data-theme="dark"] { --sae: {{ brand.accent_dark }}; }
+    {% endif %}
+
     html, body {
       background: var(--paper);
       color: var(--ink);
