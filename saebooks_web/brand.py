@@ -42,6 +42,14 @@ class Brand:
     favicon_32: str
     favicon_16: str
     apple_touch_icon: str
+    # Dark-theme wordmark. The Selge (Tasur) identity ships two theme-scoped
+    # renditions — navy ink for light surfaces, pale ink for dark — because a
+    # single flat file cannot serve both. ``None`` means the brand has one
+    # wordmark for both themes and base.html renders a single ``<img>``.
+    wordmark_src_dark: str | None = None
+    # Vector favicon, served alongside the PNG renditions where the brand has
+    # one. ``None`` = PNG favicons only.
+    favicon_svg: str | None = None
     # Copy for the ephemeral-demo Turnstile gate page (see
     # ``saebooks_web/security/demo_autologin.py``). Kept on the brand so the
     # Tasur (EE) deployment shows Estonian copy purely by setting
@@ -73,12 +81,20 @@ _BRANDS: dict[str, Brand] = {
         name="Tasur",
         application_name="Tasur",
         meta_description="API-first accounting for Estonian small business.",
-        wordmark_src="/static/brand/tasur-wordmark.png",
+        # Direction A "Selge" identity (2026-07-21 brand round, #194291 navy
+        # ramp). Pure-path SVG wordmarks, theme-scoped: light surfaces get the
+        # #194291 ink rendition, dark surfaces the #DCE6FB one. These replace
+        # the rounded ALL-CAPS tasur-wordmark.png, which the brand round
+        # deleted from tasur-site — assets are copied from
+        # tasur-site/assets/img/brand, which is the source of truth.
+        wordmark_src="/static/brand/tasur-wordmark-light.svg",
+        wordmark_src_dark="/static/brand/tasur-wordmark-dark.svg",
         wordmark_alt="Tasur",
         # tasur-site ships one 64x64 favicon (no separate 32/16 renditions);
         # reuse it for both <link> sizes — browsers scale down fine.
         favicon_32="/static/brand/tasur-favicon.png",
         favicon_16="/static/brand/tasur-favicon.png",
+        favicon_svg="/static/brand/tasur-icon.svg",
         apple_touch_icon="/static/brand/tasur-apple-touch-icon.png",
         demo_tagline="Estonian small-business accounting",
         demo_features=(

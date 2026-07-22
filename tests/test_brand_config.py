@@ -114,6 +114,10 @@ async def test_base_head_meta_default_vs_tasur(monkeypatch: pytest.MonkeyPatch) 
     assert '<meta name="description" content="API-first accounting for Estonian small business.">' in tasur_resp.text
     assert '<link rel="icon" type="image/png" sizes="32x32" href="/static/brand/tasur-favicon.png">' in tasur_resp.text
     assert '<link rel="apple-touch-icon" sizes="180x180" href="/static/brand/tasur-apple-touch-icon.png">' in tasur_resp.text
+    # Selge ships a vector favicon; the default brand has none and must not
+    # emit the <link> at all.
+    assert '<link rel="icon" type="image/svg+xml" href="/static/brand/tasur-icon.svg">' in tasur_resp.text
+    assert 'type="image/svg+xml"' not in default_resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -153,7 +157,11 @@ async def test_sidebar_wordmark_and_footer_tasur(
         tasur_resp = await client.get("/accounts")
 
     assert tasur_resp.status_code == 200
-    assert '<img src="/static/brand/tasur-wordmark.png"\n           alt="Tasur"' in tasur_resp.text
+    # Selge identity (2026-07-21 brand round): two theme-scoped SVG wordmarks,
+    # CSS picks by theme. Both must be present in the markup.
+    assert '<img src="/static/brand/tasur-wordmark-light.svg"\n           alt="Tasur"' in tasur_resp.text
+    assert '<img src="/static/brand/tasur-wordmark-dark.svg"\n           alt="Tasur"' in tasur_resp.text
+    assert "tasur-wordmark.png" not in tasur_resp.text
     assert ">Tasur · ⌘K<" in tasur_resp.text
 
 

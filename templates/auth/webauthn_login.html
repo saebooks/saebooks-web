@@ -4,7 +4,15 @@
 <div class="min-h-screen flex items-center justify-center bg-[color:var(--paper-1)]">
   <div class="max-w-sm w-full p-8 rounded-2xl border hairline bg-[color:var(--surface)] shadow-lg">
     <div class="flex flex-col items-center gap-4">
-      <img src="/static/sae-books-logo.png" alt="{{ current_brand().name }}" class="h-10">
+      {# Brand-selected, not hardcoded — a Tasur deployment must not show the
+         SAE Books logo on its own sign-in page. #}
+      {% set _brand = current_brand() %}
+      {% if _brand.wordmark_src_dark %}
+      <img src="{{ _brand.wordmark_src }}" alt="{{ _brand.wordmark_alt }}" class="h-10 brand-wordmark-light">
+      <img src="{{ _brand.wordmark_src_dark }}" alt="{{ _brand.wordmark_alt }}" class="h-10 brand-wordmark-dark">
+      {% else %}
+      <img src="{{ _brand.wordmark_src }}" alt="{{ _brand.wordmark_alt }}" class="h-10">
+      {% endif %}
       <h1 class="text-xl font-semibold ink-1">{{ _("Sign in with passkey") }}</h1>
       <p class="text-sm ink-2 text-center">
         {{ _("Tap your security key, use Touch ID, or pick a passkey from your device.") }}

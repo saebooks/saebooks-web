@@ -12,6 +12,9 @@
   <meta name="application-name" content="{{ brand.application_name }}">
   <meta name="description" content="{{ brand.meta_description }}">
 
+  {% if brand.favicon_svg %}
+  <link rel="icon" type="image/svg+xml" href="{{ brand.favicon_svg }}">
+  {% endif %}
   <link rel="icon" type="image/png" sizes="32x32" href="{{ brand.favicon_32 }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ brand.favicon_16 }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ brand.apple_touch_icon }}">
@@ -335,6 +338,19 @@
     .topbar { background: var(--surface); border-bottom: 1px solid var(--line); }
     .sidebar-shell { background: var(--surface); border-right: 1px solid var(--line); }
 
+    /* Theme-scoped wordmark. A brand whose identity ships two renditions
+       (dark ink for light surfaces, pale ink for dark) renders both and lets
+       CSS pick — the sidebar sits on var(--surface), so it follows the page
+       theme. A brand with a single wordmark renders one <img> and never hits
+       these rules. Keep this comment brand-neutral: it ships in every page's
+       inline <style>, so naming a brand here leaks it into the other brand's
+       HTML (test_login_default_brand_is_saebooks asserts on exactly that). */
+    .brand-wordmark-dark { display: none; }
+    html.dark .brand-wordmark-light,
+    [data-theme="dark"] .brand-wordmark-light { display: none; }
+    html.dark .brand-wordmark-dark,
+    [data-theme="dark"] .brand-wordmark-dark { display: block; }
+
     /* Inputs */
     .saebooks-input { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .5rem .75rem; font-size: 14px; color: var(--ink); transition: border-color .12s ease, box-shadow .12s ease; }
     .saebooks-input:focus { outline: none; border-color: var(--sae); box-shadow: 0 0 0 3px rgba(25,66,145,.16); }
@@ -428,15 +444,27 @@
                 fixed inset-y-0 left-0 z-30 -translate-x-full transition-transform duration-200
                 sm:relative sm:translate-x-0 sm:transition-none">
 
-    {# Brand — official wordmark PNG from the marketing repo, deployment-
-       selected via SAEBOOKS_BRAND (see saebooks_web/brand.py). Default
-       (saebooks) replaced master's SVG monogram at user request 2026-05-21
-       with the actual logo at /static/sae-books-logo.png. #}
+    {# Brand — official wordmark from the marketing repo, deployment-selected
+       via SAEBOOKS_BRAND (see saebooks_web/brand.py). Default (saebooks)
+       replaced master's SVG monogram at user request 2026-05-21 with the
+       actual logo at /static/sae-books-logo.png. Brands with a dark-theme
+       rendition (Tasur/Selge) render both and let CSS choose. #}
     <a href="/" class="flex flex-col items-start gap-1 px-4 py-4 border-b hairline group">
+      {% if brand.wordmark_src_dark %}
+      <img src="{{ brand.wordmark_src }}"
+           alt="{{ brand.wordmark_alt }}"
+           class="h-9 brand-wordmark-light"
+           style="max-width: 240px;">
+      <img src="{{ brand.wordmark_src_dark }}"
+           alt="{{ brand.wordmark_alt }}"
+           class="h-9 brand-wordmark-dark"
+           style="max-width: 240px;">
+      {% else %}
       <img src="{{ brand.wordmark_src }}"
            alt="{{ brand.wordmark_alt }}"
            class="h-14"
            style="max-width: 240px;">
+      {% endif %}
       {% set _edition = current_edition(request) %}
       <div class="text-[10px] font-mono">
         <span class="ink-3">v2026.05 ·</span>
