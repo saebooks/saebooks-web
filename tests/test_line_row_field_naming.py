@@ -63,3 +63,49 @@ def test_parse_lines_reads_the_bracket_spelling() -> None:
     assert parse_lines(good) == [
         {"description": "Widget", "quantity": "2", "unit_price": "50.00"}
     ]
+
+
+# ---------------------------------------------------------------------------
+# The second half of the same bug: correct field names, but no index.
+#
+# templates/expenses/new.html looped over ``lines`` and included the partial
+# without setting ``index``, so Jinja rendered it empty — lines[][description].
+# parse_lines does int("") on that, raises ValueError, swallows it, and drops
+# the row. Correct spelling, still zero lines.
+# ---------------------------------------------------------------------------
+
+_INCLUDE = re.compile(r'{%-?\s*include\s+"([^"]*_line_row\.html)"')
+
+
+def _templates_including_line_rows() -> list[Path]:
+    out = []
+    for path in _TEMPLATES.rglob("*.html"):
+        if path.name == "_line_row.html":
+            continue
+        if _INCLUDE.search(path.read_text()):
+            out.append(path)
+    return sorted(out)
+
+
+_INCLUDERS = _templates_including_line_rows()
+
+
+def test_includers_were_found() -> None:
+    assert _INCLUDERS, "no template includes a _line_row.html — glob is wrong"
+
+
+@pytest.mark.parametrize(
+    "path", _INCLUDERS, ids=lambda p: f"{p.parent.name}/{p.name}"
+)
+def test_line_row_include_sets_an_index(path: Path) -> None:
+    """A loop that includes a line row must bind ``index`` first."""
+    src = path.read_text()
+    for match in _INCLUDE.finditer(src):
+        window = src[max(0, match.start() - 400):match.start()]
+        if "{% for" not in window and "{%- for" not in window:
+            continue  # not a loop-driven include
+        assert "set index" in window, (
+            f"{path} includes {match.group(1)} inside a loop without binding "
+            "`index`. Jinja renders the undefined as empty, giving "
+            "lines[][field], and parse_lines drops the row on int('')."
+        )

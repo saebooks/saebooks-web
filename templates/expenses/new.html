@@ -86,6 +86,10 @@
       </thead>
       <tbody id="expense-lines-body" class="divide-y divide-gray-100 bg-white">
         {% for line in lines %}
+          {# ``index`` must be a real integer: parse_lines does int() on it and
+             silently drops the row on ValueError. Without this the server-
+             rendered rows emitted lines[][field] and were never parsed. #}
+          {% set index = loop.index0 %}
           {% include "expenses/_line_row.html" %}
         {% endfor %}
       </tbody>
