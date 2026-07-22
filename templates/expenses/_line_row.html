@@ -1,13 +1,16 @@
-{# One expense line row. ``index`` indexes the field set
-   (lines[N]_<field>); the form_helpers parser turns flat form keys back
-   into a list of line dicts. #}
+{# One expense line row. ``index`` indexes the field set —
+   lines[N][<field>], the convention form_helpers.parse_lines expects and
+   the one bills/invoices/quotes already use. It must stay bracketed:
+   parse_lines discovers indices by testing for "][" in the key, so the
+   old lines[N]_<field> spelling matched nothing and every expense was
+   created with ZERO lines, silently (fixed 2026-07-23). #}
 <tr class="expense-line-row">
   <td class="px-2 py-1">
-    <input type="text" name="lines[{{ index }}]_description" value="{{ line.description or '' }}" required
+    <input type="text" name="lines[{{ index }}][description]" value="{{ line.description or '' }}" required
       class="saebooks-input w-full px-2 py-1 text-base">
   </td>
   <td class="px-2 py-1">
-    <select name="lines[{{ index }}]_account_id" required
+    <select name="lines[{{ index }}][account_id]" required
       class="saebooks-input w-full px-2 py-1 text-base">
       <option value="">{{ _("— expense account —") }}</option>
       {% for a in accounts %}
@@ -16,7 +19,7 @@
     </select>
   </td>
   <td class="px-2 py-1">
-    <select name="lines[{{ index }}]_tax_code_id"
+    <select name="lines[{{ index }}][tax_code_id]"
       class="saebooks-input w-full px-2 py-1 text-base">
       <option value="">{{ _("none") }}</option>
       {% for t in tax_codes %}
@@ -25,11 +28,11 @@
     </select>
   </td>
   <td class="px-2 py-1">
-    <input type="number" name="lines[{{ index }}]_quantity" value="{{ line.quantity or '1' }}" step="0.0001" min="0"
+    <input type="number" name="lines[{{ index }}][quantity]" value="{{ line.quantity or '1' }}" step="0.0001" min="0"
       class="saebooks-input w-24 px-2 py-1 text-base text-right">
   </td>
   <td class="px-2 py-1">
-    <input type="number" name="lines[{{ index }}]_unit_price" value="{{ line.unit_price or '0' }}" step="0.0001" min="0"
+    <input type="number" name="lines[{{ index }}][unit_price]" value="{{ line.unit_price or '0' }}" step="0.0001" min="0"
       class="saebooks-input w-32 px-2 py-1 text-base text-right">
   </td>
 </tr>
