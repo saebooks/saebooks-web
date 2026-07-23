@@ -247,6 +247,9 @@ async def test_concurrent_real_requests_dashboard_au_vs_ee_jurisdiction(
     money()/nav rendering) doesn't cross-contaminate two requests in
     flight at once — not just that contextvars are isolated in isolation.
     """
+    from tests import _jp
+    _jp.mock_presentations(respx_mock)
+
     au_token, ee_token = "concurrency-au-token", "concurrency-ee-token"
 
     def _companies(request: respx.Request) -> Response:

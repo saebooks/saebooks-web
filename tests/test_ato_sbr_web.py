@@ -31,6 +31,7 @@ from itsdangerous import TimestampSigner as _TimestampSigner
 
 from saebooks_web.config import settings
 from saebooks_web.main import app
+from tests import _jp
 
 # ---------------------------------------------------------------------------
 # Constants / helpers
@@ -369,6 +370,7 @@ async def test_ato_sbr_clear_success(respx_mock: respx.MockRouter) -> None:
 @respx.mock
 async def test_ato_sbr_nav_link(respx_mock: respx.MockRouter) -> None:
     """GET /accounts shows ATO SBR nav link in setup sub-row."""
+    _jp.mock_au_context(respx_mock)
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json={"items": [], "total": 0})
     )

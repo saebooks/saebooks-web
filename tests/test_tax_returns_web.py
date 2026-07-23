@@ -40,6 +40,7 @@ from itsdangerous import TimestampSigner as _TimestampSigner
 
 from saebooks_web.config import settings
 from saebooks_web.main import app
+from tests import _jp
 
 _API_BASE = settings.api_url.rstrip("/")
 
@@ -436,6 +437,7 @@ async def test_tax_returns_nav_hidden_for_au(respx_mock: respx.MockRouter) -> No
     own page heading always says "Deklaratsioonid" regardless of
     jurisdiction — this is a nav-gating check) so the only mocks needed
     are the middleware's own tax_codes probe, reused as the page's data."""
+    _jp.mock_presentations(respx_mock)
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, "AU")
 

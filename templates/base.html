@@ -618,18 +618,25 @@
           <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
         </summary>
         <div class="space-y-0.5 mt-1">
+          {# Employees / Super funds / Pay Run are AU-style payroll — gated on
+             the jurisdiction contract so an EE company sees none of the
+             Australian super/STP payroll surface. Time entries stays (general). #}
+          {% if request.state.jp.features.payroll %}
           <a href="/employees" class="nav-item is-sub {% if path.startswith('/employees') %}active{% endif %}">
             <i data-lucide="users" class="nav-ico"></i>{{ _("Employees") }}
           </a>
           <a href="/super-funds" class="nav-item is-sub {% if path.startswith('/super-funds') %}active{% endif %}">
             <i data-lucide="piggy-bank" class="nav-ico"></i>{{ _("Super funds") }}
           </a>
+          {% endif %}
           <a href="/time-entries/week" class="nav-item is-sub {% if path.startswith('/time-entries') %}active{% endif %}">
             <i data-lucide="clock" class="nav-ico"></i>{{ _("Time entries") }}
           </a>
+          {% if request.state.jp.features.payroll %}
           <a href="/pay-run" class="nav-item is-sub {% if path.startswith('/pay-run') %}active{% endif %}">
             <i data-lucide="badge-dollar-sign" class="nav-ico"></i>{{ _("Pay Run") }}
           </a>
+          {% endif %}
         </div>
       </details>
 
@@ -741,7 +748,10 @@
           <i data-lucide="chevron-right" class="nav-section-caret w-3 h-3"></i>
         </summary>
         <div class="space-y-0.5 mt-1">
-          {% if jurisdiction == 'AU' %}
+          {# BAS / GST-overview / ATO SBR are the AU tax-report surface — shown
+             only when the jurisdiction contract declares tax_reports, not on a
+             hardcoded `if jurisdiction == 'AU'`. #}
+          {% if request.state.jp.features.tax_reports %}
           <a href="/gst/overview" class="nav-item is-sub {% if path == '/gst/overview' %}active{% endif %}">
             <i data-lucide="layout-dashboard" class="nav-ico"></i>{{ _("Overview") }}
           </a>
@@ -752,7 +762,7 @@
           <a href="/tax-codes" class="nav-item is-sub {% if path.startswith('/tax-codes') %}active{% endif %}">
             <i data-lucide="percent" class="nav-ico"></i>{{ _("Tax Codes") }}
           </a>
-          {% if user_role == 'admin' and jurisdiction == 'AU' %}
+          {% if user_role == 'admin' and request.state.jp.features.tax_reports %}
           <a href="/admin/ato-sbr" class="nav-item is-sub {% if path.startswith('/admin/ato-sbr') %}active{% endif %}">
             <i data-lucide="landmark" class="nav-ico"></i>{{ _("ATO SBR") }}
           </a>
@@ -1040,11 +1050,15 @@
               <a href="/contacts/new?type=SUPPLIER" class="create-link"><i data-lucide="user-plus" class="w-4 h-4"></i>{{ _("Supplier") }}</a>
               <div class="hairline border-t mt-2 pt-2"></div>
               <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">{{ _("People") }}</p>
+              {% if request.state.jp.features.payroll %}
               <a href="/employees/new"          class="create-link"><i data-lucide="users"         class="w-4 h-4"></i>{{ _("Employee") }}</a>
               <a href="/super-funds/new"        class="create-link"><i data-lucide="piggy-bank"    class="w-4 h-4"></i>{{ _("Super fund") }}</a>
+              {% endif %}
               <a href="/time-entries/new"       class="create-link"><i data-lucide="clock"        class="w-4 h-4"></i>{{ _("Time entry") }}</a>
               <a href="/time-entries/week"      class="create-link"><i data-lucide="calendar-days" class="w-4 h-4"></i>{{ _("Weekly grid") }}</a>
+              {% if request.state.jp.features.payroll %}
               <a href="/pay-run/new"            class="create-link"><i data-lucide="badge-dollar-sign" class="w-4 h-4"></i>{{ _("Pay run") }}</a>
+              {% endif %}
             </div>
             <div>
               <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">{{ _("Banking & Books") }}</p>
@@ -1198,13 +1212,15 @@
     { g: 'Create',  i: 'user-plus',    t: 'New contact',           s: 'Customer or supplier',    k: 'C N', href: '/contacts/new' },
     { g: 'Create',  i: 'book-open',    t: 'New journal entry',     s: 'Double-entry posting',    k: 'C J', href: '/journal-entries/new' },
     { g: 'Create',  i: 'clock',        t: 'New time entry',        s: 'Log hours worked',        k: 'C T', href: '/time-entries/new' },
+    {% if request.state.jp.features.payroll %}
     { g: 'Create',  i: 'users',        t: 'New employee',          s: 'Register payroll employee',       href: '/employees/new' },
     { g: 'Create',  i: 'piggy-bank',   t: 'New super fund',        s: 'APRA fund or SMSF',               href: '/super-funds/new' },
+    {% endif %}
     { g: 'Go to',   i: 'home',         t: 'Dashboard',             s: 'Today at a glance',                  href: '/' },
     { g: 'Go to',   i: 'layout-dashboard', t: 'Sales overview',     s: 'AR · MTD · top customers',           href: '/sales/overview' },
     { g: 'Go to',   i: 'layout-dashboard', t: 'Expenses overview',  s: 'AP · MTD · bills',                   href: '/expenses-overview' },
     { g: 'Go to',   i: 'layout-dashboard', t: 'Inventory overview', s: 'Items · low stock',                  href: '/inventory/overview' },
-    {% if jurisdiction == 'AU' %}
+    {% if request.state.jp.features.tax_reports %}
     { g: 'Go to',   i: 'layout-dashboard', t: 'GST overview',       s: 'BAS quarter · turnover',             href: '/gst/overview' },
     {% endif %}
     { g: 'Go to',   i: 'users',        t: 'Customer overview',     s: 'Quotes · projects · overdue',        href: '/customer-hub/overview' },
@@ -1217,8 +1233,12 @@
     { g: 'Go to',   i: 'book-open',    t: 'Journal entries',       s: 'General ledger postings',            href: '/journal-entries' },
     { g: 'Go to',   i: 'list-tree',    t: 'Chart of accounts',     s: 'Tax-mapped AU CoA',                  href: '/accounts' },
     { g: 'Go to',   i: 'banknote',     t: 'Payments',              s: 'Cash in and out',                    href: '/payments' },
+    {# AU-style payroll surface — gated on the jurisdiction contract so an EE
+       company's palette does not offer Australian super/STP payroll. #}
+    {% if request.state.jp.features.payroll %}
     { g: 'Go to',   i: 'users',        t: 'Employees',             s: 'Payroll staff · STP2',               href: '/employees' },
     { g: 'Go to',   i: 'piggy-bank',  t: 'Super funds',           s: 'APRA funds and SMSFs',               href: '/super-funds' },
+    {% endif %}
     { g: 'Go to',   i: 'calendar-days',t: 'Weekly time grid',      s: 'Mon-Sun hours grid',                 href: '/time-entries/week' },
     { g: 'Go to',   i: 'clock',        t: 'Time entries',          s: 'Hours per project · billable',       href: '/time-entries' },
     { g: 'Go to',   i: 'landmark',     t: 'Bank accounts',         s: 'Cleared balances',                   href: '/bank-accounts' },
@@ -1227,11 +1247,13 @@
     { g: 'Reports', i: 'scale',        t: 'Balance Sheet',         s: 'As at today',            k: 'R B', href: '/reports/balance-sheet' },
     { g: 'Reports', i: 'hourglass',    t: 'Aged Receivables',      s: 'Days-sales-outstanding', k: 'R A', href: '/reports/aged-receivables' },
     { g: 'Reports', i: 'alarm-clock',  t: 'Aged Payables',         s: 'Days-payable-outstanding', k: 'R Y', href: '/reports/aged-payables' },
-    {% if jurisdiction == 'AU' %}
+    {% if request.state.jp.features.tax_reports %}
     { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas-summary' },
     {% endif %}
+    {% if request.state.jp.features.payroll %}
     { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll · coming soon', href: '/pay-run' },
     { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG · coming soon',         href: '/pay-run' },
+    {% endif %}
     { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report · coming soon', href: '/reports' },
     { g: 'Admin',   i: 'cog',          t: 'Company settings',      s: '{% if jurisdiction == "AU" %}ABN · GST · tax codes{% else %}Registration · tax codes{% endif %}',              href: '/settings/company' },
     { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/admin/license' },

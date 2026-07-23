@@ -20,6 +20,7 @@ from itsdangerous import TimestampSigner as _TimestampSigner
 
 from saebooks_web.config import settings
 from saebooks_web.main import app
+from tests import _jp
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
@@ -86,6 +87,7 @@ _API_BASE = settings.api_url.rstrip("/")
 @respx.mock
 async def test_edit_form_renders_with_version(respx_mock: respx.MockRouter) -> None:
     """GET /contacts/{id}/edit renders the form with a hidden version input + bank fields."""
+    _jp.mock_au_context(respx_mock)
     respx_mock.get(f"{_API_BASE}/api/v1/contacts/{_CONTACT_ID}").mock(
         return_value=Response(200, json=_MOCK_CONTACT)
     )

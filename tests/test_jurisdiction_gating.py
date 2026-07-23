@@ -59,6 +59,17 @@ from saebooks_web.main import app
 
 from tests.test_dashboard import _register_mocks, _ytd_response
 
+
+@pytest.fixture(autouse=True)
+def _clear_jp_cache():
+    """The jurisdiction-presentation client caches per code at process level.
+    Different tests mock different contracts for the same code (AU/EE), so a
+    stale cached entry would leak between them — clear before each test."""
+    from saebooks_web.jurisdiction_presentation import invalidate_cache
+    invalidate_cache()
+    yield
+    invalidate_cache()
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -149,6 +160,9 @@ async def test_jurisdiction_defaults_to_au_when_tax_codes_empty(
     The ambiguity is now loud (a logged warning), not silent."""
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction=None)
+    # jurisdiction resolves to the AU default → its presentation drives the
+    # BAS/tax-report nav affordance.
+    _mock_presentation(respx_mock, "AU", "ABN", "au_abn", tax_reports=True)
     _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     with caplog.at_level("WARNING", logger="saebooks_web.company_context"):
@@ -245,6 +259,8 @@ async def test_dashboard_ee_hides_gst_widgets(respx_mock: respx.MockRouter) -> N
 async def test_nav_au_shows_bas_and_ato_sbr_links(respx_mock: respx.MockRouter) -> None:
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="AU")
+    _mock_presentation(respx_mock, "AU", "ABN", "au_abn",
+                       payroll=True, tax_reports=True)
     _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     session = _make_session_cookie(
@@ -262,6 +278,8 @@ async def test_nav_au_shows_bas_and_ato_sbr_links(respx_mock: respx.MockRouter) 
     assert "BAS worksheet" in resp.text
     assert "ATO SBR" in resp.text
     assert "Tax Codes" in resp.text
+    # AU payroll surface present in the palette
+    assert "Super funds" in resp.text
 
 
 @pytest.mark.anyio
@@ -271,6 +289,8 @@ async def test_nav_ee_hides_bas_and_ato_sbr_shows_tax_codes(
 ) -> None:
     _mock_companies(respx_mock, _EE_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="EE")
+    _mock_presentation(respx_mock, "EE", "Registrikood", "ee_regcode",
+                       payroll=False, tax_reports=False)
     _register_mocks(respx_mock, register_shared_side_fetches=False)
 
     session = _make_session_cookie(
@@ -296,6 +316,9 @@ async def test_nav_ee_hides_bas_and_ato_sbr_shows_tax_codes(
     assert ">Tax<" in resp.text
     assert "BAS worksheet" not in resp.text
     assert "ATO SBR" not in resp.text
+    # EE has no AU payroll surface — the super/STP palette items are gone.
+    assert "Super funds" not in resp.text
+    assert "Super stream" not in resp.text
     # Jurisdiction-neutral — the engine's own tax-code list stays reachable.
     assert "Tax Codes" in resp.text
 
@@ -435,7 +458,8 @@ _MOCK_ACCOUNTS_JUR = {"items": [], "total": 0}
 def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
                        scheme: str, bank: list | None = None,
                        tax: dict | None = None, currency: str = "",
-                       country: str = "") -> None:
+                       country: str = "", payroll: bool = False,
+                       tax_reports: bool = False) -> None:
     respx_mock.get(
         f"{_API_BASE}/api/v1/jurisdictions/{code}/presentation"
     ).mock(return_value=Response(200, json={
@@ -449,6 +473,7 @@ def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
                            "registration_term": "Tax registration"},
             "currency": {"default": currency},
             "default_country": country,
+            "features": {"payroll": payroll, "tax_reports": tax_reports},
         },
     }))
 

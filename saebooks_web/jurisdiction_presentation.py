@@ -57,12 +57,19 @@ class Tax:
 
 
 @dataclass(frozen=True)
+class Features:
+    payroll: bool = False
+    tax_reports: bool = False
+
+
+@dataclass(frozen=True)
 class JurisdictionPresentation:
     primary_identifier: Identifier
     bank_fields: tuple[BankField, ...] = ()
     tax: Tax = Tax()
     default_currency: str = ""
     default_country: str = ""
+    features: Features = Features()
 
     @property
     def identifier_label(self) -> str:
@@ -121,6 +128,10 @@ async def fetch_presentation(request: Request, code: str | None) -> Jurisdiction
                 ),
                 default_currency=(body.get("currency") or {}).get("default", ""),
                 default_country=body.get("default_country", ""),
+                features=Features(
+                    payroll=bool((body.get("features") or {}).get("payroll", False)),
+                    tax_reports=bool((body.get("features") or {}).get("tax_reports", False)),
+                ),
             )
             _cache[key] = (time.monotonic(), pres)
             return pres
