@@ -365,10 +365,20 @@ async def test_company_settings_gst_old_date_no_invoices_skips_confirm(
 @pytest.mark.anyio
 @respx.mock
 async def test_company_settings_psi_field_renders(respx_mock: respx.MockRouter) -> None:
-    """GET /settings/company renders the PSI status radio group."""
+    """GET /settings/company renders the PSI status radio group (AU — PSI is an
+    ATO concept, now gated on the jurisdiction contract's tax-report surface)."""
+    from tests import _jp
+    _jp.mock_presentations(respx_mock)  # AU presentation → features.tax_reports on
     mock_company_with_psi = {**_MOCK_COMPANY, "psi_status": "unsure"}
     respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
         return_value=Response(200, json={"items": [mock_company_with_psi], "total": 1})
+    )
+    # AU-stamped tax_codes so company_context resolves jurisdiction 'AU'.
+    respx_mock.get(url__regex=r".*/api/v1/tax_codes.*").mock(
+        return_value=Response(200, json={"items": [
+            {"id": "aaaaaaaa-0000-0000-0000-000000000001", "code": "GST",
+             "name": "GST", "rate": "10.000", "tax_system": "GST", "jurisdiction": "AU"}
+        ], "total": 1})
     )
 
     async with AsyncClient(

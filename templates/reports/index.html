@@ -80,6 +80,9 @@
     <p class="text-xs ink-3 leading-relaxed">{{ _("Operating, investing and financing cash movements.") }}</p>
   </a>
 
+  {# BAS is the AU activity statement — shown only where the jurisdiction
+     contract declares the tax-report surface, not to every company. #}
+  {% if request.state.jp.features.tax_reports %}
   <a href="/reports/bas-summary" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="percent" class="w-4 h-4 ink-3" aria-hidden="true"></i>
@@ -88,6 +91,7 @@
     <h2 class="font-display text-lg ink-1 mb-1">{{ _("BAS Summary") }}</h2>
     <p class="text-xs ink-3 leading-relaxed">{{ _("G1, G3, G11, 1A/1B net GST and remit/refund for a quarter.") }}</p>
   </a>
+  {% endif %}
 
   <a href="/reports/aged-receivables" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
@@ -152,6 +156,7 @@
     <p class="text-xs ink-3 leading-relaxed">{{ _("Open foreign-currency invoices and bills revalued at spot rate.") }}</p>
   </a>
 
+  {% if request.state.jp.features.tax_reports %}
   <a href="/reports/bas-payg" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="clipboard-check" class="w-4 h-4 ink-3" aria-hidden="true"></i>
@@ -160,6 +165,7 @@
     <h2 class="font-display text-lg ink-1 mb-1">{{ _("BAS / PAYG Review") }}</h2>
     <p class="text-xs ink-3 leading-relaxed">{{ _("GST 1A/1B plus PAYG withholding W1/W2 and amount payable to the ATO.") }}</p>
   </a>
+  {% endif %}
 
 </div>
 

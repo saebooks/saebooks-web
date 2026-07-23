@@ -100,7 +100,7 @@
       <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Financial year") }}</legend>
 
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-        {{ _("Drives the reports period picker's financial-year presets and the year-end close default. Australian companies default to 1 July.") }}
+        {{ _("Drives the reports period picker's financial-year presets and the year-end close default.") }}{% if request.state.jp.features.tax_reports %} {{ _("Australian companies default to 1 July.") }}{% endif %}
       </p>
 
       <div class="flex flex-wrap items-end gap-4">
@@ -177,7 +177,9 @@
     {{ readonly_field("base_currency", _("Base currency"), form.get('base_currency', 'AUD'),
         hint=_("The currency your ledger is kept in. Set when the company was created — changing it after transactions are posted isn't a simple edit, so contact support if you need to.")) }}
 
-    {% if mode == 'full' %}
+    {# PSI is an Australian ATO tax concept — gate on the jurisdiction contract's
+       tax-report surface so an EE company never sees ATO/PSI classification. #}
+    {% if mode == 'full' and request.state.jp.features.tax_reports %}
     {# ── PSI (Personal Services Income) classification ── #}
     <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
       <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Business Classification (PSI)") }}</legend>

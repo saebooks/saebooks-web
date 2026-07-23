@@ -583,3 +583,41 @@ async def test_depreciation_schedule_method_filter(respx_mock: respx.MockRouter)
     # Verify the API was called with the method param
     called_url = str(respx_mock.calls[0].request.url)
     assert "method=diminishing_value" in called_url
+
+
+# ---------------------------------------------------------------------------
+# BAS report cards are jurisdiction-gated (2026-07-24 wave B): the /reports
+# index shows the AU BAS/PAYG report cards only where the contract declares
+# the tax-report surface.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_reports_index_au_shows_bas_cards(respx_mock: respx.MockRouter) -> None:
+    from tests import _jp
+    _jp.mock_au_context(respx_mock)
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/reports")
+    assert resp.status_code == 200
+    assert "BAS Summary" in resp.text
+    assert "BAS / PAYG Review" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_reports_index_ee_hides_bas_cards(respx_mock: respx.MockRouter) -> None:
+    from tests import _jp
+    _jp.mock_ee_context(respx_mock)
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/reports")
+    assert resp.status_code == 200
+    # EE has no BAS — the AU activity-statement cards are gone
+    assert "BAS Summary" not in resp.text
+    assert "BAS / PAYG Review" not in resp.text
