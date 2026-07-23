@@ -422,40 +422,59 @@ async def test_jurisdiction_lookup_uses_limit_not_page_size(
 
 
 # ---------------------------------------------------------------------------
-# Contact ABN field — AU-only identifier, must not render for EE.
-# Regression for the 2026-07-23 Tasur AU-content sweep: the contacts form
-# showed an "ABN" field to every jurisdiction, so an Estonian company got an
-# Australian business-identifier field. EE uses registrikood (a tracked gap);
-# the leak is the AU field appearing at all.
+# Contact business-identifier label — driven by the jurisdiction PRESENTATION
+# contract, not hardcoded. The contacts form must show "ABN" for AU and
+# "Registrikood" for EE, from the same template, differing ONLY by which
+# country module the presentation endpoint returned — no `if jurisdiction`.
+# (2026-07-23: this replaced an interim AU-only gate on the ABN field.)
 # ---------------------------------------------------------------------------
 
 _MOCK_ACCOUNTS_JUR = {"items": [], "total": 0}
 
 
+def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
+                       scheme: str) -> None:
+    respx_mock.get(
+        f"{_API_BASE}/api/v1/jurisdictions/{code}/presentation"
+    ).mock(return_value=Response(200, json={
+        "code": code,
+        "presentation": {"primary_identifier": {
+            "scheme": scheme, "label": label, "format_hint": "", "optional": False,
+        }},
+    }))
+
+
 @pytest.mark.anyio
 @respx.mock
-async def test_contact_form_au_shows_abn(respx_mock: respx.MockRouter) -> None:
+async def test_contact_identifier_label_au_is_abn(respx_mock: respx.MockRouter) -> None:
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="AU")
+    _mock_presentation(respx_mock, "AU", "ABN", "au_abn")
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
     )
     async with _client() as client:
         resp = await client.get("/contacts/new")
     assert resp.status_code == 200
-    assert 'name="abn"' in resp.text  # AU sees the ABN field
+    assert 'name="abn"' in resp.text
+    assert "ABN" in resp.text
+    assert "Registrikood" not in resp.text
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_contact_form_ee_hides_abn(respx_mock: respx.MockRouter) -> None:
+async def test_contact_identifier_label_ee_is_registrikood(
+    respx_mock: respx.MockRouter,
+) -> None:
     _mock_companies(respx_mock, _EE_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="EE")
+    _mock_presentation(respx_mock, "EE", "Registrikood", "ee_regcode")
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
     )
     async with _client() as client:
         resp = await client.get("/contacts/new")
     assert resp.status_code == 200
-    assert 'name="abn"' not in resp.text   # EE must NOT see the AU ABN field
+    # same field, module-driven label — EE shows Registrikood, NOT the AU ABN
+    assert "Registrikood" in resp.text
     assert "ABN" not in resp.text

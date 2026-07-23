@@ -200,4 +200,21 @@ class CompanyContextMiddleware(BaseHTTPMiddleware):
                 logger.warning(
                     "CompanyContextMiddleware: unexpected failure (%s)", exc
                 )
+        # Resolve the jurisdiction PRESENTATION contract from the active
+        # jurisdiction (just set above) so templates render identifier labels
+        # etc. from the country module — no ``if jurisdiction == 'AU'`` branch.
+        # Done here (not a separate middleware) to guarantee it runs AFTER the
+        # jurisdiction is resolved. Degrades to the neutral contract; never
+        # raises, so a lookup miss can't white-screen a page.
+        try:
+            from saebooks_web.jurisdiction_presentation import fetch_presentation
+
+            request.state.jp = await fetch_presentation(
+                request, request.state.active_company_jurisdiction
+            )
+        except Exception as exc:  # never break a render on presentation
+            from saebooks_web.jurisdiction_presentation import _NEUTRAL
+
+            request.state.jp = _NEUTRAL
+            logger.warning("jurisdiction presentation skipped (%s)", exc)
         return await call_next(request)

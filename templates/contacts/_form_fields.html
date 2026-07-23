@@ -40,12 +40,13 @@
     {% if errors.get("contact_type") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["contact_type"] }}</p>{% endif %}
   </div>
 
-  {# ABN is an AU business identifier — do not show it to non-AU (e.g. EE)
-     companies. EE uses registrikood; that field is a tracked beta gap, not
-     added here. Gated to match how base.html gates AU-only nav surfaces. #}
-  {% if (request.state.active_company_jurisdiction or "AU") == "AU" %}
-  {{ text_input("abn", "ABN", placeholder="12 345 678 901") }}
-  {% endif %}
+  {# Business identifier — label + placeholder come from the active
+     jurisdiction's presentation contract (request.state.jp), NOT hardcoded.
+     AU renders "ABN", EE renders "Registrikood", a new country renders
+     whatever its module declares — no `if jurisdiction` branch here. The
+     stored field stays `abn` (neutral rename is a separate engine wave). #}
+  {% set _ident = request.state.jp.primary_identifier %}
+  {{ text_input("abn", _ident.label, placeholder=_ident.format_hint) }}
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
