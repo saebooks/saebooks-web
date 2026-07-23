@@ -61,6 +61,8 @@ class JurisdictionPresentation:
     primary_identifier: Identifier
     bank_fields: tuple[BankField, ...] = ()
     tax: Tax = Tax()
+    default_currency: str = ""
+    default_country: str = ""
 
     @property
     def identifier_label(self) -> str:
@@ -117,6 +119,8 @@ async def fetch_presentation(request: Request, code: str | None) -> Jurisdiction
                     return_name=tx.get("return_name", "Tax return"),
                     registration_term=tx.get("registration_term", "Tax registration"),
                 ),
+                default_currency=(body.get("currency") or {}).get("default", ""),
+                default_country=body.get("default_country", ""),
             )
             _cache[key] = (time.monotonic(), pres)
             return pres

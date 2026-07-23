@@ -434,7 +434,8 @@ _MOCK_ACCOUNTS_JUR = {"items": [], "total": 0}
 
 def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
                        scheme: str, bank: list | None = None,
-                       tax: dict | None = None) -> None:
+                       tax: dict | None = None, currency: str = "",
+                       country: str = "") -> None:
     respx_mock.get(
         f"{_API_BASE}/api/v1/jurisdictions/{code}/presentation"
     ).mock(return_value=Response(200, json={
@@ -446,6 +447,8 @@ def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
             "bank": {"fields": bank or []},
             "tax": tax or {"term": "Tax", "return_name": "Tax return",
                            "registration_term": "Tax registration"},
+            "currency": {"default": currency},
+            "default_country": country,
         },
     }))
 
@@ -465,7 +468,8 @@ _EE_BANK = [
 async def test_contact_identifier_label_au_is_abn(respx_mock: respx.MockRouter) -> None:
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="AU")
-    _mock_presentation(respx_mock, "AU", "ABN", "au_abn", bank=_AU_BANK)
+    _mock_presentation(respx_mock, "AU", "ABN", "au_abn", bank=_AU_BANK,
+                       currency="AUD", country="Australia")
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
     )
@@ -479,6 +483,9 @@ async def test_contact_identifier_label_au_is_abn(respx_mock: respx.MockRouter) 
     assert 'name="bank_bsb"' in resp.text
     assert "BSB" in resp.text
     assert 'name="iban"' not in resp.text
+    # AU currency + country defaults
+    assert 'placeholder="Australia"' in resp.text
+    assert "leave blank for AUD" in resp.text
 
 
 @pytest.mark.anyio
@@ -488,7 +495,8 @@ async def test_contact_identifier_label_ee_is_registrikood(
 ) -> None:
     _mock_companies(respx_mock, _EE_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="EE")
-    _mock_presentation(respx_mock, "EE", "Registrikood", "ee_regcode", bank=_EE_BANK)
+    _mock_presentation(respx_mock, "EE", "Registrikood", "ee_regcode", bank=_EE_BANK,
+                       currency="EUR", country="Estonia")
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
     )
@@ -503,6 +511,11 @@ async def test_contact_identifier_label_ee_is_registrikood(
     assert "IBAN" in resp.text
     assert 'name="bank_bsb"' not in resp.text
     assert ">BSB<" not in resp.text
+    # EE currency + country defaults — EUR/Estonia, never AUD/Australia
+    assert 'placeholder="Estonia"' in resp.text
+    assert "leave blank for EUR" in resp.text
+    assert 'placeholder="Australia"' not in resp.text
+    assert "leave blank for AUD" not in resp.text
 
 
 @pytest.mark.anyio

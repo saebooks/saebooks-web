@@ -65,7 +65,9 @@
     {{ text_input("city", _("City")) }}
     {{ text_input("state", _("State")) }}
     {{ text_input("postcode", _("Postcode")) }}
-    {{ text_input("country", _("Country"), placeholder="Australia") }}
+    {# Country default comes from the jurisdiction contract — an EE company's
+       form no longer defaults to "Australia". #}
+    {{ text_input("country", _("Country"), placeholder=(request.state.jp.default_country or "")) }}
   </div>
 </fieldset>
 
@@ -135,7 +137,10 @@
   <div>
     <label for="currency_code" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
       {{ _("Currency code") }}
-      <span class="ink-4 font-normal normal-case ml-1">{{ _("(ISO 4217 — leave blank for AUD)") }}</span>
+      {# "leave blank for <default>" — the default currency comes from the
+         jurisdiction contract, so an EE company sees EUR, not AUD. #}
+      {% set _cur = request.state.jp.default_currency %}
+      {% if _cur %}<span class="ink-4 font-normal normal-case ml-1">{{ _("(ISO 4217 — leave blank for %(cur)s)") % {"cur": _cur} }}</span>{% else %}<span class="ink-4 font-normal normal-case ml-1">{{ _("(ISO 4217)") }}</span>{% endif %}
     </label>
     <input type="text" id="currency_code" name="currency_code"
            value="{{ form.get('currency_code', '') }}"
