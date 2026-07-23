@@ -302,6 +302,8 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
         "bank_bsb",
         "bank_account_number",
         "bank_account_title",
+        "iban",
+        "bic",
         "default_account_id",
         "currency_code",
     ):
@@ -391,6 +393,8 @@ _EDIT_FIELDS = (
     "bank_bsb",
     "bank_account_number",
     "bank_account_title",
+    "iban",
+    "bic",
     "default_account_id",
     "currency_code",
 )
