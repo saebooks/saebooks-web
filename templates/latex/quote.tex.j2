@@ -17,7 +17,7 @@
                           section_label, material, length_note, drawing_ref
 
   Design matches the existing ReportLab render_quote_pdf layout:
-    letterhead → blue rule → ESTIMATE / SAE-2026-{number}
+    letterhead → blue rule → ESTIMATE / {number}
     → info boxes (Estimate To / Estimate Details)
     → Project Details box
     → sections grouped by section_label (heading + booktabs table)
@@ -86,7 +86,7 @@
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
-\fancyfoot[L]{\textcolor{saefooter}{\small Sauer Pty Ltd ACN 683\,275\,756 \enspace ATF \enspace Saueesti Trust ABN 87\,744\,586\,592}}
+\fancyfoot[L]{\textcolor{saefooter}{\small {{ company.name | latex_escape }}{% if company.identifier_value %} \enspace {{ company.identifier_label | latex_escape }}~{{ company.identifier_value | latex_escape }}{% endif %}}}
 \fancyfoot[R]{\textcolor{saefooter}{\small Page~\thepage}}
 
 \usepackage{graphicx}
@@ -111,14 +111,14 @@
   {% if logo_path -%}
   \raisebox{-3mm}{\includegraphics[height=16mm]{{ "{" }}{{ logo_path }}{{ "}" }}}
   {%- else -%}
-  {\LARGE\bfseries\color{saeblue} SAE Engineering}
+  {\LARGE\bfseries\color{saeblue} {{ company.name | latex_escape }}}
   {%- endif %}
   &
   \begin{tabular}[t]{@{}r@{}}
-    \textcolor{saegrey}{\small PO Box 592, Bungalow QLD 4870} \\
-    \textcolor{saegrey}{\small \textbf{P:}~07\,4243\,3488 \quad \textbf{M:}~0457\,704\,373} \\
-    \textcolor{saegrey}{\small \textbf{E:}~admin@saee.com.au \quad \textbf{W:}~saee.com.au} \\
-    \textcolor{saegrey}{\small ABN: 87\,744\,586\,592 \quad QBCC: 15231284} \\
+    {% if company.address_line %}\textcolor{saegrey}{\small {{ company.address_line | latex_escape }}} \\{% endif %}
+    {% if company.phone %}\textcolor{saegrey}{\small \textbf{P:}~{{ company.phone | latex_escape }}} \\{% endif %}
+    {% if company.email or company.website %}\textcolor{saegrey}{\small {% if company.email %}\textbf{E:}~{{ company.email | latex_escape }}{% endif %}{% if company.email and company.website %} \quad {% endif %}{% if company.website %}\textbf{W:}~{{ company.website | latex_escape }}{% endif %}} \\{% endif %}
+    {% if company.identifier_value %}\textcolor{saegrey}{\small {{ company.identifier_label | latex_escape }}:~{{ company.identifier_value | latex_escape }}} \\{% endif %}
   \end{tabular}
 \end{tabularx}
 
@@ -132,7 +132,7 @@
 \begin{tabularx}{\textwidth}{@{}Xl@{}}
   {\huge\bfseries\color{saeblue} ESTIMATE}
   &
-  {\Large\bfseries\color{saeaccent} SAE-2026-{{ number | latex_escape }}}
+  {\Large\bfseries\color{saeaccent} {{ number | latex_escape }}}
 \end{tabularx}
 
 \vspace{5mm}
@@ -168,7 +168,7 @@
   \begin{minipage}[t]{\linewidth}
     \vspace{2mm}
     {\small\bfseries\color{saeblue} ESTIMATE DETAILS:}\\[2mm]
-    {\small\color{saegrey} \textbf{Estimate No:} \quad SAE-2026-{{ number | latex_escape }}}\\
+    {\small\color{saegrey} \textbf{Estimate No:} \quad {{ number | latex_escape }}}\\
     {\small\color{saegrey} \textbf{Date:} \quad {{ fmt_date(issue_date) | latex_escape }}}\\
     {\small\color{saegrey} \textbf{Valid Until:} \quad
       {% if expiry_date -%}{{ fmt_date(expiry_date) | latex_escape }}{%- else -%}---{%- endif %}
@@ -282,7 +282,7 @@
 %% =====================================================================
 \begin{tabularx}{\textwidth}{@{}Xr@{}}
   \rowcolor{saeblue}
-  {\large\bfseries\color{white} TOTAL ESTIMATE (ex GST)} &
+  {\large\bfseries\color{white} TOTAL ESTIMATE (excl. {{ company.tax_term | latex_escape }})} &
   {\large\bfseries\color{white} {{ fmt_money(subtotal) }}}
 \end{tabularx}
 
@@ -299,43 +299,32 @@
   \item \textbf{Payment Terms:} {{ deposit_pct | latex_escape }}\% deposit on acceptance; balance per progress payment schedule.
   \item \textbf{Programme:} Approximate 8--10 week lead time from receipt of approved IFC drawings and deposit.
   \item \textbf{Late Fee:} 2.5\% per month on overdue amounts.
-  \item \textbf{PPSA:} SAE Engineering retains a security interest in all goods supplied until payment is received in full.
-  \item \textbf{Full Terms:} \href{https://saee.com.au/terms-of-trade}{saee.com.au/terms-of-trade}
-\end{itemize}
-
-\vspace{4mm}
-
-%% =====================================================================
-%% INSURANCE & LICENCES
-%% =====================================================================
-\section*{\color{saeblue}Insurance \& Licences}
-
-\begin{tabular}{@{}p{38mm}l@{}}
-  \textbf{Public Liability:}    & \$20,000,000 (valid to 23/12/2026) \\
-  \textbf{WorkCover:}           & Policy WSM241037628 (valid to 30/06/2026) \\
-  \textbf{QBCC Licence:}        & 15231284 \\
-\end{tabular}
+  \item \textbf{Retention of title:} {{ company.name | latex_escape }} retains a security interest in all goods supplied until payment is received in full.
+{% if company.website %}  \item \textbf{Full Terms:} \href{ {{- company.website | latex_escape -}} }{ {{- company.website | latex_escape -}} }
+{% endif %}\end{itemize}
 
 \vspace{4mm}
 
 %% =====================================================================
 %% BANK DETAILS
 %% =====================================================================
+{% if company.bank.account_number %}
 \begin{tabularx}{\textwidth}{@{}X@{}}
   \cellcolor{ltgrey}
   \begin{minipage}[t]{\linewidth}
     \vspace{2mm}
     {\small\bfseries\color{saeblue} Bank Details for EFT Payment:}\\[2mm]
-    {\small\color{saegrey} \textbf{Bank:} \quad Westpac}\\
-    {\small\color{saegrey} \textbf{Account Name:} \quad Sauer Pty Ltd}\\
-    {\small\color{saegrey} \textbf{BSB:} \quad 034-193}\\
-    {\small\color{saegrey} \textbf{Account No:} \quad 485846}\\
-    {\small\color{saegrey} \textbf{Reference:} \quad SAE-2026-{{ number | latex_escape }}}
+    {% if company.bank.bank_name %}{\small\color{saegrey} \textbf{Bank:} \quad {{ company.bank.bank_name | latex_escape }}}\\{% endif %}
+    {% if company.bank.account_name %}{\small\color{saegrey} \textbf{Account Name:} \quad {{ company.bank.account_name | latex_escape }}}\\{% endif %}
+    {% if company.bank.bsb %}{\small\color{saegrey} \textbf{BSB:} \quad {{ company.bank.bsb | latex_escape }}}\\{% endif %}
+    {\small\color{saegrey} \textbf{Account No:} \quad {{ company.bank.account_number | latex_escape }}}\\
+    {\small\color{saegrey} \textbf{Reference:} \quad {{ number | latex_escape }}}
     \vspace{2mm}
   \end{minipage}
 \end{tabularx}
 
 \vspace{4mm}
+{% endif %}
 
 %% =====================================================================
 %% ACCEPTANCE
@@ -343,18 +332,17 @@
 \section*{\color{saeblue}Acceptance}
 
 To proceed with this estimate, please issue a purchase order referencing
-\textbf{SAE-2026-{{ number | latex_escape }}} to
-\href{mailto:admin@saee.com.au}{admin@saee.com.au}.
-Upon receipt of your purchase order, we will issue a formal tax invoice for the deposit
+\textbf{{ "{" }}{{ number | latex_escape }}}{% if company.email %} to
+\href{mailto:{{ company.email | latex_escape }}}{ {{- company.email | latex_escape -}} }{% endif %}.
+Upon receipt, we will issue a formal invoice for the deposit
 amount and schedule the works accordingly.
 
 \vspace{6mm}
 
 \textbf{Prepared by:}\\[2mm]
 {\color{saegrey}
-Richard Sauer\\
-Director --- SAE Engineering\\
-\href{mailto:admin@saee.com.au}{admin@saee.com.au} \textbar{} 0457 704 373
+{{ company.name | latex_escape }}\\
+{% if company.email %}\href{mailto:{{ company.email | latex_escape }}}{ {{- company.email | latex_escape -}} }{% endif %}{% if company.email and company.phone %} \textbar{} {% endif %}{% if company.phone %}{{ company.phone | latex_escape }}{% endif %}
 }
 
 \end{document}

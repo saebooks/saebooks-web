@@ -77,7 +77,7 @@
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
-\fancyfoot[L]{\textcolor{saefooter}{\small Sauer Pty Ltd ACN 683\,275\,756 \enspace ATF \enspace Saueesti Trust ABN 87\,744\,586\,592}}
+\fancyfoot[L]{\textcolor{saefooter}{\small {{ company.name | latex_escape }}{% if company.identifier_value %} \enspace {{ company.identifier_label | latex_escape }}~{{ company.identifier_value | latex_escape }}{% endif %}}}
 \fancyfoot[R]{\textcolor{saefooter}{\small Page~\thepage}}
 
 \usepackage{graphicx}
@@ -102,14 +102,14 @@
   {% if logo_path -%}
   \raisebox{-3mm}{\includegraphics[height=16mm]{{ "{" }}{{ logo_path }}{{ "}" }}}
   {%- else -%}
-  {\LARGE\bfseries\color{saeblue} SAE Engineering}
+  {\LARGE\bfseries\color{saeblue} {{ company.name | latex_escape }}}
   {%- endif %}
   &
   \begin{tabular}[t]{@{}r@{}}
-    \textcolor{saegrey}{\small PO Box 592, Bungalow QLD 4870} \\
-    \textcolor{saegrey}{\small \textbf{P:}~07\,4243\,3488 \quad \textbf{M:}~0457\,704\,373} \\
-    \textcolor{saegrey}{\small \textbf{E:}~admin@saee.com.au \quad \textbf{W:}~saee.com.au} \\
-    \textcolor{saegrey}{\small ABN: 87\,744\,586\,592 \quad QBCC: 15231284} \\
+    {% if company.address_line %}\textcolor{saegrey}{\small {{ company.address_line | latex_escape }}} \\{% endif %}
+    {% if company.phone %}\textcolor{saegrey}{\small \textbf{P:}~{{ company.phone | latex_escape }}} \\{% endif %}
+    {% if company.email or company.website %}\textcolor{saegrey}{\small {% if company.email %}\textbf{E:}~{{ company.email | latex_escape }}{% endif %}{% if company.email and company.website %} \quad {% endif %}{% if company.website %}\textbf{W:}~{{ company.website | latex_escape }}{% endif %}} \\{% endif %}
+    {% if company.identifier_value %}\textcolor{saegrey}{\small {{ company.identifier_label | latex_escape }}:~{{ company.identifier_value | latex_escape }}} \\{% endif %}
   \end{tabular}
 \end{tabularx}
 
@@ -259,8 +259,8 @@
   \setlength\itemsep{0pt}
   \setlength\parskip{0pt}
   \item Please reference \textbf{{ "{" }}{{ number | latex_escape }}{{ "}" }} on all invoices, packing slips and correspondence.
-  \item Email invoices to \href{mailto:admin@saee.com.au}{admin@saee.com.au}.
-  \item Notify us promptly of any supply delays or price variations before shipping.
+{% if company.email %}  \item Email invoices to \href{mailto:{{ company.email | latex_escape }}}{ {{- company.email | latex_escape -}} }.
+{% endif %}  \item Notify us promptly of any supply delays or price variations before shipping.
 \end{itemize}
 
 \vspace{2mm}
@@ -268,9 +268,8 @@
 \noindent\begin{minipage}{\textwidth}
 \textbf{Authorised by:}\\[2mm]
 {\color{saegrey}
-Richard Sauer\\
-Director --- SAE Engineering\\
-\href{mailto:admin@saee.com.au}{admin@saee.com.au} \textbar{} 0457 704 373
+{{ company.name | latex_escape }}\\
+{% if company.email %}\href{mailto:{{ company.email | latex_escape }}}{ {{- company.email | latex_escape -}} }{% endif %}{% if company.email and company.phone %} \textbar{} {% endif %}{% if company.phone %}{{ company.phone | latex_escape }}{% endif %}
 }
 \end{minipage}
 
