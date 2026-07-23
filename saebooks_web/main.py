@@ -236,6 +236,14 @@ else:
 # Locale -> CSRF -> route. (CompanyContext/Locale sit INSIDE the
 # session-minting auth middleware — critic round 2 fix, see the
 # CompanyContextMiddleware comment below.)
+# JurisdictionGateMiddleware — page-level gate for AU-only surfaces. Added
+# FIRST so it is the INNERMOST middleware (runs LAST before the route), by
+# which point CompanyContextMiddleware has already set request.state.jp +
+# active_company_jurisdiction. Redirects a resolved non-AU company away from
+# AU-only payroll/BAS pages reached by direct URL (nav already hides them).
+from saebooks_web.jurisdiction_gate import JurisdictionGateMiddleware
+app.add_middleware(JurisdictionGateMiddleware)
+
 app.add_middleware(CSRFMiddleware)
 
 # LocaleMiddleware must run INSIDE CompanyContextMiddleware (added
