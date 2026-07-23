@@ -45,7 +45,7 @@
         {{ contact.name }}
       </h1>
       {% if contact.abn %}
-      <p class="text-xs ink-3 font-mono mt-2">{{ _("ABN") }} · <span class="num ink-2">{{ contact.abn }}</span></p>
+      <p class="text-xs ink-3 font-mono mt-2">{{ request.state.jp.primary_identifier.label }} · <span class="num ink-2">{{ contact.abn }}</span></p>
       {% endif %}
     </div>
 

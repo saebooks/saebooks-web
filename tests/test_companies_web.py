@@ -716,3 +716,50 @@ async def test_companies_new_form_tasur_brand_shows_jurisdiction_selector(
     assert resp.status_code == 200
     assert 'id="jurisdiction"' in resp.text
     assert 'id="registrikood"' in resp.text
+
+
+# ---------------------------------------------------------------------------
+# Identifier column header is jurisdiction-driven (2026-07-24 wave A):
+# the /companies list "ABN" column comes from the presentation contract.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_companies_list_identifier_header_au_is_abn(
+    respx_mock: respx.MockRouter,
+) -> None:
+    from tests import _jp
+    _jp.mock_au_context(respx_mock)
+    respx_mock.get(f"{_API_BASE}/api/v1/license").mock(
+        return_value=Response(200, json=_LICENSE_ENTERPRISE)
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test",
+        cookies={settings.session_cookie_name: _ADMIN_COOKIE},
+    ) as client:
+        resp = await client.get("/companies")
+    assert resp.status_code == 200
+    assert ">ABN</th>" in resp.text
+    assert "Registrikood" not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_companies_list_identifier_header_ee_is_registrikood(
+    respx_mock: respx.MockRouter,
+) -> None:
+    from tests import _jp
+    _jp.mock_ee_context(respx_mock)
+    respx_mock.get(f"{_API_BASE}/api/v1/license").mock(
+        return_value=Response(200, json=_LICENSE_ENTERPRISE)
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test",
+        cookies={settings.session_cookie_name: _ADMIN_COOKIE},
+    ) as client:
+        resp = await client.get("/companies")
+    assert resp.status_code == 200
+    # column header driven by the module contract — EE says Registrikood, not ABN
+    assert ">Registrikood</th>" in resp.text
+    assert ">ABN</th>" not in resp.text

@@ -78,3 +78,23 @@ def mock_au_context(respx_mock) -> None:
              "jurisdiction": "AU"}
         ], "total": 1})
     )
+
+
+def mock_ee_context(respx_mock) -> None:
+    """Full EE jurisdiction context — companies + EE-stamped tax_codes +
+    presentations — so company_context resolves 'EE' and the GUI renders the
+    Estonian contract (Registrikood / IBAN / käibemaks / EUR, features off)."""
+    mock_presentations(respx_mock)
+    respx_mock.get(url__regex=r".*/api/v1/companies.*").mock(
+        return_value=Response(200, json={"items": [
+            {"id": "e0000000-0000-0000-0000-00000000000e", "name": "EE Co",
+             "created_at": "2026-01-01T00:00:00Z", "bookkeeping_mode": "full"}
+        ], "total": 1})
+    )
+    respx_mock.get(url__regex=r".*/api/v1/tax_codes.*").mock(
+        return_value=Response(200, json={"items": [
+            {"id": "eeeeeeee-0000-0000-0000-000000000001", "code": "KM",
+             "name": "Käibemaks", "rate": "22.000", "tax_system": "VAT",
+             "jurisdiction": "EE"}
+        ], "total": 1})
+    )

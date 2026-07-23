@@ -43,7 +43,7 @@
       </h1>
       <p class="text-xs ink-3 font-mono mt-2">
         {{ _("Statement date:") }} {{ statement.statement_date | default("—") }}
-        {% if statement.supplier_abn %}· {{ _("ABN") }} {{ statement.supplier_abn }}{% endif %}
+        {% if statement.supplier_abn %}· {{ request.state.jp.primary_identifier.label }} {{ statement.supplier_abn }}{% endif %}
         {% if statement.customer_ref %}· {{ _("Ref") }} {{ statement.customer_ref }}{% endif %}
       </p>
     </div>
