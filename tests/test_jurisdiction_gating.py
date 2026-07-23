@@ -433,7 +433,8 @@ _MOCK_ACCOUNTS_JUR = {"items": [], "total": 0}
 
 
 def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
-                       scheme: str, bank: list | None = None) -> None:
+                       scheme: str, bank: list | None = None,
+                       tax: dict | None = None) -> None:
     respx_mock.get(
         f"{_API_BASE}/api/v1/jurisdictions/{code}/presentation"
     ).mock(return_value=Response(200, json={
@@ -443,6 +444,8 @@ def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
                 "scheme": scheme, "label": label, "format_hint": "", "optional": False,
             },
             "bank": {"fields": bank or []},
+            "tax": tax or {"term": "Tax", "return_name": "Tax return",
+                           "registration_term": "Tax registration"},
         },
     }))
 
@@ -500,3 +503,24 @@ async def test_contact_identifier_label_ee_is_registrikood(
     assert "IBAN" in resp.text
     assert 'name="bank_bsb"' not in resp.text
     assert ">BSB<" not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_tax_code_placeholder_not_hardcoded_gst(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """The tax-code placeholder used to hardcode 'e.g. GST'. It now comes from
+    the tax presentation contract. With no jurisdiction (empty tax codes → the
+    text-input branch renders) it must show the neutral 'e.g. Tax', proving the
+    GST literal is gone — not baked into every jurisdiction's form."""
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, jurisdiction=None)  # empty → placeholder branch
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
+    )
+    async with _client() as client:
+        resp = await client.get("/contacts/new")
+    assert resp.status_code == 200
+    assert 'placeholder="e.g. Tax"' in resp.text
+    assert "e.g. GST" not in resp.text

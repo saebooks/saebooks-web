@@ -98,7 +98,8 @@
     </select>
     {% else %}
     <input type="text" id="default_tax_code" name="default_tax_code"
-           value="{{ form.get('default_tax_code', '') }}" placeholder="e.g. GST"
+           value="{{ form.get('default_tax_code', '') }}"
+           placeholder="{{ _('e.g. %(term)s') % {'term': request.state.jp.tax.term} }}"
            class="saebooks-input"
            {% if errors.get('default_tax_code') %}style="border-color:var(--neg);"{% endif %}>
     {% endif %}

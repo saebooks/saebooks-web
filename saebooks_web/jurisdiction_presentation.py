@@ -50,22 +50,31 @@ class BankField:
 
 
 @dataclass(frozen=True)
+class Tax:
+    term: str = "Tax"
+    return_name: str = "Tax return"
+    registration_term: str = "Tax registration"
+
+
+@dataclass(frozen=True)
 class JurisdictionPresentation:
     primary_identifier: Identifier
     bank_fields: tuple[BankField, ...] = ()
+    tax: Tax = Tax()
 
     @property
     def identifier_label(self) -> str:
         return self.primary_identifier.label
 
 
-# Neutral bank fallback mirrors the engine's NEUTRAL_PRESENTATION.
+# Neutral fallback mirrors the engine's NEUTRAL_PRESENTATION.
 _NEUTRAL = JurisdictionPresentation(
     Identifier(scheme="generic_business_id", label=_NEUTRAL_LABEL, optional=True),
     bank_fields=(
         BankField(key="bank_account_number", label="Account number", optional=True),
         BankField(key="bank_account_title", label="Account holder", optional=True),
     ),
+    tax=Tax(),
 )
 
 
@@ -86,6 +95,7 @@ async def fetch_presentation(request: Request, code: str | None) -> Jurisdiction
             body = resp.json()["presentation"]
             pi = body.get("primary_identifier") or {}
             bank = (body.get("bank") or {}).get("fields") or []
+            tx = body.get("tax") or {}
             pres = JurisdictionPresentation(
                 Identifier(
                     scheme=pi.get("scheme", "generic_business_id"),
@@ -101,6 +111,11 @@ async def fetch_presentation(request: Request, code: str | None) -> Jurisdiction
                         optional=bool(f.get("optional", False)),
                     )
                     for f in bank
+                ),
+                tax=Tax(
+                    term=tx.get("term", "Tax"),
+                    return_name=tx.get("return_name", "Tax return"),
+                    registration_term=tx.get("registration_term", "Tax registration"),
                 ),
             )
             _cache[key] = (time.monotonic(), pres)
