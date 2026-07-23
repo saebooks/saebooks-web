@@ -103,7 +103,7 @@
     <legend class="nav-section-label mb-2">{{ _("Attachment") }}</legend>
     <div class="card p-3 flex items-center gap-3">
       <span class="text-xs font-mono ink-3 uppercase tracking-wider">PDF</span>
-      <span class="ink-1 text-sm">{{ _("Tax Invoice") }} {{ invoice.number or invoice.id }}.pdf</span>
+      <span class="ink-1 text-sm">{{ _("Invoice") }} {{ invoice.number or invoice.id }}.pdf</span>
       <span class="ink-3 text-xs font-mono ml-auto">{{ _("auto-attached on send") }}</span>
       <a href="/invoices/{{ invoice.id }}/pdf" target="_blank" rel="noopener"
          class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("preview ↗") }}</a>
