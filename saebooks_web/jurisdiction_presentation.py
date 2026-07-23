@@ -42,16 +42,30 @@ class Identifier:
 
 
 @dataclass(frozen=True)
+class BankField:
+    key: str
+    label: str
+    format_hint: str = ""
+    optional: bool = False
+
+
+@dataclass(frozen=True)
 class JurisdictionPresentation:
     primary_identifier: Identifier
+    bank_fields: tuple[BankField, ...] = ()
 
     @property
     def identifier_label(self) -> str:
         return self.primary_identifier.label
 
 
+# Neutral bank fallback mirrors the engine's NEUTRAL_PRESENTATION.
 _NEUTRAL = JurisdictionPresentation(
-    Identifier(scheme="generic_business_id", label=_NEUTRAL_LABEL, optional=True)
+    Identifier(scheme="generic_business_id", label=_NEUTRAL_LABEL, optional=True),
+    bank_fields=(
+        BankField(key="bank_account_number", label="Account number", optional=True),
+        BankField(key="bank_account_title", label="Account holder", optional=True),
+    ),
 )
 
 
@@ -69,14 +83,25 @@ async def fetch_presentation(request: Request, code: str | None) -> Jurisdiction
         async with api_client(request) as client:
             resp = await client.get(f"/api/v1/jurisdictions/{key}/presentation")
         if resp.is_success:
-            pi = resp.json()["presentation"]["primary_identifier"] or {}
+            body = resp.json()["presentation"]
+            pi = body.get("primary_identifier") or {}
+            bank = (body.get("bank") or {}).get("fields") or []
             pres = JurisdictionPresentation(
                 Identifier(
                     scheme=pi.get("scheme", "generic_business_id"),
                     label=pi.get("label", _NEUTRAL_LABEL),
                     format_hint=pi.get("format_hint", ""),
                     optional=bool(pi.get("optional", False)),
-                )
+                ),
+                bank_fields=tuple(
+                    BankField(
+                        key=f["key"],
+                        label=f.get("label", f["key"]),
+                        format_hint=f.get("format_hint", ""),
+                        optional=bool(f.get("optional", False)),
+                    )
+                    for f in bank
+                ),
             )
             _cache[key] = (time.monotonic(), pres)
             return pres

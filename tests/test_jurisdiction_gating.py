@@ -433,15 +433,28 @@ _MOCK_ACCOUNTS_JUR = {"items": [], "total": 0}
 
 
 def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
-                       scheme: str) -> None:
+                       scheme: str, bank: list | None = None) -> None:
     respx_mock.get(
         f"{_API_BASE}/api/v1/jurisdictions/{code}/presentation"
     ).mock(return_value=Response(200, json={
         "code": code,
-        "presentation": {"primary_identifier": {
-            "scheme": scheme, "label": label, "format_hint": "", "optional": False,
-        }},
+        "presentation": {
+            "primary_identifier": {
+                "scheme": scheme, "label": label, "format_hint": "", "optional": False,
+            },
+            "bank": {"fields": bank or []},
+        },
     }))
+
+
+_AU_BANK = [
+    {"key": "bank_bsb", "label": "BSB", "format_hint": "062-000", "optional": False},
+    {"key": "bank_account_number", "label": "Account number", "format_hint": "", "optional": False},
+]
+_EE_BANK = [
+    {"key": "iban", "label": "IBAN", "format_hint": "", "optional": False},
+    {"key": "bic", "label": "BIC / SWIFT", "format_hint": "", "optional": True},
+]
 
 
 @pytest.mark.anyio
@@ -449,7 +462,7 @@ def _mock_presentation(respx_mock: respx.MockRouter, code: str, label: str,
 async def test_contact_identifier_label_au_is_abn(respx_mock: respx.MockRouter) -> None:
     _mock_companies(respx_mock, _AU_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="AU")
-    _mock_presentation(respx_mock, "AU", "ABN", "au_abn")
+    _mock_presentation(respx_mock, "AU", "ABN", "au_abn", bank=_AU_BANK)
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
     )
@@ -459,6 +472,10 @@ async def test_contact_identifier_label_au_is_abn(respx_mock: respx.MockRouter) 
     assert 'name="abn"' in resp.text
     assert "ABN" in resp.text
     assert "Registrikood" not in resp.text
+    # AU bank fields: BSB shown, no IBAN box
+    assert 'name="bank_bsb"' in resp.text
+    assert "BSB" in resp.text
+    assert 'name="iban"' not in resp.text
 
 
 @pytest.mark.anyio
@@ -468,7 +485,7 @@ async def test_contact_identifier_label_ee_is_registrikood(
 ) -> None:
     _mock_companies(respx_mock, _EE_COMPANY)
     _mock_tax_codes(respx_mock, jurisdiction="EE")
-    _mock_presentation(respx_mock, "EE", "Registrikood", "ee_regcode")
+    _mock_presentation(respx_mock, "EE", "Registrikood", "ee_regcode", bank=_EE_BANK)
     respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
         return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
     )
@@ -478,3 +495,8 @@ async def test_contact_identifier_label_ee_is_registrikood(
     # same field, module-driven label — EE shows Registrikood, NOT the AU ABN
     assert "Registrikood" in resp.text
     assert "ABN" not in resp.text
+    # EE bank fields: IBAN + BIC shown, NO BSB box
+    assert 'name="iban"' in resp.text
+    assert "IBAN" in resp.text
+    assert 'name="bank_bsb"' not in resp.text
+    assert ">BSB<" not in resp.text

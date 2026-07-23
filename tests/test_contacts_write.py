@@ -166,8 +166,10 @@ async def test_contact_new_form_renders(respx_mock: respx.MockRouter) -> None:
     assert 'name="country"' in resp.text
     assert 'name="notes"' in resp.text
     assert 'name="default_tax_code"' in resp.text
-    # Bank fields
-    assert 'name="bank_bsb"' in resp.text
+    # Bank fields are now driven by the jurisdiction presentation contract
+    # (see test_jurisdiction_gating). This test resolves no company/jurisdiction,
+    # so the NEUTRAL contract renders (account number + holder); bank_bsb is
+    # AU-only and is covered under the jurisdiction tests, not here.
     assert 'name="bank_account_number"' in resp.text
     assert 'name="bank_account_title"' in resp.text
     # Default account dropdown

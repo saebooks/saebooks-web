@@ -71,11 +71,12 @@
 
 <fieldset class="space-y-4 mt-7">
   <legend class="nav-section-label mb-3">{{ _("Banking") }}</legend>
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {{ text_input("bank_bsb", _("BSB"), placeholder="062-000") }}
-    {{ text_input("bank_account_number", _("Account number"), placeholder="12345678") }}
-  </div>
-  {{ text_input("bank_account_title", _("Account holder name"), placeholder="Acme Pty Ltd") }}
+  {# Bank fields come from the jurisdiction presentation contract — AU shows
+     BSB + account number, EE shows IBAN + BIC. Rendered from request.state.jp,
+     never hardcoded, so a new country's bank shape is drop-in. #}
+  {% for _f in request.state.jp.bank_fields %}
+  {{ text_input(_f.key, _f.label, placeholder=_f.format_hint) }}
+  {% endfor %}
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
