@@ -419,3 +419,43 @@ async def test_jurisdiction_lookup_uses_limit_not_page_size(
     assert resp.status_code == 200
     assert captured["params"].get("limit") == "1"
     assert "page_size" not in captured["params"]
+
+
+# ---------------------------------------------------------------------------
+# Contact ABN field — AU-only identifier, must not render for EE.
+# Regression for the 2026-07-23 Tasur AU-content sweep: the contacts form
+# showed an "ABN" field to every jurisdiction, so an Estonian company got an
+# Australian business-identifier field. EE uses registrikood (a tracked gap);
+# the leak is the AU field appearing at all.
+# ---------------------------------------------------------------------------
+
+_MOCK_ACCOUNTS_JUR = {"items": [], "total": 0}
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_contact_form_au_shows_abn(respx_mock: respx.MockRouter) -> None:
+    _mock_companies(respx_mock, _AU_COMPANY)
+    _mock_tax_codes(respx_mock, jurisdiction="AU")
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
+    )
+    async with _client() as client:
+        resp = await client.get("/contacts/new")
+    assert resp.status_code == 200
+    assert 'name="abn"' in resp.text  # AU sees the ABN field
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_contact_form_ee_hides_abn(respx_mock: respx.MockRouter) -> None:
+    _mock_companies(respx_mock, _EE_COMPANY)
+    _mock_tax_codes(respx_mock, jurisdiction="EE")
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=_MOCK_ACCOUNTS_JUR)
+    )
+    async with _client() as client:
+        resp = await client.get("/contacts/new")
+    assert resp.status_code == 200
+    assert 'name="abn"' not in resp.text   # EE must NOT see the AU ABN field
+    assert "ABN" not in resp.text
