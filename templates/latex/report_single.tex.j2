@@ -26,7 +26,7 @@
 \begin{center}
   {\LARGE\bfseries\color{saegreen} {{ (company.legal_name or company.name) | latex_escape }} }\\[2mm]
   {% if company.acn -%}{\small ACN {{ company.acn | latex_escape }}}\\[0.5mm]{%- endif %}
-  {% if company.abn -%}{\small ABN {{ company.abn | latex_escape }}}\\[0.5mm]{%- endif %}
+  {% if company.abn -%}{\small {{ company.identifier_label | latex_escape }} {{ company.abn | latex_escape }}}\\[0.5mm]{%- endif %}
   \vspace{3mm}
   {\Large {{ title | latex_escape }}}\\[1mm]
   {\small\itshape {{ period_label | latex_escape }}}\\[1mm]

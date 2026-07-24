@@ -42,7 +42,7 @@
   {\large ACN {{ company.acn | latex_escape }}}\\[1mm]
   {%- endif %}
   {% if company.abn -%}
-  {\large ABN {{ company.abn | latex_escape }}}\\[1mm]
+  {\large {{ company.identifier_label | latex_escape }} {{ company.abn | latex_escape }}}\\[1mm]
   {%- endif %}
   \vspace{10mm}
   {\LARGE Special Purpose Financial Statements}\\[3mm]
