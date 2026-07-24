@@ -189,7 +189,7 @@
   \textcolor{white}{\textbf{\small Description}} &
   \textcolor{white}{\textbf{\small Qty}} &
   \textcolor{white}{\textbf{\small Unit Price}} &
-  \textcolor{white}{\textbf{\small GST}} &
+  \textcolor{white}{\textbf{\small {{ company.tax_term | latex_escape }}}} &
   \textcolor{white}{\textbf{\small Amount}} \\
   \midrule
   \endfirsthead
@@ -200,7 +200,7 @@
   \textcolor{white}{\textbf{\small Description}} &
   \textcolor{white}{\textbf{\small Qty}} &
   \textcolor{white}{\textbf{\small Unit Price}} &
-  \textcolor{white}{\textbf{\small GST}} &
+  \textcolor{white}{\textbf{\small {{ company.tax_term | latex_escape }}}} &
   \textcolor{white}{\textbf{\small Amount}} \\
   \midrule
   \endhead
@@ -218,7 +218,7 @@
   {% endfor %}
 \end{longtable}
 
-{\small\color{midgrey} Unit prices and amounts are ex GST. GST shown per line.}
+{\small\color{midgrey} Unit prices and amounts are excl. {{ company.tax_term | latex_escape }}. {{ company.tax_term | latex_escape }} shown per line.}
 
 \vspace{2mm}
 
@@ -227,8 +227,8 @@
 %% =====================================================================
 \begin{flushright}
 \begin{tabular}{@{}l@{\qquad}r@{}}
-  {\color{saegrey} Subtotal (ex GST)} & {\color{saegrey} {{ fmt_money(subtotal) }}} \\
-  {\color{saegrey} GST}               & {\color{saegrey} {{ fmt_money(tax_total) }}} \\
+  {\color{saegrey} Subtotal (excl. {{ company.tax_term | latex_escape }})} & {\color{saegrey} {{ fmt_money(subtotal) }}} \\
+  {\color{saegrey} {{ company.tax_term | latex_escape }}}               & {\color{saegrey} {{ fmt_money(tax_total) }}} \\
 \end{tabular}
 \end{flushright}
 
@@ -236,7 +236,7 @@
 {% raw %}\noindent\colorbox{saeblue}{%
   \parbox{\dimexpr\textwidth-2\fboxsep\relax}{%
     \rule[-1.2mm]{0pt}{5.5mm}%
-    {\large\bfseries\color{white} TOTAL (inc GST) {% endraw %}{{ currency | latex_escape }}{% raw %}}%
+    {\large\bfseries\color{white} TOTAL (incl. {% endraw %}{{ company.tax_term | latex_escape }}{% raw %}) {% endraw %}{{ currency | latex_escape }}{% raw %}}%
     \hfill
     {\large\bfseries\color{white} {% endraw %}{{ fmt_money(total) }}{% raw %}}%
   }%

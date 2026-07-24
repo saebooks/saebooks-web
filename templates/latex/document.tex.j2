@@ -94,7 +94,7 @@
   \textbf{\color{saegreen}From}\\[1mm]
   {{ company.name | latex_escape }}\\
   {% if company.abn -%}
-  {\small ABN {{ company.abn | latex_escape }}}\\
+  {\small {{ company.identifier_label | latex_escape }} {{ company.abn | latex_escape }}}\\
   {%- endif %}
   {% set addr = company.address or {} %}
   {% if addr.get('address_line1') -%}
