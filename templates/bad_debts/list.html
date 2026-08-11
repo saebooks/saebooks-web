@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Bad debts — SAE Books{% endblock %}
+
+{% block content %}
+<style>
+  .btn-danger-sm {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .3rem .65rem; border-radius: 8px;
+    background: var(--neg-tint); color: var(--neg);
+    border: 1px solid var(--neg); font-size: .8rem; font-weight: 500;
+    cursor: pointer; transition: background .12s ease, color .12s ease;
+  }
+  .btn-danger-sm:hover { background: var(--neg); color: #fff; }
+</style>
+
+{% if flash %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">Sales</span>
+    <span class="reg-mark"></span>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3">Bad debts</span>
+  </div>
+  <div class="flex items-end justify-between gap-4">
+    <div>
+      <h1 class="font-display text-3xl leading-none tracking-tight flex items-center gap-3">
+        <i data-lucide="file-x" class="w-7 h-7 ink-3" aria-hidden="true"></i>
+        <span>Bad-debt candidates</span>
+      </h1>
+      <p class="mt-2 text-sm ink-3 font-mono">
+        {{ candidates|length }} candidate{{ "s" if candidates|length != 1 else "" }}
+        · over {{ threshold_days }} days past due
+        · mode: {{ writeoff_mode }}
+      </p>
+    </div>
+    <a href="/settings/company" class="btn-secondary"><i data-lucide="settings" class="w-4 h-4" aria-hidden="true"></i><span>Settings</span></a>
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+
+{% if error %}
+<div class="card p-3 mb-4" style="border-color:var(--neg);">
+  <span class="text-sm ink-2">{{ error }}</span>
+</div>
+{% endif %}
+
+{# Mode banner — review is interactive; auto/manual are read-only. #}
+{% if writeoff_mode == 'auto' %}
+<div class="card p-3 mb-4" style="border-color:var(--sae);">
+  <p class="text-sm ink-2">
+    <strong>Auto mode.</strong> A scheduled job writes these off automatically once they pass
+    the {{ threshold_days }}-day threshold. This screen is a read-only preview of what the
+    next run will action.
+  </p>
+</div>
+{% elif writeoff_mode == 'manual' %}
+<div class="card p-3 mb-4" style="border-color:var(--ink-3);">
+  <p class="text-sm ink-2">
+    <strong>Manual mode.</strong> No prompts or buttons — switch the company to
+    <em>review</em> mode in settings to write off from here.
+  </p>
+</div>
+{% endif %}
+
+{% if not candidates %}
+<div class="card p-6 text-center">
+  <i data-lucide="check-circle" class="w-8 h-8 mx-auto mb-2 ink-3" aria-hidden="true"></i>
+  <p class="text-sm ink-2">No write-off candidates. Every posted invoice is either paid or within terms.</p>
+</div>
+{% else %}
+<div class="card overflow-hidden">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left ink-3 border-b border-[var(--line)]">
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider">Invoice</th>
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider">Customer</th>
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider">Due</th>
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-right">Age (days)</th>
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-right">Balance</th>
+        {% if writeoff_mode == 'review' %}
+        <th class="px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-right">Action</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody id="bad-debt-rows">
+      {% for inv in candidates %}
+      {% include "bad_debts/_row.html" %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}

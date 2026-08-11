@@ -1,0 +1,258 @@
+{#
+  document.tex.j2 — Generic SAE Books document: Credit Note, Invoice, Bill.
+
+  Context keys (all data values MUST be latex_escape'd before interpolation):
+    kind           str   "Credit Note" | "Tax Invoice" | "Bill"
+    number         str   e.g. "CN-000042"
+    issue_date     str   ISO date
+    due_date       str   ISO date or "" (omit label if empty)
+    currency       str   e.g. "AUD"
+    subtotal       str   decimal string
+    tax_total      str   decimal string
+    total          str   decimal string
+    amount_paid    str   decimal string (omit Paid/Balance rows if "0.00" or "")
+    notes          str   free text, omit section if empty
+    payment_terms  str   free text, omit section if empty
+    company:
+      name         str   legal name (e.g. "Sauer Pty Ltd ATF Saueesti Trust")
+      abn          str   or ""
+      phone        str   or ""  (letterhead contact line, 0171)
+      email        str   or ""
+      website      str   or ""
+      address      dict  keys: address_line1, city, state, postcode, country
+      bank         dict  keys: name, bsb, account_number, account_name —
+                         drives the How-to-Pay panel on Tax Invoices
+    bank_details   dict  same keys as company.bank (resolved from the account
+                         flagged show_on_invoice, falling back to the
+                         company's bank_* columns) — drives the Remit-to
+                         block on Credit Notes; absent on Bills
+    contact:
+      name         str
+      email        str   or ""
+      phone        str   or ""
+      address_line1 str  or ""
+      city          str  or ""
+      state         str  or ""
+      postcode      str  or ""
+      country       str  or ""
+    lines          list  dicts with: line_no, description, quantity, unit_price,
+                         line_total, line_tax
+
+  Decision: line_tax (Decimal amount) is used in the Tax column — matches the
+  ctx builder output (line_tax key, not tax_label).  balance_due is computed
+  as total - amount_paid.
+
+  All string interpolations use |latex_escape.
+  Bare % in LaTeX source = comment: all literal % signs MUST be \%.
+#}
+{%- macro fmt_money(v) -%}
+  {%- if v is not none -%}{{ "%.2f"|format(v|float) | latex_escape }}{%- else -%}0.00{%- endif -%}
+{%- endmacro -%}
+{%- set balance_due = (total|float - amount_paid|float) -%}
+{%- set show_paid = amount_paid and amount_paid not in ("0.00", "0", "") -%}
+{% include '_preamble.tex.j2' %}
+
+%% Override header/footer for document pages (not statements)
+\fancyhead[L]{\small\color{midgrey}{{ kind | latex_escape }}}
+\fancyhead[R]{\small\color{midgrey}{{ number | latex_escape }}}
+
+\begin{document}
+
+{% if logo_path -%}
+%% Letterhead logo (LATEX_LOGO_PATH via render_latex; text-only when unset)
+\noindent\includegraphics[height=14mm]{{ "{" }}{{ logo_path }}{{ "}" }}\par
+\vspace{2mm}
+{%- endif %}
+
+%% =====================================================================
+%% DOCUMENT HEADER
+%% =====================================================================
+\vspace*{2mm}
+\begin{minipage}[t]{0.52\textwidth}
+  {\LARGE\bfseries\color{saegreen} {{ kind | latex_escape }} }\\[2mm]
+  {\large\color{midgrey} \#\,{{ number | latex_escape }}}\\[3mm]
+  \begin{tabular}{@{}ll@{}}
+    \textbf{Issue date:} & {{ issue_date | latex_escape }} \\
+    {% if due_date -%}
+    \textbf{Due date:}   & {{ due_date | latex_escape }} \\
+    {%- endif %}
+    {% if currency -%}
+    \textbf{Currency:}   & {{ currency | latex_escape }} \\
+    {%- endif %}
+  \end{tabular}
+\end{minipage}
+
+
+\vspace{3mm}
+\color{saegreen}\rule{\linewidth}{0.6pt}\color{black}
+\vspace{4mm}
+
+%% =====================================================================
+%% FROM / TO BLOCKS
+%% =====================================================================
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{saegreen}From}\\[1mm]
+  {{ company.name | latex_escape }}\\
+  {% if company.abn -%}
+  {\small ABN {{ company.abn | latex_escape }}}\\
+  {%- endif %}
+  {% set addr = company.address or {} %}
+  {% if addr.get('address_line1') -%}
+  {\small {{ addr.get('address_line1') | latex_escape }}}\\
+  {%- endif %}
+  {%- set city_line = [addr.get('city',''), addr.get('state',''), addr.get('postcode','')] | select | join(' ') -%}
+  {% if city_line -%}
+  {\small {{ city_line | latex_escape }}}\\
+  {%- endif %}
+  {% if company.phone -%}
+  {\small {{ company.phone | latex_escape }}}\\
+  {%- endif %}
+  {% if company.email -%}
+  {\small {{ company.email | latex_escape }}}\\
+  {%- endif %}
+  {% if company.website -%}
+  {\small {{ company.website | latex_escape }}}\\
+  {%- endif %}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{saegreen}To}\\[1mm]
+  {{ contact.name | latex_escape }}\\
+  {% if contact.email -%}
+  {\small {{ contact.email | latex_escape }}}\\
+  {%- endif %}
+  {% if contact.phone -%}
+  {\small {{ contact.phone | latex_escape }}}\\
+  {%- endif %}
+  {% if contact.address_line1 -%}
+  {\small {{ contact.address_line1 | latex_escape }}}\\
+  {%- endif %}
+  {%- set cn_city_line = [contact.get('city',''), contact.get('state',''), contact.get('postcode','')] | select | join(' ') -%}
+  {% if cn_city_line -%}
+  {\small {{ cn_city_line | latex_escape }}}\\
+  {%- endif %}
+\end{minipage}
+
+\vspace{3mm}
+
+%% =====================================================================
+%% LINE ITEMS TABLE
+%% =====================================================================
+\begin{longtable}{>{\raggedright\arraybackslash}p{75mm} r r r r}
+  \toprule
+  \rowcolor{lightgrey}
+  \textbf{Description} &
+  \textbf{Qty} &
+  \textbf{Unit price} &
+  \textbf{Tax} &
+  \textbf{Amount} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{5}{l}{\textit{(continued)}} \\
+  \toprule
+  \rowcolor{lightgrey}
+  \textbf{Description} &
+  \textbf{Qty} &
+  \textbf{Unit price} &
+  \textbf{Tax} &
+  \textbf{Amount} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  {% if lines %}
+    {% for line in lines %}
+  {{ line.description | latex_escape }} &
+  {{ line.quantity | latex_escape }} &
+  {{ fmt_money(line.unit_price) }} &
+  {{ fmt_money(line.line_tax) }} &
+  {{ fmt_money(line.line_total) }} \\
+    {% endfor %}
+  {% else %}
+  \multicolumn{5}{c}{\textit{\color{midgrey}No line items}} \\
+  {% endif %}
+  \bottomrule
+\end{longtable}
+
+\vspace{2mm}
+
+%% =====================================================================
+%% TOTALS BLOCK — right-aligned
+%% =====================================================================
+\begin{flushright}
+\begin{tabular}{@{}lr@{}}
+  Subtotal & \$ {{ fmt_money(subtotal) }} \\
+  Tax      & \$ {{ fmt_money(tax_total) }} \\
+  \midrule
+  \textbf{Total} & \textbf{\$ {{ fmt_money(total) }}} \\
+  {% if show_paid %}
+  Paid           & \$ {{ fmt_money(amount_paid) }} \\
+  \midrule
+  \textbf{Balance due} & \textbf{\$ {{ "%.2f"|format(balance_due) | latex_escape }}} \\
+  {% endif %}
+\end{tabular}
+\end{flushright}
+
+%% =====================================================================
+%% HOW TO PAY — prominent bank-details panel (Tax Invoice only)
+%% =====================================================================
+{% if kind == 'Tax Invoice' and company.bank and company.bank.account_number %}
+\vspace{3mm}
+\noindent\fcolorbox{saegreen}{lightgrey}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
+  \vspace{1mm}
+  {\large\bfseries\color{saegreen}How to Pay}\\[2mm]
+  \begin{tabular}{@{}ll@{}}
+    \textbf{Account Name:} & {{ company.bank.account_name | latex_escape }} \\[1mm]
+    \textbf{BSB:} & {\large\bfseries {{ company.bank.bsb | latex_escape }}} \\[1mm]
+    \textbf{Account Number:} & {\large\bfseries {{ company.bank.account_number | latex_escape }}} \\[1mm]
+    {% if company.bank.name %}\textbf{Bank:} & {{ company.bank.name | latex_escape }} \\[1mm]{% endif %}
+    \textbf{Reference:} & {{ number | latex_escape }} \\[2mm]
+    \textbf{Amount Payable:} & {\large\bfseries \$ {{ "%.2f"|format(balance_due) | latex_escape }}} \\[1mm]
+    {% if due_date %}\textbf{Due Date:} & {{ due_date | latex_escape }}{% endif %}
+  \end{tabular}
+  \vspace{1mm}
+}}
+{% endif %}
+
+%% =====================================================================
+%% REMIT TO — structured bank-details block (Credit Note only; invoices
+%% get the richer How-to-Pay panel above, bills never show our own bank)
+%% =====================================================================
+{% if kind == 'Credit Note' and bank_details and bank_details.account_number %}
+\vspace{3mm}
+\textbf{\color{saegreen}Remit to}\\[1mm]
+\begin{tabular}{@{}ll@{}}
+  {% if bank_details.name %}\textbf{Bank:} & {{ bank_details.name | latex_escape }} \\{% endif %}
+  {% if bank_details.bsb %}\textbf{BSB:} & {{ bank_details.bsb | latex_escape }} \\{% endif %}
+  \textbf{Account Number:} & {{ bank_details.account_number | latex_escape }} \\
+  {% if bank_details.account_name %}\textbf{Account Name:} & {{ bank_details.account_name | latex_escape }} \\{% endif %}
+\end{tabular}
+{% endif %}
+
+%% =====================================================================
+%% STANDING PAYMENT TERMS / TERMS OF TRADE — fine print (Tax Invoice only)
+%% =====================================================================
+{% if kind == 'Tax Invoice' and payment_terms_text %}
+\vspace{4mm}
+{\footnotesize\color{midgrey}
+{{ payment_terms_text | latex_escape }}{% if terms_url %} See our \href{{ "{" }}{{ terms_url | latex_escape }}{{ "}{" }}Terms of Trade{{ "}" }}.{% endif %}
+\par}
+{% endif %}
+
+%% =====================================================================
+%% PAYMENT TERMS + NOTES (only when present)
+%% =====================================================================
+{% if payment_terms %}
+\vspace{6mm}
+\textbf{\color{saegreen}Payment terms}\\[1mm]
+{{ payment_terms | latex_escape }}
+{% endif %}
+
+{% if notes %}
+\vspace{4mm}
+\textbf{\color{saegreen}Notes}\\[1mm]
+{{ notes | latex_escape }}
+{% endif %}
+
+
+\end{document}

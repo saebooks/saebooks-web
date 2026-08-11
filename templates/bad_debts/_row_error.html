@@ -1,0 +1,10 @@
+{# Swapped in when the engine rejects a write-off (404 / 409 / 422). The
+   original row id is preserved so a subsequent retry targets the same slot. #}
+<tr id="bad-debt-row-{{ invoice_id }}" class="border-b border-[var(--line)]">
+  <td class="px-4 py-3 ink-3" colspan="6">
+    <span class="inline-flex items-center gap-1.5 text-xs" style="color:var(--neg);">
+      <i data-lucide="alert-triangle" class="w-3.5 h-3.5" aria-hidden="true"></i>
+      {{ message }}
+    </span>
+  </td>
+</tr>

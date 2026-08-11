@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Inbox — SAE Books{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="rounded-md bg-[color:var(--warm-tint)] border border-[color:var(--warm)] px-4 py-3 text-base mb-6" style="color: var(--warm);">
+  {{ flash }}
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-3xl font-semibold ink-1">Inbox</h1>
+    <p class="text-base ink-3 mt-1">Captured documents waiting to become expenses, bills and credit notes — review, code, publish as DRAFT.</p>
+  </div>
+  <a href="/inbox/email-addresses" class="btn-secondary shrink-0">
+    <i data-lucide="mail" class="w-4 h-4 inline-block"></i>
+    Email-in addresses
+  </a>
+</div>
+
+{# ── Upload zone: desktop drag-and-drop + mobile camera capture ────────── #}
+<form id="inbox-upload-form" method="post" action="/inbox/upload" enctype="multipart/form-data" class="mb-6">
+  {{ csrf_input(request) | safe }}
+  <div id="inbox-dropzone"
+       class="card border-2 border-dashed px-6 py-8 text-center cursor-pointer transition-colors"
+       style="border-color: var(--line);"
+       onclick="document.getElementById('inbox-file-input').click()">
+    <i data-lucide="scan-line" class="w-8 h-8 mx-auto" style="color: var(--sae);"></i>
+    <p class="mt-3 text-base ink-1 font-medium">Drop a receipt or supplier invoice here</p>
+    <p class="mt-1 text-sm ink-3">JPEG, PNG, WebP or PDF up to 10&nbsp;MiB — or tap to photograph / choose a file.</p>
+    <input type="file" id="inbox-file-input" name="file"
+           accept="image/*,application/pdf" capture="environment"
+           class="hidden"
+           onchange="if (this.files.length) { document.getElementById('inbox-upload-progress').classList.remove('hidden'); this.form.submit(); }">
+  </div>
+  <p id="inbox-upload-progress" class="hidden mt-2 text-sm ink-3">
+    <i data-lucide="loader-2" class="w-3.5 h-3.5 inline-block animate-spin"></i>
+    Uploading and extracting — this can take a few seconds…
+  </p>
+</form>
+<script>
+  (function () {
+    var zone = document.getElementById('inbox-dropzone');
+    var input = document.getElementById('inbox-file-input');
+    if (!zone || !input) return;
+    ['dragenter', 'dragover'].forEach(function (ev) {
+      zone.addEventListener(ev, function (e) {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--sae)';
+        zone.style.background = 'var(--sae-tint)';
+      });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+      zone.addEventListener(ev, function (e) {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--line)';
+        zone.style.background = '';
+      });
+    });
+    zone.addEventListener('drop', function (e) {
+      if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+      input.files = e.dataTransfer.files;
+      document.getElementById('inbox-upload-progress').classList.remove('hidden');
+      input.form.submit();
+    });
+  })();
+</script>
+
+{# ── Status filter tabs — counts from /inbox/stats where tracked ───────── #}
+{% set tabs = [
+  ('', 'Open'),
+  ('NEEDS_REVIEW', 'NEEDS_REVIEW'),
+  ('READY', 'READY'),
+  ('RECEIVED', 'RECEIVED'),
+  ('FAILED', 'FAILED'),
+  ('PUBLISHED', 'PUBLISHED'),
+  ('REJECTED', 'REJECTED'),
+  ('DUPLICATE', 'DUPLICATE'),
+] %}
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  {% for value, label in tabs %}
+    {% set url = '/inbox?status=' ~ value ~ '&limit=' ~ limit %}
+    {# Plain links (not HTMX) so the active-tab chip outside the table
+       swaps too — a full render is cheap at this page weight. #}
+    <a href="{{ url }}"
+       class="chip {% if filter_status == value %}chip-active{% endif %} font-mono !text-xs">
+      {{ label }}{% if value and stats.get(value) is not none %}
+        <span class="num">{{ stats.get(value) }}</span>
+      {% endif %}
+    </a>
+  {% endfor %}
+</div>
+
+{% include "inbox/_table.html" %}
+
+{% endblock %}

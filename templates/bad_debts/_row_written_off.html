@@ -1,0 +1,15 @@
+{# Swapped in via hx-swap="outerHTML" after a successful write-off. Keeps the
+   row in place but greys it out and shows the WRITTEN_OFF state, so the
+   operator sees confirmation without a full-page reload. #}
+<tr id="bad-debt-row-{{ invoice.id }}" class="border-b border-[var(--line)] opacity-60">
+  <td class="px-4 py-3">
+    <a href="/invoices/{{ invoice.id }}" class="sae hover:underline">{{ invoice.number or invoice.id[:8] }}</a>
+  </td>
+  <td class="px-4 py-3 ink-3" colspan="4">
+    <span class="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider">
+      <i data-lucide="check" class="w-3.5 h-3.5" aria-hidden="true"></i>
+      Written off
+    </span>
+  </td>
+  <td class="px-4 py-3 text-right ink-3 text-xs">—</td>
+</tr>

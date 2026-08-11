@@ -51,7 +51,15 @@ async def _fetch_contacts_by_types(
         for ct in types:
             params: dict[str, object] = {"type": ct, "limit": 500, "offset": 0}
             if search:
-                params["search"] = search
+                # The engine's query parameter is ``q`` — the handler declares
+                # ``search: str | None = Query(default=None, alias="q")``, and
+                # the alias is what goes on the wire. Sending ``search`` was
+                # silently ignored by FastAPI, so the supplier and customer
+                # search boxes returned the full unfiltered list for every
+                # term, with the box still showing what you typed. Fixed
+                # 2026-08-11; this is also what makes contact_aliases
+                # (migration 0223) reachable from the UI.
+                params["q"] = search
             try:
                 resp = await client.get("/api/v1/contacts", params=params)
             except Exception as exc:
@@ -86,7 +94,11 @@ async def _fetch_one_off(
 ) -> tuple[list[dict], int, str | None]:
     params: dict[str, object] = {"limit": limit, "offset": offset}
     if search:
-        params["search"] = search
+        # ``q``, not ``search`` — see the note in _fetch_contacts_by_types.
+        # The one-off vendor/customer endpoints use the same alias, so this
+        # search box was equally dead. (``/api/v1/employees`` genuinely takes
+        # ``search``; do not "fix" that one to match.)
+        params["q"] = search
     async with api_client(request) as client:
         try:
             resp = await client.get(endpoint, params=params)
