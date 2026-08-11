@@ -88,6 +88,13 @@ def _patch_jinja_templates() -> None:
             register_brand_global(self)
         except Exception:
             pass
+        # Also register the version global (app_version()) — see version.py.
+        # Same injection hook; replaces the hardcoded v2026.05 sidebar literal.
+        try:
+            from saebooks_web.version import register_version_global
+            register_version_global(self)
+        except Exception:
+            pass
         # Also register the gettext callables (_ / gettext / ngettext) —
         # see i18n/__init__.py. Same injection hook; call-time-resolving
         # against a request-scoped contextvar, NEVER

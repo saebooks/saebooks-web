@@ -78,7 +78,8 @@ class _FakeProvider:
 @pytest.fixture
 def enabled(monkeypatch, tmp_path):
     monkeypatch.setenv("SAEBOOKS_EDITION", "business")
-    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur")
+    # eID is gated on the EE market, not on the Tasur name.
+    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur-ee")
     monkeypatch.setenv("SAEBOOKS_EID_LINK_STORE", str(tmp_path / "links.json"))
     monkeypatch.setenv("SAEBOOKS_OAUTH_HANDOFF_SECRET", "test-handoff-secret")
 
@@ -114,7 +115,7 @@ def _decode_session_cookie(cookie_value: str) -> dict:
 @pytest.mark.anyio
 async def test_flag_off_hides_and_refuses(monkeypatch) -> None:
     monkeypatch.setenv("SAEBOOKS_EDITION", "community")
-    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur")
+    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur-ee")
     async with _client() as client:
         login = await client.get("/login")
         assert "eid-login-link" not in login.text

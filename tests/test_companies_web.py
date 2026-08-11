@@ -703,9 +703,9 @@ async def test_companies_new_form_stock_brand_hides_jurisdiction_selector() -> N
 async def test_companies_new_form_tasur_brand_shows_jurisdiction_selector(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Same route under the Tasur/EE brand DOES render the selector -- the
-    gate hides it for stock only, it doesn't remove the feature."""
-    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur")
+    """Same route under the EE market DOES render the selector -- the gate
+    hides it off-market, it doesn't remove the feature."""
+    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur-ee")
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",

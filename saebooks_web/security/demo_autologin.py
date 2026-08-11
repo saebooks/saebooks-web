@@ -211,7 +211,7 @@ _GATE_COPY: dict[str, dict[str, str]] = {
 # Per-brand, per-language tagline + feature bullets. English comes from the
 # Brand dataclass itself; non-English gate copy is deploy copy owned here.
 _GATE_BRAND_COPY: dict[str, dict[str, dict]] = {
-    "tasur": {
+    "tasur-ee": {
         "et": {
             "tagline": "Eesti väikeettevõtte raamatupidamine",
             "features": (
@@ -264,7 +264,7 @@ def _gate_lang(request: Request) -> str:
     lang = _entry_lang(request) or _accept_lang(request)
     if lang:
         return lang
-    return "et" if current_brand().key == "tasur" else "en"
+    return "et" if current_brand().market == "EE" else "en"
 
 
 # ---------------------------------------------------------------------------

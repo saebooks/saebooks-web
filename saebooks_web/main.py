@@ -150,6 +150,7 @@ from saebooks_web.render import router as render_router
 # exempt from session auth (same /internal/ skip lists as render).
 from saebooks_web.comms import router as comms_router
 from saebooks_web.brand import current_brand
+from saebooks_web import __version__
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("saebooks_web")
@@ -160,7 +161,7 @@ logger = logging.getLogger("saebooks_web")
 app = FastAPI(
     title=f"{current_brand().name} Web",
     description="Thin Jinja2 + HTMX frontend for saebooks-api",
-    version="0.1.3",
+    version=__version__,
     docs_url="/api/docs",  # keep /docs free from accidental exposure
     redoc_url=None,
 )

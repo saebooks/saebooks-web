@@ -79,7 +79,7 @@ def eid_enabled() -> bool:
         return False
     if os.environ.get("SAEBOOKS_EID_UI", "").strip().lower() in ("1", "true", "yes"):
         return True
-    return current_brand().key == "tasur"
+    return current_brand().market == "EE"
 
 
 def _require_enabled() -> None:
