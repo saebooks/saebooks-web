@@ -96,6 +96,24 @@ class Brand:
         "GST & BAS ready",
         "Bank reconciliation",
     )
+    # --- Web App Manifest -------------------------------------------------
+    # The manifest is served dynamically by routes/pwa.py rather than as a
+    # flat file, because an installed PWA caches name and icons at install
+    # time: shipping the wrong brand here means a home-screen icon that keeps
+    # the old identity until the user reinstalls the app.
+    # ``pwa_description`` is separate from ``meta_description`` because the
+    # manifest one is longer and names features, so it cannot be reused.
+    pwa_description: str = (
+        "API-first accounting for Australian small business — invoices, bills, "
+        "BAS, STP. Self-hosted or hosted."
+    )
+    # BCP-47 tag for the manifest's single ``lang`` field. Per-request UI
+    # locale is negotiated separately by LocaleMiddleware; this is only the
+    # installed-app default.
+    pwa_lang: str = "en-AU"
+    pwa_icon_192: str = "/static/pwa/icons/icon-192.png"
+    pwa_icon_512: str = "/static/pwa/icons/icon-512.png"
+    pwa_icon_maskable_512: str = "/static/pwa/icons/icon-maskable-512.png"
 
 
 # Selge (Tasur) identity, shared by every Tasur-branded surface regardless of
@@ -117,6 +135,13 @@ _SELGE_ASSETS: dict[str, str | None] = {
     # background). #194291 never carries text on dark, so the light-theme
     # value can't simply be reused.
     "accent_dark": "#7D9EE8",
+    # PWA renditions derived from the source-of-truth icon-512.png:
+    # 192 is a straight downscale; the maskable one is flattened onto opaque
+    # #194291 (a maskable icon must have no transparent corners) with the
+    # artwork inset to the inner 80% safe zone.
+    "pwa_icon_192": "/static/brand/tasur-icon-192.png",
+    "pwa_icon_512": "/static/brand/tasur-icon-512.png",
+    "pwa_icon_maskable_512": "/static/brand/tasur-icon-maskable-512.png",
 }
 
 
@@ -137,6 +162,11 @@ _BRANDS: dict[str, Brand] = {
             "Tax-ready reporting",
             "Bank reconciliation",
         ),
+        pwa_description=(
+            "API-first accounting for small business — invoices, bills, "
+            "payments and reporting. Self-hosted or hosted."
+        ),
+        pwa_lang="en",
         **_SELGE_ASSETS,  # type: ignore[arg-type]
     ),
     "tasur-ee": Brand(
@@ -152,6 +182,11 @@ _BRANDS: dict[str, Brand] = {
             "Käibemaks & KMD ready",
             "Bank reconciliation",
         ),
+        pwa_description=(
+            "API-first accounting for Estonian small business — invoices, "
+            "bills, käibemaks and KMD. Self-hosted or hosted."
+        ),
+        pwa_lang="et",
         **_SELGE_ASSETS,  # type: ignore[arg-type]
     ),
     "saebooks": Brand(

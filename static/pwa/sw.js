@@ -1,4 +1,4 @@
-/* SAE Books service worker — v1
+/* __BRAND_NAME__ service worker — v1
  *
  * Scope: origin root (registered from `/sw.js`).
  *
@@ -137,8 +137,8 @@ self.addEventListener('fetch', (event) => {
               'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
               'height:100vh;margin:0;padding:24px;text-align:center}' +
               'h1{font-weight:800;letter-spacing:-0.025em}</style>' +
-              '<h1>SAE Books</h1>' +
-              '<p>You appear to be offline. SAE Books needs a connection to your ledger ' +
+              '<h1>__BRAND_NAME__</h1>' +
+              '<p>You appear to be offline. __BRAND_NAME__ needs a connection to your ledger ' +
               'to load this page. We will reconnect when you do.</p>' +
               '<p><a href="/" style="color:#fff;text-decoration:underline">Try again</a></p>',
             {
