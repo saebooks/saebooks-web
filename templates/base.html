@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+{# The document language must follow the active locale, not be hardcoded. With
+   the EN/ET/RU switcher in the header, a hardcoded lang="en" tells a screen
+   reader to pronounce a fully Estonian or Russian page with an English voice
+   (WCAG 3.1.1). Same guarded expression the switcher itself uses further down,
+   so a render without a request still falls back to English. #}
+<html lang="{{ (request.state.locale if request is defined and request.state is defined else None) or 'en' }}">
 <head>
   {% set brand = current_brand() -%}
   <meta charset="UTF-8">
