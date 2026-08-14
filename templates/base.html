@@ -420,6 +420,11 @@
 
   <script src="https://unpkg.com/htmx.org@2" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  {# Submit-once guard for plain POST forms — the non-htmx counterpart to
+     hx-disabled-elt. Deferred so it runs after the DOM is parsed; the
+     listener is delegated on document, so it covers forms swapped in
+     later by htmx too. #}
+  <script src="/static/js/submit_once.js" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       if (window.lucide) lucide.createIcons({ attrs: { "stroke-width": 1.75 } });
