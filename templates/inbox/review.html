@@ -160,6 +160,8 @@
                 hx-include="#vendor_name, #inbox-review-form input[name=csrf_token]"
                 hx-target="#inbox-contact-select"
                 hx-swap="outerHTML"
+                {# Creates a supplier contact; a double-click creates two. #}
+                hx-disabled-elt="this"
                 class="mt-1 text-sm sae hover:underline">
           + {{ _("Create supplier from vendor name") }}
         </button>

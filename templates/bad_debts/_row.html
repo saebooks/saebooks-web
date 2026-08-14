@@ -18,6 +18,11 @@
       hx-target="#bad-debt-row-{{ inv.id }}"
       hx-swap="outerHTML"
       hx-confirm="{{ _('Write off %(number)s ($%(balance)s) as a bad debt? The engine reclaims GST and settles the invoice.') % {'number': (inv.number or _('this invoice')), 'balance': '%.2f'|format(inv._balance)} }}"
+      {# The engine rejects a second write-off on status, but reads the invoice
+         without a row lock, so two requests fired close enough together can both
+         see POSTED and both post a bad-debt journal entry. Disabling the button
+         for the duration of the request closes the double-click case. #}
+      hx-disabled-elt="find button[type='submit']"
       class="inline"
     >
       {{ csrf_input(request) }}

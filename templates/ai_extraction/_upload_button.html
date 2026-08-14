@@ -32,6 +32,9 @@
       hx-swap="innerHTML"
       hx-encoding="multipart/form-data"
       hx-indicator="#ai-extract-spinner"
+      {# The spinner tells the operator something is happening but leaves the
+         Extract button clickable — a second click re-runs the extraction. #}
+      hx-disabled-elt="find button[type='submit']"
     >
     {{ csrf_input(request)|safe }}
 

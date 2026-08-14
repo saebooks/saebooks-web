@@ -89,6 +89,7 @@
   hx-delete="{{ api_url }}{% if '?' in api_url %}&{% else %}?{% endif %}hard=true"
   hx-headers='{"X-Admin": "true"}'
   hx-confirm="{{ _('Permanently delete %(name)s? This snapshots to audit_log and cannot be undone.') % {'name': name} }}"
+  hx-disabled-elt="this"
   hx-on::after-request="if (event.detail.successful) window.location='{{ redirect }}';"
 >
   <i data-lucide="flame" class="w-4 h-4"></i>

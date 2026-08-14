@@ -26,6 +26,9 @@
           hx-post="/invoices/{{ invoice_id }}/stripe-payment-link"
           hx-target="#stripe-payment-link-area"
           hx-swap="outerHTML"
+          {# Creates an object at Stripe; a double-click makes two payment
+             links for one invoice. #}
+          hx-disabled-elt="this"
           class="btn-primary text-sm">{{ _("Send payment link") }}</button>
 </div>
 {% endif %}

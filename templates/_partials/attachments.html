@@ -73,6 +73,7 @@
               hx-target="#attachments-{{ entity_kind }}-{{ entity_id }}"
               hx-swap="outerHTML"
               hx-confirm="{{ _('Delete “%(name)s”? This cannot be undone.') % {'name': att.filename} }}"
+              hx-disabled-elt="this"
               class="inline-flex items-center rounded-md bg-[color:var(--neg-tint)] px-2.5 py-1 text-xs font-medium text-[color:var(--neg)]
                      hover:bg-[color:var(--neg-tint)] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1
                      border border-[color:var(--neg)]"
@@ -94,6 +95,9 @@
     hx-target="#attachments-{{ entity_kind }}-{{ entity_id }}"
     hx-swap="outerHTML"
     hx-encoding="multipart/form-data"
+    {# Without this the Upload button stays live for the whole upload, and a
+       second click attaches the same file twice. #}
+    hx-disabled-elt="find button[type='submit']"
     class="flex items-center gap-3"
   >
     {{ csrf_input(request)|safe }}
