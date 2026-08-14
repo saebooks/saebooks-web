@@ -38,7 +38,12 @@
   <script>
     (function () {
       var stored = localStorage.getItem('saebooks-theme');
-      var dark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      // Dark is the DEFAULT, not the OS preference. A first-time visitor on a
+      // light-mode machine still gets the dark interface; only an explicit
+      // choice stored by the toggle turns it light. Deferring to
+      // prefers-color-scheme made the default "whatever the operating system
+      // says", which is not the same thing as a dark default.
+      var dark = stored !== 'light';
       if (dark) {
         document.documentElement.classList.add('dark');
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -1143,10 +1148,10 @@
   (function () {
     var btn = document.getElementById('theme-toggle');
     function isDark() {
-      var stored = localStorage.getItem('saebooks-theme');
-      if (stored === 'dark')  return true;
-      if (stored === 'light') return false;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      // Dark unless the toggle has explicitly stored 'light'. This must agree
+      // with the early head script, or this block's applyTheme() on load would
+      // quietly undo the default set there.
+      return localStorage.getItem('saebooks-theme') !== 'light';
     }
     function applyTheme() {
       var dark = isDark();
@@ -1170,11 +1175,8 @@
         applyTheme();
       }
     });
-    if (window.matchMedia) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
-        if (!localStorage.getItem('saebooks-theme')) applyTheme();
-      });
-    }
+    // No prefers-color-scheme listener: the default is dark regardless of what
+    // the operating system does, so an OS theme change must not move the app.
   })();
 
   // Sidebar
