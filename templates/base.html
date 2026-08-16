@@ -473,7 +473,7 @@
       {% endif %}
       {% set _edition = current_edition(request) %}
       <div class="text-[10px] font-mono">
-        <span class="ink-3">v2026.05 ·</span>
+        <span class="ink-3">v{{ app_version() }} ·</span>
         {% if _edition == "developer" %}
         <span class="inline-flex items-center px-1.5 py-0.5 rounded-sm font-semibold uppercase tracking-wider bg-red-600 text-white">{{ _("DEV") }}</span>
         {% else %}
@@ -995,7 +995,7 @@
            breaks the AU pixel-equivalence requirement — the default
            product never shipped a language switcher or an EN/ET/RU
            chooser before this packet. #}
-        {% if brand.key != "saebooks" %}
+        {% if brand.market == "EE" %}
         {% set _active_locale = (request.state.locale if request is defined and request.state is defined else None) or "en" %}
         <details class="relative inline-block" id="locale-switcher">
           <summary class="list-none cursor-pointer select-none inline-flex items-center gap-1 p-2 rounded-md hover:bg-[color:var(--paper-2)] ink-2"

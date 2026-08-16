@@ -1,7 +1,9 @@
 [project]
 name = "saebooks-web"
-# Kept in lockstep with the saebooks engine version by bump-version.sh.
-version = "0.3"
+# Canonical literal lives in saebooks_web/__init__.py; scripts/bump-version.sh
+# sets both and --check guards the drift. Was stranded at 0.3 while the
+# engine moved to 0.6.1 and main.py separately claimed 0.1.3.
+version = "0.6.1"
 description = "SAE Books web frontend — thin Jinja2 + HTMX client for saebooks-api"
 readme = "README.md"
 requires-python = ">=3.12"

@@ -96,12 +96,12 @@ async def test_logged_in_switch_persists_to_session_round_trip(
     renders in the new locale — the round trip the deliverable asks for,
     not just a claimed 303.
 
-    SAEBOOKS_BRAND=tasur: the switcher itself (whose own "Language"/"Keel"
-    chrome string this test reads back) is gated to the Tasur/EE brand —
-    see fixer round 1 — so it must be exercised under that brand, not the
-    stock AU/SAE Books default where the switcher no longer renders.
+    SAEBOOKS_BRAND=tasur-ee: the switcher itself (whose own "Language"/"Keel"
+    chrome string this test reads back) is gated to the EE *market* — see
+    brand.py — so it must be exercised under that brand, not the neutral
+    global default or the AU brand, where the switcher does not render.
     """
-    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur")
+    monkeypatch.setenv("SAEBOOKS_BRAND", "tasur-ee")
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",

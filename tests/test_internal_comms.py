@@ -461,7 +461,11 @@ def test_render_email_template_unit() -> None:
     )
     assert "https://x/abc" in html
     assert "15 minutes" in html
-    assert "SAE Books" in html
+    # The template interpolates the active brand; asserting a literal froze
+    # this to SAE Books and broke the moment the default brand moved.
+    from saebooks_web.brand import current_brand
+
+    assert current_brand().name in html
 
 
 # ===========================================================================

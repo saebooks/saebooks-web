@@ -95,7 +95,7 @@
        tests_companies_web.py's EE validation tests) would silently
        vanish. #}
     {% set jurisdiction = form.get('jurisdiction', 'AU') %}
-    {% set _show_ee_onboarding = brand.key != "saebooks" or jurisdiction == "EE" %}
+    {% set _show_ee_onboarding = brand.market == "EE" or jurisdiction == "EE" %}
     {% if _show_ee_onboarding %}
     <div class="mb-5">
       <label for="jurisdiction" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
