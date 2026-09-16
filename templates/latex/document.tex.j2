@@ -239,11 +239,6 @@
 %% =====================================================================
 %% PAYMENT TERMS + NOTES (only when present)
 %% =====================================================================
-{% if payment_terms %}
-\vspace{6mm}
-\textbf{\color{saegreen}Payment terms}\\[1mm]
-{{ payment_terms | latex_escape }}
-{% endif %}
 
 {% if notes %}
 \vspace{4mm}
