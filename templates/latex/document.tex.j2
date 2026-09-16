@@ -73,9 +73,6 @@
   {\large\color{midgrey} \#\,{{ number | latex_escape }}}\\[3mm]
   \begin{tabular}{@{}ll@{}}
     \textbf{Issue date:} & {{ issue_date | latex_escape }} \\
-    {% if due_date -%}
-    \textbf{Due date:}   & {{ due_date | latex_escape }} \\
-    {%- endif %}
     {% if currency -%}
     \textbf{Currency:}   & {{ currency | latex_escape }} \\
     {%- endif %}
