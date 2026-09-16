@@ -232,7 +232,7 @@
 {% if kind == 'Tax Invoice' and payment_terms_text %}
 \vspace{4mm}
 {\footnotesize\color{midgrey}
-{{ payment_terms_text | latex_escape }}{% if terms_url %} See our \href{{ "{" }}{{ terms_url | latex_escape }}{{ "}{" }}Terms of Trade{{ "}" }}.{% endif %}
+{{ payment_terms_text | latex_escape }}
 \par}
 {% endif %}
 
