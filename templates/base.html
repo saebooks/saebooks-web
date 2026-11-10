@@ -610,6 +610,7 @@
 
       {% set people_open = path.startswith('/time-entries')
                            or path.startswith('/pay-run')
+                           or path.startswith('/payroll')
                            or path.startswith('/employees')
                            or path.startswith('/super-funds') %}
       <details class="group" data-section="people" {% if people_open %}open{% endif %}>
@@ -633,6 +634,9 @@
             <i data-lucide="clock" class="nav-ico"></i>{{ _("Time entries") }}
           </a>
           {% if request.state.jp.features.payroll %}
+          <a href="/payroll/pay-runs" class="nav-item is-sub {% if path.startswith('/payroll/pay-runs') %}active{% endif %}">
+            <i data-lucide="hand-coins" class="nav-ico"></i>{{ _("Wages pay runs") }}
+          </a>
           <a href="/pay-run" class="nav-item is-sub {% if path.startswith('/pay-run') %}active{% endif %}">
             <i data-lucide="badge-dollar-sign" class="nav-ico"></i>{{ _("Pay Run") }}
           </a>

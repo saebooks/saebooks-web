@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Wages pay run") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% set st = ((run.status if run else '') or '')|upper %}
+{% set is_draft = st == 'DRAFT' %}
+
+<p class="text-sm ink-3 mb-2"><a href="/payroll/pay-runs" class="underline">{{ _("Wages pay runs") }}</a></p>
+
+{% if flash %}
+<div class="rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-base text-emerald-900 mb-4" role="status">{{ flash }}</div>
+{% endif %}
+{% if flash_error %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-4" role="alert">{{ flash_error }}</div>
+{% endif %}
+{% if error %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-4" role="alert">{{ error }}</div>
+{% endif %}
+
+{% if view %}
+<div class="flex items-start justify-between mb-6">
+  <div>
+    <h1 class="font-display text-3xl">{{ _("Wages pay run") }}</h1>
+    <p class="text-base ink-3 mt-1 num">
+      {{ _("Period") }} {{ run.period_start }} {{ _("to") }} {{ run.period_end }} · {{ _("Pay date") }} {{ run.payment_date }}
+    </p>
+  </div>
+  <div>
+    {% if st == 'FINALIZED' %}<span class="chip chip-pos">{{ _("Finalised") }}</span>
+    {% elif st == 'DRAFT' %}<span class="chip chip-warm">{{ _("Draft") }}</span>
+    {% else %}<span class="chip chip-ink">{{ st|lower|capitalize }}</span>{% endif %}
+  </div>
+</div>
+
+{% if is_draft %}
+<div class="card p-4 mb-6">
+  <h2 class="font-display text-xl mb-1">{{ _("Add or update an employee's hours") }}</h2>
+  <p class="text-sm ink-3 mb-3">{{ _("The pay rate comes from the employee record. Saving again for the same employee replaces their line.") }}</p>
+  <form method="post" action="/payroll/pay-runs/{{ run.id }}/lines" class="flex flex-wrap gap-4 items-end">
+    {{ csrf_input(request) | safe }}
+    <div>
+      <label for="employee_id" class="block text-sm ink-3 mb-1">{{ _("Employee") }}</label>
+      <select id="employee_id" name="employee_id" required class="rounded-md hairline px-2 py-1.5 bg-paper text-sm">
+        <option value="">{{ _("Choose…") }}</option>
+        {% for e in employees %}
+        <option value="{{ e.id }}">{{ e.contact_name or e.employee_number }} ({{ e.employee_number }}){% if e.id|string in on_run %} — {{ _("on this run") }}{% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="ordinary_hours" class="block text-sm ink-3 mb-1">{{ _("Ordinary hours") }}</label>
+      <input id="ordinary_hours" name="ordinary_hours" inputmode="decimal" value="38" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm w-24 num">
+    </div>
+    <div>
+      <label for="overtime_hours" class="block text-sm ink-3 mb-1">{{ _("Overtime hours") }}</label>
+      <input id="overtime_hours" name="overtime_hours" inputmode="decimal" value="0" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm w-24 num">
+    </div>
+    <div>
+      <label for="overtime_multiplier" class="block text-sm ink-3 mb-1">{{ _("Overtime paid at") }}</label>
+      <select id="overtime_multiplier" name="overtime_multiplier" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm">
+        <option value="1.5" selected>{{ _("Time and a half (1.5 times)") }}</option>
+        <option value="2.0">{{ _("Double time (2 times)") }}</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ _("Calculate and save") }}</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card mb-6 overflow-x-auto">
+  <table class="w-full text-base">
+    <thead>
+      <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="px-3 py-2">{{ _("Employee") }}</th>
+        <th class="px-3 py-2">{{ _("Hours and rates") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Gross pay") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Tax withheld") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Superannuation") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Net pay") }}</th>
+        <th class="px-3 py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ln in view.lines %}
+      <tr class="border-t hairline align-top" data-employee="{{ ln.employee_id }}">
+        <td class="px-3 py-2">
+          <div>{{ ln.employee_name }}</div>
+          <div class="text-sm ink-3 num">{{ ln.employee_number }} · {{ ln.pay_frequency|lower|capitalize }}</div>
+          {% if ln.working_holiday_maker %}<span class="chip chip-ink text-xs mt-1">{{ _("Working holiday maker") }}</span>{% endif %}
+        </td>
+        <td class="px-3 py-2 text-sm num">
+          {% if ln.computed %}
+          <div>{{ ln.ordinary_hours }} {{ _("ordinary hours at") }} {{ money(ln.ordinary_rate) }} = {{ money(ln.ordinary_pay) }}</div>
+          {% if ln.overtime_hours|float > 0 %}
+          <div>{{ ln.overtime_hours }} {{ _("overtime hours at") }} {{ money(ln.overtime_rate) }} = {{ money(ln.overtime_pay) }}</div>
+          {% endif %}
+          {% else %}
+          <div class="text-rose-700">{{ _("Hand-entered line, not calculated") }}</div>
+          {% endif %}
+        </td>
+        <td class="px-3 py-2 text-right num-display">{{ money(ln.gross) }}</td>
+        <td class="px-3 py-2 text-right">
+          <div class="num-display">{{ money(ln.payg) }}</div>
+          {% if ln.payg_scale_used %}<div class="text-xs font-mono ink-3" data-scale>{{ ln.payg_scale_used }}</div>{% endif %}
+        </td>
+        <td class="px-3 py-2 text-right num-display">{{ money(ln.super_amount) }}</td>
+        <td class="px-3 py-2 text-right num-display font-semibold">{{ money(ln.net) }}</td>
+        <td class="px-3 py-2 text-right whitespace-nowrap">
+          <a class="btn btn-secondary text-sm" href="/payroll/pay-runs/{{ run.id }}/payslips/{{ ln.employee_id }}" target="_blank" rel="noopener">{{ _("Payslip") }}</a>
+          {% if is_draft %}
+          <form method="post" action="/payroll/pay-runs/{{ run.id }}/lines/{{ ln.line_id }}/delete" class="inline"
+                onsubmit="return confirm('{{ _('Remove this employee from the pay run?') }}')">
+            {{ csrf_input(request) | safe }}
+            <button type="submit" class="btn btn-secondary text-sm">{{ _("Remove") }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      <tr class="align-top">
+        <td colspan="7" class="px-3 pb-3">
+          {% for b in ln.blockers %}
+          <div class="rounded-md bg-rose-50 border border-rose-300 px-3 py-2 text-sm text-rose-800 mb-1" role="alert">{{ _("Blocks finalising:") }} {{ b }}</div>
+          {% endfor %}
+          {% for w in ln.warnings %}
+          <div class="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 mb-1">{{ _("Warning:") }} {{ w }}</div>
+          {% endfor %}
+          {% if ln.computed %}
+          <details class="text-sm ink-3">
+            <summary class="cursor-pointer">{{ _("How this was calculated") }}</summary>
+            <div class="mt-1 font-mono text-xs whitespace-pre-wrap">{{ _("Tax withheld:") }} {{ ln.payg_explanation }}
+{{ _("Superannuation:") }} {{ ln.super_explanation }}
+{{ _("Year to date after this pay: gross") }} {{ money(ln.ytd_gross) }}, {{ _("tax withheld") }} {{ money(ln.ytd_tax) }}, {{ _("superannuation") }} {{ money(ln.ytd_super) }}</div>
+          </details>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="px-3 py-6 text-center ink-3">{{ _("No employees on this pay run yet.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+    {% if view.lines %}
+    <tfoot>
+      <tr class="border-t-2 hairline font-semibold">
+        <td class="px-3 py-2" colspan="2">{{ _("Totals") }} ({{ view.lines|length }})</td>
+        <td class="px-3 py-2 text-right num-display" data-total="gross">{{ money(view.total_gross) }}</td>
+        <td class="px-3 py-2 text-right num-display" data-total="payg">{{ money(view.total_payg) }}</td>
+        <td class="px-3 py-2 text-right num-display" data-total="super">{{ money(view.total_super) }}</td>
+        <td class="px-3 py-2 text-right num-display" data-total="net">{{ money(view.total_net) }}</td>
+        <td></td>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+</div>
+
+<div class="card p-4 mb-6">
+  <h2 class="font-display text-xl mb-1">{{ _("Wages journal accounts") }}</h2>
+  <p class="text-sm ink-3 mb-3">{{ _("Finalising posts one journal to these accounts. Each must exist in the chart of accounts and must not be a GST account.") }}</p>
+  <table class="w-full text-sm">
+    <tbody>
+    {% for c in view.accounts %}
+      <tr class="border-t hairline">
+        <td class="px-2 py-1">{{ c.purpose }}</td>
+        <td class="px-2 py-1 font-mono">{{ c.code }}</td>
+        <td class="px-2 py-1">{{ c.account_name or "" }}</td>
+        <td class="px-2 py-1">
+          {% if c.status == 'OK' %}<span class="chip chip-pos text-xs">{{ _("Ready") }}</span>
+          {% elif c.status == 'MISSING' %}<span class="chip chip-warm text-xs">{{ _("Missing") }}</span>
+          {% else %}<span class="chip chip-neg text-xs">{{ _("Wrong account") }}</span>{% endif %}
+          {% if c.problem %}<span class="ink-3">{{ c.problem }}</span>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if is_draft %}
+<div class="card p-4 mb-6">
+  <h2 class="font-display text-xl mb-2">{{ _("Finalise") }}</h2>
+  {% if view.can_finalise %}
+  <p class="text-base mb-3">
+    {{ _("Finalising posts the wages journal (gross wages and superannuation expense; tax withheld, superannuation and net pay owing), accrues leave for full-time and part-time employees, and locks this pay run.") }}
+  </p>
+  <form method="post" action="/payroll/pay-runs/{{ run.id }}/finalise">
+    {{ csrf_input(request) | safe }}
+    <input type="hidden" name="version" value="{{ run.version }}">
+    <input type="hidden" name="expected_line_count" value="{{ view.lines|length }}">
+    <input type="hidden" name="expected_total_net" value="{{ view.total_net }}">
+    <input type="hidden" name="expected_total_payg" value="{{ view.total_payg }}">
+    <label class="flex items-start gap-2 mb-3 text-base">
+      <input type="checkbox" name="confirm" value="yes" required class="mt-1">
+      <span>{{ _("I have checked the hours, gross pay, tax withheld and net pay above. Total net pay") }} <strong class="num">{{ money(view.total_net) }}</strong>, {{ _("total tax withheld") }} <strong class="num">{{ money(view.total_payg) }}</strong>.</span>
+    </label>
+    <button type="submit" class="btn btn-primary">{{ _("Finalise and post wages journal") }}</button>
+  </form>
+  {% else %}
+  <p class="text-base mb-2">{{ _("This pay run cannot be finalised yet:") }}</p>
+  <ul class="list-disc pl-6 text-base text-rose-800">
+    {% for b in view.finalise_blockers %}<li>{{ b }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if st == 'FINALIZED' %}
+<div class="card p-4 mb-6">
+  <h2 class="font-display text-xl mb-1">{{ _("Net pay to transfer") }}</h2>
+  <p class="text-sm ink-3 mb-3">{{ _("SAE Books does not produce a bank file for wages yet. Pay these amounts from online banking.") }}</p>
+  <table class="w-full text-base">
+    <thead>
+      <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="px-3 py-2">{{ _("Employee") }}</th>
+        <th class="px-3 py-2">{{ _("Branch number (BSB)") }}</th>
+        <th class="px-3 py-2">{{ _("Account number") }}</th>
+        <th class="px-3 py-2">{{ _("Account name") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Amount") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ln in view.lines %}
+      <tr class="border-t hairline">
+        <td class="px-3 py-2">{{ ln.employee_name }}</td>
+        {% if ln.bank %}
+        <td class="px-3 py-2 font-mono">{{ ln.bank.bsb or "" }}</td>
+        <td class="px-3 py-2 font-mono">{{ ln.bank.account_number or "" }}</td>
+        <td class="px-3 py-2">{{ ln.bank.account_name or "" }}</td>
+        {% else %}
+        <td class="px-3 py-2 text-rose-700" colspan="3">{{ _("No bank details on record") }}</td>
+        {% endif %}
+        <td class="px-3 py-2 text-right num-display">{{ money(ln.net) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <ul class="list-disc pl-6 text-sm ink-3 mt-4 space-y-1">
+    <li>{{ _("Single Touch Payroll: SAE Books stores this pay event but does not lodge it with the Australian Taxation Office. Report it through your Single Touch Payroll channel.") }}</li>
+    <li>{{ _("Superannuation: from 1 July 2026 the super guarantee is due for each payday (Payday Super).") }}</li>
+    <li>{{ _("Payslips must be given within one working day of the pay date.") }}</li>
+  </ul>
+</div>
+{% endif %}
+{% endif %}
+
+{% endblock %}
