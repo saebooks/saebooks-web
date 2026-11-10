@@ -172,6 +172,30 @@
         {% endif %}
       </div>
     </fieldset>
+
+    {# ── Working holiday maker employer registration (ATO) ── #}
+    <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
+      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Working Holiday Makers") }}</legend>
+      <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+        {{ _("Registered with the ATO as an employer of working holiday makers (visa 417 / 462): withholding uses the working holiday maker tax table (15 per cent on the first $45,000). Not registered: 30 per cent is withheld from every dollar.") }}
+      </p>
+      <div class="mb-3 flex items-center gap-2">
+        <input type="checkbox" id="whm_employer_registered" name="whm_employer_registered" value="true"
+          {% if form.get('whm_employer_registered') %}checked{% endif %}
+          class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
+          onchange="document.getElementById('whm_date_row').style.display = this.checked ? '' : 'none'">
+        <label for="whm_employer_registered" class="text-sm text-gray-700 dark:text-gray-300">{{ _("Registered as an employer of working holiday makers") }}</label>
+      </div>
+      <div id="whm_date_row" {% if not form.get('whm_employer_registered') %}style="display:none"{% endif %}>
+        <label for="whm_employer_registered_on" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ _("Registered on") }}
+        </label>
+        <input type="date" id="whm_employer_registered_on" name="whm_employer_registered_on" value="{{ form.get('whm_employer_registered_on', '') }}"
+          class="block w-48 rounded-md border border-gray-300 dark:border-gray-600
+                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm
+                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+      </div>
+    </fieldset>
     {% endif %}{# jurisdiction == 'AU' #}
 
     {{ readonly_field("base_currency", _("Base currency"), form.get('base_currency', 'AUD'),

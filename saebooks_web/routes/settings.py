@@ -130,6 +130,9 @@ def _prefill_form(company: dict) -> dict[str, str]:
     # state never round-tripped). gst_effective_date names the AU workflow.
     form["tax_registered"] = "true" if company.get("tax_registered") else ""
     form["gst_effective_date"] = str(company.get("gst_effective_date") or "")
+    # ATO registration as an employer of working holiday makers (engine 0225).
+    form["whm_employer_registered"] = "true" if company.get("whm_employer_registered") else ""
+    form["whm_employer_registered_on"] = str(company.get("whm_employer_registered_on") or "")
 
     form["fin_year_start_month"] = str(company.get("fin_year_start_month") or 7)
     # Day-of-month precision unlocks only once the engine payload carries the
@@ -304,6 +307,15 @@ def _build_company_payload(form: dict[str, str], form_data, *, mode: str, jurisd
     lifecycle = form.get("lifecycle_status", "").strip()
     if lifecycle in _LIFECYCLE_VALUES:
         payload["lifecycle_status"] = lifecycle
+
+    # ATO working-holiday-maker employer registration (engine 0225) — AU
+    # only; the fieldset is not rendered for other jurisdictions, so an
+    # absent checkbox there must not be read as "unregistered".
+    if jurisdiction == "AU":
+        payload["whm_employer_registered"] = "whm_employer_registered" in form_data
+        whm_date = form.get("whm_employer_registered_on", "").strip()
+        if whm_date:
+            payload["whm_employer_registered_on"] = whm_date
 
     # EE company-registry identifiers — only meaningful on EE companies.
     if jurisdiction == "EE":

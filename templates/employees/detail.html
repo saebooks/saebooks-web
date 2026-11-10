@@ -184,6 +184,29 @@
           <dt class="ink-3">{{ _("Working holiday maker") }}</dt>
           <dd class="col-span-2">{{ _("Yes · country %(code)s") % {"code": employee.whm_country_code} }}</dd>
         </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">{{ _("Visa") }}</dt>
+          <dd class="col-span-2 num">
+            {{ employee.visa_subclass or "—" }}{% if employee.visa_grant_number %} · {{ employee.visa_grant_number }}{% endif %}
+            {% if employee.visa_expiry_date %} · {{ _("expires %(d)s") % {"d": employee.visa_expiry_date} }}{% endif %}
+          </dd>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">{{ _("VEVO") }}</dt>
+          {% if employee.vevo_checked_on %}
+          <dd class="col-span-2">
+            {% set ent = (employee.vevo_work_entitlement or '')|upper %}
+            {% if ent == 'UNLIMITED' %}{{ _("Unlimited work rights") }}
+            {% elif ent == 'LIMITED' %}{{ _("Limited work rights") }}
+            {% elif ent == 'NONE' %}<span class="text-red-600">{{ _("No work rights") }}</span>
+            {% else %}<span class="text-amber-600">{{ _("Result not recorded") }}</span>{% endif %}
+            · {{ _("checked %(d)s") % {"d": employee.vevo_checked_on} }}
+            {% if employee.vevo_conditions %}<p class="text-xs ink-3 mt-1 whitespace-pre-line">{{ employee.vevo_conditions }}</p>{% endif %}
+          </dd>
+          {% else %}
+          <dd class="col-span-2 text-amber-600">{{ _("Not checked. Pay runs will refuse this employee until a VEVO check is recorded.") }}</dd>
+          {% endif %}
+        </div>
         {% endif %}
       </dl>
     </div>

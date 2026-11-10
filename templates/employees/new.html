@@ -160,12 +160,58 @@
                  {% if form.working_holiday_maker %}checked{% endif %}>
           {{ _("Working holiday maker") }}
         </label>
-        <div id="whm-country-field" class="{% if not form.working_holiday_maker %}hidden{% endif %}">
-          <label class="block text-sm ink-3 mb-1">{{ _("WHM country code (ISO 2)") }}</label>
-          <input type="text" name="whm_country_code" value="{{ form.whm_country_code }}"
-                 placeholder="e.g. GB"
-                 maxlength="2"
-                 class="w-32 rounded-md hairline px-3 py-2 bg-paper num">
+        <div id="whm-country-field"
+             class="col-span-2 {% if not form.working_holiday_maker %}hidden{% endif %}">
+          <p class="text-xs ink-4 mb-3">{{ _("Working holiday makers only (visa subclass 417 / 462). Pay runs refuse a working holiday maker with no VEVO check recorded, a VEVO result of no work rights, or a visa that expires before the pay period ends.") }}</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm ink-3 mb-1">{{ _("WHM country code (ISO 2)") }}</label>
+              <input type="text" name="whm_country_code" value="{{ form.whm_country_code or '' }}"
+                     placeholder="e.g. GB"
+                     maxlength="2"
+                     class="w-32 rounded-md hairline px-3 py-2 bg-paper num">
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="visa_subclass">{{ _("Visa subclass") }}</label>
+              <select id="visa_subclass" name="visa_subclass" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+                <option value="" {% if not form.visa_subclass %}selected{% endif %}>—</option>
+                <option value="417" {% if form.visa_subclass == '417' %}selected{% endif %}>{{ _("417 — Working Holiday") }}</option>
+                <option value="462" {% if form.visa_subclass == '462' %}selected{% endif %}>{{ _("462 — Work and Holiday") }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="visa_grant_number">{{ _("Visa grant number") }}</label>
+              <input type="text" id="visa_grant_number" name="visa_grant_number" value="{{ form.visa_grant_number or '' }}"
+                     maxlength="32"
+                     class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="visa_expiry_date">{{ _("Visa expiry date") }}</label>
+              <input type="date" id="visa_expiry_date" name="visa_expiry_date" value="{{ form.visa_expiry_date or '' }}"
+                     class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="vevo_checked_on">{{ _("VEVO checked on") }}</label>
+              <input type="date" id="vevo_checked_on" name="vevo_checked_on" value="{{ form.vevo_checked_on or '' }}"
+                     class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="vevo_work_entitlement">{{ _("VEVO work entitlement") }}</label>
+              <select id="vevo_work_entitlement" name="vevo_work_entitlement" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+                <option value="" {% if not form.vevo_work_entitlement %}selected{% endif %}>—</option>
+                <option value="UNLIMITED" {% if form.vevo_work_entitlement == 'UNLIMITED' %}selected{% endif %}>{{ _("Unlimited work rights") }}</option>
+                <option value="LIMITED" {% if form.vevo_work_entitlement == 'LIMITED' %}selected{% endif %}>{{ _("Limited work rights") }}</option>
+                <option value="NONE" {% if form.vevo_work_entitlement == 'NONE' %}selected{% endif %}>{{ _("No work rights") }}</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm ink-3 mb-1" for="vevo_conditions">{{ _("VEVO conditions") }}
+                <span class="ink-4 text-xs">{{ _("(as shown on VEVO, e.g. 8547 - 6 months per employer)") }}</span>
+              </label>
+              <textarea id="vevo_conditions" name="vevo_conditions" rows="2"
+                        class="w-full rounded-md hairline px-3 py-2 bg-paper">{{ form.vevo_conditions or '' }}</textarea>
+            </div>
+          </div>
         </div>
       </div>
     </div>
