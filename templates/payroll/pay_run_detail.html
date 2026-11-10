@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "payroll/_rule.html" as rule %}
 
 {% block title %}{{ _("Wages pay run") }} — {{ current_brand().name }}{% endblock %}
 
@@ -102,7 +103,7 @@
         <td class="px-3 py-2 text-right num-display">{{ money(ln.gross) }}</td>
         <td class="px-3 py-2 text-right">
           <div class="num-display">{{ money(ln.payg) }}</div>
-          {% if ln.payg_scale_used %}<div class="text-xs font-mono ink-3" data-scale>{{ ln.payg_scale_used }}</div>{% endif %}
+          {% if ln.payg_scale_used %}<div class="text-xs ink-3" data-scale="{{ ln.payg_scale_used }}">{{ rule.rule_name(ln.payg_scale_used) }}</div>{% endif %}
         </td>
         <td class="px-3 py-2 text-right num-display">{{ money(ln.super_amount) }}</td>
         <td class="px-3 py-2 text-right num-display font-semibold">{{ money(ln.net) }}</td>

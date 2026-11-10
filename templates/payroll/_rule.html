@@ -1,0 +1,18 @@
+{# Plain-words name for pay_run_lines.payg_scale_used (engine labels). #}
+{% macro rule_name(code) -%}
+{%- set names = {
+  "SCALE_1": "Schedule 1 scale 1 (tax-free threshold not claimed)",
+  "SCALE_2": "Schedule 1 scale 2 (tax-free threshold claimed)",
+  "SCALE_3": "Schedule 1 scale 3 (foreign resident)",
+  "SCALE_5": "Schedule 1 scale 5 (full Medicare levy exemption)",
+  "SCALE_6": "Schedule 1 scale 6 (half Medicare levy exemption)",
+  "SCALE_4_NO_TFN": "Schedule 1 scale 4 (no tax file number, resident)",
+  "SCALE_4_NO_TFN_FOREIGN": "Schedule 1 scale 4 (no tax file number, foreign resident)",
+  "WHM_UNREG_SCALE_3": "Schedule 15: employer not registered, foreign resident rates (scale 3)",
+  "WHM_SCH15_15": "Schedule 15 working holiday makers, 15%",
+  "WHM_SCH15_30": "Schedule 15 working holiday makers, 30%",
+  "WHM_SCH15_37": "Schedule 15 working holiday makers, 37%",
+  "WHM_SCH15_45": "Schedule 15 working holiday makers, 45%",
+} -%}
+{{ names.get(code, code or "") }}
+{%- endmacro %}

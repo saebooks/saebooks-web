@@ -142,7 +142,8 @@ async def test_detail_shows_lines_rule_and_finalise_form(respx_mock: respx.MockR
         r = await c.get(f"/payroll/pay-runs/{_RUN}")
     assert r.status_code == 200, r.text[:400]
     html = r.text
-    assert "Backpacker Roofer" in html and "WHM_SCH15_15" in html
+    assert "Backpacker Roofer" in html and 'data-scale="WHM_SCH15_15"' in html
+    assert "Schedule 15 working holiday makers, 15%" in html
     assert "Schedule 15" in html
     assert "Warning:" in html and "5 months" in html
     assert 'name="expected_total_net" value="1130.00"' in html
@@ -242,3 +243,4 @@ async def test_payslip_has_fair_work_fields(respx_mock: respx.MockRouter) -> Non
                    "1,330.00", "200.00", "1,130.00", "159.60", "Test Super", "Payslip"):
         assert needle in html, needle
     assert "has not been finalised" not in html
+    assert "Schedule 15 working holiday makers, 15%" in html

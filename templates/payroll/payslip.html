@@ -1,4 +1,4 @@
-<!doctype html>
+{% import "payroll/_rule.html" as rule %}<!doctype html>
 <html lang="en" class="dark" data-theme="dark">
 <head>
   <meta charset="utf-8">
@@ -127,7 +127,7 @@
     </tbody>
   </table>
 
-  <p class="note">{{ _("Tax withheld was worked out using") }} {{ slip.tax.scale_used or _("the applicable schedule") }}.</p>
+  <p class="note">{{ _("Tax withheld was worked out using the Australian Taxation Office") }} {{ rule.rule_name(slip.tax.scale_used) if slip.tax.scale_used else _("withholding schedules") }}.</p>
 </div>
 </body>
 </html>
