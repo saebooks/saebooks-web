@@ -198,8 +198,8 @@ async def test_payment_void_happy_path(respx_mock: respx.MockRouter) -> None:
     """POST /payments/{id}/void; API 200 -> 303 redirect to detail with 'Payment voided.' flash."""
     _MOCK_PAYMENT_VOIDED = {**_MOCK_PAYMENT_POSTED, "status": "VOIDED", "version": 3}
 
-    respx_mock.post(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}/void").mock(
-        return_value=Response(200, json=_MOCK_PAYMENT_VOIDED)
+    void = respx_mock.delete(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(204)
     )
     respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
         return_value=Response(200, json=_MOCK_PAYMENT_VOIDED)
@@ -218,6 +218,8 @@ async def test_payment_void_happy_path(respx_mock: respx.MockRouter) -> None:
 
     assert resp.status_code == 303
     assert resp.headers["location"] == f"/payments/{_PAYMENT_ID}"
+    assert void.called
+    assert void.calls.last.request.headers["If-Match"] == "2"
 
 
 # ---------------------------------------------------------------------------
@@ -250,3 +252,84 @@ async def test_payment_void_button_not_shown_for_draft(
     assert f"/payments/{_PAYMENT_ID}/void" not in resp.text
     # Post button MUST be present for DRAFT payments.
     assert f"/payments/{_PAYMENT_ID}/post" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# Payment-form fix (2026-11-12): void = DELETE + If-Match; errors in flash;
+# bulk void sends the fetched version.
+# ---------------------------------------------------------------------------
+
+
+def _flash_of(resp) -> str:
+    """Decode the flash message out of the signed session cookie."""
+    raw = resp.cookies.get(settings.session_cookie_name)
+    assert raw, "no session cookie set"
+    signer = _TimestampSigner(settings.secret_key)
+    from base64 import b64decode as _b64decode
+    return _json.loads(_b64decode(signer.unsign(raw))).get("flash", "")
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_payment_void_api_error_shown_in_flash(respx_mock: respx.MockRouter) -> None:
+    """A refused void (period lock 422) reaches the user, verbatim."""
+    respx_mock.delete(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(422, json={"detail": "period 2026-06 is locked"})
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/payments/{_PAYMENT_ID}/void", data={"version": "2"})
+    assert resp.status_code == 303
+    assert "period 2026-06 is locked" in _flash_of(resp)
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_payment_void_fetches_version_when_form_has_none(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """No version in the form: the current version is fetched and sent."""
+    respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(200, json=_MOCK_PAYMENT_POSTED)
+    )
+    void = respx_mock.delete(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(204)
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(f"/payments/{_PAYMENT_ID}/void", data={})
+    assert resp.status_code == 303
+    assert void.calls.last.request.headers["If-Match"] == "2"
+    assert _flash_of(resp) == "Payment voided."
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bulk_void_uses_delete_with_if_match(respx_mock: respx.MockRouter) -> None:
+    respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(200, json=_MOCK_PAYMENT_POSTED)
+    )
+    void = respx_mock.delete(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(204)
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/payments/bulk", data={"action": "void", "ids[]": [_PAYMENT_ID]}
+        )
+    assert resp.status_code == 303
+    assert void.called
+    assert void.calls.last.request.headers["If-Match"] == "2"
+    assert "1 payment processed" in _flash_of(resp)

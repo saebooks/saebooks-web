@@ -38,8 +38,8 @@ POST /payments/{id}/post
     back to detail with flash.
 
 POST /payments/{id}/void
-    Transition POSTED -> VOIDED. POSTs to /api/v1/payments/{id}/void with
-    If-Match. 200 -> 303 with flash; 409/422 -> 303 back to detail with flash.
+    Transition POSTED -> VOIDED. DELETE /api/v1/payments/{id} with
+    If-Match (the engine has no /void route). 200 -> 303 with flash; 409/422 -> 303 back to detail with flash.
 
 GET /payments/{id}
     Renders templates/payments/detail.html.
@@ -329,6 +329,21 @@ def _is_uuid(value: str) -> bool:
         return False
 
 
+_DIRECTION_ALIASES = {
+    "IN": "INCOMING", "INCOMING": "INCOMING", "RECEIPT": "INCOMING", "AR": "INCOMING",
+    "OUT": "OUTGOING", "OUTGOING": "OUTGOING", "PAYMENT": "OUTGOING", "AP": "OUTGOING",
+}
+
+
+def _normalise_direction(value: str | None) -> str | None:
+    """Map the short forms the nav links use (IN / OUT) to the engine's
+    PaymentDirection values. Unknown values are returned unchanged so the
+    API can reject them visibly."""
+    if not value:
+        return None
+    return _DIRECTION_ALIASES.get(value.strip().upper(), value.strip().upper())
+
+
 def _digits(value: str) -> str:
     return "".join(ch for ch in value if ch.isdigit()).lstrip("0")
 
@@ -571,6 +586,12 @@ async def payment_new_form(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    # A transfer between own accounts is not a payment — send it to the
+    # transfer form (origin=TRANSFER) rather than a customer receipt.
+    if (direction or "").strip().upper() == "TRANSFER":
+        return RedirectResponse(url="/transfers/new", status_code=303)
+    direction = _normalise_direction(direction)
+
     today = date.today().isoformat()
 
     async with api_client(request) as client:
@@ -653,6 +674,10 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
+
+    if payload.get("direction"):
+        payload["direction"] = _normalise_direction(str(payload["direction"]))
+        form["direction"] = str(payload["direction"])
 
     rows = _raw_allocation_rows(form)
     errors: dict[str, str] = {}
@@ -1174,8 +1199,8 @@ async def payment_void(
 ) -> RedirectResponse:
     """Transition a POSTED payment to VOIDED.
 
-    POSTs to POST /api/v1/payments/{id}/void with If-Match.
-    - 200 -> 303 to detail with flash "Payment voided."
+    DELETE /api/v1/payments/{id} with If-Match (the engine's void).
+    - 204 -> 303 to detail with flash "Payment voided."
     - 409 -> 303 back to detail with flash "Version conflict — try again."
     - 422 -> 303 back to detail with the API's error message as flash.
     """
@@ -1183,11 +1208,17 @@ async def payment_void(
         return RedirectResponse(url="/login", status_code=303)
 
     form_data = await request.form()
-    version = str(form_data.get("version", ""))
+    version = str(form_data.get("version", "")).strip()
 
+    # The engine voids a payment with DELETE /api/v1/payments/{id} +
+    # If-Match: <version> (204). There is no /void route.
     async with api_client(request) as client:
-        resp = await client.post(
-            f"/api/v1/payments/{payment_id}/void",
+        if not version:
+            cur = await client.get(f"/api/v1/payments/{payment_id}")
+            if cur.is_success:
+                version = str(cur.json().get("version", ""))
+        resp = await client.delete(
+            f"/api/v1/payments/{payment_id}",
             headers={"If-Match": version},
         )
 
@@ -1195,22 +1226,20 @@ async def payment_void(
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
 
-    if resp.status_code == 200:
+    if 200 <= resp.status_code < 300:
         request.session["flash"] = "Payment voided."
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
     if resp.status_code == 409:
-        request.session["flash"] = "Version conflict — try again."
+        request.session["flash"] = (
+            "Version conflict — the payment changed since this page loaded. "
+            "Reload and try again."
+        )
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
-    # 422 or other — surface the API's detail message.
-    try:
-        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
-        if isinstance(detail, list) and detail:
-            detail = detail[0].get("msg", str(detail))
-    except Exception:
-        detail = f"API error: HTTP {resp.status_code}"
-    request.session["flash"] = str(detail)
+    # 404 / 422 / 428 / other — show exactly what the API said.
+    errors = _api_errors(resp)
+    request.session["flash"] = "Void failed: " + " · ".join(errors.values())
     return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
 
@@ -1325,7 +1354,7 @@ async def payment_detail(
 
 _BULK_ACTIONS_PAYMENTS = {
     "post": ("POST", "/api/v1/payments/{id}/post"),
-    "void": ("POST", "/api/v1/payments/{id}/void"),
+    "void": ("DELETE", "/api/v1/payments/{id}"),
     "archive": ("DELETE", "/api/v1/payments/{id}"),
 }
 
@@ -1361,7 +1390,17 @@ async def payments_bulk_action(request: Request) -> RedirectResponse:
     async with api_client(request) as client:
         for row_id in ids:
             try:
-                resp = await client.request(method, path_tpl.format(id=row_id))
+                # Every payment transition needs If-Match: <version>; fetch
+                # it per row (post also needs an idempotency key).
+                headers: dict[str, str] = {}
+                cur = await client.get(f"/api/v1/payments/{row_id}")
+                if cur.is_success:
+                    headers["If-Match"] = str(cur.json().get("version", ""))
+                if action == "post":
+                    headers["X-Idempotency-Key"] = str(uuid.uuid4())
+                resp = await client.request(
+                    method, path_tpl.format(id=row_id), headers=headers
+                )
                 if 200 <= resp.status_code < 300:
                     ok += 1
                 else:
@@ -1373,6 +1412,8 @@ async def payments_bulk_action(request: Request) -> RedirectResponse:
                             msg = detail
                         elif isinstance(detail, list) and detail:
                             msg = detail[0].get("msg", str(detail))
+                        elif body.get("message"):
+                            msg = str(body["message"])
                     except Exception:
                         msg = ""
                     failed.append(f"{row_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")

@@ -695,3 +695,47 @@ async def test_bank_dropdown_lists_only_reconcilable_accounts(
     assert "Advertising" not in resp.text
     assert "— none —" not in resp.text
     assert 'id="bank_account_id" name="bank_account_id" required' in resp.text
+
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_pay_bill_link_direction_out_opens_as_outgoing(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """The nav's "Pay bill" link (direction=OUT) must open a supplier payment,
+    not a customer receipt; IN maps to INCOMING."""
+    _mock_dropdowns(respx_mock)
+    async with _client() as client:
+        out = await client.get("/payments/new?direction=OUT")
+        inc = await client.get("/payments/new?direction=IN")
+    assert out.status_code == 200
+    assert '<option value="OUTGOING" selected>' in out.text
+    assert '<option value="INCOMING" selected>' not in out.text
+    assert '<option value="INCOMING" selected>' in inc.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_direction_transfer_redirects_to_transfer_form(
+    respx_mock: respx.MockRouter,
+) -> None:
+    async with _client() as client:
+        resp = await client.get("/payments/new?direction=TRANSFER")
+    assert resp.status_code == 303
+    assert resp.headers["location"] == "/transfers/new"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_create_normalises_short_direction(respx_mock: respx.MockRouter) -> None:
+    """A form posted with direction=OUT is sent to the engine as OUTGOING."""
+    post = respx_mock.post(f"{_API_BASE}/api/v1/payments").mock(
+        return_value=Response(201, json=_MOCK_PAYMENT_OUT)
+    )
+    data = dict(_BASE_FORM, direction="OUT", contact_id=_CONTACT_SUPPLIER_ID,
+                bank_account_id=_BANK_ACCOUNT_ID)
+    async with _client() as client:
+        resp = await client.post("/payments/new", data=data)
+    assert resp.status_code == 303
+    assert _json.loads(post.calls.last.request.content)["direction"] == "OUTGOING"
