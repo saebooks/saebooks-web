@@ -115,13 +115,13 @@
 
   <div>
     <label for="bank_account_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      {{ _("Bank account") }} <span class="ink-4 font-normal normal-case">({{ _("optional") }})</span>
+      {{ _("Bank account") }}
     </label>
-    <select id="bank_account_id" name="bank_account_id" class="saebooks-input"
+    <select id="bank_account_id" name="bank_account_id" required class="saebooks-input"
             {% if errors.get('bank_account_id') %}style="border-color:var(--neg);"{% endif %}>
-      <option value="" {% if not form.get("bank_account_id") %}selected{% endif %}>{{ _("— none —") }}</option>
+      <option value="" disabled {% if not form.get("bank_account_id") and bank_accounts|length != 1 %}selected{% endif %}>{{ _("Select bank account or card…") }}</option>
       {% for acct in bank_accounts %}
-      <option value="{{ acct.id }}" {% if form.get("bank_account_id") == acct.id %}selected{% endif %}>
+      <option value="{{ acct.id }}" {% if form.get("bank_account_id") == acct.id or (not form.get("bank_account_id") and bank_accounts|length == 1) %}selected{% endif %}>
         {{ acct.code }} — {{ acct.name }}
       </option>
       {% endfor %}
@@ -143,7 +143,7 @@
       <thead>
         <tr>
           <th class="text-left w-32">{{ _("Type") }}</th>
-          <th class="text-left">{{ _("Invoice / Bill UUID") }}</th>
+          <th class="text-left">{{ _("Invoice / Bill number") }}</th>
           <th class="text-right w-32">{{ _("Amount") }}</th>
           <th class="w-10"></th>
         </tr>

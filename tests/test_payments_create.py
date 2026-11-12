@@ -381,6 +381,7 @@ async def test_payment_create_422_allocation_mismatch_renders_banner(
                 "payment_date": "2026-04-23",
                 "amount": "500.00",
                 "method": "eft",
+                "bank_account_id": _BANK_ACCOUNT_ID,
                 "idempotency_key": "dddddddd-dddd-dddd-dddd-dddddddddddd",
                 "allocations[0][target_type]": "INVOICE",
                 "allocations[0][target_id]": _INVOICE_ID,
@@ -437,6 +438,7 @@ async def test_payment_create_validation_error_preserves_input(
                 "amount": "100.00",
                 "method": "eft",
                 "reference": _ref,
+                "bank_account_id": _BANK_ACCOUNT_ID,
                 "idempotency_key": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
             },
         )
@@ -488,3 +490,208 @@ async def test_payment_create_two_allocation_rows_after_add_allocation(
     assert 'name="allocations[1][target_type]"' in resp1.text
     assert 'name="allocations[1][target_id]"' in resp1.text
     assert 'name="allocations[1][amount]"' in resp1.text
+
+
+# ---------------------------------------------------------------------------
+# 8-13. Payment-form fix (2026-11-12): bank required, numbers resolve,
+#       nothing fails silently.
+# ---------------------------------------------------------------------------
+
+_BASE_FORM = {
+    "direction": "INCOMING",
+    "contact_id": _CONTACT_CUSTOMER_ID,
+    "payment_date": "2026-11-12",
+    "amount": "500.00",
+    "method": "eft",
+    "idempotency_key": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+}
+
+_MOCK_INVOICES_RESPONSE = {
+    "items": [{"id": _INVOICE_ID, "number": "INV-000080"}],
+    "total": 1,
+    "limit": 500,
+    "offset": 0,
+}
+_MOCK_BILLS_RESPONSE = {
+    "items": [{"id": _BILL_ID, "number": "BILL-000327", "supplier_reference": "PF2927"}],
+    "total": 1,
+    "limit": 500,
+    "offset": 0,
+}
+
+
+def _client() -> AsyncClient:
+    return AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    )
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_blank_bank_account_shows_error_and_does_not_call_api(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Bank account left blank: visible error, no POST to the engine."""
+    post = respx_mock.post(f"{_API_BASE}/api/v1/payments").mock(
+        return_value=Response(201, json=_MOCK_PAYMENT)
+    )
+    _mock_dropdowns(respx_mock)
+    async with _client() as client:
+        resp = await client.post("/payments/new", data=dict(_BASE_FORM))
+    assert resp.status_code == 422
+    assert not post.called
+    assert "Choose the bank account or card the money went through." in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_invoice_number_resolves_to_id(respx_mock: respx.MockRouter) -> None:
+    """Typing INV-000080 sends the invoice's UUID; blank row amount takes the
+    payment amount."""
+    post = respx_mock.post(f"{_API_BASE}/api/v1/payments").mock(
+        return_value=Response(201, json=_MOCK_PAYMENT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/invoices").mock(
+        return_value=Response(200, json=_MOCK_INVOICES_RESPONSE)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/companies").mock(
+        return_value=Response(200, json={"items": []})
+    )
+    data = dict(_BASE_FORM, bank_account_id=_BANK_ACCOUNT_ID)
+    data["allocations[0][target_type]"] = "INVOICE"
+    data["allocations[0][target_id]"] = "inv-000080"
+    data["allocations[0][amount]"] = ""
+    async with _client() as client:
+        resp = await client.post("/payments/new", data=data)
+    assert resp.status_code == 303
+    sent = _json.loads(post.calls.last.request.content)
+    assert sent["allocations"] == [{"amount": "500.00", "invoice_id": _INVOICE_ID}]
+    assert sent["bank_account_id"] == _BANK_ACCOUNT_ID
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bill_supplier_reference_resolves_even_with_invoice_type(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Type left on Invoice, supplier's ref typed: falls through to the bill."""
+    post = respx_mock.post(f"{_API_BASE}/api/v1/payments").mock(
+        return_value=Response(201, json=_MOCK_PAYMENT_OUT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/invoices").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/bills").mock(
+        return_value=Response(200, json=_MOCK_BILLS_RESPONSE)
+    )
+    data = dict(_BASE_FORM, direction="OUTGOING", contact_id=_CONTACT_SUPPLIER_ID,
+                bank_account_id=_BANK_ACCOUNT_ID, amount="250.00")
+    data["allocations[0][target_type]"] = "INVOICE"
+    data["allocations[0][target_id]"] = "PF2927"
+    data["allocations[0][amount]"] = "250.00"
+    async with _client() as client:
+        resp = await client.post("/payments/new", data=data)
+    assert resp.status_code == 303
+    sent = _json.loads(post.calls.last.request.content)
+    assert sent["allocations"] == [{"amount": "250.00", "bill_id": _BILL_ID}]
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_unresolvable_number_shows_row_error(respx_mock: respx.MockRouter) -> None:
+    """Unknown number: error shown on the row, typed value kept, no POST."""
+    post = respx_mock.post(f"{_API_BASE}/api/v1/payments").mock(
+        return_value=Response(201, json=_MOCK_PAYMENT)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/invoices").mock(
+        return_value=Response(200, json=_MOCK_INVOICES_RESPONSE)
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/bills").mock(
+        return_value=Response(200, json=_MOCK_BILLS_RESPONSE)
+    )
+    _mock_dropdowns(respx_mock)
+    data = dict(_BASE_FORM, bank_account_id=_BANK_ACCOUNT_ID)
+    data["allocations[0][target_type]"] = "INVOICE"
+    data["allocations[0][target_id]"] = "INV-999999"
+    data["allocations[0][amount]"] = "500.00"
+    async with _client() as client:
+        resp = await client.post("/payments/new", data=data)
+    assert resp.status_code == 422
+    assert not post.called
+    assert "No invoice or bill numbered &#39;INV-999999&#39; was found" in resp.text \
+        or "No invoice or bill numbered 'INV-999999' was found" in resp.text
+    assert 'value="INV-999999"' in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_idempotency_conflict_message_shown_in_banner(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """422 in the {code, message} shape (no ``detail``) reaches the banner."""
+    respx_mock.post(f"{_API_BASE}/api/v1/payments").mock(
+        return_value=Response(422, json={
+            "code": "idempotency_key_conflict",
+            "message": "X-Idempotency-Key reused with a different request body",
+        })
+    )
+    _mock_dropdowns(respx_mock)
+    data = dict(_BASE_FORM, bank_account_id=_BANK_ACCOUNT_ID)
+    async with _client() as client:
+        resp = await client.post("/payments/new", data=data)
+    assert resp.status_code == 422
+    assert "X-Idempotency-Key reused with a different request body" in resp.text
+    # A fresh key is issued so the corrected form can be resubmitted.
+    assert 'value="ffffffff-ffff-ffff-ffff-ffffffffffff"' not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_unslotted_api_error_key_folds_into_banner(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """An error on a field with no slot (e.g. currency) is shown in the banner."""
+    respx_mock.post(f"{_API_BASE}/api/v1/payments").mock(
+        return_value=Response(422, json={"detail": [
+            {"loc": ["body", "currency"], "msg": "String should have at most 3 characters"},
+        ]})
+    )
+    _mock_dropdowns(respx_mock)
+    data = dict(_BASE_FORM, bank_account_id=_BANK_ACCOUNT_ID)
+    async with _client() as client:
+        resp = await client.post("/payments/new", data=data)
+    assert resp.status_code == 422
+    assert "String should have at most 3 characters" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bank_dropdown_lists_only_reconcilable_accounts(
+    respx_mock: respx.MockRouter,
+) -> None:
+    """Only reconcilable, non-header accounts are offered; no 'optional' label."""
+    respx_mock.get(f"{_API_BASE}/api/v1/contacts").mock(
+        return_value=Response(200, json=_MOCK_CUSTOMERS_RESPONSE)
+    )
+    accounts = {"items": [
+        {"id": "a1", "code": "1-1100", "name": "Bank Accounts", "account_type": "ASSET", "is_header": True, "reconcile": False},
+        {"id": "a2", "code": "1-1114", "name": "Westpac Business One", "account_type": "ASSET", "is_header": False, "reconcile": True},
+        {"id": "a3", "code": "1-1200", "name": "Trade Debtors", "account_type": "ASSET", "is_header": False, "reconcile": False},
+        {"id": "a4", "code": "2-1116", "name": "Visa 7474", "account_type": "LIABILITY", "is_header": False, "reconcile": True},
+        {"id": "a5", "code": "6-1000", "name": "Advertising", "account_type": "EXPENSE", "is_header": False, "reconcile": False},
+    ], "total": 5}
+    respx_mock.get(f"{_API_BASE}/api/v1/accounts").mock(
+        return_value=Response(200, json=accounts)
+    )
+    async with _client() as client:
+        resp = await client.get("/payments/new")
+    assert resp.status_code == 200
+    assert "Westpac Business One" in resp.text
+    assert "Visa 7474" in resp.text
+    assert "Trade Debtors" not in resp.text
+    assert "Advertising" not in resp.text
+    assert "— none —" not in resp.text
+    assert 'id="bank_account_id" name="bank_account_id" required' in resp.text

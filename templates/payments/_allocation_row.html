@@ -4,14 +4,19 @@
     <select name="allocations[{{ index }}][target_type]" class="saebooks-input text-sm py-1.5">
       <option value="INVOICE" {% if alloc.get("target_type", "INVOICE") == "INVOICE" %}selected{% endif %}>{{ _("Invoice") }}</option>
       <option value="BILL" {% if alloc.get("target_type") == "BILL" %}selected{% endif %}>{{ _("Bill") }}</option>
+      {% if alloc.get("target_type") == "CREDIT_NOTE" %}<option value="CREDIT_NOTE" selected>{{ _("Credit note") }}</option>{% endif %}
     </select>
   </td>
 
   <td class="px-3 py-2">
     <input type="text" name="allocations[{{ index }}][target_id]"
            value="{{ alloc.get('target_id', alloc.get('invoice_id', alloc.get('bill_id', ''))) }}"
-           placeholder="Invoice or bill UUID"
-           class="saebooks-input text-sm py-1.5 font-mono">
+           placeholder="{{ _('e.g. INV-000080 or BILL-000327') }}"
+           class="saebooks-input text-sm py-1.5 font-mono"
+           {% if errors is defined and errors.get('allocations.' ~ index) %}style="border-color:var(--neg);"{% endif %}>
+    {% if errors is defined and errors.get('allocations.' ~ index) %}
+    <p class="text-xs mt-1" style="color:var(--neg);">{{ errors['allocations.' ~ index] }}</p>
+    {% endif %}
   </td>
 
   <td class="px-3 py-2 w-32">
