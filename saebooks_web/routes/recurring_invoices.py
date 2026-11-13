@@ -54,6 +54,13 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+def _apply_send_options(form: dict[str, str], payload: dict[str, object]) -> None:
+    """b11: email-automatically, extra recipients and the missed-runs choice."""
+    payload["auto_send"] = bool(form.get("auto_send"))
+    payload["send_to"] = (form.get("send_to") or "").strip() or None
+    payload["catch_up"] = not bool(form.get("skip_missed"))
+
+
 def _parse_lines(form: dict[str, str]) -> list[dict[str, object]]:
     """Delegate to the shared helper in form_helpers.py."""
     return _parse_lines_shared(form)
@@ -253,6 +260,7 @@ async def recurring_invoice_create(request: Request) -> HTMLResponse | RedirectR
 
     # Boolean auto_post — checkbox: present -> True, absent -> False.
     payload["auto_post"] = bool(form.get("auto_post"))
+    _apply_send_options(form, payload)
 
     payload["lines"] = _parse_lines(form)
 
@@ -441,6 +449,10 @@ async def recurring_invoice_edit_form(
     form["anchor_day"] = str(ri.get("anchor_day") or "")
     form["due_days"] = str(ri.get("due_days") or "30")
     form["auto_post"] = ri.get("auto_post", False)
+    form["auto_send"] = ri.get("auto_send", False)
+    form["send_to"] = ri.get("send_to") or ""
+    # catch_up True = make every missed invoice; the form asks the reverse.
+    form["skip_missed"] = not ri.get("catch_up", True)
 
     # Build lines list for the form, keyed by zero-based index.
     api_lines = ri.get("lines", [])
@@ -520,6 +532,7 @@ async def recurring_invoice_update(
 
     # Boolean auto_post — checkbox.
     payload["auto_post"] = bool(form.get("auto_post"))
+    _apply_send_options(form, payload)
 
     # Lines are always sent (full replace semantics).
     payload["lines"] = _parse_lines(form)
@@ -890,6 +903,7 @@ async def recurring_invoice_detail(
             "flash": flash,
             "generate_idempotency_key": str(uuid.uuid4()),
             "contact_name": contact_name,
+            "today_iso": date.today().isoformat(),
         },
     )
 

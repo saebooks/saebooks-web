@@ -124,6 +124,8 @@ from saebooks_web.routes.proration import router as proration_router
 from saebooks_web.routes.purchase_orders import router as purchase_orders_router
 from saebooks_web.routes.reconciliation import router as reconciliation_router
 from saebooks_web.routes.statements import router as statements_router
+from saebooks_web.routes.getting_paid import router as getting_paid_router  # b11 getting paid + public /pay
+from saebooks_web.routes.recurring_bills import router as recurring_bills_router  # b11 /recurring-bills
 from saebooks_web.routes.statement_templates import router as statement_templates_router
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.reports import router as reports_router
@@ -414,6 +416,11 @@ app.include_router(authentik_sso_router)
 app.include_router(eid_sso_router)
 app.include_router(webauthn_router)
 app.include_router(public_auth_router)
+# b11 "getting paid" — mounted before contacts/invoices/statements so its
+# literal paths (/statements/send, /invoices/{id}/send-reminder, ...) are not
+# swallowed by those routers' /{id} catch-alls. Includes the PUBLIC /pay/{token}.
+app.include_router(getting_paid_router)
+app.include_router(recurring_bills_router)
 app.include_router(contact_router)
 app.include_router(billing_router)
 app.include_router(dashboard_router)

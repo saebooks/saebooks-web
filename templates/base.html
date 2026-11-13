@@ -526,6 +526,8 @@
                               or path.startswith('/invoices')
                               or path.startswith('/credit-notes')
                               or path.startswith('/recurring-invoices')
+                              or path == '/statements/send'
+                              or path == '/settings/getting-paid'
                               or path.startswith('/quotes')
                               or path.startswith('/customer-hub')
                               or path.startswith('/customers')
@@ -554,6 +556,12 @@
           <a href="/recurring-invoices" class="nav-item is-sub {% if path.startswith('/recurring-invoices') %}active{% endif %}">
             <i data-lucide="repeat" class="nav-ico"></i>{{ _("Recurring") }}
           </a>
+          <a href="/statements/send" class="nav-item is-sub {% if path == '/statements/send' %}active{% endif %}">
+            <i data-lucide="mails" class="nav-ico"></i>{{ _("Customer statements") }}
+          </a>
+          <a href="/settings/getting-paid" class="nav-item is-sub {% if path == '/settings/getting-paid' %}active{% endif %}">
+            <i data-lucide="bell-ring" class="nav-ico"></i>{{ _("Getting paid") }}
+          </a>
           <a href="/customer-hub/overview" class="nav-item is-sub {% if path.startswith('/customer-hub') %}active{% endif %}">
             <i data-lucide="users" class="nav-ico"></i>{{ _("Customer overview") }}
           </a>
@@ -569,6 +577,7 @@
       {# Purchases (Suppliers context) — symmetric to Sales. One-offs separated from terms/accounts. #}
       {% set vendors_open = path.startswith('/expenses-overview')
                             or path.startswith('/bills')
+                            or path.startswith('/recurring-bills')
                             or path.startswith('/expenses')
                             or path.startswith('/purchase_orders')
                             or path.startswith('/suppliers')
@@ -586,6 +595,9 @@
           </a>
           <a href="/bills" class="nav-item is-sub {% if path.startswith('/bills') %}active{% endif %}">
             <i data-lucide="receipt" class="nav-ico"></i>{{ _("Bills") }}
+          </a>
+          <a href="/recurring-bills" class="nav-item is-sub {% if path.startswith('/recurring-bills') %}active{% endif %}">
+            <i data-lucide="repeat" class="nav-ico"></i>{{ _("Recurring bills") }}
           </a>
           <a href="/expenses" class="nav-item is-sub {% if path.startswith('/expenses') and path != '/expenses-overview' %}active{% endif %}">
             <i data-lucide="credit-card" class="nav-ico"></i>{{ _("Expenses (paid)") }}
@@ -790,8 +802,10 @@
           <a href="/reports" class="nav-item is-sub {% if path == '/reports' %}active{% endif %}">
             <i data-lucide="line-chart" class="nav-ico"></i>{{ _("All Reports") }}
           </a>
-          <a href="/statements" class="nav-item is-sub {% if path.startswith('/statements') or path.startswith('/statement-templates') %}active{% endif %}">
-            <i data-lucide="file-check-2" class="nav-ico"></i>{{ _("Statements") }}
+          {# b11: this opens SUPPLIER statement reconciliation; the old label
+             "Statements" sent people looking for customer statements here. #}
+          <a href="/statements" class="nav-item is-sub {% if (path.startswith('/statements') and path != '/statements/send') or path.startswith('/statement-templates') %}active{% endif %}">
+            <i data-lucide="file-check-2" class="nav-ico"></i>{{ _("Supplier statements") }}
           </a>
           {% if (request.state.companies or []) | length > 1 %}
           <a href="/group" class="nav-item is-sub {% if path == '/group' %}active{% endif %}">

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Send customer statements") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);" role="alert">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<header class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Send customer statements") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Email every customer who owes you money their statement for the period, in one go.") }}</p>
+</header>
+
+<form method="GET" action="/statements/send" class="card p-4 mb-6 flex flex-wrap items-end gap-3">
+  <div>
+    <label for="from" class="block text-xs font-medium ink-3 mb-1">{{ _("From") }}</label>
+    <input type="date" id="from" name="from" value="{{ period_from }}" class="saebooks-input text-sm">
+  </div>
+  <div>
+    <label for="to" class="block text-xs font-medium ink-3 mb-1">{{ _("To") }}</label>
+    <input type="date" id="to" name="to" value="{{ period_to }}" class="saebooks-input text-sm">
+  </div>
+  <button type="submit" class="btn-secondary text-sm">{{ _("Show customers") }}</button>
+</form>
+
+{% if results %}
+<section class="card p-4 mb-6" style="border-color:var(--warm);">
+  <p class="text-sm font-semibold ink-1 mb-2">{{ _("Not sent") }}</p>
+  <ul class="text-sm ink-2 space-y-1">
+    {% for r in results %}<li><a class="sae hover:underline" href="/contacts/{{ r.contact_id }}">{{ r.name or r.contact_id }}</a>: {{ r.reason or r.outcome }}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if items %}
+<form method="POST" action="/statements/send">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="from" value="{{ period_from }}">
+  <input type="hidden" name="to" value="{{ period_to }}">
+  <div class="card overflow-x-auto mb-4">
+    <table class="min-w-full text-sm">
+      <thead class="bg-[color:var(--paper-2)]">
+        <tr>
+          <th scope="col" class="px-4 py-3 w-10"><input type="checkbox" checked aria-label="{{ _('Select all') }}" onclick="document.querySelectorAll('input[name=contact_id]:not([disabled])').forEach(c => c.checked = this.checked)"></th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Customer") }}</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Email") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Owing") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Overdue") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in items %}
+        {% set sendable = c.email and not c.email_bounced %}
+        <tr class="hairline-t">
+          <td class="px-4 py-3"><input type="checkbox" name="contact_id" value="{{ c.contact_id }}" {% if sendable %}checked{% else %}disabled{% endif %} aria-label="{{ _('Send to %(n)s') % {'n': c.name} }}"></td>
+          <td class="px-4 py-3"><a class="sae hover:underline" href="/contacts/{{ c.contact_id }}">{{ c.name }}</a></td>
+          <td class="px-4 py-3 ink-2">
+            {% if not c.email %}<span class="badge-warm">{{ _("No email") }}</span>
+            {% elif c.email_bounced %}{{ c.email }} <span class="badge-neg">{{ _("Bounced") }}</span>
+            {% else %}{{ c.email }}{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right num-display">{{ "%.2f" | format(c.balance | float) }}</td>
+          <td class="px-4 py-3 text-right num-display {% if c.overdue | float > 0 %}neg{% endif %}">{{ "%.2f" | format(c.overdue | float) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <button type="submit" class="btn-primary text-sm" onclick="return confirm('{{ _('Email the ticked customers their statement now?') }}')">{{ _("Email statements") }}</button>
+</form>
+{% elif not error %}
+<div class="card p-8 text-center"><p class="text-sm ink-3">{{ _("Nobody owes you money at %(d)s.") % {"d": period_to} }}</p></div>
+{% endif %}
+{% endblock %}

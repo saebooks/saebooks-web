@@ -1291,7 +1291,8 @@ async def invoice_stripe_payment_link(
         )
 
     if resp.status_code == 200:
-        url = resp.json().get("url", "")
+        body = resp.json()
+        url = body.get("payment_link") or body.get("url", "")
         return _TEMPLATES.TemplateResponse(
             request,
             "invoices/_stripe_payment_link.html",
@@ -1536,6 +1537,29 @@ async def invoice_detail(
     except Exception:
         email_log = []
 
+    # b11: reminders sent, online payment state, and the customer's
+    # bounced-email flag. All best-effort: the page renders without them.
+    reminders: list = []
+    online: dict = {}
+    customer: dict = {}
+    try:
+        async with api_client(request) as client:
+            r_resp = await client.get(
+                "/api/v1/collections/reminders", params={"invoice_id": invoice_id}
+            )
+            if r_resp.status_code == 200:
+                reminders = r_resp.json().get("items", [])
+            if (invoice.get("status") or "").upper() == "POSTED":
+                o_resp = await client.get(f"/api/v1/invoices/{invoice_id}/online-payment")
+                if o_resp.status_code == 200:
+                    online = o_resp.json()
+            if invoice.get("contact_id"):
+                c_resp = await client.get(f"/api/v1/contacts/{invoice['contact_id']}")
+                if c_resp.status_code == 200:
+                    customer = c_resp.json()
+    except Exception:
+        pass
+
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
@@ -1548,6 +1572,10 @@ async def invoice_detail(
             "attachments": attachments,
             "vault_enabled": vault_enabled,
             "email_log": email_log,
+            "reminders": reminders,
+            "online": online,
+            "customer": customer,
+            "today_iso": date.today().isoformat(),
         },
     )
 

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}{% if rb %}{{ rb.name }}{% else %}{{ _("Recurring bill not found") }}{% endif %} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);" role="alert">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+{% if rb %}
+<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+  <div>
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-semibold ink-1">{{ rb.name }}</h1>
+      {% if rb.status == 'ACTIVE' %}<span class="badge-pos">{{ _("Active") }}</span>
+      {% elif rb.status == 'PAUSED' %}<span class="badge-warm">{{ _("Paused") }}</span>
+      {% else %}<span class="badge-draft">{{ _("Ended") }}</span>{% endif %}
+      {% if rb.archived_at %}<span class="badge-draft">{{ _("Archived") }}</span>{% endif %}
+    </div>
+    <p class="text-sm ink-3 mt-1">{{ supplier }}{% if rb.supplier_reference %} · {{ rb.supplier_reference }}{% endif %}</p>
+  </div>
+  {% if not rb.archived_at %}
+  <div class="flex flex-wrap items-center gap-2">
+    {% if rb.status in ('ACTIVE', 'PAUSED') %}<a href="/recurring-bills/{{ rb.id }}/edit" class="btn-secondary text-sm">{{ _("Edit") }}</a>{% endif %}
+    {% if rb.status == 'ACTIVE' %}
+    <form method="POST" action="/recurring-bills/{{ rb.id }}/generate">{{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ rb.version }}">
+      <button type="submit" class="btn-primary text-sm">{{ _("Make next bill now") }}</button>
+    </form>
+    <form method="POST" action="/recurring-bills/{{ rb.id }}/pause">{{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ rb.version }}">
+      <button type="submit" class="btn-secondary text-sm">{{ _("Pause") }}</button>
+    </form>
+    {% elif rb.status == 'PAUSED' %}
+    <form method="POST" action="/recurring-bills/{{ rb.id }}/resume">{{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ rb.version }}">
+      <button type="submit" class="btn-secondary text-sm">{{ _("Resume") }}</button>
+    </form>
+    {% endif %}
+    <form method="POST" action="/recurring-bills/{{ rb.id }}/archive">{{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ rb.version }}">
+      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);"
+              onclick="return confirm('{{ _('Archive this recurring bill? No more bills will be made.') }}')">{{ _("Archive") }}</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+{% if rb.last_error %}
+<div class="card p-4 mb-6" style="border-color:var(--neg);" role="alert">
+  <p class="text-sm font-semibold" style="color:var(--neg);">{{ _("The last run did not finish") }}{% if rb.failure_count > 1 %} ({{ _("%(n)s times in a row") % {"n": rb.failure_count} }}){% endif %}</p>
+  <p class="text-sm ink-2 mt-1">{{ rb.last_error }}</p>
+</div>
+{% elif rb.status == 'ACTIVE' and rb.next_run < today_iso %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ _("Due on %(d)s and not made yet. It runs each morning on its own.") % {"d": rb.next_run} }}</span>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+  <div class="card p-4"><p class="text-xs ink-3 uppercase tracking-wide">{{ _("How often") }}</p><p class="mt-1 text-sm font-medium ink-1">{{ rb.frequency | title }}</p></div>
+  <div class="card p-4"><p class="text-xs ink-3 uppercase tracking-wide">{{ _("Next bill") }}</p><p class="mt-1 text-sm font-medium ink-1">{{ rb.next_run }}</p></div>
+  <div class="card p-4"><p class="text-xs ink-3 uppercase tracking-wide">{{ _("Stop after") }}</p><p class="mt-1 text-sm font-medium ink-1">{{ rb.end_date or "—" }}</p></div>
+  <div class="card p-4"><p class="text-xs ink-3 uppercase tracking-wide">{{ _("Bills made") }}</p><p class="mt-1 text-sm font-medium ink-1">{{ rb.bills_generated }}</p></div>
+</div>
+
+<div class="card overflow-x-auto mb-8">
+  <table class="min-w-full text-sm">
+    <tbody>
+      <tr class="hairline-t"><th scope="row" class="px-4 py-3 text-left font-medium ink-3 w-48">{{ _("Days until due") }}</th><td class="px-4 py-3 ink-1">{{ rb.due_days }}</td></tr>
+      <tr class="hairline-t"><th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Posted straight away") }}</th><td class="px-4 py-3 ink-1">{% if rb.auto_post %}{{ _("Yes") }}{% else %}{{ _("No, waits as a draft") }}{% endif %}</td></tr>
+      <tr class="hairline-t"><th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Missed bills") }}</th><td class="px-4 py-3 ink-1">{% if rb.catch_up %}{{ _("Make every missed bill") }}{% else %}{{ _("Make only the latest") }}{% endif %}</td></tr>
+      <tr class="hairline-t"><th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Last made") }}</th><td class="px-4 py-3 ink-1">{{ rb.last_run or "—" }}</td></tr>
+      {% if rb.notes %}<tr class="hairline-t"><th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Notes") }}</th><td class="px-4 py-3 ink-1 whitespace-pre-wrap">{{ rb.notes }}</td></tr>{% endif %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>
+<div class="card overflow-x-auto">
+  <table class="min-w-full text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Account") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Qty") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Unit price") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ln in rb.lines %}
+      <tr class="hairline-t">
+        <td class="px-4 py-3 ink-1">{{ ln.description }}</td>
+        <td class="px-4 py-3 ink-2">{{ accounts.get(ln.account_id) or ln.account_id }}</td>
+        <td class="px-4 py-3 text-right num-display">{{ ln.quantity | float | round(2) }}</td>
+        <td class="px-4 py-3 text-right num-display">{{ "%.2f" | format(ln.unit_price | float) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

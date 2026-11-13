@@ -86,6 +86,12 @@
     </form>
     {% endif %}
     {% if credit_note.status == 'POSTED' %}
+    {# b11 (P1-6): email the credit note to the customer #}
+    <form method="post" action="/credit-notes/{{ credit_note.id }}/email" class="inline"
+          onsubmit="return confirm('{{ _('Email this credit note to the customer now?') }}');">
+      {{ csrf_input(request)|safe }}
+      <button type="submit" class="btn-primary text-sm">{{ _("Email to customer") }}</button>
+    </form>
     <form
       method="post"
       action="/credit-notes/{{ credit_note.id }}/void"

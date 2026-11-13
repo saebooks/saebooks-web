@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en-AU" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% if s %}{{ _("Pay invoice %(n)s") % {"n": s.invoice_number or ""} }}{% else %}{{ _("Pay an invoice") }}{% endif %}</title>
+  <style>
+    :root { --bg:#0f1115; --card:#181b22; --ink:#e8eaee; --ink3:#9aa3b2; --line:#2a2f3a; --accent:#4f8cff; --pos:#3fbf7f; --warm:#e0b341; --neg:#e06c5a; }
+    [data-theme="light"] { --bg:#f6f7f9; --card:#ffffff; --ink:#15181e; --ink3:#5b6474; --line:#e3e6ec; --accent:#1f5fd6; --pos:#1d8a55; --warm:#9a7300; --neg:#b4432f; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width:520px; margin:6vh auto; padding:0 16px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:28px; }
+    h1 { font-size:1.4rem; margin:0 0 4px; }
+    .muted { color:var(--ink3); font-size:.92rem; }
+    .amount { font-size:2.2rem; font-weight:600; margin:18px 0 4px; font-variant-numeric:tabular-nums; }
+    .row { display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid var(--line); font-size:.95rem; }
+    button.pay { width:100%; margin-top:22px; padding:14px; border:0; border-radius:10px; background:var(--accent); color:#fff; font-size:1.05rem; font-weight:600; cursor:pointer; }
+    .note { margin-top:16px; padding:12px; border-radius:10px; border:1px solid var(--line); font-size:.95rem; }
+    .ok { border-color:var(--pos); } .warn { border-color:var(--warm); } .bad { border-color:var(--neg); }
+    .toggle { position:fixed; top:12px; right:12px; background:transparent; color:var(--ink3); border:1px solid var(--line); border-radius:8px; padding:6px 10px; cursor:pointer; font-size:.8rem; }
+  </style>
+  <script>
+    (function(){ try { var t = localStorage.getItem("pay-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch(e){} })();
+  </script>
+</head>
+<body>
+  <button class="toggle" type="button" onclick="var d=document.documentElement;var t=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',t);try{localStorage.setItem('pay-theme',t)}catch(e){}">{{ _("Light or dark") }}</button>
+  <main>
+    <div class="card">
+      {% if error and not s %}
+        <h1>{{ _("Pay an invoice") }}</h1>
+        <div class="note bad">{{ error }}</div>
+      {% else %}
+        <p class="muted">{{ s.company_name }}</p>
+        <h1>{{ _("Invoice %(n)s") % {"n": s.invoice_number or ""} }}</h1>
+        {% if s.customer_name %}<p class="muted">{{ _("For %(c)s") % {"c": s.customer_name} }}</p>{% endif %}
+
+        {% if s.state == "paid" %}
+          <div class="note ok">{{ _("This invoice is paid. Thank you.") }}</div>
+        {% elif s.state == "cancelled" %}
+          <div class="note warn">{{ _("This invoice has been cancelled, so there is nothing to pay.") }}</div>
+        {% else %}
+          {% if paid_return %}
+            <div class="note ok">{{ _("Thank you. Your payment has gone through. It can take a minute to show here.") }}</div>
+          {% endif %}
+          <div class="amount">{{ balance }}</div>
+          <p class="muted">{{ _("still owing") }}</p>
+          <div class="row"><span>{{ _("Invoice total") }}</span><span>{{ total }}</span></div>
+          {% if s.due_date %}<div class="row"><span>{{ _("Due") }}</span><span>{{ s.due_date }}</span></div>{% endif %}
+          {% if s.can_pay_online %}
+            <form method="POST" action="/pay/{{ token }}">
+              {{ csrf_input(request)|safe }}
+              <button class="pay" type="submit">{{ _("Pay by card") }}</button>
+            </form>
+            <p class="muted" style="margin-top:10px;">{{ _("You will go to Stripe, our card payment provider, to pay securely.") }}</p>
+          {% else %}
+            <div class="note warn">{{ _("Card payment is not available for this invoice. Please pay by bank transfer as shown on the invoice.") }}</div>
+          {% endif %}
+        {% endif %}
+        {% if error %}<div class="note bad">{{ error }}</div>{% endif %}
+      {% endif %}
+    </div>
+  </main>
+</body>
+</html>
