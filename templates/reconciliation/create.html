@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Create from bank line") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% set money_out = line and (line.amount|float) < 0 %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--sae);">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Create from this bank line") }}</h1>
+  <a href="/reconciliation/{{ account_id }}/lines" class="btn-secondary text-sm">{{ _("Back to Reconciliation") }}</a>
+</div>
+
+{% if degraded %}
+<div class="card">{% include "_partials/degraded_panel.html" %}</div>
+{% elif error or not line %}
+<div class="card p-3" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error or _("That bank line was not found.") }}</span></div>
+{% else %}
+
+<div class="card p-3 mb-4 text-sm">
+  {{ line.txn_date }} · <span class="ink-1">{{ line.description or "—" }}</span> ·
+  <span class="font-mono" style="color:{% if money_out %}var(--neg){% else %}var(--pos){% endif %};">{{ num((line.amount|float)|abs, 2) }}</span>
+  {% if money_out %}{{ _("money out") }}{% else %}{{ _("money in") }}{% endif %}
+  {% if remaining != ((line.amount|float)|abs) %}· {{ _("%(n)s still to match") % {"n": num(remaining|float, 2)} }}{% endif %}
+</div>
+
+{# ── What is it? ── #}
+{% set kinds = [("expense", _("Spending (no bill)")), ("bill_payment", _("Paying a supplier bill")), ("transfer", _("Transfer to another account"))] if money_out
+   else [("receipt", _("Money received (no invoice)")), ("customer_payment", _("Customer paying an invoice")), ("transfer", _("Transfer from another account"))] %}
+<div class="flex flex-wrap gap-1 mb-4 border-b" style="border-color:var(--line);">
+  {% for key, label in kinds %}
+  <a href="/reconciliation/{{ bsl_id }}/create?account_id={{ account_id }}&kind={{ key }}"
+     class="px-3 py-2 text-sm {% if kind == key %}font-semibold ink-1 border-b-2{% else %}ink-3{% endif %}"
+     {% if kind == key %}style="border-color:var(--sae);"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if kind in ("bill_payment", "customer_payment") %}
+<form method="GET" action="/reconciliation/{{ bsl_id }}/create" class="card p-3 mb-4 flex flex-wrap items-end gap-3">
+  <input type="hidden" name="account_id" value="{{ account_id }}">
+  <input type="hidden" name="kind" value="{{ kind }}">
+  <div>
+    <label class="block text-xs ink-3 mb-1" for="pick_contact">{% if kind == "bill_payment" %}{{ _("Supplier") }}{% else %}{{ _("Customer") }}{% endif %}</label>
+    <select id="pick_contact" name="contact_id" class="saebooks-input" onchange="this.form.submit()">
+      <option value="">{{ _("— choose —") }}</option>
+      {% for c in contacts %}<option value="{{ c.id }}" {% if c.id == contact_id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <noscript><button type="submit" class="btn-secondary text-sm">{{ _("Show what they owe") }}</button></noscript>
+</form>
+{% endif %}
+
+<form method="POST" action="/reconciliation/{{ bsl_id }}/create" class="card p-4 space-y-4 max-w-3xl">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="account_id" value="{{ account_id }}">
+  <input type="hidden" name="kind" value="{{ kind }}">
+
+  {% if kind in ("expense", "receipt") %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="contact_id">{% if kind == "expense" %}{{ _("Supplier (optional)") }}{% else %}{{ _("Received from (optional)") }}{% endif %}</label>
+      <select id="contact_id" name="contact_id" class="saebooks-input w-full">
+        <option value="">{{ _("— none —") }}</option>
+        {% for c in contacts %}<option value="{{ c.id }}" {% if c.id == contact_id or c.id == line.contact_id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="gl_account_id">{{ _("Account") }}</label>
+      <select id="gl_account_id" name="gl_account_id" required class="saebooks-input w-full">
+        <option value="">{{ _("— choose —") }}</option>
+        {% for a in gl_accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="tax_code_id">{{ _("GST code") }}</label>
+      <select id="tax_code_id" name="tax_code_id" class="saebooks-input w-full">
+        <option value="">{{ _("No GST") }}</option>
+        {% for t in tax_codes %}<option value="{{ t.id }}">{{ t.code }} — {{ t.name or t.description or '' }}</option>{% endfor %}
+      </select>
+      <p class="text-xs ink-3 mt-1">{{ _("The bank amount includes GST. It is split out for you, to the cent.") }}</p>
+    </div>
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="description">{{ _("Description") }}</label>
+      <input id="description" name="description" class="saebooks-input w-full" value="{{ line.description or '' }}">
+    </div>
+  </div>
+  {% elif kind in ("bill_payment", "customer_payment") %}
+    <input type="hidden" name="contact_id" value="{{ contact_id }}">
+    {% if not contact_id %}
+      <p class="text-sm ink-3">{% if kind == "bill_payment" %}{{ _("Choose the supplier above to see their open bills.") }}{% else %}{{ _("Choose the customer above to see their open invoices.") }}{% endif %}</p>
+    {% else %}
+    <table class="sae-table w-full text-sm">
+      <thead><tr>
+        <th class="text-left">{% if kind == "bill_payment" %}{{ _("Bill") }}{% else %}{{ _("Invoice") }}{% endif %}</th>
+        <th class="text-left">{{ _("Due") }}</th>
+        <th class="text-right">{{ _("Still owing") }}</th>
+        <th class="text-right">{{ _("Pay now") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for d in docs %}
+        <tr>
+          <td class="ink-1">{{ d.number or d.supplier_reference or d.id[:8] }}</td>
+          <td class="ink-3 text-xs">{{ d.due_date }}</td>
+          <td class="text-right font-mono text-xs">{{ num(d.owing|float, 2) }}</td>
+          <td class="text-right"><input name="alloc_{{ d.id }}" inputmode="decimal" class="saebooks-input w-28 text-right font-mono" placeholder="0.00"></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center ink-3 py-4">{{ _("Nothing is owing. The payment will be kept as money on account.") }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-xs ink-3">{{ _("Amounts left over stay on the payment as money on account.") }}</p>
+    {% endif %}
+  {% elif kind == "transfer" %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="other_account_id">{% if money_out %}{{ _("Moved to") }}{% else %}{{ _("Moved from") }}{% endif %}</label>
+      <select id="other_account_id" name="other_account_id" required class="saebooks-input w-full">
+        <option value="">{{ _("— choose —") }}</option>
+        {% for a in accounts %}<option value="{{ a.id }}" {% if a.id == other_account_id %}selected{% endif %}>{{ a.code }} — {{ a.name }}</option>{% endfor %}
+      </select>
+      <p class="text-xs ink-3 mt-1">{{ _("If the other account already has the matching bank line, it is matched too.") }}</p>
+    </div>
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="description">{{ _("Description") }}</label>
+      <input id="description" name="description" class="saebooks-input w-full" value="{{ line.description or '' }}">
+    </div>
+  </div>
+  {% if counterpart %}<input type="hidden" name="counterpart_line_id" value="{{ counterpart.id }}">{% endif %}
+  {% endif %}
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="reference">{{ _("Reference (optional)") }}</label>
+      <input id="reference" name="reference" class="saebooks-input w-full" value="{{ line.reference or '' }}" maxlength="64">
+    </div>
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="amount">{{ _("Amount (leave blank for all of it)") }}</label>
+      <input id="amount" name="amount" inputmode="decimal" class="saebooks-input w-full font-mono" placeholder="{{ '%.2f'|format(remaining|float) }}">
+    </div>
+  </div>
+
+  <div class="flex gap-3">
+    <button type="submit" class="btn-primary text-sm">{{ _("Record and match") }}</button>
+    <a href="/reconciliation/{{ bsl_id }}/split?account_id={{ account_id }}" class="btn-secondary text-sm">{{ _("Split across several") }}</a>
+  </div>
+</form>
+{% endif %}
+
+{% endblock %}

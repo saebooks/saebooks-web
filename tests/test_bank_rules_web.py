@@ -34,17 +34,28 @@ from saebooks_web.main import app
 _RULE_ID = "aaaabbbb-1111-2222-3333-ccccddddeeee"
 _ACCOUNT_ID = "11111111-1111-1111-1111-111111111111"
 
+# Engine schema (api/v1/schemas.BankRuleOut). Batch 4: the screens used to
+# speak a made-up schema (match_field / match_value / action_account_id)
+# the engine never accepted.
 _MOCK_RULE = {
     "id": _RULE_ID,
+    "company_id": "22222222-2222-2222-2222-222222222222",
     "name": "Officeworks stationery",
-    "match_field": "narration",
-    "match_operator": "contains",
-    "match_value": "OFFICEWORKS",
-    "action_account_id": _ACCOUNT_ID,
-    "action_tax_code_id": None,
+    "match_type": "CONTAINS",
+    "match_pattern": "OFFICEWORKS",
+    "account_id": _ACCOUNT_ID,
+    "tax_code": None,
+    "contact_id": None,
+    "description_template": None,
+    "auto_create": False,
     "priority": 10,
-    "version": 1,
+    "is_active": True,
+    "direction": "OUT",
+    "amount_min": None,
+    "amount_max": None,
+    "bank_account_id": None,
     "created_at": "2026-04-01T00:00:00Z",
+    "updated_at": "2026-04-01T00:00:00Z",
 }
 
 _MOCK_RULES_RESPONSE = {
@@ -151,12 +162,10 @@ async def test_bank_rule_new_form_renders() -> None:
 
     assert resp.status_code == 200
     assert 'name="name"' in resp.text
-    assert 'name="match_field"' in resp.text
-    assert 'name="match_operator"' in resp.text
-    assert 'name="match_value"' in resp.text
-    assert 'name="action_account_id"' in resp.text
-    assert 'name="action_tax_code_id"' in resp.text
-    assert 'name="priority"' in resp.text
+    for field in ("match_type", "match_pattern", "account_id", "tax_code",
+                  "contact_id", "direction", "amount_min", "amount_max",
+                  "bank_account_id", "auto_create", "priority"):
+        assert f'name="{field}"' in resp.text, field
 
 
 # ---------------------------------------------------------------------------
@@ -182,10 +191,10 @@ async def test_bank_rule_create_success(respx_mock: respx.MockRouter) -> None:
             "/bank-rules/new",
             data={
                 "name": "Officeworks stationery",
-                "match_field": "narration",
-                "match_operator": "contains",
-                "match_value": "OFFICEWORKS",
-                "action_account_id": _ACCOUNT_ID,
+                "match_type": "CONTAINS",
+                "match_pattern": "OFFICEWORKS",
+                "account_id": _ACCOUNT_ID,
+                "direction": "OUT",
                 "priority": "10",
             },
         )
@@ -226,15 +235,14 @@ async def test_bank_rule_create_validation_err(respx_mock: respx.MockRouter) -> 
             "/bank-rules/new",
             data={
                 "name": "",
-                "match_field": "narration",
-                "match_operator": "contains",
-                "match_value": "TEST",
-                "action_account_id": _ACCOUNT_ID,
+                "match_type": "CONTAINS",
+                "match_pattern": "TEST",
+                "account_id": _ACCOUNT_ID,
             },
         )
 
     assert resp.status_code == 422
-    assert 'name="match_value"' in resp.text
+    assert 'name="match_pattern"' in resp.text
     assert "Field required" in resp.text
 
 
@@ -261,8 +269,7 @@ async def test_bank_rule_edit_form_renders(respx_mock: respx.MockRouter) -> None
     assert resp.status_code == 200
     assert "Officeworks stationery" in resp.text
     assert "OFFICEWORKS" in resp.text
-    # Version hidden input present
-    assert 'name="version"' in resp.text
+    assert 'value="OUT" selected' in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -289,10 +296,10 @@ async def test_bank_rule_edit_success(respx_mock: respx.MockRouter) -> None:
             f"/bank-rules/{_RULE_ID}/edit",
             data={
                 "name": "Officeworks (updated)",
-                "match_field": "narration",
-                "match_operator": "contains",
-                "match_value": "OFFICEWORKS",
-                "action_account_id": _ACCOUNT_ID,
+                "match_type": "CONTAINS",
+                "match_pattern": "OFFICEWORKS",
+                "account_id": _ACCOUNT_ID,
+                "direction": "OUT",
                 "version": "1",
             },
         )
@@ -308,15 +315,11 @@ async def test_bank_rule_edit_success(respx_mock: respx.MockRouter) -> None:
 
 @pytest.mark.anyio
 @respx.mock
-async def test_bank_rule_edit_conflict(respx_mock: respx.MockRouter) -> None:
-    """POST /bank-rules/{id}/edit with 409 re-renders with conflict banner."""
+async def test_bank_rule_edit_validation_error(respx_mock: respx.MockRouter) -> None:
+    """POST /bank-rules/{id}/edit with an engine 422 re-renders the form with
+    the plain message (the engine has no rule versions, so no conflict)."""
     respx_mock.patch(f"{_API_BASE}/api/v1/bank_rules/{_RULE_ID}").mock(
-        return_value=Response(409, json={"detail": "Version conflict"})
-    )
-    # The route re-fetches the latest version after a 409
-    latest = {**_MOCK_RULE, "version": 2}
-    respx_mock.get(f"{_API_BASE}/api/v1/bank_rules/{_RULE_ID}").mock(
-        return_value=Response(200, json=latest)
+        return_value=Response(422, json={"detail": "The lowest amount is more than the highest amount"})
     )
 
     async with AsyncClient(
@@ -329,16 +332,59 @@ async def test_bank_rule_edit_conflict(respx_mock: respx.MockRouter) -> None:
             f"/bank-rules/{_RULE_ID}/edit",
             data={
                 "name": "Officeworks stationery",
-                "match_field": "narration",
-                "match_operator": "contains",
-                "match_value": "OFFICEWORKS",
-                "action_account_id": _ACCOUNT_ID,
-                "version": "1",
+                "match_type": "CONTAINS",
+                "match_pattern": "OFFICEWORKS",
+                "account_id": _ACCOUNT_ID,
+                "amount_min": "50",
+                "amount_max": "10",
             },
         )
 
-    assert resp.status_code == 409
-    assert "modified by another user" in resp.text
+    assert resp.status_code == 422
+    assert "lowest amount is more than the highest" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bank_rule_create_sends_engine_schema(respx_mock: respx.MockRouter) -> None:
+    """The create form posts the engine's field names, conditions included."""
+    route = respx_mock.post(f"{_API_BASE}/api/v1/bank_rules").mock(
+        return_value=Response(201, json=_MOCK_RULE)
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            "/bank-rules/new",
+            data={"name": "Fees", "match_type": "STARTS_WITH", "match_pattern": "FEE",
+                  "account_id": _ACCOUNT_ID, "direction": "OUT", "amount_max": "20.00",
+                  "auto_create": "on"},
+        )
+    assert resp.status_code == 303
+    sent = _json.loads(route.calls.last.request.content)
+    assert sent["match_type"] == "STARTS_WITH"
+    assert sent["match_pattern"] == "FEE"
+    assert sent["account_id"] == _ACCOUNT_ID
+    assert sent["direction"] == "OUT"
+    assert sent["amount_max"] == "20.00"
+    assert sent["auto_create"] is True
+
+
+@pytest.mark.anyio
+async def test_bank_rule_new_form_prefills_from_bank_line() -> None:
+    """'Make a rule from this line' pre-fills pattern, direction and account."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.get("/bank-rules/new?pattern=TELSTRA%20BILL&direction=OUT")
+    assert resp.status_code == 200
+    assert 'value="TELSTRA BILL"' in resp.text
+    assert 'value="OUT" selected' in resp.text
 
 
 # ---------------------------------------------------------------------------

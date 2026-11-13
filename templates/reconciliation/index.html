@@ -4,11 +4,10 @@
 
 {% block content %}
 
-{# ── Flash banner ── #}
 {% if flash %}
-<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
-  <span class="dot" style="background:var(--pos);"></span>
-  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--sae);">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
 </div>
 {% endif %}
 
@@ -16,6 +15,10 @@
   <div>
     <h1 class="font-display text-2xl">{{ _("Bank Reconciliation") }}</h1>
     <p class="text-sm ink-3 mt-1">{{ _("Select an account to reconcile") }}</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="/admin/imports/bank" class="btn-secondary text-sm">{{ _("Import a statement") }}</a>
+    <a href="/banking/feeds" class="btn-secondary text-sm">{{ _("Bank feeds") }}</a>
   </div>
 </div>
 
@@ -38,26 +41,31 @@
       <tr>
         <th class="text-left">{{ _("Code") }}</th>
         <th class="text-left">{{ _("Account Name") }}</th>
+        <th class="text-right">{{ _("In the books") }}</th>
+        <th class="text-right">{{ _("Imported statement") }}</th>
+        <th class="text-right">{{ _("To match") }}</th>
+        <th class="text-left">{{ _("Reconciled to") }}</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
       {% if accounts %}
         {% for account in accounts %}
-        <tr class="hover:bg-[color:var(--paper-2)]">
+        <tr>
           <td class="font-mono text-xs ink-3">{{ account.code | default("—") }}</td>
-          <td class="font-medium ink-1">{{ account.name | default("—") }}</td>
+          <td class="font-medium ink-1">{{ account.name | default("—") }}{% if account.get('balance_kind') == 'owing' %} <span class="text-xs ink-3">({{ _("amount owing") }})</span>{% endif %}</td>
+          <td class="text-right font-mono text-xs">{% if account.get('ledger_balance') is not none %}{{ num(account.get('ledger_balance')|float, 2) }}{% else %}—{% endif %}</td>
+          <td class="text-right font-mono text-xs">{% if account.get('balance') is not none %}{{ num(account.get('balance')|float, 2) }}{% else %}—{% endif %}</td>
+          <td class="text-right text-xs">{{ account.get('lines_to_match') if account.get('lines_to_match') is not none else "—" }}</td>
+          <td class="text-xs ink-3">{{ account.get('last_reconciled_date') or _("Never") }}{% if account.get('open_reconciliation_id') %} · {{ _("in progress") }}{% endif %}</td>
           <td class="text-right">
-            <a
-              href="/reconciliation/{{ account.id }}/lines"
-              class="text-xs font-medium sae hover:underline"
-            >{{ _("Reconcile") }}</a>
+            <a href="/reconciliation/{{ account.id }}/lines" class="text-xs font-medium sae hover:underline">{{ _("Reconcile") }}</a>
           </td>
         </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="3" class="px-4 py-8 text-center ink-3">
+          <td colspan="7" class="px-4 py-8 text-center ink-3">
             {{ _("No reconcilable accounts found. Enable reconciliation on a bank or cash account.") }}
           </td>
         </tr>

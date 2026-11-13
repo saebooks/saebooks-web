@@ -56,6 +56,38 @@
   </div>
 </div>
 
+{# ── Balances and actions (batch 4, P1-49) ── #}
+{% if register %}
+{% set bal = register.balances %}{% set owing = register.account.balance_kind == 'owing' %}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-4">
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{% if owing %}{{ _("Owing in the books") }}{% else %}{{ _("Balance in the books") }}{% endif %}</p>
+    <p class="mt-1 text-lg font-mono ink-1">{{ num(bal.book_balance_printed|float, 2) }}</p>
+  </div>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Imported statement") }}</p>
+    <p class="mt-1 text-lg font-mono ink-1">{% if bal.statement_balance_printed is not none %}{{ num(bal.statement_balance_printed|float, 2) }}{% else %}—{% endif %}</p>
+  </div>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Bank lines to match") }}</p>
+    <p class="mt-1 text-lg font-mono ink-1">{{ bal.lines_to_match }}</p>
+  </div>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Reconciled to") }}</p>
+    <p class="mt-1 text-sm ink-1">{% if bal.last_reconciled_date %}{{ bal.last_reconciled_date }} · <span class="font-mono">{{ num(bal.last_reconciled_balance_printed|float, 2) }}</span>{% else %}{{ _("Never") }}{% endif %}</p>
+  </div>
+</div>
+{% endif %}
+<div class="flex flex-wrap gap-2 mb-8">
+  <a href="/reconciliation/{{ account.id }}/lines" class="btn-primary text-sm">{{ _("Reconcile") }}</a>
+  <a href="/admin/imports/bank?account_id={{ account.id }}" class="btn-secondary text-sm">{{ _("Import a statement") }}</a>
+  <a href="/transfers/new?from_account_id={{ account.id }}" class="btn-secondary text-sm">{{ _("Record a transfer") }}</a>
+  {% if account.get('account_kind') == 'CREDIT_CARD' or (register and register.account.balance_kind == 'owing') %}
+  <a href="/transfers/new?to_account_id={{ account.id }}" class="btn-secondary text-sm">{{ _("Pay this card") }}</a>
+  {% endif %}
+  <a href="/expenses/new?payment_account_id={{ account.id }}" class="btn-secondary text-sm">{{ _("Record spending") }}</a>
+</div>
+
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-8">
   <div class="card rounded-xl p-4">
@@ -123,6 +155,57 @@
   </div>
 </div>
 
+{# ── Bank lines | Books tabs (batch 4) ── #}
+<div class="flex gap-1 mb-3 border-b" style="border-color:var(--line);" id="transactions">
+  <a href="/bank-accounts/{{ account.id }}?view=bank#transactions" class="px-3 py-2 text-sm {% if view != 'books' %}font-semibold ink-1 border-b-2{% else %}ink-3{% endif %}" {% if view != 'books' %}style="border-color:var(--sae);"{% endif %}>{{ _("Bank lines") }}</a>
+  <a href="/bank-accounts/{{ account.id }}?view=books#transactions" class="px-3 py-2 text-sm {% if view == 'books' %}font-semibold ink-1 border-b-2{% else %}ink-3{% endif %}" {% if view == 'books' %}style="border-color:var(--sae);"{% endif %}>{{ _("Books") }}</a>
+</div>
+
+{% if view == 'books' %}
+<div class="mb-8">
+  {% if register %}
+  <div class="card rounded-xl overflow-x-auto">
+    <table class="sae-table w-full text-sm">
+      <thead><tr>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("Record") }}</th>
+        <th class="text-left">{{ _("Contact") }}</th>
+        <th class="text-left">{{ _("Description") }}</th>
+        <th class="text-right">{{ _("Money in") }}</th>
+        <th class="text-right">{{ _("Money out") }}</th>
+        <th class="text-right">{{ _("Balance") }}</th>
+        <th class="text-left">{{ _("Bank") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for it in register["items"] %}
+        <tr>
+          <td class="font-mono text-xs ink-3 whitespace-nowrap">{{ it.entry_date }}</td>
+          <td class="ink-1">{{ it.source_label or it.entry_ref }}</td>
+          <td class="ink-2">{{ it.contact_name or "—" }}</td>
+          <td class="ink-2">{{ it.description or "—" }}</td>
+          <td class="text-right font-mono text-xs" style="color:var(--pos);">{% if it.money_in %}{{ num(it.money_in|float, 2) }}{% endif %}</td>
+          <td class="text-right font-mono text-xs" style="color:var(--neg);">{% if it.money_out %}{{ num(it.money_out|float, 2) }}{% endif %}</td>
+          <td class="text-right font-mono text-xs ink-1">{{ num(it.running_balance|float, 2) }}</td>
+          <td class="text-xs">{% if it.cleared %}<span class="badge-pos">{{ _("Cleared") }}</span>{% else %}<span class="ink-3">{{ _("Not yet") }}</span>{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="px-4 py-8 text-center ink-3">{{ _("Nothing has been recorded against this account yet.") }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% set btotal = register.total %}
+  {% if btotal > 100 %}
+  <div class="mt-3 flex gap-3 text-sm">
+    {% if books_offset > 0 %}<a class="sae hover:underline" href="/bank-accounts/{{ account.id }}?view=books&books_offset={{ [books_offset - 100, 0]|max }}#transactions">{{ _("Earlier") }}</a>{% endif %}
+    {% if books_offset + 100 < btotal %}<a class="sae hover:underline" href="/bank-accounts/{{ account.id }}?view=books&books_offset={{ books_offset + 100 }}#transactions">{{ _("Later") }}</a>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <p class="text-sm ink-3">{{ _("The books for this account could not be loaded.") }}</p>
+  {% endif %}
+</div>
+{% else %}
 {# ── Transactions — primary view, fills the bottom of the page. ── #}
 <div class="mb-8">
   <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
@@ -217,6 +300,7 @@
   </div>
   {% endif %}
 </div>
+{% endif %}{# end view == books / bank #}
 
 {# ── Metadata footer ── #}
 <div class="card rounded-xl px-4 py-4 text-xs ink-3 grid grid-cols-2 gap-2 sm:grid-cols-3" style="background:var(--paper-2);">

@@ -238,6 +238,10 @@ async def expense_new_form(
     form: dict[str, object] = {"expense_date": today}
     if contact_id:
         form["contact_id"] = contact_id
+    # Bank account page "Record spending" button (batch 4, P1-49).
+    _pa = request.query_params.get("payment_account_id", "").strip()
+    if _pa:
+        form["payment_account_id"] = _pa
 
     return _TEMPLATES.TemplateResponse(
         request,

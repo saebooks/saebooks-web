@@ -64,6 +64,40 @@ def _require_admin(request: Request) -> bool:
     return is_staff or role in ("owner", "admin")
 
 
+# Batch 4 (P1-20): importing a bank statement is daily bookkeeping, not
+# administration — bookkeepers and accountants may do it too. CoA and QBO
+# imports stay admin-only.
+_BANK_IMPORT_ROLES = ("owner", "admin", "accountant", "bookkeeper")
+
+
+def _can_import_bank(request: Request) -> bool:
+    role = request.session.get("user_role", "")
+    return bool(request.session.get("is_sae_staff")) or role in _BANK_IMPORT_ROLES
+
+
+_FORBIDDEN_BANK = "Forbidden — your role cannot import bank statements"
+
+
+async def _bank_formats(client) -> list[dict]:
+    try:
+        r = await client.get("/api/v1/imports/bank/formats")
+        if r.is_success and isinstance(r.json(), list):
+            return r.json()
+    except Exception:  # noqa: BLE001 — fall back to the built-in list
+        pass
+    return [
+        {"value": "auto", "label": "Work it out from the file"},
+        {"value": "cba", "label": "Commonwealth Bank (CSV)"},
+        {"value": "anz", "label": "ANZ (CSV)"},
+        {"value": "nab", "label": "NAB (CSV)"},
+        {"value": "westpac", "label": "Westpac (CSV)"},
+        {"value": "amex", "label": "American Express (CSV)"},
+        {"value": "generic", "label": "Other bank (CSV with a header row)"},
+        {"value": "ofx", "label": "OFX or QFX file"},
+        {"value": "qif", "label": "QIF file"},
+    ]
+
+
 def _auth_redirect(request: Request) -> RedirectResponse | None:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -113,11 +147,12 @@ async def imports_bank_form(request: Request) -> HTMLResponse | RedirectResponse
     """Render the bank statement upload form."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
-    if not _require_admin(request):
-        return HTMLResponse("Forbidden — admin role required", status_code=403)
+    if not _can_import_bank(request):
+        return HTMLResponse(_FORBIDDEN_BANK, status_code=403)
 
     bank_accounts: list[dict] = []
     error: str | None = None
+    formats: list[dict] = []
 
     # A bank statement line's ``account_id`` is a foreign key to the CHART OF
     # ACCOUNTS (accounts.id), and the reconcile screen keys off that same set,
@@ -138,6 +173,7 @@ async def imports_bank_form(request: Request) -> HTMLResponse | RedirectResponse
             bank_accounts = payload if isinstance(payload, list) else payload.get("items", [])
         else:
             error = f"Could not load accounts: HTTP {resp.status_code}"
+        formats = await _bank_formats(client)
 
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
@@ -145,10 +181,19 @@ async def imports_bank_form(request: Request) -> HTMLResponse | RedirectResponse
         "imports/bank.html",
         {
             "bank_accounts": bank_accounts,
+            "formats": formats,
+            "selected_account_id": request.query_params.get("account_id", ""),
             "error": error,
             "flash": flash,
         },
     )
+
+
+@router.get("/banking/import", response_model=None)
+async def banking_import_alias(request: Request) -> RedirectResponse:
+    """Banking menu address for the statement import."""
+    qs = request.url.query
+    return RedirectResponse(url="/admin/imports/bank" + (f"?{qs}" if qs else ""), status_code=303)
 
 
 @router.post("/admin/imports/bank/start", response_model=None)
@@ -156,8 +201,8 @@ async def imports_bank_start(request: Request) -> RedirectResponse:
     """Start a bank_csv/bank_ofx wizard then redirect to the upload step."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
-    if not _require_admin(request):
-        return HTMLResponse("Forbidden — admin role required", status_code=403)  # type: ignore[return-value]
+    if not _can_import_bank(request):
+        return HTMLResponse(_FORBIDDEN_BANK, status_code=403)  # type: ignore[return-value]
 
     form_data = await request.form()
     account_id = str(form_data.get("account_id", ""))
@@ -188,8 +233,8 @@ async def imports_bank_upload_form(request: Request) -> HTMLResponse | RedirectR
     """Show the file upload step for an in-progress bank wizard."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
-    if not _require_admin(request):
-        return HTMLResponse("Forbidden — admin role required", status_code=403)
+    if not _can_import_bank(request):
+        return HTMLResponse(_FORBIDDEN_BANK, status_code=403)
 
     wizard_id = request.session.get(_WIZARD_KEY)
     if not wizard_id:
@@ -213,8 +258,8 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
-    if not _require_admin(request):
-        return HTMLResponse("Forbidden — admin role required", status_code=403)
+    if not _can_import_bank(request):
+        return HTMLResponse(_FORBIDDEN_BANK, status_code=403)
 
     form_data = await request.form()
     account_id = str(form_data.get("account_id", ""))
@@ -228,9 +273,13 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
     if hasattr(file_field, "read"):
         content = await file_field.read()  # type: ignore[union-attr]
         raw = content.decode("utf-8-sig", errors="replace")
+    fmt = str(form_data.get("format", "") or "auto")
+    flip = str(form_data.get("flip_signs", "")).lower() in ("1", "on", "true")
 
     # If no in-session wizard, start one now (convenience path).
     wizard_id = request.session.get(_WIZARD_KEY)
+    preview: dict | None = None
+    preview_error: str | None = None
     async with api_client(request) as client:
         if not wizard_id:
             resp = await client.post(
@@ -245,17 +294,36 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
                 return _TEMPLATES.TemplateResponse(
                     request,
                     "imports/bank.html",
-                    {"bank_accounts": [], "error": error},
+                    {"bank_accounts": [], "formats": [], "error": error},
                     status_code=400,
                 )
             wizard_id = resp.json()["wizard_id"]
             request.session[_WIZARD_KEY] = wizard_id
 
-        # Step the wizard with the raw content.
+        # Step the wizard with the raw content and the reading options.
         step_resp = await client.post(
             f"/api/v1/imports/wizards/{wizard_id}/step",
-            json={"step": 0, "patch": {"raw": raw, "account_id": account_id, "_completed": True}},
+            json={"step": 0, "patch": {
+                "raw": raw, "account_id": account_id, "format": fmt,
+                "flip_signs": flip, "_completed": True,
+            }},
         )
+
+        # Real preview (batch 4, P1-20): the engine parses the file exactly
+        # as the import will and reports duplicates — nothing is written.
+        if step_resp.is_success and raw:
+            try:
+                pv = await client.post(
+                    "/api/v1/imports/bank/preview",
+                    json={"account_id": account_id, "raw": raw, "format": fmt,
+                          "flip_signs": flip},
+                )
+                if pv.is_success:
+                    preview = pv.json()
+                else:
+                    preview_error = await _api_error(pv)
+            except Exception:  # noqa: BLE001 — an older engine has no preview
+                preview = None
 
     if step_resp.status_code == 401:
         request.session.clear()
@@ -265,27 +333,33 @@ async def imports_bank_preview(request: Request) -> HTMLResponse | RedirectRespo
         return _TEMPLATES.TemplateResponse(
             request,
             "imports/bank.html",
-            {"bank_accounts": [], "error": error},
+            {"bank_accounts": [], "formats": [], "error": error},
             status_code=400,
         )
 
-    # Build a simple preview from the raw content (row count, first 10 lines).
-    all_lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
-    # The first line is the CSV header, not a transaction row.
-    data_count = max(0, len(all_lines) - 1)
-    proxy_html = (
-        f"<p><strong>Preview:</strong> {data_count} rows detected.</p>"
-        f"<pre>{'\\n'.join(all_lines[:10])}</pre>"
-    )
+    proxy_html = None
+    if preview is None and not preview_error:
+        # Engine without the preview endpoint: plain count fallback.
+        all_lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+        data_count = max(0, len(all_lines) - 1)
+        from markupsafe import escape
+
+        proxy_html = (
+            f"<p><strong>Preview:</strong> {data_count} rows detected.</p>"
+            f"<pre>{escape(chr(10).join(all_lines[:10]))}</pre>"
+        )
 
     return _TEMPLATES.TemplateResponse(
         request,
         "imports/bank_preview.html",
         {
+            "preview": preview,
             "proxy_html": proxy_html,
             "account_id": account_id,
             "wizard_id": wizard_id,
-            "error": None,
+            "format": fmt,
+            "flip_signs": flip,
+            "error": preview_error,
         },
     )
 
@@ -295,8 +369,8 @@ async def imports_bank_apply(request: Request) -> HTMLResponse | RedirectRespons
     """Commit the bank wizard — calls POST /api/v1/imports/wizards/{id}/commit."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
-    if not _require_admin(request):
-        return HTMLResponse("Forbidden — admin role required", status_code=403)
+    if not _can_import_bank(request):
+        return HTMLResponse(_FORBIDDEN_BANK, status_code=403)
 
     form_data = await request.form()
     wizard_id = str(form_data.get("wizard_id", "")) or request.session.get(_WIZARD_KEY, "")
@@ -349,6 +423,7 @@ async def imports_bank_apply(request: Request) -> HTMLResponse | RedirectRespons
         {
             "inserted": result.get("inserted", 0),
             "total": result.get("total", 0),
+            "rules": result.get("rules") or {},
             "account_id": account_id,
             "proxy_html": None,
         },

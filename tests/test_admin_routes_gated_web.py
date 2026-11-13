@@ -9,9 +9,6 @@ Staff-only routes (is_sae_staff required):
 
 Admin-role routes (user_role == "admin" or is_sae_staff):
   GET  /admin/imports/
-  GET  /admin/imports/bank
-  POST /admin/imports/bank/preview
-  POST /admin/imports/bank/apply
   GET  /admin/imports/coa
   POST /admin/imports/coa/preview
   POST /admin/imports/coa/apply
@@ -138,9 +135,11 @@ async def test_audit_allowed_for_staff(respx_mock: respx.MockRouter) -> None:
 # on all of them. Tenant admins must get through (200 or redirect).
 # ---------------------------------------------------------------------------
 
+# Bank statement import is daily bookkeeping, not administration: batch 4
+# (P1-20, 2026-11-13) opened it to bookkeepers and accountants — see
+# test_bank_import_open_to_bookkeeper_not_viewer below.
 _ADMIN_GET_ROUTES = [
     "/admin/imports/",
-    "/admin/imports/bank",
     "/admin/imports/coa",
     "/admin/ranges",
     "/admin/ranges/new",
@@ -274,3 +273,37 @@ async def test_ato_sbr_allowed_for_tenant_admin(
     assert resp.status_code != 403, (
         f"Tenant admin should not be 403'd on /admin/ato-sbr, got {resp.status_code}"
     )
+
+
+_VIEWER_COOKIE = _make_session_cookie(
+    {"api_token": "test-token-v", "is_sae_staff": False, "user_role": "viewer"}
+)
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_bank_import_open_to_bookkeeper_not_viewer(respx_mock: respx.MockRouter) -> None:
+    """Batch 4 (P1-20): bookkeepers may import a bank statement; a read-only
+    viewer still may not, and the rest of /admin/imports stays admin-only."""
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
+        return_value=Response(200, json=[])
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/imports/bank/formats").mock(
+        return_value=Response(200, json=[{"value": "auto", "label": "Work it out from the file"}])
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test",
+        cookies={settings.session_cookie_name: _BOOKKEEPER_COOKIE}, follow_redirects=False,
+    ) as client:
+        ok = await client.get("/admin/imports/bank")
+        landing = await client.get("/admin/imports/")
+    assert ok.status_code == 200
+    assert landing.status_code == 403
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test",
+        cookies={settings.session_cookie_name: _VIEWER_COOKIE}, follow_redirects=False,
+    ) as client:
+        denied = await client.get("/admin/imports/bank")
+        denied_post = await client.post("/admin/imports/bank/preview", data={})
+    assert denied.status_code == 403
+    assert denied_post.status_code == 403

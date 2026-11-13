@@ -67,7 +67,7 @@
       {% endif %}
       {% if payment.status == 'POSTED' %}
       <form method="post" action="/payments/{{ payment.id }}/void"
-            onsubmit="return confirm('{{ _('Void this payment?') }}');" class="inline">
+            onsubmit="return confirm('{{ _('Void this payment? A reversing entry is recorded, the original stays in the ledger, and the bank line it cleared goes back to be matched again. A line in a finished bank reconciliation cannot be voided.') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ payment.version }}">
         <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
