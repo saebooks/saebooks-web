@@ -43,41 +43,30 @@ def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
 
-# Envelope defaults for the email composer — mirrors quotes.py's
-# _FROM_OPTIONS / _DEFAULT_FROM_BY_DOC_TYPE (see that module for the
-# per-doc-type default rationale). Duplicated rather than imported so this
-# route module stays self-contained, same as quotes.py.
-_FROM_OPTIONS = ("admin@saee.com.au", "accounts@saee.com.au")
-_DEFAULT_FROM_INVOICE = "accounts@saee.com.au"
-
-
-def _default_invoice_email_fields(invoice: dict, customer: dict) -> dict[str, str]:
+def _default_invoice_email_fields(
+    invoice: dict, customer: dict, email_settings: dict | None = None
+) -> dict:
     """Build default from/to/subject/body for the invoice email composer.
 
     Shared by the GET compose form (single invoice, user can edit before
     sending) and the bulk-send action (which sends these defaults as-is —
-    there is no per-row review UI in a bulk action).
+    there is no per-row review UI in a bulk action). b06: the wording,
+    signature, sender name, reply-to and From address come from the
+    company's email settings — nothing business-specific is built in.
     """
-    number = invoice.get("number") or invoice.get("id")
-    total = float(invoice.get("total") or 0)
-    currency = invoice.get("currency") or "AUD"
-    due_date = invoice.get("due_date") or ""
-    default_to = customer.get("email", "") or ""
-    default_subject = f"Tax Invoice {number}"
-    default_body_html = (
-        f'<p>Dear {customer.get("name", "team")},</p>\n'
-        f'<p>Please find attached tax invoice <b>{number}</b>.</p>\n'
-        f'<p>Total: {currency} ${total:,.2f}. Payment is due by {due_date or "on receipt"} '
-        f'({invoice.get("payment_terms") or "on receipt"}).</p>\n'
-        f'<p>If you have any questions please reply to this email or call '
-        f'0457 704 373.</p>\n'
-        f'<p>Kind regards,<br>Richard Sauer<br>Director — SAE Engineering</p>'
-    )
+    from saebooks_web import email_defaults as ed
+
+    d = ed.compose("invoice", email_settings or {}, ed.invoice_values(invoice, customer))
     return {
-        "from_addr": _DEFAULT_FROM_INVOICE,
-        "to": default_to,
-        "subject": default_subject,
-        "body_html": default_body_html,
+        "from_addr": d["default_from"],
+        "from_options": d["from_options"],
+        "to": customer.get("email", "") or "",
+        "subject": d["subject"],
+        "body_html": d["body_html"],
+        "reply_to": d["reply_to"],
+        "from_name": d["from_name"],
+        "bcc": d["bcc"],
+        "status": d["status"],
     }
 
 
@@ -1108,7 +1097,10 @@ async def _invoices_bulk_send(request: Request, ids: list[str]) -> RedirectRespo
     skipped: list[str] = []
     failed: list[str] = []
 
+    from saebooks_web import email_defaults as ed
+
     async with api_client(request) as client:
+        email_settings = await ed.settings_for(client)
         for inv_id in ids:
             iresp = await client.get(f"/api/v1/invoices/{inv_id}")
             if iresp.status_code == 401:
@@ -1126,7 +1118,7 @@ async def _invoices_bulk_send(request: Request, ids: list[str]) -> RedirectRespo
 
             cresp = await client.get(f"/api/v1/contacts/{invoice['contact_id']}")
             customer = cresp.json() if cresp.status_code == 200 else {}
-            defaults = _default_invoice_email_fields(invoice, customer)
+            defaults = _default_invoice_email_fields(invoice, customer, email_settings)
 
             if not defaults["to"]:
                 skipped.append(f"{label} (no customer email on file)")
@@ -1139,10 +1131,16 @@ async def _invoices_bulk_send(request: Request, ids: list[str]) -> RedirectRespo
                 "bcc": [],
                 "subject": defaults["subject"],
                 "body_html": defaults["body_html"],
+                "reply_to": defaults["reply_to"] or None,
+                "from_name": defaults["from_name"] or None,
                 "sent_by_user_id": request.session.get("user_id"),
             }
+            if defaults["bcc"]:
+                payload["bcc"] = [defaults["bcc"]]
             try:
-                resp = await client.post(f"/api/v1/invoices/{inv_id}/send-email", json=payload)
+                resp = await client.post(
+                    f"/api/v1/invoices/{inv_id}/send-email", json=payload, timeout=120.0
+                )
             except Exception as exc:
                 failed.append(f"{label} (transport error: {exc!s})")
                 continue
@@ -1374,20 +1372,27 @@ async def invoice_email_compose(
 
         cresp = await client.get(f"/api/v1/contacts/{invoice['contact_id']}")
         customer = cresp.json() if cresp.status_code == 200 else {}
+        from saebooks_web import email_defaults as ed
+
+        email_settings = await ed.settings_for(client)
 
     if invoice.get("status") != "POSTED":
         request.session["flash"] = "Invoice must be posted before it can be emailed."
         return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
 
-    defaults = _default_invoice_email_fields(invoice, customer)
+    defaults = _default_invoice_email_fields(invoice, customer, email_settings)
 
     return _TEMPLATES.TemplateResponse(
         request, "invoices/email_compose.html",
         {
             "invoice":            invoice,
             "form":               {},
-            "from_options":       _FROM_OPTIONS,
+            "from_options":       defaults["from_options"],
             "default_from":       defaults["from_addr"],
+            "default_reply_to":   defaults["reply_to"],
+            "default_from_name":  defaults["from_name"],
+            "default_bcc":        defaults["bcc"],
+            "email_status":       defaults["status"],
             "default_to":         defaults["to"],
             "default_subject":    defaults["subject"],
             "default_body_html":  defaults["body_html"],
@@ -1424,51 +1429,40 @@ async def invoice_email_send(
         "bcc":              bcc_list,
         "subject":          form.get("subject", ""),
         "body_html":        form.get("body_html", ""),
+        "reply_to":         form.get("reply_to", "") or None,
+        "from_name":        form.get("from_name", "") or None,
         "sent_by_user_id":  request.session.get("user_id"),
     }
 
+    from saebooks_web import email_defaults as ed
+
     async with api_client(request) as client:
-        resp = await client.post(f"/api/v1/invoices/{invoice_id}/send-email", json=payload)
+        resp = await client.post(
+            f"/api/v1/invoices/{invoice_id}/send-email", json=payload, timeout=120.0
+        )
         iresp = await client.get(f"/api/v1/invoices/{invoice_id}")
         invoice = iresp.json() if iresp.status_code == 200 else {}
+        email_settings = await ed.settings_for(client)
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+    defaults = _default_invoice_email_fields(invoice, {}, email_settings)
 
     result = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
-    mode = result.get("mode", "unknown")
-    if mode == "blocked":
-        flash = (
-            f"🛑 <b>BLOCKED</b> — nothing was sent. "
-            f"Reason: <code>{result.get('reason', 'unknown')}</code>. "
-            f"Outbox copy: <code>{result.get('outbox_path', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "warm"
-    elif mode == "sent":
-        flash = (
-            f"✅ Sent. Resend message id: <code>{result.get('message_id', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "pos"
-    elif mode == "failed":
-        flash = (
-            f"❌ Failed. Errors: <code>{result.get('errors', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "neg"
-    else:
-        flash = f"Upstream HTTP {resp.status_code}: <code>{(resp.text or '')[:300]}</code>"
-        flash_kind = "neg"
+    flash, flash_kind = ed.send_result_flash(resp, result, to_list)
 
     return _TEMPLATES.TemplateResponse(
         request, "invoices/email_compose.html",
         {
             "invoice":            invoice,
             "form":               form,
-            "from_options":       _FROM_OPTIONS,
-            "default_from":       _DEFAULT_FROM_INVOICE,
+            "from_options":       defaults["from_options"],
+            "default_from":       form.get("from_addr") or defaults["from_addr"],
+            "default_reply_to":   defaults["reply_to"],
+            "default_from_name":  defaults["from_name"],
+            "default_bcc":        "",
+            "email_status":       defaults["status"],
             "default_to":         "",
             "default_subject":    "",
             "default_body_html":  "",

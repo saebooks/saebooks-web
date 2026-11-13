@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Do the numbers match?") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="flex items-center gap-2 mb-1 text-sm">
+  <a href="/setup" class="ink-3 hover:ink-2">{{ _("Getting set up") }}</a><span class="ink-4">/</span>
+  <a href="/setup/opening-balances" class="ink-3 hover:ink-2">{{ _("Opening balances") }}</a><span class="ink-4">/</span>
+  <span class="ink-1 font-medium">{{ _("Do the numbers match?") }}</span>
+</div>
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Do the numbers match?") }}</h1>
+  <p class="text-sm ink-3 mt-1 max-w-3xl">{{ _("Your books here, as at the opening date, compared with the trial balance from your old system.") }}</p>
+</div>
+{% include "day_one/_flash.html" %}
+
+{% if c %}
+{% if c.state == "not_started" %}
+<div class="card p-5 max-w-3xl">
+  <p class="text-sm ink-1">{{ _("You have not entered your opening balances yet.") }}</p>
+  <a href="/setup/opening-balances" class="btn-primary text-sm mt-3">{{ _("Enter opening balances") }}</a>
+</div>
+{% else %}
+<div class="card p-4 mb-5 max-w-3xl" style="border-color:var(--{{ 'pos' if c.state == 'ties' else 'warm' }});" role="status">
+  <p class="text-sm font-medium" style="color:var(--{{ 'pos' if c.state == 'ties' else 'warm' }});">
+    {% if c.state == "ties" %}{{ _("Everything matches your old system as at %(d)s.") % {"d": c.opening_date} }}
+    {% else %}{{ _("Some figures do not match yet. The rows marked below show where.") }}{% endif %}
+  </p>
+  <p class="text-xs ink-3 mt-1">
+    {{ _("Unpaid invoices brought across: %(n)s totalling %(t)s. Unpaid bills: %(m)s totalling %(u)s.") % {
+      "n": c.subledgers.invoices.count, "t": num(c.subledgers.invoices.total|float, 2),
+      "m": c.subledgers.bills.count, "u": num(c.subledgers.bills.total|float, 2)} }}
+  </p>
+</div>
+
+{% if c.bank_accounts %}
+<section class="card p-5 mb-5 max-w-3xl">
+  <h2 class="text-sm font-semibold ink-1 mb-2">{{ _("Bank opening balances") }}</h2>
+  <p class="text-xs ink-3 mb-2">{{ _("Your first bank reconciliation starts from these. They should equal the bank statement balance on %(d)s, less any payments and deposits not yet cleared.") % {"d": c.opening_date} }}</p>
+  <ul class="text-sm">{% for b in c.bank_accounts %}<li class="flex justify-between hairline-b py-1"><span>{{ b.code }} {{ b.name }}</span><span class="num">{{ num(b.opening_balance|float, 2) }}</span></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<section class="card p-5 mb-5">
+  <table class="w-full text-sm">
+    <thead><tr class="text-xs ink-3 hairline-b text-left">
+      <th class="py-1">{{ _("Account") }}</th>
+      <th class="py-1 text-right">{{ _("Old system") }}</th>
+      <th class="py-1 text-right">{{ _("Here") }}</th>
+      <th class="py-1 text-right">{{ _("Difference") }}</th>
+    </tr></thead>
+    <tbody>
+    {% for r in c.rows %}
+      <tr class="hairline-b">
+        <td class="py-1"><span class="font-mono text-xs ink-3">{{ r.code }}</span> {{ r.name }}
+          {% if not r.ties %}
+            {% if r.role == "receivables" %}<span class="block text-xs" style="color:var(--warm);">{{ _("Bring across your unpaid invoices to fill this.") }} <a class="sae hover:underline" href="/admin/imports/csv/open-invoices">{{ _("Import") }}</a></span>
+            {% elif r.role == "payables" %}<span class="block text-xs" style="color:var(--warm);">{{ _("Bring across your unpaid bills to fill this.") }} <a class="sae hover:underline" href="/admin/imports/csv/open-bills">{{ _("Import") }}</a></span>
+            {% elif r.role == "stock" %}<span class="block text-xs" style="color:var(--warm);">{{ _("Add opening stock to your items to fill this.") }} <a class="sae hover:underline" href="/admin/imports/csv/items">{{ _("Import") }}</a></span>
+            {% endif %}
+          {% endif %}
+        </td>
+        <td class="py-1 text-right num">{{ num(r.entered|float, 2) }}</td>
+        <td class="py-1 text-right num">{{ num(r.ledger|float, 2) }}</td>
+        <td class="py-1 text-right num" style="color:var(--{{ 'pos' if r.ties else 'neg' }});">{% if r.ties %}✓{% else %}{{ num(r.difference|float, 2) }}{% endif %}</td>
+      </tr>
+    {% endfor %}
+    {% for u in c.unexpected %}
+      <tr class="hairline-b">
+        <td class="py-1"><span class="font-mono text-xs ink-3">{{ u.code }}</span> {{ u.name }}
+          <span class="block text-xs" style="color:var(--warm);">
+            {% if u.is_opening_equity %}{{ _("This should come back to nil once unpaid invoices, bills and stock match the trial balance.") }}
+            {% else %}{{ _("Has a balance here but was not in your trial balance.") }}{% endif %}
+          </span>
+        </td>
+        <td class="py-1 text-right num">0.00</td>
+        <td class="py-1 text-right num">{{ num(u.ledger|float, 2) }}</td>
+        <td class="py-1 text-right num" style="color:var(--neg);">{{ num(u.ledger|float, 2) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="text-xs ink-3 mt-3">{{ _("Debit balances are positive, credit balances negative.") }}</p>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

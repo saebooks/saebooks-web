@@ -1,5 +1,6 @@
 {#
-  quote.tex.j2 — SAE Engineering quote / estimate
+  quote.tex.j2 — quote / estimate. Wording (title, key terms, acceptance,
+  footer) comes from the company's document settings via ``document`` (b06).
 
   Context keys (all data values MUST be latex_escape'd before interpolation):
     number          str   quote number, e.g. "1019"
@@ -73,7 +74,7 @@
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 
 \usepackage[table]{xcolor}
-\definecolor{saeblue}{HTML}{1B3A5C}
+\definecolor{saeblue}{HTML}{ {{- (document.accent if document and document.accent else "1B3A5C") -}} }
 \definecolor{saegrey}{HTML}{4A4A4A}
 \definecolor{ltgrey}{HTML}{F2F2F2}
 \definecolor{saeaccent}{HTML}{E8792B}
@@ -126,11 +127,12 @@
 {\color{saeblue}\rule{\textwidth}{1.5pt}}
 \vspace{3mm}
 
+{%- set qt = ((document.title if document and document.title else "Quote") | string) -%}
 %% =====================================================================
 %% TITLE ROW — ESTIMATE + number
 %% =====================================================================
 \begin{tabularx}{\textwidth}{@{}Xl@{}}
-  {\huge\bfseries\color{saeblue} ESTIMATE}
+  {\huge\bfseries\color{saeblue} {{ qt | upper | latex_escape }}}
   &
   {\Large\bfseries\color{saeaccent} {{ number | latex_escape }}}
 \end{tabularx}
@@ -144,7 +146,7 @@
   \cellcolor{ltgrey}%
   \begin{minipage}[t]{\linewidth}
     \vspace{2mm}
-    {\small\bfseries\color{saeblue} ESTIMATE TO:}\\[2mm]
+    {\small\bfseries\color{saeblue} {{ qt | upper | latex_escape }} TO:}\\[2mm]
     {\small\bfseries\color{saegrey} {{ customer.name | latex_escape }}}\\
     {% if customer.contact -%}
     {\small\color{saegrey} {{ customer.contact | latex_escape }}}\\
@@ -167,8 +169,8 @@
   \cellcolor{ltgrey}%
   \begin{minipage}[t]{\linewidth}
     \vspace{2mm}
-    {\small\bfseries\color{saeblue} ESTIMATE DETAILS:}\\[2mm]
-    {\small\color{saegrey} \textbf{Estimate No:} \quad {{ number | latex_escape }}}\\
+    {\small\bfseries\color{saeblue} {{ qt | upper | latex_escape }} DETAILS:}\\[2mm]
+    {\small\color{saegrey} \textbf{ {{- qt | latex_escape }} No:} \quad {{ number | latex_escape }}}\\
     {\small\color{saegrey} \textbf{Date:} \quad {{ fmt_date(issue_date) | latex_escape }}}\\
     {\small\color{saegrey} \textbf{Valid Until:} \quad
       {% if expiry_date -%}{{ fmt_date(expiry_date) | latex_escape }}{%- else -%}---{%- endif %}
@@ -282,7 +284,7 @@
 %% =====================================================================
 \begin{tabularx}{\textwidth}{@{}Xr@{}}
   \rowcolor{saeblue}
-  {\large\bfseries\color{white} TOTAL ESTIMATE (excl. {{ company.tax_term | latex_escape }})} &
+  {\large\bfseries\color{white} TOTAL {{ qt | upper | latex_escape }} (excl. {{ company.tax_term | latex_escape }})} &
   {\large\bfseries\color{white} {{ fmt_money(subtotal) }}}
 \end{tabularx}
 
@@ -295,11 +297,13 @@
 
 \begin{itemize}
   \setlength\itemsep{2pt}
-  \item \textbf{Validity:} {{ validity_days | latex_escape }} days from date of estimate. Material pricing subject to change beyond this period.
-  \item \textbf{Payment Terms:} {{ deposit_pct | latex_escape }}\% deposit on acceptance; balance per progress payment schedule.
-  \item \textbf{Programme:} Approximate 8--10 week lead time from receipt of approved IFC drawings and deposit.
-  \item \textbf{Late Fee:} 2.5\% per month on overdue amounts.
-  \item \textbf{Retention of title:} {{ company.name | latex_escape }} retains a security interest in all goods supplied until payment is received in full.
+{% if document and document.terms %}
+{% for t in document.terms %}  \item {{ t | latex_escape }}
+{% endfor %}
+{% else %}
+  \item \textbf{Validity:} {{ validity_days | latex_escape }} days from the date of this {{ qt | lower | latex_escape }}.
+  \item \textbf{Payment:} {{ deposit_pct | latex_escape }}\% deposit on acceptance, balance as invoiced.
+{% endif %}
 {% if company.website %}  \item \textbf{Full Terms:} \href{ {{- company.website | latex_escape -}} }{ {{- company.website | latex_escape -}} }
 {% endif %}\end{itemize}
 
@@ -331,11 +335,12 @@
 %% =====================================================================
 \section*{\color{saeblue}Acceptance}
 
-To proceed with this estimate, please issue a purchase order referencing
-\textbf{{ "{" }}{{ number | latex_escape }}}{% if company.email %} to
-\href{mailto:{{ company.email | latex_escape }}}{ {{- company.email | latex_escape -}} }{% endif %}.
-Upon receipt, we will issue a formal invoice for the deposit
-amount and schedule the works accordingly.
+{% if document and document.acceptance -%}
+{{ document.acceptance | latex_escape }}
+{%- else -%}
+To go ahead, please send us a purchase order quoting \textbf{ {{- number | latex_escape -}} }{% if company.email %} to
+\href{mailto:{{ company.email | latex_escape }}}{ {{- company.email | latex_escape -}} }{% endif %}, or reply to accept this {{ qt | lower | latex_escape }}.
+{%- endif %}
 
 \vspace{6mm}
 
@@ -344,5 +349,11 @@ amount and schedule the works accordingly.
 {{ company.name | latex_escape }}\\
 {% if company.email %}\href{mailto:{{ company.email | latex_escape }}}{ {{- company.email | latex_escape -}} }{% endif %}{% if company.email and company.phone %} \textbar{} {% endif %}{% if company.phone %}{{ company.phone | latex_escape }}{% endif %}
 }
+
+{% if document and document.footer %}
+%% b06 (P2-8): the business's own document footer from its settings
+\vspace{6mm}
+{\footnotesize\color{saegrey}\centering {{ document.footer | latex_escape }}\par}
+{% endif %}
 
 \end{document}

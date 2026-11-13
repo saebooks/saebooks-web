@@ -673,16 +673,26 @@ async def _list_tokens(request: Request) -> list[dict]:
 
 @router.get("/settings/users", response_class=HTMLResponse, response_model=None)
 async def users_page(request: Request) -> HTMLResponse | RedirectResponse:
-    """Read-only team roster. Degrades to an M2 banner when the module is
-    unavailable on this edition (404) rather than showing a blank page."""
+    """Team roster with invite, change role, remove and pending invitations
+    (b06, P0-32). Degrades to an M2 banner when the module is unavailable on
+    this edition (404) rather than showing a blank page."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     users: list[dict] = []
+    roles: list[dict] = []
     error: str | None = None
     degraded = False
+    roles_resp = None
     async with api_client(request) as client:
         resp = await client.get("/api/v1/users")
+        if resp.is_success:
+            # Custom roles are optional (tier-gated) — never let them break
+            # the roster.
+            try:
+                roles_resp = await client.get("/api/v1/roles")
+            except Exception:
+                roles_resp = None
     if resp.is_success:
         payload = resp.json()
         users = payload if isinstance(payload, list) else payload.get("items", [])
@@ -692,15 +702,27 @@ async def users_page(request: Request) -> HTMLResponse | RedirectResponse:
         error = "You don't have permission to view team members, or your session expired."
     else:
         error = f"API error: HTTP {resp.status_code}"
+    if roles_resp is not None and roles_resp.is_success and isinstance(roles_resp.json(), list):
+        # Custom roles only — the built-in ones map onto the base role list.
+        roles = [r for r in roles_resp.json() if not r.get("is_system")]
 
+    active = [u for u in users if not u.get("invite_pending")]
+    pending = [u for u in users if u.get("invite_pending")]
     return _TEMPLATES.TemplateResponse(
         request,
         "settings/users.html",
         {
-            "users": users,
+            "users": active,
+            "pending": pending,
+            "custom_roles": roles,
             "error": error,
             "degraded": degraded,
             "current_email": request.session.get("username", ""),
+            "is_admin": request.session.get("user_role", "") in ("owner", "admin")
+            or bool(request.session.get("is_sae_staff")),
+            "flash": request.session.pop("flash", None),
+            "flash_kind": request.session.pop("flash_kind", "pos"),
+            "invite_link": request.session.pop("invite_link", None),
             "mode": getattr(request.state, "active_company_bookkeeping_mode", "full") or "full",
         },
     )

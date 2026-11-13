@@ -19,24 +19,7 @@
   </p>
 </header>
 
-{# ─── Kill-switch banner ─── #}
-<div class="card p-4 mb-5" style="border-color:var(--warm); background:rgba(217,140,0,0.04);">
-  <div class="flex items-start gap-3">
-    <span class="dot mt-1" style="background:var(--warm);"></span>
-    <div class="text-sm ink-1">
-      <div class="font-medium" style="color:var(--warm);">{{ _("Outbound email is BLOCKED") }}</div>
-      <div class="ink-2 mt-1">
-        {{ (_("The pipeline is under construction. Clicking %(send)s below will render the PDF, write the .eml + audit log, but %(noemail)s until both gates are flipped: %(gate1)s AND %(gate2)s. See %(planpath)s.") % {
-          "send": "<b>" ~ _("Send") ~ "</b>",
-          "noemail": "<b>" ~ _("NO email leaves the server") ~ "</b>",
-          "gate1": '<code class="font-mono text-xs">SAEBOOKS_EMAIL_SEND_ENABLED=true</code>',
-          "gate2": '<code class="font-mono text-xs">tenants.outbound_email_enabled=true</code>',
-          "planpath": '<code class="font-mono text-xs">~/.claude/plans/saebooks-pdf-email-pipeline.md</code>',
-        }) | safe }}
-      </div>
-    </div>
-  </div>
-</div>
+{% include "_partials/email_status_banner.html" %}
 
 {% if flash %}
 <div class="card p-3 mb-4" style="border-color:var(--{{ flash_kind or 'warm' }});">
@@ -50,15 +33,7 @@
   <fieldset class="space-y-4">
     <legend class="nav-section-label mb-2">{{ _("Envelope") }}</legend>
 
-    <div>
-      <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From") }}</label>
-      <select name="from_addr" required class="saebooks-input">
-        {% for addr in from_options %}
-        <option value="{{ addr }}" {% if addr == default_from %}selected{% endif %}>{{ addr }}</option>
-        {% endfor %}
-      </select>
-      <p class="text-xs ink-3 mt-1 font-mono">{{ _("Default per doc type. Override per send.") }}</p>
-    </div>
+    {% include "_partials/email_envelope_fields.html" %}
 
     <div>
       <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
@@ -78,8 +53,8 @@
       </div>
       <div>
         <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Bcc") }}</label>
-        <input type="text" name="bcc" value="{{ form.bcc or '' }}" class="saebooks-input"
-               placeholder="{{ _('(optional) accounts@saee.com.au for archive') }}">
+        <input type="text" name="bcc" value="{{ form.bcc or default_bcc or '' }}" class="saebooks-input"
+               placeholder="{{ _('(optional) a copy for your records') }}">
       </div>
     </div>
 
@@ -96,7 +71,7 @@
     <legend class="nav-section-label mb-2">{{ _("Body") }}</legend>
     <textarea name="body_html" required rows="14" class="saebooks-input font-mono text-sm"
               style="line-height:1.5;">{{ form.body_html or default_body_html }}</textarea>
-    <p class="text-xs ink-3 mt-1 font-mono">{{ _("HTML allowed. Use &lt;p&gt;, &lt;br&gt;, &lt;b&gt;, &lt;i&gt;, &lt;a href=...&gt;.") }}</p>
+    <p class="text-xs ink-3 mt-1">{{ _("Change the starting wording under Settings → Documents and email. Simple HTML is allowed: <p>, <br>, <b>, <i>, <a href=…>.") }}</p>
   </fieldset>
 
   <fieldset>
@@ -112,11 +87,16 @@
 
   <div class="flex items-center justify-between pt-3 border-t" style="border-color:var(--line);">
     <a href="/invoices/{{ invoice.id }}" class="btn-secondary text-sm">{{ _("Cancel") }}</a>
+    {% if email_status and email_status.mode == "send" %}
+    <button type="submit" class="btn-primary text-sm">{{ _("Send") }}</button>
+    {% elif email_status and email_status.mode == "draft" %}
+    <button type="submit" class="btn-primary text-sm">{{ _("Save as a draft for review") }}</button>
+    {% else %}
     <button type="submit" class="btn-primary text-sm"
-            style="background:var(--warm);border-color:var(--warm);"
-            onclick="return confirm('{{ _('Outbound email is currently BLOCKED. This will write the .eml to outbox + audit log but NOT send. Proceed?') }}');">
-      {{ _("Save to outbox (sending blocked)") }}
+            onclick="return confirm('{{ _('Email sending is not set up yet, so this will not reach the customer. A copy is kept in your email log. Continue?') }}');">
+      {{ _("Keep a copy (not sent)") }}
     </button>
+    {% endif %}
   </div>
 </form>
 {% endblock %}

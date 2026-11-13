@@ -17,7 +17,7 @@
     {# Idempotency key — prevents double-submit on page reload #}
     <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
-    {% include "items/_form_fields.html" %}
+    {% with show_opening = true %}{% include "items/_form_fields.html" %}{% endwith %}
 
     <div class="mt-8 flex items-center gap-3">
       <button

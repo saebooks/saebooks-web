@@ -174,6 +174,13 @@ async def item_create(request: Request) -> HTMLResponse | RedirectResponse:
         if val:
             payload[price_field] = val
 
+    # Opening stock (b06, P1-39): the engine receives it and posts the
+    # value to inventory against opening balance equity.
+    for opening_field in ("on_hand_qty", "wac_cost"):
+        val = form.get(opening_field, "").strip().replace(",", "").replace("$", "")
+        if val:
+            payload[opening_field] = val
+
     for uuid_field in ("inventory_account_id", "cogs_account_id", "income_account_id"):
         val = form.get(uuid_field, "").strip()
         if val:

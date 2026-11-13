@@ -255,4 +255,10 @@
 {% endif %}
 
 
+{% if document and document.footer %}
+%% b06 (P2-8): the business's own document footer from its settings
+\vspace{6mm}
+{\footnotesize\color{midgrey}\centering {{ document.footer | latex_escape }}\par}
+{% endif %}
+
 \end{document}

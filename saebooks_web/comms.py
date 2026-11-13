@@ -435,14 +435,24 @@ async def _post_to_resend(
     body_html: str,
     body_text: str | None,
     attachments: list[Attachment],
+    reply_to: str | None = None,
+    from_name: str | None = None,
 ) -> tuple[str | None, str | None]:
-    """Make the actual Resend network call.  Returns ``(message_id, error)``."""
+    """Make the actual Resend network call.  Returns ``(message_id, error)``.
+
+    b06 (P1-38): ``from_name`` is shown as the sender ("Acme Pty Ltd
+    <noreply@…>") and ``reply_to`` routes customer replies to the business's
+    own mailbox — so a business can send from the shared platform address
+    without its customers ever replying into it."""
+    display = _clean_display_name(from_name)
     payload: dict = {
-        "from": from_addr,
+        "from": f"{display} <{from_addr}>" if display else from_addr,
         "to": to,
         "subject": subject,
         "html": body_html,
     }
+    if reply_to:
+        payload["reply_to"] = reply_to
     if body_text:
         payload["text"] = body_text
     if cc:
@@ -540,6 +550,113 @@ _TENANT_FROM_ALLOWLIST: dict[str, set[str]] = {
 }
 
 
+def _clean_display_name(name: str | None) -> str | None:
+    """A sender display name safe to put in a From header."""
+    if not name:
+        return None
+    cleaned = re.sub(r'[\r\n<>"]', " ", str(name)).strip()
+    cleaned = re.sub(r"\s+", " ", cleaned)[:120]
+    return f'"{cleaned}"' if cleaned else None
+
+
+def _extra_allowlist() -> dict[str, set[str]]:
+    """Operator-verified sending addresses per tenant, from the env var
+    ``SAEBOOKS_EMAIL_FROM_ALLOWLIST`` (JSON ``{"<tenant_id>": ["a@x"]}``).
+    A business can only send *from* its own domain once that domain is
+    verified with the email provider — the operator adds it here."""
+    import json as _json
+
+    raw = settings.email_from_allowlist_json or ""
+    if not raw.strip():
+        return {}
+    try:
+        data = _json.loads(raw)
+    except ValueError:
+        logger.warning("SAEBOOKS_EMAIL_FROM_ALLOWLIST is not valid JSON; ignored")
+        return {}
+    return {str(k): {str(a).strip().lower() for a in v} for k, v in data.items()}
+
+
+def allowed_from_addresses(tenant_id: str | None) -> set[str]:
+    """Every address this tenant may send customer email from: the shared
+    platform address (any tenant) + operator-verified addresses."""
+    allowed = set(_TENANT_FROM_ALLOWLIST.get(str(tenant_id), set()))
+    allowed |= _extra_allowlist().get(str(tenant_id), set())
+    if settings.email_platform_from:
+        allowed.add(settings.email_platform_from.strip().lower())
+    return allowed
+
+
+def customer_email_status(
+    *,
+    tenant_id: str | None,
+    from_addr: str | None,
+    tenant_outbound_enabled: bool,
+    company_addresses: list[str] | None = None,
+) -> dict:
+    """Plain-words status of customer email for the banner on the send and
+    settings screens (b06, P1-38). Mirrors the gates in
+    :func:`run_customer_email_policy` without sending anything.
+
+    Returns ``{"mode": "send"|"draft"|"off", "headline": str,
+    "reasons": [str], "from_options": [str], "default_from": str}``.
+    """
+    allowed = allowed_from_addresses(tenant_id)
+    options = sorted(allowed)
+    pending = [
+        a for a in (company_addresses or []) if a.strip().lower() not in allowed
+    ]
+    default_from = from_addr or (
+        settings.email_platform_from.strip().lower()
+        if settings.email_platform_from
+        else (options[0] if options else "")
+    )
+    if settings.customer_email_draft_mode:
+        return {
+            "mode": "draft",
+            "headline": "Emails are saved as drafts for review, not sent.",
+            "reasons": [
+                f"Draft mode is on: each email lands in the {settings.graph_draft_mailbox or 'review'} "
+                "mailbox's drafts, where someone checks it and presses Send."
+            ],
+            "from_options": options,
+            "default_from": default_from,
+            "pending_addresses": pending,
+        }
+    reasons: list[str] = []
+    if not settings.customer_email_send_enabled:
+        reasons.append("Email sending is switched off on this server.")
+    if not settings.resend_api_key:
+        reasons.append("No email service is connected on this server.")
+    if not tenant_outbound_enabled:
+        reasons.append("Email sending has not been turned on for your account yet.")
+    if not options:
+        reasons.append("There is no verified address to send from.")
+    elif default_from and default_from.lower() not in allowed:
+        reasons.append(f"{default_from} is not a verified sending address.")
+    if reasons:
+        return {
+            "mode": "off",
+            "headline": "Emails will not be sent yet.",
+            "reasons": reasons
+            + [
+                "Pressing Send keeps a copy of the email and PDF in your email log, "
+                "so you can download the PDF and send it yourself."
+            ],
+            "from_options": options,
+            "default_from": default_from,
+            "pending_addresses": pending,
+        }
+    return {
+        "mode": "send",
+        "headline": "Emails go straight to your customer.",
+        "reasons": [],
+        "from_options": options,
+        "default_from": default_from,
+        "pending_addresses": pending,
+    }
+
+
 async def run_customer_email_policy(
     *,
     tenant_id: str | None,
@@ -552,6 +669,8 @@ async def run_customer_email_policy(
     body_text: str | None,
     attachments: list[Attachment],
     tenant_outbound_enabled: bool,
+    reply_to: str | None = None,
+    from_name: str | None = None,
 ) -> tuple[str, str | None, str | None]:
     """The customer_doc policy — ported from the original ``send_customer_email``.
 
@@ -590,7 +709,7 @@ async def run_customer_email_policy(
         return "failed", None, f"draft mode: {draft.error}"
 
     # ── Two-key kill switch + FROM allowlist (AND'd) ──
-    allowlist = _TENANT_FROM_ALLOWLIST.get(str(tenant_id), set())
+    allowlist = allowed_from_addresses(tenant_id)
     block_reasons: list[str] = []
     if not settings.customer_email_send_enabled:
         block_reasons.append("env SAEBOOKS_EMAIL_SEND_ENABLED is not true")
@@ -598,7 +717,7 @@ async def run_customer_email_policy(
         block_reasons.append(
             f"tenants.outbound_email_enabled is false for tenant {tenant_id}"
         )
-    if from_addr not in allowlist:
+    if from_addr.strip().lower() not in allowlist:
         block_reasons.append(
             f"from_addr {from_addr!r} not in tenant allowlist {sorted(allowlist) or '[]'}"
         )
@@ -623,6 +742,8 @@ async def run_customer_email_policy(
         body_html=body_html,
         body_text=body_text,
         attachments=attachments,
+        reply_to=reply_to,
+        from_name=from_name,
     )
     if provider_id:
         return "sent", provider_id, "sent via Resend"
@@ -815,6 +936,8 @@ async def send_comms(request: Request) -> Response:
                 body_text=body_text,
                 attachments=attachments,
                 tenant_outbound_enabled=bool(meta.get("tenant_outbound_enabled")),
+                reply_to=(meta.get("reply_to") or None),
+                from_name=(meta.get("from_name") or None),
             )
         else:
             # sender: meta.sender (engine's field), meta.from fallback alias.

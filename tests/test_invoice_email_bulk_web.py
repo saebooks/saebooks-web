@@ -197,7 +197,8 @@ async def test_email_send_blocked_mode(respx_mock: respx.MockRouter) -> None:
         )
 
     assert resp.status_code == 200
-    assert "BLOCKED" in resp.text
+    # b06: plain words for the customer, technical reason kept in the detail.
+    assert "Not sent" in resp.text
     assert "SAEBOOKS_EMAIL_SEND_ENABLED" in resp.text
 
 

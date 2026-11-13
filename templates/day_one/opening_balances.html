@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Opening balances") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="flex items-center gap-2 mb-1 text-sm">
+  <a href="/setup" class="ink-3 hover:ink-2">{{ _("Getting set up") }}</a><span class="ink-4">/</span>
+  <span class="ink-1 font-medium">{{ _("Opening balances") }}</span>
+</div>
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Opening balances") }}</h1>
+  <p class="text-sm ink-3 mt-1 max-w-3xl">
+    {{ _("Bring across your balances from your old system as at the day before you start using these books. Enter your trial balance from the old system: every account's closing balance. Use the same figures your accountant has.") }}
+  </p>
+</div>
+{% include "day_one/_flash.html" %}
+
+{# ── Step 1: conversion date ── #}
+<section class="card p-5 mb-6 max-w-3xl">
+  <h2 class="text-sm font-semibold ink-1 mb-1">{{ _("1. Conversion date") }}</h2>
+  <p class="text-xs ink-3 mb-3">
+    {{ _("The first day you keep your books here. Pick the start of a GST period (1 July, 1 October, 1 January or 1 April) so your first activity statement comes from one system only.") }}
+  </p>
+  <form method="post" action="/setup/opening-balances/conversion-date" class="flex flex-wrap items-end gap-3">
+    {{ csrf_input(request)|safe }}
+    <label class="text-xs ink-2">{{ _("Conversion date") }}
+      <input type="date" name="conversion_date" required class="saebooks-input mt-1" value="{{ status.conversion_date or '' }}" {% if not can_edit %}disabled{% endif %}>
+    </label>
+    {% if can_edit %}<button type="submit" class="btn-secondary text-sm">{{ _("Save date") }}</button>{% endif %}
+    {% if status.opening_date %}
+    <span class="text-xs ink-3">{{ _("Opening balances are dated %(d)s.") % {"d": status.opening_date} }}</span>
+    {% endif %}
+  </form>
+</section>
+
+{% if status.conversion_date %}
+{# ── Step 2: trial balance ── #}
+<section class="card p-5 mb-6">
+  <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+    <div>
+      <h2 class="text-sm font-semibold ink-1">{{ _("2. Trial balance") }}</h2>
+      <p class="text-xs ink-3 mt-1 max-w-2xl">
+        {{ _("Type the balances below, or upload your old system's trial balance as a CSV. Receivables, payables and stock are checked against the unpaid invoices, bills and items you bring across next, so their totals must match.") }}
+      </p>
+    </div>
+    <a href="/setup/opening-balances/template.csv" class="btn-secondary text-sm">{{ _("Download a template") }}</a>
+  </div>
+  {% if status.saved_at %}
+  <p class="text-xs mb-3" style="color:var(--pos);">
+    {{ _("Saved") }}{% if status.journal_ref %} — {{ _("journal") }} {{ status.journal_ref }}{% endif %}.
+    <a href="/setup/opening-balances/check" class="sae hover:underline">{{ _("Check it matches your old system →") }}</a>
+  </p>
+  {% endif %}
+
+  <form method="post" action="/setup/opening-balances/preview" enctype="multipart/form-data" class="mb-5 flex flex-wrap items-end gap-3">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="conversion_date" value="{{ status.conversion_date }}">
+    <label class="text-xs ink-2">{{ _("Upload a trial balance (CSV)") }}
+      <input type="file" name="file" accept=".csv,.txt" required class="block mt-1 text-sm ink-2">
+    </label>
+    <button type="submit" class="btn-secondary text-sm">{{ _("Check this file") }}</button>
+  </form>
+
+  <form method="post" action="/setup/opening-balances/preview" id="tb-form">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="conversion_date" value="{{ status.conversion_date }}">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs ink-3 hairline-b">
+          <th class="py-2 pr-3">{{ _("Account") }}</th>
+          <th class="py-2 pr-3 text-right w-40">{{ _("Debit") }}</th>
+          <th class="py-2 text-right w-40">{{ _("Credit") }}</th>
+        </tr>
+      </thead>
+      {% for g in groups %}
+      <tbody>
+        <tr><td colspan="3" class="pt-4 pb-1 text-xs font-semibold uppercase tracking-wider ink-3">{{ _(g.label) }}</td></tr>
+        {% for a in g.rows %}
+        {% set sv = saved.get(a.id) %}
+        <tr class="hairline-b">
+          <td class="py-1.5 pr-3"><span class="font-mono text-xs ink-3">{{ a.code }}</span> <span class="ink-1">{{ a.name }}</span></td>
+          <td class="py-1 pr-3"><input type="text" inputmode="decimal" name="dr_{{ a.id }}" class="saebooks-input text-right num tb-dr" aria-label="{{ _('Debit') }} {{ a.code }}"
+              value="{% if sv and sv.debit|float %}{{ sv.debit }}{% endif %}"></td>
+          <td class="py-1"><input type="text" inputmode="decimal" name="cr_{{ a.id }}" class="saebooks-input text-right num tb-cr" aria-label="{{ _('Credit') }} {{ a.code }}"
+              value="{% if sv and sv.credit|float %}{{ sv.credit }}{% endif %}"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% endfor %}
+      <tfoot>
+        <tr class="font-medium">
+          <td class="pt-3 text-right pr-3 ink-2">{{ _("Totals") }}</td>
+          <td class="pt-3 pr-3 text-right num" id="tb-dr-total">0.00</td>
+          <td class="pt-3 text-right num" id="tb-cr-total">0.00</td>
+        </tr>
+        <tr><td></td><td colspan="2" class="text-right text-xs pt-1" id="tb-diff"></td></tr>
+      </tfoot>
+    </table>
+    <div class="mt-4 flex justify-end">
+      <button type="submit" class="btn-primary text-sm">{{ _("Check and preview") }}</button>
+    </div>
+  </form>
+</section>
+
+{# ── Step 3: bring across documents ── #}
+<section class="card p-5 mb-6 max-w-3xl">
+  <h2 class="text-sm font-semibold ink-1 mb-2">{{ _("3. Unpaid invoices, bills and stock") }}</h2>
+  <ul class="text-sm space-y-1">
+    <li><a class="sae hover:underline" href="/admin/imports/csv/open-invoices">{{ _("Unpaid customer invoices") }}</a></li>
+    <li><a class="sae hover:underline" href="/admin/imports/csv/open-bills">{{ _("Unpaid supplier bills") }}</a></li>
+    <li><a class="sae hover:underline" href="/admin/imports/csv/items">{{ _("Products and opening stock") }}</a></li>
+  </ul>
+  <p class="text-xs ink-3 mt-3"><a class="sae hover:underline" href="/setup/opening-balances/check">{{ _("Then check everything matches your old system →") }}</a></p>
+</section>
+{% endif %}
+
+<script>
+(function () {
+  var f = document.getElementById("tb-form");
+  if (!f) return;
+  function n(v) { v = (v || "").replace(/[$,\s]/g, ""); var x = parseFloat(v); return isNaN(x) ? 0 : x; }
+  function sum() {
+    var dr = 0, cr = 0;
+    f.querySelectorAll(".tb-dr").forEach(function (i) { dr += n(i.value); });
+    f.querySelectorAll(".tb-cr").forEach(function (i) { cr += n(i.value); });
+    document.getElementById("tb-dr-total").textContent = dr.toLocaleString("en-AU", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById("tb-cr-total").textContent = cr.toLocaleString("en-AU", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    var d = Math.round((dr - cr) * 100) / 100, el = document.getElementById("tb-diff");
+    if (d === 0) { el.textContent = "{{ _('Debits and credits balance.') }}"; el.style.color = "var(--pos)"; }
+    else { el.textContent = "{{ _('Out by') }} " + Math.abs(d).toLocaleString("en-AU", {minimumFractionDigits: 2}); el.style.color = "var(--neg)"; }
+  }
+  f.addEventListener("input", sum); sum();
+})();
+</script>
+{% endblock %}

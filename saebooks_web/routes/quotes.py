@@ -319,22 +319,14 @@ async def quote_pdf(
     )
 
 
-_FROM_OPTIONS = ("admin@saee.com.au", "accounts@saee.com.au")
-_DEFAULT_FROM_BY_DOC_TYPE = {
-    "quote":       "admin@saee.com.au",
-    "invoice":     "accounts@saee.com.au",
-    "bill":        "admin@saee.com.au",
-    "credit_note": "accounts@saee.com.au",
-    "remittance":  "accounts@saee.com.au",
-    "letterhead":  "admin@saee.com.au",
-}
-
-
 @router.get("/quotes/{quote_id}/email", response_class=HTMLResponse, response_model=None)
 async def quote_email_compose(
     request: Request, quote_id: str
 ) -> HTMLResponse | RedirectResponse:
-    """Email composer for a quote — pre-fills To/Subject/Body from quote+customer."""
+    """Email composer for a quote — To/Subject/Body from the quote, the
+    customer and the company's email settings (b06: no built-in wording)."""
+    from saebooks_web import email_defaults as ed
+
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -352,35 +344,23 @@ async def quote_email_compose(
         # Pull customer for default-To address
         cresp = await client.get(f"/api/v1/contacts/{quote['customer_id']}")
         customer = cresp.json() if cresp.status_code == 200 else {}
+        email_settings = await ed.settings_for(client)
 
-    default_to = customer.get("email", "")
-    title = quote.get("title") or f"Quote SAE-2026-{quote.get('number')}"
-    default_subject = f"Estimate SAE-2026-{quote.get('number')} — {title}"
-    default_body_html = (
-        f'<p>Dear {customer.get("name", "team")},</p>\n'
-        f'<p>Please find attached our estimate <b>SAE-2026-{quote.get("number")}</b> '
-        f'for <b>{title}</b>.</p>\n'
-        f'<p>Total ex GST: ${float(quote.get("subtotal", 0)):,.2f}. '
-        f'Valid for {quote.get("validity_days", 28)} days from {quote.get("issue_date", "today")}.</p>\n'
-        f'<p>To proceed, please issue a purchase order referencing '
-        f'<b>SAE-2026-{quote.get("number")}</b> to admin@saee.com.au. '
-        f'Upon receipt of your PO we will issue a tax invoice for the deposit '
-        f'amount and schedule works accordingly.</p>\n'
-        f'<p>If you have any questions please reply to this email or call '
-        f'0457 704 373.</p>\n'
-        f'<p>Kind regards,<br>Richard Sauer<br>Director — SAE Engineering</p>'
-    )
-
+    d = ed.compose("quote", email_settings, ed.quote_values(quote, customer))
     return _TEMPLATES.TemplateResponse(
         request, "quotes/email_compose.html",
         {
             "quote":            quote,
             "form":             {},
-            "from_options":     _FROM_OPTIONS,
-            "default_from":     _DEFAULT_FROM_BY_DOC_TYPE["quote"],
-            "default_to":       default_to,
-            "default_subject":  default_subject,
-            "default_body_html": default_body_html,
+            "from_options":     d["from_options"],
+            "default_from":     d["default_from"],
+            "default_reply_to": d["reply_to"],
+            "default_from_name": d["from_name"],
+            "default_bcc":      d["bcc"],
+            "default_to":       customer.get("email", "") or "",
+            "default_subject":  d["subject"],
+            "default_body_html": d["body_html"],
+            "email_status":     d["status"],
             "flash":            None,
             "flash_kind":       None,
         },
@@ -414,51 +394,40 @@ async def quote_email_send(
         "bcc":              bcc_list,
         "subject":          form.get("subject", ""),
         "body_html":        form.get("body_html", ""),
+        "reply_to":         form.get("reply_to", "") or None,
+        "from_name":        form.get("from_name", "") or None,
         "sent_by_user_id":  request.session.get("user_id"),
     }
 
+    from saebooks_web import email_defaults as ed
+
     async with api_client(request) as client:
-        resp = await client.post(f"/api/v1/quotes/{quote_id}/send-email", json=payload)
+        resp = await client.post(
+            f"/api/v1/quotes/{quote_id}/send-email", json=payload, timeout=120.0
+        )
         qresp = await client.get(f"/api/v1/quotes/{quote_id}")
         quote = qresp.json() if qresp.status_code == 200 else {}
+        email_settings = await ed.settings_for(client)
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+    d = ed.compose("quote", email_settings, ed.quote_values(quote, {}))
 
     result = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
-    mode = result.get("mode", "unknown")
-    if mode == "blocked":
-        flash = (
-            f"🛑 <b>BLOCKED</b> — nothing was sent. "
-            f"Reason: <code>{result.get('reason', 'unknown')}</code>. "
-            f"Outbox copy: <code>{result.get('outbox_path', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "warm"
-    elif mode == "sent":
-        flash = (
-            f"✅ Sent. Resend message id: <code>{result.get('message_id', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "pos"
-    elif mode == "failed":
-        flash = (
-            f"❌ Failed. Errors: <code>{result.get('errors', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "neg"
-    else:
-        flash = f"Upstream HTTP {resp.status_code}: <code>{(resp.text or '')[:300]}</code>"
-        flash_kind = "neg"
+    flash, flash_kind = ed.send_result_flash(resp, result, to_list)
 
     return _TEMPLATES.TemplateResponse(
         request, "quotes/email_compose.html",
         {
             "quote":            quote,
             "form":             form,
-            "from_options":     _FROM_OPTIONS,
-            "default_from":     _DEFAULT_FROM_BY_DOC_TYPE["quote"],
+            "from_options":     d["from_options"],
+            "default_from":     form.get("from_addr") or d["default_from"],
+            "default_reply_to": d["reply_to"],
+            "default_from_name": d["from_name"],
+            "default_bcc":      "",
+            "email_status":     d["status"],
             "default_to":       "",
             "default_subject":  "",
             "default_body_html": "",

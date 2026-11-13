@@ -32,6 +32,9 @@
       <p class="text-xs ink-3 font-mono mt-2">{{ _("%(n)s contact") % {"n": total} if total == 1 else _("%(n)s contacts") % {"n": total} }}</p>
       {% endif %}
     </div>
+    {% if request.session.get("user_role", "") in ("owner", "admin") or request.session.get("is_sae_staff") %}
+    <a href="/admin/imports/csv/contacts" class="btn-secondary text-sm"><i data-lucide="upload" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("Import") }}</span></a>
+    {% endif %}
     <a href="/contacts/new" class="btn-primary text-sm"><i data-lucide="user-plus" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("New contact") }}</span></a>
   </div>
   <div class="drafting mt-4"></div>

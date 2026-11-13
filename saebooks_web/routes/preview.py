@@ -8,7 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
@@ -258,9 +258,12 @@ async def preview_inbox_peppol_detail(request: Request) -> HTMLResponse:
     return _TEMPLATES.TemplateResponse(request, "preview/inbox_peppol_detail.html", {})
 
 
-@router.get("/preview/migration", response_class=HTMLResponse, response_model=None)
-async def preview_migration(request: Request) -> HTMLResponse:
-    return _TEMPLATES.TemplateResponse(request, "preview/migration.html", {})
+@router.get("/preview/migration", response_model=None)
+async def preview_migration(request: Request) -> RedirectResponse:
+    # b06 (P1-40): this was a static mock promising a Xero switch that could
+    # not be started. Send people to the real "Moving from Xero" page, which
+    # says plainly what works today (CSV exports) and what does not yet.
+    return RedirectResponse(url="/admin/imports/xero", status_code=307)
 
 
 @router.get("/preview/compliance/bas/26-q3", response_class=HTMLResponse, response_model=None)
