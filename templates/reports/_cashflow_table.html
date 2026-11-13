@@ -28,7 +28,21 @@
 {% set opening_cash = report.get("opening_cash", 0) | float %}
 {% set closing_cash = report.get("closing_cash", 0) | float %}
 
+{% macro cf_line(item) -%}
+<tr>
+  <td class="ink-2 pl-8">{{ item.get("label", "") }}</td>
+  <td class="text-right num ink-2">{{ num(item.get("amount", 0) | float, 2) }}</td>
+</tr>
+{%- endmacro %}
+
 <div class="space-y-6" id="cashflow-table">
+
+  {% for warning in report.get("warnings", []) %}
+  <div class="card p-3 flex items-center gap-2" style="border-color:var(--warm);">
+    <span class="dot" style="background:var(--warm);"></span>
+    <span class="text-sm ink-2">{{ warning }}</span>
+  </div>
+  {% endfor %}
 
   {# Operating activities #}
   <div class="card overflow-hidden mb-0">
@@ -41,12 +55,14 @@
           <td class="ink-1">{{ _("Net Profit") }}</td>
           <td class="text-right num ink-1">{{ num(operating.get("net_profit", 0) | float, 2) }}</td>
         </tr>
-        {% for adj in operating.get("adjustments", []) %}
-        <tr>
-          <td class="ink-2 pl-8">{{ adj.get("label", _("Adjustment")) }}</td>
-          <td class="text-right num ink-2">{{ num(adj.get("amount", 0) | float, 2) }}</td>
-        </tr>
-        {% endfor %}
+        {% if operating.get("adjustments") %}
+        <tr><td colspan="2" class="text-xs ink-3 pt-2">{{ _("Add back items that are not cash") }}</td></tr>
+        {% for adj in operating.get("adjustments", []) %}{{ cf_line(adj) }}{% endfor %}
+        {% endif %}
+        {% if operating.get("working_capital") %}
+        <tr><td colspan="2" class="text-xs ink-3 pt-2">{{ _("Money tied up in or released from day-to-day balances") }}</td></tr>
+        {% for item in operating.get("working_capital", []) %}{{ cf_line(item) }}{% endfor %}
+        {% endif %}
       </tbody>
       <tfoot>
         <tr>
@@ -64,14 +80,9 @@
     </div>
     <table class="sae-table w-full">
       <tbody>
-        <tr>
-          <td class="ink-1">{{ _("Asset Purchases") }}</td>
-          <td class="text-right num ink-1">{{ num(investing.get("asset_purchases", 0) | float, 2) }}</td>
-        </tr>
-        <tr>
-          <td class="ink-1">{{ _("Asset Disposals") }}</td>
-          <td class="text-right num ink-1">{{ num(investing.get("asset_disposals", 0) | float, 2) }}</td>
-        </tr>
+        {% for item in investing.get("lines", []) %}{{ cf_line(item) }}{% else %}
+        <tr><td class="ink-3 text-sm" colspan="2">{{ _("No equipment or other long-term assets bought or sold.") }}</td></tr>
+        {% endfor %}
       </tbody>
       <tfoot>
         <tr>
@@ -89,14 +100,9 @@
     </div>
     <table class="sae-table w-full">
       <tbody>
-        <tr>
-          <td class="ink-1">{{ _("Loan Proceeds") }}</td>
-          <td class="text-right num ink-1">{{ num(financing.get("loan_proceeds", 0) | float, 2) }}</td>
-        </tr>
-        <tr>
-          <td class="ink-1">{{ _("Loan Repayments") }}</td>
-          <td class="text-right num ink-1">{{ num(financing.get("loan_repayments", 0) | float, 2) }}</td>
-        </tr>
+        {% for item in financing.get("lines", []) %}{{ cf_line(item) }}{% else %}
+        <tr><td class="ink-3 text-sm" colspan="2">{{ _("No loans or owner money in or out.") }}</td></tr>
+        {% endfor %}
       </tbody>
       <tfoot>
         <tr>
@@ -120,21 +126,40 @@
   </div>
   {% endif %}
 
-  {# Opening / Closing cash summary #}
+  {# Opening / Closing cash, per bank account #}
   <div class="card overflow-hidden mb-0">
     <table class="sae-table w-full">
-      <tbody>
+      <thead>
         <tr>
-          <td class="ink-2 font-medium">{{ _("Opening Cash") }}</td>
-          <td class="text-right num ink-1">{{ num(opening_cash, 2) }}</td>
+          <th class="text-left">{{ _("Bank and cash accounts") }}</th>
+          <th class="text-right w-36">{{ _("Opening") }}</th>
+          <th class="text-right w-36">{{ _("Closing") }}</th>
         </tr>
+      </thead>
+      <tbody>
+        {% for acct in report.get("cash_accounts", []) %}
         <tr>
-          <td class="ink-1 font-semibold">{{ _("Closing Cash") }}</td>
+          <td class="ink-2"><span class="num ink-3">{{ acct.get("code", "") }}</span> {{ acct.get("name", "") }}</td>
+          <td class="text-right num ink-2">{{ num(acct.get("opening", 0) | float, 2) }}</td>
+          <td class="text-right num ink-2">{{ num(acct.get("closing", 0) | float, 2) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="font-semibold ink-1">{{ _("Total cash") }}</td>
+          <td class="text-right num ink-1">{{ num(opening_cash, 2) }}</td>
           <td class="text-right num-display ink-1 font-semibold">{{ num(closing_cash, 2) }}</td>
         </tr>
-      </tbody>
+      </tfoot>
     </table>
   </div>
+
+  {% if report.get("reconciled", true) %}
+  <p class="text-xs ink-3">{{ _("The three sections add up to the change in your bank and cash balances.") }}</p>
+  {% else %}
+  <p class="text-xs" style="color:var(--neg);">{{ _("The three sections differ from the change in your bank and cash balances by %(amount)s.") % {"amount": num(report.get("difference", 0) | float, 2)} }}</p>
+  {% endif %}
 
 </div>
 {% elif not error %}

@@ -1,0 +1,77 @@
+{# HTMX partial — a report laid out in period columns, with the change
+   between the last two columns. #}
+{% macro amt(v) -%}{% if v is none %}—{% elif v == 0 %}<span class="ink-3">—</span>{% else %}{{ num(v | float, 2) }}{% endif %}{%- endmacro %}
+{% macro change_cells(row, show_change) -%}
+{% if show_change %}
+<td class="text-right num" style="color:var({{ '--pos' if (row.get('change') or 0) >= 0 else '--neg' }});">{{ amt(row.get("change")) }}</td>
+<td class="text-right num ink-3">{% if row.get("change_pct") is not none %}{{ num(row.get("change_pct") | float, 1) }}%{% else %}—{% endif %}</td>
+{% endif %}
+{%- endmacro %}
+<div id="report-content">
+
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% else %}
+
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div id="report-spinner" class="htmx-indicator text-sm ink-3 font-mono mb-4">{{ _("Loading...") }}</div>
+
+{% if data and data.get("columns") %}
+{% set cols = data.get("columns", []) %}
+{% set show_total = which == "profit_loss" %}
+{% set show_change = cols | length >= 2 %}
+<div class="card overflow-hidden" id="periods-table">
+  <div class="overflow-x-auto">
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Account") }}</th>
+        {% for c in cols %}<th class="text-right whitespace-nowrap">{{ c.get("label") }}</th>{% endfor %}
+        {% if show_total %}<th class="text-right">{{ _("Total") }}</th>{% endif %}
+        {% if show_change %}<th class="text-right whitespace-nowrap">{{ _("Change") }}</th><th class="text-right">%</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for key, label in sections %}
+      {% set sec_lines = data.get("lines", []) | selectattr("section", "equalto", key) | list %}
+      <tr><td colspan="{{ 1 + cols | length + (1 if show_total else 0) + (2 if show_change else 0) }}" class="nav-section-label pt-3">{{ label }}</td></tr>
+      {% for ln in sec_lines %}
+      <tr>
+        <td class="ink-1"><span class="num ink-3">{{ ln.get("code", "") }}</span> {{ ln.get("account_name", "") }}</td>
+        {% for v in ln.get("amounts", []) %}<td class="text-right num ink-2">{{ amt(v) }}</td>{% endfor %}
+        {% if show_total %}<td class="text-right num ink-1">{{ amt(ln.get("total")) }}</td>{% endif %}
+        {{ change_cells(ln, show_change) }}
+      </tr>
+      {% else %}
+      <tr><td class="text-xs ink-3" colspan="{{ 1 + cols | length + (1 if show_total else 0) + (2 if show_change else 0) }}">{{ _("Nothing in this section.") }}</td></tr>
+      {% endfor %}
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      {% for t in data.get("totals", []) %}
+      <tr>
+        <td class="font-semibold ink-1">{{ t.get("label") }}</td>
+        {% for v in t.get("amounts", []) %}<td class="text-right num font-semibold ink-1">{{ num(v | float, 2) }}</td>{% endfor %}
+        {% if show_total %}<td class="text-right num-display font-semibold ink-1">{{ num(t.get("total", 0) | float, 2) }}</td>{% endif %}
+        {{ change_cells(t, show_change) }}
+      </tr>
+      {% endfor %}
+    </tfoot>
+  </table>
+  </div>
+</div>
+{% if show_change %}
+<p class="text-xs ink-3 mt-2">{{ _("Change compares the last column with the one before it.") }}</p>
+{% endif %}
+{% elif not error %}
+<p class="text-sm ink-3">{{ _("Nothing to show for this period.") }}</p>
+{% endif %}
+
+{% endif %}{# end degraded #}
+</div>
