@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Bank feeds") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--sae);">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="font-display text-2xl">{{ _("Bank feeds") }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ _("Bank lines arrive by themselves and your bank rules run on them as they land.") }}</p>
+  </div>
+  <a href="/admin/imports/bank" class="btn-secondary text-sm">{{ _("Import a statement file") }}</a>
+</div>
+
+{% if degraded %}
+<div class="card">{% include "_partials/degraded_panel.html" %}</div>
+{% elif not available %}
+<div class="card p-4 max-w-2xl">
+  <p class="text-sm ink-1">{{ _("Bank feeds are not part of your plan.") }}</p>
+  <p class="text-sm ink-3 mt-1">{{ _("You can still import statement files from any Australian bank (CSV, OFX or QIF) and reconcile them here.") }}</p>
+</div>
+{% else %}
+
+<div class="card p-3 mb-6" style="border-color:var(--warm);">
+  <p class="text-sm ink-1">{{ _("The bank feed service is in test mode.") }}</p>
+  <p class="text-sm ink-3 mt-1">{{ _("Connecting and syncing work, but a live feed provider is not signed up yet, so no real transactions arrive. Until then, import statement files.") }}</p>
+</div>
+
+{% if error %}
+<div class="card p-3 mb-4" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>
+{% endif %}
+
+<div class="card overflow-x-auto mb-6">
+  <table class="sae-table w-full text-sm">
+    <thead><tr>
+      <th class="text-left">{{ _("Connection") }}</th>
+      <th class="text-left">{{ _("Account") }}</th>
+      <th class="text-left">{{ _("Status") }}</th>
+      <th class="text-left">{{ _("Last updated") }}</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+      {% for c in connections %}
+      <tr>
+        <td class="font-mono text-xs">{{ c.siss_client_id }}</td>
+        <td>{{ names.get(c.account_id, "—") if c.account_id else "—" }}</td>
+        <td>{{ {"pending_consent": _("Waiting for bank approval"), "active": _("Connected"), "revoked": _("Disconnected"), "error": _("Needs attention")}.get(c.status, c.status) }}</td>
+        <td class="text-xs ink-3">{{ (c.updated_at or "")[:16] | replace("T", " ") }}</td>
+        <td class="text-right whitespace-nowrap">
+          {% if c.status != "revoked" %}
+          <form method="POST" action="/banking/feeds/{{ c.id }}/sync" class="inline">
+            {{ csrf_input(request)|safe }}
+            <button type="submit" class="btn-secondary !py-1 !px-2 text-xs">{{ _("Sync now") }}</button>
+          </form>
+          <form method="POST" action="/banking/feeds/{{ c.id }}/disconnect" class="inline" onsubmit="return confirm('{{ _('Disconnect this bank feed? Lines already imported stay.') }}')">
+            {{ csrf_input(request)|safe }}
+            <button type="submit" class="btn-secondary !py-1 !px-2 text-xs">{{ _("Disconnect") }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center ink-3">{{ _("No bank feeds connected.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<form method="POST" action="/banking/feeds/connect" class="card p-4 max-w-2xl space-y-3">
+  {{ csrf_input(request)|safe }}
+  <h2 class="text-base font-semibold ink-1">{{ _("Connect a bank account") }}</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="bank">{{ _("Bank") }}</label>
+      <select id="bank" name="bank" required class="saebooks-input w-full">
+        <option value="">{{ _("— choose —") }}</option>
+        {% for v, label in [("cba", "Commonwealth Bank"), ("westpac", "Westpac"), ("anz", "ANZ"), ("nab", "NAB"), ("other", _("Other bank"))] %}
+        <option value="{{ v }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="account_id">{{ _("Lines go into") }}</label>
+      <select id="account_id" name="account_id" required class="saebooks-input w-full">
+        <option value="">{{ _("— choose —") }}</option>
+        {% for a in accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <div>
+    <label class="block text-xs ink-3 mb-1" for="account_label">{{ _("Name for this connection (optional)") }}</label>
+    <input id="account_label" name="account_label" class="saebooks-input w-full" maxlength="200">
+  </div>
+  <button type="submit" class="btn-primary text-sm">{{ _("Connect") }}</button>
+</form>
+{% endif %}
+{% endblock %}

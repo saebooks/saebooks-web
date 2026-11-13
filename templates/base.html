@@ -678,6 +678,7 @@
                             or path.startswith('/bank-statement-lines')
                             or path.startswith('/reconciliation')
                             or path.startswith('/bank-rules')
+                            or path.startswith('/banking')
                             or path.startswith('/payments')
                             or path.startswith('/transfers') %}
       <details class="group" data-section="banking" {% if banking_open %}open{% endif %}>
@@ -701,13 +702,17 @@
           <a href="/reconciliation" class="nav-item is-sub {% if path.startswith('/reconciliation') %}active{% endif %}">
             <i data-lucide="git-pull-request" class="nav-ico"></i>{{ _("Reconciliation") }}
           </a>
-          {% if user_role in ('owner', 'admin') or request.session.get('is_sae_staff') %}
-          {# Import a bank statement (CSV/OFX). The route lives under /admin/imports
-             but a user reconciling looks for it here in Banking, not under Admin. #}
+          {% if user_role in ('owner', 'admin', 'accountant', 'bookkeeper') or request.session.get('is_sae_staff') %}
+          {# Import a bank statement (CSV/OFX/QIF). The route lives under /admin/imports
+             but a user reconciling looks for it here in Banking, not under Admin.
+             Bookkeepers may import (batch 4, P1-20). #}
           <a href="/admin/imports/bank" class="nav-item is-sub {% if path.startswith('/admin/imports/bank') %}active{% endif %}">
             <i data-lucide="upload" class="nav-ico"></i>{{ _("Import Statement") }}
           </a>
           {% endif %}
+          <a href="/banking/feeds" class="nav-item is-sub {% if path.startswith('/banking/feeds') %}active{% endif %}">
+            <i data-lucide="rss" class="nav-ico"></i>{{ _("Bank Feeds") }}
+          </a>
           <a href="/bank-rules" class="nav-item is-sub {% if path.startswith('/bank-rules') %}active{% endif %}">
             <i data-lucide="wand-sparkles" class="nav-ico"></i>{{ _("Bank Rules") }}
           </a>

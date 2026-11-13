@@ -77,6 +77,38 @@ _SESSION_COOKIE = _make_session_cookie({"api_token": "test-token-xyz"})
 _API_BASE = settings.api_url.rstrip("/")
 
 
+def _line_detail(bsl: dict) -> dict:
+    """Shape of one row from GET /api/v1/reconciliation/lines (batch 4)."""
+    return {
+        **bsl,
+        "remaining": bsl["amount"],
+        "allocated": "0",
+        "matches": [],
+        "suggested_rule": None,
+        "reconciliation_id": None,
+        "ignored_reason": None,
+    }
+
+
+def _lines_payload(lines: list[dict]) -> dict:
+    return {
+        "items": [_line_detail(x) for x in lines],
+        "total": len(lines),
+        "limit": 50,
+        "offset": 0,
+        "counts": {"TO_MATCH": len(lines), "MATCHED": 0, "IGNORED": 0},
+    }
+
+
+def _mock_lines_page(respx_mock, lines: list[dict]) -> None:
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/lines").mock(
+        return_value=Response(200, json=_lines_payload(lines))
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/statements").mock(
+        return_value=Response(200, json={"items": []})
+    )
+
+
 # ---------------------------------------------------------------------------
 # 1. Accounts picker: auth gate
 # ---------------------------------------------------------------------------
@@ -202,9 +234,7 @@ async def test_reconciliation_lines_renders(respx_mock: respx.MockRouter) -> Non
     respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
         return_value=Response(200, json=[_MOCK_ACCOUNT])
     )
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
-        return_value=Response(200, json=[_MOCK_BSL])
-    )
+    _mock_lines_page(respx_mock, [_MOCK_BSL])
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -216,7 +246,8 @@ async def test_reconciliation_lines_renders(respx_mock: respx.MockRouter) -> Non
     assert resp.status_code == 200
     assert "OFFICE SUPPLIES PTY LTD" in resp.text
     assert "Auto Match All" in resp.text
-    assert "Suggest" in resp.text
+    assert "Find match" in resp.text
+    assert "Create" in resp.text and "Split" in resp.text and "Ignore" in resp.text
     assert "Business Cheque" in resp.text  # account name from accounts list
 
 
@@ -232,9 +263,7 @@ async def test_reconciliation_lines_empty(respx_mock: respx.MockRouter) -> None:
     respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
         return_value=Response(200, json=[_MOCK_ACCOUNT])
     )
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
-        return_value=Response(200, json=[])
-    )
+    _mock_lines_page(respx_mock, [])
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -244,7 +273,7 @@ async def test_reconciliation_lines_empty(respx_mock: respx.MockRouter) -> None:
         resp = await client.get(f"/reconciliation/{_ACCOUNT_ID}/lines")
 
     assert resp.status_code == 200
-    assert "No unmatched lines" in resp.text
+    assert "Nothing to match" in resp.text
 
 
 # ---------------------------------------------------------------------------
@@ -292,7 +321,6 @@ async def test_reconciliation_suggest_renders(respx_mock: respx.MockRouter) -> N
     assert resp.status_code == 200
     assert "JE-042" in resp.text
     assert "Office supplies payment" in resp.text
-    assert "POSTED" in resp.text
     assert "Match" in resp.text
     # entry_id hidden input must be present for the match form
     assert _ENTRY_ID in resp.text
@@ -477,7 +505,7 @@ async def test_reconciliation_unmatch_success(respx_mock: respx.MockRouter) -> N
         )
 
     assert resp.status_code == 303
-    assert resp.headers["location"] == f"/reconciliation/{_ACCOUNT_ID}/lines"
+    assert resp.headers["location"] == f"/reconciliation/{_ACCOUNT_ID}/lines?tab=matched"
 
 
 # ---------------------------------------------------------------------------
@@ -515,9 +543,7 @@ async def test_reconciliation_auto_match_success(respx_mock: respx.MockRouter) -
     respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
         return_value=Response(200, json=[_MOCK_ACCOUNT])
     )
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
-        return_value=Response(200, json=[])
-    )
+    _mock_lines_page(respx_mock, [])
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -548,9 +574,7 @@ async def test_reconciliation_auto_match_api_error(respx_mock: respx.MockRouter)
     respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
         return_value=Response(200, json=[_MOCK_ACCOUNT])
     )
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
-        return_value=Response(200, json=[])
-    )
+    _mock_lines_page(respx_mock, [])
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

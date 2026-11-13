@@ -189,11 +189,19 @@ async def transfer_new_form(request: Request) -> HTMLResponse | RedirectResponse
     async with api_client(request) as client:
         accounts = await _fetch_balance_sheet_accounts(client)
 
+    # Prefill from the bank account page's "Record a transfer" / "Pay this
+    # card" buttons (batch 4, P1-49).
+    form: dict[str, str] = {"transfer_date": today}
+    for key in ("from_account_id", "to_account_id"):
+        val = request.query_params.get(key, "").strip()
+        if val:
+            form[key] = val
+
     return _TEMPLATES.TemplateResponse(
         request,
         "transfers/new.html",
         {
-            "form": {"transfer_date": today},
+            "form": form,
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "accounts": accounts,

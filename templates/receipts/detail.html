@@ -54,7 +54,7 @@
     {% endif %}
     {% if receipt.status == 'POSTED' %}
     <form method="post" action="/receipts/{{ receipt.id }}/void"
-          onsubmit="return confirm('{{ _('Void this receipt?') }}');" class="inline">
+          onsubmit="return confirm('{{ _('Void this receipt? If it is matched to a bank line, that line goes back to be matched again. A line in a finished bank reconciliation cannot be voided.') }}');" class="inline">
     {{ csrf_input(request)|safe }}
       <input type="hidden" name="version" value="{{ receipt.version }}">
       <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>

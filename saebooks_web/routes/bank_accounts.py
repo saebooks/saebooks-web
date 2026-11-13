@@ -502,8 +502,15 @@ async def bank_account_detail(
     direction: str = "desc",
     limit: int = 200,
     offset: int = 0,
+    view: str = "bank",
+    books_offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
     """Render a single bank account detail page.
+
+    Batch 4 (P1-49): balances (books, imported statement, last
+    reconciled), Reconcile / Transfer / Pay card actions, and a Books tab —
+    the register of every posted entry on the account with a running
+    balance, so a recorded transfer shows on both accounts.
 
     The transactions section uses the bottom-of-page real estate as the
     primary view of this account's bank-statement lines — no separate
@@ -568,6 +575,19 @@ async def bank_account_detail(
         else:
             lines_error = f"Could not load transactions: HTTP {bsl_resp.status_code}"
 
+        register: dict | None = None
+        books_offset = max(books_offset, 0)
+        try:
+            reg_resp = await client.get(
+                f"/api/v1/bank_accounts/{account_id}/register",
+                params={"limit": 100 if view == "books" else 1,
+                        "offset": books_offset if view == "books" else 0},
+            )
+            if reg_resp.is_success:
+                register = reg_resp.json()
+        except Exception:  # noqa: BLE001 — balances are extra; never sink the page
+            register = None
+
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < lines_total else None
 
@@ -590,5 +610,8 @@ async def bank_account_detail(
             "offset": offset,
             "prev_offset": prev_offset,
             "next_offset": next_offset,
+            "view": "books" if view == "books" else "bank",
+            "register": register,
+            "books_offset": books_offset,
         },
     )

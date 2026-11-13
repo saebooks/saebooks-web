@@ -1,0 +1,25 @@
+{# Live reconciliation figures. Context: preview = {summary, printed} or message. #}
+{% if message %}
+  <p class="text-sm ink-3">{{ message }}</p>
+{% elif preview %}
+  {% set s = preview.summary %}{% set p = preview.printed %}
+  {% set diff = (p.difference or "0") | float %}
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Statement") }}</p><p class="font-mono ink-1">{{ num(p.statement_balance|float, 2) }}</p></div>
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("In the books") }}</p><p class="font-mono ink-1">{{ num(p.book_balance|float, 2) }}</p></div>
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Not yet on the statement") }}</p><p class="font-mono ink-1">{{ num(p.outstanding_total|float, 2) }}</p></div>
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Lines still to match") }}</p><p class="font-mono ink-1">{{ s.to_match_count }}</p></div>
+    <div>
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Difference") }}</p>
+      <p class="font-mono font-semibold" style="color:{% if diff == 0 %}var(--pos){% else %}var(--neg){% endif %};">{{ num(diff, 2) }}</p>
+    </div>
+  </div>
+  {% if s.statement_check and not s.statement_check.ties %}
+  <p class="text-xs mt-2" style="color:var(--warm);">
+    {{ _("The imported lines since the last reconciliation add up to %(expected)s, not the %(entered)s entered. A statement line may be missing or imported twice.") % {"expected": num(s.statement_check.expected_statement_balance|float, 2), "entered": num(s.statement_balance|float, 2)} }}
+  </p>
+  {% endif %}
+  {% if diff == 0 and s.to_match_count == 0 %}
+  <p class="text-xs mt-2" style="color:var(--pos);">{{ _("Everything agrees. You can finish.") }}</p>
+  {% endif %}
+{% endif %}

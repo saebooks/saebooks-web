@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Past reconciliations") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Past reconciliations") }}{% if account %} — {{ account.name }}{% endif %}</h1>
+  <a href="/reconciliation/{{ account_id }}/lines" class="btn-secondary text-sm">{{ _("Back to Reconciliation") }}</a>
+</div>
+{% if degraded %}
+<div class="card">{% include "_partials/degraded_panel.html" %}</div>
+{% else %}
+{% if error %}<div class="card p-3 mb-4" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>{% endif %}
+<div class="card overflow-x-auto">
+  <table class="sae-table w-full text-sm">
+    <thead><tr>
+      <th class="text-left">{{ _("Statement date") }}</th>
+      <th class="text-right">{{ _("Statement balance") }}</th>
+      <th class="text-left">{{ _("Status") }}</th>
+      <th class="text-left">{{ _("Finished by") }}</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+      {% for r in items %}
+      <tr>
+        <td class="font-mono text-xs">{{ r.statement_date }}</td>
+        <td class="text-right font-mono text-xs">{{ num(r.statement_balance_printed|float, 2) }}</td>
+        <td>{% if r.status == "FINISHED" %}{{ _("Finished") }}{% else %}{{ _("In progress") }}{% endif %}</td>
+        <td class="text-xs ink-3">{{ r.finished_by or "—" }} {{ (r.finished_at or "")[:10] }}</td>
+        <td class="text-right"><a class="sae hover:underline text-xs" href="/reconciliation/statements/{{ r.id }}">{{ _("Report") }}</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center ink-3">{{ _("No reconciliations yet.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

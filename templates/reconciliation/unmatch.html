@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Unmatch bank line") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Unmatch this bank line?") }}</h1>
+  <a href="{% if account_id %}/reconciliation/{{ account_id }}/lines?tab=matched{% else %}/reconciliation{% endif %}" class="btn-secondary text-sm">{{ _("Back") }}</a>
+</div>
+
+{% if degraded %}
+<div class="card">{% include "_partials/degraded_panel.html" %}</div>
+{% elif error %}
+<div class="card p-3" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>
+{% elif preview %}
+{% set line = preview.line %}
+<div class="card p-4 max-w-2xl space-y-3">
+  <p class="text-sm">{{ line.txn_date }} · <span class="ink-1">{{ line.description or "—" }}</span> · <span class="font-mono">{{ num((line.amount|float)|abs, 2) }}</span></p>
+  {% if preview.locked %}
+    <p class="text-sm" style="color:var(--neg);">{{ _("This line is part of the bank reconciliation finished to %(date)s. Reopen that reconciliation before unmatching it.") % {"date": preview.locked_by_statement_date} }}</p>
+  {% else %}
+  <form method="POST" action="/reconciliation/{{ bsl_id }}/unmatch" class="space-y-3">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="account_id" value="{{ account_id }}">
+    {% if preview.created %}
+    <div class="card p-3" style="border-color:var(--warm);">
+      <p class="text-sm ink-1 mb-2">{{ _("These were created from this bank line:") }}</p>
+      <ul class="text-sm list-disc ml-5">{% for c in preview.created %}<li>{{ c.label }}</li>{% endfor %}</ul>
+      <label class="flex items-start gap-2 mt-3 text-sm">
+        <input type="checkbox" name="void_created" value="1" checked>
+        <span>{{ _("Void them too. Leave this ticked unless you will match the line to them again — otherwise matching the line to something else would record the money twice.") }}</span>
+      </label>
+    </div>
+    {% else %}
+    <p class="text-sm ink-3">{{ _("The records it is matched to stay as they are. Only the match is removed.") }}</p>
+    {% endif %}
+    <button type="submit" class="btn-primary text-sm">{{ _("Unmatch") }}</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
