@@ -31,6 +31,14 @@
     <p class="text-sm ink-3 mt-1">{{ _("ID:") }} {{ account.id }}</p>
   </div>
   <div class="flex items-center gap-3">
+    {% if not account.archived_at and account.account_kind == 'CREDIT_CARD' %}
+    {# P1-50: paying the card is a transfer, not an expense. #}
+    <a href="/transfers/new?purpose=card_payment&to_account_id={{ account.id }}" class="btn-primary text-sm">
+      {{ _("Pay card") }}
+    </a>
+    {% elif not account.archived_at and account.account_kind == 'BANK_LOAN' %}
+    <a href="/loans" class="btn-secondary text-sm">{{ _("Loan repayments") }}</a>
+    {% endif %}
     {% if not account.archived_at %}
     <a
       href="/bank-accounts/{{ account.id }}/edit"

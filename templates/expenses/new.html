@@ -15,7 +15,7 @@
 </div>
 {% endif %}
 
-<form method="post" action="/expenses/new" class="space-y-6 max-w-3xl">
+<form method="post" action="/expenses/new" class="space-y-6 max-w-3xl" data-submit-once id="expense-form">
   {{ csrf_input(request) | safe }}
   <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
@@ -33,9 +33,36 @@
         placeholder="optional"
         class="saebooks-input w-full">
     </div>
-    <div>
+    {# ── Who paid? (P1-47, batch 14) ── #}
+    <fieldset class="md:col-span-2" id="paid-by">
+      <legend class="block text-base font-medium ink-3 mb-1">{{ _("Who paid?") }}</legend>
+      <div class="flex flex-wrap gap-6 text-base">
+        <label class="flex items-center gap-2">
+          <input type="radio" name="paid_by" value="business" {% if (form.paid_by or 'business') != 'owner' %}checked{% endif %}>
+          {{ _("The business paid") }}
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="radio" name="paid_by" value="owner" {% if form.paid_by == 'owner' %}checked{% endif %}>
+          {{ _("I paid with my own money") }}
+        </label>
+      </div>
+      <p class="text-sm ink-3 mt-1" data-paid-by="owner" {% if form.paid_by != 'owner' %}hidden{% endif %}>
+        {{ _("The business will owe you this amount. It appears under Owner money, where you can pay yourself back.") }}
+      </p>
+    </fieldset>
+    <div data-paid-by="owner" {% if form.paid_by != 'owner' %}hidden{% endif %}>
+      <label for="owner_account_id" class="block text-base font-medium ink-3">{{ _("Record what the business owes you in") }}</label>
+      <select id="owner_account_id" name="owner_account_id" class="saebooks-input w-full">
+        <option value="">{{ _("— the owner loan account —") }}</option>
+        {% for a in owner_accounts or [] %}
+        <option value="{{ a.id }}" {% if form.owner_account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
+        {% endfor %}
+      </select>
+      <p class="mt-1 text-sm ink-3">{{ _("Choose a capital account instead if you are putting the money in and do not want it paid back.") }}</p>
+    </div>
+    <div data-paid-by="business" {% if form.paid_by == 'owner' %}hidden{% endif %}>
       <label for="payment_account_id" class="block text-base font-medium ink-3">{{ _("Paid from") }}</label>
-      <select id="payment_account_id" name="payment_account_id" required class="saebooks-input w-full">
+      <select id="payment_account_id" name="payment_account_id" class="saebooks-input w-full">
         <option value="">{{ _("— select a bank / card / cash account —") }}</option>
         {% for a in payment_accounts %}
         <option value="{{ a.id }}" {% if form.payment_account_id == a.id %}selected{% endif %}>
@@ -126,6 +153,7 @@
           <th class="px-2 py-1 text-right">{{ _("Unit price") }}</th>
           <th class="px-2 py-1 text-right">{{ _("GST") }}</th>
           <th class="px-2 py-1 text-left">{{ _("Project") }}</th>
+          <th class="px-2 py-1 text-right" title="{{ _('The part of this line that was for private use. No GST is claimed on it and it is not a business expense.') }}">{{ _("Private %") }}</th>
         </tr>
       </thead>
       <tbody id="expense-lines-body" class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -149,4 +177,22 @@
   </div>
 </form>
 
+<p class="text-sm ink-3 max-w-3xl mt-2">
+  {{ _("Private %: for a receipt that was partly personal, such as a phone bill, enter the private share. That part is recorded as drawings and no GST is claimed on it.") }}
+</p>
+<script>
+(function () {
+  var fs = document.getElementById("paid-by");
+  if (!fs) return;
+  function show() {
+    var v = (fs.querySelector('input[name="paid_by"]:checked') || {}).value || "business";
+    document.querySelectorAll("[data-paid-by]").forEach(function (el) {
+      el.hidden = el.dataset.paidBy !== v;
+    });
+  }
+  fs.querySelectorAll('input[name="paid_by"]').forEach(function (r) { r.addEventListener("change", show); });
+  show();
+})();
+</script>
+{% include "_partials/submit_once.html" %}
 {% endblock %}

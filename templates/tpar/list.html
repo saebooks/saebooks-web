@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Taxable payments annual report") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Taxable payments annual report") }}</h1>
+  <p class="text-sm ink-3 mt-1 max-w-2xl">
+    {{ _("Businesses in building and construction, cleaning, couriers, road freight, IT and security must report what they paid contractors each financial year. It is due to the ATO by 28 August.") }}
+  </p>
+</div>
+
+{% if not_au %}
+<div class="card p-4 text-sm ink-2 max-w-2xl">
+  {{ _("This report is for Australian businesses. It is not available for this company.") }}
+</div>
+{% else %}
+
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+  <div class="card px-6 py-5 lg:col-span-2">
+    <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Prepare a report") }}</h2>
+    <p class="text-sm ink-3 mb-4">
+      {{ _("The report adds up every posted bill and expense paid to a contact marked as a reportable contractor. Preparing it again replaces a draft; a finalised report stays as it is.") }}
+    </p>
+    <form method="POST" action="/tpar" class="flex flex-wrap items-end gap-3" data-submit-once>
+      {{ csrf_input(request)|safe }}
+      <div>
+        <label for="fy_start" class="block text-sm font-medium ink-2 mb-1">{{ _("Financial year") }}</label>
+        <select id="fy_start" name="fy_start" class="saebooks-input">
+          {% for fy in fy_options %}
+          <option value="{{ fy.fy_start }}" {% if fy.fy_start == default_fy %}selected{% endif %}>{{ fy.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn-primary text-sm">{{ _("Prepare report") }}</button>
+    </form>
+  </div>
+  <div class="card px-6 py-5">
+    <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Who is included") }}</h2>
+    {% if contractor_count is not none %}
+    <p class="text-sm ink-2 mb-2">
+      {% if contractor_count == 1 %}{{ _("1 contact is marked as a reportable contractor.") }}
+      {% else %}{{ _("%(n)s contacts are marked as reportable contractors.") % {"n": contractor_count} }}{% endif %}
+    </p>
+    {% endif %}
+    <p class="text-sm ink-3">
+      {{ _("To add someone, open the contact, choose Edit and tick “Report payments to this contractor”.") }}
+    </p>
+    <a href="/suppliers" class="text-sm sae hover:underline mt-3 inline-block">{{ _("Go to suppliers") }} →</a>
+  </div>
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Financial year") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Contractors") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Total paid") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("GST") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[color:var(--line)]">
+      {% for r in runs %}
+      <tr class="hover:bg-[color:var(--paper-2)]">
+        <td class="px-4 py-3"><a href="/tpar/{{ r.id }}" class="sae hover:underline">{{ r.fy_start }} {{ _("to") }} {{ r.fy_end }}</a></td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ r.total_payee_count }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(r.total_gross_amount|float, 2) }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(r.total_gst_amount|float, 2) }}</td>
+        <td class="px-4 py-3">
+          {% if r.status|upper == 'DRAFT' %}<span class="badge-draft">{{ _("Draft") }}</span>
+          {% elif r.status|upper == 'FINALISED' %}<span class="badge-pos">{{ _("Finalised") }}</span>
+          {% else %}<span class="badge-draft">{{ r.status|capitalize }}</span>{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-sm ink-3">{{ _("No reports prepared yet.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% include "_partials/submit_once.html" %}
+{% endblock %}

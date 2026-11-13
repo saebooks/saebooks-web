@@ -701,7 +701,9 @@
                             or path.startswith('/bank-rules')
                             or path.startswith('/banking')
                             or path.startswith('/payments')
-                            or path.startswith('/transfers') %}
+                            or path.startswith('/transfers')
+                            or path.startswith('/loans')
+                            or path.startswith('/owner-money') %}
       <details class="group" data-section="banking" {% if banking_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>{{ _("Banking") }}</span>
@@ -716,6 +718,12 @@
           </a>
           <a href="/transfers" class="nav-item is-sub {% if path.startswith('/transfers') %}active{% endif %}">
             <i data-lucide="arrow-right-left" class="nav-ico"></i>{{ _("Transfers") }}
+          </a>
+          <a href="/loans" class="nav-item is-sub {% if path.startswith('/loans') %}active{% endif %}">
+            <i data-lucide="landmark" class="nav-ico"></i>{{ _("Loans and finance") }}
+          </a>
+          <a href="/owner-money" class="nav-item is-sub {% if path.startswith('/owner-money') %}active{% endif %}">
+            <i data-lucide="user-round" class="nav-ico"></i>{{ _("Owner money") }}
           </a>
           <a href="/bank-statement-lines" class="nav-item is-sub {% if path.startswith('/bank-statement-lines') %}active{% endif %}">
             <i data-lucide="align-justify" class="nav-ico"></i>{{ _("Statement Lines") }}
@@ -780,6 +788,7 @@
                         or path.startswith('/admin/ato-sbr')
                         or path == '/reports/bas-summary'))
                         or path.startswith('/tax-codes')
+                        or (jurisdiction == 'AU' and path.startswith('/tpar'))
                         or (jurisdiction != 'AU' and path.startswith('/tax-returns')) %}
       <details class="group" data-section="gst" {% if gst_open %}open{% endif %}>
         <summary class="nav-section-label">
@@ -804,6 +813,11 @@
           {% if user_role == 'admin' and request.state.jp.features.tax_reports %}
           <a href="/admin/ato-sbr" class="nav-item is-sub {% if path.startswith('/admin/ato-sbr') %}active{% endif %}">
             <i data-lucide="landmark" class="nav-ico"></i>{{ _("ATO SBR") }}
+          </a>
+          {% endif %}
+          {% if jurisdiction == 'AU' %}
+          <a href="/tpar" class="nav-item is-sub {% if path.startswith('/tpar') %}active{% endif %}">
+            <i data-lucide="hard-hat" class="nav-ico"></i>{{ _("Contractor payments report") }}
           </a>
           {% endif %}
           {% if jurisdiction != 'AU' %}
@@ -1296,7 +1310,11 @@
     { g: 'Compliance', i: 'piggy-bank',   t: 'Super owed',          s: 'Payday Super due dates by fund',     href: '/payroll/super' },
     { g: 'Compliance', i: 'calendar-check', t: 'Payroll year end',  s: 'Finalise the year, income statements', href: '/payroll/year-end' },
     {% endif %}
-    { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report · coming soon', href: '/reports' },
+    {% if jurisdiction == 'AU' %}
+    { g: 'Compliance', i: 'hard-hat',     t: 'Taxable payments annual report', s: 'Contractor payments, due 28 August', href: '/tpar' },
+    {% endif %}
+    { g: 'Banking', i: 'landmark',        t: 'Loans and finance',   s: 'Loans, chattel mortgages, hire purchase', href: '/loans' },
+    { g: 'Banking', i: 'user-round',      t: 'Owner money',         s: 'Paid personally, reimbursements, owner loan', href: '/owner-money' },
     { g: 'Admin',   i: 'cog',          t: 'Company settings',      s: '{% if jurisdiction == "AU" %}ABN · GST · tax codes{% else %}Registration · tax codes{% endif %}',              href: '/settings/company' },
     { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/admin/license' },
     { g: 'Admin',   i: 'history',      t: 'Audit log',              s: 'All ledger mutations',               href: '/admin/audit' },

@@ -70,6 +70,72 @@ async def _fetch_dep_models(request: Request) -> list[dict]:
     return []
 
 
+async def _fetch_purchase_dropdowns(request: Request) -> dict[str, list[dict]]:
+    """Accounts, GST codes and posted bills for "How was it paid for?" (P1-73)."""
+    out: dict[str, list[dict]] = {"pay_accounts": [], "tax_codes": [], "bills": []}
+    try:
+        return await _fetch_purchase_dropdowns_inner(request, out)
+    except Exception:  # degrade: the form still works without the pickers
+        return out
+
+
+async def _fetch_purchase_dropdowns_inner(
+    request: Request, out: dict[str, list[dict]]
+) -> dict[str, list[dict]]:
+    async with api_client(request) as client:
+        for account_type in ("ASSET", "LIABILITY", "EQUITY"):
+            resp = await client.get(
+                "/api/v1/accounts",
+                params={"account_type": account_type, "limit": 500, "offset": 0},
+            )
+            if resp.is_success:
+                out["pay_accounts"].extend(
+                    a for a in resp.json().get("items", []) if not a.get("is_header")
+                )
+        out["pay_accounts"].sort(key=lambda a: a.get("code") or "")
+        resp = await client.get("/api/v1/tax_codes", params={"limit": 200})
+        if resp.is_success:
+            body = resp.json()
+            out["tax_codes"] = body.get("items", body) if isinstance(body, dict) else body
+        resp = await client.get(
+            "/api/v1/bills", params={"status": "POSTED", "page": 1, "page_size": 200}
+        )
+        if resp.is_success:
+            out["bills"] = resp.json().get("items", [])
+    return out
+
+
+def _purchase_from_form(form: dict[str, str]) -> tuple[dict | None, str | None]:
+    """Turn the "How was it paid for?" fields into the engine's ``purchase``.
+
+    Returns (purchase, error). ``finance`` is not posted from here — a loan,
+    chattel mortgage or hire purchase is recorded with the loan.
+    """
+    method = (form.get("purchase_method") or "").strip()
+    if method in ("", "existing"):
+        return ({"method": "existing"} if method else None), None
+    if method == "finance":
+        return None, (
+            "An asset bought on finance is recorded together with the loan. "
+            "Use Loans and finance, New loan, and choose that it paid for an asset."
+        )
+    if method == "paid":
+        purchase: dict[str, object] = {
+            "method": "paid",
+            "paid_from_account_id": form.get("paid_from_account_id", "").strip() or None,
+        }
+        gst = form.get("purchase_gst_amount", "").strip()
+        if gst:
+            purchase["gst_amount"] = gst
+        tc = form.get("purchase_tax_code_id", "").strip()
+        if tc:
+            purchase["tax_code_id"] = tc
+        return purchase, None
+    if method == "bill":
+        return {"method": "bill", "bill_id": form.get("purchase_bill_id", "").strip() or None}, None
+    return None, "Choose how the asset was paid for."
+
+
 def _parse_422(body: dict) -> dict[str, str]:
     """Extract field -> message errors from a 422 response body."""
     errors: dict[str, str] = {}
@@ -102,16 +168,18 @@ async def fixed_asset_new_form(request: Request) -> HTMLResponse | RedirectRespo
 
     accounts = await _fetch_accounts(request)
     dep_models = await _fetch_dep_models(request)
+    purchase_lists = await _fetch_purchase_dropdowns(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
         "fixed_assets/new.html",
         {
-            "form": {},
+            "form": {"purchase_method": "paid"},
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "accounts": accounts,
             "dep_models": dep_models,
+            **purchase_lists,
         },
     )
 
@@ -167,6 +235,27 @@ async def fixed_asset_create(request: Request) -> HTMLResponse | RedirectRespons
     if residual_value:
         payload["residual_value"] = residual_value
 
+    purchase, purchase_error = _purchase_from_form(form)
+    if purchase_error:
+        accounts = await _fetch_accounts(request)
+        dep_models = await _fetch_dep_models(request)
+        purchase_lists = await _fetch_purchase_dropdowns(request)
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "fixed_assets/new.html",
+            {
+                "form": form,
+                "errors": {"__all__": purchase_error},
+                "idempotency_key": idempotency_key,
+                "accounts": accounts,
+                "dep_models": dep_models,
+                **purchase_lists,
+            },
+            status_code=422,
+        )
+    if purchase is not None:
+        payload["purchase"] = purchase
+
     async with api_client(request) as client:
         resp = await client.post(
             "/api/v1/fixed_assets",
@@ -193,6 +282,7 @@ async def fixed_asset_create(request: Request) -> HTMLResponse | RedirectRespons
 
     accounts = await _fetch_accounts(request)
     dep_models = await _fetch_dep_models(request)
+    purchase_lists = await _fetch_purchase_dropdowns(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -203,6 +293,7 @@ async def fixed_asset_create(request: Request) -> HTMLResponse | RedirectRespons
             "idempotency_key": idempotency_key,
             "accounts": accounts,
             "dep_models": dep_models,
+            **purchase_lists,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
@@ -451,6 +542,10 @@ async def fixed_asset_dispose(
     notes = form.get("notes", "").strip()
     if notes:
         payload["notes"] = notes
+    # Batch 14: disposal posts its journal; the proceeds land in this account.
+    proceeds_account_id = form.get("proceeds_account_id", "").strip()
+    if proceeds_account_id:
+        payload["proceeds_account_id"] = proceeds_account_id
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -464,7 +559,10 @@ async def fixed_asset_dispose(
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.status_code == 200:
-        request.session["flash"] = "Fixed asset disposed."
+        request.session["flash"] = (
+            "Asset disposed. The sale, the cost, the depreciation to date and the "
+            "gain or loss are now in the accounts."
+        )
         return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
 
     if resp.status_code == 409:
@@ -834,6 +932,17 @@ async def fixed_assets_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+    # Register vs ledger (P1-73, batch 14): flag when they disagree.
+    tie_out: dict | None = None
+    if request.headers.get("HX-Request") != "true":
+        try:
+            async with api_client(request) as client:
+                t_resp = await client.get("/api/v1/fixed_assets/tie_out")
+            if t_resp.is_success:
+                tie_out = t_resp.json()
+        except Exception:  # the list still renders without the check
+            tie_out = None
+
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -841,6 +950,7 @@ async def fixed_assets_list(
     flash = request.session.pop("flash", None)
 
     ctx = {
+        "tie_out": tie_out,
         "assets": assets,
         "total": total,
         "error": error,
@@ -905,8 +1015,12 @@ async def fixed_asset_detail(
     # Fetch accounts for the convert-to-inventory dropdowns (only needed
     # on ACTIVE assets, but cheap enough to always fetch).
     accounts: list[dict] = []
+    purchase_lists: dict[str, list[dict]] = {"pay_accounts": [], "tax_codes": [], "bills": []}
     if asset.get("status") == "active":
         accounts = await _fetch_accounts(request)
+        # Balance sheet accounts for "money received into" on disposal, and
+        # the link-purchase form when the asset is not tied to a purchase.
+        purchase_lists = await _fetch_purchase_dropdowns(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -918,8 +1032,50 @@ async def fixed_asset_detail(
             "through_default": through_default,
             "accounts": accounts,
             "today": _today.isoformat(),
+            **purchase_lists,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Link purchase — POST /{asset_id}/link-purchase (P1-73, batch 14)
+# NOTE: registered after the catch-all GET; POST does not collide with it.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/fixed-assets/{asset_id}/link-purchase", response_model=None)
+async def fixed_asset_link_purchase(request: Request, asset_id: str) -> RedirectResponse:
+    """Tie an unlinked asset to its purchase: a posted bill, or post the payment."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    form_data = await request.form()
+    form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
+    purchase, purchase_error = _purchase_from_form(form)
+    if purchase_error or not purchase or purchase.get("method") not in ("paid", "bill"):
+        request.session["flash"] = purchase_error or "Choose a bill, or the account it was paid from."
+        return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/fixed_assets/{asset_id}/link_purchase",
+            json=purchase,
+            headers={"If-Match": form.get("version", "")},
+        )
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 200:
+        request.session["flash"] = "Purchase linked. The asset register and the accounts now agree for this asset."
+    elif resp.status_code == 409:
+        request.session["flash"] = "The asset was changed by someone else. Check it and try again."
+    else:
+        try:
+            detail = resp.json().get("detail")
+        except Exception:
+            detail = None
+        request.session["flash"] = detail if isinstance(detail, str) and detail else (
+            f"The purchase could not be linked (HTTP {resp.status_code})."
+        )
+    return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
 
 
 # ---------------------------------------------------------------------------

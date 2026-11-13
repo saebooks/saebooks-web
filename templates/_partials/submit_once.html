@@ -1,0 +1,42 @@
+{#
+  submit_once.html — stop a double-click posting twice (P1-50, batch 14).
+
+  Any form carrying ``data-submit-once`` has its submit buttons disabled the
+  moment it is submitted, and the clicked button's label swapped for
+  "Saving…". The server still guards with an idempotency key; this is the
+  first line so the user sees that their click registered. Include once per
+  page, after the forms.
+#}
+<script>
+(function () {
+  if (window.__saeSubmitOnce) return;
+  window.__saeSubmitOnce = true;
+  document.addEventListener("submit", function (ev) {
+    var form = ev.target;
+    if (!form || !form.hasAttribute || !form.hasAttribute("data-submit-once")) return;
+    if (ev.defaultPrevented) return;
+    if (form.dataset.submitted === "1") { ev.preventDefault(); return; }
+    form.dataset.submitted = "1";
+    var buttons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+    buttons.forEach(function (b) {
+      b.disabled = true;
+      b.setAttribute("aria-disabled", "true");
+      if (b === ev.submitter && b.tagName === "BUTTON") {
+        b.dataset.label = b.textContent;
+        b.textContent = "{{ _('Saving…') }}";
+      }
+    });
+  }, false);
+  // Back button restores a cached page with disabled buttons — re-enable.
+  window.addEventListener("pageshow", function () {
+    document.querySelectorAll("form[data-submit-once]").forEach(function (f) {
+      f.dataset.submitted = "";
+      f.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (b) {
+        b.disabled = false;
+        b.removeAttribute("aria-disabled");
+        if (b.dataset.label) b.textContent = b.dataset.label;
+      });
+    });
+  });
+})();
+</script>

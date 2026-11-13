@@ -10,7 +10,7 @@
 </div>
 
 <div class="card px-6 py-6 max-w-2xl">
-  <form method="POST" action="/transfers/new" novalidate>
+  <form method="POST" action="/transfers/new" novalidate data-submit-once id="transfer-form">
     {{ csrf_input(request)|safe }}
 
     <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
@@ -22,10 +22,26 @@
     </div>
     {% endif %}
 
-    <div class="card p-3 mb-6 text-sm ink-2" style="border-color:var(--sae);">
-      <p class="font-semibold mb-1 ink-1">{{ _("The no-manual-journal-entry way to move money") }}</p>
-      <p>{{ _("Use a transfer to move money between two of this company's own balance-sheet accounts — a credit-card paydown, a director's-loan repayment, or a bank-to-bank move. It posts one balanced journal entry automatically. Never hand-write a journal entry for this.") }}</p>
-    </div>
+    {# ── What is this? (P1-50, batch 14) ── #}
+    <fieldset class="mb-6">
+      <legend class="text-sm font-semibold ink-1 mb-2">{{ _("What is this?") }}</legend>
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {% for p in purposes %}
+        <label class="card p-3 flex items-start gap-2 cursor-pointer">
+          <input type="radio" name="purpose" value="{{ p.value }}"
+                 data-from-types="{{ p.from_types|join(',') }}"
+                 data-to-types="{{ p.to_types|join(',') }}"
+                 data-help="{{ _(p.help) }}"
+                 {% if form.get('purpose') == p.value %}checked{% endif %}
+                 class="mt-1">
+          <span class="text-sm ink-1">{{ _(p.label) }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      <p id="purpose-help" class="text-sm ink-3 mt-3">
+        {{ _("A transfer moves money between this business's own accounts. It is not income or an expense, and no GST applies.") }}
+      </p>
+    </fieldset>
 
     <fieldset class="space-y-4">
       <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Transfer details") }}</legend>
@@ -44,7 +60,7 @@
           >
             <option value="" disabled {% if not form.get("from_account_id") %}selected{% endif %}>{{ _("Select account…") }}</option>
             {% for acct in accounts %}
-            <option value="{{ acct.id }}" {% if form.get("from_account_id") == acct.id %}selected{% endif %}>
+            <option value="{{ acct.id }}" data-type="{{ acct.account_type }}" {% if form.get("from_account_id") == acct.id %}selected{% endif %}>
               {{ acct.code }} — {{ acct.name }}
             </option>
             {% endfor %}
@@ -67,7 +83,7 @@
           >
             <option value="" disabled {% if not form.get("to_account_id") %}selected{% endif %}>{{ _("Select account…") }}</option>
             {% for acct in accounts %}
-            <option value="{{ acct.id }}" {% if form.get("to_account_id") == acct.id %}selected{% endif %}>
+            <option value="{{ acct.id }}" data-type="{{ acct.account_type }}" {% if form.get("to_account_id") == acct.id %}selected{% endif %}>
               {{ acct.code }} — {{ acct.name }}
             </option>
             {% endfor %}
@@ -157,4 +173,34 @@
   </form>
 </div>
 
+<script>
+(function () {
+  var form = document.getElementById("transfer-form");
+  if (!form) return;
+  var help = document.getElementById("purpose-help");
+  var defaultHelp = help ? help.textContent : "";
+  function narrow(select, types) {
+    if (!select) return;
+    var allowed = types ? types.split(",") : null;
+    Array.prototype.forEach.call(select.options, function (opt) {
+      if (!opt.value) return;
+      var ok = !allowed || allowed.indexOf(opt.dataset.type) !== -1;
+      opt.hidden = !ok;
+      opt.disabled = !ok;
+      if (!ok && opt.selected) { opt.selected = false; select.value = ""; }
+    });
+  }
+  function apply() {
+    var chosen = form.querySelector('input[name="purpose"]:checked');
+    narrow(form.querySelector("#from_account_id"), chosen ? chosen.dataset.fromTypes : "");
+    narrow(form.querySelector("#to_account_id"), chosen ? chosen.dataset.toTypes : "");
+    if (help) help.textContent = chosen ? chosen.dataset.help : defaultHelp;
+  }
+  form.querySelectorAll('input[name="purpose"]').forEach(function (r) {
+    r.addEventListener("change", apply);
+  });
+  apply();
+})();
+</script>
+{% include "_partials/submit_once.html" %}
 {% endblock %}

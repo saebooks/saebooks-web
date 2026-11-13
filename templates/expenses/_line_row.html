@@ -55,4 +55,9 @@
       {{ _("Bill to customer") }}
     </label>
   </td>
+  <td class="px-2 py-1">
+    <input type="number" name="lines[{{ index }}][private_pct]" value="{{ line.private_pct or '' }}" step="0.01" min="0" max="100"
+      placeholder="0" aria-label="{{ _('Private share, per cent') }}"
+      class="saebooks-input w-20 px-2 py-1 text-base text-right">
+  </td>
 </tr>

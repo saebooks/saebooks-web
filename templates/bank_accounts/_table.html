@@ -33,6 +33,10 @@
     {% if account.account_type == "LIABILITY" %}
     <span class="ml-1.5 badge-ink">{{ _("owed") }}</span>
     {% endif %}
+    {% if account.account_kind == "CREDIT_CARD" and not account.archived_at %}
+    <a href="/transfers/new?purpose=card_payment&to_account_id={{ account.id }}"
+       onclick="event.stopPropagation()" class="ml-2 text-xs sae hover:underline">{{ _("Pay card") }}</a>
+    {% endif %}
   </td>
   <td class="px-4 py-3 ink-2 font-mono text-xs">{{ account.bsb or "—" }}</td>
   <td class="px-4 py-3 ink-2 font-mono text-xs">{{ account.bank_account_number or "—" }}</td>

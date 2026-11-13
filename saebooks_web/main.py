@@ -97,6 +97,9 @@ from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.parties import router as parties_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.transfers import router as transfers_router
+from saebooks_web.routes.loans import router as loans_router  # batch 14, P0-44
+from saebooks_web.routes.owner_money import router as owner_money_router  # batch 14, P1-47
+from saebooks_web.routes.tpar import router as tpar_router  # batch 14, P1-74
 from saebooks_web.routes.receipts import router as receipts_router
 from saebooks_web.routes.supplier_credit_notes import router as supplier_credit_notes_router
 from saebooks_web.routes.payment_allocations import router as payment_allocations_router
@@ -454,6 +457,9 @@ app.include_router(remittance_router)
 app.include_router(terms_router)
 app.include_router(credit_notes_router)
 app.include_router(transfers_router)
+app.include_router(loans_router)
+app.include_router(owner_money_router)
+app.include_router(tpar_router)
 app.include_router(receipts_router)
 app.include_router(supplier_credit_notes_router)
 app.include_router(payment_allocations_router)
