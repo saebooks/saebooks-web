@@ -1,7 +1,15 @@
 {# HTMX partial — purchase-order table body + pagination. #}
 {% import "_components/kebab_menu.html" as km %}
 {% import "_partials/empty_state.html" as empty %}
+{% import "_sort_macros.html" as srt %}
+{% import "_components/list_tools.html" as lt %}
+{% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
+                  'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'q': filter_q, 'amount_min': filter_amount_min,
+                  'amount_max': filter_amount_max, 'limit': limit} %}
 <div id="purchase-orders-table">
+
+<div class="flex justify-end mb-2">{{ lt.export_link('/purchase_orders', dict(filters, sort=sort, direction=direction)) }}</div>
 
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
@@ -19,12 +27,12 @@
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("PO number") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Issue date") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Expected") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Supplier") }}</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Total") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('number', _('Purchase order number'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('issue_date', _('Date'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('expected_date', _('Expected'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('contact', _('Supplier'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('total', _('Total'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('status', _('Status'), sort, direction, filters) }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -104,34 +112,9 @@
   </table>
 </div>
 
-{% if prev_offset is not none or next_offset is not none %}
-<div class="mt-4 flex items-center justify-between text-sm ink-2">
-  <div>
-    {{ _("Showing %(from)s–%(to)s of %(total)s") % {"from": offset + 1, "to": ([offset + limit, total] | min), "total": total} }}
-  </div>
-  <div class="flex gap-3">
-    {% if prev_offset is not none %}
-    <a
-      href="/purchase_orders?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/purchase_orders?offset={{ prev_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#purchase-orders-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >{{ _("Previous") }}</a>
-    {% endif %}
-    {% if next_offset is not none %}
-    <a
-      href="/purchase_orders?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-get="/purchase_orders?offset={{ next_offset }}&limit={{ limit }}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_contact_id %}&contact_id={{ filter_contact_id }}{% endif %}{% if filter_date_from %}&date_from={{ filter_date_from }}{% endif %}{% if filter_date_to %}&date_to={{ filter_date_to }}{% endif %}"
-      hx-target="#purchase-orders-table"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-      class="rounded-md hairline px-3 py-1.5 hover:bg-[color:var(--paper-2)]"
-    >{{ _("Next") }}</a>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+{# Pagination — page numbers; keeps search, filters and sort. #}
+{% import "_pagination_macros.html" as pg %}
+{% set pg_filters = dict(filters, sort=sort, direction=direction, limit='') %}
+{{ pg.page_numbers('/purchase_orders', total, limit, offset, pg_filters, target='#purchase-orders-table') }}
 
 </div>

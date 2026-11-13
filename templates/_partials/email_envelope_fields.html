@@ -1,0 +1,30 @@
+{# Shared From / Reply-to / sender-name fields for the customer email
+   composers (b06). Expects from_options, default_from, default_reply_to,
+   default_from_name, default_bcc and form in the context. #}
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div>
+    <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1" for="from_addr">{{ _("From") }}</label>
+    {% if from_options %}
+    <select id="from_addr" name="from_addr" required class="saebooks-input">
+      {% for addr in from_options %}
+      <option value="{{ addr }}" {% if addr == (form.from_addr or default_from) %}selected{% endif %}>{{ addr }}</option>
+      {% endfor %}
+    </select>
+    {% else %}
+    <input id="from_addr" type="email" name="from_addr" required class="saebooks-input"
+           value="{{ form.from_addr or default_from or '' }}">
+    {% endif %}
+    <p class="text-xs ink-3 mt-1">{{ _("Your customer sees your business name as the sender.") }}</p>
+  </div>
+  <div>
+    <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1" for="from_name">{{ _("Sender name") }}</label>
+    <input id="from_name" type="text" name="from_name" maxlength="120" class="saebooks-input"
+           value="{{ form.from_name or default_from_name or '' }}">
+  </div>
+</div>
+<div>
+  <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1" for="reply_to">{{ _("Replies go to") }}</label>
+  <input id="reply_to" type="email" name="reply_to" class="saebooks-input"
+         value="{{ form.reply_to or default_reply_to or '' }}"
+         placeholder="{{ _('your email address') }}">
+</div>

@@ -43,6 +43,12 @@
   <button type="submit" class="btn-primary text-sm">{{ _("Refresh") }}</button>
 </form>
 
+<p class="text-xs ink-3 mb-4" id="period-columns-links">{{ _("See this by:") }}
+  <a class="sae hover:underline" href="/reports/periods?report=balance_sheet&amp;to_date={{ as_of_date }}&amp;period=month">{{ _("month") }}</a> ·
+  <a class="sae hover:underline" href="/reports/periods?report=balance_sheet&amp;to_date={{ as_of_date }}&amp;period=quarter">{{ _("quarter") }}</a> ·
+  <a class="sae hover:underline" href="/reports/periods?report=balance_sheet&amp;to_date={{ as_of_date }}&amp;period=year">{{ _("year") }}</a>
+</p>
+
 {% include "reports/_balance_sheet_table.html" %}
 
 {% endblock %}

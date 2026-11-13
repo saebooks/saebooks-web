@@ -27,13 +27,15 @@
   </a>
 </div>
 
-<form
+<form role="search"
   hx-get="/supplier-credit-notes"
   hx-target="#supplier-credit-notes-table"
   hx-swap="outerHTML"
   hx-push-url="true"
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
+  {% import "_components/list_tools.html" as lt %}
+  {{ lt.search_box(filter_q, _('Number, supplier credit number, name or amount')) }}
   <div>
     <label for="status" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Status") }}</label>
     <select id="status" name="status"
@@ -42,6 +44,7 @@
       <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
       <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>{{ _("Posted") }}</option>
       <option value="VOIDED" {% if filter_status == 'VOIDED' %}selected{% endif %}>{{ _("Voided") }}</option>
+      <option value="UNAPPLIED" {% if filter_status == 'UNAPPLIED' %}selected{% endif %}>{{ _("Credit left to use") }}</option>
     </select>
   </div>
 
@@ -57,7 +60,11 @@
       class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291]">
   </div>
 
-  <input type="hidden" name="limit" value="{{ limit }}">
+  {{ lt.contact_picker("contact_id", _('Supplier'), 'supplier', filter_contact_id, filter_contact_name) }}
+  {{ lt.amount_range(filter_amount_min, filter_amount_max) }}
+  {{ lt.page_size(limit) }}
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="direction" value="{{ direction }}">
   <input type="hidden" name="offset" value="0">
 
   <button type="submit" class="rounded-md bg-[#194291] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#133372]">
@@ -68,5 +75,7 @@
 {% include "supplier_credit_notes/_table.html" %}
 
 <script src="/static/js/list_table.js" defer></script>
+
+<script src="/static/js/contact_picker.js" defer></script>
 
 {% endblock %}

@@ -18,18 +18,23 @@ Auth guard: redirect to /login (303) if no session token.
 from __future__ import annotations
 
 import uuid
-from datetime import date, timedelta
+from datetime import date
 from datetime import date as _date
 from datetime import timedelta as _td
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import bulk_transitions
+from saebooks_web import settlement as settlement_reads
+from saebooks_web.routes._void_dating import lodged_conflict, render_lodged_confirm, void_body
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines
+from saebooks_web.fx_context import company_currency
 
 router = APIRouter()
 
@@ -41,78 +46,26 @@ def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
 
-_BILL_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
-
-# Payment-status values exposed to the UI. The dropdown sends these as the
-# `status` query param. They mirror the badges rendered by
-# templates/_status_macros.html :: payment_status_badge.
-_PAYMENT_STATUS_VALUES = {"draft", "open", "due-soon", "overdue", "partial", "paid", "voided"}
-
-# Map payment-status → raw API status to narrow the fetched set. The POSTED
-# bucket is still filtered in Python afterwards.
-_PAYMENT_STATUS_RAW_HINT = {
-    "draft":    "DRAFT",
-    "voided":   "VOIDED",
-    "open":     "POSTED",
-    "due-soon": "POSTED",
-    "overdue":  "POSTED",
-    "partial":  "POSTED",
-    "paid":     "POSTED",
+_BILL_SORT_KEYS = {
+    "number", "supplier_reference", "issue_date", "due_date", "contact",
+    "total", "amount_due", "status",
 }
+# Old links said contact_id; the engine sorts by the supplier's NAME.
+_SORT_ALIASES = {"contact_id": "contact"}
 
-# Sort order for the Status column — least-resolved first, then resolved.
-_PAYMENT_STATUS_RANK = {
-    "draft":    0,
-    "overdue":  1,
-    "due-soon": 2,
-    "open":     3,
-    "partial":  4,
-    "paid":     5,
-    "voided":   6,
+# Status dropdown value -> engine filter. Document states go to ``status``;
+# what-is-owed buckets go to ``payment_status`` and are worked out by the
+# engine over ALL bills (the old screen fetched 500 and filtered those).
+_STATUS_FILTERS: dict[str, tuple[str, str]] = {
+    "draft":    ("status", "DRAFT"),
+    "voided":   ("status", "VOIDED"),
+    "unpaid":   ("payment_status", "unpaid"),
+    "open":     ("payment_status", "open"),
+    "due-soon": ("payment_status", "due_soon"),
+    "overdue":  ("payment_status", "overdue"),
+    "partial":  ("payment_status", "part_paid"),
+    "paid":     ("payment_status", "paid"),
 }
-
-
-def _bill_payment_status(b: dict, today: str, due_soon_cutoff: str) -> str:
-    """Derive the payment-status string for a bill. Mirror of the Jinja
-    ``payment_status_badge`` macro so filter/sort match what the user sees."""
-    s = (b.get("status") or "").upper()
-    if s == "VOIDED":
-        return "voided"
-    if s == "DRAFT":
-        return "draft"
-    if s == "POSTED":
-        try:
-            total = float(b.get("total") or 0)
-        except (TypeError, ValueError):
-            total = 0.0
-        try:
-            paid = float(b.get("amount_paid") or 0)
-        except (TypeError, ValueError):
-            paid = 0.0
-        if total > 0 and paid >= total:
-            return "paid"
-        if paid > 0:
-            return "partial"
-        due = b.get("due_date") or ""
-        if due and due < today:
-            return "overdue"
-        if due and due <= due_soon_cutoff:
-            return "due-soon"
-        return "open"
-    return "open"
-
-
-def _bill_sort_key(b: dict, key: str, today: str, due_soon_cutoff: str) -> object:
-    if key == "total":
-        try:
-            return float(b.get("total") or 0)
-        except (TypeError, ValueError):
-            return 0.0
-    if key == "status":
-        return _PAYMENT_STATUS_RANK.get(
-            _bill_payment_status(b, today, due_soon_cutoff), 99
-        )
-    return str(b.get(key) or "")
 
 
 @router.get("/bills", response_class=HTMLResponse, response_model=None)
@@ -120,14 +73,24 @@ async def bills_list(
     request: Request,
     status: str | None = None,
     contact_id: str | None = None,
+    project_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
     sort: str = "issue_date",
     direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     """Render the bills list page (full or HTMX fragment).
+
+    Searching (``q``: our number, the supplier's invoice number, supplier
+    name or an amount), the amount range, the status filter, sorting and
+    paging all happen in the engine, so they cover every bill. ``?export=csv``
+    downloads every matching bill as a spreadsheet.
 
     When the request carries an ``HX-Request: true`` header the response is
     the ``bills/_table.html`` partial only.  Otherwise the full page
@@ -136,89 +99,79 @@ async def bills_list(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    sort = _SORT_ALIASES.get(sort, sort)
     sort = sort if sort in _BILL_SORT_KEYS else "issue_date"
     direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
 
     _today_iso = _date.today().isoformat()
     _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
 
-    # The status filter is a payment-status value (draft / open / due-soon /
-    # overdue / partial / paid / voided). For the POSTED-derived buckets the
-    # API can only narrow to raw status=POSTED — the final filter and the
-    # total count are computed in Python below.
     status_norm = (status or "").lower().strip()
-    filter_client_side = status_norm in _PAYMENT_STATUS_VALUES
-    api_status = _PAYMENT_STATUS_RAW_HINT.get(status_norm) if filter_client_side else None
+    if status_norm not in _STATUS_FILTERS:
+        status_norm = ""
 
-    # The API uses page/page_size rather than limit/offset.
-    page_size = limit
-    page = (offset // page_size) + 1 if page_size > 0 else 1
-
-    # When filtering by payment status we fetch a single wide page from the
-    # API (capped at 500 — the API's hard upper bound) and slice in Python
-    # so the total count and pagination reflect the filtered set.
-    if filter_client_side:
-        api_page, api_page_size = 1, 500
-    else:
-        api_page, api_page_size = page, page_size
-
-    params: dict[str, object] = {"page": api_page, "page_size": api_page_size}
-    if api_status:
-        params["status"] = api_status
+    params: dict[str, object] = {
+        "page": (offset // limit) + 1,
+        "page_size": limit,
+        "sort": sort,
+        "direction": direction,
+    }
+    if status_norm:
+        key, value = _STATUS_FILTERS[status_norm]
+        params[key] = value
     if contact_id:
         params["contact_id"] = contact_id
+    # Batch 12 (P0-39 / P1-63): documents on one project.
+    if project_id:
+        params["project_id"] = project_id
     if date_from:
         params["date_from"] = date_from
     if date_to:
         params["date_to"] = date_to
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
 
     error: str | None = None
     bills: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get("/api/v1/bills", params={**params, "format": "csv"})
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "bills.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/bills", status_code=303)
+
         resp = await client.get("/api/v1/bills", params=params)
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
+        list_totals = None
         if resp.is_success:
             payload = resp.json()
             bills = payload.get("items", [])
             total = payload.get("total", len(bills))
+            list_totals = payload.get("totals")
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-        # Fetch suppliers so the template can show contact NAME, not the
-        # raw UUID. SUPPLIER alone misses contact_type=BOTH (suppliers who
-        # are also customers, e.g. General Engineering, Steve's Backhoe),
-        # so do a second pass — mirrors invoices.py's CUSTOMER+BOTH.
-        for ctype in ("SUPPLIER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        # Names for exactly the suppliers on this page (and the filter) —
+        # contractors and "both" included, however many contacts exist.
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [b.get("contact_id") for b in bills] + [contact_id]
+        )
+        if contact_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(contact_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
-
-    if filter_client_side:
-        # Drop rows that don't match the requested payment status, then sort
-        # and slice in Python so total/pagination reflect the filtered set.
-        bills = [b for b in bills if _bill_payment_status(b, _today_iso, _due_soon_iso) == status_norm]
-        bills.sort(
-            key=lambda b: _bill_sort_key(b, sort, _today_iso, _due_soon_iso),
-            reverse=(direction == "desc"),
-        )
-        total = len(bills)
-        bills = bills[offset:offset + limit]
-    else:
-        # Page-level sort. Sorts the current page of results; for global sort
-        # across all pages, narrow with filters first.
-        bills.sort(
-            key=lambda b: _bill_sort_key(b, sort, _today_iso, _due_soon_iso),
-            reverse=(direction == "desc"),
-        )
 
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
@@ -228,8 +181,10 @@ async def bills_list(
     flash = request.session.pop("flash", None)
 
     ctx = {
+        "filter_project_id": project_id or "",
         "bills": bills,
         "total": total,
+        "list_totals": list_totals,
         "error": error,
         "flash": flash,
         "contacts_by_id": contacts_by_id,
@@ -238,8 +193,12 @@ async def bills_list(
         # Filter values echoed back to the form.
         "filter_status": status_norm,
         "filter_contact_id": contact_id or "",
+        "filter_contact_name": filter_contact_name,
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
         "sort": sort,
         "direction": direction,
         "limit": limit,
@@ -281,7 +240,9 @@ async def bill_new_form(
         return RedirectResponse(url="/login", status_code=303)
 
     today = date.today().isoformat()
-    due = (date.today() + timedelta(days=30)).isoformat()
+    # Blank: filled from the contact's payment terms as soon as one is
+    # chosen, or by the engine on save (gap P0-15) — never a flat 30 days.
+    due = ""
 
     contacts: list[dict] = []
     accounts: list[dict] = []
@@ -416,13 +377,17 @@ async def bill_create(request: Request) -> HTMLResponse | RedirectResponse:
                 status_code=400,
             )
 
-    currency = form.get("currency", "").strip().upper() or "AUD"
+    # Batch 10: blank rate on a foreign bill -> the engine looks up the
+    # published rate for the bill date (or refuses); never a silent 1.00.
+    base_ccy = company_currency(request)
+    currency = form.get("currency", "").strip().upper() or base_ccy
     payload["currency"] = currency
     fx_rate_raw = form.get("fx_rate", "").strip()
-    if fx_rate_raw and currency != "AUD":
+    if fx_rate_raw and currency != base_ccy:
         payload["fx_rate"] = fx_rate_raw
 
     payload["lines"] = _parse_lines(form)
+    payload["amounts_include_tax"] = bool(form.get("amounts_include_tax"))
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -648,9 +613,11 @@ async def bill_edit_form(
     # Pre-populate the form dict from the API response.
     form: dict[str, object] = {field: bill.get(field) or "" for field in _EDIT_FIELDS}
     form["version"] = str(bill.get("version", ""))
+    # Batch 5: keep the "Amounts include GST" switch as the bill was saved.
+    form["amounts_include_tax"] = "1" if bill.get("amounts_include_tax") else ""
     # fx_rate is numeric — only pre-populate when the bill is foreign-currency.
     stored_rate = bill.get("fx_rate")
-    if stored_rate and str(bill.get("currency", "AUD")).upper() != "AUD":
+    if stored_rate and str(bill.get("currency", "AUD")).upper() != company_currency(request):
         form["fx_rate"] = str(stored_rate)
 
     # Build lines list for the form, keyed by zero-based index.
@@ -664,6 +631,9 @@ async def bill_edit_form(
             "quantity": str(ln.get("quantity", "1")),
             "unit_price": str(ln.get("unit_price", "")),
             "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "item_id": str(ln.get("item_id") or ""),
+            "billable": bool(ln.get("billable")),
+            "purchase_order_line_id": str(ln.get("purchase_order_line_id") or ""),
             "project_id": str(ln.get("project_id") or ""),
         })
     if not lines:
@@ -724,13 +694,15 @@ async def bill_update(
             payload[field] = val
 
     # fx_rate is only meaningful for foreign-currency bills.
-    currency = str(payload.get("currency", "AUD")).upper()
+    base_ccy = company_currency(request)
+    currency = str(payload.get("currency", base_ccy)).upper()
     fx_rate_raw = form.get("fx_rate", "").strip()
-    if fx_rate_raw and currency != "AUD":
+    if fx_rate_raw and currency != base_ccy:
         payload["fx_rate"] = fx_rate_raw
 
     # Lines are always sent (full replace semantics).
     payload["lines"] = _parse_lines(form)
+    payload["amounts_include_tax"] = bool(form.get("amounts_include_tax"))
 
     from saebooks_web.features import is_feature_enabled as _ff
     _params = {"force": "true"} if _ff("edit_frozen_state") else None
@@ -976,11 +948,24 @@ async def bill_void(
         resp = await client.post(
             f"/api/v1/bills/{bill_id}/void",
             headers={"If-Match": version},
+            json=void_body(form_data),
         )
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+
+    # Batch 5: the reversal would land in a lodged BAS period — ask first.
+    _conflict = lodged_conflict(resp)
+    if _conflict is not None:
+        return render_lodged_confirm(
+            request,
+            conflict=_conflict,
+            action_url=f"/bills/{bill_id}/void",
+            back_url=f"/bills/{bill_id}",
+            version=version,
+            what="bill",
+        )
 
     if resp.status_code == 200:
         request.session["flash"] = "Bill voided."
@@ -1043,10 +1028,40 @@ async def bill_detail(
             "/api/v1/attachments",
             params={"entity_kind": "bill", "entity_id": bill_id},
         )
+        # Supplier name, balance due, payments and credits (gap P1-2).
+        settlement = await settlement_reads.document_settlement(client, "bill", bill_id)
+        supplier: dict = {}
+        if bill.get("contact_id") and not (settlement and settlement.get("contact", {}).get("name")):
+            supplier = await settlement_reads.get_json(
+                client, f"/api/v1/contacts/{bill['contact_id']}"
+            ) or {}
     if att_resp.status_code == 503:
         vault_enabled = False
     elif att_resp.is_success:
         attachments = att_resp.json()
+
+    # The supplier's own invoice (attached by the inbox on publish, or
+    # uploaded) for the side-by-side viewer (gap P1-3).
+    supplier_pdf = next(
+        (
+            a for a in attachments
+            if not a.get("archived_at")
+            and (
+                str(a.get("content_type") or "").lower() == "application/pdf"
+                or str(a.get("content_type") or "").lower().startswith("image/")
+                or str(a.get("filename") or "").lower().endswith(".pdf")
+            )
+        ),
+        None,
+    )
+    supplier_name = (
+        (settlement or {}).get("contact", {}).get("name") or supplier.get("name") or None
+    )
+    total = float(bill.get("total") or 0)
+    paid = float(bill.get("amount_paid") or 0)
+    balance_due = (settlement or {}).get("amount_due")
+    if balance_due is None:
+        balance_due = f"{max(total - paid, 0):.2f}"
 
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
@@ -1059,6 +1074,12 @@ async def bill_detail(
             "flash": flash,
             "attachments": attachments,
             "vault_enabled": vault_enabled,
+            "entity_kind": "bill",
+            "entity_id": bill_id,
+            "settlement": settlement,
+            "supplier_name": supplier_name,
+            "supplier_pdf": supplier_pdf,
+            "balance_due": balance_due,
         },
     )
 
@@ -1072,6 +1093,52 @@ _BULK_ACTIONS = {
     "void":    ("POST",   "/api/v1/bills/{id}/void"),
     "archive": ("DELETE", "/api/v1/bills/{id}"),
 }
+
+
+async def _bills_bulk_pay(request: Request, ids: list[str]) -> RedirectResponse:
+    """"Pay selected" (gap P0-14): open one supplier payment with the ticked
+    bills already ticked in the picker. A payment goes to one supplier, so a
+    selection across suppliers is refused with a plain message."""
+    contacts: set[str] = set()
+    payable: list[str] = []
+    skipped: list[str] = []
+    async with api_client(request) as client:
+        for bill_id in ids:
+            resp = await client.get(f"/api/v1/bills/{bill_id}")
+            if not resp.is_success:
+                skipped.append(bill_id[:8])
+                continue
+            bill = resp.json()
+            owing = float(bill.get("total") or 0) - float(bill.get("amount_paid") or 0)
+            if str(bill.get("status")).upper() != "POSTED" or owing <= 0:
+                skipped.append(str(bill.get("number") or bill_id[:8]))
+                continue
+            contacts.add(str(bill.get("contact_id")))
+            payable.append(bill_id)
+    if not payable:
+        request.session["flash"] = (
+            "None of the selected bills can be paid — only posted bills with "
+            "something still owing can."
+        )
+        return RedirectResponse(url="/bills", status_code=303)
+    if len(contacts) > 1:
+        request.session["flash"] = (
+            "Those bills are from more than one supplier. A payment goes to one "
+            "supplier — select one supplier's bills at a time."
+        )
+        return RedirectResponse(url="/bills", status_code=303)
+    if skipped:
+        request.session["flash"] = (
+            "Left out (not posted, or nothing owing): " + ", ".join(skipped[:5])
+        )
+    from urllib.parse import urlencode
+
+    query = urlencode({
+        "direction": "OUTGOING",
+        "contact_id": next(iter(contacts)),
+        "bill_ids": ",".join(payable),
+    })
+    return RedirectResponse(url=f"/payments/new?{query}", status_code=303)
 
 
 @router.post("/bills/bulk", response_class=HTMLResponse, response_model=None)
@@ -1090,7 +1157,7 @@ async def bills_bulk_action(request: Request) -> RedirectResponse:
 
     form_data = await request.form()
     action = str(form_data.get("action", "")).strip()
-    if action not in _BULK_ACTIONS:
+    if action not in _BULK_ACTIONS and action != "pay":
         request.session["flash"] = f"Unknown bulk action: {action!r}"
         return RedirectResponse(url="/bills", status_code=303)
 
@@ -1099,29 +1166,17 @@ async def bills_bulk_action(request: Request) -> RedirectResponse:
         request.session["flash"] = "No rows selected."
         return RedirectResponse(url="/bills", status_code=303)
 
+    if action == "pay":
+        return await _bills_bulk_pay(request, ids)
+
     method, path_tpl = _BULK_ACTIONS[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for bill_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=bill_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{bill_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{bill_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+        )
 
     label = action.replace("_", " ").title()
     if failed:

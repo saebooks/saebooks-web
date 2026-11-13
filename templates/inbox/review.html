@@ -52,7 +52,7 @@
 <div class="rounded-md bg-[color:var(--pos-tint)] border border-[color:var(--pos)] px-4 py-3 text-base mb-4" style="color: var(--pos);">
   {{ _("Published as") }}
   {% set kind = (doc.published_record_kind or '')|upper %}
-  {% set record_url = {'EXPENSE': '/expenses/', 'BILL': '/bills/', 'CREDIT_NOTE': '/credit-notes/'}.get(kind) %}
+  {% set record_url = {'EXPENSE': '/expenses/', 'BILL': '/bills/', 'CREDIT_NOTE': '/credit-notes/', 'SUPPLIER_CREDIT_NOTE': '/supplier-credit-notes/'}.get(kind) %}
   {% if record_url and doc.published_record_id %}
     <a href="{{ record_url }}{{ doc.published_record_id }}" class="underline font-medium">DRAFT {{ kind }}</a>
   {% else %}DRAFT {{ kind }}{% endif %}
@@ -123,7 +123,11 @@
         <label for="record_kind" class="block text-base font-medium ink-3">{{ _("Publish as") }}</label>
         <select id="record_kind" name="record_kind" class="saebooks-input w-full">
           {% for kind in record_kinds %}
-          <option value="{{ kind }}" {% if kind == 'EXPENSE' %}selected{% endif %}>{{ kind.replace('_', ' ')|title }}</option>
+          <option value="{{ kind }}" {% if kind == 'EXPENSE' %}selected{% endif %}>
+            {%- if kind == 'SUPPLIER_CREDIT_NOTE' %}{{ _("Supplier credit note (a supplier credited us)") }}
+            {%- elif kind == 'CREDIT_NOTE' %}{{ _("Customer credit note (we credit a customer)") }}
+            {%- else %}{{ kind.replace('_', ' ')|title }}{% endif -%}
+          </option>
           {% endfor %}
         </select>
         <p class="mt-1 text-xs ink-3">{{ _("Always created as a DRAFT — posting stays a deliberate second step on the record.") }}</p>
@@ -172,6 +176,15 @@
         <input type="date" id="date" name="date" value="{{ merged.date or '' }}" required
                class="saebooks-input w-full">
         {% if errors.date %}<p class="mt-1 text-sm" style="color: var(--neg);">{{ errors.date }}</p>{% endif %}
+      </div>
+      <div id="due-date-field">
+        <label for="due_date" class="block text-base font-medium ink-3">
+          {{ _("Due date") }} {{ chips.provenance_badge(provenance.due_date) }}
+        </label>
+        <input type="date" id="due_date" name="due_date" value="{{ merged.due_date or '' }}"
+               class="saebooks-input w-full">
+        <p class="mt-1 text-xs ink-3">{{ _("Bills only. As printed on the invoice — leave blank to use the supplier's payment terms.") }}</p>
+        {% if errors.due_date %}<p class="mt-1 text-sm" style="color: var(--neg);">{{ errors.due_date }}</p>{% endif %}
       </div>
       <div>
         <label for="invoice_number" class="block text-base font-medium ink-3">
@@ -249,7 +262,7 @@
                         class="saebooks-input w-full px-2 py-1 text-base">
                   <option value="">{{ _("none") }}</option>
                   {% for t in tax_codes %}
-                  <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>
+                  <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %} data-rate="{{ t.rate }}">{{ t.code }} ({{ t.rate }}%)</option>
                   {% endfor %}
                 </select>
               </td>
@@ -281,6 +294,11 @@
       <div id="inbox-variance" class="mt-2 rounded-md border px-3 py-2 text-sm font-mono hidden"></div>
     </div>
 
+    {# Batch 5 (P0-28): on by default — receipts print GST-inclusive prices.
+       A re-render after an error keeps what was chosen. #}
+    {% set inclusive_checked = (form_values.get("amounts_include_tax") if form_values is defined and form_values else true) %}
+    {% include "_partials/gst_inclusive_totals.html" %}
+
     <div>
       <label for="notes" class="block text-base font-medium ink-3">{{ _("Notes") }}</label>
       <textarea id="notes" name="notes" rows="2" class="saebooks-input w-full">{{ merged.notes or '' }}</textarea>
@@ -288,7 +306,11 @@
 
     <div class="flex flex-wrap items-center gap-3">
       {% if publishable %}
-      <button type="submit" name="action" value="publish" class="btn-primary">{{ _("Publish as draft") }}</button>
+      {# b15 (P2-23): one tap from receipt to posted expense or bill. Credits
+         stay drafts (applying one is a decision); routes/inbox_post.py. #}
+      <button type="submit" name="action" value="publish_post" class="btn-primary min-h-[44px]"
+              title="{{ _('Save it as an expense or bill and post it to the books in one step') }}">{{ _("Save and post") }}</button>
+      <button type="submit" name="action" value="publish" class="btn-secondary min-h-[44px]">{{ _("Save as draft") }}</button>
       {% else %}
       <span class="text-sm ink-3" title="{{ _('The engine forbids publishing before extraction has run.') }}">
         {{ _("Extraction hasn't run yet — re-run extraction below (or wait for the sweep) before publishing.") }}
@@ -396,6 +418,8 @@
       pay.required = isExpense;
       pay.disabled = !isExpense;
       wrap.style.opacity = isExpense ? '' : '0.45';
+      var due = document.getElementById('due-date-field');
+      if (due) due.style.opacity = kind === 'BILL' ? '' : '0.45';
     }
     document.getElementById('record_kind').addEventListener('change', inboxKindSync);
     inboxKindSync();
@@ -419,7 +443,7 @@
         <select name="lines[__INDEX__][tax_code_id]" class="saebooks-input w-full px-2 py-1 text-base">
           <option value="">{{ _("none") }}</option>
           {% for t in tax_codes %}
-          <option value="{{ t.id }}">{{ t.code }} ({{ t.rate }}%)</option>
+          <option value="{{ t.id }}" data-rate="{{ t.rate }}">{{ t.code }} ({{ t.rate }}%)</option>
           {% endfor %}
         </select>
       </td>

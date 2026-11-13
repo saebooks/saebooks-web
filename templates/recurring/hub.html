@@ -14,12 +14,15 @@
         {{ _("Recurring transactions") }}
       </h1>
       <p class="mt-2 text-sm ink-3">
-        {{ _("Templates that repeat on a schedule — invoices, journals, and (soon) bills.") }}
+        {{ _("Templates that repeat on a schedule: invoices, bills and journals. They run on their own each morning.") }}
       </p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       <a href="/recurring-invoices/new" class="btn btn-primary">
         <i data-lucide="repeat" class="w-4 h-4"></i> {{ _("New recurring invoice") }}
+      </a>
+      <a href="/recurring-bills/new" class="btn btn-secondary">
+        <i data-lucide="receipt" class="w-4 h-4"></i> {{ _("New recurring bill") }}
       </a>
       <a href="/journal-templates/new" class="btn btn-secondary">
         <i data-lucide="file-stack" class="w-4 h-4"></i> {{ _("New journal template") }}
@@ -41,11 +44,11 @@
     <p class="num-display text-2xl sae">{{ journal_templates_count }}</p>
     <p class="mt-1 text-xs ink-3">{{ _("recurring journals") }}</p>
   </a>
-  <div class="card bg-paper p-5 rounded-none opacity-60">
-    <p class="nav-section-label mb-2">{{ _("Recurring bills") }}</p>
-    <p class="num-display text-2xl ink-3">—</p>
-    <p class="mt-1 text-xs" style="color: var(--warm);">{{ _("coming soon") }}</p>
-  </div>
+  <a href="/recurring-bills" class="card bg-paper p-5 rounded-none hover:bg-paper-2">
+    <p class="nav-section-label mb-2">{{ _("Recurring bills · active") }}</p>
+    <p class="num-display text-2xl" style="color: var(--pos);">{{ active_bills_count }}</p>
+    <p class="mt-1 text-xs ink-3">{{ _("rent, subscriptions") }}</p>
+  </a>
   <div class="card bg-paper p-5 rounded-none opacity-60">
     <p class="nav-section-label mb-2">{{ _("Recurring expenses") }}</p>
     <p class="num-display text-2xl ink-3">—</p>
@@ -82,10 +85,12 @@
             </td>
             <td class="py-2 ink-3">{{ _c or '—' }}</td>
             <td class="py-2 font-mono text-xs ink-3">{{ r.frequency or r.interval or '—' }}</td>
-            <td class="py-2 text-right font-mono ink-3">{{ r.next_run_date or '—' }}</td>
+            <td class="py-2 text-right font-mono ink-3">{{ r.next_run or '—' }}</td>
             <td class="py-2 text-right">
               {% set st = (r.status or 'ACTIVE')|upper %}
-              {% if st == 'ACTIVE' %}
+              {% if r.last_error %}
+                <span class="badge-neg" title="{{ r.last_error }}">{{ _("Failed") }}</span>
+              {% elif st == 'ACTIVE' %}
                 <span class="badge-pos">{{ _("Active") }}</span>
               {% elif st == 'PAUSED' %}
                 <span class="badge-warm">{{ _("Paused") }}</span>
@@ -141,16 +146,11 @@
   </section>
 </div>
 
-{# Backend gap notice — placeholder card #}
-<section class="card p-6 mb-8" style="background: rgba(234,179,8,0.05); border: 1px dashed var(--warm);">
-  <div class="flex items-start gap-3">
-    <i data-lucide="construction" class="w-5 h-5" style="color: var(--warm);"></i>
-    <div>
-      <p class="text-sm font-semibold" style="color: var(--warm);">{{ _("Recurring bills + expenses — coming soon") }}</p>
-      <p class="text-xs ink-3 mt-1 max-w-xl">
-        {{ _("%(brand)s currently supports recurring invoices and journal templates. Recurring bills (e.g. monthly rent, weekly contractor invoices) and recurring expenses (subscriptions, regular cash purchases) will land in a future release — they need the same scheduler that drives recurring invoices, applied to the bill / expense templates.") % {"brand": current_brand().name} }}
-      </p>
-    </div>
-  </div>
+{% if failed_count %}
+<section class="card p-4 mb-8" style="border-color: var(--neg);" role="alert">
+  <p class="text-sm font-semibold" style="color: var(--neg);">
+    {{ _("%(n)s recurring template(s) failed on their last run. Open the ones marked Failed to see why.") % {"n": failed_count} }}
+  </p>
 </section>
+{% endif %}
 {% endblock %}

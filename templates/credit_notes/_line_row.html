@@ -13,6 +13,7 @@
     tax_codes  : list  — tax code dicts [{id, name, rate}, ...]
     errors     : dict  — field errors (keyed by flat name, rarely used per-line)
 #}
+{% from "_components/item_picker.html" import item_picker with context %}
 <tr class="line-row border-b hairline">
   {# Account #}
   <td class="px-3 py-2" data-label="{{ _('Account') }}">
@@ -33,6 +34,7 @@
 
   {# Description #}
   <td class="px-3 py-2" data-label="{{ _('Description') }}">
+    {{ item_picker(index, line, "sale") }}
     <input
       type="text"
       name="lines[{{ index }}][description]"

@@ -24,7 +24,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from saebooks_web.api_client import api_client
+from saebooks_web import list_helpers as lh
+from saebooks_web.api_client import api_client, optional_get
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 
 router = APIRouter()
@@ -86,16 +87,31 @@ async def purchase_orders_list(
     contact_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
+    sort: str = "issue_date",
+    direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    # Search, sort and paging run in the engine over every row.
+    sort = sort if sort in ('number', 'issue_date', 'expected_date', 'contact', 'total', 'status') else 'issue_date'
+    direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
 
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
     params: dict[str, object] = {"page": page, "page_size": page_size}
+    params.update({"sort": sort, "direction": direction})
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
     if status:
         params["status"] = status
     if contact_id:
@@ -109,8 +125,18 @@ async def purchase_orders_list(
     pos: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get("/api/v1/purchase_orders", params={**params, "format": "csv"})
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "purchase-orders.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/purchase_orders", status_code=303)
         resp = await client.get("/api/v1/purchase_orders", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -123,14 +149,13 @@ async def purchase_orders_list(
             error = f"API error: HTTP {resp.status_code}"
 
         # Resolve supplier names — POs are AP-side.
-        for ctype in ("SUPPLIER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [r.get("contact_id") for r in pos] + [contact_id]
+        )
+        if contact_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(contact_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
 
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -146,6 +171,12 @@ async def purchase_orders_list(
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "filter_contact_name": filter_contact_name,
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
+        "sort": sort,
+        "direction": direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,
@@ -369,6 +400,7 @@ async def po_edit_form(
             "quantity": str(ln.get("quantity", "1")),
             "unit_price": str(ln.get("unit_price", "")),
             "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "item_id": str(ln.get("item_id") or ""),
             "project_id": str(ln.get("project_id") or ""),
         })
     if not lines:
@@ -567,12 +599,127 @@ async def po_detail(
             c_resp = await client.get(f"/api/v1/contacts/{po['contact_id']}")
             if c_resp.is_success:
                 contact_name = c_resp.json().get("name", "")
+        # Batch 12 (P1-62): bills made from this order, billed to date.
+        po_bills = None
+        b_resp = await optional_get(client, f"/api/v1/purchase_orders/{po_id}/bills")
+        if b_resp is not None:
+            po_bills = b_resp.json()
 
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "purchase_orders/detail.html",
-        {"po": po, "error": None, "flash": flash, "contact_name": contact_name},
+        {"po": po, "error": None, "flash": flash, "contact_name": contact_name,
+         "po_bills": po_bills},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Email to the supplier (batch 12, P1-61)
+# ---------------------------------------------------------------------------
+
+
+def _po_from() -> tuple[tuple[str, ...], str]:
+    # Same sender list as quotes / bills so a change to company email
+    # settings applies here too.
+    from saebooks_web.routes.quotes import _DEFAULT_FROM_BY_DOC_TYPE, _FROM_OPTIONS
+
+    return _FROM_OPTIONS, _DEFAULT_FROM_BY_DOC_TYPE.get("bill", _FROM_OPTIONS[0])
+
+
+async def _po_and_supplier(request: Request, po_id: str) -> tuple[dict | None, dict]:
+    async with api_client(request) as client:
+        r = await client.get(f"/api/v1/purchase_orders/{po_id}")
+        if not r.is_success:
+            return None, {}
+        po = r.json()
+        supplier: dict = {}
+        if po.get("contact_id"):
+            c = await client.get(f"/api/v1/contacts/{po['contact_id']}")
+            if c.is_success:
+                supplier = c.json()
+    return po, supplier
+
+
+@router.get("/purchase_orders/{po_id}/email", response_class=HTMLResponse, response_model=None)
+async def po_email_compose(request: Request, po_id: str) -> HTMLResponse | RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    po, supplier = await _po_and_supplier(request, po_id)
+    if po is None:
+        return RedirectResponse(url="/purchase_orders", status_code=303)
+    options, default_from = _po_from()
+    number = po.get("number") or ""
+    name = supplier.get("name") or ""
+    body = (
+        f"<p>Hello{(' ' + name) if name else ''},</p>\n"
+        f"<p>Please find attached purchase order {number}.</p>\n"
+        + (f"<p>Delivery needed by {po['expected_date']}.</p>\n" if po.get("expected_date") else "")
+        + "<p>Please quote the order number on your invoice.</p>\n<p>Thank you.</p>"
+    )
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "purchase_orders/email_compose.html",
+        {
+            "po": po, "supplier": supplier, "form": {},
+            "from_options": options, "default_from": default_from,
+            "default_to": supplier.get("email") or "",
+            "default_subject": f"Purchase order {number}".strip(),
+            "default_body_html": body,
+            "flash": None, "flash_kind": None,
+        },
+    )
+
+
+@router.post("/purchase_orders/{po_id}/email", response_class=HTMLResponse, response_model=None)
+async def po_email_send(request: Request, po_id: str) -> HTMLResponse | RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    form = {k: str(v) for k, v in (await request.form()).items() if k != "csrf_token"}
+    payload = {
+        "from_addr": form.get("from_addr", ""),
+        "to": [x.strip() for x in form.get("to", "").split(",") if x.strip()],
+        "cc": [x.strip() for x in form.get("cc", "").split(",") if x.strip()],
+        "bcc": [x.strip() for x in form.get("bcc", "").split(",") if x.strip()],
+        "subject": form.get("subject", ""),
+        "body_html": form.get("body_html", ""),
+        "sent_by_user_id": request.session.get("user_id"),
+    }
+    async with api_client(request) as client:
+        resp = await client.post(f"/api/v1/purchase_orders/{po_id}/send-email", json=payload)
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    result = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+    mode = result.get("mode")
+    if resp.is_success and mode == "sent":
+        request.session["flash"] = f"Purchase order {result.get('number') or ''} emailed to the supplier."
+        return RedirectResponse(url=f"/purchase_orders/{po_id}", status_code=303)
+    if resp.is_success and mode == "blocked":
+        flash = (
+            "Not sent: email sending is turned off for this company. A copy was saved "
+            "to the outbox and the send log. Turn on email sending in settings to send."
+        )
+        kind = "warm"
+    elif resp.is_success:
+        flash = f"The email was not sent ({result.get('reason') or mode or 'unknown'})."
+        kind = "neg"
+    else:
+        detail = result.get("detail") if isinstance(result, dict) else None
+        flash = f"Could not send: {detail or resp.status_code}"
+        kind = "neg"
+    po, supplier = await _po_and_supplier(request, po_id)
+    options, default_from = _po_from()
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "purchase_orders/email_compose.html",
+        {
+            "po": po or {"id": po_id}, "supplier": supplier, "form": form,
+            "from_options": options, "default_from": default_from,
+            "default_to": "", "default_subject": "", "default_body_html": "",
+            "flash": flash, "flash_kind": kind,
+        },
+        status_code=200 if resp.is_success else 422,
     )
 
 

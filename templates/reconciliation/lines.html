@@ -1,39 +1,39 @@
 {% extends "base.html" %}
 {% import "_pagination_macros.html" as pg %}
 
-{% block title %}{{ _("Reconciliation") }} — {{ account.name if account else account_id }} — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("Reconcile") }} — {{ account.name if account else account_id }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
+{% set owing = account and account.get('balance_kind') == 'owing' %}
 
-{# ── Flash banner ── #}
 {% if flash %}
-<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
-  <span class="dot" style="background:var(--pos);"></span>
-  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--sae);">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
 </div>
 {% endif %}
 
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
   <div>
     <h1 class="font-display text-2xl">
-      {% if account %}{{ account.name }}{% else %}{{ _("Account Reconciliation") }}{% endif %}
+      {% if account %}{{ account.name }}{% else %}{{ _("Bank reconciliation") }}{% endif %}
     </h1>
-    {% if not error and not degraded %}
     <p class="text-sm ink-3 mt-1">
-      {{ ngettext("%(n)s unmatched line", "%(n)s unmatched lines", all_lines_total) % {"n": all_lines_total} }}
-      · <span class="num-display">{{ _("Total unmatched:") }} {{ num( lines | map(attribute='amount') | map('float') | sum, 2 ) }}</span>
+      {% if last_finished %}
+        {{ _("Reconciled to %(date)s.") % {"date": last_finished.statement_date} }}
+      {% else %}
+        {{ _("Not reconciled yet.") }}
+      {% endif %}
+      <a href="/reconciliation/{{ account_id }}/history" class="sae hover:underline ml-1">{{ _("Past reconciliations") }}</a>
     </p>
-    {% endif %}
   </div>
-  <div class="flex items-center gap-3">
-    <a href="/reconciliation" class="btn-secondary text-sm">{{ _("All Accounts") }}</a>
-
+  <div class="flex flex-wrap items-center gap-2">
+    <a href="/reconciliation" class="btn-secondary text-sm">{{ _("All accounts") }}</a>
+    <a href="/admin/imports/bank?account_id={{ account_id }}" class="btn-secondary text-sm">{{ _("Import a statement") }}</a>
+    <a href="/bank-rules" class="btn-secondary text-sm">{{ _("Bank rules") }}</a>
     <form method="POST" action="/reconciliation/{{ account_id }}/auto-match">
-    {{ csrf_input(request)|safe }}
-
-      <button type="submit" class="btn-primary text-sm">
-        {{ _("Auto Match All") }}
-      </button>
+      {{ csrf_input(request)|safe }}
+      <button type="submit" class="btn-primary text-sm">{{ _("Auto Match All") }}</button>
     </form>
   </div>
 </div>
@@ -44,19 +44,55 @@
 </div>
 {% else %}
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-6">
-  <div class="card p-3">
-    <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Statement balance") }}</p>
-    <p class="font-display text-xl num">{{ num( (account.balance or 0) | float, 2 ) }}</p>
+{# ── Statement panel: date, closing balance, live difference, Finish ── #}
+{% set rec = report.reconciliation if report else None %}
+{% set summ = report.summary if report else None %}
+<div class="card p-4 mb-6">
+  <div class="flex flex-wrap items-end gap-4">
+    <form id="stmt-form" method="POST" action="/reconciliation/{{ account_id }}/statement" class="flex flex-wrap items-end gap-3">
+      {{ csrf_input(request)|safe }}
+      <div>
+        <label class="block text-xs ink-3 mb-1" for="statement_date">{{ _("Statement date") }}</label>
+        <input id="statement_date" name="statement_date" type="date" required class="saebooks-input"
+               value="{{ rec.statement_date if rec else '' }}">
+      </div>
+      <div>
+        <label class="block text-xs ink-3 mb-1" for="statement_balance">
+          {% if owing %}{{ _("Amount owing on the statement") }}{% else %}{{ _("Closing balance on the statement") }}{% endif %}
+        </label>
+        <input id="statement_balance" name="statement_balance" inputmode="decimal" required class="saebooks-input font-mono"
+               value="{{ report.printed.statement_balance if report else '' }}"
+               hx-get="/reconciliation/{{ account_id }}/difference"
+               hx-trigger="input changed delay:400ms, change from:#statement_date"
+               hx-include="#stmt-form"
+               hx-target="#diff-box">
+      </div>
+      <button type="submit" class="btn-secondary text-sm">{% if rec %}{{ _("Save") }}{% else %}{{ _("Start reconciling") }}{% endif %}</button>
+    </form>
+    <div id="diff-box" class="flex-1 min-w-[16rem]">
+      {% if report %}
+        {% set preview = {"summary": summ, "printed": report.printed} %}
+        {% include "reconciliation/_difference.html" %}
+      {% else %}
+        <p class="text-sm ink-3">{{ _("Enter the date and closing balance from your bank statement to start. The difference must be nil to finish.") }}</p>
+      {% endif %}
+    </div>
   </div>
-  <div class="card p-3">
-    <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Books balance") }}</p>
-    <p class="font-display text-xl num">{{ num( (account.ledger_balance or 0) | float, 2 ) }}</p>
+  {% if rec %}
+  <div class="flex flex-wrap items-center gap-3 mt-4">
+    <form method="POST" action="/reconciliation/statements/{{ rec.id }}/finish">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="next" value="/reconciliation/{{ account_id }}/lines">
+      <button type="submit" class="btn-primary text-sm" {% if not summ.can_finish %}disabled title="{{ _('The difference must be nil and every line up to the statement date matched or set aside.') }}"{% endif %}>{{ _("Finish") }}</button>
+    </form>
+    <a href="/reconciliation/statements/{{ rec.id }}" class="text-sm sae hover:underline">{{ _("Reconciliation report") }}</a>
+    <form method="POST" action="/reconciliation/statements/{{ rec.id }}/cancel" onsubmit="return confirm('{{ _('Throw away this reconciliation? No bank lines or records are changed.') }}')">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="next" value="/reconciliation/{{ account_id }}/lines">
+      <button type="submit" class="text-sm ink-3 hover:underline">{{ _("Cancel reconciliation") }}</button>
+    </form>
   </div>
-  <div class="card p-3 border-sae">
-    <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("To reconcile") }}</p>
-    <p class="font-display text-xl num sae">{{ all_lines_total }}</p>
-  </div>
+  {% endif %}
 </div>
 
 {% if error %}
@@ -66,53 +102,124 @@
 </div>
 {% endif %}
 
-<div class="card overflow-hidden">
-  <table class="sae-table w-full">
+{# ── Tabs ── #}
+<div class="flex gap-1 mb-3 border-b" style="border-color:var(--line);">
+  {% for key, label in [("to_match", _("To match")), ("matched", _("Matched")), ("ignored", _("Ignored"))] %}
+  {% set n = counts.get({"to_match": "TO_MATCH", "matched": "MATCHED", "ignored": "IGNORED"}[key], 0) if counts else 0 %}
+  <a href="/reconciliation/{{ account_id }}/lines?tab={{ key }}"
+     class="px-3 py-2 text-sm {% if tab == key %}font-semibold ink-1 border-b-2{% else %}ink-3{% endif %}"
+     {% if tab == key %}style="border-color:var(--sae);"{% endif %}>
+    {{ label }} <span class="ink-3">({{ n }})</span>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="sae-table w-full text-sm">
     <thead>
       <tr>
         <th class="text-left">{{ _("Date") }}</th>
         <th class="text-left">{{ _("Description") }}</th>
-        <th class="text-left">{{ _("Reference") }}</th>
-        <th class="text-right">{{ _("Amount") }}</th>
-        <th class="text-left">{{ _("Status") }}</th>
+        <th class="text-right">{{ _("Money in") }}</th>
+        <th class="text-right">{{ _("Money out") }}</th>
+        {% if tab == "to_match" %}<th class="text-left">{{ _("Suggestion") }}</th>
+        {% elif tab == "matched" %}<th class="text-left">{{ _("Matched to") }}</th>
+        {% else %}<th class="text-left">{{ _("Why it was set aside") }}</th>{% endif %}
         <th></th>
       </tr>
     </thead>
     <tbody>
-      {% if lines %}
-        {% for line in lines %}
-        <tr class="hover:bg-[color:var(--paper-2)]">
-          <td class="ink-3 font-mono text-xs">{{ line.txn_date | default("—") }}</td>
-          <td class="font-medium ink-1">{{ line.description | default("—") }}</td>
-          <td class="text-xs ink-3">{{ line.reference | default("—") }}</td>
-          {% set amt = line.amount | default("0") | string %}
-          <td class="text-right font-mono text-xs" style="color:{% if amt.startswith('-') %}var(--neg){% else %}var(--pos){% endif %};">{{ line.amount | default("—") }}</td>
-          <td>
-            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                  style="background:color-mix(in srgb, var(--warn, #d97706) 15%, transparent); color:var(--warn, #d97706);">
-              {{ line.status | default("UNMATCHED") }}
-            </span>
-          </td>
-          <td class="text-right">
-            <a
-              href="/reconciliation/{{ line.id }}/suggest?account_id={{ account_id }}"
-              class="btn-secondary !py-1 !px-3 text-xs"
-            >{{ _("Suggest") }}</a>
-          </td>
-        </tr>
-        {% endfor %}
-      {% else %}
-        <tr>
-          <td colspan="6" class="px-4 py-8 text-center ink-3">
-            {{ _("No unmatched lines — all bank statement lines are reconciled.") }}
-          </td>
-        </tr>
-      {% endif %}
+    {% for line in lines %}
+      {% set amt = line.amount | float %}
+      <tr class="align-top">
+        <td class="ink-3 font-mono text-xs whitespace-nowrap">{{ line.txn_date }}</td>
+        <td class="ink-1">
+          {{ line.description or "—" }}
+          {% if line.reference %}<div class="text-xs ink-3">{{ line.reference }}</div>{% endif %}
+          {% if line.status == "PARTIAL" %}
+          <div class="text-xs" style="color:var(--warm);">{{ _("Part matched — %(left)s still to match") % {"left": num((line.remaining|float)|abs, 2)} }}</div>
+          {% endif %}
+        </td>
+        <td class="text-right font-mono text-xs" style="color:var(--pos);">{% if amt > 0 %}{{ num(amt, 2) }}{% endif %}</td>
+        <td class="text-right font-mono text-xs" style="color:var(--neg);">{% if amt < 0 %}{{ num(-amt, 2) }}{% endif %}</td>
+
+        {% if tab == "to_match" %}
+        <td class="text-xs">
+          {% if line.suggested_rule %}
+            <div class="ink-2">{{ _("Bank rule: %(name)s") % {"name": line.suggested_rule.name} }}</div>
+            <form method="POST" action="/reconciliation/{{ line.id }}/accept-rule" class="inline">
+              {{ csrf_input(request)|safe }}
+              <input type="hidden" name="account_id" value="{{ account_id }}">
+              <button type="submit" class="sae hover:underline">{{ _("Use this rule") }}</button>
+            </form>
+          {% else %}
+            <a class="ink-3 hover:underline" href="/bank-rules/new?pattern={{ (line.description or '')|urlencode }}&direction={{ 'OUT' if amt < 0 else 'IN' }}&bank_account_id={{ account_id }}">{{ _("Make a rule from this line") }}</a>
+          {% endif %}
+        </td>
+        <td class="text-right whitespace-nowrap">
+          <a href="/reconciliation/{{ line.id }}/find?account_id={{ account_id }}" class="btn-secondary !py-1 !px-2 text-xs">{{ _("Find match") }}</a>
+          <a href="/reconciliation/{{ line.id }}/create?account_id={{ account_id }}" class="btn-primary !py-1 !px-2 text-xs">{{ _("Create") }}</a>
+          <a href="/reconciliation/{{ line.id }}/split?account_id={{ account_id }}" class="btn-secondary !py-1 !px-2 text-xs">{{ _("Split") }}</a>
+          <details class="inline-block text-left">
+            <summary class="cursor-pointer text-xs ink-3 inline">{{ _("Ignore") }}</summary>
+            <form method="POST" action="/reconciliation/{{ line.id }}/ignore" class="card p-2 mt-1 absolute z-10 w-64">
+              {{ csrf_input(request)|safe }}
+              <input type="hidden" name="account_id" value="{{ account_id }}">
+              <p class="text-xs ink-3 mb-1">{{ _("Only for a duplicate or a line that is not on your real statement. Personal spending should be recorded, not ignored.") }}</p>
+              <input name="reason" class="saebooks-input w-full text-xs mb-1" placeholder="{{ _('Reason, e.g. duplicate import') }}">
+              <button type="submit" class="btn-secondary text-xs">{{ _("Set aside") }}</button>
+            </form>
+          </details>
+        </td>
+
+        {% elif tab == "matched" %}
+        <td class="text-xs">
+          {% for m in line.matches %}
+            <div>
+              <span class="ink-1">{{ m.source_label or m.target_type }}</span>
+              {% if m.contact_name %}<span class="ink-3">· {{ m.contact_name }}</span>{% endif %}
+              <span class="ink-3 font-mono">· {{ num((m.amount|float)|abs, 2) }}</span>
+              {% if m.created_from_line %}<span class="ink-3">· {{ _("created here") }}</span>{% endif %}
+            </div>
+          {% endfor %}
+        </td>
+        <td class="text-right whitespace-nowrap">
+          {% if line.reconciliation_id %}
+            <span class="text-xs ink-3">{{ _("Reconciled — locked") }}</span>
+          {% else %}
+            <a href="/reconciliation/{{ line.id }}/unmatch?account_id={{ account_id }}" class="btn-secondary !py-1 !px-2 text-xs">{{ _("Unmatch") }}</a>
+          {% endif %}
+        </td>
+
+        {% else %}
+        <td class="text-xs ink-2">{{ line.ignored_reason or "—" }}</td>
+        <td class="text-right">
+          {% if line.reconciliation_id %}
+            <span class="text-xs ink-3">{{ _("Reconciled — locked") }}</span>
+          {% else %}
+          <form method="POST" action="/reconciliation/{{ line.id }}/unignore">
+            {{ csrf_input(request)|safe }}
+            <input type="hidden" name="account_id" value="{{ account_id }}">
+            <button type="submit" class="btn-secondary !py-1 !px-2 text-xs">{{ _("Put back") }}</button>
+          </form>
+          {% endif %}
+        </td>
+        {% endif %}
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="6" class="px-4 py-8 text-center ink-3">
+          {% if tab == "to_match" %}{{ _("Nothing to match — every bank line is matched or set aside.") }}
+          {% elif tab == "matched" %}{{ _("No matched lines yet.") }}
+          {% else %}{{ _("No lines are set aside.") }}{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
     </tbody>
   </table>
 </div>
 
-{{ pg.page_numbers('/reconciliation/' ~ account_id ~ '/lines', all_lines_total, limit, offset) }}
+{{ pg.page_numbers('/reconciliation/' ~ account_id ~ '/lines', all_lines_total, limit, offset, {'tab': tab}) }}
 
 {% endif %}{# end degraded #}
 

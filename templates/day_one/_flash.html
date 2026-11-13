@@ -1,0 +1,14 @@
+{# Flash + error banners for the day-one screens (theme variables, so they
+   read in dark mode — the default — and light mode). #}
+{% if flash %}
+<div class="card p-3 mb-5 flex items-start gap-2" style="border-color:var(--{{ flash_kind or 'pos' }});" role="status">
+  <span class="dot mt-1.5" style="background:var(--{{ flash_kind or 'pos' }});"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-5 flex items-start gap-2" style="border-color:var(--neg);" role="alert">
+  <span class="dot mt-1.5" style="background:var(--neg);"></span>
+  <span class="text-sm ink-1">{{ error }}</span>
+</div>
+{% endif %}

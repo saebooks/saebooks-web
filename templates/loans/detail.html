@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}{% if loan %}{{ loan.name }}{% else %}{{ _("Loan") }}{% endif %} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-6 text-sm" style="border-color:var(--neg);color:var(--neg);">{{ error }}</div>
+{% endif %}
+
+{% if loan %}
+{% set pos = loan.position %}
+<div class="mb-6 flex items-start justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ loan.name }}</h1>
+    <p class="text-sm ink-3 mt-1">
+      {{ _(kinds.get(loan.kind, loan.kind)) }}
+      {% if lender %} · {{ lender.name }}{% endif %}
+      {% if loan.reference %} · {{ loan.reference }}{% endif %}
+      · {% if loan.status == 'active' %}{{ _("Active") }}{% elif loan.status == 'paid_off' %}{{ _("Paid off") }}{% else %}{{ _("Cancelled") }}{% endif %}
+    </p>
+  </div>
+  <a href="/loans" class="text-sm sae hover:underline">← {{ _("Loans and finance") }}</a>
+</div>
+
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-6">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Amount financed") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(loan.principal|float) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Still owed") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(pos.principal_outstanding|float) }}</p>
+    {% if loan.interest_method == 'unexpired' %}
+    <p class="text-xs ink-3">{{ _("plus %(amt)s interest not yet charged") % {"amt": num(pos.unexpired_interest|float, 2)} }}</p>
+    {% endif %}
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Interest paid so far") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(pos.interest_charged|float) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Repayments made") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ pos.repayments_made }} / {{ loan.term_periods }}</p>
+  </div>
+</div>
+
+<p class="text-sm ink-3 mb-6">
+  {{ _("%(rate)s%% a year, %(n)s %(freq)s repayments of %(amt)s.") % {"rate": loan.annual_rate_pct|float|round(4), "n": loan.term_periods, "freq": _(loan.frequency), "amt": num(loan.repayment_amount|float, 2)} }}
+  {% if loan.balloon|float > 0 %}{{ _("Balloon of %(amt)s with the last repayment.") % {"amt": num(loan.balloon|float, 2)} }}{% endif %}
+  {% if loan.opening_journal_id %}<a href="/journal-entries/{{ loan.opening_journal_id }}" class="sae hover:underline">{{ _("Opening entry") }}</a>{% endif %}
+  {% if loan.fixed_asset_id %} · <a href="/fixed-assets/{{ loan.fixed_asset_id }}" class="sae hover:underline">{{ _("The asset") }}</a>{% endif %}
+</p>
+
+{% if loan.status == 'active' %}
+<section class="card px-6 py-5 mb-6 max-w-3xl">
+  <h2 class="text-base font-semibold ink-1 mb-1">{{ _("Record a repayment") }}</h2>
+  {% if loan.next_repayment %}
+  <p class="text-sm ink-3 mb-4">
+    {{ _("Repayment %(n)s is due %(d)s: %(amt)s, of which %(int)s is interest.") % {"n": loan.next_repayment.number, "d": loan.next_repayment.due_date, "amt": num(loan.next_repayment.payment|float, 2), "int": num(loan.next_repayment.interest|float, 2)} }}
+  </p>
+  {% endif %}
+  <form method="POST" action="/loans/{{ loan.id }}/repayments" class="grid grid-cols-1 gap-4 sm:grid-cols-3" data-submit-once>
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+    <div>
+      <label for="amount" class="block text-sm font-medium ink-2 mb-1">{{ _("Amount paid") }}</label>
+      <input type="number" step="0.01" min="0.01" id="amount" name="amount" class="saebooks-input w-full"
+             value="{{ loan.next_repayment.payment if loan.next_repayment else loan.repayment_amount }}">
+    </div>
+    <div>
+      <label for="repayment_date" class="block text-sm font-medium ink-2 mb-1">{{ _("Date paid") }}</label>
+      <input type="date" id="repayment_date" name="repayment_date" class="saebooks-input w-full"
+             value="{{ loan.next_repayment.due_date if loan.next_repayment else today }}">
+    </div>
+    <div>
+      <label for="bank_account_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Paid from") }}</label>
+      <select id="bank_account_id" name="bank_account_id" class="saebooks-input w-full">
+        {% for a in banks %}<option value="{{ a.id }}" {% if a.id|string == default_bank %}selected{% endif %}>{{ a.code }} — {{ a.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="interest" class="block text-sm font-medium ink-2 mb-1">{{ _("Interest") }}</label>
+      <input type="number" step="0.01" min="0" id="interest" name="interest" class="saebooks-input w-full" placeholder="{{ _('Worked out for you') }}">
+      <p class="mt-1 text-xs ink-3">{{ _("Leave blank, or enter the figure on the lender's statement.") }}</p>
+    </div>
+    <div>
+      <label for="fees" class="block text-sm font-medium ink-2 mb-1">{{ _("Fees included") }}</label>
+      <input type="number" step="0.01" min="0" id="fees" name="fees" class="saebooks-input w-full" placeholder="0.00">
+      <p class="mt-1 text-xs ink-3">{{ _("Account keeping fees in the same payment.") }}</p>
+    </div>
+    <div class="flex items-end">
+      <button type="submit" class="btn-primary text-sm">{{ _("Record repayment") }}</button>
+    </div>
+  </form>
+  <p class="text-xs ink-3 mt-3">
+    {{ _("Reconciling the bank? Use") }} <a href="/loans/repay" class="sae hover:underline">{{ _("Repayment from a bank line") }}</a> {{ _("to record it and match the line in one step.") }}
+  </p>
+</section>
+{% endif %}
+
+<section class="mb-6">
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Repayments") }}</h2>
+  <div class="card overflow-x-auto">
+    <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+      <thead class="bg-[color:var(--paper-2)]">
+        <tr>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Paid") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Off the loan") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Interest") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Fees") }}</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Paid from") }}</th>
+          <th scope="col" class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-[color:var(--line)]">
+        {% for r in loan.repayments %}
+        <tr {% if r.status == 'reversed' %}class="ink-4"{% endif %}>
+          <td class="px-4 py-3">{{ r.repayment_date }}{% if r.status == 'reversed' %} <span class="badge-draft">{{ _("Reversed") }}</span>{% endif %}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ num(r.amount|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ num(r.principal|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ num(r.interest|float, 2) }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ num(r.fees|float, 2) }}</td>
+          <td class="px-4 py-3 ink-2">
+            {% set b = accounts_by_id.get(r.bank_account_id|string) %}{{ (b.code ~ " " ~ b.name) if b else "" }}
+            {% if r.bank_statement_line_id %}<span class="ink-3 text-xs">· {{ _("matched to bank line") }}</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right">
+            {% if r.journal_entry_id %}<a href="/journal-entries/{{ r.journal_entry_id }}" class="text-xs sae hover:underline">{{ _("Entry") }}</a>{% endif %}
+            {% if r.status == 'posted' %}
+            <form method="POST" action="/loans/{{ loan.id }}/repayments/{{ r.id }}/reverse" class="inline" data-submit-once>
+              {{ csrf_input(request)|safe }}
+              <button type="submit" class="text-xs ml-2" style="color:var(--neg);"
+                onclick="return confirm('{{ _('Reverse this repayment? The bank line, if matched, becomes unmatched.') }}')">{{ _("Reverse") }}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="px-4 py-6 text-center text-sm ink-3">{{ _("No repayments recorded yet.") }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<details class="mb-6">
+  <summary class="cursor-pointer text-base font-semibold ink-1">{{ _("Repayment schedule") }}</summary>
+  <div class="card overflow-x-auto mt-3 max-h-[28rem] overflow-y-auto">
+    <table class="min-w-full text-sm">
+      <thead class="bg-[color:var(--paper-2)]"><tr class="ink-3 text-xs uppercase">
+        <th class="px-3 py-2 text-left">#</th><th class="px-3 py-2 text-left">{{ _("Due") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Payment") }}</th><th class="px-3 py-2 text-right">{{ _("Interest") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Off the loan") }}</th><th class="px-3 py-2 text-right">{{ _("Still owed") }}</th>
+      </tr></thead>
+      <tbody class="divide-y divide-[color:var(--line)]">
+      {% for row in loan.schedule %}
+      <tr {% if row.number <= pos.repayments_made %}class="ink-4"{% endif %}>
+        <td class="px-3 py-1.5">{{ row.number }}</td><td class="px-3 py-1.5">{{ row.due_date }}</td>
+        <td class="px-3 py-1.5 text-right tabular-nums">{{ num(row.payment|float, 2) }}</td>
+        <td class="px-3 py-1.5 text-right tabular-nums">{{ num(row.interest|float, 2) }}</td>
+        <td class="px-3 py-1.5 text-right tabular-nums">{{ num(row.principal|float, 2) }}</td>
+        <td class="px-3 py-1.5 text-right tabular-nums">{{ num(row.balance_after|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+
+{% if loan.status == 'active' and pos.repayments_made == 0 %}
+<form method="POST" action="/loans/{{ loan.id }}/cancel" data-submit-once>
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="version" value="{{ loan.version }}">
+  <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);"
+    onclick="return confirm('{{ _('Cancel this loan? Its opening entry is reversed, and an asset bought with it is archived.') }}')">
+    {{ _("Cancel loan entered by mistake") }}
+  </button>
+</form>
+{% endif %}
+{% endif %}
+
+{% include "_partials/submit_once.html" %}
+{% endblock %}

@@ -1,0 +1,150 @@
+{% import "payroll/_rule.html" as rule %}<!doctype html>
+<html lang="en" class="dark" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ _("Payslip") }} — {{ slip.employee.name }} — {{ slip.period.payment_date }}</title>
+  <script>
+    (function () {
+      var stored = localStorage.getItem('saebooks-payslip-theme');
+      var dark = stored !== 'light';
+      document.documentElement.classList.toggle('dark', dark);
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#ffffff; --fg:#111827; --muted:#4b5563; --line:#d1d5db; --panel:#f9fafb; }
+    html.dark { --bg:#0e1a2a; --fg:#e5e7eb; --muted:#9ca3af; --line:#334155; --panel:#13233a; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:Inter, system-ui, sans-serif; font-size:14px; }
+    .sheet { max-width: 800px; margin: 24px auto; padding: 32px; border:1px solid var(--line); background:var(--bg); }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 24px 0 8px; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .muted { color: var(--muted); }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align:left; vertical-align: top; }
+    th { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .num { font-family: "JetBrains Mono", ui-monospace, monospace; text-align: right; white-space: nowrap; }
+    .total td { font-weight: 700; border-top: 2px solid var(--fg); }
+    .net { font-size: 20px; font-weight: 700; }
+    .toolbar { max-width:800px; margin: 16px auto 0; display:flex; gap:8px; justify-content:flex-end; }
+    .toolbar button, .toolbar a { font: inherit; padding: 6px 12px; border:1px solid var(--line); background:var(--panel); color:var(--fg); border-radius:6px; cursor:pointer; text-decoration:none; }
+    .draft { border:1px solid #b45309; color:#b45309; padding:8px 12px; margin-bottom:16px; border-radius:6px; }
+    .note { font-size: 12px; color: var(--muted); margin-top: 24px; }
+    @media print {
+      html, html.dark { --bg:#ffffff; --fg:#000000; --muted:#374151; --line:#9ca3af; --panel:#ffffff; }
+      .toolbar { display:none; }
+      .sheet { border:none; margin:0; padding:0; max-width:none; }
+    }
+  </style>
+</head>
+<body>
+<div class="toolbar">
+  <a href="/payroll/pay-runs/{{ run_id }}">{{ _("Back to pay run") }}</a>
+  <button type="button" onclick="(function(){var d=!document.documentElement.classList.contains('dark');document.documentElement.classList.toggle('dark',d);localStorage.setItem('saebooks-payslip-theme',d?'dark':'light');})()">{{ _("Light or dark") }}</button>
+  <button type="button" onclick="window.print()">{{ _("Print") }}</button>
+</div>
+<div class="sheet">
+  {% if slip.status != 'FINALIZED' %}
+  <div class="draft">{{ _("Draft — this pay run has not been finalised. Figures may still change.") }}</div>
+  {% endif %}
+  <h1>{{ _("Payslip") }}</h1>
+  <div class="grid">
+    <div>
+      <h2>{{ _("Employer") }}</h2>
+      <div><strong>{{ slip.employer.legal_name or slip.employer.name }}</strong></div>
+      <div>{{ _("Australian Business Number") }}: <span class="num" style="text-align:left">{{ slip.employer.abn or _("not recorded") }}</span></div>
+    </div>
+    <div>
+      <h2>{{ _("Employee") }}</h2>
+      <div><strong>{{ slip.employee.name }}</strong></div>
+      <div class="muted">{{ _("Employee number") }} {{ slip.employee.employee_number }}</div>
+    </div>
+  </div>
+  <div class="grid">
+    <div>
+      <h2>{{ _("Pay period") }}</h2>
+      <div class="num" style="text-align:left">{{ slip.period.start }} {{ _("to") }} {{ slip.period.end }}</div>
+    </div>
+    <div>
+      <h2>{{ _("Date of payment") }}</h2>
+      <div class="num" style="text-align:left">{{ slip.period.payment_date }}</div>
+    </div>
+  </div>
+
+  <h2>{{ _("Earnings") }}</h2>
+  <table>
+    <thead><tr><th>{{ _("Description") }}</th><th class="num">{{ _("Hours") }}</th><th class="num">{{ _("Rate per hour") }}</th><th class="num">{{ _("Amount") }}</th></tr></thead>
+    <tbody>
+      {% for e in slip.earnings %}
+      <tr>
+        <td>{{ e.description }}</td>
+        <td class="num">{% if e.hours is not none %}{{ "%.2f"|format(e.hours) }}{% endif %}</td>
+        <td class="num">{% if e.rate is not none %}{{ money(e.rate) }}{% endif %}</td>
+        <td class="num">{% if e.amount is not none %}{{ money(e.amount) }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+      {% for p in slip.paid_leave or [] %}
+      <tr><td>{{ p.leave_type|replace('_', ' ')|lower|capitalize }} {{ _("leave") }}{% if p.loading_percent %} ({{ _("including") }} {{ p.loading_percent }}% {{ _("loading") }}){% endif %}</td><td class="num">{{ "%.2f"|format(p.hours) }}</td><td></td><td class="num">{{ money(p.amount) }}</td></tr>
+      {% endfor %}
+      {% for a in slip.allowances %}
+      <tr><td>{{ _("Allowance") }}: {{ a.description or a.type }}{% if a.taxable is sameas false %} ({{ _("no tax withheld, not in gross") }}){% endif %}</td><td></td><td></td><td class="num">{{ money(a.amount) }}</td></tr>
+      {% endfor %}
+      {% for a in slip.additional_payments or [] %}
+      <tr><td>{{ a.kind|replace('_', ' ')|lower|capitalize }}{% if a.description %}: {{ a.description }}{% endif %}</td><td></td><td></td><td class="num">{{ money(a.amount) }}</td></tr>
+      {% endfor %}
+      <tr class="total"><td colspan="3">{{ _("Gross pay") }}</td><td class="num">{{ money(slip.totals.gross) }}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>{{ _("Deductions") }}</h2>
+  <table>
+    <tbody>
+      <tr><td>{{ _("Tax withheld (pay as you go withholding), paid to the Australian Taxation Office") }}</td><td class="num">{{ money(slip.totals.payg) }}</td></tr>
+      {% for d in slip.deductions %}
+      <tr><td>{{ d.description or d.type }}</td><td class="num">{{ money(d.amount) }}</td></tr>
+      {% endfor %}
+      <tr class="total"><td>{{ _("Net pay") }}</td><td class="num net">{{ money(slip.totals.net) }}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>{{ _("Superannuation") }}</h2>
+  <table>
+    <tbody>
+      <tr>
+        <td>{{ _("Employer super guarantee contribution for this pay") }}<br>
+          <span class="muted">{{ _("Fund") }}: {{ slip.super.fund_name or _("not yet nominated") }}{% if slip.super.usi %} ({{ _("unique superannuation identifier") }} {{ slip.super.usi }}){% endif %}{% if slip.super.member_number %} · {{ _("member number") }} {{ slip.super.member_number }}{% endif %}</span>
+        </td>
+        <td class="num">{{ money(slip.super.amount) }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>{{ _("Year to date") }}</h2>
+  <table>
+    <tbody>
+      <tr><td>{{ _("Gross pay") }}</td><td class="num">{{ money(slip.ytd.gross) }}</td></tr>
+      <tr><td>{{ _("Tax withheld") }}</td><td class="num">{{ money(slip.ytd.payg) }}</td></tr>
+      <tr><td>{{ _("Superannuation") }}</td><td class="num">{{ money(slip.ytd.super) }}</td></tr>
+    </tbody>
+  </table>
+
+  {% if slip.leave_balances %}
+  <h2>{{ _("Leave owed after this pay") }}</h2>
+  <table>
+    <tbody>
+      {% for k, v in slip.leave_balances.items() %}
+      <tr><td>{{ k|replace('_', ' ')|lower|capitalize }} {{ _("leave") }}</td><td class="num">{{ "%.2f"|format(v) }} {{ _("hours") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <p class="note">{{ _("Tax withheld was worked out using the Australian Taxation Office") }} {{ rule.rule_name(slip.tax.scale_used) if slip.tax.scale_used else _("withholding schedules") }}.</p>
+</div>
+</body>
+</html>

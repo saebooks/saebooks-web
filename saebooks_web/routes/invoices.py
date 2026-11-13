@@ -15,18 +15,24 @@ Auth guard: redirect to /login (303) if no session token.
 from __future__ import annotations
 
 import uuid
-from datetime import date, timedelta
+from datetime import date
 from datetime import date as _date
 from datetime import timedelta as _td
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import bulk_transitions
+from saebooks_web import settlement as settlement_reads
+from saebooks_web.routes._void_dating import lodged_conflict, render_lodged_confirm, void_body
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines_shared
+from saebooks_web.fx_context import company_currency
 from saebooks_web.invoice_pdf_ee import (
     build_ee_invoice_ctx,
     build_vat_rate_breakdown,
@@ -43,114 +49,53 @@ def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
 
-# Envelope defaults for the email composer — mirrors quotes.py's
-# _FROM_OPTIONS / _DEFAULT_FROM_BY_DOC_TYPE (see that module for the
-# per-doc-type default rationale). Duplicated rather than imported so this
-# route module stays self-contained, same as quotes.py.
-_FROM_OPTIONS = ("admin@saee.com.au", "accounts@saee.com.au")
-_DEFAULT_FROM_INVOICE = "accounts@saee.com.au"
-
-
-def _default_invoice_email_fields(invoice: dict, customer: dict) -> dict[str, str]:
+def _default_invoice_email_fields(
+    invoice: dict, customer: dict, email_settings: dict | None = None
+) -> dict:
     """Build default from/to/subject/body for the invoice email composer.
 
     Shared by the GET compose form (single invoice, user can edit before
     sending) and the bulk-send action (which sends these defaults as-is —
-    there is no per-row review UI in a bulk action).
+    there is no per-row review UI in a bulk action). b06: the wording,
+    signature, sender name, reply-to and From address come from the
+    company's email settings — nothing business-specific is built in.
     """
-    number = invoice.get("number") or invoice.get("id")
-    total = float(invoice.get("total") or 0)
-    currency = invoice.get("currency") or "AUD"
-    due_date = invoice.get("due_date") or ""
-    default_to = customer.get("email", "") or ""
-    default_subject = f"Tax Invoice {number}"
-    default_body_html = (
-        f'<p>Dear {customer.get("name", "team")},</p>\n'
-        f'<p>Please find attached tax invoice <b>{number}</b>.</p>\n'
-        f'<p>Total: {currency} ${total:,.2f}. Payment is due by {due_date or "on receipt"} '
-        f'({invoice.get("payment_terms") or "on receipt"}).</p>\n'
-        f'<p>If you have any questions please reply to this email or call '
-        f'0457 704 373.</p>\n'
-        f'<p>Kind regards,<br>Richard Sauer<br>Director — SAE Engineering</p>'
-    )
+    from saebooks_web import email_defaults as ed
+
+    d = ed.compose("invoice", email_settings or {}, ed.invoice_values(invoice, customer))
     return {
-        "from_addr": _DEFAULT_FROM_INVOICE,
-        "to": default_to,
-        "subject": default_subject,
-        "body_html": default_body_html,
+        "from_addr": d["default_from"],
+        "from_options": d["from_options"],
+        "to": customer.get("email", "") or "",
+        "subject": d["subject"],
+        "body_html": d["body_html"],
+        "reply_to": d["reply_to"],
+        "from_name": d["from_name"],
+        "bcc": d["bcc"],
+        "status": d["status"],
     }
 
 
-_INVOICE_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
-
-# See [[saebooks-payment-status-filter-pattern]]. The Status column renders
-# the computed payment-status badge (templates/_status_macros.html ::
-# payment_status_badge), so filter+sort must mirror the badge — not the
-# raw DRAFT/POSTED/VOIDED field.
-_PAYMENT_STATUS_VALUES = {"draft", "open", "due-soon", "overdue", "partial", "paid", "voided"}
-
-_PAYMENT_STATUS_RAW_HINT = {
-    "draft":    "DRAFT",
-    "voided":   "VOIDED",
-    "open":     "POSTED",
-    "due-soon": "POSTED",
-    "overdue":  "POSTED",
-    "partial":  "POSTED",
-    "paid":     "POSTED",
+_INVOICE_SORT_KEYS = {
+    "number", "issue_date", "due_date", "contact", "total", "amount_due", "status",
 }
+# Old links said contact_id; the engine sorts by the contact's NAME.
+_SORT_ALIASES = {"contact_id": "contact"}
 
-_PAYMENT_STATUS_RANK = {
-    "draft":    0,
-    "overdue":  1,
-    "due-soon": 2,
-    "open":     3,
-    "partial":  4,
-    "paid":     5,
-    "voided":   6,
+# Status dropdown value -> engine filter. Document states go to ``status``;
+# what-is-owed buckets go to ``payment_status`` and are worked out by the
+# engine over ALL invoices (the old screen fetched 500 and filtered those).
+_STATUS_FILTERS: dict[str, tuple[str, str]] = {
+    "draft":    ("status", "DRAFT"),
+    "voided":   ("status", "VOIDED"),
+    "written-off": ("status", "WRITTEN_OFF"),
+    "unpaid":   ("payment_status", "unpaid"),
+    "open":     ("payment_status", "open"),
+    "due-soon": ("payment_status", "due_soon"),
+    "overdue":  ("payment_status", "overdue"),
+    "partial":  ("payment_status", "part_paid"),
+    "paid":     ("payment_status", "paid"),
 }
-
-
-def _invoice_payment_status(inv: dict, today: str, due_soon_cutoff: str) -> str:
-    """Mirror of the Jinja ``payment_status_badge`` macro so filter / sort
-    match what the user sees in the Status column."""
-    s = (inv.get("status") or "").upper()
-    if s == "VOIDED":
-        return "voided"
-    if s == "DRAFT":
-        return "draft"
-    if s == "POSTED":
-        try:
-            total = float(inv.get("total") or 0)
-        except (TypeError, ValueError):
-            total = 0.0
-        try:
-            paid = float(inv.get("amount_paid") or 0)
-        except (TypeError, ValueError):
-            paid = 0.0
-        if total > 0 and paid >= total:
-            return "paid"
-        if paid > 0:
-            return "partial"
-        due = inv.get("due_date") or ""
-        if due and due < today:
-            return "overdue"
-        if due and due <= due_soon_cutoff:
-            return "due-soon"
-        return "open"
-    return "open"
-
-
-def _invoice_sort_key(i: dict, key: str, today: str, due_soon_cutoff: str) -> object:
-    if key == "total":
-        try:
-            return float(i.get("total") or 0)
-        except (TypeError, ValueError):
-            return 0.0
-    if key == "status":
-        return _PAYMENT_STATUS_RANK.get(
-            _invoice_payment_status(i, today, due_soon_cutoff), 99
-        )
-    return str(i.get(key) or "")
 
 
 @router.get("/invoices", response_class=HTMLResponse, response_model=None)
@@ -158,15 +103,25 @@ async def invoices_list(
     request: Request,
     status: str | None = None,
     contact_id: str | None = None,
+    project_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
     flagged: bool | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
     sort: str = "issue_date",
     direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     """Render the invoices list page (full or HTMX fragment).
+
+    Searching (``q``: number, customer or an amount), the amount range, the
+    status filter, sorting and paging all happen in the engine, so the count,
+    the order and the pages cover every invoice. ``?export=csv`` downloads
+    every matching invoice, in the same order, as a spreadsheet.
 
     When the request carries an ``HX-Request: true`` header the response is
     the ``invoices/_table.html`` partial only.  Otherwise the full page
@@ -175,37 +130,33 @@ async def invoices_list(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    sort = _SORT_ALIASES.get(sort, sort)
     sort = sort if sort in _INVOICE_SORT_KEYS else "issue_date"
     direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
 
     _today_iso = _date.today().isoformat()
     _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
 
-    # The status filter is a payment-status value (draft / open / due-soon /
-    # overdue / partial / paid / voided). For POSTED-derived buckets the
-    # API can only narrow to raw status=POSTED — the final filter and the
-    # total count are computed in Python below.
     status_norm = (status or "").lower().strip()
-    filter_client_side = status_norm in _PAYMENT_STATUS_VALUES
-    api_status = _PAYMENT_STATUS_RAW_HINT.get(status_norm) if filter_client_side else None
+    if status_norm not in _STATUS_FILTERS:
+        status_norm = ""
 
-    # The API uses page/page_size rather than limit/offset.
-    page_size = limit
-    page = (offset // page_size) + 1 if page_size > 0 else 1
-
-    # When filtering by payment status we fetch a single wide page from the
-    # API (capped at 500 — the API's hard upper bound) and slice in Python
-    # so the total count and pagination reflect the filtered set.
-    if filter_client_side:
-        api_page, api_page_size = 1, 500
-    else:
-        api_page, api_page_size = page, page_size
-
-    params: dict[str, object] = {"page": api_page, "page_size": api_page_size}
-    if api_status:
-        params["status"] = api_status
+    params: dict[str, object] = {
+        "page": (offset // limit) + 1,
+        "page_size": limit,
+        "sort": sort,
+        "direction": direction,
+    }
+    if status_norm:
+        key, value = _STATUS_FILTERS[status_norm]
+        params[key] = value
     if contact_id:
         params["contact_id"] = contact_id
+    # Batch 12 (P0-39 / P1-63): documents on one project.
+    if project_id:
+        params["project_id"] = project_id
     if date_from:
         params["date_from"] = date_from
     if date_to:
@@ -213,55 +164,49 @@ async def invoices_list(
     # Gap 3 (0157) — "Flagged only" filter. Only forward when explicitly set.
     if flagged:
         params["flagged"] = "true"
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
 
     error: str | None = None
     invoices: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get(
+                "/api/v1/invoices", params={**params, "format": "csv"}
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "invoices.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/invoices", status_code=303)
+
         resp = await client.get("/api/v1/invoices", params=params)
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
+        list_totals = None
         if resp.is_success:
             payload = resp.json()
             invoices = payload.get("items", [])
             total = payload.get("total", len(invoices))
+            list_totals = payload.get("totals")
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-        # Fetch customers so the template can show contact NAME, not the
-        # raw UUID. CUSTOMER contact_type covers AR; BOTH lands in either
-        # query, so a second pass picks them up.
-        for ctype in ("CUSTOMER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        # Names for exactly the customers on this page (and the filter).
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [i.get("contact_id") for i in invoices] + [contact_id]
+        )
+        if contact_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(contact_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
-
-    if filter_client_side:
-        # Drop rows that don't match the requested payment status, then sort
-        # and slice in Python so total/pagination reflect the filtered set.
-        invoices = [
-            i for i in invoices
-            if _invoice_payment_status(i, _today_iso, _due_soon_iso) == status_norm
-        ]
-        invoices.sort(
-            key=lambda i: _invoice_sort_key(i, sort, _today_iso, _due_soon_iso),
-            reverse=(direction == "desc"),
-        )
-        total = len(invoices)
-        invoices = invoices[offset:offset + limit]
-    else:
-        # Page-level sort.
-        invoices.sort(
-            key=lambda i: _invoice_sort_key(i, sort, _today_iso, _due_soon_iso),
-            reverse=(direction == "desc"),
-        )
 
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
@@ -271,8 +216,10 @@ async def invoices_list(
     flash = request.session.pop("flash", None)
 
     ctx = {
+        "filter_project_id": project_id or "",
         "invoices": invoices,
         "total": total,
+        "list_totals": list_totals,
         "error": error,
         "flash": flash,
         "contacts_by_id": contacts_by_id,
@@ -281,9 +228,13 @@ async def invoices_list(
         # Filter values echoed back to the form.
         "filter_status": status_norm,
         "filter_contact_id": contact_id or "",
+        "filter_contact_name": filter_contact_name,
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
         "filter_flagged": bool(flagged),
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
         "sort": sort,
         "direction": direction,
         "limit": limit,
@@ -322,7 +273,9 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
         return RedirectResponse(url="/login", status_code=303)
 
     today = date.today().isoformat()
-    due = (date.today() + timedelta(days=30)).isoformat()
+    # Blank: filled from the contact's payment terms as soon as one is
+    # chosen, or by the engine on save (gap P0-15) — never a flat 30 days.
+    due = ""
 
     contacts: list[dict] = []
     accounts: list[dict] = []
@@ -358,7 +311,13 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
         request,
         "invoices/new.html",
         {
-            "form": {"issue_date": today, "due_date": due},
+            # b15 (P1-76): "New invoice" on a contact page prefills the customer.
+            "form": {
+                "issue_date": today,
+                "due_date": due,
+                **({"contact_id": request.query_params["contact_id"]}
+                   if request.query_params.get("contact_id") else {}),
+            },
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "contacts": contacts,
@@ -442,6 +401,7 @@ async def invoice_create(request: Request) -> HTMLResponse | RedirectResponse:
                 status_code=400,
             )
 
+    _apply_currency(request, form, payload)
     payload["lines"] = _parse_lines(form)
 
     async with api_client(request) as client:
@@ -574,7 +534,21 @@ async def invoice_add_line(request: Request, index: int = 0) -> HTMLResponse | R
 # literal-vs-parameter ordering reason as /invoices/new.
 # ---------------------------------------------------------------------------
 
-_EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "payment_terms")
+_EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "payment_terms", "currency")
+
+
+def _apply_currency(request: Request, form: Any, payload: dict[str, object]) -> None:
+    """Batch 10: currency + rate on an invoice.
+
+    A blank rate on a foreign invoice is left out so the engine looks up
+    the published rate for the issue date (or refuses) — never 1.00.
+    """
+    base_ccy = company_currency(request)
+    currency = str(form.get("currency", "") or "").strip().upper() or base_ccy
+    payload["currency"] = currency
+    fx_rate_raw = str(form.get("fx_rate", "") or "").strip()
+    if fx_rate_raw and currency != base_ccy:
+        payload["fx_rate"] = fx_rate_raw
 
 # Statuses that block editing. POSTED invoices are mutable — the backend
 # regenerates the journal entry in place when lines change (per Richard's
@@ -668,6 +642,8 @@ async def invoice_edit_form(
     # Pre-populate the form dict from the API response.
     form: dict[str, object] = {field: invoice.get(field) or "" for field in _EDIT_FIELDS}
     form["version"] = str(invoice.get("version", ""))
+    if str(invoice.get("currency") or "").upper() not in ("", company_currency(request)):
+        form["fx_rate"] = str(invoice.get("fx_rate") or "")
 
     # Build lines list for the form, keyed by zero-based index.
     api_lines = invoice.get("lines", [])
@@ -680,6 +656,7 @@ async def invoice_edit_form(
             "quantity": str(ln.get("quantity", "1")),
             "unit_price": str(ln.get("unit_price", "")),
             "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "item_id": str(ln.get("item_id") or ""),
             "project_id": str(ln.get("project_id") or ""),
         })
     if not lines:
@@ -738,6 +715,7 @@ async def invoice_update(
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
+    _apply_currency(request, form, payload)
 
     # Lines are always sent (full replace semantics).
     payload["lines"] = _parse_lines(form)
@@ -986,11 +964,24 @@ async def invoice_void(
         resp = await client.post(
             f"/api/v1/invoices/{invoice_id}/void",
             headers={"If-Match": version},
+            json=void_body(form_data),
         )
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+
+    # Batch 5: the reversal would land in a lodged BAS period — ask first.
+    _conflict = lodged_conflict(resp)
+    if _conflict is not None:
+        return render_lodged_confirm(
+            request,
+            conflict=_conflict,
+            action_url=f"/invoices/{invoice_id}/void",
+            back_url=f"/invoices/{invoice_id}",
+            version=version,
+            what="invoice",
+        )
 
     if resp.status_code == 200:
         request.session["flash"] = "Invoice voided."
@@ -1108,7 +1099,10 @@ async def _invoices_bulk_send(request: Request, ids: list[str]) -> RedirectRespo
     skipped: list[str] = []
     failed: list[str] = []
 
+    from saebooks_web import email_defaults as ed
+
     async with api_client(request) as client:
+        email_settings = await ed.settings_for(client)
         for inv_id in ids:
             iresp = await client.get(f"/api/v1/invoices/{inv_id}")
             if iresp.status_code == 401:
@@ -1126,7 +1120,7 @@ async def _invoices_bulk_send(request: Request, ids: list[str]) -> RedirectRespo
 
             cresp = await client.get(f"/api/v1/contacts/{invoice['contact_id']}")
             customer = cresp.json() if cresp.status_code == 200 else {}
-            defaults = _default_invoice_email_fields(invoice, customer)
+            defaults = _default_invoice_email_fields(invoice, customer, email_settings)
 
             if not defaults["to"]:
                 skipped.append(f"{label} (no customer email on file)")
@@ -1139,10 +1133,16 @@ async def _invoices_bulk_send(request: Request, ids: list[str]) -> RedirectRespo
                 "bcc": [],
                 "subject": defaults["subject"],
                 "body_html": defaults["body_html"],
+                "reply_to": defaults["reply_to"] or None,
+                "from_name": defaults["from_name"] or None,
                 "sent_by_user_id": request.session.get("user_id"),
             }
+            if defaults["bcc"]:
+                payload["bcc"] = [defaults["bcc"]]
             try:
-                resp = await client.post(f"/api/v1/invoices/{inv_id}/send-email", json=payload)
+                resp = await client.post(
+                    f"/api/v1/invoices/{inv_id}/send-email", json=payload, timeout=120.0
+                )
             except Exception as exc:
                 failed.append(f"{label} (transport error: {exc!s})")
                 continue
@@ -1221,28 +1221,13 @@ async def invoices_bulk_action(request: Request) -> RedirectResponse:
         return RedirectResponse(url="/invoices", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for inv_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=inv_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{inv_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{inv_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+        )
 
     label = action.replace("_", " ").title()
     if failed:
@@ -1291,7 +1276,8 @@ async def invoice_stripe_payment_link(
         )
 
     if resp.status_code == 200:
-        url = resp.json().get("url", "")
+        body = resp.json()
+        url = body.get("payment_link") or body.get("url", "")
         return _TEMPLATES.TemplateResponse(
             request,
             "invoices/_stripe_payment_link.html",
@@ -1374,20 +1360,27 @@ async def invoice_email_compose(
 
         cresp = await client.get(f"/api/v1/contacts/{invoice['contact_id']}")
         customer = cresp.json() if cresp.status_code == 200 else {}
+        from saebooks_web import email_defaults as ed
+
+        email_settings = await ed.settings_for(client)
 
     if invoice.get("status") != "POSTED":
         request.session["flash"] = "Invoice must be posted before it can be emailed."
         return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
 
-    defaults = _default_invoice_email_fields(invoice, customer)
+    defaults = _default_invoice_email_fields(invoice, customer, email_settings)
 
     return _TEMPLATES.TemplateResponse(
         request, "invoices/email_compose.html",
         {
             "invoice":            invoice,
             "form":               {},
-            "from_options":       _FROM_OPTIONS,
+            "from_options":       defaults["from_options"],
             "default_from":       defaults["from_addr"],
+            "default_reply_to":   defaults["reply_to"],
+            "default_from_name":  defaults["from_name"],
+            "default_bcc":        defaults["bcc"],
+            "email_status":       defaults["status"],
             "default_to":         defaults["to"],
             "default_subject":    defaults["subject"],
             "default_body_html":  defaults["body_html"],
@@ -1424,51 +1417,40 @@ async def invoice_email_send(
         "bcc":              bcc_list,
         "subject":          form.get("subject", ""),
         "body_html":        form.get("body_html", ""),
+        "reply_to":         form.get("reply_to", "") or None,
+        "from_name":        form.get("from_name", "") or None,
         "sent_by_user_id":  request.session.get("user_id"),
     }
 
+    from saebooks_web import email_defaults as ed
+
     async with api_client(request) as client:
-        resp = await client.post(f"/api/v1/invoices/{invoice_id}/send-email", json=payload)
+        resp = await client.post(
+            f"/api/v1/invoices/{invoice_id}/send-email", json=payload, timeout=120.0
+        )
         iresp = await client.get(f"/api/v1/invoices/{invoice_id}")
         invoice = iresp.json() if iresp.status_code == 200 else {}
+        email_settings = await ed.settings_for(client)
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+    defaults = _default_invoice_email_fields(invoice, {}, email_settings)
 
     result = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
-    mode = result.get("mode", "unknown")
-    if mode == "blocked":
-        flash = (
-            f"🛑 <b>BLOCKED</b> — nothing was sent. "
-            f"Reason: <code>{result.get('reason', 'unknown')}</code>. "
-            f"Outbox copy: <code>{result.get('outbox_path', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "warm"
-    elif mode == "sent":
-        flash = (
-            f"✅ Sent. Resend message id: <code>{result.get('message_id', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "pos"
-    elif mode == "failed":
-        flash = (
-            f"❌ Failed. Errors: <code>{result.get('errors', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "neg"
-    else:
-        flash = f"Upstream HTTP {resp.status_code}: <code>{(resp.text or '')[:300]}</code>"
-        flash_kind = "neg"
+    flash, flash_kind = ed.send_result_flash(resp, result, to_list)
 
     return _TEMPLATES.TemplateResponse(
         request, "invoices/email_compose.html",
         {
             "invoice":            invoice,
             "form":               form,
-            "from_options":       _FROM_OPTIONS,
-            "default_from":       _DEFAULT_FROM_INVOICE,
+            "from_options":       defaults["from_options"],
+            "default_from":       form.get("from_addr") or defaults["from_addr"],
+            "default_reply_to":   defaults["reply_to"],
+            "default_from_name":  defaults["from_name"],
+            "default_bcc":        "",
+            "email_status":       defaults["status"],
             "default_to":         "",
             "default_subject":    "",
             "default_body_html":  "",
@@ -1525,6 +1507,10 @@ async def invoice_detail(
     elif att_resp.is_success:
         attachments = att_resp.json()
 
+    # Customer name, balance due, payments and credits applied (gap P1-2).
+    async with api_client(request) as client:
+        settlement = await settlement_reads.document_settlement(client, "invoice", invoice_id)
+
     # Best-effort: pull send history for this invoice — don't fail the page
     # if the email-log endpoint is unavailable (mirrors quotes.quote_detail).
     email_log: list = []
@@ -1535,6 +1521,29 @@ async def invoice_detail(
             email_log = log_resp.json().get("items", [])
     except Exception:
         email_log = []
+
+    # b11: reminders sent, online payment state, and the customer's
+    # bounced-email flag. All best-effort: the page renders without them.
+    reminders: list = []
+    online: dict = {}
+    customer: dict = {}
+    try:
+        async with api_client(request) as client:
+            r_resp = await client.get(
+                "/api/v1/collections/reminders", params={"invoice_id": invoice_id}
+            )
+            if r_resp.status_code == 200:
+                reminders = r_resp.json().get("items", [])
+            if (invoice.get("status") or "").upper() == "POSTED":
+                o_resp = await client.get(f"/api/v1/invoices/{invoice_id}/online-payment")
+                if o_resp.status_code == 200:
+                    online = o_resp.json()
+            if invoice.get("contact_id"):
+                c_resp = await client.get(f"/api/v1/contacts/{invoice['contact_id']}")
+                if c_resp.status_code == 200:
+                    customer = c_resp.json()
+    except Exception:
+        pass
 
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
@@ -1548,6 +1557,13 @@ async def invoice_detail(
             "attachments": attachments,
             "vault_enabled": vault_enabled,
             "email_log": email_log,
+            "settlement": settlement,
+            "entity_kind": "invoice",
+            "entity_id": invoice_id,
+            "reminders": reminders,
+            "online": online,
+            "customer": customer,
+            "today_iso": date.today().isoformat(),
         },
     )
 

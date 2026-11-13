@@ -170,6 +170,52 @@
         {% if errors.get('gst_effective_date') %}
         <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors.get('gst_effective_date') }}</p>
         {% endif %}
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="gst_accounting_basis" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("GST accounting basis") }}</label>
+            <select id="gst_accounting_basis" name="gst_accounting_basis"
+              class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+              <option value="accrual" {% if form.get('gst_accounting_basis', 'accrual') == 'accrual' %}selected{% endif %}>{{ _("Accrual: report on the invoice or bill date") }}</option>
+              <option value="cash" {% if form.get('gst_accounting_basis') == 'cash' %}selected{% endif %}>{{ _("Cash: report when money is received or paid") }}</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("Use the same basis you told the ATO you use.") }}</p>
+          </div>
+          <div>
+            <label for="gst_reporting_frequency" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("How often you lodge your BAS") }}</label>
+            <select id="gst_reporting_frequency" name="gst_reporting_frequency"
+              class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+              <option value="quarterly" {% if form.get('gst_reporting_frequency', 'quarterly') == 'quarterly' %}selected{% endif %}>{{ _("Quarterly") }}</option>
+              <option value="monthly" {% if form.get('gst_reporting_frequency') == 'monthly' %}selected{% endif %}>{{ _("Monthly") }}</option>
+              <option value="annual" {% if form.get('gst_reporting_frequency') == 'annual' %}selected{% endif %}>{{ _("Yearly") }}</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("Sets the BAS period and due date on the dashboard.") }}</p>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    {# ── Working holiday maker employer registration (ATO) ── #}
+    <fieldset class="mb-5 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-4">
+      <legend class="px-1 text-sm font-medium text-gray-700 dark:text-gray-300">{{ _("Working Holiday Makers") }}</legend>
+      <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+        {{ _("Registered with the ATO as an employer of working holiday makers (visa 417 / 462): withholding uses the working holiday maker tax table (15 per cent on the first $45,000). Not registered: 30 per cent is withheld from every dollar.") }}
+      </p>
+      <div class="mb-3 flex items-center gap-2">
+        <input type="checkbox" id="whm_employer_registered" name="whm_employer_registered" value="true"
+          {% if form.get('whm_employer_registered') %}checked{% endif %}
+          class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]"
+          onchange="document.getElementById('whm_date_row').style.display = this.checked ? '' : 'none'">
+        <label for="whm_employer_registered" class="text-sm text-gray-700 dark:text-gray-300">{{ _("Registered as an employer of working holiday makers") }}</label>
+      </div>
+      <div id="whm_date_row" {% if not form.get('whm_employer_registered') %}style="display:none"{% endif %}>
+        <label for="whm_employer_registered_on" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {{ _("Registered on") }}
+        </label>
+        <input type="date" id="whm_employer_registered_on" name="whm_employer_registered_on" value="{{ form.get('whm_employer_registered_on', '') }}"
+          class="block w-48 rounded-md border border-gray-300 dark:border-gray-600
+                 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm
+                 focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
       </div>
     </fieldset>
     {% endif %}{# jurisdiction == 'AU' #}

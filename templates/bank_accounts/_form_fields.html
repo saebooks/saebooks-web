@@ -80,6 +80,19 @@
   {{ text_input("bank_account_number", _("Account number"), placeholder="123456789") }}
   {{ text_input("bank_account_title", _("Account title"), placeholder="SAE Engineering Pty Ltd") }}
   {{ text_input("bank_abbreviation", _("Bank abbreviation"), placeholder="CBA") }}
+  {# Batch 10 (P1-53): an account held in another currency (a USD account
+     or card). Payments through it are in that currency. #}
+  {% set _fx = fx_context(request) %}
+  {% set _cur = (form.get("currency") or "") | upper %}
+  <div>
+    <label for="currency" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Currency the account is held in") }}</label>
+    <select id="currency" name="currency" class="saebooks-input sm:max-w-xs">
+      <option value="" {% if not _cur or _cur == _fx.base %}selected{% endif %}>{{ _("Same as the company (%(cur)s)") % {"cur": _fx.base} }}</option>
+      {% for c in _fx.currencies if c.code != _fx.base %}
+      <option value="{{ c.code }}" {% if _cur == c.code %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
 </fieldset>
 
 <script>

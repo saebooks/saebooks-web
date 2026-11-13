@@ -64,7 +64,7 @@
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 
 \usepackage[table]{xcolor}
-\definecolor{saeblue}{HTML}{1B3A5C}
+\definecolor{saeblue}{HTML}{ {{- (document.accent if document and document.accent else "1B3A5C") -}} }
 \definecolor{saegrey}{HTML}{4A4A4A}
 \definecolor{ltgrey}{HTML}{F2F2F2}
 \definecolor{saeaccent}{HTML}{E8792B}
@@ -272,5 +272,11 @@
 {% if company.email %}\href{mailto:{{ company.email | latex_escape }}}{ {{- company.email | latex_escape -}} }{% endif %}{% if company.email and company.phone %} \textbar{} {% endif %}{% if company.phone %}{{ company.phone | latex_escape }}{% endif %}
 }
 \end{minipage}
+
+{% if document and document.footer %}
+%% b06 (P2-8): the business's own document footer from its settings
+\vspace{6mm}
+{\footnotesize\color{saegrey}\centering {{ document.footer | latex_escape }}\par}
+{% endif %}
 
 \end{document}

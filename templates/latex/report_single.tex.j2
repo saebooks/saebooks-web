@@ -13,6 +13,14 @@
     pl_report    dict  PnLReport JSON        (kind == profit_loss)
     bs_report    dict  BSReport JSON         (kind == balance_sheet)
     tb_report    dict  TrialBalanceReport JSON (kind == trial_balance)
+
+  kind == "table" (aged receivables/payables, cash flow, BAS summary, general
+  ledger -- any report the engine lays out as rows of formatted cells):
+    columns      list  [{label, align}] -- align "l" | "r" | "X" (the one
+                       flexible text column that takes the spare width)
+    rows         list  [{cells: [str, ...], style}] -- style None | "heading"
+                       (first cell spans the row) | "subtotal" | "total"
+    notes        list  [str] printed small under the table
 #}
 {% macro fmt_amount(v) -%}
   {%- if v is not none and v != 0 -%}{{ "%.2f"|format(v|float) | latex_escape }}{%- else -%}---{%- endif -%}
@@ -24,6 +32,9 @@
 \markboth{ {{ title | latex_escape }} }{}
 
 \begin{center}
+  {% if logo_path -%}
+  \includegraphics[height=16mm]{{ "{" }}{{ logo_path }}{{ "}" }}\\[4mm]
+  {%- endif %}
   {\LARGE\bfseries\color{saegreen} {{ (company.legal_name or company.name) | latex_escape }} }\\[2mm]
   {% if company.acn -%}{\small ACN {{ company.acn | latex_escape }}}\\[0.5mm]{%- endif %}
   {% if company.abn -%}{\small {{ company.identifier_label | latex_escape }} {{ company.abn | latex_escape }}}\\[0.5mm]{%- endif %}
@@ -120,7 +131,7 @@
 
 {% elif kind == 'trial_balance' %}
 {% if tb_report.balanced %}
-\textcolor{saegreen}{\textbf{$\checkmark$\ Trial balance is balanced.}}
+\textcolor{saegreen}{\textbf{Trial balance is balanced.}}
 {% else %}
 \textcolor{red}{\textbf{Trial balance is NOT balanced.}}
 {% endif %}
@@ -152,6 +163,48 @@
   \textbf{ {{ fmt_amount_plain(tb_report.total_credits) }} } \\
   \bottomrule
 \end{longtable}
+{% elif kind == 'table' %}
+{% set ncols = columns | length %}
+{% set n_other = columns | rejectattr("align", "equalto", "X") | list | length %}
+{% set xw = [4.0, 15.5 - 1.9 * n_other] | max %}
+{% if ncols > 4 %}\footnotesize{% else %}\small{% endif %}
+\begin{longtable}{ {%- for c in columns -%}
+{%- if c.align == 'X' -%}>{\raggedright\arraybackslash}p{ {{- "%.1f" | format(xw) -}} cm}
+{%- elif c.align == 'r' -%}r
+{%- else -%}l
+{%- endif -%}
+{%- endfor -%} }
+  \toprule
+  {% for c in columns %}\textbf{ {{ c.label | latex_escape }} }{% if not loop.last %} & {% endif %}{% endfor %} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{ {{ ncols }} }{l}{\textit{(continued)}} \\
+  \toprule
+  {% for c in columns %}\textbf{ {{ c.label | latex_escape }} }{% if not loop.last %} & {% endif %}{% endfor %} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+{# Rows are emitted with whitespace control so no blank line lands between
+   two rows (a blank line before \midrule is a LaTeX error). -#}
+{% for row in rows -%}
+{% if row.style == 'heading' -%}
+  \multicolumn{ {{ ncols }} }{l}{\textbf{\color{saegreen} {{ row.cells[0] | latex_escape }} }} \\
+{% elif row.style in ('total', 'subtotal') -%}
+{% if row.style == 'total' %}  \midrule
+{% endif -%}
+  {% for cell in row.cells %}\textbf{ {{ cell | latex_escape }} }{% if not loop.last %} & {% endif %}{% endfor %} \\[1mm]
+{% else -%}
+  {% for cell in row.cells %}{{ cell | latex_escape }}{% if not loop.last %} & {% endif %}{% endfor %} \\
+{% endif -%}
+{% else -%}
+  \multicolumn{ {{ ncols }} }{c}{\textit{\color{midgrey}Nothing to show for this period}} \\
+{% endfor -%}
+\end{longtable}
+\normalsize
+{% for note in notes %}
+\par\vspace{1mm}{\footnotesize\color{midgrey} {{ note | latex_escape }} }
+{% endfor %}
 {% endif %}
 
 \end{document}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Split bank line") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% set money_out = line and (line.amount|float) < 0 %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--sae);">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Split this bank line") }}</h1>
+  <a href="/reconciliation/{{ account_id }}/lines" class="btn-secondary text-sm">{{ _("Back to Reconciliation") }}</a>
+</div>
+
+{% if degraded %}
+<div class="card">{% include "_partials/degraded_panel.html" %}</div>
+{% elif not line %}
+<div class="card p-3" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ _("That bank line was not found.") }}</span></div>
+{% else %}
+
+<div class="card p-3 mb-4 text-sm">
+  {{ line.txn_date }} · <span class="ink-1">{{ line.description or "—" }}</span> ·
+  {{ _("Split %(n)s across the lines below. Each line is recorded separately, with GST worked out from the amount.") % {"n": num(remaining|float, 2)} }}
+</div>
+
+<form method="POST" action="/reconciliation/{{ bsl_id }}/split" class="card p-4">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="account_id" value="{{ account_id }}">
+  <input type="hidden" name="direction" value="{{ 'out' if money_out else 'in' }}">
+  <table class="sae-table w-full text-sm">
+    <thead><tr>
+      <th class="text-left">{{ _("Account") }}</th>
+      <th class="text-left">{{ _("GST code") }}</th>
+      <th class="text-left">{% if money_out %}{{ _("Supplier") }}{% else %}{{ _("From") }}{% endif %}</th>
+      <th class="text-left">{{ _("Description") }}</th>
+      <th class="text-right">{{ _("Amount") }}</th>
+    </tr></thead>
+    <tbody>
+      {% for i in rows %}
+      <tr>
+        <td><select name="gl_account_id_{{ i }}" class="saebooks-input w-full" aria-label="{{ _('Account') }}">
+          <option value=""></option>
+          {% for a in gl_accounts %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>{% endfor %}
+        </select></td>
+        <td><select name="tax_code_id_{{ i }}" class="saebooks-input w-full" aria-label="{{ _('GST code') }}">
+          <option value="">{{ _("No GST") }}</option>
+          {% for t in tax_codes %}<option value="{{ t.id }}">{{ t.code }}</option>{% endfor %}
+        </select></td>
+        <td><select name="contact_id_{{ i }}" class="saebooks-input w-full" aria-label="{{ _('Contact') }}">
+          <option value=""></option>
+          {% for c in contacts %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select></td>
+        <td><input name="description_{{ i }}" class="saebooks-input w-full" aria-label="{{ _('Description') }}"></td>
+        <td><input name="amount_{{ i }}" inputmode="decimal" class="saebooks-input w-28 text-right font-mono" aria-label="{{ _('Amount') }}"></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="text-xs ink-3 mt-2">{{ _("The amounts must add up to %(n)s. To split against existing records instead, use Find match and tick several.") % {"n": num(remaining|float, 2)} }}</p>
+  <div class="mt-3"><button type="submit" class="btn-primary text-sm">{{ _("Split and match") }}</button></div>
+</form>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{#- Approvals (batch 13, P1-72): what needs signing off, and what is planned to be paid. -#}
+
+{% block title %}{{ _("Approvals") }} — {{ current_brand().name }}{% endblock %}
+
+{% macro rows(items, empty) %}
+  {% if items %}
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Type") }}</th>
+        <th class="text-left">{{ _("Contact") }}</th>
+        <th class="text-left">{{ _("Reference") }}</th>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("Pay on") }}</th>
+        <th class="text-right">{{ _("Amount") }}</th>
+        <th class="text-left">{{ _("Note") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in items %}
+      {% set _href = ("/bills/" if i.kind == "bill" else "/payments/") ~ i.id %}
+      <tr class="cursor-pointer" onclick="window.location='{{ _href }}'">
+        <td>{% if i.kind == "bill" %}{{ _("Bill") }}{% else %}{{ _("Payment") }}{% endif %}</td>
+        <td><a href="{{ _href }}" class="sae hover:underline">{{ i.contact_name or "—" }}</a></td>
+        <td class="ink-2">{{ i.reference or i.number or _("Draft") }}</td>
+        <td class="num ink-2">{{ i.date }}</td>
+        <td class="num ink-2">{{ i.planned_pay_date or "—" }}</td>
+        <td class="text-right num ink-1">{{ num(i.total|float, 2) }}</td>
+        <td class="ink-3 text-sm">{{ i.approval_note or "" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="px-5 py-4 text-sm ink-3">{{ empty }}</p>
+  {% endif %}
+{% endmacro %}
+
+{% block content %}
+{% if flash %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);" role="status">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<header class="mb-6">
+  <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("Approvals") }}</h1>
+  <p class="text-sm ink-3 mt-2">{{ _("Bills and payments waiting for sign-off, and bills planned to be paid.") }}</p>
+</header>
+
+<section class="card overflow-hidden mb-6">
+  <div class="px-5 py-3 hairline-b"><h2 class="nav-section-label">{{ _("Waiting for approval") }}</h2></div>
+  {{ rows(groups.waiting, _("Nothing is waiting for approval.")) }}
+</section>
+
+<section class="card overflow-hidden mb-6">
+  <div class="px-5 py-3 hairline-b"><h2 class="nav-section-label">{{ _("Approved, ready to post") }}</h2></div>
+  {{ rows(groups.approved, _("Nothing approved is waiting to be posted.")) }}
+</section>
+
+<section class="card overflow-hidden mb-6">
+  <div class="px-5 py-3 hairline-b"><h2 class="nav-section-label">{{ _("Sent back") }}</h2></div>
+  {{ rows(groups.sent_back, _("Nothing has been sent back.")) }}
+</section>
+
+<section class="card overflow-hidden mb-6">
+  <div class="px-5 py-3 hairline-b"><h2 class="nav-section-label">{{ _("Bills planned to be paid") }}</h2></div>
+  {{ rows(groups.to_pay, _("No posted bills have a planned pay date.")) }}
+</section>
+
+<section class="card p-5">
+  <h2 class="text-lg ink-1 mb-1">{{ _("When is approval needed?") }}</h2>
+  <p class="text-sm ink-3 mb-3">{{ _("When switched on, a bill or payment cannot be posted until someone allowed to post it (an owner, admin or approver) has approved it.") }}</p>
+  {% if is_admin %}
+  <form method="post" action="/approvals/settings" class="space-y-2">
+    {{ csrf_input(request)|safe }}
+    <label class="flex items-center gap-2 text-sm ink-2">
+      <input type="checkbox" name="bills_need_approval" value="1" {% if settings.bills_need_approval %}checked{% endif %}>
+      {{ _("Bills need approval before they are posted") }}
+    </label>
+    <label class="flex items-center gap-2 text-sm ink-2">
+      <input type="checkbox" name="payments_need_approval" value="1" {% if settings.payments_need_approval %}checked{% endif %}>
+      {{ _("Payments need approval before they are posted") }}
+    </label>
+    <button type="submit" class="btn-primary text-sm">{{ _("Save") }}</button>
+  </form>
+  {% else %}
+  <p class="text-sm ink-2">
+    {{ _("Bills:") }} {% if settings.bills_need_approval %}{{ _("approval needed") }}{% else %}{{ _("no approval needed") }}{% endif %} ·
+    {{ _("Payments:") }} {% if settings.payments_need_approval %}{{ _("approval needed") }}{% else %}{{ _("no approval needed") }}{% endif %}
+  </p>
+  <p class="text-xs ink-3 mt-1">{{ _("Only an admin can change this.") }}</p>
+  {% endif %}
+</section>
+{% endblock %}

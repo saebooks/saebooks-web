@@ -10,20 +10,22 @@
       class="saebooks-input w-full px-2 py-1 text-base">
   </td>
   <td class="px-2 py-1">
-    <select name="lines[{{ index }}][account_id]" required
+    <select name="lines[{{ index }}][account_id]" required data-sets-tax-code
       class="saebooks-input w-full px-2 py-1 text-base">
       <option value="">{{ _("— expense account —") }}</option>
       {% for a in accounts %}
-      <option value="{{ a.id }}" {% if line.account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
+      <option value="{{ a.id }}" data-tax-code="{{ a.default_tax_code or '' }}" {% if line.account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
       {% endfor %}
     </select>
   </td>
   <td class="px-2 py-1">
-    <select name="lines[{{ index }}][tax_code_id]"
+    {# b15 (P2-2): purchase codes only; picking an account fills its default
+       tax code unless one was chosen by hand (static/js/phone.js). #}
+    <select name="lines[{{ index }}][tax_code_id]" data-tax-code-select
       class="saebooks-input w-full px-2 py-1 text-base">
       <option value="">{{ _("none") }}</option>
       {% for t in tax_codes %}
-      <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>
+      <option value="{{ t.id }}" data-code="{{ t.code }}" {% if line.tax_code_id == t.id %}selected{% endif %} data-rate="{{ t.rate }}">{{ t.code }} ({{ t.rate }}%)</option>
       {% endfor %}
     </select>
   </td>
@@ -34,5 +36,30 @@
   <td class="px-2 py-1">
     <input type="number" name="lines[{{ index }}][unit_price]" value="{{ line.unit_price or '0' }}" step="0.0001" min="0"
       class="saebooks-input w-32 px-2 py-1 text-base text-right">
+  </td>
+  <td class="px-2 py-1">
+    <input type="number" name="lines[{{ index }}][tax_override]" value="{{ line.tax_override or '' }}" step="0.01" min="0"
+      aria-label="{{ _('GST (leave blank to work it out)') }}"
+      class="saebooks-input w-24 px-2 py-1 text-base text-right">
+  </td>
+  {# Batch 12 (P1-63): tag the cost to a job, and pass it on to the customer. #}
+  <td class="px-2 py-1">
+    <select name="lines[{{ index }}][project_id]" aria-label="{{ _('Project, row %(index)s') % {'index': index} }}"
+      class="saebooks-input w-full px-2 py-1 text-base">
+      <option value="">{{ _("— no project —") }}</option>
+      {% for proj in (projects or []) %}
+      <option value="{{ proj.id }}" {% if line.project_id and line.project_id|string == proj.id|string %}selected{% endif %}>{{ proj.code }} — {{ proj.name }}</option>
+      {% endfor %}
+    </select>
+    <label class="flex items-center gap-1 mt-1 text-xs ink-3"
+           title="{{ _('Pass this cost on to the project’s customer when you bill the project') }}">
+      <input type="checkbox" name="lines[{{ index }}][billable]" value="true" {% if line.billable %}checked{% endif %}>
+      {{ _("Bill to customer") }}
+    </label>
+  </td>
+  <td class="px-2 py-1">
+    <input type="number" name="lines[{{ index }}][private_pct]" value="{{ line.private_pct or '' }}" step="0.01" min="0" max="100"
+      placeholder="0" aria-label="{{ _('Private share, per cent') }}"
+      class="saebooks-input w-20 px-2 py-1 text-base text-right">
   </td>
 </tr>

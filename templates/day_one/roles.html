@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Roles") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Roles") }}</h1>
+  <p class="mt-1 text-sm ink-3">{{ _("What each kind of person can do in your books.") }}</p>
+</div>
+{% include "settings/_nav.html" %}
+{% include "day_one/_flash.html" %}
+{% if degraded %}
+<div class="card p-4 max-w-3xl" style="border-color:var(--warm);">
+  <p class="text-sm ink-1">{{ _("Custom roles are not part of your edition. You can still invite people as an administrator, accountant, bookkeeper or viewer.") }}</p>
+</div>
+{% else %}
+{% if not has_accountant %}
+<div class="card p-4 mb-5 max-w-3xl flex items-center justify-between gap-4">
+  <p class="text-sm ink-1">{{ _("Add an Accountant role: everything an outside accountant needs at year end — reports, journals, tax and settings — but not managing users or your subscription, and no permanent deletes.") }}</p>
+  <form method="post" action="/settings/roles/accountant">{{ csrf_input(request)|safe }}
+    <button class="btn-primary text-sm whitespace-nowrap" type="submit">{{ _("Add Accountant role") }}</button></form>
+</div>
+{% endif %}
+<div class="card p-0 max-w-3xl overflow-hidden">
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs ink-3 hairline-b"><th class="px-4 py-2">{{ _("Role") }}</th><th class="px-4 py-2">{{ _("Type") }}</th><th class="px-4 py-2 text-right">{{ _("Permissions") }}</th></tr></thead>
+    <tbody>
+    {% for r in roles %}
+      <tr class="hairline-b">
+        <td class="px-4 py-2 ink-1">{{ r.name }}</td>
+        <td class="px-4 py-2 ink-3">{{ _("Built in") if r.is_system else _("Custom") }}</td>
+        <td class="px-4 py-2 text-right num">{{ r.grants|length }}{% if permission_count %} / {{ permission_count }}{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

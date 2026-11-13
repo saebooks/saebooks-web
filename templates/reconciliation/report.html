@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Bank reconciliation report") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+<style>
+  @media print {
+    aside, nav, header, .no-print, #sidebar { display: none !important; }
+    .card { border: 1px solid #999 !important; box-shadow: none !important; }
+    body { background: #fff !important; color: #000 !important; }
+  }
+</style>
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2 no-print" style="border-color:var(--sae);">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
+</div>
+{% endif %}
+
+{% if degraded %}
+<div class="card">{% include "_partials/degraded_panel.html" %}</div>
+{% elif error or not report %}
+<div class="card p-3" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error or _("Reconciliation not found.") }}</span></div>
+{% else %}
+{% set rec = report.reconciliation %}{% set acct = report.account %}{% set p = report.printed %}{% set s = report.summary %}
+{% set finished = rec.status == "FINISHED" %}
+
+<div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Bank reconciliation") }} — {{ acct.code }} {{ acct.name }}</h1>
+    <p class="text-sm ink-2 mt-1">
+      {{ _("Statement date %(date)s.") % {"date": rec.statement_date} }}
+      {% if finished %}
+        {{ _("Finished by %(who)s on %(when)s.") % {"who": rec.finished_by or "—", "when": (rec.finished_at or "")[:10]} }}
+      {% else %}
+        <span style="color:var(--warm);">{{ _("In progress — figures are live.") }}</span>
+      {% endif %}
+      {% if rec.reopened_at %}<span class="ink-3">{{ _("Reopened %(when)s: %(why)s") % {"when": rec.reopened_at[:10], "why": rec.reopen_reason or ""} }}</span>{% endif %}
+    </p>
+  </div>
+  <div class="flex flex-wrap gap-2 no-print">
+    <button type="button" class="btn-secondary text-sm" onclick="window.print()">{{ _("Print or save as PDF") }}</button>
+    <a href="/reconciliation/statements/{{ rec.id }}/report.csv" class="btn-secondary text-sm">{{ _("Download spreadsheet") }}</a>
+    <a href="/reconciliation/{{ acct.id }}/lines" class="btn-secondary text-sm">{{ _("Back to Reconciliation") }}</a>
+  </div>
+</div>
+
+<div class="card p-4 mb-6 max-w-2xl">
+  <table class="w-full text-sm">
+    <tbody>
+      <tr><td class="py-1 ink-2">{% if acct.balance_kind == 'owing' %}{{ _("Amount owing on the bank statement") }}{% else %}{{ _("Balance on the bank statement") }}{% endif %}</td><td class="py-1 text-right font-mono">{{ num(p.statement_balance|float, 2) }}</td></tr>
+      <tr><td class="py-1 ink-2">{{ _("Add: money in the books not yet on the statement") }}</td><td class="py-1 text-right font-mono">{{ num(p.outstanding_in_total|float, 2) }}</td></tr>
+      <tr><td class="py-1 ink-2">{{ _("Less: money out in the books not yet on the statement") }}</td><td class="py-1 text-right font-mono">{{ num(p.outstanding_out_total|float, 2) }}</td></tr>
+      <tr><td class="py-1 ink-2">{{ _("Less: bank lines recorded in the books after the statement date") }}</td><td class="py-1 text-right font-mono">{{ num(p.booked_later_total|float, 2) }}</td></tr>
+      <tr style="border-top:1px solid var(--line);"><td class="py-1 ink-1 font-medium">{% if acct.balance_kind == 'owing' %}{{ _("Amount owing in the books") }}{% else %}{{ _("Balance in the books") }}{% endif %}</td><td class="py-1 text-right font-mono font-medium">{{ num(p.book_balance|float, 2) }}</td></tr>
+      <tr><td class="py-1 ink-1 font-semibold">{{ _("Difference") }}</td><td class="py-1 text-right font-mono font-semibold" style="color:{% if (p.difference|float) == 0 %}var(--pos){% else %}var(--neg){% endif %};">{{ num(p.difference|float, 2) }}</td></tr>
+    </tbody>
+  </table>
+  {% if s.to_match_count %}<p class="text-xs mt-2" style="color:var(--warm);">{{ ngettext("%(n)s bank line up to the statement date still needs matching.", "%(n)s bank lines up to the statement date still need matching.", s.to_match_count) % {"n": s.to_match_count} }}</p>{% endif %}
+</div>
+
+{% for title, key in [(_("In the books, not yet on the statement"), "outstanding"), (_("Recorded in the books after the statement date"), "booked_later"), (_("Ignored bank lines"), "ignored")] %}
+{% set rows = s.get(key) or [] %}
+<h2 class="text-base font-semibold ink-1 mb-2 mt-6">{{ title }} <span class="ink-3 text-sm">({{ rows|length }})</span></h2>
+<div class="card overflow-x-auto">
+  <table class="sae-table w-full text-sm">
+    <thead><tr>
+      <th class="text-left">{{ _("Date") }}</th>
+      <th class="text-left">{% if key == "ignored" %}{{ _("Description") }}{% else %}{{ _("Record") }}{% endif %}</th>
+      <th class="text-left">{% if key == "ignored" %}{{ _("Reason") }}{% else %}{{ _("Contact") }}{% endif %}</th>
+      <th class="text-right">{{ _("Money in") }}</th>
+      <th class="text-right">{{ _("Money out") }}</th>
+    </tr></thead>
+    <tbody>
+      {% for r in rows %}{% set a = r.amount|float %}
+      <tr>
+        <td class="font-mono text-xs ink-3">{{ r.entry_date or r.txn_date or r.line_date }}</td>
+        <td class="ink-1">{% if key == "ignored" %}{{ r.description or "—" }}{% else %}{{ r.source_label or r.entry_ref }}{% if r.description %} <span class="ink-3">· {{ r.description }}</span>{% endif %}{% endif %}</td>
+        <td class="ink-2">{% if key == "ignored" %}{{ r.reason or "—" }}{% else %}{{ r.contact_name or "—" }}{% endif %}</td>
+        <td class="text-right font-mono text-xs">{% if a > 0 %}{{ num(a, 2) }}{% endif %}</td>
+        <td class="text-right font-mono text-xs">{% if a < 0 %}{{ num(-a, 2) }}{% endif %}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-4 text-center ink-3">{{ _("None.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+
+<div class="mt-6 flex flex-wrap gap-4 no-print">
+  {% if not finished %}
+  <form method="POST" action="/reconciliation/statements/{{ rec.id }}/finish">
+    {{ csrf_input(request)|safe }}
+    <button type="submit" class="btn-primary text-sm" {% if not s.can_finish %}disabled{% endif %}>{{ _("Finish") }}</button>
+  </form>
+  {% else %}
+  <form method="POST" action="/reconciliation/statements/{{ rec.id }}/reopen" class="flex flex-wrap items-end gap-2"
+        onsubmit="return confirm('{{ _('Reopen this reconciliation? Its bank lines can then be changed, and it must be finished again.') }}')">
+    {{ csrf_input(request)|safe }}
+    <div>
+      <label class="block text-xs ink-3 mb-1" for="reason">{{ _("Why reopen it?") }}</label>
+      <input id="reason" name="reason" required class="saebooks-input w-72">
+    </div>
+    <button type="submit" class="btn-secondary text-sm">{{ _("Reopen") }}</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

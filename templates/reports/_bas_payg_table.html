@@ -85,7 +85,7 @@
   {# ---- PAYG withholding section ---- #}
   <div class="card overflow-hidden">
     <div class="px-6 py-3 hairline-b flex items-center justify-between" style="background:var(--sae-tint);">
-      <p class="nav-section-label sae">{{ _("PAYG Withholding — from pay-runs") }}</p>
+      <p class="nav-section-label sae">{{ _("Tax withheld from wages — finalised pay runs only") }}</p>
       {% set _pay_run_count = payg.get("pay_run_count", 0) %}
       <span class="text-[10px] font-mono ink-3">{{ ngettext("%(n)s pay-run in period", "%(n)s pay-runs in period", _pay_run_count) % {"n": _pay_run_count} }}</span>
     </div>
@@ -101,18 +101,23 @@
         <tr>
           <td class="font-semibold ink-1">W1</td>
           <td class="ink-2">{{ _("Total salary, wages and other payments (gross)") }}</td>
-          <td class="text-right num ink-1">{{ num(payg.get("w1_total_gross", 0) | float, 2) }}</td>
+          <td class="text-right num ink-1"><a class="hover:underline" href="/reports/gst-detail?label=W1&from_date={{ from_date }}&to_date={{ to_date }}">{{ num(payg.get("w1_total_gross", 0) | float, 2) }}</a></td>
         </tr>
         <tr style="background:var(--sae-tint);">
           <td class="font-semibold sae hairline-t">W2</td>
           <td class="sae hairline-t">{{ _("Amount withheld from W1 payments (PAYG)") }}</td>
-          <td class="text-right num-display font-semibold sae hairline-t">{{ num(payg.get("w2_tax_withheld", 0) | float, 2) }}</td>
+          <td class="text-right num-display font-semibold sae hairline-t"><a class="hover:underline" href="/reports/gst-detail?label=W2&from_date={{ from_date }}&to_date={{ to_date }}">{{ num(payg.get("w2_tax_withheld", 0) | float, 2) }}</a></td>
         </tr>
       </tbody>
     </table>
     {% if payg.get("pay_run_count", 0) == 0 %}
     <div class="px-6 py-2 hairline-t">
-      <p class="text-[11px] ink-3 font-mono">{{ _("No pay-runs in this period — W1/W2 are zero.") }}</p>
+      <p class="text-[11px] ink-3 font-mono">{{ _("No finalised pay runs paid in this period, so W1 and W2 are zero. Draft pay runs are never counted.") }}</p>
+    </div>
+    {% endif %}
+    {% if (payg.get("withholding_difference", 0) or 0) | float != 0 %}
+    <div class="px-6 py-2 hairline-t">
+      <p class="text-[11px]" style="color:var(--warm);">{{ _("W2 does not match the tax withheld account (%(code)s) for this period by %(diff)s. Check for journals or pay runs changed after finalising.") % {"code": payg.get("withholding_account_code") or "?", "diff": num(payg.get("withholding_difference", 0) | float, 2)} }}</p>
     </div>
     {% endif %}
   </div>

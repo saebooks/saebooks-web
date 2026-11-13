@@ -18,9 +18,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 
 router = APIRouter()
@@ -34,15 +35,28 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+_BSL_SORT_KEYS = {"date", "description", "amount", "balance", "status", "reference"}
+
+
 @router.get("/bank-statement-lines", response_class=HTMLResponse, response_model=None)
 async def bank_statement_lines_list(
     request: Request,
     status: str | None = None,
     bank_account_id: str | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
+    sort: str = "date",
+    direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     """Render the bank statement lines list page (full or HTMX fragment).
+
+    ``q`` searches description, reference, contact name or an amount (money
+    in or out); the amount range bounds the size of a line either way;
+    ``?export=csv`` downloads every matching line as a spreadsheet.
 
     When the request carries an ``HX-Request: true`` header the response is
     the ``bank_statement_lines/_table.html`` partial only.  Otherwise the full
@@ -51,7 +65,16 @@ async def bank_statement_lines_list(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    params: dict[str, object] = {"limit": limit, "offset": offset}
+    sort = sort if sort in _BSL_SORT_KEYS else "date"
+    direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
+
+    params: dict[str, object] = {
+        "limit": limit, "offset": offset, "sort": sort, "direction": direction,
+    }
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
     if status:
         params["status"] = status
     if bank_account_id:
@@ -62,6 +85,17 @@ async def bank_statement_lines_list(
     total: int = 0
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get(
+                "/api/v1/bank_statement_lines", params={**params, "format": "csv"}
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "bank-lines.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/bank-statement-lines", status_code=303)
         resp = await client.get("/api/v1/bank_statement_lines", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -85,6 +119,11 @@ async def bank_statement_lines_list(
         "flash": flash,
         "filter_status": status or "",
         "filter_bank_account_id": bank_account_id or "",
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
+        "sort": sort,
+        "direction": direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,

@@ -202,6 +202,19 @@ async def _empty_list() -> list[dict]:
 # ---------------------------------------------------------------------------
 
 
+async def _dashboard_summary(request: Request) -> dict | None:
+    """GET /api/v1/reports/dashboard_summary, or None if unavailable."""
+    try:
+        async with api_client(request) as client:
+            r = await client.get("/api/v1/reports/dashboard_summary")
+        if r.is_success:
+            body = r.json()
+            return body if isinstance(body, dict) and "receivables" in body else None
+    except Exception:  # tile degrades to list-derived figures
+        return None
+    return None
+
+
 def _ar_tile(
     draft_invoices: list[dict],
     open_invoices: list[dict],
@@ -405,6 +418,23 @@ def _weekly_takings_tile(payments: list[dict]) -> dict:
         "last_start": last_start,
         "last_end": last_end,
     }
+
+
+async def _bas_position(request: Request) -> dict | None:
+    """``/api/v1/bas/position`` for the GST set-aside tile; None when the
+    company is not GST registered or the call fails (tile hidden)."""
+    try:
+        async with api_client(request) as client:
+            resp = await client.get("/api/v1/bas/position")
+        if not resp.is_success:
+            return None
+        data = resp.json()
+    except Exception as exc:  # degrade the tile, never the page
+        logger.info("dashboard bas position unavailable: %r", exc)
+        return None
+    if not data.get("registered"):
+        return None
+    return data
 
 
 def _gst_tile(ytd_data: dict) -> dict:
@@ -876,6 +906,19 @@ async def dashboard(
 
     ar = _ar_tile(draft_invoices_raw, open_invoices_raw, paid_inv_raw)
     ap = _ap_tile(draft_bills_raw, open_bills_raw, paid_bills_raw)
+
+    # Engine money summary (0227, gaps P0-9 / P0-24 / P1-30): the AR / AP
+    # tiles take their figures from the same aged reports the report pages
+    # show (net of credit held on account, tied out to the control
+    # accounts, not capped at the first records fetched), and the bank
+    # tile shows ledger balances. Best-effort: an older engine leaves the
+    # list-derived figures above in place.
+    summary = await _dashboard_summary(request)
+    if summary:
+        rcv, pay = summary.get("receivables") or {}, summary.get("payables") or {}
+        ar["paid_total"] = _to_decimal(rcv.get("net") or 0)
+        ar["overdue_total"] = _to_decimal(rcv.get("overdue") or 0)
+        ap["paid_total"] = _to_decimal(pay.get("net") or 0)
     cash = _cash_tile(payments_raw)
     takings = _weekly_takings_tile(payments_raw)
     recent = _recent_activity(
@@ -913,12 +956,19 @@ async def dashboard(
     if revenue_concentration_raw.get("rows"):
         top_customer_name = revenue_concentration_raw["rows"][0].get("contact_name", "")
 
+    # Batch 5 (P1-31): GST to set aside for the current BAS period and the
+    # next BAS due date, from the engine's one BAS calculation. Fetched on
+    # its own so a failure only blanks this tile.
+    bas_position = await _bas_position(request)
+
     return _TEMPLATES.TemplateResponse(
         request,
         "dashboard.html",
         {
+            "bas_position": bas_position,
             "ar": ar,
             "ap": ap,
+            "summary": summary,
             "cash": cash,
             "takings": takings,
             "recent": recent,

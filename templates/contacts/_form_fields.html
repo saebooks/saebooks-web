@@ -82,6 +82,32 @@
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
+  <legend class="nav-section-label mb-3">{{ _("Payment terms") }}</legend>
+  <p class="text-xs ink-3 -mt-2">{{ _("Sets the due date on new bills and invoices for this contact. You can still change the date on each one.") }}</p>
+  {% set _basis = form.get("payment_terms_basis", "") %}
+  <div class="flex flex-wrap items-end gap-3">
+    <div>
+      <label for="payment_terms_days" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Days") }}</label>
+      <input type="number" id="payment_terms_days" name="payment_terms_days" min="0" max="365" step="1"
+             value="{{ form.get('payment_terms_days', '') }}" class="saebooks-input num w-24"
+             {% if errors.get('payment_terms_days') %}style="border-color:var(--neg);"{% endif %}>
+    </div>
+    <div>
+      <label for="payment_terms_basis" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Counted from") }}</label>
+      <select id="payment_terms_basis" name="payment_terms_basis" class="saebooks-input"
+              {% if errors.get('payment_terms_basis') %}style="border-color:var(--neg);"{% endif %}>
+        <option value="" {% if not _basis %}selected{% endif %}>{{ _("No set terms — type the due date each time") }}</option>
+        <option value="DAYS" {% if _basis == "DAYS" %}selected{% endif %}>{{ _("after the invoice date") }}</option>
+        <option value="EOM" {% if _basis == "EOM" %}selected{% endif %}>{{ _("after the end of the invoice month") }}</option>
+      </select>
+    </div>
+  </div>
+  <p class="text-xs ink-3">{{ _("Example: 30 days after the end of the month — an invoice dated 14 May is due 30 June.") }}</p>
+  {% if errors.get("payment_terms_days") %}<p class="text-xs" style="color:var(--neg);">{{ errors["payment_terms_days"] }}</p>{% endif %}
+  {% if errors.get("payment_terms_basis") %}<p class="text-xs" style="color:var(--neg);">{{ errors["payment_terms_basis"] }}</p>{% endif %}
+</fieldset>
+
+<fieldset class="space-y-4 mt-7">
   <legend class="nav-section-label mb-3">{{ _("Accounting") }}</legend>
 
   <div>
@@ -135,18 +161,23 @@
 <fieldset class="space-y-4 mt-7">
   <legend class="nav-section-label mb-3">{{ _("Billing currency") }}</legend>
   <div>
+    {# Batch 10 (P1-53): a picker, not free text. New invoices, quotes and
+       bills for this contact start in this currency. #}
+    {% set _fx = fx_context(request) %}
+    {% set _cur = (form.get('currency_code') or '') | upper %}
     <label for="currency_code" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      {{ _("Currency code") }}
-      {# "leave blank for <default>" — the default currency comes from the
-         jurisdiction contract, so an EE company sees EUR, not AUD. #}
-      {% set _cur = request.state.jp.default_currency %}
-      {% if _cur %}<span class="ink-4 font-normal normal-case ml-1">{{ _("(ISO 4217 — leave blank for %(cur)s)") % {"cur": _cur} }}</span>{% else %}<span class="ink-4 font-normal normal-case ml-1">{{ _("(ISO 4217)") }}</span>{% endif %}
+      {{ _("Currency") }}
     </label>
-    <input type="text" id="currency_code" name="currency_code"
-           value="{{ form.get('currency_code', '') }}"
-           placeholder="e.g. JPY, USD, EUR" maxlength="3"
-           class="saebooks-input num w-32"
-           {% if errors.get('currency_code') %}style="border-color:var(--neg);"{% endif %}>
+    <select id="currency_code" name="currency_code" class="saebooks-input sm:max-w-xs"
+            {% if errors.get('currency_code') %}style="border-color:var(--neg);"{% endif %}>
+      <option value="" {% if not _cur %}selected{% endif %}>{{ _("Same as the company (%(cur)s)") % {"cur": _fx.base} }}</option>
+      {% set _codes = _fx.currencies | map(attribute="code") | list %}
+      {% if _cur and _cur not in _codes %}<option value="{{ _cur }}" selected>{{ _cur }}</option>{% endif %}
+      {% for c in _fx.currencies if c.code != _fx.base %}
+      <option value="{{ c.code }}" {% if _cur == c.code %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>
+      {% endfor %}
+    </select>
+    <p class="text-xs ink-3 mt-1">{{ _("New invoices, quotes and bills for this contact start in this currency.") }}</p>
     {% if errors.get("currency_code") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["currency_code"] }}</p>{% endif %}
   </div>
 </fieldset>
@@ -178,6 +209,29 @@
     </p>
   </div>
 </div>
+
+{# ── Reportable contractor (TPAR, AU only) — P1-74 ── #}
+{% if (request.state.active_company_jurisdiction or "AU") == 'AU' %}
+<div class="mt-6 flex items-start gap-3">
+  <div class="flex items-center h-5">
+    <input
+      type="checkbox"
+      id="is_tpar_supplier"
+      name="is_tpar_supplier"
+      value="on"
+      {% if form.get("is_tpar_supplier") in ("on", True, "true", "True") %}checked{% endif %}
+      class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]"
+    >
+  </div>
+  <div>
+    <label for="is_tpar_supplier" class="block text-sm font-medium ink-2">{{ _("Report payments to this contractor") }}</label>
+    <p class="text-xs ink-3 mt-0.5">
+      {{ _("Include what you pay them in the taxable payments annual report. Tick this for contractors who provide building, cleaning, courier, road freight, IT or security services.") }}
+      <a href="/tpar" class="sae hover:underline">{{ _("About the report") }}</a>
+    </p>
+  </div>
+</div>
+{% endif %}
 
 {# ── E-invoicing (EE only) ── #}
 {% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}

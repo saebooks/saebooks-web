@@ -39,11 +39,28 @@
 <h2 class="mt-8 mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{{ heading }}</h2>
 {% endmacro %}
 
+{# ── Getting set up (b06) ── #}
+{{ group(_("Getting set up")) }}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {{ card("/setup", "list-checks", _("Setup checklist"),
+          _("Everything a new business needs on day one, step by step.")) }}
+  {% if mode == "full" %}
+  {{ card("/setup/opening-balances", "scale", _("Opening balances"),
+          _("Your conversion date and the balances from your old system.")) }}
+  {% endif %}
+  {{ card("/admin/imports", "upload", _("Import data"),
+          _("Contacts, products, unpaid invoices and bills, bank statements.")) }}
+</div>
+
 {# ── Organisation ── #}
 {{ group(_("Organisation")) }}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
   {{ card("/settings/company", "building", _("Company details"),
           _("Name, ABN, contact, addresses and how you get paid.")) }}
+  {{ card("/settings/documents", "file-text", _("Documents and email"),
+          _("Logo, wording on quotes and invoices, and how emails are sent.")) }}
+  {{ card("/settings/numbering", "hash", _("Numbering"),
+          _("Invoice, quote and other document numbers.")) }}
   {{ card("/companies", "building-2", _("Companies"),
           _("Switch between, add or archive the companies you keep books for.")) }}
 </div>

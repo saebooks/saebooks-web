@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_partials/void_dated.html" import void_dated with context %}
 
 {% import "_partials/breadcrumb.html" as crumb %}
 {% import "_icons.html" as icons %}
@@ -51,7 +52,11 @@
       <h1 class="font-display text-3xl leading-none tracking-tight num-display">
         {{ invoice.number or "—" }}
       </h1>
-      <p class="text-xs ink-3 font-mono mt-2">{{ _("contact") }} · {{ invoice.contact_id }}</p>
+      {% set _cust = (settlement.contact.name if settlement and settlement.contact else None) or invoice.one_off_customer_name %}
+      <p class="text-sm ink-3 mt-2">
+        {{ _("To") }}
+        {% if invoice.contact_id %}<a href="/contacts/{{ invoice.contact_id }}" class="sae hover:underline">{{ _cust or _("this customer") }}</a>{% else %}<span class="ink-2">{{ _cust or "—" }}</span>{% endif %}
+      </p>
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
@@ -65,20 +70,30 @@
       {% endif %}
       {% if invoice.status == 'POSTED' %}
       <a href="/invoices/{{ invoice.id }}/email" class="btn-secondary text-sm"
-         style="border-color:var(--warm); color:var(--warm);"
-         title="{{ _('Compose email to customer — blocked by kill switch during build') }}">
+         title="{{ _('Email this to the customer') }}">
         {{ _("Send to customer") }}
       </a>
       {% set _outstanding = invoice.total|float - invoice.amount_paid|float %}
       {% if _outstanding > 0 %}
+      <form method="post" action="/invoices/{{ invoice.id }}/send-reminder" class="inline"
+            onsubmit="return confirm('{{ _('Email the customer a payment reminder now?') }}');">
+        {{ csrf_input(request)|safe }}
+        <button type="submit" class="btn-secondary text-sm">{{ _("Send reminder") }}</button>
+      </form>
       <a href="/payments/new?contact_id={{ invoice.contact_id|urlencode }}&amp;direction=INCOMING&amp;amount={{ '%.2f'|format(_outstanding) }}&amp;invoice_id={{ invoice.id|urlencode }}&amp;reference={{ ('Invoice ' ~ (invoice.number or invoice.id))|urlencode }}"
          class="btn-secondary text-sm">
         {{ _("Record payment") }}
       </a>
       {% endif %}
       {% endif %}
-      {% if invoice.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
+      {% if invoice.status == 'DRAFT' or is_feature_enabled("edit_frozen_state") %}
       <a href="/invoices/{{ invoice.id }}/edit" class="btn-secondary text-sm">{% if invoice.status in ('POSTED', 'PAID', 'VOIDED') %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
+      {% endif %}
+      {% if invoice.status != 'DRAFT' %}
+      <a href="/invoices/{{ invoice.id }}/fix" class="btn-secondary text-sm">{{ _("Fix or correct") }}</a>
+      {% endif %}
+      {% if invoice.status == 'POSTED' and (invoice.total|float - invoice.amount_paid|float) > 0 %}
+      <a href="/invoices/{{ invoice.id }}/fix#write-off" class="btn-secondary text-sm">{{ _("Write off") }}</a>
       {% endif %}
       {% if invoice.status == 'DRAFT' %}
       <form method="post" action="/invoices/{{ invoice.id }}/post"
@@ -95,12 +110,7 @@
       </form>
       {% endif %}
       {% if invoice.status == 'POSTED' %}
-      <form method="post" action="/invoices/{{ invoice.id }}/void"
-            onsubmit="return confirm('{{ _('Void this invoice?') }}');" class="inline">
-        {{ csrf_input(request)|safe }}
-        <input type="hidden" name="version" value="{{ invoice.version }}">
-        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
-      </form>
+      <a href="/invoices/{{ invoice.id }}/fix#void" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</a>
       {% endif %}
       {% if is_admin %}
       {{ icons.hard_delete(
@@ -129,14 +139,49 @@
     <p class="num-display ink-1 text-lg">
       {{ invoice.currency }} {{ num(invoice.total|float, 2) }}
     </p>
+    {% set _base = fx_context(request).base %}
+    {% if invoice.currency and invoice.currency | upper != _base and invoice.base_total is defined and invoice.base_total is not none %}
+    <p class="text-xs ink-3 num">{{ _base }} {{ num(invoice.base_total|float, 2) }} · 1 {{ invoice.currency }} = {{ "%.6g"|format(invoice.fx_rate|float) }} {{ _base }}</p>
+    {% endif %}
   </div>
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">{{ _("Paid") }}</p>
     <p class="num-display text-lg" style="color:{% if invoice.amount_paid|float >= invoice.total|float %}var(--pos){% else %}var(--ink){% endif %};">
       {{ invoice.currency }} {{ num(invoice.amount_paid|float, 2) }}
     </p>
+    {% set _due_left = (settlement.amount_due|float) if settlement else ((invoice.total|float) - (invoice.amount_paid|float)) %}
+    <p class="text-xs ink-3 mt-1">{{ _("Balance due") }} <span class="num {% if _due_left > 0 %}ink-1{% endif %}">{{ num(_due_left if _due_left > 0 else 0, 2) }}</span></p>
   </div>
 </section>
+
+{% if settlement and settlement.payments %}
+<section class="card overflow-hidden mb-7">
+  <div class="px-6 py-3 hairline-b"><p class="nav-section-label">{{ _("Payments") }}</p></div>
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("What") }}</th>
+        <th class="text-left">{{ _("Reference") }}</th>
+        <th class="text-right">{{ _("Amount") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in settlement.payments %}
+      <tr>
+        <td class="num ink-2">{{ p.date or "—" }}</td>
+        <td><a href="/payments/{{ p.id }}" class="sae hover:underline">{{ _("Payment") }} {{ p.number or "" }}</a>{% if p.status == 'VOIDED' %} <span class="badge-overdue">{{ _("Voided") }}</span>{% endif %}</td>
+        <td class="ink-2">{{ p.reference or "—" }}</td>
+        <td class="text-right num ink-1">{{ num(p.amount|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+{% set doc = invoice %}{% set credit_web = "/credit-notes" %}
+{% include "_partials/credits_applied.html" with context %}
 
 {# ── Lines ── #}
 <section class="card overflow-hidden mb-7">
@@ -207,14 +252,78 @@
 </section>
 {% endif %}
 
-{# ── Stripe payment link ── #}
+{# ── b11: customer email bounced ── #}
+{% if customer and customer.email_bounced_at %}
+<section class="mb-7">
+  <div class="card p-3 flex items-start gap-2" style="border-color:var(--neg);" role="alert">
+    <span class="dot mt-1.5" style="background:var(--neg);"></span>
+    <div class="text-sm">
+      <p style="color:var(--neg);" class="font-semibold">{{ _("Email to %(e)s bounced, so the customer may not have this invoice.") % {"e": customer.email} }}</p>
+      {% if customer.email_bounce_reason %}<p class="ink-3 mt-1">{{ customer.email_bounce_reason }}</p>{% endif %}
+      <a href="/contacts/{{ customer.id }}/edit" class="sae hover:underline">{{ _("Fix the email address") }}</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ── Online payment (b11: stable Pay now link + Paid online) ── #}
 {% if invoice.status == 'POSTED' %}
 <section class="mb-7">
-  <p class="nav-section-label mb-2">{{ _("Payment link") }}</p>
-  {% set invoice_id = invoice.id %}
-  {% set stripe_payment_link = invoice.stripe_payment_link %}
-  {% set stripe_error = None %}
-  {% include "invoices/_stripe_payment_link.html" with context %}
+  <p class="nav-section-label mb-2">{{ _("Pay online") }}</p>
+  {% if online.get("paid_online") %}
+    {% for p in online.paid_online %}
+    <div class="card p-3 mb-2 flex items-center gap-2">
+      <span class="badge-pos">{{ _("Paid online") }}</span>
+      <span class="text-sm ink-2">{{ _("%(a)s by card on %(d)s") % {"a": num(p.amount|float, 2), "d": p.date} }}</span>
+      <a href="/payments/{{ p.payment_id }}" class="text-sm sae hover:underline ml-auto">{{ _("View payment") }}</a>
+    </div>
+    {% endfor %}
+  {% endif %}
+  {% if online and not online.get("available") %}
+    <p class="text-sm ink-3">{{ online.get("reason") }}</p>
+  {% else %}
+    {% set invoice_id = invoice.id %}
+    {% set stripe_payment_link = online.get("link") or invoice.stripe_payment_link %}
+    {% set stripe_error = None %}
+    {% include "invoices/_stripe_payment_link.html" with context %}
+    <p class="text-xs ink-3 mt-1">{{ _("The link goes in the invoice email, reminders and the PDF. It always asks for what is still owing, and the payment is recorded here when the customer pays.") }}</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{# ── Reminders sent ── #}
+{% if reminders %}
+<section class="mb-7">
+  <p class="nav-section-label mb-2">{{ _("Reminders") }}</p>
+  <div class="card overflow-hidden">
+    <table class="sae-table w-full text-sm">
+      <thead><tr>
+        <th class="text-left">{{ _("When") }}</th>
+        <th class="text-left">{{ _("Type") }}</th>
+        <th class="text-left">{{ _("Result") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for r in reminders %}
+        <tr>
+          <td class="num font-mono text-xs ink-2">{{ (r.created_at or "")[:16].replace("T", " ") }}</td>
+          <td class="ink-2">
+            {% if r.kind == 'manual' %}{{ _("Sent by hand") }}
+            {% elif r.stage_days is not none and r.stage_days < 0 %}{{ _("%(n)s days before due") % {"n": -r.stage_days} }}
+            {% elif r.stage_days == 0 %}{{ _("On the due date") }}
+            {% else %}{{ _("%(n)s days overdue") % {"n": r.stage_days} }}{% endif %}
+          </td>
+          <td>
+            {% if r.outcome == 'sent' %}<span class="badge-paid">{{ _("Sent") }}</span>
+            {% elif r.outcome == 'drafted' %}<span class="badge-pending">{{ _("Draft") }}</span>
+            {% elif r.outcome == 'failed' %}<span class="badge-overdue">{{ _("Failed") }}</span>
+            {% else %}<span class="badge-draft">{{ _("Not sent") }}</span>{% endif %}
+            {% if r.detail and r.outcome != 'sent' %}<span class="text-xs ink-3 ml-2">{{ r.detail | truncate(90) }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endif %}
 
@@ -240,13 +349,15 @@
       </thead>
       <tbody>
         {% for ev in email_log %}
-        {% set badge_class = {'sent':'badge-paid','queued':'badge-pending','blocked':'badge-draft','failed':'badge-overdue'}.get(ev.resend_status, 'badge-draft') %}
+        {% set _state = ev.delivery_state or ev.resend_status %}
+        {% set badge_class = {'sent':'badge-paid','delivered':'badge-paid','opened':'badge-paid','queued':'badge-pending','drafted':'badge-pending','blocked':'badge-draft','failed':'badge-overdue','bounced':'badge-overdue','complained':'badge-overdue'}.get(_state, 'badge-draft') %}
         <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/email-log/{{ ev.id }}'">
           <td class="num font-mono text-xs ink-2">{{ ev.sent_at[:19].replace('T', ' ') }}</td>
           <td class="font-mono text-xs ink-1">{{ ev.to_addrs | join(', ') }}</td>
           <td class="ink-1 truncate" style="max-width:280px;">{{ ev.subject }}</td>
           <td>
-            <span class="{{ badge_class }}">{{ ev.resend_status | capitalize }}</span>
+            <span class="{{ badge_class }}">{% include "email_log/_delivery_label.html" %}</span>
+            {% if ev.bounce_reason %}<span class="text-xs ml-2" style="color:var(--neg);" title="{{ ev.bounce_reason }}">{{ ev.bounce_reason | truncate(60) }}</span>{% endif %}
             {% if ev.kill_switch_reason %}
               <span class="text-xs ink-3 ml-2" title="{{ ev.kill_switch_reason }}">
                 {{ ev.kill_switch_reason | truncate(60) }}
@@ -261,10 +372,8 @@
 </section>
 {% endif %}
 
-{# ── Change log stub ── #}
-<div class="card p-6 text-center" style="border-style:dashed;">
-  <p class="text-xs ink-3 font-mono">{{ _("— change log — TODO —") }}</p>
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="invoice", history_id=invoice.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if invoice #}
 

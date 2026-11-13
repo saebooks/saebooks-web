@@ -1,0 +1,41 @@
+{# Credit held on account + tie-out to the control account (engine 0227,
+   gap P0-9). Expects report (engine AgedReport JSON) and aged_side
+   ('receivable' | 'payable'). Renders nothing for an older engine. #}
+{% if report and report.get("net_total") is not none %}
+<div class="card mt-4 overflow-x-auto">
+  {% if report.get("unapplied_credits") %}
+  <table class="sae-table min-w-full w-full text-sm">
+    <thead>
+      <tr>
+        <th class="text-left">{% if aged_side == 'receivable' %}{{ _("Customer credit / paid on account") }}{% else %}{{ _("Supplier credit / paid on account") }}{% endif %}</th>
+        <th class="text-left">{{ _("Document") }}</th>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-right">{{ _("Amount") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in report.unapplied_credits %}
+      {% set _url = {"credit_note": "/credit-notes/", "supplier_credit_note": "/supplier-credit-notes/", "receipt": "/payments/", "supplier_payment": "/payments/"}.get(c.kind, "/") ~ c.id %}
+      <tr>
+        <td><a href="/contacts/{{ c.contact_id }}" class="sae hover:underline">{{ c.contact_name }}</a></td>
+        <td><a href="{{ _url }}" class="sae hover:underline">{{ c.number or c.kind }}</a></td>
+        <td class="num ink-2">{{ c.date }}</td>
+        <td class="text-right num ink-1">{{ num(c.amount|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <dl class="px-4 py-3 text-sm grid grid-cols-2 gap-y-1 max-w-md ml-auto">
+    <dt class="ink-3">{{ _("Documents outstanding") }}</dt><dd class="text-right num">{{ num(report.totals.get("total", 0)|float, 2) }}</dd>
+    <dt class="ink-3">{{ _("Less credit held") }}</dt><dd class="text-right num">{{ num(report.unapplied_total|float, 2) }}</dd>
+    <dt class="ink-1 font-semibold">{{ _("Net") }}</dt><dd class="text-right num-display font-semibold">{{ num(report.net_total|float, 2) }}</dd>
+    <dt class="ink-3">{% if aged_side == 'receivable' %}{{ _("Trade Debtors (%(code)s)") % {"code": report.control_account_code} }}{% else %}{{ _("Trade Creditors (%(code)s)") % {"code": report.control_account_code} }}{% endif %}</dt>
+    <dd class="text-right num">{{ num(report.control_balance|float, 2) }}</dd>
+    <dt class="ink-3">{{ _("Difference") }}</dt>
+    <dd class="text-right num" {% if (report.tie_out_difference|float)|abs > 0.005 %}style="color:var(--warm);font-weight:600;"{% else %}style="color:var(--pos);"{% endif %}>
+      {% if (report.tie_out_difference|float)|abs > 0.005 %}{{ num(report.tie_out_difference|float, 2) }}{% else %}{{ _("Agrees") }}{% endif %}
+    </dd>
+  </dl>
+</div>
+{% endif %}

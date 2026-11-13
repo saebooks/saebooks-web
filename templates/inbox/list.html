@@ -21,6 +21,9 @@
   </a>
 </div>
 
+{# b15 (P2-24): the email-in address, minted on first use, shown up front. #}
+<div hx-get="/inbox/_email-in" hx-trigger="load" hx-swap="outerHTML"></div>
+
 {# ── Upload zone: desktop drag-and-drop + mobile camera capture ────────── #}
 <form id="inbox-upload-form" method="post" action="/inbox/upload" enctype="multipart/form-data" class="mb-6">
   {{ csrf_input(request) | safe }}
@@ -34,13 +37,14 @@
     <input type="file" id="inbox-file-input" name="file"
            accept="image/*,application/pdf" capture="environment"
            class="hidden"
-           onchange="if (this.files.length) { document.getElementById('inbox-upload-progress').classList.remove('hidden'); this.form.submit(); }">
+           onchange="if (this.files.length) { document.getElementById('inbox-upload-progress').classList.remove('hidden'); if (window.sbInboxUpload) { window.sbInboxUpload(this.files[0], this.form); } else { this.form.submit(); } }">
   </div>
   <p id="inbox-upload-progress" class="hidden mt-2 text-sm ink-3">
     <i data-lucide="loader-2" class="w-3.5 h-3.5 inline-block animate-spin"></i>
     {{ _("Uploading and extracting — this can take a few seconds…") }}
   </p>
 </form>
+<script src="/static/js/inbox_upload.js" defer></script>
 <script>
   (function () {
     var zone = document.getElementById('inbox-dropzone');
@@ -64,7 +68,7 @@
       if (!e.dataTransfer || !e.dataTransfer.files.length) return;
       input.files = e.dataTransfer.files;
       document.getElementById('inbox-upload-progress').classList.remove('hidden');
-      input.form.submit();
+      if (window.sbInboxUpload) { window.sbInboxUpload(input.files[0], input.form); } else { input.form.submit(); }
     });
   })();
 </script>

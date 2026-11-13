@@ -149,6 +149,16 @@ class Settings(BaseSettings):
     graph_client_secret: str = Field(default="", alias="GRAPH_CLIENT_SECRET")
     graph_draft_mailbox: str = Field(default="", alias="GRAPH_DRAFT_MAILBOX")
 
+    # --- Sending identity (b06, P1-38) ---
+    email_platform_from: str = Field(default="", alias="SAEBOOKS_EMAIL_PLATFORM_FROM")
+    """Shared sending address any business on this install may send from
+    (e.g. ``noreply@mail.example.com`` on a domain verified with Resend).
+    Each business's own name appears as the sender and replies go to its
+    reply-to address. Empty → only operator-verified addresses can send."""
+    email_from_allowlist_json: str = Field(default="", alias="SAEBOOKS_EMAIL_FROM_ALLOWLIST")
+    """JSON ``{"<tenant_id>": ["accounts@acme.com.au"]}`` — extra sending
+    addresses on domains the operator has verified for that tenant."""
+
     # --- Two-key kill switch (the POLICY) ---
     customer_email_send_enabled: bool = Field(
         default=False, alias="SAEBOOKS_EMAIL_SEND_ENABLED"

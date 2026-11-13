@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ _(spec.title) }} — {{ _("Import") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="flex items-center gap-2 mb-1 text-sm">
+  <a href="/admin/imports" class="ink-3 hover:ink-2">{{ _("Imports") }}</a><span class="ink-4">/</span>
+  <span class="ink-1 font-medium">{{ _(spec.title) }}</span>
+</div>
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Import") }}: {{ _(spec.title) }}</h1>
+  <p class="text-sm ink-3 mt-1 max-w-3xl">{{ _(spec.intro) }}</p>
+</div>
+{% include "day_one/_flash.html" %}
+
+{% if spec.doc_kind and ob_status is not none and not ob_status.conversion_date %}
+<div class="card p-4 mb-5 max-w-3xl" style="border-color:var(--warm);" role="status">
+  <p class="text-sm ink-1">{{ _("Set your conversion date first — unpaid documents are brought across as at the day before it.") }}
+    <a href="/setup/opening-balances" class="sae hover:underline">{{ _("Set it now →") }}</a></p>
+</div>
+{% endif %}
+
+<div class="grid gap-5 lg:grid-cols-3">
+<form method="post" action="/admin/imports/csv/{{ kind }}/preview" enctype="multipart/form-data" class="card p-5 lg:col-span-2 space-y-4">
+  {{ csrf_input(request)|safe }}
+  <div>
+    <label class="block text-xs font-medium ink-2 mb-1" for="file">{{ _("CSV file") }}</label>
+    <input id="file" type="file" name="file" accept=".csv,.txt" required class="block w-full text-sm ink-2">
+    <p class="text-xs ink-3 mt-1"><a href="/admin/imports/csv/{{ kind }}/template" class="sae hover:underline">{{ _("Download a template") }}</a> {{ _("with the columns we read. Exports from Xero, MYOB and QuickBooks work as they are.") }}</p>
+  </div>
+
+  {% if kind == "contacts" %}
+  <div>
+    <label class="block text-xs font-medium ink-2 mb-1" for="default_type">{{ _("If the file does not say, these are") }}</label>
+    <select id="default_type" name="default_type" class="saebooks-input">
+      <option value="CUSTOMER">{{ _("Customers") }}</option>
+      <option value="SUPPLIER">{{ _("Suppliers") }}</option>
+      <option value="BOTH">{{ _("Both customers and suppliers") }}</option>
+    </select>
+  </div>
+  {% elif kind == "items" %}
+  <p class="text-xs ink-3">{{ _("Accounts used when a row does not name its own:") }}</p>
+  <div class="grid gap-3 sm:grid-cols-3">
+    {% for field, label, types in [
+        ("income_account", _("Sales account"), ["INCOME", "OTHER_INCOME"]),
+        ("inventory_account", _("Inventory account"), ["ASSET"]),
+        ("cogs_account", _("Cost of sales account"), ["COST_OF_SALES", "EXPENSE"])] %}
+    <label class="text-xs ink-2">{{ label }}
+      <select name="{{ field }}" class="saebooks-input mt-1" required>
+        <option value="">{{ _("Choose…") }}</option>
+        {% for a in accounts if a.account_type in types %}
+        <option value="{{ a.code }}">{{ a.code }} {{ a.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endfor %}
+  </div>
+  {% elif kind == "bills" %}
+  <fieldset class="space-y-2">
+    <legend class="text-xs font-medium ink-2 mb-1">{{ _("These bills are") }}</legend>
+    <label class="flex items-start gap-2 text-sm ink-1"><input type="radio" name="mode" value="draft" checked class="mt-1">
+      <span>{{ _("New bills to check and post one by one (they are saved as drafts)") }}</span></label>
+    <label class="flex items-start gap-2 text-sm ink-1"><input type="radio" name="mode" value="opening" class="mt-1">
+      <span>{{ _("Unpaid at my conversion date (posted straight to payables — no expense, no GST)") }}</span></label>
+  </fieldset>
+  <label class="flex items-center gap-2 text-sm ink-1"><input type="checkbox" name="create_missing" value="1">
+    {{ _("Add suppliers that are not in my contacts yet") }}</label>
+  {% else %}
+  <label class="flex items-center gap-2 text-sm ink-1"><input type="checkbox" name="create_missing" value="1">
+    {{ _("Add contacts that are not in my contacts yet") }}</label>
+  {% endif %}
+
+  <div class="pt-2"><button type="submit" class="btn-primary text-sm">{{ _("Check the file") }}</button>
+    <span class="text-xs ink-3 ml-2">{{ _("Nothing is saved until you confirm on the next screen.") }}</span></div>
+</form>
+
+<aside class="card p-5 text-sm">
+  <h2 class="text-xs font-semibold uppercase tracking-wider ink-3 mb-2">{{ _("Getting the file") }}</h2>
+  <ul class="space-y-2 ink-2">{% for h in spec.how %}<li>{{ _(h) }}</li>{% endfor %}</ul>
+</aside>
+</div>
+{% endblock %}

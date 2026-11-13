@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Email purchase order %(n)s") % {"n": (po.number or _("draft"))} }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-4">
+  <a href="/purchase_orders/{{ po.id }}" class="text-sm sae hover:underline">{{ _("← Back to the purchase order") }}</a>
+</div>
+<h1 class="text-2xl font-semibold ink-1 mb-1">{{ _("Email purchase order %(n)s") % {"n": (po.number or "")} }}</h1>
+<p class="text-sm ink-3 mb-6">
+  {{ supplier.name if supplier else "" }} · {{ _("total") }} {{ po.currency }} {{ num((po.total or 0)|float, 2) }}
+  {% if po.status == 'DRAFT' %}· {{ _("Sending a draft marks it as sent and gives it its number.") }}{% endif %}
+</p>
+
+{% if flash %}
+<div class="card p-3 mb-4" role="status" style="border-color:var(--{{ flash_kind or 'warm' }});">
+  <p class="text-sm ink-1">{{ flash }}</p>
+</div>
+{% endif %}
+
+<form method="post" action="/purchase_orders/{{ po.id }}/email" class="card p-6 space-y-5 max-w-3xl">
+  {{ csrf_input(request)|safe }}
+  <div>
+    <label for="from_addr" class="block text-sm font-medium ink-2 mb-1">{{ _("From") }}</label>
+    <select id="from_addr" name="from_addr" required class="saebooks-input w-full">
+      {% for addr in from_options %}
+      <option value="{{ addr }}" {% if addr == (form.from_addr or default_from) %}selected{% endif %}>{{ addr }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="to" class="block text-sm font-medium ink-2 mb-1">{{ _("To") }} <span style="color:var(--neg)">*</span></label>
+    <input id="to" type="text" name="to" required value="{{ form.to or default_to }}" class="saebooks-input w-full"
+           placeholder="{{ _('supplier@example.com') }}">
+    <p class="mt-1 text-xs ink-3">{{ _("Separate more than one address with commas.") }}</p>
+  </div>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div>
+      <label for="cc" class="block text-sm font-medium ink-2 mb-1">{{ _("Copy to") }}</label>
+      <input id="cc" type="text" name="cc" value="{{ form.cc or '' }}" class="saebooks-input w-full">
+    </div>
+    <div>
+      <label for="bcc" class="block text-sm font-medium ink-2 mb-1">{{ _("Blind copy to") }}</label>
+      <input id="bcc" type="text" name="bcc" value="{{ form.bcc or '' }}" class="saebooks-input w-full">
+    </div>
+  </div>
+  <div>
+    <label for="subject" class="block text-sm font-medium ink-2 mb-1">{{ _("Subject") }} <span style="color:var(--neg)">*</span></label>
+    <input id="subject" type="text" name="subject" required maxlength="255" value="{{ form.subject or default_subject }}" class="saebooks-input w-full">
+  </div>
+  <div>
+    <label for="body_html" class="block text-sm font-medium ink-2 mb-1">{{ _("Message") }} <span style="color:var(--neg)">*</span></label>
+    <textarea id="body_html" name="body_html" required rows="10" class="saebooks-input w-full text-sm">{{ form.body_html or default_body_html }}</textarea>
+  </div>
+  <div class="card p-3 flex items-center gap-3 text-sm">
+    <span class="ink-1">{{ _("The purchase order PDF is attached when you send.") }}</span>
+    {% if po.status != 'DRAFT' %}
+    <a href="/purchase_orders/{{ po.id }}/pdf" target="_blank" rel="noopener" class="sae hover:underline ml-auto">{{ _("Preview the PDF") }}</a>
+    {% endif %}
+  </div>
+  <div class="flex items-center gap-3">
+    <button type="submit" class="btn-primary text-sm px-5 py-2">{{ _("Send") }}</button>
+    <a href="/purchase_orders/{{ po.id }}" class="btn-secondary text-sm px-5 py-2">{{ _("Cancel") }}</a>
+  </div>
+</form>
+{% endblock %}

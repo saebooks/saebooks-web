@@ -174,11 +174,39 @@ async def test_period_lock_create_conflict(respx_mock: respx.MockRouter) -> None
     ) as client:
         resp = await client.post(
             "/settings/period-locks",
-            data={"locked_through": "2026-01-31"},
+            data={"locked_through": "2026-01-31", "reason": "Q3 BAS lodged"},
         )
 
     assert resp.status_code == 200
     assert "does not extend beyond the current lock" in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_period_lock_create_requires_reason(respx_mock: respx.MockRouter) -> None:
+    """b15 (P2-3): a lock with no reason is refused before the engine is
+    called, with a plain message."""
+    create = respx_mock.post(f"{_API_BASE}/api/v1/period-close/locks").mock(
+        return_value=Response(201, json=_MOCK_LOCKS_RESPONSE["items"][0])
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/period-close/locks").mock(
+        return_value=Response(200, json=_MOCK_LOCKS_RESPONSE)
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _ADMIN_COOKIE},
+        follow_redirects=True,
+    ) as client:
+        resp = await client.post(
+            "/settings/period-locks",
+            data={"locked_through": "2026-06-30", "reason": "   "},
+        )
+
+    assert resp.status_code == 200
+    assert not create.called
+    assert "Say why the period is being locked" in resp.text
 
 
 @pytest.mark.anyio

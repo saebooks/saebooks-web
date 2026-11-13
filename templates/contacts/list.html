@@ -3,6 +3,8 @@
 {% import "_partials/empty_state.html" as empty %}
 {% import "_icons.html" as icons %}
 {% import "_components/kebab_menu.html" as km %}
+{% import "_components/list_tools.html" as lt %}
+{% import "_sort_macros.html" as srt %}
 
 {% block title %}{{ _("Contacts") }} — {{ current_brand().name }}{% endblock %}
 
@@ -32,6 +34,9 @@
       <p class="text-xs ink-3 font-mono mt-2">{{ _("%(n)s contact") % {"n": total} if total == 1 else _("%(n)s contacts") % {"n": total} }}</p>
       {% endif %}
     </div>
+    {% if request.session.get("user_role", "") in ("owner", "admin") or request.session.get("is_sae_staff") %}
+    <a href="/admin/imports/csv/contacts" class="btn-secondary text-sm"><i data-lucide="upload" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("Import") }}</span></a>
+    {% endif %}
     <a href="/contacts/new" class="btn-primary text-sm"><i data-lucide="user-plus" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("New contact") }}</span></a>
   </div>
   <div class="drafting mt-4"></div>
@@ -40,8 +45,10 @@
 {# Contact-type filter. The Main/One-off/All toggle was retired in
    migration 0137 — one-offs now live in dedicated tables under
    /one-off-suppliers and /one-off-customers (sidebar). #}
+{% set filters = {'q': filter_q, 'contact_type': filter_contact_type, 'limit': limit} %}
 <div class="mb-4 flex flex-wrap gap-3 items-center">
-  <form method="get" action="/contacts" class="flex items-end gap-2">
+  <form method="get" action="/contacts" class="card p-4 flex flex-wrap items-end gap-3 w-full" role="search">
+    {{ lt.search_box(filter_q, _("Name, email, ABN or other name")) }}
     <div>
       <label for="contact_type" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Type") }}</label>
       <select id="contact_type" name="contact_type" class="saebooks-input text-sm py-1.5"
@@ -49,10 +56,22 @@
         <option value=""            {% if not filter_contact_type %}selected{% endif %}>{{ _("All") }}</option>
         <option value="CUSTOMER"    {% if filter_contact_type == 'CUSTOMER' %}selected{% endif %}>{{ _("Customer") }}</option>
         <option value="SUPPLIER"    {% if filter_contact_type == 'SUPPLIER' %}selected{% endif %}>{{ _("Supplier") }}</option>
+        <option value="CONTRACTOR"  {% if filter_contact_type == 'CONTRACTOR' %}selected{% endif %}>{{ _("Contractor") }}</option>
+        <option value="SUB_CONTRACTOR" {% if filter_contact_type == 'SUB_CONTRACTOR' %}selected{% endif %}>{{ _("Sub-contractor") }}</option>
         <option value="BOTH"        {% if filter_contact_type == 'BOTH' %}selected{% endif %}>{{ _("Both") }}</option>
         <option value="BENEFICIARY" {% if filter_contact_type == 'BENEFICIARY' %}selected{% endif %}>{{ _("Beneficiary") }}</option>
       </select>
     </div>
+    <label class="flex items-center gap-1.5 text-sm ink-2 pb-1.5">
+      <input type="checkbox" name="owing" value="1" {% if filter_owing %}checked{% endif %}
+             onchange="this.form.requestSubmit()" class="h-4 w-4">
+      {{ _("Only with money owing either way") }}
+    </label>
+    {{ lt.page_size(limit) }}
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <input type="hidden" name="direction" value="{{ direction }}">
+    <button type="submit" class="btn-primary text-sm">{{ _("Search") }}</button>
+    <div class="ml-auto">{{ lt.export_link('/contacts', dict(filters, sort=sort, direction=direction)) }}</div>
   </form>
 </div>
 
@@ -73,11 +92,13 @@
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="text-left">{{ _("Name") }}</th>
-        <th scope="col" class="text-left">{{ _("Type") }}</th>
-        <th scope="col" class="text-left">{{ _("Email") }}</th>
-        <th scope="col" class="text-left">{{ _("Phone") }}</th>
-        <th scope="col" class="text-left">{{ _("City") }}</th>
+        <th scope="col" class="text-left">{{ srt.sort_link('name',  _('Name'),  sort, direction, filters) }}</th>
+        <th scope="col" class="text-left">{{ srt.sort_link('type',  _('Type'),  sort, direction, filters) }}</th>
+        <th scope="col" class="text-left">{{ srt.sort_link('email', _('Email'), sort, direction, filters) }}</th>
+        <th scope="col" class="text-left">{{ srt.sort_link('phone', _('Phone'), sort, direction, filters) }}</th>
+        <th scope="col" class="text-left">{{ srt.sort_link('city',  _('City'),  sort, direction, filters) }}</th>
+        <th scope="col" class="text-right" title="{{ _('Open invoices less any credit they hold with you') }}">{{ _("Owed to us") }}</th>
+        <th scope="col" class="text-right" title="{{ _('Open bills less any credit you hold with them') }}">{{ _("We owe") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -102,6 +123,14 @@
           <td class="ink-2">{{ c.email or "—" }}</td>
           <td class="ink-2 num">{{ c.phone or "—" }}</td>
           <td class="ink-2">{{ c.city or "—" }}</td>
+          {%- set _b = c.balances or {} %}
+          {%- set _net = (_b.net_position or 0)|float %}
+          <td class="text-right num">
+            {% if _net > 0.004 %}<span {% if (_b.receivable_overdue or 0)|float > 0 %}style="color:var(--neg);" title="{{ _('%(amount)s overdue') % {'amount': num((_b.receivable_overdue or 0)|float, 2)} }}"{% endif %}>{{ num(_net, 2) }}</span>{% else %}<span class="ink-4">—</span>{% endif %}
+          </td>
+          <td class="text-right num">
+            {% if _net < -0.004 %}<span {% if (_b.payable_overdue or 0)|float > 0 %}style="color:var(--warm);" title="{{ _('%(amount)s overdue') % {'amount': num((_b.payable_overdue or 0)|float, 2)} }}"{% endif %}>{{ num(-_net, 2) }}</span>{% else %}<span class="ink-4">—</span>{% endif %}
+          </td>
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set actions = [
               ("view",    _("View"),    "/contacts/" ~ c.id,             "link", false),
@@ -115,8 +144,11 @@
           </td>
         </tr>
         {% endfor %}
+      {% elif filter_q or filter_contact_type %}
+        {{ empty.row(8, "search-x", _("No contacts match"),
+                     _("Try a shorter search or clear the type filter.")) }}
       {% else %}
-        {{ empty.row(8, "users", _("No contacts yet"),
+        {{ empty.row(10, "users", _("No contacts yet"),
                      _("Add the customers and suppliers you work with."),
                      _("Add contact"), "/contacts/new") }}
       {% endif %}
@@ -127,7 +159,8 @@
 
 {# Pagination — preserves both filters via the URL. #}
 {% import "_pagination_macros.html" as pg %}
-{% set pg_filters = {'show': show, 'contact_type': filter_contact_type} %}
+{% set pg_filters = {'show': show, 'contact_type': filter_contact_type, 'q': filter_q,
+                     'sort': sort, 'direction': direction} %}
 {{ pg.page_numbers('/contacts', total, limit, offset, pg_filters) }}
 
 {# Bulk action bar (sticky bottom when >=1 row selected) + confirm modal. #}

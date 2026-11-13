@@ -99,11 +99,17 @@
         <select id="tfn_status" name="tfn_status" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="NOT_PROVIDED"    {% if form.tfn_status == 'NOT_PROVIDED' %}selected{% endif %}>{{ _("Not provided") }}</option>
           <option value="PROVIDED"        {% if form.tfn_status == 'PROVIDED' %}selected{% endif %}>{{ _("Provided") }}</option>
-          <option value="NEW_PAYEE_30D"   {% if form.tfn_status == 'NEW_PAYEE_30D' %}selected{% endif %}>{{ _("New payee (30-day exemption)") }}</option>
-          <option value="APPLIED_FOR"     {% if form.tfn_status == 'APPLIED_FOR' %}selected{% endif %}>{{ _("Applied for") }}</option>
+          <option value="NEW_PAYEE_30D"   {% if form.tfn_status == 'NEW_PAYEE_30D' %}selected{% endif %}>{{ _("New payee, TFN not given yet (28 days)") }}</option>
+          <option value="APPLIED_FOR"     {% if form.tfn_status == 'APPLIED_FOR' %}selected{% endif %}>{{ _("Applied for a TFN (28 days)") }}</option>
           <option value="EXEMPT_PENSIONER" {% if form.tfn_status == 'EXEMPT_PENSIONER' %}selected{% endif %}>{{ _("Exempt — pensioner") }}</option>
           <option value="EXEMPT_UNDER_18" {% if form.tfn_status == 'EXEMPT_UNDER_18' %}selected{% endif %}>{{ _("Exempt — under 18") }}</option>
         </select>
+      </div>
+
+      <div>
+        <label class="block text-sm ink-3 mb-1" for="tfn_declaration_date">{{ _("Date the TFN declaration was received") }}</label>
+        <input type="date" id="tfn_declaration_date" name="tfn_declaration_date" value="{{ form.tfn_declaration_date or '' }}" class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+        <p class="text-xs ink-3 mt-1">{{ _("If the employee has applied for a tax file number, normal tax rates apply for 28 days from this date. After that 47% is withheld until you record their TFN.") }}</p>
       </div>
 
       <div>
@@ -160,12 +166,58 @@
                  {% if form.working_holiday_maker %}checked{% endif %}>
           {{ _("Working holiday maker") }}
         </label>
-        <div id="whm-country-field" class="{% if not form.working_holiday_maker %}hidden{% endif %}">
-          <label class="block text-sm ink-3 mb-1">{{ _("WHM country code (ISO 2)") }}</label>
-          <input type="text" name="whm_country_code" value="{{ form.whm_country_code }}"
-                 placeholder="e.g. GB"
-                 maxlength="2"
-                 class="w-32 rounded-md hairline px-3 py-2 bg-paper num">
+        <div id="whm-country-field"
+             class="col-span-2 {% if not form.working_holiday_maker %}hidden{% endif %}">
+          <p class="text-xs ink-4 mb-3">{{ _("Working holiday makers only (visa subclass 417 / 462). Pay runs refuse a working holiday maker with no VEVO check recorded, a VEVO result of no work rights, or a visa that expires before the pay period ends.") }}</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm ink-3 mb-1">{{ _("WHM country code (ISO 2)") }}</label>
+              <input type="text" name="whm_country_code" value="{{ form.whm_country_code or '' }}"
+                     placeholder="e.g. GB"
+                     maxlength="2"
+                     class="w-32 rounded-md hairline px-3 py-2 bg-paper num">
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="visa_subclass">{{ _("Visa subclass") }}</label>
+              <select id="visa_subclass" name="visa_subclass" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+                <option value="" {% if not form.visa_subclass %}selected{% endif %}>—</option>
+                <option value="417" {% if form.visa_subclass == '417' %}selected{% endif %}>{{ _("417 — Working Holiday") }}</option>
+                <option value="462" {% if form.visa_subclass == '462' %}selected{% endif %}>{{ _("462 — Work and Holiday") }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="visa_grant_number">{{ _("Visa grant number") }}</label>
+              <input type="text" id="visa_grant_number" name="visa_grant_number" value="{{ form.visa_grant_number or '' }}"
+                     maxlength="32"
+                     class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="visa_expiry_date">{{ _("Visa expiry date") }}</label>
+              <input type="date" id="visa_expiry_date" name="visa_expiry_date" value="{{ form.visa_expiry_date or '' }}"
+                     class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="vevo_checked_on">{{ _("VEVO checked on") }}</label>
+              <input type="date" id="vevo_checked_on" name="vevo_checked_on" value="{{ form.vevo_checked_on or '' }}"
+                     class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+            </div>
+            <div>
+              <label class="block text-sm ink-3 mb-1" for="vevo_work_entitlement">{{ _("VEVO work entitlement") }}</label>
+              <select id="vevo_work_entitlement" name="vevo_work_entitlement" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+                <option value="" {% if not form.vevo_work_entitlement %}selected{% endif %}>—</option>
+                <option value="UNLIMITED" {% if form.vevo_work_entitlement == 'UNLIMITED' %}selected{% endif %}>{{ _("Unlimited work rights") }}</option>
+                <option value="LIMITED" {% if form.vevo_work_entitlement == 'LIMITED' %}selected{% endif %}>{{ _("Limited work rights") }}</option>
+                <option value="NONE" {% if form.vevo_work_entitlement == 'NONE' %}selected{% endif %}>{{ _("No work rights") }}</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm ink-3 mb-1" for="vevo_conditions">{{ _("VEVO conditions") }}
+                <span class="ink-4 text-xs">{{ _("(as shown on VEVO, e.g. 8547 - 6 months per employer)") }}</span>
+              </label>
+              <textarea id="vevo_conditions" name="vevo_conditions" rows="2"
+                        class="w-full rounded-md hairline px-3 py-2 bg-paper">{{ form.vevo_conditions or '' }}</textarea>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -244,6 +296,14 @@
                placeholder="e.g. 32.50"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num-display">
       </div>
+      {# b15 (P2-19) #}
+      <div>
+        <label class="block text-sm ink-3 mb-1" for="casual_loading_pct">{{ _("Casual loading %") }}
+          <span class="ink-4 text-xs">{{ _("(casuals only, usually 25; leave blank if the base rate already includes it)") }}</span></label>
+        <input type="number" id="casual_loading_pct" name="casual_loading_pct" step="0.01" min="0" max="100"
+               value="{{ form.casual_loading_pct if form.casual_loading_pct is not none else '' }}"
+               class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+      </div>
       <div>
         <label class="block text-sm ink-3 mb-1" for="weekly_hours">{{ _("Ordinary weekly hours") }}</label>
         <input type="number" id="weekly_hours" name="weekly_hours" step="0.01" min="0"
@@ -290,6 +350,29 @@
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
 
+      <div class="col-span-2 hairline border-t pt-4" data-section="super-choice">
+        <p class="text-sm font-medium mb-1">{{ _("How the super fund was chosen") }}</p>
+        <p class="text-xs ink-3 mb-3">{{ _("Pay into the fund the employee chose on their choice form. If they did not choose, ask the ATO for their stapled fund (in Online services for business). Only if the ATO says there is none may you use your default fund.") }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-sm ink-3 mb-1" for="super_choice_source">{{ _("Chosen by") }}</label>
+            <select id="super_choice_source" name="super_choice_source" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+              <option value="" {% if not form.super_choice_source %}selected{% endif %}>{{ _("Not recorded") }}</option>
+              <option value="EMPLOYEE_CHOICE" {% if form.super_choice_source == 'EMPLOYEE_CHOICE' %}selected{% endif %}>{{ _("The employee's choice form") }}</option>
+              <option value="STAPLED_FUND" {% if form.super_choice_source == 'STAPLED_FUND' %}selected{% endif %}>{{ _("Stapled fund from the ATO") }}</option>
+              <option value="EMPLOYER_DEFAULT" {% if form.super_choice_source == 'EMPLOYER_DEFAULT' %}selected{% endif %}>{{ _("Our default fund (ATO found no stapled fund)") }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm ink-3 mb-1" for="super_choice_date">{{ _("Date the choice or ATO answer arrived") }}</label>
+            <input type="date" id="super_choice_date" name="super_choice_date" value="{{ form.super_choice_date or '' }}" class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+          </div>
+          <div>
+            <label class="block text-sm ink-3 mb-1" for="stapled_fund_requested_on">{{ _("Date you asked the ATO for the stapled fund") }}</label>
+            <input type="date" id="stapled_fund_requested_on" name="stapled_fund_requested_on" value="{{ form.stapled_fund_requested_on or '' }}" class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+          </div>
+        </div>
+      </div>
       <div class="col-span-2 hairline border-t pt-4">
         <p class="text-sm ink-3 mb-3">
           {{ _("Bank account for net-pay disbursement") }}

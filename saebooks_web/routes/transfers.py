@@ -32,6 +32,7 @@ Auth guard: redirect to /login (303) if no session token.
 """
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import date
 from pathlib import Path
@@ -75,6 +76,56 @@ def _parse_error_detail(resp) -> str:
     if isinstance(detail, str):
         return detail
     return f"API error: HTTP {resp.status_code}"
+
+
+# What a transfer is for (P1-50, batch 14) — mirrors the engine's
+# TRANSFER_PURPOSES. ``to_types``/``from_types`` narrow the account lists in
+# the form; the engine checks the same rules.
+PURPOSES: list[dict[str, object]] = [
+    {
+        "value": "own_accounts",
+        "label": "Between my own accounts",
+        "help": "Moving money from one business bank account to another, or into savings.",
+        "from_types": ["ASSET"],
+        "to_types": ["ASSET"],
+    },
+    {
+        "value": "card_payment",
+        "label": "Paying off a credit card",
+        "help": "Paying the business credit card from the bank. The card account goes down by the amount paid. Do not record this as an expense: the purchases on the card were the expenses.",
+        "from_types": ["ASSET"],
+        "to_types": ["LIABILITY"],
+    },
+    {
+        "value": "drawings",
+        "label": "Owner taking money out",
+        "help": "The owner taking money for themselves. This is not a business expense. For a company, use the director loan account.",
+        "from_types": ["ASSET"],
+        "to_types": ["EQUITY", "LIABILITY"],
+    },
+    {
+        "value": "owner_contribution",
+        "label": "Owner putting money in",
+        "help": "The owner paying their own money into the business, as capital or as a loan to the business.",
+        "from_types": ["EQUITY", "LIABILITY"],
+        "to_types": ["ASSET"],
+    },
+    {
+        "value": "loan_repayment",
+        "label": "Loan repayment without interest",
+        "help": "Paying down a loan where no interest is charged. For a loan, chattel mortgage or hire purchase with interest, record the repayment under Loans and finance so the interest is split out.",
+        "from_types": ["ASSET"],
+        "to_types": ["LIABILITY"],
+    },
+    {
+        "value": "owner_reimbursement",
+        "label": "Paying the owner back",
+        "help": "Repaying the owner for business costs they paid personally. To pay back specific expenses, use Owner money, Reimburse selected.",
+        "from_types": ["ASSET"],
+        "to_types": ["LIABILITY", "EQUITY"],
+    },
+]
+_PURPOSE_VALUES = {p["value"] for p in PURPOSES}
 
 
 async def _fetch_balance_sheet_accounts(client) -> list[dict]:
@@ -179,8 +230,18 @@ async def transfers_list(
 
 
 @router.get("/transfers/new", response_class=HTMLResponse, response_model=None)
-async def transfer_new_form(request: Request) -> HTMLResponse | RedirectResponse:
-    """Render the empty create-transfer form."""
+async def transfer_new_form(
+    request: Request,
+    purpose: str | None = None,
+    from_account_id: str | None = None,
+    to_account_id: str | None = None,
+    amount: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """Render the create-transfer form.
+
+    Query parameters pre-fill it, so a "Pay card" button on a credit card
+    account can open ``/transfers/new?purpose=card_payment&to_account_id=…``.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -189,14 +250,25 @@ async def transfer_new_form(request: Request) -> HTMLResponse | RedirectResponse
     async with api_client(request) as client:
         accounts = await _fetch_balance_sheet_accounts(client)
 
+    form: dict[str, str] = {"transfer_date": today}
+    if purpose in _PURPOSE_VALUES:
+        form["purpose"] = purpose
+    if from_account_id:
+        form["from_account_id"] = from_account_id
+    if to_account_id:
+        form["to_account_id"] = to_account_id
+    if amount:
+        form["amount"] = amount
+
     return _TEMPLATES.TemplateResponse(
         request,
         "transfers/new.html",
         {
-            "form": {"transfer_date": today},
+            "form": form,
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "accounts": accounts,
+            "purposes": PURPOSES,
         },
     )
 
@@ -227,13 +299,24 @@ async def transfer_create(request: Request) -> HTMLResponse | RedirectResponse:
     amount = form.get("amount", "").strip()
     if amount:
         payload["amount"] = amount
+    purpose = form.get("purpose", "").strip()
+    if purpose in _PURPOSE_VALUES:
+        payload["purpose"] = purpose
 
+    # The idempotency key is minted once per form render, so a second click
+    # (or a reload of the POST) replays the first transfer instead of posting
+    # a second one. While the first is still posting the engine answers 503 —
+    # wait briefly and ask again rather than showing an error.
     async with api_client(request) as client:
-        resp = await client.post(
-            "/api/v1/transfers",
-            json=payload,
-            headers={"X-Idempotency-Key": idempotency_key},
-        )
+        for _attempt in range(4):
+            resp = await client.post(
+                "/api/v1/transfers",
+                json=payload,
+                headers={"X-Idempotency-Key": idempotency_key},
+            )
+            if resp.status_code != 503:
+                break
+            await asyncio.sleep(0.5)
 
     if resp.status_code == 401:
         request.session.clear()
@@ -245,7 +328,22 @@ async def transfer_create(request: Request) -> HTMLResponse | RedirectResponse:
         return RedirectResponse(url=f"/transfers/{created['id']}", status_code=303)
 
     errors: dict[str, str] = {}
-    if resp.status_code == 422:
+    body_code = None
+    try:
+        body_code = resp.json().get("code")
+    except Exception:
+        body_code = None
+    if body_code == "idempotency_key_conflict":
+        # The form was resubmitted with changed values after a transfer was
+        # already recorded from it. Give the re-rendered form a fresh key.
+        errors["__all__"] = (
+            "A transfer was already recorded from this form. Check the transfers "
+            "list before recording another; this form is now ready for a new one."
+        )
+        idempotency_key = str(uuid.uuid4())
+    elif resp.status_code == 503:
+        errors["__all__"] = "The transfer is still being recorded. Check the transfers list in a moment."
+    elif resp.status_code == 422:
         try:
             detail = resp.json().get("detail", [])
             if isinstance(detail, list):
@@ -272,6 +370,7 @@ async def transfer_create(request: Request) -> HTMLResponse | RedirectResponse:
             "errors": errors,
             "idempotency_key": idempotency_key,
             "accounts": accounts,
+            "purposes": PURPOSES,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
@@ -368,5 +467,9 @@ async def transfer_detail(request: Request, transfer_id: str) -> HTMLResponse | 
             "flash": flash,
             "from_account": from_account,
             "to_account": to_account,
+            "purpose_label": next(
+                (p["label"] for p in PURPOSES if p["value"] == transfer.get("purpose")),
+                None,
+            ),
         },
     )

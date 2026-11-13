@@ -80,17 +80,18 @@
           <td class="px-4 py-3 ink-3 font-mono text-xs">{{ rule.priority | default("—") }}</td>
           <td class="px-4 py-3 font-medium ink-1">{{ rule.name | default("—") }}</td>
           <td class="px-4 py-3 ink-2 text-xs">
-            {{ rule.match_field | default("") }}
-            {% if rule.match_operator %}<span class="ink-3">{{ rule.match_operator }}</span>{% endif %}
-            {% if rule.match_value %}<span class="font-mono">{{ rule.match_value }}</span>{% endif %}
+            <span class="ink-3">{{ {"CONTAINS": _("contains"), "STARTS_WITH": _("starts with"), "EXACT": _("is exactly"), "REGEX": _("matches")}.get(rule.get('match_type'), rule.get('match_type')) }}</span>
+            <span class="font-mono">{{ rule.get('match_pattern') }}</span>
+            {% if rule.get('direction') == "OUT" %}<span class="ink-3">· {{ _("money out") }}</span>{% elif rule.get('direction') == "IN" %}<span class="ink-3">· {{ _("money in") }}</span>{% endif %}
+            {% if rule.get('amount_min') or rule.get('amount_max') %}<span class="ink-3">· {{ rule.get('amount_min') or "0" }}–{{ rule.get('amount_max') or "∞" }}</span>{% endif %}
+            {% if rule.get('bank_account_id') %}<span class="ink-3">· {{ names.get(rule.get('bank_account_id'), "") }}</span>{% endif %}
+            {% if rule.get('is_active') is sameas false %}<span class="badge-ink ml-1">{{ _("off") }}</span>{% endif %}
           </td>
           <td class="px-4 py-3 ink-2 text-xs">
-            {% if rule.action_account_id %}
-              {{ _("Account:") }} <span class="font-mono">{{ rule.action_account_id }}</span>
-            {% endif %}
-            {% if rule.action_tax_code_id %}
-              <span class="ink-3 ml-1">{{ _("Tax:") }} {{ rule.action_tax_code_id }}</span>
-            {% endif %}
+            {{ names.get(rule.get('account_id'), "") or rule.get('account_id') }}
+            {% if rule.get('tax_code') %}<span class="ink-3 ml-1">· {{ rule.get('tax_code') }}</span>{% endif %}
+            {% if rule.get('contact_id') %}<span class="ink-3 ml-1">· {{ names.get(rule.get('contact_id'), "") }}</span>{% endif %}
+            {% if rule.get('auto_create') %}<span class="ink-3 ml-1">· {{ _("automatic") }}</span>{% endif %}
           </td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [

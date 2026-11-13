@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_partials/void_dated.html" import void_dated with context %}
 
 {% block title %}{{ _("Expense %(number)s") % {"number": expense.number or expense.id} }} — {{ current_brand().name }}{% endblock %}
 
@@ -37,7 +38,20 @@
 <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-base mb-6">
   <div>
     <dt class="font-medium text-gray-500">{{ _("Paid from") }}</dt>
-    <dd class="text-gray-900">{{ payment_account_name or expense.payment_account_id }}</dd>
+    <dd class="text-gray-900">
+      {{ payment_account_name or expense.payment_account_id }}
+      {% if expense.paid_by == 'owner' %}
+      <span class="block text-sm ink-3">
+        {{ _("Paid personally by the owner.") }}
+        {% if expense.reimbursed_at %}
+          {{ _("Paid back on %(date)s.") % {"date": expense.reimbursed_at[:10]} }}
+          {% if expense.reimbursement_transfer_id %}<a href="/transfers/{{ expense.reimbursement_transfer_id }}" class="sae hover:underline">{{ _("View transfer") }}</a>{% endif %}
+        {% elif expense.status|lower == 'posted' %}
+          <a href="/owner-money" class="sae hover:underline">{{ _("Not paid back yet") }}</a>
+        {% endif %}
+      </span>
+      {% endif %}
+    </dd>
   </div>
   <div>
     <dt class="font-medium text-gray-500">{{ _("Supplier") }}</dt>
@@ -69,7 +83,15 @@
     {% for line in expense.lines %}
     <tr>
       <td class="px-3 py-2 text-gray-500">{{ line.line_no }}</td>
-      <td class="px-3 py-2">{{ line.description }}</td>
+      <td class="px-3 py-2">{{ line.description }}
+        {% if line.project_id %}{% set pj = (projects_by_id or {}).get(line.project_id|string) %}
+        <div class="text-xs ink-3"><a href="/projects/{{ line.project_id }}" class="sae hover:underline">{{ _("Project") }} {{ pj.code if pj else "" }}</a>
+          {% if line.billable %}· {% if line.rebill_invoice_line_id %}{{ _("billed to customer") }}{% else %}{{ _("to bill to customer") }}{% endif %}{% endif %}</div>
+        {% endif %}
+        {% if line.private_pct and line.private_pct|float > 0 %}
+        <span class="block text-sm ink-3">{{ _("%(pct)s%% private: that share goes to drawings with no GST claimed") % {"pct": line.private_pct|float|round(2)} }}</span>
+        {% endif %}
+      </td>
       <td class="px-3 py-2 text-right tabular-nums">{{ num(line.quantity|float, 4) }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ num(line.unit_price|float, 4) }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ money(line.line_subtotal|float, grouping=False) }}</td>
@@ -96,13 +118,7 @@
   </form>
   {% endif %}
   {% if expense.status != "VOIDED" %}
-  <form method="post" action="/expenses/{{ expense.id }}/void" class="inline"
-    onsubmit="return confirm('{{ _('Void this expense? If POSTED, a reversing journal entry will be created.') }}');">
-  {{ csrf_input(request) | safe }}
-    <button type="submit" class="rounded-md bg-gray-200 px-4 py-2 text-base font-medium text-gray-800 hover:bg-gray-300">
-      {{ _("Void") }}
-    </button>
-  </form>
+  {{ void_dated('/expenses/' ~ expense.id ~ '/void', expense.version, _("expense")) }}
   {% endif %}
   {% if expense.archived_at is none %}
   <form method="post" action="/expenses/{{ expense.id }}/archive" class="inline"
@@ -124,5 +140,10 @@
   {% endif %}
 </p>
 {% endif %}
+
+{# ── History (batch 13, P1-71) ── #}
+<div class="mt-6">
+{% with history_entity="expense", history_id=expense.id %}{% include "_partials/document_history.html" %}{% endwith %}
+</div>
 
 {% endblock %}

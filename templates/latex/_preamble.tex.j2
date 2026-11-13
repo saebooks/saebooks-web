@@ -38,7 +38,7 @@
 %% Colour
 \usepackage[table]{xcolor}
 % SAE brand green — used for section headings and rule accents.
-\definecolor{saegreen}{HTML}{3E7A4E}
+\definecolor{saegreen}{HTML}{ {{- (document.accent if document and document.accent else "3E7A4E") -}} }
 \definecolor{lightgrey}{HTML}{F4F5F6}
 \definecolor{midgrey}{HTML}{9CA3AF}
 

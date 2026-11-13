@@ -175,6 +175,75 @@
   </div>
 </div>
 
+{# ── Purchase (P1-73, batch 14) ── #}
+<div class="mb-8">
+  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Purchase") }}</h2>
+  {% if asset.loan_id %}
+  <div class="card px-4 py-3 text-sm ink-2">
+    {{ _("Bought on finance.") }}
+    <a href="/loans/{{ asset.loan_id }}" class="sae hover:underline">{{ _("View the loan") }}</a>
+    {% if asset.purchase_journal_id %}· <a href="/journal-entries/{{ asset.purchase_journal_id }}" class="sae hover:underline">{{ _("View the entry") }}</a>{% endif %}
+  </div>
+  {% elif asset.purchase_bill_id %}
+  <div class="card px-4 py-3 text-sm ink-2">
+    {{ _("Bought on a supplier bill.") }}
+    <a href="/bills/{{ asset.purchase_bill_id }}" class="sae hover:underline">{{ _("View the bill") }}</a>
+  </div>
+  {% elif asset.purchase_journal_id %}
+  <div class="card px-4 py-3 text-sm ink-2">
+    {{ _("Paid for when the asset was added.") }}
+    <a href="/journal-entries/{{ asset.purchase_journal_id }}" class="sae hover:underline">{{ _("View the entry") }}</a>
+  </div>
+  {% else %}
+  <div class="card px-4 py-3 text-sm mb-3" style="border-color:var(--warm);">
+    <p class="ink-1 font-medium">{{ _("This asset is not linked to a purchase.") }}</p>
+    <p class="ink-3 mt-1">{{ _("If its cost is not already in the accounts, the asset register and the balance sheet will not agree. Link the bill it was bought on, or record how it was paid. If it came in with your opening balances, you can leave it as it is.") }}</p>
+  </div>
+  {% if asset.status == 'active' %}
+  <form method="POST" action="/fixed-assets/{{ asset.id }}/link-purchase" class="card px-4 py-4 space-y-3 max-w-2xl" data-submit-once id="link-purchase-form">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="version" value="{{ asset.version }}">
+    <div class="flex flex-wrap gap-4 text-sm">
+      <label class="flex items-center gap-2"><input type="radio" name="purchase_method" value="bill" checked> {{ _("Link a supplier bill") }}</label>
+      <label class="flex items-center gap-2"><input type="radio" name="purchase_method" value="paid"> {{ _("Record that it was paid from an account") }}</label>
+    </div>
+    <div data-purchase="bill">
+      <select name="purchase_bill_id" class="saebooks-input w-full px-3 py-2 text-sm" aria-label="{{ _('Supplier bill') }}">
+        <option value="">{{ _("— choose a posted bill —") }}</option>
+        {% for b in bills or [] %}
+        <option value="{{ b.id }}">{{ b.number or b.supplier_reference or b.id[:8] }} · {{ b.issue_date }} · {{ num(b.total|float, 2) }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div data-purchase="paid" class="grid grid-cols-1 gap-3 sm:grid-cols-3" hidden>
+      <select name="paid_from_account_id" class="saebooks-input sm:col-span-3 px-3 py-2 text-sm" aria-label="{{ _('Paid from') }}">
+        <option value="">{{ _("— paid from —") }}</option>
+        {% for a in pay_accounts or [] %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>{% endfor %}
+      </select>
+      <input type="number" step="0.01" min="0" name="purchase_gst_amount" placeholder="{{ _('GST paid') }}" class="saebooks-input px-3 py-2 text-sm">
+      <select name="purchase_tax_code_id" class="saebooks-input sm:col-span-2 px-3 py-2 text-sm" aria-label="{{ _('GST code') }}">
+        <option value="">{{ _("— GST code —") }}</option>
+        {% for t in tax_codes or [] %}<option value="{{ t.id }}">{{ t.code }} ({{ t.rate }}%)</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn-primary text-sm">{{ _("Link purchase") }}</button>
+  </form>
+  <script>
+  (function () {
+    var f = document.getElementById("link-purchase-form");
+    if (!f) return;
+    function show() {
+      var v = f.querySelector('input[name="purchase_method"]:checked').value;
+      f.querySelectorAll("[data-purchase]").forEach(function (el) { el.hidden = el.dataset.purchase !== v; });
+    }
+    f.querySelectorAll('input[name="purchase_method"]').forEach(function (r) { r.addEventListener("change", show); });
+    show();
+  })();
+  </script>
+  {% endif %}
+  {% endif %}
+</div>
+
 {# ── Account links ── #}
 <div class="mb-8">
   <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Account links") }}</h2>
@@ -298,4 +367,5 @@
 
 {% endif %}{# end if asset #}
 
+{% include "_partials/submit_once.html" %}
 {% endblock %}

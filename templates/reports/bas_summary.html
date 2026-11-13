@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _("BAS Summary") }} — {{ current_brand().name }}{% endblock %}
+{% block title %}{{ _("BAS") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
 
@@ -17,11 +17,12 @@
         <span class="reg-mark"></span>
       </div>
       <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("BAS Summary") }}</h1>
+      <p class="text-xs ink-3 mt-1"><a href="/bas" class="sae hover:underline">{{ _("BAS periods, lodgements and payments to the ATO") }}</a></p>
       {% if report %}<p class="text-xs ink-3 font-mono mt-2">{{ report.get("from_date", from_date) }} → {{ report.get("to_date", to_date) }}</p>{% endif %}
     </div>
     <div class="flex items-center gap-2">
-      {% set export_qs = "from_date=" ~ from_date ~ "&to_date=" ~ to_date %}
-      {% with export_base = "bas_summary" %}{% include "reports/_export_menu.html" %}{% endwith %}
+      {% set export_qs = "from_date=" ~ from_date ~ "&to_date=" ~ to_date ~ "&basis=" ~ basis ~ ("&payg_instalment=" ~ payg_instalment if payg_instalment else "") %}
+      {% with export_base = "bas_summary", pdf_href = "/reports/export/bas_summary.pdf?" ~ export_qs %}{% include "reports/_export_menu.html" %}{% endwith %}
       <button type="button" onclick="window.print()" class="btn-secondary text-sm">{{ _("Print") }}</button>
     </div>
   </div>
@@ -37,6 +38,17 @@
   <div>
     <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("To date") }}</label>
     <input id="to_date" type="date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <div>
+    <label for="basis" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("GST basis") }}</label>
+    <select id="basis" name="basis" class="saebooks-input text-sm py-1.5">
+      <option value="accrual" {% if basis == "accrual" %}selected{% endif %}>{{ _("Accrual (invoice date)") }}</option>
+      <option value="cash" {% if basis == "cash" %}selected{% endif %}>{{ _("Cash (date paid)") }}</option>
+    </select>
+  </div>
+  <div>
+    <label for="payg_instalment" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Income tax instalment (5A)") }}</label>
+    <input id="payg_instalment" type="number" step="0.01" min="0" name="payg_instalment" value="{{ payg_instalment }}" placeholder="0.00" class="saebooks-input num text-sm py-1.5 w-32">
   </div>
   <button type="submit" class="btn-primary text-sm">{{ _("Refresh") }}</button>
 </form>

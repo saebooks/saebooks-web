@@ -25,6 +25,11 @@
   <span class="dot" style="background:var(--pos);"></span>
   <span class="text-sm" style="color:var(--pos);">{{ _("Bank statement imported successfully.") }}</span>
 </div>
+<p class="text-sm ink-2">
+  {{ ngettext("%(n)s new line imported", "%(n)s new lines imported", inserted|int) % {"n": inserted} }}{% if total and total != inserted %} · {{ _("%(n)s were already there and were skipped") % {"n": total - inserted} }}{% endif %}.
+  {% if rules and rules.suggested %} {{ _("Bank rules suggested a match for %(n)s.") % {"n": rules.suggested} }}{% endif %}
+  {% if rules and rules.created %} {{ _("%(n)s were recorded and matched automatically.") % {"n": rules.created} }}{% endif %}
+</p>
 {% endif %}
 
 <div class="mt-4 flex gap-3">
@@ -32,7 +37,10 @@
      class="rounded-md hairline px-4 py-2 text-sm font-medium ink-2 hover:bg-[color:var(--paper-2)]">
     {{ _("Import Another") }}
   </a>
-  <a href="/bank-statement-lines" class="btn-primary text-sm">
+  {% if account_id %}
+  <a href="/reconciliation/{{ account_id }}/lines" class="btn-primary text-sm">{{ _("Reconcile now") }}</a>
+  {% endif %}
+  <a href="/bank-statement-lines" class="btn-secondary text-sm">
     {{ _("View Statement Lines") }}
   </a>
 </div>

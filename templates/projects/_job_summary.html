@@ -1,0 +1,177 @@
+{#
+  _job_summary.html — job costing on the project page (batch 12: P0-39, P0-41).
+
+  Context: project, summary (GET /api/v1/projects/{id}/summary),
+  unbilled (GET /api/v1/projects/{id}/unbilled), tax_codes, tab.
+#}
+{% macro money(v) %}{% if v is none %}—{% else %}{{ num(v|float, 2) }}{% endif %}{% endmacro %}
+{% if summary %}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-6">
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Earned") }}</p>
+    <p class="mt-1 text-lg font-semibold ink-1 tabular-nums">{{ money(summary.income) }}</p>
+    {% if summary.budget_income.budget is not none %}
+    <p class="text-xs ink-3">{{ _("Budget %(b)s, %(p)s%% reached") % {"b": money(summary.budget_income.budget), "p": summary.budget_income.used_percent} }}</p>
+    {% endif %}
+  </div>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Costs") }}</p>
+    <p class="mt-1 text-lg font-semibold ink-1 tabular-nums">{{ money(summary.costs) }}</p>
+    {% if summary.budget_cost.budget is not none %}
+    <p class="text-xs ink-3" {% if summary.budget_cost.remaining|float < 0 %}style="color:var(--neg)"{% endif %}>
+      {{ _("Budget %(b)s, %(r)s left") % {"b": money(summary.budget_cost.budget), "r": money(summary.budget_cost.remaining)} }}
+    </p>
+    {% endif %}
+  </div>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Profit") }}</p>
+    <p class="mt-1 text-lg font-semibold tabular-nums ink-1" {% if summary.profit|float < 0 %}style="color:var(--neg)"{% endif %}>{{ money(summary.profit) }}</p>
+    {% if summary.margin_percent is not none %}<p class="text-xs ink-3">{{ _("Margin %(m)s%%") % {"m": summary.margin_percent} }}</p>{% endif %}
+  </div>
+  <div class="card rounded-xl p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Not billed yet") }}</p>
+    <p class="mt-1 text-lg font-semibold ink-1 tabular-nums">{{ money(summary.unbilled_total) }}</p>
+    <p class="text-xs ink-3">{{ _("%(h)s hours and %(c)s of costs") % {"h": summary.unbilled_hours, "c": money(summary.unbilled_costs_value)} }}</p>
+  </div>
+</div>
+<p class="text-xs ink-3 mb-4">
+  {% if summary.customer_name %}{{ _("Customer") }}: <a href="/contacts/{{ summary.customer_id }}" class="sae hover:underline">{{ summary.customer_name }}</a> · {% endif %}
+  {{ _("Time worked: %(h)s hours (%(b)s billable).") % {"h": summary.hours, "b": summary.billable_hours} }}
+  {{ _("Earned and costs come from the ledger, so they agree with profit and loss by project. Amounts exclude GST.") }}
+</p>
+
+{% set docs = summary.documents %}
+{% set tabs = [
+  ("invoices", _("Invoices"), docs.invoices|length, "/invoices/"),
+  ("credit_notes", _("Credit notes"), docs.credit_notes|length, "/credit-notes/"),
+  ("bills", _("Bills"), docs.bills|length, "/bills/"),
+  ("expenses", _("Expenses"), docs.expenses|length, "/expenses/"),
+  ("orders", _("Purchase orders"), docs.purchase_orders|length, "/purchase_orders/"),
+  ("unbilled", _("Unbilled work"), (unbilled.time|length + unbilled.costs|length) if unbilled else 0, ""),
+] %}
+{% set doc_rows = {
+  "invoices": docs.invoices, "credit_notes": docs.credit_notes, "bills": docs.bills,
+  "expenses": docs.expenses, "orders": docs.purchase_orders,
+} %}
+<div class="mb-8">
+  <nav class="flex flex-wrap gap-1 mb-3" aria-label="{{ _('Project documents') }}">
+    {% for key, label, count, _u in tabs %}
+    <a href="?tab={{ key }}" {% if tab == key %}aria-current="page"{% endif %}
+       class="text-sm px-3 py-1.5 rounded {% if tab == key %}btn-primary{% else %}btn-secondary{% endif %}">{{ label }} ({{ count }})</a>
+    {% endfor %}
+  </nav>
+
+  {% if tab != 'unbilled' %}
+  {% for key, label, count, base in tabs %}{% if key == tab %}
+  <div class="card overflow-x-auto">
+    <table class="min-w-full sae-table text-sm">
+      <thead><tr>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Number") }}</th>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Date") }}</th>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Contact") }}</th>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Status") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("On this project (ex GST)") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Document total") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for d in doc_rows.get(key, []) %}
+        <tr>
+          <td class="px-4 py-2"><a href="{{ base }}{{ d.id }}" class="sae hover:underline">{{ d.number or _("Draft") }}</a></td>
+          <td class="px-4 py-2 ink-2">{{ d.date }}</td>
+          <td class="px-4 py-2 ink-2">{{ d.contact_name or "—" }}</td>
+          <td class="px-4 py-2 ink-2">{{ d.status|replace('_', ' ')|capitalize }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{{ money(d.project_amount) }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{{ money(d.total) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="px-4 py-4 text-center ink-3">{{ _("None on this project.") }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% set list_urls = {"invoices": "/invoices", "bills": "/bills", "expenses": "/expenses"} %}
+  {% if key in list_urls %}
+  <p class="mt-2 text-xs"><a href="{{ list_urls[key] }}?project_id={{ project.id }}" class="sae hover:underline">{{ _("Open these in the full list") }}</a></p>
+  {% endif %}
+  {% endif %}{% endfor %}
+  {% else %}
+  <form method="POST" action="/projects/{{ project.id }}/bill-unbilled" class="card p-4 space-y-4">
+    {{ csrf_input(request)|safe }}
+    {% if not unbilled or (not unbilled.time and not unbilled.costs) %}
+    <p class="text-sm ink-3">{{ _("Nothing to bill. Billable time, and bill or expense lines ticked “Bill to customer” on this project, show here until they are invoiced.") }}</p>
+    {% else %}
+    {% if not project.customer_id %}
+    <p class="text-sm" style="color:var(--warm)">{{ _("Set a customer on this project before billing.") }} <a href="/projects/{{ project.id }}/edit" class="sae hover:underline">{{ _("Edit project") }}</a></p>
+    {% endif %}
+    {% if unbilled.time %}
+    <h3 class="text-sm font-semibold ink-1">{{ _("Time") }}</h3>
+    <table class="min-w-full sae-table text-sm">
+      <thead><tr>
+        <th class="px-3 py-2 w-8"><span class="sr-only">{{ _("Bill") }}</span></th>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Date") }}</th>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Description") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Hours") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Rate") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Amount") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for t in unbilled.time %}
+        <tr>
+          <td class="px-3 py-2"><input type="checkbox" name="time_entry_ids" value="{{ t.id }}" {% if not t.missing_rate %}checked{% else %}disabled{% endif %} aria-label="{{ _('Bill this time') }}"></td>
+          <td class="px-3 py-2 ink-2">{{ t.work_date }}</td>
+          <td class="px-3 py-2 ink-1">{{ t.description or "—" }}</td>
+          <td class="px-3 py-2 text-right tabular-nums">{{ t.hours }}</td>
+          <td class="px-3 py-2 text-right tabular-nums">{% if t.missing_rate %}<a href="/time-entries/{{ t.id }}/edit" style="color:var(--warm)">{{ _("No rate: set one") }}</a>{% else %}{{ num(t.rate|float, 2) }}{% endif %}</td>
+          <td class="px-3 py-2 text-right tabular-nums">{{ money(t.amount) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    {% if unbilled.costs %}
+    <h3 class="text-sm font-semibold ink-1">{{ _("Costs to pass on") }}</h3>
+    <table class="min-w-full sae-table text-sm">
+      <thead><tr>
+        <th class="px-3 py-2 w-8"><span class="sr-only">{{ _("Bill") }}</span></th>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Date") }}</th>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("From") }}</th>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Description") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Cost (ex GST)") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for c in unbilled.costs %}
+        <tr>
+          <td class="px-3 py-2"><input type="checkbox" name="cost_line_ids" value="{{ c.id }}" checked aria-label="{{ _('Bill this cost') }}"></td>
+          <td class="px-3 py-2 ink-2">{{ c.date }}</td>
+          <td class="px-3 py-2"><a href="{{ '/bills/' if c.kind == 'bill_line' else '/expenses/' }}{{ c.document_id }}" class="sae hover:underline">{{ c.document_number or _("View") }}</a></td>
+          <td class="px-3 py-2 ink-1">{{ c.description }}</td>
+          <td class="px-3 py-2 text-right tabular-nums">{{ money(c.amount) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div>
+        <label for="markup_percent" class="block text-xs font-medium ink-3 mb-1">{{ _("Markup on costs (%)") }}</label>
+        <input id="markup_percent" name="markup_percent" type="number" step="0.01" min="0" value="0" class="saebooks-input w-full text-sm">
+      </div>
+      <div>
+        <label for="tax_code_id" class="block text-xs font-medium ink-3 mb-1">{{ _("GST") }}</label>
+        <select id="tax_code_id" name="tax_code_id" class="saebooks-input w-full text-sm">
+          <option value="">{{ _("Automatic (from the item, customer or company)") }}</option>
+          {% for tc in tax_codes %}<option value="{{ tc.id }}">{{ tc.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="issue_date" class="block text-xs font-medium ink-3 mb-1">{{ _("Invoice date") }}</label>
+        <input id="issue_date" name="issue_date" type="date" class="saebooks-input w-full text-sm">
+      </div>
+    </div>
+    <button type="submit" class="btn-primary text-sm px-4 py-2" {% if not project.customer_id %}disabled{% endif %}>{{ _("Create draft invoice") }}</button>
+    <p class="text-xs ink-3">{{ _("Time is grouped into one line per hourly rate. Nothing is posted until you post the invoice.") }}</p>
+    {% endif %}
+  </form>
+  {% endif %}
+</div>
+{% endif %}

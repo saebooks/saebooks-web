@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Wages pay runs") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="font-display text-3xl">{{ _("Wages pay runs") }}</h1>
+    <p class="text-base ink-3 mt-1">
+      {{ _("Enter hours; tax withheld, superannuation and net pay are calculated from the employee record and the Australian Taxation Office schedules.") }}
+    </p>
+  </div>
+  <div class="flex gap-2">
+    <a href="/employees" class="btn btn-secondary">{{ _("Employees") }}</a>
+  </div>
+</div>
+
+{% if flash %}
+<div class="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-base text-amber-900 mb-6" role="status">{{ flash }}</div>
+{% endif %}
+{% if flash_error %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6" role="alert">{{ flash_error }}</div>
+{% endif %}
+{% if error %}
+<div class="rounded-md bg-rose-50 border border-rose-300 px-4 py-3 text-base text-rose-800 mb-6" role="alert">{{ error }}</div>
+{% endif %}
+
+<div class="card p-4 mb-6">
+  <h2 class="font-display text-xl mb-3">{{ _("New pay run") }}</h2>
+  <form method="post" action="/payroll/pay-runs/new" class="flex flex-wrap gap-4 items-end">
+    {{ csrf_input(request) | safe }}
+    <div>
+      <label for="frequency" class="block text-sm ink-3 mb-1">{{ _("Pay frequency") }}</label>
+      <select id="frequency" name="frequency" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm">
+        <option value="WEEKLY" selected>{{ _("Weekly") }}</option>
+        <option value="FORTNIGHTLY">{{ _("Fortnightly") }}</option>
+        <option value="MONTHLY">{{ _("Monthly") }}</option>
+      </select>
+    </div>
+    <div>
+      <label for="period_start" class="block text-sm ink-3 mb-1">{{ _("Period start") }}</label>
+      <input id="period_start" type="date" name="period_start" value="{{ default_start }}" required
+             class="rounded-md hairline px-2 py-1.5 bg-paper text-sm num">
+    </div>
+    <div>
+      <label for="period_end" class="block text-sm ink-3 mb-1">{{ _("Period end (leave blank to fill from the frequency)") }}</label>
+      <input id="period_end" type="date" name="period_end" value=""
+             class="rounded-md hairline px-2 py-1.5 bg-paper text-sm num">
+    </div>
+    <div>
+      <label for="payment_date" class="block text-sm ink-3 mb-1">{{ _("Pay date") }}</label>
+      <input id="payment_date" type="date" name="payment_date" value="{{ default_pay_date }}" required
+             class="rounded-md hairline px-2 py-1.5 bg-paper text-sm num">
+    </div>
+    <button type="submit" class="btn btn-primary">{{ _("Create pay run") }}</button>
+  </form>
+</div>
+
+<div class="card">
+  <table class="w-full text-base">
+    <thead>
+      <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="px-3 py-2">{{ _("Period") }}</th>
+        <th class="px-3 py-2">{{ _("Pay date") }}</th>
+        <th class="px-3 py-2">{{ _("Status") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Employees") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Gross pay") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Tax withheld") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Superannuation") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Net pay") }}</th>
+        <th class="px-3 py-2">{{ _("Reported to the ATO") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for run in runs %}
+      <tr class="border-b hairline hover:bg-paper-2">
+        <td class="px-3 py-2 num"><a class="underline" href="/payroll/pay-runs/{{ run.id }}">{{ run.period_start }} to {{ run.period_end }}</a></td>
+        <td class="px-3 py-2 num">{{ run.payment_date }}</td>
+        <td class="px-3 py-2">
+          {% set st = (run.status or '')|upper %}
+          {% if st == 'FINALIZED' %}<span class="chip chip-pos text-xs">{{ _("Finalised") }}</span>
+          {% elif st == 'DRAFT' %}<span class="chip chip-warm text-xs">{{ _("Draft") }}</span>
+          {% elif st == 'VOIDED' %}<span class="chip text-xs ink-3">{{ _("Voided") }}</span>
+          {% else %}<span class="chip chip-ink text-xs">{{ st|lower|capitalize }}</span>{% endif %}
+        </td>
+        <td class="px-3 py-2 text-right num">{{ run.employee_count }}</td>
+        <td class="px-3 py-2 text-right num-display">{{ money(run.total_gross) }}</td>
+        <td class="px-3 py-2 text-right num-display">{{ money(run.total_payg) }}</td>
+        <td class="px-3 py-2 text-right num-display">{{ money(run.total_super) }}</td>
+        <td class="px-3 py-2 text-right num-display">{{ money(run.total_net) }}</td>
+        <td class="px-3 py-2">
+          {% if run.stp %}
+            {% set ss = run.stp.state %}
+            {% if ss in ['ACCEPTED', 'LODGED_ELSEWHERE'] %}<span class="chip chip-pos text-xs">{{ _("Reported") }}</span>
+            {% elif ss == 'SUBMITTED' %}<span class="chip chip-ink text-xs">{{ _("Sent") }}</span>
+            {% elif ss == 'REJECTED' %}<span class="chip chip-neg text-xs">{{ _("Rejected") }}</span>
+            {% else %}<span class="chip chip-warm text-xs">{{ _("Not reported") }}</span>{% endif %}
+            {% if run.stp.overdue %}<span class="chip chip-neg text-xs">{{ _("Overdue") }}</span>{% endif %}
+          {% elif (run.status or '')|upper == 'FINALIZED' %}<span class="chip chip-warm text-xs">{{ _("Not reported") }}</span>
+          {% else %}<span class="ink-3 text-xs">{{ _("After finalising") }}</span>{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="px-3 py-6 text-center ink-3">{{ _("No pay runs yet.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card p-4 mt-6">
+  <h2 class="font-display text-xl mb-1">{{ _("Leave owed on the balance sheet") }}</h2>
+  <p class="text-sm ink-3 mb-3">{{ _("When this is on, each finalised pay run books the annual leave employees earned as money owed to them (account 2-1410 Payroll Accruals Payable), and releases it when they take the leave. Most small businesses leave this off.") }}</p>
+  <form method="post" action="/payroll/settings" class="flex items-center gap-3">
+    {{ csrf_input(request) | safe }}
+    <input type="hidden" name="back" value="/payroll/pay-runs">
+    <label class="flex items-center gap-2 text-base">
+      <input type="checkbox" name="leave_provision" value="yes" {% if payroll_settings.leave_provision %}checked{% endif %}>
+      {{ _("Book annual leave owed") }}
+    </label>
+    <button type="submit" class="btn btn-secondary text-sm">{{ _("Save") }}</button>
+  </form>
+</div>
+
+{% endblock %}

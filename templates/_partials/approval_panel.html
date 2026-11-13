@@ -1,0 +1,62 @@
+{#- Approval panel for a draft bill or payment (batch 13, P1-72).
+    Include with: {% with approval_kind="bill", approval_doc=bill %}{% include "_partials/approval_panel.html" %}{% endwith %} -#}
+{% set _doc = approval_doc %}
+{% set _base = "bills" if approval_kind == "bill" else "payments" %}
+{% set _role = request.session.get("user_role", "") %}
+{% set _can_approve = _role in ("admin", "owner", "approver", "accountant") %}
+{% if _doc and (_doc.status == 'DRAFT' or (approval_kind == 'bill' and _doc.planned_pay_date)) %}
+<section class="card px-4 py-3 mb-7" aria-label="{{ _('Approval') }}">
+  <div class="flex flex-wrap items-center gap-2 mb-2">
+    <p class="nav-section-label">{{ _("Approval") }}</p>
+    {% if _doc.approval_status == 'AWAITING_APPROVAL' %}<span class="badge-draft">{{ _("Waiting for approval") }}</span>
+    {% elif _doc.approval_status == 'APPROVED' %}<span class="badge-paid">{{ _("Approved") }}</span>
+    {% elif _doc.approval_status == 'SENT_BACK' %}<span class="badge-overdue">{{ _("Sent back") }}</span>
+    {% elif _doc.status == 'DRAFT' %}<span class="ink-3 text-xs">{{ _("Not sent for approval") }}</span>{% endif %}
+    {% if approval_kind == 'bill' and _doc.planned_pay_date %}
+      <span class="text-xs ink-2">· {{ _("Planned to pay on") }} <span class="num">{{ _doc.planned_pay_date }}</span></span>
+    {% endif %}
+  </div>
+  {% if _doc.approval_note %}
+  <p class="text-sm ink-2 mb-2"><span class="ink-3">{{ _("Note:") }}</span> {{ _doc.approval_note }}</p>
+  {% endif %}
+  {% if _doc.status == 'DRAFT' %}
+  <div class="flex flex-wrap items-end gap-3">
+    {% if _doc.approval_status in (none, 'SENT_BACK') %}
+    <form method="post" action="/{{ _base }}/{{ _doc.id }}/approval" class="flex flex-wrap items-end gap-2">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ _doc.version }}">
+      <input type="hidden" name="action" value="submit">
+      <label class="text-xs ink-2">{{ _("Note for the approver (optional)") }}
+        <input type="text" name="note" maxlength="1000" class="saebooks-input w-64 block mt-1">
+      </label>
+      <button type="submit" class="btn-secondary text-sm">{{ _("Send for approval") }}</button>
+    </form>
+    {% endif %}
+    {% if _can_approve and _doc.approval_status != 'APPROVED' %}
+    <form method="post" action="/{{ _base }}/{{ _doc.id }}/approval" class="flex flex-wrap items-end gap-2">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ _doc.version }}">
+      <input type="hidden" name="action" value="approve">
+      {% if approval_kind == 'bill' %}
+      <label class="text-xs ink-2">{{ _("Pay on (optional)") }}
+        <input type="date" name="planned_pay_date" value="{{ _doc.planned_pay_date or '' }}" class="saebooks-input block mt-1">
+      </label>
+      {% endif %}
+      <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">{{ _("Approve") }}</button>
+    </form>
+    {% endif %}
+    {% if _can_approve and _doc.approval_status in ('AWAITING_APPROVAL', 'APPROVED') %}
+    <form method="post" action="/{{ _base }}/{{ _doc.id }}/approval" class="flex flex-wrap items-end gap-2">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ _doc.version }}">
+      <input type="hidden" name="action" value="send_back">
+      <label class="text-xs ink-2">{{ _("Why it is going back") }}
+        <input type="text" name="note" required maxlength="1000" class="saebooks-input w-64 block mt-1">
+      </label>
+      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Send back") }}</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

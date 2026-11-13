@@ -29,6 +29,8 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import bulk_transitions
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines_shared
 
@@ -58,9 +60,15 @@ async def quotes_list(
     request: Request,
     status: str | None = None,
     customer_id: str | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
+    sort: str = "issue_date",
+    direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     """Render the quotes list page (full or HTMX fragment).
 
     When the request carries an ``HX-Request: true`` header the response is
@@ -70,10 +78,19 @@ async def quotes_list(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    # Search, sort and paging run in the engine over every row.
+    sort = sort if sort in ('number', 'issue_date', 'expiry_date', 'contact', 'total', 'status') else 'issue_date'
+    direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
+
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
     params: dict[str, object] = {"page": page, "page_size": page_size}
+    params.update({"sort": sort, "direction": direction})
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
     if status:
         params["status"] = status
     if customer_id:
@@ -83,8 +100,18 @@ async def quotes_list(
     quotes: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get("/api/v1/quotes", params={**params, "format": "csv"})
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "quotes.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/quotes", status_code=303)
         resp = await client.get("/api/v1/quotes", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -96,16 +123,14 @@ async def quotes_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-        # CUSTOMER misses contact_type=BOTH (customers who are also suppliers);
-        # mirror the invoices list pattern with a second pass.
-        for ctype in ("CUSTOMER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        # Names for exactly the customers on this page (and the filter).
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [r.get("customer_id") for r in quotes] + [customer_id]
+        )
+        if customer_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(customer_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
 
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -120,6 +145,12 @@ async def quotes_list(
         "contacts_by_id": contacts_by_id,
         "filter_status": status or "",
         "filter_customer_id": customer_id or "",
+        "filter_contact_name": filter_contact_name,
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
+        "sort": sort,
+        "direction": direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,
@@ -188,6 +219,9 @@ async def quote_new_form(request: Request) -> HTMLResponse | RedirectResponse:
                 "expiry_date": expiry,
                 "deposit_pct": "50",
                 "late_fee_pct_per_month": "2.5",
+                # b15 (P1-76): "New quote" on a contact page prefills the customer.
+                **({"customer_id": request.query_params["contact_id"]}
+                   if request.query_params.get("contact_id") else {}),
             },
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
@@ -218,7 +252,7 @@ async def quote_create(request: Request) -> HTMLResponse | RedirectResponse:
     idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
 
     payload: dict[str, object] = {}
-    for field in ("customer_id", "issue_date", "expiry_date", "title", "notes", "terms"):
+    for field in ("customer_id", "issue_date", "expiry_date", "title", "notes", "terms", "currency"):
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
@@ -319,22 +353,14 @@ async def quote_pdf(
     )
 
 
-_FROM_OPTIONS = ("admin@saee.com.au", "accounts@saee.com.au")
-_DEFAULT_FROM_BY_DOC_TYPE = {
-    "quote":       "admin@saee.com.au",
-    "invoice":     "accounts@saee.com.au",
-    "bill":        "admin@saee.com.au",
-    "credit_note": "accounts@saee.com.au",
-    "remittance":  "accounts@saee.com.au",
-    "letterhead":  "admin@saee.com.au",
-}
-
-
 @router.get("/quotes/{quote_id}/email", response_class=HTMLResponse, response_model=None)
 async def quote_email_compose(
     request: Request, quote_id: str
 ) -> HTMLResponse | RedirectResponse:
-    """Email composer for a quote — pre-fills To/Subject/Body from quote+customer."""
+    """Email composer for a quote — To/Subject/Body from the quote, the
+    customer and the company's email settings (b06: no built-in wording)."""
+    from saebooks_web import email_defaults as ed
+
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -352,35 +378,23 @@ async def quote_email_compose(
         # Pull customer for default-To address
         cresp = await client.get(f"/api/v1/contacts/{quote['customer_id']}")
         customer = cresp.json() if cresp.status_code == 200 else {}
+        email_settings = await ed.settings_for(client)
 
-    default_to = customer.get("email", "")
-    title = quote.get("title") or f"Quote SAE-2026-{quote.get('number')}"
-    default_subject = f"Estimate SAE-2026-{quote.get('number')} — {title}"
-    default_body_html = (
-        f'<p>Dear {customer.get("name", "team")},</p>\n'
-        f'<p>Please find attached our estimate <b>SAE-2026-{quote.get("number")}</b> '
-        f'for <b>{title}</b>.</p>\n'
-        f'<p>Total ex GST: ${float(quote.get("subtotal", 0)):,.2f}. '
-        f'Valid for {quote.get("validity_days", 28)} days from {quote.get("issue_date", "today")}.</p>\n'
-        f'<p>To proceed, please issue a purchase order referencing '
-        f'<b>SAE-2026-{quote.get("number")}</b> to admin@saee.com.au. '
-        f'Upon receipt of your PO we will issue a tax invoice for the deposit '
-        f'amount and schedule works accordingly.</p>\n'
-        f'<p>If you have any questions please reply to this email or call '
-        f'0457 704 373.</p>\n'
-        f'<p>Kind regards,<br>Richard Sauer<br>Director — SAE Engineering</p>'
-    )
-
+    d = ed.compose("quote", email_settings, ed.quote_values(quote, customer))
     return _TEMPLATES.TemplateResponse(
         request, "quotes/email_compose.html",
         {
             "quote":            quote,
             "form":             {},
-            "from_options":     _FROM_OPTIONS,
-            "default_from":     _DEFAULT_FROM_BY_DOC_TYPE["quote"],
-            "default_to":       default_to,
-            "default_subject":  default_subject,
-            "default_body_html": default_body_html,
+            "from_options":     d["from_options"],
+            "default_from":     d["default_from"],
+            "default_reply_to": d["reply_to"],
+            "default_from_name": d["from_name"],
+            "default_bcc":      d["bcc"],
+            "default_to":       customer.get("email", "") or "",
+            "default_subject":  d["subject"],
+            "default_body_html": d["body_html"],
+            "email_status":     d["status"],
             "flash":            None,
             "flash_kind":       None,
         },
@@ -414,51 +428,40 @@ async def quote_email_send(
         "bcc":              bcc_list,
         "subject":          form.get("subject", ""),
         "body_html":        form.get("body_html", ""),
+        "reply_to":         form.get("reply_to", "") or None,
+        "from_name":        form.get("from_name", "") or None,
         "sent_by_user_id":  request.session.get("user_id"),
     }
 
+    from saebooks_web import email_defaults as ed
+
     async with api_client(request) as client:
-        resp = await client.post(f"/api/v1/quotes/{quote_id}/send-email", json=payload)
+        resp = await client.post(
+            f"/api/v1/quotes/{quote_id}/send-email", json=payload, timeout=120.0
+        )
         qresp = await client.get(f"/api/v1/quotes/{quote_id}")
         quote = qresp.json() if qresp.status_code == 200 else {}
+        email_settings = await ed.settings_for(client)
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+    d = ed.compose("quote", email_settings, ed.quote_values(quote, {}))
 
     result = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
-    mode = result.get("mode", "unknown")
-    if mode == "blocked":
-        flash = (
-            f"🛑 <b>BLOCKED</b> — nothing was sent. "
-            f"Reason: <code>{result.get('reason', 'unknown')}</code>. "
-            f"Outbox copy: <code>{result.get('outbox_path', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "warm"
-    elif mode == "sent":
-        flash = (
-            f"✅ Sent. Resend message id: <code>{result.get('message_id', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "pos"
-    elif mode == "failed":
-        flash = (
-            f"❌ Failed. Errors: <code>{result.get('errors', '?')}</code>. "
-            f"Audit log id: <code>{result.get('log_id', '?')}</code>."
-        )
-        flash_kind = "neg"
-    else:
-        flash = f"Upstream HTTP {resp.status_code}: <code>{(resp.text or '')[:300]}</code>"
-        flash_kind = "neg"
+    flash, flash_kind = ed.send_result_flash(resp, result, to_list)
 
     return _TEMPLATES.TemplateResponse(
         request, "quotes/email_compose.html",
         {
             "quote":            quote,
             "form":             form,
-            "from_options":     _FROM_OPTIONS,
-            "default_from":     _DEFAULT_FROM_BY_DOC_TYPE["quote"],
+            "from_options":     d["from_options"],
+            "default_from":     form.get("from_addr") or d["default_from"],
+            "default_reply_to": d["reply_to"],
+            "default_from_name": d["from_name"],
+            "default_bcc":      "",
+            "email_status":     d["status"],
             "default_to":       "",
             "default_subject":  "",
             "default_body_html": "",
@@ -498,7 +501,7 @@ async def quote_add_line(
 # literal-vs-parameter ordering reason as /quotes/new.
 # ---------------------------------------------------------------------------
 
-_EDIT_FIELDS = ("customer_id", "issue_date", "expiry_date", "title", "notes", "terms")
+_EDIT_FIELDS = ("customer_id", "issue_date", "expiry_date", "title", "notes", "terms", "currency")
 _LOCKED_STATUSES = {"ACCEPTED", "DECLINED", "ARCHIVED", "INVOICED"}
 
 
@@ -560,6 +563,7 @@ async def quote_edit_form(
             "quantity": str(ln.get("quantity", "1")),
             "unit_price": str(ln.get("unit_price", "")),
             "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "item_id": str(ln.get("item_id") or ""),
         })
     if not lines:
         lines = [{"index": 0}]
@@ -815,10 +819,28 @@ async def quote_convert_to_invoice(
     form_data = await request.form()
     version = str(form_data.get("version", ""))
     idempotency_key = str(uuid.uuid4())
+    # Batch 12 (P0-40): full | deposit | progress | remainder, with a
+    # percentage or an amount (ex GST).
+    mode = str(form_data.get("mode", "") or "full").strip()
+    body: dict[str, object] | None = None
+    if mode != "full":
+        body = {"mode": mode}
+        how = str(form_data.get("by", "percent"))
+        pct = str(form_data.get("percent", "") or "").strip()
+        amt = str(form_data.get("amount", "") or "").strip()
+        if mode in ("deposit", "progress"):
+            if how == "amount" and amt:
+                body["amount"] = amt
+            elif pct:
+                body["percent"] = pct
+        issue = str(form_data.get("issue_date", "") or "").strip()
+        if issue:
+            body["issue_date"] = issue
 
     async with api_client(request) as client:
         resp = await client.post(
             f"/api/v1/quotes/{quote_id}/convert-to-invoice",
+            json=body,
             headers={
                 "If-Match": version,
                 "X-Idempotency-Key": idempotency_key,
@@ -832,7 +854,11 @@ async def quote_convert_to_invoice(
     if resp.status_code == 200:
         body = resp.json()
         invoice_id = body.get("invoice_id")
-        request.session["flash"] = "Quote converted to invoice."
+        request.session["flash"] = {
+            "deposit": "Deposit invoice created as a draft.",
+            "progress": "Progress claim created as a draft invoice.",
+            "remainder": "Final invoice for the rest of the quote created as a draft.",
+        }.get(mode, "Quote converted to invoice.")
         if invoice_id:
             return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
         return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
@@ -849,6 +875,22 @@ async def quote_convert_to_invoice(
         detail = f"API error: HTTP {resp.status_code}"
     request.session["flash"] = str(detail)
     return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
+
+
+@router.post("/quotes/{quote_id}/revise", response_class=HTMLResponse, response_model=None)
+async def quote_revise(request: Request, quote_id: str) -> RedirectResponse:
+    """Make the next revision of a quote (P2-14)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await _copy_quote(request, quote_id, "revise")
+
+
+@router.post("/quotes/{quote_id}/duplicate", response_class=HTMLResponse, response_model=None)
+async def quote_duplicate(request: Request, quote_id: str) -> RedirectResponse:
+    """Copy a quote into a new draft (P2-14)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await _copy_quote(request, quote_id, "duplicate")
 
 
 # ---------------------------------------------------------------------------
@@ -889,6 +931,14 @@ async def quote_detail(
                  "flash": None, "email_log": []},
                 status_code=resp.status_code,
             )
+        # Batch 12 (P0-40): invoiced so far / left to invoice.
+        billing = None
+        try:
+            b_resp = await client.get(f"/api/v1/quotes/{quote_id}/billing")
+            if b_resp.status_code == 200:
+                billing = b_resp.json()
+        except Exception:
+            billing = None
         # Best-effort: pull send history for this quote — don't fail the page
         # if the email-log endpoint is unavailable.
         email_log: list = []
@@ -909,8 +959,46 @@ async def quote_detail(
             "error":     None,
             "flash":     flash,
             "email_log": email_log,
+            "billing":   billing,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Revise / copy (batch 12, P2-14)
+# ---------------------------------------------------------------------------
+
+
+async def _copy_quote(request: Request, quote_id: str, kind: str) -> RedirectResponse:
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    async with api_client(request) as client:
+        if kind == "revise":
+            resp = await client.post(
+                f"/api/v1/quotes/{quote_id}/revise", headers={"If-Match": version}
+            )
+        else:
+            resp = await client.post(f"/api/v1/quotes/{quote_id}/duplicate")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 201:
+        new = resp.json()
+        request.session["flash"] = (
+            f"Revision {new.get('revision')} created. The earlier version is archived."
+            if kind == "revise"
+            else "Copy created as a new draft quote."
+        )
+        return RedirectResponse(url=f"/quotes/{new['id']}/edit", status_code=303)
+    try:
+        detail = resp.json().get("detail", f"HTTP {resp.status_code}")
+    except Exception:
+        detail = f"HTTP {resp.status_code}"
+    request.session["flash"] = (
+        "Someone changed this quote. Reload and try again."
+        if resp.status_code == 409 else str(detail)
+    )
+    return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
 
 
 # ---------------------------------------------------------------------------
@@ -951,28 +1039,14 @@ async def quotes_bulk_action(request: Request) -> RedirectResponse:
         return RedirectResponse(url="/quotes", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS_QUOTES[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for row_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=row_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{row_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{row_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+            rules={},
+        )
 
     label = action.replace("_", " ").title()
     if failed:

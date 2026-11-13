@@ -11,7 +11,9 @@ POST /supplier-credit-notes/new           — submit to upstream API
 GET  /supplier-credit-notes/_add_line     — HTMX partial: blank line row
 POST /supplier-credit-notes/{id}/post     — DRAFT -> POSTED
 POST /supplier-credit-notes/{id}/void     — POSTED -> VOIDED
-GET  /supplier-credit-notes/{id}          — detail
+POST /supplier-credit-notes/{id}/apply    — apply the credit to open bills
+POST /supplier-credit-notes/{id}/applications/{app_id}/unapply — un-apply one
+GET  /supplier-credit-notes/{id}          — detail (applications + apply form)
 
 Route ordering: /supplier-credit-notes/new and /_add_line MUST be declared
 before /supplier-credit-notes/{id}/post and /{id}/void, which must be
@@ -46,9 +48,13 @@ from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import credit_apply
+from saebooks_web import settlement as settlement_reads
+from saebooks_web.routes._void_dating import lodged_conflict, render_lodged_confirm, void_body
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 
@@ -115,17 +121,35 @@ async def supplier_credit_notes_list(
     contact_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
+    sort: str = "issue_date",
+    direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    # Search, sort and paging run in the engine over every row.
+    sort = sort if sort in ('number', 'supplier_reference', 'issue_date', 'contact', 'total', 'status') else 'issue_date'
+    direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
 
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
     params: dict[str, object] = {"page": page, "page_size": page_size}
-    if status:
+    params.update({"sort": sort, "direction": direction})
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
+    if status and status.upper() == "UNAPPLIED":
+        # Posted credits with something left to use (engine 0227, P1-14).
+        params["unapplied"] = "true"
+    elif status:
         params["status"] = status
     if contact_id:
         params["contact_id"] = contact_id
@@ -138,8 +162,18 @@ async def supplier_credit_notes_list(
     scns: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get("/api/v1/supplier_credit_notes", params={**params, "format": "csv"})
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "supplier-credits.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/supplier-credit-notes", status_code=303)
         resp = await client.get("/api/v1/supplier_credit_notes", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -151,14 +185,13 @@ async def supplier_credit_notes_list(
         else:
             error = _parse_business_error(resp)
 
-        for ctype in ("SUPPLIER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [r.get("contact_id") for r in scns] + [contact_id]
+        )
+        if contact_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(contact_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
 
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -174,6 +207,12 @@ async def supplier_credit_notes_list(
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "filter_contact_name": filter_contact_name,
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
+        "sort": sort,
+        "direction": direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,
@@ -192,14 +231,26 @@ async def supplier_credit_notes_list(
 
 
 @router.get("/supplier-credit-notes/new", response_class=HTMLResponse, response_model=None)
-async def supplier_credit_note_new_form(request: Request) -> HTMLResponse | RedirectResponse:
+async def supplier_credit_note_new_form(
+    request: Request, bill_id: str | None = None, contact_id: str | None = None
+) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     today = date.today().isoformat()
+    form: dict[str, str] = {"issue_date": today}
 
     async with api_client(request) as client:
         contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+        if bill_id:
+            # "Record a supplier credit" from a bill: supplier and bill known.
+            b = await settlement_reads.get_json(client, f"/api/v1/bills/{bill_id}")
+            if isinstance(b, dict):
+                form["original_bill_id"] = bill_id
+                contact_id = contact_id or str(b.get("contact_id") or "")
+        if contact_id:
+            form["contact_id"] = contact_id
+        bills = await _supplier_bills(client, contact_id)
 
     initial_lines = [{"index": 0}]
 
@@ -207,7 +258,8 @@ async def supplier_credit_note_new_form(request: Request) -> HTMLResponse | Redi
         request,
         "supplier_credit_notes/new.html",
         {
-            "form": {"issue_date": today},
+            "bills": bills,
+            "form": form,
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "contacts": contacts,
@@ -271,6 +323,7 @@ async def supplier_credit_note_create(request: Request) -> HTMLResponse | Redire
 
     async with api_client(request) as client:
         contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+        bills = await _supplier_bills(client, form.get("contact_id"))
 
     raw_lines = _parse_lines(form)
     lines = [{"index": i, **ln} for i, ln in enumerate(raw_lines)] or [{"index": 0}]
@@ -280,6 +333,7 @@ async def supplier_credit_note_create(request: Request) -> HTMLResponse | Redire
         "supplier_credit_notes/new.html",
         {
             "form": form,
+            "bills": bills,
             "errors": errors,
             "idempotency_key": idempotency_key,
             "contacts": contacts,
@@ -289,6 +343,40 @@ async def supplier_credit_note_create(request: Request) -> HTMLResponse | Redire
             "line_count": len(lines),
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+async def _supplier_bills(client, contact_id: str | None) -> list[dict]:
+    """The supplier's posted bills, newest first, for the "credit against
+    which bill" picker (gap P1-2) — so nobody pastes a bill ID."""
+    if not contact_id:
+        return []
+    body = await settlement_reads.get_json(
+        client,
+        "/api/v1/bills",
+        {"contact_id": contact_id, "status": "POSTED", "page": 1, "page_size": 200},
+    )
+    items = body.get("items", []) if isinstance(body, dict) else []
+    return sorted(items, key=lambda b: str(b.get("issue_date") or ""), reverse=True)
+
+
+@router.get(
+    "/supplier-credit-notes/_bill_options", response_class=HTMLResponse, response_model=None
+)
+async def supplier_credit_note_bill_options(
+    request: Request, contact_id: str | None = None, original_bill_id: str | None = None
+) -> HTMLResponse | RedirectResponse:
+    """HTMX partial: the bill picker for the chosen supplier."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        bills = await _supplier_bills(client, contact_id)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "supplier_credit_notes/_bill_select.html",
+        {"bills": bills, "form": {"contact_id": contact_id or "",
+                                  "original_bill_id": original_bill_id or ""},
+         "errors": {}},
     )
 
 
@@ -373,11 +461,24 @@ async def supplier_credit_note_void(request: Request, scn_id: str) -> RedirectRe
         resp = await client.post(
             f"/api/v1/supplier_credit_notes/{scn_id}/void",
             headers={"If-Match": version},
+            json=void_body(form_data),
         )
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+
+    # Batch 5: the reversal would land in a lodged BAS period — ask first.
+    _conflict = lodged_conflict(resp)
+    if _conflict is not None:
+        return render_lodged_confirm(
+            request,
+            conflict=_conflict,
+            action_url=f"/supplier-credit-notes/{scn_id}/void",
+            back_url=f"/supplier-credit-notes/{scn_id}",
+            version=version,
+            what="supplier credit note",
+        )
 
     if resp.status_code == 200:
         request.session["flash"] = "Supplier credit note voided."
@@ -422,9 +523,50 @@ async def supplier_credit_note_detail(request: Request, scn_id: str) -> HTMLResp
             )
 
     scn = resp.json()
+    capp = await credit_apply.load_context(request, credit_apply.SUPPLIER, scn)
+    # Names instead of IDs (gap P1-2): the supplier, and the bill credited.
+    supplier_name = None
+    original_bill = None
+    async with api_client(request) as client:
+        if scn.get("contact_id"):
+            c = await settlement_reads.get_json(client, f"/api/v1/contacts/{scn['contact_id']}")
+            supplier_name = c.get("name") if isinstance(c, dict) else None
+        if scn.get("original_bill_id"):
+            original_bill = await settlement_reads.get_json(
+                client, f"/api/v1/bills/{scn['original_bill_id']}"
+            )
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "supplier_credit_notes/detail.html",
-        {"scn": scn, "error": None, "flash": flash},
+        {"scn": scn, "error": None, "flash": flash, "capp": capp,
+         "supplier_name": supplier_name, "original_bill": original_bill},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Apply / un-apply — POST only, distinct paths, so ordering vs the GET
+# catch-all does not matter.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/supplier-credit-notes/{scn_id}/apply", response_class=HTMLResponse, response_model=None)
+async def supplier_credit_note_apply(request: Request, scn_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await credit_apply.submit_apply(request, credit_apply.SUPPLIER, scn_id)
+
+
+@router.post(
+    "/supplier-credit-notes/{scn_id}/applications/{application_id}/unapply",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def supplier_credit_note_unapply(
+    request: Request, scn_id: str, application_id: str
+) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await credit_apply.submit_unapply(
+        request, credit_apply.SUPPLIER, scn_id, application_id
     )

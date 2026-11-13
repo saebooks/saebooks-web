@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Find a match") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--sae);">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Find a match") }}</h1>
+    {% if line %}
+    <p class="text-sm ink-2 mt-1">
+      {{ line.txn_date }} · {{ line.description or "—" }} ·
+      <span class="font-mono" style="color:{% if (line.amount|float) < 0 %}var(--neg){% else %}var(--pos){% endif %};">{{ num((line.amount|float)|abs, 2) }}</span>
+      {% if (line.amount|float) < 0 %}{{ _("money out") }}{% else %}{{ _("money in") }}{% endif %}
+    </p>
+    {% endif %}
+  </div>
+  <div class="flex gap-2">
+    <a href="/reconciliation/{{ bsl_id }}/create?account_id={{ account_id }}" class="btn-secondary text-sm">{{ _("Create a record instead") }}</a>
+    <a href="/reconciliation/{{ account_id }}/lines" class="btn-secondary text-sm">{{ _("Back to Reconciliation") }}</a>
+  </div>
+</div>
+
+{% if degraded %}
+<div class="card">{% include "_partials/degraded_panel.html" %}</div>
+{% else %}
+
+<form method="GET" action="/reconciliation/{{ bsl_id }}/find" class="card p-3 mb-4 flex flex-wrap items-end gap-3">
+  <input type="hidden" name="account_id" value="{{ account_id }}">
+  <div>
+    <label class="block text-xs ink-3 mb-1" for="q">{{ _("Search") }}</label>
+    <input id="q" name="q" value="{{ q }}" class="saebooks-input" placeholder="{{ _('Name, number or description') }}">
+  </div>
+  <div>
+    <label class="block text-xs ink-3 mb-1" for="amount">{{ _("Amount") }}</label>
+    <input id="amount" name="amount" value="{{ amount }}" inputmode="decimal" class="saebooks-input w-28 font-mono">
+  </div>
+  <div>
+    <label class="block text-xs ink-3 mb-1" for="date_from">{{ _("From") }}</label>
+    <input id="date_from" name="date_from" type="date" value="{{ date_from }}" class="saebooks-input">
+  </div>
+  <div>
+    <label class="block text-xs ink-3 mb-1" for="date_to">{{ _("To") }}</label>
+    <input id="date_to" name="date_to" type="date" value="{{ date_to }}" class="saebooks-input">
+  </div>
+  <button type="submit" class="btn-secondary text-sm">{{ _("Search") }}</button>
+</form>
+
+{% if error %}
+<div class="card p-3 mb-4" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>
+{% endif %}
+
+<form method="POST" action="/reconciliation/{{ bsl_id }}/match-many">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="account_id" value="{{ account_id }}">
+  <div class="card overflow-x-auto">
+    <table class="sae-table w-full text-sm">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="text-left">{{ _("Date") }}</th>
+          <th class="text-left">{{ _("Record") }}</th>
+          <th class="text-left">{{ _("Contact") }}</th>
+          <th class="text-left">{{ _("Description") }}</th>
+          <th class="text-right">{{ _("Amount") }}</th>
+          <th class="text-right">{{ _("Amount to match") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td><input type="checkbox" name="pick" value="{{ it.target_id }}" aria-label="{{ _('Pick') }}"></td>
+          <td class="font-mono text-xs ink-3">{{ it.entry_date }}</td>
+          <td class="ink-1">{{ it.source_label }}{% if it.confidence == "HIGH" %} <span class="text-xs" style="color:var(--pos);">{{ _("very likely") }}</span>{% endif %}</td>
+          <td class="ink-2">{{ it.contact_name or "—" }}</td>
+          <td class="ink-2">{{ it.description or "—" }}</td>
+          <td class="text-right font-mono text-xs">{{ num((it.amount|float)|abs, 2) }}{% if (it.matched|float) != 0 %}<div class="ink-3">{{ _("%(n)s already matched") % {"n": num((it.matched|float)|abs, 2)} }}</div>{% endif %}</td>
+          <td class="text-right"><input name="amount_{{ it.target_id }}" value="{{ '%.2f'|format((it.remaining|float)|abs) }}" inputmode="decimal" class="saebooks-input w-28 text-right font-mono"></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="px-4 py-8 text-center ink-3">{{ _("Nothing found. Try another search, or create a record from this line.") }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if items %}
+  <div class="mt-3 flex items-center gap-3">
+    <button type="submit" class="btn-primary text-sm">{{ _("Match the ticked records") }}</button>
+    <span class="text-xs ink-3">{{ _("Tick several to match one bank line to several records, e.g. a customer paying three invoices at once.") }}</span>
+  </div>
+  {% endif %}
+</form>
+{% endif %}
+
+{% endblock %}

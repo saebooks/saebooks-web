@@ -45,9 +45,17 @@
       method="post"
       action="/reclassifications/{{ reclassification.id }}/reverse"
       onsubmit="return confirm('{{ _('Reverse this reclassification? This posts a mirror journal entry and cannot be undone.') }}');"
-      class="inline"
+      class="inline-flex flex-wrap items-end gap-2"
     >
     {{ csrf_input(request)|safe }}
+      <label class="text-xs ink-2">{{ _("Reverse on (optional)") }}
+        <input type="date" name="reversal_date" class="saebooks-input block mt-1" title="{{ _('Leave blank to reverse on the original date') }}">
+      </label>
+      {% if request.session.get("user_role", "") in ("admin", "accountant", "owner") %}
+      <label class="text-xs ink-2">{{ _("Only if that date is locked: why?") }}
+        <input type="text" name="override_reason" maxlength="1000" class="saebooks-input block mt-1">
+      </label>
+      {% endif %}
       <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">
         {{ _("Reverse") }}
       </button>

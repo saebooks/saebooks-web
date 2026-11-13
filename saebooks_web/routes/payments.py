@@ -38,8 +38,8 @@ POST /payments/{id}/post
     back to detail with flash.
 
 POST /payments/{id}/void
-    Transition POSTED -> VOIDED. POSTs to /api/v1/payments/{id}/void with
-    If-Match. 200 -> 303 with flash; 409/422 -> 303 back to detail with flash.
+    Transition POSTED -> VOIDED. DELETE /api/v1/payments/{id} with
+    If-Match (the engine has no /void route). 200 -> 303 with flash; 409/422 -> 303 back to detail with flash.
 
 GET /payments/{id}
     Renders templates/payments/detail.html.
@@ -67,16 +67,21 @@ Auth guard: redirect to /login (303) if no session token.
 """
 from __future__ import annotations
 
+import contextlib
 import uuid
 from urllib.parse import urlencode
 from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import bulk_transitions
+from saebooks_web import settlement as settlement_reads
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
+from saebooks_web.fx_context import company_currency
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.routes.bad_debt_recovery import detect_recovery_prompt  # Task 11
 
@@ -103,7 +108,14 @@ _ALLOC_FIELDS = ("target_type", "target_id", "amount")
 # as immutable in the edit UI: changing direction or amount on a payment with
 # allocations causes side-effects that belong to a void+recreate workflow.
 # The edit form exposes only the fields that are safe to change in place.
-_EDIT_FIELDS = ("payment_date", "reference", "notes", "method", "bank_account_id")
+_EDIT_FIELDS = (
+    "payment_date", "reference", "notes", "remittance_note", "method", "bank_account_id",
+)
+
+# What may still be corrected on a POSTED payment (gap P1-15). None of it
+# feeds the journal, the allocations or any document balance; the engine
+# refuses anything else on a non-draft payment.
+_POSTED_EDIT_FIELDS = ("reference", "method", "notes", "remittance_note")
 
 # Statuses that block editing via the web UI.  Only DRAFT payments are mutable.
 # POSTED payments have journal entries attached; VOIDED ones are archived.
@@ -163,6 +175,7 @@ def _parse_allocations(form: dict[str, str]) -> list[dict[str, object]]:
 
 async def _fetch_payment_dropdowns(
     client,
+    keep_bank_id: str | None = None,
 ) -> tuple[list[dict], list[dict], list[dict]]:
     """Fetch customers, suppliers, and bank accounts for the payment form."""
     customers: list[dict] = []
@@ -187,13 +200,339 @@ async def _fetch_payment_dropdowns(
         if _r.is_success:
             suppliers.extend(_r.json().get("items", []))
 
-    # Bank accounts: filter to ASSET type accounts — no dedicated endpoint,
-    # so we fetch all accounts and rely on the template to show a useful list.
-    a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
-    if a_resp.is_success:
-        bank_accounts = a_resp.json().get("items", [])
+    # Bank accounts: the engine has no dedicated endpoint, so page through the
+    # whole chart and keep the reconcilable (bank / card) postable accounts.
+    # The API requires bank_account_id, so this list must contain every
+    # account a payment can really go through — never a truncated first page.
+    all_accounts: list[dict] = []
+    offset = 0
+    for _ in range(50):  # hard stop: 50 x 1000 accounts
+        a_resp = await client.get(
+            "/api/v1/accounts", params={"limit": 1000, "offset": offset}
+        )
+        if not a_resp.is_success:
+            break
+        body = a_resp.json()
+        items = body.get("items", [])
+        all_accounts.extend(items)
+        offset += len(items)
+        if not items or offset >= int(body.get("total", offset)):
+            break
+    bank_accounts = _bank_accounts_from(all_accounts, keep_id=keep_bank_id)
 
     return customers, suppliers, bank_accounts
+
+
+def _bank_accounts_from(
+    accounts: list[dict], keep_id: str | None = None
+) -> list[dict]:
+    """Filter a chart of accounts down to accounts a payment can go through.
+
+    Primary rule: ``reconcile`` is true and the account is not a header
+    (bank accounts and credit cards). Fallback when a company has flagged
+    nothing reconcilable: every non-header ASSET account, so the form is
+    never left with an empty required dropdown. ``keep_id`` (the account
+    already on an edited payment) is always kept so editing never silently
+    swaps it.
+    """
+    postable = [a for a in accounts if not a.get("is_header")]
+    banks = [a for a in postable if a.get("reconcile")]
+    if not banks:
+        banks = [
+            a for a in postable
+            if str(a.get("account_type", "")).upper() == "ASSET"
+        ]
+    if keep_id and not any(str(a.get("id")) == keep_id for a in banks):
+        banks.extend(a for a in accounts if str(a.get("id")) == keep_id)
+    return sorted(banks, key=lambda a: str(a.get("code") or ""))
+
+
+# Error keys that have their own slot in templates/payments/_form_fields.html.
+# Anything else is folded into the "__all__" banner so no error is ever lost.
+_SLOTTED_ERROR_KEYS = {
+    "__all__", "direction", "contact_id", "payment_date", "amount",
+    "method", "reference", "bank_account_id", "notes", "remittance_note",
+}
+
+
+def _api_errors(resp) -> dict[str, str]:
+    """Turn any API error response into form errors.
+
+    Handles FastAPI ``detail`` lists (allocation errors keyed
+    ``allocations.N``), plain-string ``detail``, and the ``{code, message}``
+    shape the idempotency layer returns. Never returns an empty dict for a
+    failed response.
+    """
+    errors: dict[str, str] = {}
+    try:
+        body = resp.json()
+    except Exception:
+        body = None
+    if isinstance(body, dict):
+        detail = body.get("detail")
+        if isinstance(detail, list):
+            for err in detail:
+                if not isinstance(err, dict):
+                    continue
+                loc = [p for p in err.get("loc", []) if p != "body"]
+                msg = err.get("msg", "Invalid value")
+                if len(loc) >= 2 and loc[0] == "allocations" and isinstance(loc[1], int):
+                    key = f"allocations.{loc[1]}"
+                else:
+                    key = str(loc[0]) if loc else "__all__"
+                errors[key] = msg
+        elif isinstance(detail, str) and detail:
+            errors["__all__"] = detail
+        elif body.get("message"):
+            errors["__all__"] = str(body["message"])
+    if not errors:
+        errors["__all__"] = f"The payment could not be saved (HTTP {resp.status_code})."
+    return errors
+
+
+def _fold_unslotted(errors: dict[str, str], alloc_indices: set[int]) -> dict[str, str]:
+    """Copy every error that has no visible slot into the ``__all__`` banner."""
+    extra: list[str] = []
+    for key, msg in errors.items():
+        if key in _SLOTTED_ERROR_KEYS:
+            continue
+        if key.startswith("allocations."):
+            try:
+                if int(key.split(".", 1)[1]) in alloc_indices:
+                    continue
+            except ValueError:
+                pass
+        extra.append(f"{key.replace('_', ' ')}: {msg}")
+    if extra:
+        parts = [errors["__all__"]] if errors.get("__all__") else []
+        errors["__all__"] = " · ".join(parts + extra)
+    return errors
+
+
+def _raw_allocation_rows(form: dict[str, str]) -> list[dict[str, str]]:
+    """Return the allocation rows exactly as typed (non-blank target only),
+    in submitted order, for resolution and for re-rendering."""
+    indices: set[int] = set()
+    for key in form:
+        if key.startswith("allocations[") and "][" in key:
+            try:
+                indices.add(int(key.split("[")[1].split("]")[0]))
+            except (ValueError, IndexError):
+                pass
+    rows: list[dict[str, str]] = []
+    for idx in sorted(indices):
+        target_id = form.get(f"allocations[{idx}][target_id]", "").strip()
+        if not target_id:
+            continue
+        rows.append({
+            "target_type": form.get(f"allocations[{idx}][target_type]", "").strip().upper()
+            or "INVOICE",
+            "target_id": target_id,
+            "amount": form.get(f"allocations[{idx}][amount]", "").strip(),
+        })
+    return rows
+
+
+def _is_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(value)
+        return True
+    except (ValueError, AttributeError, TypeError):
+        return False
+
+
+_DIRECTION_ALIASES = {
+    "IN": "INCOMING", "INCOMING": "INCOMING", "RECEIPT": "INCOMING", "AR": "INCOMING",
+    "OUT": "OUTGOING", "OUTGOING": "OUTGOING", "PAYMENT": "OUTGOING", "AP": "OUTGOING",
+}
+
+
+def _normalise_direction(value: str | None) -> str | None:
+    """Map the short forms the nav links use (IN / OUT) to the engine's
+    PaymentDirection values. Unknown values are returned unchanged so the
+    API can reject them visibly."""
+    if not value:
+        return None
+    return _DIRECTION_ALIASES.get(value.strip().upper(), value.strip().upper())
+
+
+def _digits(value: str) -> str:
+    return "".join(ch for ch in value if ch.isdigit()).lstrip("0")
+
+
+async def _find_document_id(
+    client, kind: str, typed: str, contact_id: str | None
+) -> tuple[str | None, str | None]:
+    """Look an invoice or bill up by the number the user typed.
+
+    Returns ``(id, None)`` on a unique match, ``(None, reason)`` otherwise.
+    Matches the document number case-insensitively (bills also match the
+    supplier's own reference); if nothing matches exactly, a unique match on
+    the numeric part (``80`` -> ``INV-000080``) is accepted.
+    """
+    path = "/api/v1/invoices" if kind == "INVOICE" else "/api/v1/bills"
+    wanted = typed.strip().lower()
+    wanted_digits = _digits(typed)
+    exact: list[str] = []
+    by_digits: list[str] = []
+    page = 1
+    while page <= 40:  # hard stop: 40 x 500 documents
+        params: dict[str, object] = {"page": page, "page_size": 500}
+        if contact_id and _is_uuid(contact_id):
+            params["contact_id"] = contact_id
+        r = await client.get(path, params=params)
+        if not r.is_success:
+            return None, f"could not look up {kind.lower()}s (HTTP {r.status_code})"
+        body = r.json()
+        items = body.get("items", [])
+        for doc in items:
+            refs = [str(doc.get("number") or "")]
+            if kind == "BILL":
+                refs.append(str(doc.get("supplier_reference") or ""))
+            refs = [x for x in refs if x]
+            if any(x.lower() == wanted for x in refs):
+                exact.append(str(doc["id"]))
+            elif wanted_digits and any(_digits(x) == wanted_digits for x in refs[:1]):
+                by_digits.append(str(doc["id"]))
+        if not items or page * 500 >= int(body.get("total", 0)):
+            break
+        page += 1
+    matches = exact or by_digits
+    if len(set(matches)) == 1:
+        return matches[0], None
+    if len(set(matches)) > 1:
+        return None, f"more than one {kind.lower()} matches '{typed}' — use the full number"
+    return None, None
+
+
+async def _resolve_allocations(
+    client,
+    rows: list[dict[str, str]],
+    contact_id: str | None,
+    payment_amount: str | None,
+) -> tuple[list[dict[str, object]], dict[str, str]]:
+    """Turn typed allocation rows into API allocations.
+
+    A UUID is passed straight through (the invoice "Record payment" prefill).
+    Anything else is treated as an invoice / bill number and resolved. If the
+    number is not found under the chosen type, the other type is tried (a
+    user who leaves the type on "Invoice" and types BILL-000327 still gets
+    the bill). A single row with a blank amount takes the payment amount.
+    Errors are keyed ``allocations.N`` (N = row position) for the row slot.
+    """
+    allocations: list[dict[str, object]] = []
+    errors: dict[str, str] = {}
+    for i, row in enumerate(rows):
+        kind = row["target_type"] if row["target_type"] in ("BILL", "CREDIT_NOTE") else "INVOICE"
+        typed = row["target_id"]
+        doc_id: str | None = None
+        if _is_uuid(typed):
+            doc_id = typed
+        else:
+            if typed.upper().startswith("BILL"):
+                kind = "BILL"
+            elif typed.upper().startswith("INV") or kind == "CREDIT_NOTE":
+                kind = "INVOICE"
+            doc_id, reason = await _find_document_id(client, kind, typed, contact_id)
+            if doc_id is None and reason is None:
+                other = "INVOICE" if kind == "BILL" else "BILL"
+                doc_id, reason = await _find_document_id(client, other, typed, contact_id)
+                if doc_id is not None:
+                    kind = other
+            if doc_id is None:
+                errors[f"allocations.{i}"] = (
+                    reason
+                    or f"No invoice or bill numbered '{typed}' was found for this contact."
+                )
+                continue
+        amount = row["amount"]
+        if not amount:
+            if len(rows) == 1 and payment_amount:
+                amount = payment_amount
+            else:
+                errors[f"allocations.{i}"] = "Enter the amount to allocate to this row."
+                continue
+        alloc: dict[str, object] = {"amount": amount}
+        key = {"BILL": "bill_id", "CREDIT_NOTE": "credit_note_id"}.get(kind, "invoice_id")
+        alloc[key] = doc_id
+        allocations.append(alloc)
+    return allocations, errors
+
+
+def _picked_rows(form: dict[str, str]) -> list[dict[str, str]]:
+    """Rows ticked in the open-documents picker (``open[N][...]`` fields).
+
+    Each carries the document kind and id (never typed by the user), the
+    amount to apply and what is owing; a ticked row with a blank amount
+    takes the full amount owing.
+    """
+    indices: set[int] = set()
+    for key in form:
+        if key.startswith("open[") and "][" in key:
+            with contextlib.suppress(ValueError, IndexError):
+                indices.add(int(key.split("[")[1].split("]")[0]))
+    rows: list[dict[str, str]] = []
+    for idx in sorted(indices):
+        if form.get(f"open[{idx}][pick]", "") not in ("1", "on", "true"):
+            continue
+        doc_id = form.get(f"open[{idx}][id]", "").strip()
+        kind = form.get(f"open[{idx}][kind]", "").strip().lower()
+        if not doc_id or kind not in ("bill", "invoice"):
+            continue
+        amount = form.get(f"open[{idx}][amount]", "").strip() or form.get(
+            f"open[{idx}][due]", ""
+        ).strip()
+        rows.append({"kind": kind, "id": doc_id, "amount": amount})
+    return rows
+
+
+def _picked_allocations(rows: list[dict[str, str]]) -> tuple[list[dict[str, object]], str | None]:
+    """API allocations for the picked rows, and an error if any amount is bad."""
+    allocations: list[dict[str, object]] = []
+    for row in rows:
+        try:
+            amount = float(row["amount"])
+        except (TypeError, ValueError):
+            return [], "Enter a number for each ticked bill or invoice."
+        if amount <= 0:
+            continue
+        key = "bill_id" if row["kind"] == "bill" else "invoice_id"
+        allocations.append({key: row["id"], "amount": row["amount"]})
+    return allocations, None
+
+
+def _sum_amounts(allocations: list[dict[str, object]]) -> str:
+    from decimal import Decimal, InvalidOperation
+
+    total = Decimal("0")
+    for a in allocations:
+        try:
+            total += Decimal(str(a.get("amount") or "0"))
+        except InvalidOperation:
+            continue
+    return str(total.quantize(Decimal("0.01")))
+
+
+def _picked_map(form: dict[str, str]) -> dict[str, str]:
+    """{document id: amount} for re-rendering the picker after an error."""
+    return {r["id"]: r["amount"] for r in _picked_rows(form)}
+
+
+async def _open_docs_context(
+    client, contact_id: str | None, direction: str | None
+) -> list[dict]:
+    if not contact_id or not _is_uuid(contact_id):
+        return []
+    return await settlement_reads.open_documents(
+        client, contact_id, _normalise_direction(direction) or "INCOMING"
+    )
+
+
+def _alloc_rows_for_render(rows: list[dict[str, str]]) -> list[dict[str, object]]:
+    """Allocation rows for re-render: what the user typed, re-indexed 0..N."""
+    if not rows:
+        return [{"index": 0}]
+    return [{"index": i, **row} for i, row in enumerate(rows)]
 
 
 # ---------------------------------------------------------------------------
@@ -208,9 +547,15 @@ async def payments_list(
     contact_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
+    sort: str = "payment_date",
+    sort_direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     """Render the payments list page (full or HTMX fragment).
 
     When the request carries an ``HX-Request: true`` header the response is
@@ -220,11 +565,20 @@ async def payments_list(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    # Search, sort and paging run in the engine over every row.
+    sort = sort if sort in ('number', 'payment_date', 'contact', 'amount', 'reference', 'method', 'status') else 'payment_date'
+    sort_direction = "asc" if sort_direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
+
     # The API uses page/page_size rather than limit/offset.
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
     params: dict[str, object] = {"page": page, "page_size": page_size}
+    params.update({"sort": sort, "sort_direction": sort_direction})
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
     if direction:
         params["direction"] = direction
     if contact_id:
@@ -238,8 +592,18 @@ async def payments_list(
     payments: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get("/api/v1/payments", params={**params, "format": "csv"})
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "payments.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/payments", status_code=303)
         resp = await client.get("/api/v1/payments", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -251,18 +615,15 @@ async def payments_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-        # Resolve contact_id -> contact dict so the template can render the
-        # contact NAME, not the raw UUID. Payments cover both directions
-        # (CUSTOMER receipts, SUPPLIER payments) and BOTH-type contacts —
-        # so three passes are needed.
-        for ctype in ("CUSTOMER", "SUPPLIER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        # Names for exactly the contacts on this page (and the filter),
+        # whatever their type and however many contacts the books hold.
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [r.get("contact_id") for r in payments] + [contact_id]
+        )
+        if contact_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(contact_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
 
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
@@ -282,6 +643,12 @@ async def payments_list(
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "filter_contact_name": filter_contact_name,
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
+        "sort": sort,
+        "sort_direction": sort_direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,
@@ -302,6 +669,42 @@ async def payments_list(
 # ---------------------------------------------------------------------------
 
 
+def _apply_payment_currency(
+    request: Request, form: dict[str, str], payload: dict[str, object]
+) -> None:
+    """Batch 10: currency, bank amount and rate on a payment.
+
+    For a foreign payment the bank amount (company currency) wins: the
+    engine works the rate out from it. A blank bank amount and blank rate
+    leaves the engine to use the published rate for the payment date.
+    """
+    base_ccy = company_currency(request)
+    currency = (form.get("currency", "") or "").strip().upper() or base_ccy
+    payload["currency"] = currency
+    if currency == base_ccy:
+        return
+    base_amount = (form.get("base_amount", "") or "").strip()
+    fx_rate = (form.get("fx_rate", "") or "").strip()
+    if base_amount:
+        payload["base_amount"] = base_amount
+    elif fx_rate:
+        payload["fx_rate"] = fx_rate
+
+
+async def _document_currency(request: Request, kind: str, doc_id: str) -> str | None:
+    if not _is_uuid(doc_id):
+        return None
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(f"/api/v1/{kind}/{doc_id}")
+    except Exception:
+        return None
+    if not resp.is_success:
+        return None
+    ccy = str(resp.json().get("currency") or "").upper()
+    return ccy or None
+
+
 @router.get("/payments/new", response_class=HTMLResponse, response_model=None)
 async def payment_new_form(
     request: Request,
@@ -311,6 +714,8 @@ async def payment_new_form(
     amount: str | None = None,
     direction: str | None = None,
     reference: str | None = None,
+    bill_ids: str | None = None,
+    invoice_ids: str | None = None,
 ) -> HTMLResponse | RedirectResponse:
     """Render the create-payment form.
 
@@ -328,22 +733,64 @@ async def payment_new_form(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    # A transfer between own accounts is not a payment — send it to the
+    # transfer form (origin=TRANSFER) rather than a customer receipt.
+    if (direction or "").strip().upper() == "TRANSFER":
+        return RedirectResponse(url="/transfers/new", status_code=303)
+    direction = _normalise_direction(direction)
+
     today = date.today().isoformat()
+
+    # Documents to tick in the picker: "Pay" on a bill, "Record payment" on
+    # an invoice, or "Pay selected" on the bills list (comma-separated ids).
+    pre_bills = [x for x in [*(bill_ids or "").split(","), bill_id or ""] if _is_uuid(x.strip())]
+    pre_invoices = [
+        x for x in [*(invoice_ids or "").split(","), invoice_id or ""] if _is_uuid(x.strip())
+    ]
+    pre_ids = [x.strip() for x in pre_bills + pre_invoices]
+    if pre_bills and not direction:
+        direction = "OUTGOING"
+    elif pre_invoices and not direction:
+        direction = "INCOMING"
 
     async with api_client(request) as client:
         customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(client)
+        if pre_ids and not contact_id:
+            # The bill / invoice knows who it is for — no need to ask.
+            kind_path = "bills" if pre_bills else "invoices"
+            d = await settlement_reads.get_json(client, f"/api/v1/{kind_path}/{pre_ids[0]}")
+            if isinstance(d, dict):
+                contact_id = str(d.get("contact_id") or "") or None
+        open_docs = await _open_docs_context(client, contact_id, direction)
 
-    target_id = invoice_id or bill_id
-    if target_id:
-        target_type = "BILL" if bill_id else "INVOICE"
+    open_ids = {str(d.get("id")) for d in open_docs}
+    picked: dict[str, str] = {}
+    leftover: list[str] = []
+    for doc_id in pre_ids:
+        if doc_id in open_ids:
+            # One document with an explicit amount keeps that amount; the
+            # rest default to what is owing (filled in by the picker).
+            picked[doc_id] = amount if (amount and len(pre_ids) == 1) else ""
+        else:
+            leftover.append(doc_id)
+
+    if leftover:
+        # Engine without the picker read, or the document is not open any
+        # more: fall back to the typed-number row so nothing is lost.
+        target_type = "BILL" if leftover[0] in pre_bills else "INVOICE"
         initial_allocations = [{
             "index": 0,
             "target_type": target_type,
-            "target_id": target_id,
+            "target_id": leftover[0],
             "amount": amount or "",
         }]
     else:
         initial_allocations = [{"index": 0}]
+
+    if picked and not amount:
+        amount = _sum_amounts([
+            {"amount": d.get("amount_due")} for d in open_docs if str(d.get("id")) in picked
+        ])
 
     form: dict[str, object] = {
         "payment_date": today,
@@ -356,6 +803,20 @@ async def payment_new_form(
         form["amount"] = amount
     if reference:
         form["reference"] = reference
+    # Default bank (gap P1-16): the account the last payment went through,
+    # if it is still a bank or card account; a lone account is preselected
+    # by the template.
+    last_bank = str(request.session.get("last_bank_account_id") or "")
+    if last_bank and any(str(a.get("id")) == last_bank for a in bank_accounts):
+        form["bank_account_id"] = last_bank
+    first_doc = (pre_bills or pre_invoices or [None])[0]
+    if first_doc:
+        # Batch 10: pay a foreign invoice or bill in its own currency.
+        doc_ccy = await _document_currency(
+            request, "bills" if pre_bills else "invoices", first_doc.strip()
+        )
+        if doc_ccy:
+            form["currency"] = doc_ccy
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -370,6 +831,9 @@ async def payment_new_form(
             "method_choices": _METHOD_CHOICES,
             "allocations": initial_allocations,
             "allocation_count": 1,
+            "open_docs": open_docs,
+            "picked": picked,
+            "flash": request.session.pop("flash", None),
         },
     )
 
@@ -405,19 +869,55 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
         "method",
         "reference",
         "notes",
+        "remittance_note",
         "bank_account_id",
     ):
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
 
-    payload["allocations"] = _parse_allocations(form)
+    if payload.get("direction"):
+        payload["direction"] = _normalise_direction(str(payload["direction"]))
+        form["direction"] = str(payload["direction"])
+    _apply_payment_currency(request, form, payload)
 
+    rows = _raw_allocation_rows(form)
+    errors: dict[str, str] = {}
+    if not payload.get("bank_account_id"):
+        errors["bank_account_id"] = (
+            "Choose the bank account or card the money went through."
+        )
+
+    picked_allocations, picked_error = _picked_allocations(_picked_rows(form))
+    if picked_error:
+        errors["__all__"] = picked_error
+    if picked_allocations and not payload.get("amount"):
+        # Ticked documents and no amount typed: the payment is what was ticked.
+        payload["amount"] = _sum_amounts(picked_allocations)
+        form["amount"] = str(payload["amount"])
+
+    resp = None
     async with api_client(request) as client:
-        resp = await client.post(
-            "/api/v1/payments",
-            json=payload,
-            headers={"X-Idempotency-Key": idempotency_key},
+        allocations, alloc_errors = await _resolve_allocations(
+            client,
+            rows,
+            str(payload.get("contact_id") or "") or None,
+            # A lone typed row only takes the whole payment when nothing
+            # was ticked in the picker.
+            None if picked_allocations else (str(payload.get("amount") or "") or None),
+        )
+        errors.update(alloc_errors)
+        if not errors:
+            payload["allocations"] = picked_allocations + allocations
+            resp = await client.post(
+                "/api/v1/payments",
+                json=payload,
+                headers={"X-Idempotency-Key": idempotency_key},
+            )
+
+    if resp is None:
+        return await _render_new_with_errors(
+            request, form, errors, rows, str(uuid.uuid4()), 422
         )
 
     if resp.status_code == 401:
@@ -427,6 +927,8 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
     if resp.status_code == 201:
         created = resp.json()
         payment_id = created["id"]
+        if payload.get("bank_account_id"):
+            request.session["last_bank_account_id"] = str(payload["bank_account_id"])
         # Task 11 — bad-debt recovery detection. For an INCOMING (AR)
         # receipt from a payer who has a WRITTEN_OFF invoice, and when the
         # company is in smart_prompt recovery mode, redirect to the
@@ -465,37 +967,33 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
                 pass  # detection is best-effort; never block the payment
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
-    # Parse errors for re-render.
-    errors: dict[str, str] = {}
-    if resp.status_code == 422:
-        try:
-            detail = resp.json().get("detail", [])
-            if isinstance(detail, list):
-                for err in detail:
-                    loc = err.get("loc", [])
-                    field_parts = [p for p in loc if p != "body"]
-                    field_key = str(field_parts[0]) if field_parts else "__all__"
-                    errors[field_key] = err.get("msg", "Invalid value")
-            elif isinstance(detail, str):
-                # API returns a plain string for allocation/amount violations.
-                errors["__all__"] = detail
-        except Exception:
-            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
-    else:
-        errors["__all__"] = f"API error: HTTP {resp.status_code}"
-
-    # Re-fetch dropdowns for re-render.
-    async with api_client(request) as client:
-        customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(client)
-
-    # Reconstruct allocation rows for re-render from submitted form keys.
-    raw_allocs = _parse_allocations(form)
-    alloc_rows = (
-        [{"index": i, **a} for i, a in enumerate(raw_allocs)]
-        if raw_allocs
-        else [{"index": 0}]
+    # Any other outcome: show every error the API gave, nothing silent.
+    # After a 422 nothing was created, so a fresh idempotency key lets the
+    # corrected form be resubmitted; on other failures keep the key so a
+    # retry can never double-record.
+    errors = _api_errors(resp)
+    next_key = str(uuid.uuid4()) if resp.status_code == 422 else idempotency_key
+    return await _render_new_with_errors(
+        request, form, errors, rows, next_key, resp.status_code
     )
 
+
+async def _render_new_with_errors(
+    request: Request,
+    form: dict[str, str],
+    errors: dict[str, str],
+    rows: list[dict[str, str]],
+    idempotency_key: str,
+    status_code: int,
+) -> HTMLResponse:
+    """Re-render the create form with errors and the user's typed values."""
+    async with api_client(request) as client:
+        customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(client)
+        open_docs = await _open_docs_context(
+            client, form.get("contact_id"), form.get("direction")
+        )
+    alloc_rows = _alloc_rows_for_render(rows)
+    errors = _fold_unslotted(errors, set(range(len(alloc_rows))))
     return _TEMPLATES.TemplateResponse(
         request,
         "payments/new.html",
@@ -509,8 +1007,38 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
             "method_choices": _METHOD_CHOICES,
             "allocations": alloc_rows,
             "allocation_count": len(alloc_rows),
+            "open_docs": open_docs,
+            "picked": _picked_map(form),
         },
-        status_code=422 if resp.status_code == 422 else resp.status_code,
+        status_code=status_code,
+    )
+
+
+@router.get(
+    "/payments/_open_documents", response_class=HTMLResponse, response_model=None
+)
+async def payment_open_documents(
+    request: Request,
+    contact_id: str | None = None,
+    direction: str | None = None,
+) -> HTMLResponse | RedirectResponse:
+    """HTMX partial: the chosen contact's open bills (money out) or invoices
+    (money in), oldest due first, each with a tick box and the amount still
+    owing — so nobody has to look up or paste a document number (P0-14).
+    Re-requested whenever the contact or direction changes."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    direction = _normalise_direction(direction) or "INCOMING"
+    async with api_client(request) as client:
+        open_docs = await _open_docs_context(client, contact_id, direction)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "payments/_open_documents.html",
+        {
+            "open_docs": open_docs,
+            "picked": {},
+            "form": {"contact_id": contact_id or "", "direction": direction},
+        },
     )
 
 
@@ -614,6 +1142,14 @@ async def payment_edit_form(
 
     payment = resp.json()
 
+    # A POSTED payment may still have its reference, method, notes and
+    # supplier message corrected (gap P1-15) — never its amount, date,
+    # contact, bank or allocations (void and re-enter for those).
+    if payment.get("status") == "POSTED":
+        return _render_posted_edit(request, payment, {
+            f: str(payment.get(f) or "") for f in _POSTED_EDIT_FIELDS
+        }, {})
+
     # Block editing of non-DRAFT payments.
     if payment.get("status") in _LOCKED_STATUSES:
         return _TEMPLATES.TemplateResponse(
@@ -628,6 +1164,10 @@ async def payment_edit_form(
     for field in _EDIT_FIELDS:
         form[field] = payment.get(field) or ""
     form["version"] = str(payment.get("version", ""))
+    # Display only (not sent): shows the supplier-message field on a
+    # supplier payment and keeps the direction select truthful.
+    form["direction"] = payment.get("direction") or ""
+    form["contact_id"] = str(payment.get("contact_id") or "")
 
     # Build allocation rows for the form, synthesising target_type + target_id
     # from the API's invoice_id / bill_id / credit_note_id fields.
@@ -656,7 +1196,9 @@ async def payment_edit_form(
         alloc_rows = [{"index": 0}]
 
     async with api_client(request) as client:
-        customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(client)
+        customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(
+            client, keep_bank_id=str(payment.get("bank_account_id") or "") or None
+        )
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -705,6 +1247,9 @@ async def payment_update(
     version = form.get("version", "")
     idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
 
+    if form.get("posted_edit") == "1":
+        return await _submit_posted_edit(request, payment_id, form)
+
     # Build the PATCH payload — only include non-empty header fields.
     payload: dict[str, object] = {}
     for field in _EDIT_FIELDS:
@@ -713,7 +1258,17 @@ async def payment_update(
             payload[field] = val
 
     # Allocations are always sent (full replace semantics, mirrors JE lines).
-    payload["allocations"] = _parse_allocations(form)
+    rows = _raw_allocation_rows(form)
+    async with api_client(request) as client:
+        allocations, alloc_errors = await _resolve_allocations(
+            client, rows, form.get("contact_id") or None, None
+        )
+    if alloc_errors:
+        return await _render_edit_with_errors(
+            request, form, alloc_errors, rows, idempotency_key, 422,
+            keep_bank_id=form.get("bank_account_id") or None,
+        )
+    payload["allocations"] = allocations
 
     from saebooks_web.features import is_feature_enabled as _ff
     _params = {"force": "true"} if _ff("edit_frozen_state") else None
@@ -754,12 +1309,7 @@ async def payment_update(
         conflict_form["version"] = server_version
 
         # Reconstruct allocation rows for re-render from submitted values.
-        raw_allocs = _parse_allocations(form)
-        alloc_rows = (
-            [{"index": i, **a} for i, a in enumerate(raw_allocs)]
-            if raw_allocs
-            else [{"index": 0}]
-        )
+        alloc_rows = _alloc_rows_for_render(rows)
 
         return _TEMPLATES.TemplateResponse(
             request,
@@ -782,45 +1332,99 @@ async def payment_update(
         )
 
     # 422 or other — parse per-field or plain-string validation errors.
-    errors: dict[str, str] = {}
-    if resp.status_code == 422:
-        try:
-            detail = resp.json().get("detail", [])
-            if isinstance(detail, list):
-                for err in detail:
-                    loc = err.get("loc", [])
-                    field_parts = [p for p in loc if p != "body"]
-                    field_key = str(field_parts[0]) if field_parts else "__all__"
-                    errors[field_key] = err.get("msg", "Invalid value")
-            elif isinstance(detail, str):
-                # API returns a plain string for allocation/amount violations.
-                errors["__all__"] = detail
-        except Exception:
-            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
-    elif resp.status_code == 428:
+    if resp.status_code == 428:
         import logging as _logging
         _logging.getLogger(__name__).error(
             "PATCH /api/v1/payments/%s returned 428 — If-Match header was missing",
             payment_id,
         )
-        errors["__all__"] = (
+        errors = {"__all__": (
             "Precondition required: version information was missing. "
             "Please reload and try again."
-        )
+        )}
     else:
-        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+        errors = _api_errors(resp)
 
-    # Re-fetch dropdowns for re-render.
-    async with api_client(request) as client:
-        customers2, suppliers2, bank_accounts2 = await _fetch_payment_dropdowns(client)
-
-    raw_allocs2 = _parse_allocations(form)
-    alloc_rows2 = (
-        [{"index": i, **a} for i, a in enumerate(raw_allocs2)]
-        if raw_allocs2
-        else [{"index": 0}]
+    return await _render_edit_with_errors(
+        request, form, errors, rows, idempotency_key, resp.status_code,
+        keep_bank_id=form.get("bank_account_id") or None,
     )
 
+
+def _render_posted_edit(
+    request: Request,
+    payment: dict,
+    form: dict[str, str],
+    errors: dict[str, str],
+    status_code: int = 200,
+) -> HTMLResponse:
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "payments/edit_posted.html",
+        {
+            "payment": payment,
+            "form": form,
+            "errors": errors,
+            "method_choices": _METHOD_CHOICES,
+        },
+        status_code=status_code,
+    )
+
+
+async def _submit_posted_edit(
+    request: Request, payment_id: str, form: dict[str, str]
+) -> HTMLResponse | RedirectResponse:
+    """PATCH only the fields the engine allows on a posted payment. Blank
+    text fields are sent as blank so a wrong reference can be cleared."""
+    payload: dict[str, object] = {}
+    for field in _POSTED_EDIT_FIELDS:
+        if field not in form:
+            continue
+        value = str(form.get(field) or "").strip()
+        if field == "method" and not value:
+            continue
+        payload[field] = value
+    async with api_client(request) as client:
+        resp = await client.patch(
+            f"/api/v1/payments/{payment_id}",
+            json=payload,
+            headers={"If-Match": str(form.get("version", ""))},
+        )
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
+        if resp.status_code == 200:
+            request.session["flash"] = "Payment details corrected."
+            return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
+        current = await client.get(f"/api/v1/payments/{payment_id}")
+    payment = current.json() if current.is_success else {"id": payment_id}
+    if resp.status_code == 409:
+        errors = {"__all__": (
+            "Someone changed this payment while you were editing. "
+            "Your changes are still below — check them and save again."
+        )}
+        form = {**form, "version": str(payment.get("version", ""))}
+    else:
+        errors = _fold_unslotted(_api_errors(resp), set())
+    return _render_posted_edit(request, payment, form, errors, resp.status_code)
+
+
+async def _render_edit_with_errors(
+    request: Request,
+    form: dict[str, str],
+    errors: dict[str, str],
+    rows: list[dict[str, str]],
+    idempotency_key: str,
+    status_code: int,
+    keep_bank_id: str | None = None,
+) -> HTMLResponse:
+    """Re-render the edit form with errors and the user's typed values."""
+    async with api_client(request) as client:
+        customers2, suppliers2, bank_accounts2 = await _fetch_payment_dropdowns(
+            client, keep_bank_id=keep_bank_id
+        )
+    alloc_rows2 = _alloc_rows_for_render(rows)
+    errors = _fold_unslotted(errors, set(range(len(alloc_rows2))))
     return _TEMPLATES.TemplateResponse(
         request,
         "payments/edit.html",
@@ -837,7 +1441,7 @@ async def payment_update(
             "allocations": alloc_rows2,
             "allocation_count": len(alloc_rows2),
         },
-        status_code=422 if resp.status_code == 422 else resp.status_code,
+        status_code=status_code,
     )
 
 
@@ -882,7 +1486,16 @@ async def payment_post(
         return RedirectResponse(url="/login", status_code=303)
 
     if resp.status_code == 200:
-        request.session["flash"] = "Payment posted."
+        message = "Payment posted."
+        if str(form_data.get("email_remittance", "")) in ("1", "on", "true"):
+            # "Email the remittance once posted" (gap P0-13). The outcome —
+            # sent, blocked by the email switch, or no supplier email — is
+            # reported as-is; posting has already succeeded either way.
+            from saebooks_web.routes.remittance import email_with_defaults
+
+            async with api_client(request) as client:
+                message += " " + await email_with_defaults(request, client, payment_id)
+        request.session["flash"] = message
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
     if resp.status_code == 409:
@@ -906,6 +1519,15 @@ async def payment_post(
 # ---------------------------------------------------------------------------
 
 
+def _reason_body(form_data: object) -> dict[str, str]:
+    body: dict[str, str] = {}
+    for key in ("reason", "override_reason"):
+        val = str(form_data.get(key, "") or "").strip()
+        if val:
+            body[key] = val
+    return body
+
+
 @router.post(
     "/payments/{payment_id}/void", response_class=HTMLResponse, response_model=None
 )
@@ -915,8 +1537,8 @@ async def payment_void(
 ) -> RedirectResponse:
     """Transition a POSTED payment to VOIDED.
 
-    POSTs to POST /api/v1/payments/{id}/void with If-Match.
-    - 200 -> 303 to detail with flash "Payment voided."
+    DELETE /api/v1/payments/{id} with If-Match (the engine's void).
+    - 204 -> 303 to detail with flash "Payment voided."
     - 409 -> 303 back to detail with flash "Version conflict — try again."
     - 422 -> 303 back to detail with the API's error message as flash.
     """
@@ -924,34 +1546,45 @@ async def payment_void(
         return RedirectResponse(url="/login", status_code=303)
 
     form_data = await request.form()
-    version = str(form_data.get("version", ""))
+    version = str(form_data.get("version", "")).strip()
 
+    # The engine voids a payment with DELETE /api/v1/payments/{id} +
+    # If-Match: <version> (204). There is no /void route.
     async with api_client(request) as client:
-        resp = await client.post(
-            f"/api/v1/payments/{payment_id}/void",
+        if not version:
+            cur = await client.get(f"/api/v1/payments/{payment_id}")
+            if cur.is_success:
+                version = str(cur.json().get("version", ""))
+        resp = await client.delete(
+            f"/api/v1/payments/{payment_id}",
             headers={"If-Match": version},
+            # Batch 4: the reversal is dated (void_date); blank = the
+            # payment's own date, as before.
+            params={
+                **_reason_body(form_data),
+                **({"void_date": str(form_data.get("void_date")).strip()}
+                   if str(form_data.get("void_date") or "").strip() else {}),
+            },
         )
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
 
-    if resp.status_code == 200:
+    if 200 <= resp.status_code < 300:
         request.session["flash"] = "Payment voided."
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
     if resp.status_code == 409:
-        request.session["flash"] = "Version conflict — try again."
+        request.session["flash"] = (
+            "Version conflict — the payment changed since this page loaded. "
+            "Reload and try again."
+        )
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
-    # 422 or other — surface the API's detail message.
-    try:
-        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
-        if isinstance(detail, list) and detail:
-            detail = detail[0].get("msg", str(detail))
-    except Exception:
-        detail = f"API error: HTTP {resp.status_code}"
-    request.session["flash"] = str(detail)
+    # 404 / 422 / 428 / other — show exactly what the API said.
+    errors = _api_errors(resp)
+    request.session["flash"] = "Void failed: " + " · ".join(errors.values())
     return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
 
@@ -1033,15 +1666,29 @@ async def payment_detail(
     # the panel in its disabled state rather than raising an error.
     attachments: list[dict] = []
     vault_enabled: bool = True
+    supplier_pdfs: dict[str, dict] = {}
     async with api_client(request) as client:
         att_resp = await client.get(
             "/api/v1/attachments",
             params={"entity_kind": "payment", "entity_id": payment_id},
         )
+        # Names, numbers and what is left on each document instead of IDs
+        # (gap P1-2); the supplier's own invoice beside each bill (P1-3).
+        settlement = await settlement_reads.payment_settlement(client, payment_id)
+        if att_resp.status_code != 503:
+            for alloc in payment.get("allocations") or []:
+                bill_id = alloc.get("bill_id")
+                if bill_id and str(bill_id) not in supplier_pdfs:
+                    pdf = await settlement_reads.supplier_pdf(client, "bill", str(bill_id))
+                    if pdf:
+                        supplier_pdfs[str(bill_id)] = pdf
     if att_resp.status_code == 503:
         vault_enabled = False
     elif att_resp.is_success:
         attachments = att_resp.json()
+    settled_by_alloc = {
+        str(a.get("allocation_id")): a for a in (settlement or {}).get("allocations", [])
+    }
 
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
@@ -1056,6 +1703,9 @@ async def payment_detail(
             "vault_enabled": vault_enabled,
             "entity_kind": "payment",
             "entity_id": payment_id,
+            "settlement": settlement,
+            "settled_by_alloc": settled_by_alloc,
+            "supplier_pdfs": supplier_pdfs,
         },
     )
 
@@ -1066,7 +1716,7 @@ async def payment_detail(
 
 _BULK_ACTIONS_PAYMENTS = {
     "post": ("POST", "/api/v1/payments/{id}/post"),
-    "void": ("POST", "/api/v1/payments/{id}/void"),
+    "void": ("DELETE", "/api/v1/payments/{id}"),
     "archive": ("DELETE", "/api/v1/payments/{id}"),
 }
 
@@ -1097,28 +1747,13 @@ async def payments_bulk_action(request: Request) -> RedirectResponse:
         return RedirectResponse(url="/payments", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS_PAYMENTS[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for row_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=row_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{row_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{row_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+        )
 
     label = action.replace("_", " ").title()
     if failed:

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Getting paid") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);" role="alert">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<header class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Getting paid") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Recurring invoices and bills, payment reminders and online card payments. These run on their own every morning.") }}</p>
+</header>
+
+{# ── Health ── #}
+{% set sched = status.get("scheduler") or {} %}
+{% set ri_fail = status.get("recurring_invoice_failures") or [] %}
+{% set rb_fail = status.get("recurring_bill_failures") or [] %}
+<section class="card p-5 mb-6">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h2 class="text-base font-semibold ink-1">{{ _("Is it running?") }}</h2>
+      <ul class="text-sm ink-2 mt-2 space-y-1">
+        <li>
+          {% if sched.get("enabled") %}<span class="badge-pos">{{ _("On") }}</span>{% else %}<span class="badge-neg">{{ _("Off") }}</span>{% endif %}
+          {% if sched.get("last_finished_at") %}
+            {{ _("Last daily run finished %(t)s.") % {"t": sched.last_finished_at[:16] | replace("T", " ")} }}
+          {% else %}
+            {{ _("No daily run on this server since it last started.") }}
+          {% endif %}
+        </li>
+        <li>
+          {% if status.get("reminders_enabled") %}<span class="badge-pos">{{ _("Reminders on") }}</span>{% else %}<span class="badge-draft">{{ _("Reminders off") }}</span>{% endif %}
+          {% if status.get("last_reminder_run_at") %}{{ _("Last checked %(t)s.") % {"t": status.last_reminder_run_at[:16] | replace("T", " ")} }}{% endif %}
+          {% if status.get("last_reminder_run_error") %}<span style="color:var(--neg);">{{ status.last_reminder_run_error }}</span>{% endif %}
+        </li>
+        {% if status.get("recurring_invoices_waiting") %}
+        <li><span class="badge-warm">{{ _("Waiting") }}</span> {{ _("%(n)s recurring invoice(s) are past their date and not made yet.") % {"n": status.recurring_invoices_waiting} }}</li>
+        {% endif %}
+      </ul>
+    </div>
+    <form method="POST" action="/settings/getting-paid/run">
+      {{ csrf_input(request)|safe }}
+      <button type="submit" class="btn-secondary text-sm">{{ _("Run today's jobs now") }}</button>
+      <p class="text-xs ink-3 mt-1 max-w-xs">{{ _("Safe to press any time: anything already done today is not done again.") }}</p>
+    </form>
+  </div>
+
+  {% if ri_fail or rb_fail %}
+  <div class="mt-4 p-3 rounded" style="border:1px solid var(--neg);" role="alert">
+    <p class="text-sm font-semibold" style="color:var(--neg);">{{ _("These did not run:") }}</p>
+    <ul class="text-sm ink-2 mt-1 space-y-1">
+      {% for f in ri_fail %}<li><a class="sae hover:underline" href="/recurring-invoices/{{ f.id }}">{{ f.name }}</a>: {{ f.last_error }}</li>{% endfor %}
+      {% for f in rb_fail %}<li><a class="sae hover:underline" href="/recurring-bills/{{ f.id }}">{{ f.name }}</a>: {{ f.last_error }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+
+<form method="POST" action="/settings/getting-paid" class="space-y-6">
+  {{ csrf_input(request)|safe }}
+
+  <section class="card p-5">
+    <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Payment reminders") }}</h2>
+    <div class="flex items-center gap-2 mb-4">
+      <input type="checkbox" id="reminders_enabled" name="reminders_enabled" value="1" {% if s.get("reminders_enabled") %}checked{% endif %} class="h-4 w-4 rounded">
+      <label for="reminders_enabled" class="text-sm ink-2">{{ _("Email customers a reminder when an invoice is due or overdue") }}</label>
+    </div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <label for="reminder_days" class="block text-sm font-medium ink-2 mb-1">{{ _("When to remind (days after the due date)") }}</label>
+        <input type="text" id="reminder_days" name="reminder_days" value="{{ (s.get('reminder_days') or [7, 14, 30]) | join(', ') }}" class="saebooks-input w-full text-sm">
+        <p class="text-xs ink-3 mt-1">{{ _("Separate with commas. Use a minus number to remind before it is due, for example -3, 7, 14, 30. Each reminder goes once per invoice.") }}</p>
+      </div>
+      <div>
+        <label for="reminder_message" class="block text-sm font-medium ink-2 mb-1">{{ _("Extra words in every reminder") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span></label>
+        <textarea id="reminder_message" name="reminder_message" rows="3" maxlength="2000" class="saebooks-input w-full text-sm">{{ s.get("reminder_message") or "" }}</textarea>
+      </div>
+    </div>
+    <p class="text-xs ink-3 mt-3">{{ _("Customers you have turned reminders off for, and customers whose email bounced, are skipped. You can still send a reminder by hand from any invoice.") }}</p>
+  </section>
+
+  <section class="card p-5">
+    <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Sending address") }}</h2>
+    <label for="from_addr" class="block text-sm font-medium ink-2 mb-1">{{ _("Automatic emails come from") }}</label>
+    <input type="email" id="from_addr" name="from_addr" value="{{ s.get('from_addr') or '' }}" placeholder="{{ s.get('effective_from_addr') or 'accounts@yourbusiness.com.au' }}" class="saebooks-input w-full sm:w-96 text-sm">
+    <p class="text-xs ink-3 mt-1">
+      {% if s.get("effective_from_addr") %}{{ _("Currently: %(a)s.") % {"a": s.effective_from_addr} }}{% else %}{{ _("Not set: automatic emails cannot go out until you set this or add an email to the company.") }}{% endif %}
+      {{ _("Used for recurring invoices, reminders and month-end statements.") }}
+    </p>
+  </section>
+
+  {% set op = status.get("online_payments") or {} %}
+  <section class="card p-5">
+    <h2 class="text-base font-semibold ink-1 mb-1">{{ _("Online card payments") }}</h2>
+    {% if op.get("available") %}
+      <p class="text-sm ink-2 mb-3"><span class="badge-pos">{{ _("On") }}</span> {{ _("Invoices you email carry a Pay now link. When a customer pays, the payment is recorded against the invoice for you.") }}</p>
+    {% else %}
+      <p class="text-sm mb-3" style="color:var(--warm);">{{ op.get("reason") or _("Online card payment is not switched on.") }}</p>
+    {% endif %}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div>
+        <label for="online_payment_account_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Card payments land in") }}</label>
+        <select id="online_payment_account_id" name="online_payment_account_id" class="saebooks-input w-full text-sm">
+          <option value="">{{ _("— not set —") }}</option>
+          {% for a in money_accounts %}<option value="{{ a.id }}" {% if s.get("online_payment_account_id") == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>{% endfor %}
+        </select>
+        <p class="text-xs ink-3 mt-1">{{ _("Usually a Stripe clearing account. Without it, card payments are not recorded: the invoice is flagged for you instead.") }}</p>
+      </div>
+      <div>
+        <label for="online_fee_account_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Card fees go to") }}</label>
+        <select id="online_fee_account_id" name="online_fee_account_id" class="saebooks-input w-full text-sm">
+          <option value="">{{ _("— do not record fees —") }}</option>
+          {% for a in expense_accounts %}<option value="{{ a.id }}" {% if s.get("online_fee_account_id") == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="online_fee_tax_code_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Tax on card fees") }}</label>
+        <select id="online_fee_tax_code_id" name="online_fee_tax_code_id" class="saebooks-input w-full text-sm">
+          <option value="">{{ _("— none —") }}</option>
+          {% for t in tax_codes %}<option value="{{ t.id }}" {% if s.get("online_fee_tax_code_id") == t.id %}selected{% endif %}>{{ t.code or t.name }} {{ t.name if t.code else "" }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex items-center gap-3">
+    <button type="submit" class="btn-primary text-sm">{{ _("Save") }}</button>
+    <a href="/statements/send" class="btn-secondary text-sm">{{ _("Send month-end statements") }}</a>
+    <a href="/email-log?delivery=problem" class="btn-secondary text-sm">{{ _("Emails that did not arrive") }}</a>
+  </div>
+</form>
+{% endblock %}

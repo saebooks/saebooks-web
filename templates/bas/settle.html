@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Settle the BAS") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+  <a href="/bas" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← BAS periods") }}</a>
+</div>
+
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1"><span class="nav-section-label">{{ _("BAS") }}</span></div>
+  <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("Settle the BAS") }}</h1>
+  <p class="text-xs ink-3 font-mono mt-2">{{ from_date }} → {{ to_date }}</p>
+  <p class="text-xs ink-3 mt-1">{{ _("Settling moves the GST and tax withheld on this BAS into the ATO account, so the GST accounts go back to nil. Paying the ATO then clears the ATO account from your bank account.") }}</p>
+  <div class="drafting mt-4"></div>
+</header>
+
+{% if error %}
+<div class="card p-3 mb-4" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>
+{% endif %}
+
+{% if plan %}
+<div class="card overflow-hidden mb-4">
+  <div class="px-6 py-3 hairline-b" style="background:var(--sae-tint);">
+    <p class="nav-section-label sae">{{ _("Journal that will be posted") }}</p>
+  </div>
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Account") }}</th>
+        <th class="text-left">{{ _("Description") }}</th>
+        <th class="text-right">{{ _("Debit") }}</th>
+        <th class="text-right">{{ _("Credit") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ln in plan.get("lines", []) %}
+      <tr>
+        <td class="ink-1">{{ ln.get("account_code") }} {{ ln.get("account_name") }}</td>
+        <td class="ink-2 text-sm">{{ ln.get("description") }}</td>
+        <td class="text-right num">{% if (ln.get("debit") | float) %}{{ num(ln.get("debit") | float, 2) }}{% endif %}</td>
+        <td class="text-right num">{% if (ln.get("credit") | float) %}{{ num(ln.get("credit") | float, 2) }}{% endif %}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-sm ink-3">{{ _("Nothing to post.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% set amt = plan.get("amount_payable", 0) | float %}
+<div class="card p-4 mb-4 flex items-center justify-between">
+  <span class="text-sm ink-1">
+    {% if amt > 0 %}{{ _("You owe the ATO") }}{% elif amt < 0 %}{{ _("The ATO owes you") }}{% else %}{{ _("Nothing to pay") }}{% endif %}
+  </span>
+  <span class="font-display text-2xl num-display">{{ num(amt|abs, 2) }}</span>
+</div>
+
+{% for p in plan.get("problems", []) %}
+<div class="card p-3 mb-2 flex items-start gap-2" style="border-color:var(--warm);">
+  <span class="dot mt-1" style="background:var(--warm);"></span>
+  <p class="text-sm ink-2">{{ p }}</p>
+</div>
+{% endfor %}
+{% if plan.get("problems") %}
+<p class="text-xs ink-3 mb-4"><a class="sae hover:underline" href="/settings">{{ _("Open settings") }}</a></p>
+{% endif %}
+
+{% if plan.get("can_settle") %}
+<form method="post" action="/bas/settle" class="card p-4 space-y-4">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="from_date" value="{{ from_date }}">
+  <input type="hidden" name="to_date" value="{{ to_date }}">
+  <div>
+    <label for="settlement_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Settlement date") }}</label>
+    <input id="settlement_date" type="date" name="settlement_date" value="{{ today }}" required class="saebooks-input num text-sm py-1.5">
+    <p class="text-xs ink-3 mt-1">{{ _("Usually the day you lodge. It must be in an open period.") }}</p>
+  </div>
+  {% if amt != 0 %}
+  <label class="text-sm ink-2 flex items-center gap-2">
+    <input type="checkbox" name="pay_now" value="1" checked>
+    {% if amt > 0 %}{{ _("Record the payment to the ATO as well") }}{% else %}{{ _("Record the refund from the ATO as well") }}{% endif %}
+  </label>
+  <div class="flex flex-wrap gap-4">
+    <div>
+      <label for="pay_from_account_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{% if amt > 0 %}{{ _("Paid from") }}{% else %}{{ _("Received into") }}{% endif %}</label>
+      <select id="pay_from_account_id" name="pay_from_account_id" class="saebooks-input text-sm py-1.5">
+        {% for b in banks %}
+        <option value="{{ b.get('id') }}">{{ b.get("code") }} {{ b.get("name") }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="payment_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Payment date") }}</label>
+      <input id="payment_date" type="date" name="payment_date" value="{{ today }}" class="saebooks-input num text-sm py-1.5">
+    </div>
+  </div>
+  {% endif %}
+  <button type="submit" class="btn-primary text-sm">{{ _("Settle the BAS") }}</button>
+</form>
+{% endif %}
+{% endif %}
+
+{% endblock %}

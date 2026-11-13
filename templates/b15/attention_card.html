@@ -1,0 +1,47 @@
+{# Needs-attention card (P1-32). Loaded into #attention-card on the dashboard
+   by HTMX — see routes/attention.py. Lines only for things waiting. #}
+<section class="card p-4 sm:p-5 mb-6" aria-labelledby="attention-heading" data-attention-card>
+  <div class="flex items-center justify-between gap-3 mb-2">
+    <h2 id="attention-heading" class="nav-section-label">{{ _("Needs attention") }}</h2>
+    {% if as_at %}<span class="text-[11px] ink-3 font-mono">{{ as_at }}</span>{% endif %}
+  </div>
+  {% if failed %}
+    <p class="text-sm ink-3">{{ _("Could not check what needs attention just now. The rest of the dashboard is below.") }}</p>
+  {% elif not lines %}
+    <p class="text-sm ink-2 flex items-center gap-2">
+      <span class="dot" style="background:var(--pos);"></span>{{ _("Nothing waiting. Everything is up to date.") }}
+    </p>
+  {% else %}
+    <ul class="divide-y" style="border-color:var(--line);">
+      {% for line in lines %}
+      <li>
+        <a href="{{ line.href }}" class="flex items-center justify-between gap-3 py-3 min-h-[44px] hover:underline"
+           data-attention-key="{{ line.key }}" data-attention-count="{{ line.count }}" data-attention-label="{{ line.label }}">
+          <span class="flex items-center gap-2 text-sm ink-1">
+            <span class="dot" style="background:var(--{{ line.tone }});"></span>
+            {{ line.label }}
+          </span>
+          <span class="flex items-baseline gap-3 shrink-0">
+            {% if line.amount %}<span class="text-sm num ink-2">{{ money(line.amount|float) }}</span>{% endif %}
+            <span class="font-display text-lg num" style="color:var(--{{ line.tone }});">{{ line.count }}</span>
+          </span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</section>
+<script>
+  /* Count-only snapshot for the offline page (P2-25). No names or amounts. */
+  (function () {
+    try {
+      var rows = document.querySelectorAll('[data-attention-key]');
+      var snap = { at: new Date().toISOString(), items: [] };
+      rows.forEach(function (a) {
+        snap.items.push({ label: a.getAttribute('data-attention-label'),
+                          count: +a.getAttribute('data-attention-count') });
+      });
+      localStorage.setItem('sb_attention_snapshot', JSON.stringify(snap));
+    } catch (e) { /* private mode — no snapshot */ }
+  })();
+</script>

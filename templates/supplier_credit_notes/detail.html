@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_partials/void_dated.html" import void_dated with context %}
 
 {% block title %}
   {% if scn %}{{ _("Supplier Credit Note %(number)s") % {"number": (scn.number or scn.id)} }} — {{ current_brand().name }}{% else %}{{ _("Supplier Credit Note Not Found") }} — {{ current_brand().name }}{% endif %}
@@ -33,7 +34,10 @@
       {% elif scn.status == 'VOIDED' %}<span class="badge-neg">{{ scn.status | capitalize }}</span>
       {% else %}<span class="badge-draft">{{ scn.status | capitalize }}</span>{% endif %}
     </div>
-    <p class="text-sm ink-3 mt-1">{{ _("Supplier: %(contact)s") % {"contact": scn.contact_id} }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("Supplier:") }}
+      {% if capp and capp.contact %}<a href="/contacts/{{ scn.contact_id }}" class="sae hover:underline">{{ capp.contact.name }}</a>
+      {% else %}<a href="/contacts/{{ scn.contact_id }}" class="sae hover:underline">{{ supplier_name or _("view supplier") }}</a>{% endif %}
+    </p>
     {% if scn.supplier_reference %}
     <p class="text-sm ink-3 mt-0.5">{{ _("Supplier's reference: %(ref)s") % {"ref": scn.supplier_reference} }}</p>
     {% endif %}
@@ -53,47 +57,43 @@
     </form>
     {% endif %}
     {% if scn.status == 'POSTED' %}
-    <form method="post" action="/supplier-credit-notes/{{ scn.id }}/void"
-          onsubmit="return confirm('{{ _('Void this supplier credit note?') }}');" class="inline">
-    {{ csrf_input(request)|safe }}
-      <input type="hidden" name="version" value="{{ scn.version }}">
-      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
-    </form>
+    {{ void_dated('/supplier-credit-notes/' ~ scn.id ~ '/void', scn.version, _("supplier credit note")) }}
     {% endif %}
     <a href="/supplier-credit-notes" class="text-sm sae hover:underline">← {{ _("Back to supplier credit notes") }}</a>
   </div>
 </div>
 
+{% set _remaining = (scn.get('amount_remaining') or 0)|float %}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Issue date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ scn.issue_date }}</p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Subtotal") }}</p>
-    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(scn.subtotal|float, 2) }}</p>
-  </div>
-  <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Tax") }}</p>
-    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(scn.tax_total|float, 2) }}</p>
-  </div>
-  <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Total") }}</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Total credit") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num(scn.total|float, 2) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Applied to bills") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num((scn.get('amount_applied') or 0)|float, 2) }}</p>
+  </div>
+  <div class="card p-4" {% if _remaining > 0 and (scn.status|upper) == 'POSTED' %}style="border-color:var(--pos);"{% endif %}>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Credit remaining") }}</p>
+    <p class="mt-1 text-sm font-semibold tabular-nums ink-1" {% if _remaining > 0 and (scn.status|upper) == 'POSTED' %}style="color:var(--pos);"{% endif %}>{{ num(_remaining, 2) }}</p>
   </div>
 </div>
 
+{% if capp %}
+{% set credit = scn %}
+{% include "_partials/credit_applications.html" with context %}
+{% elif scn.original_bill_id %}
 <div class="mb-8">
-  <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Applied To") }}</h2>
   <div class="card px-4 py-3 text-sm ink-2">
-    {% if scn.original_bill_id %}
-    <span class="ink-3">{{ _("Bill:") }} </span>
-    <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline font-medium">{{ scn.original_bill_id }}</a>
-    {% else %}
-    <span class="ink-3">{{ _("Unapplied — not linked to a bill") }}</span>
-    {% endif %}
+    <span class="ink-3">{{ _("Linked bill:") }} </span>
+    <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline font-medium">{% if original_bill %}{{ original_bill.supplier_reference or original_bill.number }}{% if original_bill.supplier_reference and original_bill.number %} ({{ original_bill.number }}){% endif %}{% else %}{{ _("View bill") }}{% endif %}</a>
   </div>
 </div>
+{% endif %}
 
 <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>
 <div class="card overflow-x-auto mb-8">

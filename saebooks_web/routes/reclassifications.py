@@ -324,9 +324,22 @@ async def reclassification_reverse(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    # Batch 13 (P1-69): a reversal can be dated (e.g. into the current open
+    # period) and, for an admin / accountant / owner, carry a reason for
+    # changing a locked period -- the engine always accepted both, the
+    # screen never sent them.
+    form = await request.form()
+    body: dict[str, str] = {}
+    _rd = str(form.get("reversal_date", "") or "").strip()
+    _or = str(form.get("override_reason", "") or "").strip()
+    if _rd:
+        body["reversal_date"] = _rd
+    if _or:
+        body["override_reason"] = _or
+
     async with api_client(request) as client:
         resp = await client.post(
-            f"/api/v1/reclassifications/{reclassification_id}/reverse", json={}
+            f"/api/v1/reclassifications/{reclassification_id}/reverse", json=body
         )
 
     if resp.status_code == 401:

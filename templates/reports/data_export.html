@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Backup and Export") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← reports") }}</a>
+</div>
+
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">{{ _("Your data") }}</span>
+    <span class="reg-mark"></span>
+  </div>
+  <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("Backup and Export") }}</h1>
+  <p class="text-sm ink-2 mt-3 max-w-2xl">{{ _("Your books belong to you. Download everything held for this company and keep it, or take it to another system.") }}</p>
+  <div class="drafting mt-4"></div>
+</header>
+
+{% if flash %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="card p-5 max-w-2xl">
+  <p class="text-sm ink-1 font-semibold mb-2">{{ _("What you get") }}</p>
+  <ul class="text-sm ink-2 list-disc pl-5 space-y-1 mb-4">
+    <li>{{ _("A ZIP file with every customer, supplier, account, invoice, bill, expense, payment, journal and asset") }}</li>
+    <li>{{ _("A spreadsheets folder with one file per record type that opens in Excel, Numbers or Google Sheets") }}</li>
+    <li>{{ _("The general ledger and trial balance up to today") }}</li>
+    <li>{{ _("The same records as data files, for moving to another system") }}</li>
+  </ul>
+  <p class="text-xs ink-3 mb-4">{{ _("Not included: the change history, attached PDF files, and private details such as tax file numbers and employee bank details. The README in the file explains each part.") }}</p>
+  {% if is_admin %}
+  <a href="/reports/data-export/download" class="btn-primary text-sm" id="download-export">{{ _("Download everything (ZIP)") }}</a>
+  {% else %}
+  <p class="text-sm ink-2">{{ _("Only an administrator can download the full export. Ask the owner of this account.") }}</p>
+  {% endif %}
+</div>
+
+{% endblock %}

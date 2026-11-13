@@ -1,6 +1,14 @@
 {# HTMX partial — payment table body + pagination. #}
 {% import "_components/kebab_menu.html" as km %}
+{% import "_sort_macros.html" as srt %}
+{% import "_components/list_tools.html" as lt %}
+{% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
+                  'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'direction': filter_direction, 'q': filter_q, 'amount_min': filter_amount_min,
+                  'amount_max': filter_amount_max, 'limit': limit} %}
 <div id="payments-table">
+
+<div class="flex justify-end mb-2">{{ lt.export_link('/payments', dict(filters, sort=sort, sort_direction=sort_direction)) }}</div>
 
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
@@ -18,11 +26,11 @@
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[var(--sae)] focus:ring-[var(--sae)]">
         </th>
-        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
-        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Reference") }}</th>
+        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('payment_date', _('Date'), sort, sort_direction, filters, param='sort_direction') }}</th>
+        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('reference', _('Reference'), sort, sort_direction, filters, param='sort_direction') }}</th>
         <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Direction") }}</th>
-        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Contact") }}</th>
-        <th class="text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        <th class="text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('contact', _('Contact'), sort, sort_direction, filters, param='sort_direction') }}</th>
+        <th class="text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('amount', _('Amount'), sort, sort_direction, filters, param='sort_direction') }}</th>
         <th class="w-8"></th>
       </tr>
     </thead>
@@ -76,7 +84,7 @@
         <tr>
           <td colspan="7" class="text-center ink-3 font-mono text-sm py-10">
             <p class="mb-2">{{ _("— no payments found —") }}</p>
-            {% if not filter_direction and not filter_contact_id and not filter_date_from and not filter_date_to %}
+            {% if not filter_direction and not filter_contact_id and not filter_date_from and not filter_date_to and not filter_q and not filter_amount_min and not filter_amount_max %}
             <a href="/payments/new" class="sae hover:underline">{{ _("Record your first payment →") }}</a>
             {% else %}
             <p class="text-xs">{{ _("Try clearing your filters.") }}</p>
@@ -89,12 +97,7 @@
 </div>
 
 {% import "_pagination_macros.html" as pg %}
-{% set pg_filters = {
-  'direction': filter_direction,
-  'contact_id': filter_contact_id,
-  'date_from': filter_date_from,
-  'date_to': filter_date_to
-} %}
+{% set pg_filters = dict(filters, sort=sort, sort_direction=sort_direction, limit='') %}
 {{ pg.page_numbers('/payments', total, limit, offset, pg_filters, target='#payments-table') }}
 
 </div>

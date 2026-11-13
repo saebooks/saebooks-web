@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_partials/void_dated.html" import void_dated with context %}
 {% import "_icons.html" as icons %}
 
 {% block title %}
@@ -37,7 +38,8 @@
       {% elif credit_note.status == 'VOIDED' %}<span class="badge-neg">{{ credit_note.status | capitalize }}</span>
       {% else %}<span class="badge-draft">{{ credit_note.status | capitalize }}</span>{% endif %}
     </div>
-    <p class="text-sm ink-3 mt-1">{{ _("Contact: %(contact)s") % {"contact": credit_note.contact_id} }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("Customer") }}:
+      {% if credit_note.contact_id %}<a href="/contacts/{{ credit_note.contact_id }}" class="sae hover:underline">{{ contact_name or _("view customer") }}</a>{% else %}{{ credit_note.one_off_customer_name or "—" }}{% endif %}</p>
     {% if credit_note.reason %}
     <p class="text-sm ink-3 mt-0.5">
       {{ _("Reason code:") }}
@@ -86,20 +88,13 @@
     </form>
     {% endif %}
     {% if credit_note.status == 'POSTED' %}
-    <form
-      method="post"
-      action="/credit-notes/{{ credit_note.id }}/void"
-      onsubmit="return confirm('{{ _('Void this credit note?') }}');"
-      class="inline"
-    >
-    {{ csrf_input(request)|safe }}
-
-      <input type="hidden" name="version" value="{{ credit_note.version }}">
-      <button
-        type="submit"
-        class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
-      >{{ _("Void") }}</button>
+    {# b11 (P1-6): email the credit note to the customer #}
+    <form method="post" action="/credit-notes/{{ credit_note.id }}/email" class="inline"
+          onsubmit="return confirm('{{ _('Email this credit note to the customer now?') }}');">
+      {{ csrf_input(request)|safe }}
+      <button type="submit" class="btn-primary text-sm">{{ _("Email to customer") }}</button>
     </form>
+    {{ void_dated('/credit-notes/' ~ credit_note.id ~ '/void', credit_note.version, _("credit note"), reasons=True) }}
     {% endif %}
     {% if is_admin %}
     {{ icons.hard_delete(
@@ -122,7 +117,10 @@
 </div>
 
 {# ── Summary cards ── #}
-<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+{% set _status = (credit_note.status or '')|upper %}
+{% set _remaining = (credit_note.get('amount_remaining') if credit_note.get('amount_remaining') is not none
+                     else (credit_note.total|float) - (credit_note.amount_allocated|float))|float %}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-5 mb-8">
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Issue date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ credit_note.issue_date }}</p>
@@ -134,20 +132,30 @@
     </p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Amount allocated") }}</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Applied to invoices") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
+      {{ num((credit_note.get('amount_applied') or 0)|float, 2) }}
+    </p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Refunded") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ num(credit_note.amount_allocated|float, 2) }}
     </p>
   </div>
-  <div class="card p-4">
+  <div class="card p-4" {% if _remaining > 0 and _status == 'POSTED' %}style="border-color:var(--pos);"{% endif %}>
     <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Remaining") }}</p>
-    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
-      {{ num((credit_note.total|float) - (credit_note.amount_allocated|float), 2) }}
+    <p class="mt-1 text-sm font-semibold ink-1 tabular-nums" {% if _remaining > 0 and _status == 'POSTED' %}style="color:var(--pos);"{% endif %}>
+      {{ num(_remaining, 2) }}
     </p>
   </div>
 </div>
 
-{# ── Applied-to section ── #}
+{# ── Applications (0227) ── #}
+{% if capp %}
+{% set credit = credit_note %}
+{% include "_partials/credit_applications.html" with context %}
+{% else %}
 <div class="mb-8">
   <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Applied To") }}</h2>
   <div class="card px-4 py-3 text-sm ink-2">
@@ -156,12 +164,13 @@
     <a
       href="/invoices/{{ credit_note.original_invoice_id }}"
       class="sae hover:underline font-medium"
-    >{{ credit_note.original_invoice_id }}</a>
+    >{{ (original_invoice.number if original_invoice else None) or _("View invoice") }}</a>
     {% else %}
     <span class="ink-3">{{ _("Unapplied — not linked to an invoice") }}</span>
     {% endif %}
   </div>
 </div>
+{% endif %}
 
 {# ── Lines ── #}
 <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>
@@ -226,10 +235,8 @@
 </div>
 {% endif %}
 
-{# ── Change log stub ── #}
-<div class="card px-4 py-6 text-center text-sm ink-3" style="border-style:dashed;">
-  {{ _("Change log view — TODO") }}
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="credit_note", history_id=credit_note.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if credit_note #}
 

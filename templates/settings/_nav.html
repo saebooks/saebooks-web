@@ -16,11 +16,14 @@
 <nav class="mb-6 flex flex-wrap items-center gap-1 border-b border-gray-200 dark:border-gray-700 pb-3">
   {{ _tab("/settings", _("Overview"), _path == "/settings") }}
   {{ _tab("/settings/company", _("Organisation"), _path.startswith("/settings/company")) }}
+  {{ _tab("/settings/documents", _("Documents and email"), _path.startswith("/settings/documents")) }}
+  {{ _tab("/settings/numbering", _("Numbering"), _path.startswith("/settings/numbering")) }}
   {% if _mode == "full" %}
   {{ _tab("/tax-codes", _("Tax codes"), _path.startswith("/tax-codes")) }}
   {{ _tab("/bank-accounts", _("Banking"), _path.startswith("/bank-accounts") or _path.startswith("/bank-rules")) }}
+  {{ _tab("/settings/exchange-rates", _("Exchange rates"), _path.startswith("/settings/exchange-rates")) }}
   {% endif %}
-  {{ _tab("/settings/users", _("Users"), _path.startswith("/settings/users")) }}
+  {{ _tab("/settings/users", _("Users"), _path.startswith("/settings/users") or _path.startswith("/settings/roles")) }}
   {% if _mode == "full" and (request.session.get("user_role", "") in ("owner", "admin") or request.session.get("is_sae_staff")) %}
   {{ _tab("/settings/period-locks", _("Period locks"), _path.startswith("/settings/period-locks")) }}
   {% endif %}

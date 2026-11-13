@@ -46,14 +46,86 @@
     <p class="text-xs ink-3 leading-relaxed">{{ _("Assets, liabilities and equity as at a date.") }}</p>
   </a>
 
+  <a href="/stock/reports/sales-by-item" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="package" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Stock") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Sales by item") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("What sold, what it cost and the margin, per product or service.") }}</p>
+  </a>
+
+  <a href="/stock/reports/purchases-by-item" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="package-plus" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Stock") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Purchases by item") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("What was bought and the average cost, per item.") }}</p>
+  </a>
+
+  <a href="/reports/purchases-by-supplier" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="truck" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Spending") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Purchases by supplier") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("What you spent with each supplier on bills and expenses.") }}</p>
+  </a>
+
+  <a href="/stock" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="warehouse" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Stock") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Stock on hand and value") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Quantity and value per item at a date, checked against the balance sheet.") }}</p>
+  </a>
+
   <a href="/reports/trial-balance" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="list-checks" class="w-4 h-4 ink-3" aria-hidden="true"></i>
       <span class="nav-section-label">{{ _("Ledger") }}</span>
     </div>
     <h2 class="font-display text-lg ink-1 mb-1">{{ _("Trial Balance") }}</h2>
-    <p class="text-xs ink-3 leading-relaxed">{{ _("Debits and credits per account with balanced indicator.") }}</p>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Debits and credits for every account, and whether they balance.") }}</p>
   </a>
+  <a href="/reports/general-ledger" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="book-open" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Ledger") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("General Ledger") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Every transaction in every account, with opening and closing balances.") }}</p>
+  </a>
+
+  <a href="/reports/journal" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="list" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Ledger") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Journal") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Every posted entry with all of its lines, in date order.") }}</p>
+  </a>
+
+  <a href="/reports/periods?report=profit_loss&amp;period=month" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="columns-3" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Statement") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Month by Month") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Profit and loss or balance sheet by month, quarter or year, with the change from the period before.") }}</p>
+  </a>
+
+  <a href="/reports/accountant-pack" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="briefcase" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Year end") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Accountant Pack") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("All the reports your accountant asks for at year end, in one download.") }}</p>
+  </a>
+
   <a href="/reports/statement-pack" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="files" class="w-4 h-4 ink-3" aria-hidden="true"></i>
@@ -68,7 +140,7 @@
       <span class="nav-section-label">{{ _("Period end") }}</span>
     </div>
     <h2 class="font-display text-lg ink-1 mb-1">{{ _("Year-End Close") }}</h2>
-    <p class="text-xs ink-3 leading-relaxed">{{ _("Zero P&L into retained earnings and lock the period (admin).") }}</p>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Move the year's profit into retained earnings and lock the year. Administrators only.") }}</p>
   </a>
 
   <a href="/reports/cashflow" class="card p-5 block transition-shadow hover:shadow-md">
@@ -117,7 +189,7 @@
       <span class="nav-section-label">{{ _("Budget") }}</span>
     </div>
     <h2 class="font-display text-lg ink-1 mb-1">{{ _("Budget vs Actual") }}</h2>
-    <p class="text-xs ink-3 leading-relaxed">{{ _("Budget, actual and variance per account for a period.") }} <a href="/reports/budget-vs-actual?export=csv" class="sae hover:underline text-[10px]">{{ _("Export CSV") }}</a> {{ _("(and P&L, TB, etc. — see Tier 2 spec)") }}</p>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Budgeted against actual income and expenses, with the difference for each account.") }}</p>
   </a>
 
   <a href="/reports/pl-by-segment" class="card p-5 block transition-shadow hover:shadow-md">
@@ -135,7 +207,7 @@
       <span class="nav-section-label">{{ _("Revenue") }}</span>
     </div>
     <h2 class="font-display text-lg ink-1 mb-1">{{ _("Revenue by Customer") }}</h2>
-    <p class="text-xs ink-3 leading-relaxed">{{ _("Invoiced revenue (ex-GST) per customer with PSI 80/20 concentration flag.") }}</p>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Invoiced income before GST for each customer, and whether one customer makes up most of it.") }}</p>
   </a>
 
   <a href="/reports/depreciation-schedule" class="card p-5 block transition-shadow hover:shadow-md">
@@ -150,10 +222,47 @@
   <a href="/reports/fx-revaluation" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="globe" class="w-4 h-4 ink-3" aria-hidden="true"></i>
-      <span class="nav-section-label">{{ _("FX") }}</span>
+      <span class="nav-section-label">{{ _("Foreign currency") }}</span>
     </div>
-    <h2 class="font-display text-lg ink-1 mb-1">{{ _("FX Revaluation") }}</h2>
-    <p class="text-xs ink-3 leading-relaxed">{{ _("Open foreign-currency invoices and bills revalued at spot rate.") }}</p>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Foreign currency revaluation") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("What is still owed in other currencies, at the booked rate and today's rate. Post the month-end adjustment from here.") }}</p>
+  </a>
+
+  <a href="/reports/data-export" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="archive" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Your data") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Backup and Export") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Download everything held for this company as files you can open in a spreadsheet.") }}</p>
+  </a>
+
+  {# b15 (P2-5, P2-6) #}
+  <a href="/reports/cash-forecast" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="trending-up" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Cash") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Cash forecast") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Your bank balance week by week, from invoices you expect to be paid and bills you have to pay.") }}</p>
+  </a>
+
+  <a href="/reports/aged-detail?side=receivables" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="list-tree" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Receivables") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Who owes you, invoice by invoice") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Every unpaid invoice under its customer, aged by due date or invoice date.") }}</p>
+  </a>
+
+  <a href="/reports/aged-detail?side=payables" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="list-tree" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Payables") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("What you owe, bill by bill") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Every unpaid bill under its supplier, aged by due date or bill date.") }}</p>
   </a>
 
   {% if request.state.jp.features.tax_reports %}

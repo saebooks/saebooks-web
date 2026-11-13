@@ -97,35 +97,51 @@ from saebooks_web.routes.contacts import router as contacts_router
 from saebooks_web.routes.parties import router as parties_router
 from saebooks_web.routes.credit_notes import router as credit_notes_router
 from saebooks_web.routes.transfers import router as transfers_router
+from saebooks_web.routes.loans import router as loans_router  # batch 14, P0-44
+from saebooks_web.routes.owner_money import router as owner_money_router  # batch 14, P1-47
+from saebooks_web.routes.tpar import router as tpar_router  # batch 14, P1-74
 from saebooks_web.routes.receipts import router as receipts_router
 from saebooks_web.routes.supplier_credit_notes import router as supplier_credit_notes_router
+from saebooks_web.routes.payment_allocations import router as payment_allocations_router
 from saebooks_web.routes.reclassifications import router as reclassifications_router
+from saebooks_web.routes.corrections import router as corrections_router  # batch 13
 from saebooks_web.routes.dashboard import router as dashboard_router
 from saebooks_web.routes.demo_isolation import router as demo_isolation_router
 from saebooks_web.routes.switch_company import router as switch_company_router
 from saebooks_web.routes.locale import router as locale_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.imports import router as imports_router
+from saebooks_web.routes.day_one import router as day_one_router
 from saebooks_web.routes.inbox import router as inbox_router  # Document Inbox (#33)
 from saebooks_web.routes.invoices import router as invoices_router
 from saebooks_web.routes.email_log import router as email_log_router
 from saebooks_web.routes.quotes import router as quotes_router
 from saebooks_web.routes.items import router as items_router
+from saebooks_web.routes.stock import router as stock_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
 from saebooks_web.routes.journal_templates import router as journal_templates_router
 from saebooks_web.routes.employees import router as employees_router
 from saebooks_web.routes.super_funds import router as super_funds_router
 from saebooks_web.routes.pay_run import router as pay_run_router
+from saebooks_web.routes.wages import router as wages_router
+from saebooks_web.routes.payroll_compliance import router as payroll_compliance_router
 from saebooks_web.routes.payments import router as payments_router
+from saebooks_web.routes.remittance import router as remittance_router
+from saebooks_web.routes.terms import router as terms_router
 from saebooks_web.routes.profile import router as profile_router
 from saebooks_web.routes.projects import router as projects_router
 from saebooks_web.routes.proration import router as proration_router
 from saebooks_web.routes.purchase_orders import router as purchase_orders_router
 from saebooks_web.routes.reconciliation import router as reconciliation_router
+from saebooks_web.routes.bank_feeds import router as bank_feeds_router
 from saebooks_web.routes.statements import router as statements_router
+from saebooks_web.routes.getting_paid import router as getting_paid_router  # b11 getting paid + public /pay
+from saebooks_web.routes.recurring_bills import router as recurring_bills_router  # b11 /recurring-bills
 from saebooks_web.routes.statement_templates import router as statement_templates_router
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.reports import router as reports_router
+from saebooks_web.routes.reports_ledger import router as reports_ledger_router  # batch 7
+from saebooks_web.routes.fx import router as fx_router
 from saebooks_web.routes.search import router as search_router
 from saebooks_web.routes.companies import router as companies_router
 from saebooks_web.routes.settings import router as settings_router
@@ -133,6 +149,7 @@ from saebooks_web.routes.bad_debts import router as bad_debts_router  # Phase 2 
 from saebooks_web.routes.bad_debt_recovery import router as bad_debt_recovery_router  # Phase 2 / Task 11
 from saebooks_web.routes.tax_codes import router as tax_codes_router
 from saebooks_web.routes.tax_returns import router as tax_returns_router
+from saebooks_web.routes.bas import router as bas_router  # Batch 5: BAS periods, GST detail, settle
 from saebooks_web.routes.contact import router as contact_router
 from saebooks_web.routes.integrations import router as integrations_router  # Cat-C W6
 from saebooks_web.routes.attachments import router as attachments_router  # Phase 1.5
@@ -149,6 +166,17 @@ from saebooks_web.render import router as render_router
 # Internal server-to-server outbound email (engine #32) — token-gated,
 # exempt from session auth (same /internal/ skip lists as render).
 from saebooks_web.comms import router as comms_router
+# b15 phone and polish (2026-11-13 sweep) — small routers with their own
+# paths, registered ahead of the big routers (see the include block below).
+from saebooks_web.routes.attention import router as b15_attention_router
+from saebooks_web.routes.contact_hub import router as b15_contact_hub_router
+from saebooks_web.routes.b15_reports import router as b15_reports_router
+from saebooks_web.routes.year_end import router as b15_year_end_router
+from saebooks_web.routes.payroll_setup import router as b15_payroll_setup_router
+from saebooks_web.routes.preferences_extra import router as b15_preferences_router
+from saebooks_web.routes.inbox_email_in import router as b15_inbox_email_in_router
+from saebooks_web.routes.bill_duplicates import router as b15_bill_duplicates_router
+from saebooks_web.routes.asset_disposal import router as b15_asset_disposal_router
 from saebooks_web.brand import current_brand
 from saebooks_web import __version__
 
@@ -242,6 +270,13 @@ else:
 # which point CompanyContextMiddleware has already set request.state.jp +
 # active_company_jurisdiction. Redirects a resolved non-AU company away from
 # AU-only payroll/BAS pages reached by direct URL (nav already hides them).
+# b15 (P2-7): drop or convert malformed date query parameters so a bad
+# link falls back to the default period instead of a server error. Pure
+# ASGI, innermost: it only rewrites the query string the routes read.
+from saebooks_web.date_params import DateParamMiddleware, apply_default_timezone
+app.add_middleware(DateParamMiddleware)
+apply_default_timezone()
+
 from saebooks_web.jurisdiction_gate import JurisdictionGateMiddleware
 app.add_middleware(JurisdictionGateMiddleware)
 
@@ -413,9 +448,28 @@ app.include_router(authentik_sso_router)
 app.include_router(eid_sso_router)
 app.include_router(webauthn_router)
 app.include_router(public_auth_router)
+# b11 "getting paid" — mounted before contacts/invoices/statements so its
+# literal paths (/statements/send, /invoices/{id}/send-reminder, ...) are not
+# swallowed by those routers' /{id} catch-alls. Includes the PUBLIC /pay/{token}.
+app.include_router(getting_paid_router)
+app.include_router(recurring_bills_router)
 app.include_router(contact_router)
 app.include_router(billing_router)
 app.include_router(dashboard_router)
+# b15 — before contacts/bills/inbox/reports so fixed paths such as
+# /bills/duplicate-check and /inbox/_email-in are not read as an id.
+for _b15_router in (
+    b15_attention_router,
+    b15_contact_hub_router,
+    b15_reports_router,
+    b15_year_end_router,
+    b15_payroll_setup_router,
+    b15_preferences_router,
+    b15_inbox_email_in_router,
+    b15_bill_duplicates_router,
+    b15_asset_disposal_router,
+):
+    app.include_router(_b15_router)
 app.include_router(demo_isolation_router)
 app.include_router(switch_company_router)
 app.include_router(locale_router)
@@ -431,16 +485,24 @@ app.include_router(time_entries_router)
 app.include_router(purchase_orders_router)
 app.include_router(proration_router)
 app.include_router(payments_router)
+app.include_router(remittance_router)
+app.include_router(terms_router)
 app.include_router(credit_notes_router)
 app.include_router(transfers_router)
+app.include_router(loans_router)
+app.include_router(owner_money_router)
+app.include_router(tpar_router)
 app.include_router(receipts_router)
 app.include_router(supplier_credit_notes_router)
+app.include_router(payment_allocations_router)
 app.include_router(journal_entries_router)
 app.include_router(reclassifications_router)
+app.include_router(corrections_router)  # batch 13: fix, history, approvals
 app.include_router(journal_templates_router)
 app.include_router(accounts_router)
 app.include_router(account_ranges_router)
 app.include_router(items_router)
+app.include_router(stock_router)
 app.include_router(tax_codes_router)
 app.include_router(projects_router)
 app.include_router(fixed_assets_router)
@@ -450,11 +512,14 @@ app.include_router(bank_rules_router)
 app.include_router(branches_router)
 app.include_router(bank_statement_lines_router)
 app.include_router(reconciliation_router)
+app.include_router(bank_feeds_router)
 app.include_router(statements_router)
 app.include_router(statement_templates_router)
 app.include_router(budgets_router)
 app.include_router(allocations_router)
+app.include_router(fx_router)
 app.include_router(reports_router)
+app.include_router(reports_ledger_router)
 app.include_router(search_router)
 app.include_router(profile_router)
 app.include_router(companies_router)
@@ -464,11 +529,15 @@ app.include_router(bad_debt_recovery_router)
 app.include_router(employees_router)
 app.include_router(super_funds_router)
 app.include_router(pay_run_router)
+app.include_router(wages_router)
+app.include_router(payroll_compliance_router)
 app.include_router(admin_router)
 app.include_router(imports_router)
+app.include_router(day_one_router)
 app.include_router(inbox_router)
 app.include_router(ato_sbr_router)
 app.include_router(tax_returns_router)
+app.include_router(bas_router)
 # Cat-C W6: integrations dashboard + Stripe Connect + LEI/CH HTMX fragments.
 app.include_router(integrations_router)
 # Phase 1.5: attachment panel (upload / delete / download relay).

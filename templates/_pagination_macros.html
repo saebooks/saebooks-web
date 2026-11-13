@@ -14,7 +14,7 @@
 
 {%- macro _qs(filters) -%}
   {%- for k, v in (filters or {}).items() if v -%}
-    &amp;{{ k }}={{ v }}
+    &amp;{{ k }}={{ v | string | urlencode }}
   {%- endfor -%}
 {%- endmacro -%}
 

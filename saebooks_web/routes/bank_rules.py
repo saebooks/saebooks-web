@@ -30,22 +30,91 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.i18n import gettext as _
 
 router = APIRouter()
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
-# Fields sent in create/edit payload
+# Engine fields (api/v1/schemas.BankRuleCreate). Batch 4 (P1-18): this form
+# used to post a made-up schema (match_field / match_operator / match_value /
+# action_account_id) that the engine silently ignored and then rejected, so
+# no rule could be created from the screens at all.
 _EDIT_FIELDS = (
     "name",
-    "match_field",
-    "match_operator",
-    "match_value",
-    "action_account_id",
-    "action_tax_code_id",
+    "match_type",
+    "match_pattern",
+    "account_id",
+    "tax_code",
+    "contact_id",
+    "description_template",
     "priority",
+    "direction",
+    "amount_min",
+    "amount_max",
+    "bank_account_id",
 )
+_MATCH_TYPES = ("CONTAINS", "STARTS_WITH", "EXACT", "REGEX")
+
+
+def _payload_from_form(form: dict[str, str], *, partial: bool = False) -> dict[str, object]:
+    """Build the engine payload from the submitted form."""
+    payload: dict[str, object] = {}
+    for field in ("name", "match_pattern", "account_id"):
+        val = (form.get(field) or "").strip()
+        if val:
+            payload[field] = val
+    mt = (form.get("match_type") or "CONTAINS").strip().upper()
+    payload["match_type"] = mt if mt in _MATCH_TYPES else "CONTAINS"
+    for field in ("tax_code", "contact_id", "description_template", "bank_account_id"):
+        val = (form.get(field) or "").strip()
+        payload[field] = val or None
+    direction = (form.get("direction") or "ANY").strip().upper()
+    payload["direction"] = direction if direction in ("ANY", "IN", "OUT") else "ANY"
+    for field in ("amount_min", "amount_max"):
+        val = (form.get(field) or "").strip().replace(",", "").replace("$", "")
+        payload[field] = val or None
+    priority_raw = (form.get("priority") or "").strip()
+    if priority_raw:
+        try:
+            payload["priority"] = int(priority_raw)
+        except ValueError:
+            payload["priority"] = priority_raw
+    payload["auto_create"] = (form.get("auto_create") or "").lower() in ("1", "on", "true")
+    payload["is_active"] = (form.get("is_active", "on") or "").lower() in ("1", "on", "true")
+    return payload
+
+
+async def _form_options(client) -> dict[str, list[dict]]:
+    """Accounts, GST codes, contacts and bank accounts for the rule form."""
+    accounts: list[dict] = []
+    for t in ("EXPENSE", "COST_OF_SALES", "OTHER_EXPENSE", "INCOME", "OTHER_INCOME",
+              "ASSET", "LIABILITY", "EQUITY"):
+        try:
+            r = await client.get("/api/v1/accounts", params={"account_type": t, "limit": 500, "offset": 0})
+        except Exception:  # noqa: BLE001 — options are best-effort
+            continue
+        if r.is_success:
+            accounts.extend(a for a in r.json().get("items", []) if not a.get("is_header"))
+    accounts.sort(key=lambda a: a.get("code", ""))
+    tax_codes: list[dict] = []
+    contacts: list[dict] = []
+    banks: list[dict] = []
+    try:
+        r = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+        if r.is_success:
+            tax_codes = r.json().get("items", [])
+        r = await client.get("/api/v1/contacts", params={"limit": 500, "offset": 0})
+        if r.is_success:
+            contacts = sorted(r.json().get("items", []), key=lambda c: (c.get("name") or "").lower())
+        r = await client.get("/api/v1/reconciliation/accounts")
+        if r.is_success:
+            payload = r.json()
+            banks = payload if isinstance(payload, list) else payload.get("items", [])
+    except Exception:  # noqa: BLE001
+        pass
+    return {"accounts": accounts, "tax_codes": tax_codes, "contacts": contacts, "banks": banks}
 
 
 def _require_auth(request: Request) -> str | None:
@@ -98,6 +167,18 @@ async def bank_rules_list(request: Request) -> HTMLResponse | RedirectResponse:
         else:
             error = f"API error: HTTP {resp.status_code}"
 
+        account_names: dict[str, str] = {}
+        if rules:
+            try:
+                options = await _form_options(client)
+                account_names = {
+                    a["id"]: f"{a.get('code', '')} {a.get('name', '')}".strip()
+                    for a in options["accounts"] + options["banks"]
+                }
+                account_names.update({c["id"]: c.get("name", "") for c in options["contacts"]})
+            except Exception:  # noqa: BLE001 — names are a nicety
+                account_names = {}
+
     flash = request.session.pop("flash", None)
 
     return _TEMPLATES.TemplateResponse(
@@ -105,6 +186,7 @@ async def bank_rules_list(request: Request) -> HTMLResponse | RedirectResponse:
         "bank_rules/list.html",
         {
             "rules": rules,
+            "names": account_names,
             "error": error,
             "flash": flash,
         },
@@ -123,12 +205,27 @@ async def bank_rule_new_form(request: Request) -> HTMLResponse | RedirectRespons
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    # "Make a rule from this line" on the reconcile screen pre-fills these.
+    q = request.query_params
+    form: dict[str, str] = {}
+    if q.get("pattern"):
+        pattern = q.get("pattern", "").strip()[:120]
+        form["match_pattern"] = pattern
+        form["name"] = pattern[:60]
+    for key in ("direction", "bank_account_id", "account_id"):
+        if q.get(key):
+            form[key] = q.get(key, "")
+
+    async with api_client(request) as client:
+        options = await _form_options(client)
+
     return _TEMPLATES.TemplateResponse(
         request,
         "bank_rules/new.html",
         {
-            "form": {},
+            "form": form,
             "errors": {},
+            **options,
         },
     )
 
@@ -146,33 +243,20 @@ async def bank_rule_create(request: Request) -> HTMLResponse | RedirectResponse:
 
     form_data = await request.form()
     form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
-
-    payload: dict[str, object] = {}
-    for field in ("name", "match_field", "match_operator", "match_value", "action_account_id"):
-        val = form.get(field, "").strip()
-        if val:
-            payload[field] = val
-    # Optional fields
-    tax_code = form.get("action_tax_code_id", "").strip()
-    if tax_code:
-        payload["action_tax_code_id"] = tax_code
-    priority_raw = form.get("priority", "").strip()
-    if priority_raw:
-        try:
-            payload["priority"] = int(priority_raw)
-        except ValueError:
-            payload["priority"] = priority_raw
+    payload = _payload_from_form(form)
 
     async with api_client(request) as client:
         resp = await client.post("/api/v1/bank_rules", json=payload)
 
-    if resp.status_code == 401:
-        request.session.clear()
-        return RedirectResponse(url="/login", status_code=303)
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
 
-    if resp.status_code == 201:
-        request.session["flash"] = "Bank rule created."
-        return RedirectResponse(url="/bank-rules", status_code=303)
+        if resp.status_code == 201:
+            request.session["flash"] = _("Bank rule created. It runs on every statement you import.")
+            return RedirectResponse(url="/bank-rules", status_code=303)
+
+        options = await _form_options(client)
 
     errors: dict[str, str] = {}
     if resp.status_code == 422:
@@ -183,7 +267,7 @@ async def bank_rule_create(request: Request) -> HTMLResponse | RedirectResponse:
     return _TEMPLATES.TemplateResponse(
         request,
         "bank_rules/new.html",
-        {"form": form, "errors": errors},
+        {"form": form, "errors": errors, **options},
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
 
@@ -279,7 +363,11 @@ async def bank_rule_edit_form(
 
     rule_obj = resp.json()
     form: dict[str, str] = {field: str(rule_obj.get(field) or "") for field in _EDIT_FIELDS}
-    form["version"] = str(rule_obj.get("version", ""))
+    form["auto_create"] = "on" if rule_obj.get("auto_create") else ""
+    form["is_active"] = "on" if rule_obj.get("is_active", True) else ""
+
+    async with api_client(request) as client:
+        options = await _form_options(client)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -289,6 +377,7 @@ async def bank_rule_edit_form(
             "form": form,
             "errors": {},
             "conflict": False,
+            **options,
         },
     )
 
@@ -314,59 +403,21 @@ async def bank_rule_update(
 
     form_data = await request.form()
     form: dict[str, str] = {k: v for k, v in form_data.items()}  # type: ignore[misc]
-
-    version = form.get("version", "")
-
-    payload: dict[str, object] = {}
-    for field in ("name", "match_field", "match_operator", "match_value", "action_account_id"):
-        val = form.get(field, "").strip()
-        if val:
-            payload[field] = val
-    tax_code = form.get("action_tax_code_id", "").strip()
-    if tax_code:
-        payload["action_tax_code_id"] = tax_code
-    priority_raw = form.get("priority", "").strip()
-    if priority_raw:
-        try:
-            payload["priority"] = int(priority_raw)
-        except ValueError:
-            payload["priority"] = priority_raw
+    payload = _payload_from_form(form)
 
     async with api_client(request) as client:
-        resp = await client.patch(
-            f"/api/v1/bank_rules/{rule_id}",
-            json=payload,
-            headers={"If-Match": version},
-        )
+        # BankRule has no version column — the engine PATCH takes no If-Match.
+        resp = await client.patch(f"/api/v1/bank_rules/{rule_id}", json=payload)
 
-    if resp.status_code == 401:
-        request.session.clear()
-        return RedirectResponse(url="/login", status_code=303)
+        if resp.status_code == 401:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=303)
 
-    if resp.status_code == 200:
-        request.session["flash"] = "Bank rule saved."
-        return RedirectResponse(url="/bank-rules", status_code=303)
+        if resp.status_code == 200:
+            request.session["flash"] = _("Bank rule saved.")
+            return RedirectResponse(url="/bank-rules", status_code=303)
 
-    if resp.status_code == 409:
-        async with api_client(request) as client:
-            latest_resp = await client.get(f"/api/v1/bank_rules/{rule_id}")
-        server_rule: dict = latest_resp.json() if latest_resp.is_success else {}
-        server_version = str(server_rule.get("version", ""))
-
-        conflict_form = dict(form)
-        conflict_form["version"] = server_version
-
-        return _TEMPLATES.TemplateResponse(
-            request,
-            "bank_rules/edit.html",
-            {
-                "rule": server_rule,
-                "form": conflict_form,
-                "errors": {},
-                "conflict": True,
-            },
-            status_code=409,
-        )
+        options = await _form_options(client)
 
     errors: dict[str, str] = {}
     if resp.status_code == 422:
@@ -378,10 +429,11 @@ async def bank_rule_update(
         request,
         "bank_rules/edit.html",
         {
-            "rule": None,
+            "rule": {"id": rule_id},
             "form": form,
             "errors": errors,
             "conflict": False,
+            **options,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )

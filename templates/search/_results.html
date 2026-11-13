@@ -1,38 +1,72 @@
 {# HTMX partial — search results list only, no outer chrome.
-   Context variables: q, hits, groups, total, error
+   Context variables: q, kind, kind_meta, offset, page_limit, hits, groups,
+   counts, total, error.
+
+   Quick view: up to 10 hits per kind, the full count per kind, and a
+   "View all" link when there are more. kind=<one kind>: every match of that
+   kind, 50 a page, with Previous / Next.
 #}
+
+{% macro hit_row(hit) -%}
+  <li class="px-4 py-3 flex items-start gap-3 hover:bg-[color:var(--paper-2)]">
+    <span class="mt-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ hit.badge_class }} shrink-0">
+      {{ hit.kind_label }}
+    </span>
+    <div class="min-w-0 flex-1">
+      <a href="{{ hit.web_url }}" class="text-sm font-medium sae hover:underline truncate block">
+        {{ hit.title }}
+      </a>
+      {% if hit.subtitle %}
+        <p class="text-xs ink-3 mt-0.5">{{ hit.subtitle }}</p>
+      {% endif %}
+    </div>
+    {% if hit.date %}<span class="text-xs ink-3 num shrink-0 mt-0.5">{{ hit.date }}</span>{% endif %}
+  </li>
+{%- endmacro %}
 
 {% if error %}
   <p class="text-sm" style="color:var(--neg);">{{ error }}</p>
 
 {% elif not q.strip() %}
-  <p class="text-sm ink-3">{{ _("Enter a search term above to find contacts, invoices, bills, and accounts.") }}</p>
+  <p class="text-sm ink-3">{{ _("Enter a search term above. You can search by number, reference, the supplier's invoice number, a contact's name or an amount such as 1513.59.") }}</p>
 
 {% elif total == 0 %}
   <p class="text-sm ink-3">{{ _("No results for") }} <strong>{{ q }}</strong>.</p>
+  {% if kind %}<p class="text-sm mt-2"><a class="sae hover:underline" href="/search?q={{ q | urlencode }}">{{ _("Search everything instead") }}</a></p>{% endif %}
+
+{% elif kind %}
+  {% set meta = kind_meta[kind] %}
+  {% set shown_to = [offset + hits|length, total]|min %}
+  <p class="text-sm ink-3 mb-4">
+    {{ _("%(label)s %(start)s to %(end)s of %(total)s for") % {"label": meta.plural, "start": offset + 1, "end": shown_to, "total": total} }}
+    <strong>{{ q }}</strong> ·
+    <a class="sae hover:underline" href="/search?q={{ q | urlencode }}">{{ _("Back to all results") }}</a>
+  </p>
+  <ul class="card divide-y divide-[color:var(--line)]">
+    {% for hit in hits %}{{ hit_row(hit) }}{% endfor %}
+  </ul>
+  <div class="mt-4 flex items-center justify-between text-sm">
+    {% if offset > 0 %}
+      <a class="btn-secondary text-sm" href="/search?q={{ q | urlencode }}&amp;kind={{ kind }}&amp;offset={{ [offset - page_limit, 0]|max }}">{{ _("Previous") }}</a>
+    {% else %}<span></span>{% endif %}
+    {% if offset + page_limit < total %}
+      <a class="btn-secondary text-sm" href="/search?q={{ q | urlencode }}&amp;kind={{ kind }}&amp;offset={{ offset + page_limit }}">{{ _("Next") }}</a>
+    {% endif %}
+  </div>
 
 {% else %}
-  <p class="text-sm ink-3 mb-4">{{ total }} result{{ "s" if total != 1 else "" }} for <strong>{{ q }}</strong></p>
+  <p class="text-sm ink-3 mb-4">{{ ngettext("%(n)s result for", "%(n)s results for", total) % {"n": total} }} <strong>{{ q }}</strong></p>
 
   {% for group in groups %}
     <section class="mb-6">
-      <h2 class="text-xs font-semibold ink-3 uppercase tracking-wide mb-2">{{ group.kind_label }}s</h2>
+      <div class="flex items-baseline justify-between mb-2">
+        <h2 class="text-xs font-semibold ink-3 uppercase tracking-wide">{{ group.kind_label }} <span class="num">({{ group.count }})</span></h2>
+        {% if group.count > group.hits|length %}
+          <a class="text-xs sae hover:underline" href="/search?q={{ q | urlencode }}&amp;kind={{ group.kind }}">{{ _("View all %(n)s") % {"n": group.count} }}</a>
+        {% endif %}
+      </div>
       <ul class="card divide-y divide-[color:var(--line)]">
-        {% for hit in group.hits %}
-          <li class="px-4 py-3 flex items-start gap-3 hover:bg-[color:var(--paper-2)]">
-            <span class="mt-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ hit.badge_class }} shrink-0">
-              {{ hit.kind_label }}
-            </span>
-            <div class="min-w-0 flex-1">
-              <a href="{{ hit.web_url }}" class="text-sm font-medium sae hover:underline truncate block">
-                {{ hit.title }}
-              </a>
-              {% if hit.subtitle %}
-                <p class="text-xs ink-3 mt-0.5">{{ hit.subtitle }}</p>
-              {% endif %}
-            </div>
-          </li>
-        {% endfor %}
+        {% for hit in group.hits %}{{ hit_row(hit) }}{% endfor %}
       </ul>
     </section>
   {% endfor %}

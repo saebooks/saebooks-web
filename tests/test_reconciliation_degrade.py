@@ -120,8 +120,11 @@ async def test_reconciliation_match_engine_down_flashes_and_redirects(
     respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/accounts").mock(
         return_value=Response(200, json=[])
     )
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
-        return_value=Response(200, json=[])
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/lines").mock(
+        return_value=Response(200, json={"items": [], "total": 0, "counts": {}})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/statements").mock(
+        return_value=Response(200, json={"items": []})
     )
     async with _client() as client:
         client.cookies.update(resp.cookies)
@@ -147,11 +150,30 @@ async def test_reconciliation_lines_paginate_at_50(
             "txn_date": "2026-01-01",
             "description": f"LINE-{i:03d}",
             "amount": "-1.00",
+            "reference": None,
+            "status": "UNMATCHED",
+            "remaining": "-1.00",
+            "allocated": "0",
+            "matches": [],
+            "suggested_rule": None,
+            "reconciliation_id": None,
+            "ignored_reason": None,
         }
         for i in range(120)
     ]
-    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/unmatched").mock(
-        return_value=Response(200, json=lines)
+
+    # Batch 4: the engine pages the lines (limit/offset) — mock that.
+    def _page(request):
+        off = int(request.url.params.get("offset", 0))
+        lim = int(request.url.params.get("limit", 50))
+        return Response(200, json={
+            "items": lines[off:off + lim], "total": len(lines), "limit": lim,
+            "offset": off, "counts": {"TO_MATCH": 120, "MATCHED": 0, "IGNORED": 0},
+        })
+
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/lines").mock(side_effect=_page)
+    respx_mock.get(f"{_API_BASE}/api/v1/reconciliation/statements").mock(
+        return_value=Response(200, json={"items": []})
     )
 
     async with _client() as client:

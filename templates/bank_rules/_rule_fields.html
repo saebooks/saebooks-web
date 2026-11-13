@@ -1,0 +1,103 @@
+{# Shared bank rule fields (engine schema). Context: form, errors, accounts, tax_codes, contacts, banks. #}
+{% macro err(key) %}{% if errors.get(key) %}<p class="mt-1 text-xs" style="color:var(--neg)">{{ errors[key] }}</p>{% endif %}{% endmacro %}
+<div class="space-y-4">
+  <div>
+    <label for="name" class="block text-sm font-medium ink-2 mb-1">{{ _("Name") }} <span style="color:var(--neg)">*</span></label>
+    <input type="text" id="name" name="name" required maxlength="255" value="{{ form.get('name', '') }}" class="saebooks-input w-full">
+    {{ err("name") }}
+  </div>
+
+  <fieldset class="card p-3 space-y-3">
+    <legend class="text-xs ink-3 px-1">{{ _("When a bank line…") }}</legend>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div>
+        <label for="match_type" class="block text-xs ink-3 mb-1">{{ _("Description") }}</label>
+        <select id="match_type" name="match_type" class="saebooks-input w-full">
+          {% for v, label in [("CONTAINS", _("contains")), ("STARTS_WITH", _("starts with")), ("EXACT", _("is exactly")), ("REGEX", _("matches the pattern"))] %}
+          <option value="{{ v }}" {% if form.get('match_type', 'CONTAINS') == v %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label for="match_pattern" class="block text-xs ink-3 mb-1">{{ _("Text") }} <span style="color:var(--neg)">*</span></label>
+        <input type="text" id="match_pattern" name="match_pattern" required value="{{ form.get('match_pattern', '') }}" class="saebooks-input w-full font-mono" placeholder="{{ _('e.g. TELSTRA') }}">
+        {{ err("match_pattern") }}
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div>
+        <label for="direction" class="block text-xs ink-3 mb-1">{{ _("Money") }}</label>
+        <select id="direction" name="direction" class="saebooks-input w-full">
+          {% for v, label in [("ANY", _("in or out")), ("OUT", _("out only")), ("IN", _("in only"))] %}
+          <option value="{{ v }}" {% if form.get('direction', 'ANY') == v %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="amount_min" class="block text-xs ink-3 mb-1">{{ _("At least") }}</label>
+        <input id="amount_min" name="amount_min" inputmode="decimal" value="{{ form.get('amount_min', '') }}" class="saebooks-input w-full font-mono">
+      </div>
+      <div>
+        <label for="amount_max" class="block text-xs ink-3 mb-1">{{ _("At most") }}</label>
+        <input id="amount_max" name="amount_max" inputmode="decimal" value="{{ form.get('amount_max', '') }}" class="saebooks-input w-full font-mono">
+      </div>
+      <div>
+        <label for="bank_account_id" class="block text-xs ink-3 mb-1">{{ _("On account") }}</label>
+        <select id="bank_account_id" name="bank_account_id" class="saebooks-input w-full">
+          <option value="">{{ _("any account") }}</option>
+          {% for b in banks %}<option value="{{ b.id }}" {% if form.get('bank_account_id') == b.id %}selected{% endif %}>{{ b.code }} — {{ b.name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    {{ err("amount_min") }}{{ err("amount_max") }}{{ err("direction") }}
+  </fieldset>
+
+  <fieldset class="card p-3 space-y-3">
+    <legend class="text-xs ink-3 px-1">{{ _("…record it as") }}</legend>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label for="account_id" class="block text-xs ink-3 mb-1">{{ _("Account") }} <span style="color:var(--neg)">*</span></label>
+        <select id="account_id" name="account_id" required class="saebooks-input w-full">
+          <option value="">{{ _("— choose —") }}</option>
+          {% for a in accounts %}<option value="{{ a.id }}" {% if form.get('account_id') == a.id %}selected{% endif %}>{{ a.code }} — {{ a.name }}</option>{% endfor %}
+        </select>
+        {{ err("account_id") }}
+      </div>
+      <div>
+        <label for="tax_code" class="block text-xs ink-3 mb-1">{{ _("GST code") }}</label>
+        <select id="tax_code" name="tax_code" class="saebooks-input w-full">
+          <option value="">{{ _("No GST") }}</option>
+          {% for t in tax_codes %}<option value="{{ t.code }}" {% if form.get('tax_code') == t.code %}selected{% endif %}>{{ t.code }} — {{ t.name or t.description or '' }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="contact_id" class="block text-xs ink-3 mb-1">{{ _("Supplier or customer") }}</label>
+        <select id="contact_id" name="contact_id" class="saebooks-input w-full">
+          <option value="">{{ _("— none —") }}</option>
+          {% for c in contacts %}<option value="{{ c.id }}" {% if form.get('contact_id') == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+        <p class="text-xs ink-3 mt-1">{{ _("With a contact, the rule records an expense or money received in their name.") }}</p>
+      </div>
+      <div>
+        <label for="description_template" class="block text-xs ink-3 mb-1">{{ _("Description to use (optional)") }}</label>
+        <input id="description_template" name="description_template" value="{{ form.get('description_template', '') }}" class="saebooks-input w-full">
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="flex flex-wrap items-center gap-6">
+    <label class="flex items-center gap-2 text-sm ink-2">
+      <input type="checkbox" name="auto_create" {% if form.get('auto_create') in ('on', 'true', 'True', '1') %}checked{% endif %}>
+      {{ _("Record and match automatically when a statement is imported") }}
+    </label>
+    <label class="flex items-center gap-2 text-sm ink-2">
+      <input type="checkbox" name="is_active" {% if form.get('is_active', 'on') in ('on', 'true', 'True', '1') %}checked{% endif %}>
+      {{ _("Rule is on") }}
+    </label>
+    <div>
+      <label for="priority" class="text-xs ink-3 mr-1">{{ _("Priority") }}</label>
+      <input type="number" id="priority" name="priority" value="{{ form.get('priority', '0') }}" class="saebooks-input w-20">
+    </div>
+  </div>
+  <p class="text-xs ink-3">{{ _("Without automatic recording, the rule shows as a one-click suggestion on the reconcile screen.") }}</p>
+</div>

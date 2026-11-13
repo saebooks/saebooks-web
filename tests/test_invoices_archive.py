@@ -194,7 +194,11 @@ async def test_invoice_archive_button_hidden_when_posted(
     assert resp.status_code == 200
     # Archive form must not be present for POSTED invoices.
     assert f"/invoices/{_INVOICE_ID}/archive" not in resp.text
-    # The plain "Edit" link is DRAFT-only; POSTED invoices instead show the
-    # dev-tier "Edit (override)" link (see templates/invoices/detail.html).
-    assert "Edit (override)" in resp.text
+    # The plain "Edit" link is DRAFT-only. Batch 13 (P1-8): a POSTED invoice
+    # no longer offers the full edit form (it could not be saved); it offers
+    # "Fix or correct" instead (details, credit and reissue, void and copy,
+    # change customer, write off). "Edit (override)" stays behind the
+    # edit_frozen_state feature only.
+    assert f"/invoices/{_INVOICE_ID}/fix" in resp.text
+    assert "Fix or correct" in resp.text
     assert ">{}</a>".format("Edit") not in resp.text

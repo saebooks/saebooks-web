@@ -77,6 +77,14 @@ current_currency: ContextVar[str] = ContextVar(
     "saebooks_web_currency", default=DEFAULT_CURRENCY
 )
 
+#: b15 (P2-9): the user's "always show thousands separators" preference
+#: (``sb_num_group`` cookie, set on the Preferences page). When True every
+#: money() and num() call groups digits, whatever the call site's default.
+#: Set per request by LocaleMiddleware, same isolation as the locale.
+force_grouping: ContextVar[bool] = ContextVar(
+    "saebooks_web_force_grouping", default=False
+)
+
 
 def _format_locale() -> str:
     """The babel *formatting* locale for the active request's UI language."""
@@ -188,6 +196,7 @@ def money(
     restore their pre-existing ungrouped AU output.
     """
     amount = float(value or 0)
+    grouping = grouping or force_grouping.get()
     currency_code = (ccy or current_currency.get()).upper()
     locale = _money_locale(currency_code)
     try:
@@ -241,6 +250,7 @@ def num(value: float | int | str | None, decimals: int = 2, grouping: bool = Fal
     back in with ``grouping=True`` at that call site.
     """
     amount = float(value or 0)
+    grouping = grouping or force_grouping.get()
     try:
         return _babel_format_decimal(
             amount,

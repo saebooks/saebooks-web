@@ -14,10 +14,11 @@
 
 <div class="mb-6">
   <h1 class="text-2xl font-semibold ink-1">{{ _("Data Imports") }}</h1>
-  <p class="text-sm ink-3 mt-1">{{ _("Import bank statements, chart of accounts, or migrate from another system") }}</p>
+  <p class="text-sm ink-3 mt-1">{{ _("Bring your business across from another system, or load bank statements and your chart of accounts.") }}</p>
+  <p class="text-sm mt-2"><a href="/setup" class="sae hover:underline">{{ _("New here? Follow the setup checklist →") }}</a></p>
 </div>
 
-<div class="grid grid-cols-3 gap-5">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
   {# Bank statements #}
   <a href="/admin/imports/bank"
@@ -51,20 +52,22 @@
     <div class="mt-4 text-xs font-medium" style="color:var(--pos);">{{ _("Import chart of accounts →") }}</div>
   </a>
 
-  {# QBO migration #}
-  <div class="card p-6 opacity-75">
-    <div class="flex items-center gap-3 mb-3">
-      <div class="rounded-lg p-2" style="background:var(--surface-2);">
-        <svg class="w-6 h-6 ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-        </svg>
-      </div>
-      <h2 class="text-base font-semibold ink-1">{{ _("QuickBooks Online") }}</h2>
-    </div>
-    <p class="text-sm ink-3">{{ _("Migrate contacts and accounts from a QuickBooks Online CSV export.") }}</p>
-    <div class="mt-4 text-xs ink-3">{{ _("Use the Setup → Admin panel to access QBO migration.") }}</div>
-  </div>
+  {# ── Day one (b06): moving a business in ── #}
+  {% for href, title, desc, cta in [
+      ("/admin/imports/csv/contacts", _("Customers and suppliers"), _("From Xero, MYOB or QuickBooks. Matched by ABN, then name — never duplicated."), _("Import contacts →")),
+      ("/admin/imports/csv/items", _("Products and services"), _("Item list with stock on hand and unit cost at your conversion date."), _("Import items →")),
+      ("/setup/opening-balances", _("Opening balances"), _("Your trial balance from the old system, with a check that it balances."), _("Enter opening balances →")),
+      ("/admin/imports/csv/open-invoices", _("Unpaid invoices"), _("Customer invoices still owing at your conversion date — no income or GST counted twice."), _("Bring them across →")),
+      ("/admin/imports/csv/open-bills", _("Unpaid bills"), _("Supplier bills still owing at your conversion date."), _("Bring them across →")),
+      ("/admin/imports/csv/bills", _("Supplier bills"), _("A batch of bills as drafts to check and post."), _("Import bills →")),
+      ("/admin/imports/xero", _("Moving from Xero"), _("Step-by-step: which Xero exports to download and where each one goes."), _("See the steps →")),
+    ] %}
+  <a href="{{ href }}" class="card p-6 hover:shadow-md transition-all group">
+    <h2 class="text-base font-semibold ink-1 mb-2">{{ title }}</h2>
+    <p class="text-sm ink-3">{{ desc }}</p>
+    <div class="mt-4 text-xs font-medium sae">{{ cta }}</div>
+  </a>
+  {% endfor %}
 
 </div>
 

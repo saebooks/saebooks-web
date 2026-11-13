@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Check the import") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="flex items-center gap-2 mb-1 text-sm">
+  <a href="/admin/imports" class="ink-3 hover:ink-2">{{ _("Imports") }}</a><span class="ink-4">/</span>
+  <a href="/admin/imports/csv/{{ kind }}" class="ink-3 hover:ink-2">{{ _(spec.title) }}</a><span class="ink-4">/</span>
+  <span class="ink-1 font-medium">{{ _("Check") }}</span>
+</div>
+<div class="mb-5">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Check the import") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Nothing has been saved yet. Rows marked “left out” will not be imported; fix them in the file and upload it again if you need them.") }}</p>
+</div>
+
+{% set to_create = result.to_create if result.to_create is defined else result.created %}
+<div class="card p-4 mb-5 flex flex-wrap gap-6 text-sm">
+  <span class="ink-1"><b class="num">{{ to_create or 0 }}</b> {{ _("to add") }}</span>
+  {% if result.to_update %}<span class="ink-1"><b class="num">{{ result.to_update }}</b> {{ _("to update (blank details filled in)") }}</span>{% endif %}
+  {% if result.errors is number %}{% set left_out = (result.skipped or 0) + result.errors %}{% else %}{% set left_out = result.skipped or 0 %}{% endif %}
+  <span class="ink-2"><b class="num">{{ left_out }}</b> {{ _("left out") }}</span>
+  {% if result.new_contacts %}<span class="ink-2"><b class="num">{{ result.new_contacts }}</b> {{ _("new contacts") }}</span>{% endif %}
+  {% if result.total %}<span class="ink-2">{{ _("Total") }} <b class="num">{{ num(result.total|float, 2) }}</b></span>{% endif %}
+  {% if result.opening_stock_value %}<span class="ink-2">{{ _("Opening stock value") }} <b class="num">{{ num(result.opening_stock_value|float, 2) }}</b></span>{% endif %}
+</div>
+
+{% if rows %}
+<div class="card p-0 mb-5 overflow-x-auto">
+<table class="w-full text-sm">
+  <thead><tr class="text-left text-xs ink-3 hairline-b">
+    <th class="px-3 py-2">{{ _("Row") }}</th>
+    <th class="px-3 py-2">{{ _("Name") }}</th>
+    {% if kind in ("open-invoices", "open-bills") %}<th class="px-3 py-2">{{ _("Number") }}</th><th class="px-3 py-2">{{ _("Date") }}</th><th class="px-3 py-2 text-right">{{ _("Owing") }}</th>{% endif %}
+    {% if kind == "items" %}<th class="px-3 py-2 text-right">{{ _("Qty") }}</th><th class="px-3 py-2 text-right">{{ _("Value") }}</th>{% endif %}
+    <th class="px-3 py-2">{{ _("Result") }}</th>
+  </tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr class="hairline-b align-top">
+      <td class="px-3 py-1.5 num ink-3">{{ r.row }}</td>
+      <td class="px-3 py-1.5 ink-1">{{ r.name or r.contact_name or r.sku or "" }}{% if r.sku and r.name %} <span class="ink-3 text-xs">{{ r.sku }}</span>{% endif %}</td>
+      {% if kind in ("open-invoices", "open-bills") %}
+      <td class="px-3 py-1.5 font-mono text-xs">{{ r.number or "" }}</td>
+      <td class="px-3 py-1.5 text-xs">{{ r.issue_date or "" }}</td>
+      <td class="px-3 py-1.5 text-right num">{% if r.amount %}{{ num(r.amount|float, 2) }}{% endif %}</td>
+      {% endif %}
+      {% if kind == "items" %}
+      <td class="px-3 py-1.5 text-right num">{{ r.qty }}</td>
+      <td class="px-3 py-1.5 text-right num">{{ num(r.opening_value|float, 2) }}</td>
+      {% endif %}
+      <td class="px-3 py-1.5">
+        {% set a = r.action %}
+        {% if a == "create" %}<span class="badge-paid">{{ _("add") }}</span>{% if r.new_contact %} <span class="text-xs ink-3">{{ _("and a new contact") }}</span>{% endif %}
+        {% elif a == "update" %}<span class="badge-open">{{ _("update") }}</span> <span class="text-xs ink-3">{{ r.fills|join(", ") }}</span>
+        {% elif a == "skip" %}<span class="badge-draft">{{ _("left out") }}</span>
+        {% else %}<span class="badge-draft" style="color:var(--neg);">{{ _("problem") }}</span>{% endif %}
+        {% for e in r.errors or [] %}<div class="text-xs mt-0.5" style="color:var(--{{ 'neg' if a == 'error' else 'ink-3' }});">{{ e }}</div>{% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+<div class="flex items-center justify-between">
+  <a href="/admin/imports/csv/{{ kind }}" class="btn-secondary text-sm">{{ _("Upload a different file") }}</a>
+  {% if to_create or result.to_update %}
+  <form method="post" action="/admin/imports/csv/{{ kind }}/commit">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="csv_b64" value="{{ csv_b64 }}">
+    <input type="hidden" name="options_json" value="{{ options|tojson|forceescape }}">
+    <button type="submit" class="btn-primary text-sm">{{ _("Import now") }}</button>
+  </form>
+  {% else %}
+  <span class="text-sm ink-3">{{ _("There is nothing to import from this file.") }}</span>
+  {% endif %}
+</div>
+{% endblock %}

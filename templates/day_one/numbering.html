@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Numbering") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Numbering") }}</h1>
+  <p class="mt-1 text-sm ink-3 max-w-3xl">{{ _("Carry on the numbers from your old system. Set the prefix and the next number for each kind of document. A number that is already used cannot be issued again.") }}</p>
+</div>
+{% include "settings/_nav.html" %}
+{% include "day_one/_flash.html" %}
+<div class="card p-0 max-w-4xl overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead><tr class="text-left text-xs ink-3 hairline-b">
+      <th class="px-4 py-2">{{ _("Document") }}</th><th class="px-4 py-2">{{ _("Prefix") }}</th>
+      <th class="px-4 py-2">{{ _("Next number") }}</th><th class="px-4 py-2">{{ _("Digits") }}</th>
+      <th class="px-4 py-2">{{ _("Next one will be") }}</th><th class="px-4 py-2"></th></tr></thead>
+    <tbody>
+    {% for c in counters %}
+      <tr class="hairline-b">
+        <td class="px-4 py-2 ink-1">{{ _(c.label) }}{% if c.highest_issued %}<span class="block text-xs ink-3">{{ _("Highest used: %(n)s") % {"n": c.highest_issued} }}</span>{% endif %}</td>
+        <td class="px-4 py-2"><input form="num-{{ c.kind }}" name="prefix" maxlength="16" class="saebooks-input w-28 font-mono" value="{{ c.prefix }}" aria-label="{{ _('Prefix') }}" {% if not can_edit %}disabled{% endif %}></td>
+        <td class="px-4 py-2"><input form="num-{{ c.kind }}" name="next_value" type="number" min="1" class="saebooks-input w-28 num" value="{{ c.next_value }}" aria-label="{{ _('Next number') }}" {% if not can_edit %}disabled{% endif %}></td>
+        <td class="px-4 py-2"><input form="num-{{ c.kind }}" name="pad_width" type="number" min="1" max="10" class="saebooks-input w-20 num" value="{{ c.pad_width }}" aria-label="{{ _('Digits') }}" {% if not can_edit %}disabled{% endif %}></td>
+        <td class="px-4 py-2 font-mono text-xs ink-2">{{ c.next_number }}</td>
+        <td class="px-4 py-2">{% if can_edit %}<form id="num-{{ c.kind }}" method="post" action="/settings/numbering/{{ c.kind }}">{{ csrf_input(request)|safe }}<button type="submit" class="btn-secondary text-xs">{{ _("Save") }}</button></form>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

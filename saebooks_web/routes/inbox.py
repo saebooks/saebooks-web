@@ -54,7 +54,10 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 _OPEN_STATUSES = ("RECEIVED", "EXTRACTING", "NEEDS_REVIEW", "READY", "FAILED")
 _ALL_STATUSES = (*_OPEN_STATUSES, "PUBLISHED", "REJECTED", "DUPLICATE")
 _REJECT_REASONS = ("DUPLICATE", "NOT_A_DOCUMENT", "PERSONAL", "OTHER")
-_RECORD_KINDS = ("EXPENSE", "BILL", "CREDIT_NOTE")
+# SUPPLIER_CREDIT_NOTE (engine 0227, gap P0-6): a credit a SUPPLIER gave
+# us. "CREDIT_NOTE" is a credit WE give a customer; a supplier's credit PDF
+# published as that posted to revenue and receivables.
+_RECORD_KINDS = ("EXPENSE", "BILL", "SUPPLIER_CREDIT_NOTE", "CREDIT_NOTE")
 
 
 def _require_auth(request: Request) -> str | None:
@@ -557,7 +560,7 @@ async def _render_review(
         key: _field_source(doc, key)
         for key in (
             "vendor_name", "contact_id", "date", "invoice_number",
-            "total", "line_items", "payment_account_id",
+            "total", "line_items", "payment_account_id", "due_date",
         )
     }
 
@@ -678,7 +681,7 @@ def _override_from_form(form: dict[str, str]) -> dict[str, Any]:
     """
     override: dict[str, Any] = {}
     for key in ("vendor_name", "contact_id", "date", "invoice_number",
-                "total", "payment_account_id"):
+                "total", "payment_account_id", "due_date"):
         val = (form.get(key) or "").strip()
         if val:
             override[key] = val
@@ -756,7 +759,10 @@ async def inbox_review_submit(
 
         doc = patch_resp.json()
 
-        if action != "publish":
+        # "publish_post" (b15, P2-23) = publish the draft, then post it
+        # straight away through the normal post endpoint.
+        post_after_publish = action == "publish_post"
+        if action not in ("publish", "publish_post"):
             request.session["flash"] = _("Review saved.")
             return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
 
@@ -786,6 +792,12 @@ async def inbox_review_submit(
             errors["payment_account_id"] = _("Payment account is required.")
         if not (form.get("date") or "").strip():
             errors["date"] = _("Date is required.")
+        due_date = (form.get("due_date") or "").strip()
+        if (
+            record_kind == "BILL" and due_date and (form.get("date") or "").strip()
+            and due_date < form["date"].strip()
+        ):
+            errors["due_date"] = _("The due date is before the invoice date.")
         lines = _parse_lines(form)
         if not lines:
             errors["lines"] = _("At least one line is required.")
@@ -809,6 +821,12 @@ async def inbox_review_submit(
                         if line.get("project_id")
                         else {}
                     ),
+                    # Batch 5: typed GST (within one cent of the worked GST).
+                    **(
+                        {"tax_override": str(line["tax_override"])}
+                        if line.get("tax_override") and record_kind != "CREDIT_NOTE"
+                        else {}
+                    ),
                 }
             )
 
@@ -821,6 +839,16 @@ async def inbox_review_submit(
         }
         if record_kind == "EXPENSE":
             payload["payment_account_id"] = form["payment_account_id"].strip()
+        if record_kind == "BILL" and due_date:
+            # The supplier's printed due date wins; left blank, the engine
+            # uses the supplier's payment terms (gap P0-15). Previously the
+            # due date was never sent, so inbox bills were due on their
+            # issue date and showed overdue the next day.
+            payload["due_date"] = due_date
+        # Batch 5 (P0-28): receipt prices typed GST-inclusive. Credit notes
+        # stay GST-exclusive (the engine ignores the switch for them).
+        if record_kind in ("EXPENSE", "BILL"):
+            payload["amounts_include_tax"] = bool(form.get("amounts_include_tax"))
         reference = (form.get("invoice_number") or "").strip()
         if reference:
             payload["reference"] = reference
@@ -874,18 +902,35 @@ async def inbox_review_submit(
                 return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
             return _gate_page(request, pub_resp.status_code)
 
+        if pub_resp.status_code == 201 and post_after_publish:
+            from saebooks_web.routes.inbox_post import post_published_record
+
+            return await post_published_record(request, client, pub_resp.json())
         if pub_resp.status_code == 201:
             body = pub_resp.json()
             record = body.get("record", {})
             kind = (record.get("kind") or "EXPENSE").upper()
             record_id = record.get("id", "")
-            request.session["flash"] = _(
-                "Published as DRAFT %(kind)s — source document attached."
-            ) % {"kind": kind.replace("_", " ").lower()}
+            if pub_resp.headers.get("X-Attachment-Linked", "true").lower() == "false":
+                # Gap P1-3: the record exists but the supplier's file did not
+                # reach it — say so instead of claiming it is attached.
+                request.session["flash"] = _(
+                    "Published as DRAFT %(kind)s, but the supplier's document "
+                    "could not be attached (%(reason)s). Download it from the "
+                    "inbox and upload it on the record."
+                ) % {
+                    "kind": kind.replace("_", " ").lower(),
+                    "reason": pub_resp.headers.get("X-Attachment-Error") or _("unknown error"),
+                }
+            else:
+                request.session["flash"] = _(
+                    "Published as DRAFT %(kind)s — source document attached."
+                ) % {"kind": kind.replace("_", " ").lower()}
             detail_url = {
                 "EXPENSE": f"/expenses/{record_id}",
                 "BILL": f"/bills/{record_id}",
                 "CREDIT_NOTE": f"/credit-notes/{record_id}",
+                "SUPPLIER_CREDIT_NOTE": f"/supplier-credit-notes/{record_id}",
             }.get(kind, "/inbox")
             return RedirectResponse(url=detail_url, status_code=303)
 

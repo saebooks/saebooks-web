@@ -5,9 +5,9 @@ QBO surfaces "Recurring transactions" as a cross-cutting Accounting verb
   - recurring_invoices (full CRUD + generate)
   - journal_templates (template-of-journal-entry, manually recurred)
 
-This page aggregates both onto one landing so users have one place to find
-"things that repeat". Recurring bills + recurring expenses are flagged as
-"coming soon" — backend not yet built.
+This page aggregates them onto one landing so users have one place to find
+"things that repeat". b11: recurring bills are live (/recurring-bills).
+Recurring expenses (card subscriptions paid without a bill) are not built.
 
 Auth guard mirrors dashboard.py.
 """
@@ -48,8 +48,10 @@ async def recurring_hub(request: Request) -> HTMLResponse | RedirectResponse:
         return RedirectResponse(url="/login", status_code=303)
 
     async with api_client(request) as client:
-        recurring_invoices, journal_templates, contacts_raw = await asyncio.gather(
+        recurring_invoices, recurring_bills, journal_templates, contacts_raw = await asyncio.gather(
             _fetch_items(client, "/api/v1/recurring_invoices",
+                         {"page": 1, "page_size": 100}),
+            _fetch_items(client, "/api/v1/recurring_bills",
                          {"page": 1, "page_size": 100}),
             _fetch_items(client, "/api/v1/journal_templates",
                          {"page": 1, "page_size": 100}),
@@ -70,6 +72,10 @@ async def recurring_hub(request: Request) -> HTMLResponse | RedirectResponse:
         "recurring_invoices": recurring_invoices,
         "active_invoices_count": len(active_invoices),
         "paused_invoices_count": len(paused_invoices),
+        "recurring_bills": recurring_bills,
+        "active_bills_count": len([r for r in recurring_bills
+                                   if (r.get("status") or "").upper() == "ACTIVE"]),
+        "failed_count": len([r for r in recurring_invoices + recurring_bills if r.get("last_error")]),
         "journal_templates": journal_templates,
         "journal_templates_count": len(journal_templates),
         "contacts_by_id": cmap,

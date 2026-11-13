@@ -116,6 +116,28 @@
   </div>
 </div>
 
+{# ── b11 run health: a failed run used to be silent ── #}
+{% if ri.last_error %}
+<div class="card p-4 mb-6" style="border-color:var(--neg);" role="alert">
+  <div class="flex items-start gap-2">
+    <span class="dot mt-1.5" style="background:var(--neg);"></span>
+    <div>
+      <p class="text-sm font-semibold" style="color:var(--neg);">
+        {{ _("The last run did not finish") }}
+        {% if ri.failure_count and ri.failure_count > 1 %}({{ _("%(n)s times in a row") % {"n": ri.failure_count} }}){% endif %}
+      </p>
+      <p class="text-sm ink-2 mt-1">{{ ri.last_error }}</p>
+      {% if ri.last_error_at %}<p class="text-xs ink-3 mt-1">{{ ri.last_error_at[:16] | replace("T", " ") }}</p>{% endif %}
+    </div>
+  </div>
+</div>
+{% elif ri.status == 'ACTIVE' and ri.next_run and ri.next_run < today_iso %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ _("This one was due on %(d)s and has not run yet. It runs each morning on its own, or press Generate invoice now.") % {"d": ri.next_run} }}</span>
+</div>
+{% endif %}
+
 {# ── Summary cards ── #}
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card p-4">
@@ -163,6 +185,28 @@
         <tr class="hairline-t">
           <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Payment terms") }}</th>
           <td class="px-4 py-3 ink-1">{{ ri.payment_terms or "—" }}</td>
+        </tr>
+        <tr class="hairline-t">
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Emailed automatically") }}</th>
+          <td class="px-4 py-3 ink-1">
+            {% if ri.auto_send %}
+              <span class="badge-sae">{{ _("Yes") }}</span>
+              <span class="text-xs ink-3 ml-2">{{ ri.send_to or _("to the customer email") }}</span>
+            {% else %}
+              <span class="badge-draft">{{ _("No") }}</span>
+            {% endif %}
+            {% if ri.last_sent_at %}<span class="text-xs ink-3 ml-2">{{ _("last emailed %(d)s") % {"d": ri.last_sent_at[:10]} }}</span>{% endif %}
+          </td>
+        </tr>
+        <tr class="hairline-t">
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Missed runs") }}</th>
+          <td class="px-4 py-3 ink-1">
+            {% if ri.catch_up is sameas false %}{{ _("Make only the latest") }}{% else %}{{ _("Make every missed invoice") }}{% endif %}
+          </td>
+        </tr>
+        <tr class="hairline-t">
+          <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Last ran") }}</th>
+          <td class="px-4 py-3 ink-1">{{ (ri.last_run_at or "")[:16] | replace("T", " ") or "—" }}</td>
         </tr>
         <tr class="hairline-t">
           <th scope="row" class="px-4 py-3 text-left font-medium ink-3">{{ _("Auto post") }}</th>

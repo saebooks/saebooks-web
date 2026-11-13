@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Owner loan balance") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Owner loan balance") }}</h1>
+    {% if report %}
+    <p class="text-sm ink-3 mt-1">{{ report.account.code }} {{ report.account.name }}</p>
+    {% endif %}
+  </div>
+  <a href="/owner-money" class="text-sm sae hover:underline">← {{ _("Owner money") }}</a>
+</div>
+
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+  <a href="/owner-money/settings" class="text-sm sae hover:underline ml-2">{{ _("Settings") }}</a>
+</div>
+{% endif %}
+
+<form method="GET" action="/owner-money/report" class="mb-6 flex flex-wrap items-end gap-3">
+  <div>
+    <label for="date_from" class="block text-xs font-medium ink-3 mb-1">{{ _("From") }}</label>
+    <input type="date" id="date_from" name="date_from" value="{{ date_from }}" class="saebooks-input">
+  </div>
+  <div>
+    <label for="date_to" class="block text-xs font-medium ink-3 mb-1">{{ _("To") }}</label>
+    <input type="date" id="date_to" name="date_to" value="{{ date_to }}" class="saebooks-input">
+  </div>
+  <button type="submit" class="btn-secondary text-sm">{{ _("Show") }}</button>
+</form>
+
+{% if report %}
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Balance at %(d)s") % {"d": report.date_to} }}</p>
+    <p class="mt-1 text-lg font-medium ink-1 tabular-nums">{{ money(report.closing_balance|float) }}</p>
+    <p class="text-xs ink-3">
+      {% if report.closing_balance|float > 0 %}{{ _("The business owes the owner this amount.") }}
+      {% elif report.closing_balance|float < 0 %}{{ _("The owner owes the business this amount.") }}
+      {% else %}{{ _("Nothing is owed either way.") }}{% endif %}
+    </p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Expenses not yet paid back") }}</p>
+    <p class="mt-1 text-lg font-medium ink-1 tabular-nums">{{ money(report.unreimbursed_expenses|float) }}</p>
+  </div>
+  {% if report.date_from %}
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Balance before %(d)s") % {"d": report.date_from} }}</p>
+    <p class="mt-1 text-lg font-medium ink-1 tabular-nums">{{ money(report.opening_balance|float) }}</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Details") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Owed to owner") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Paid to owner") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Balance") }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[color:var(--line)]">
+      {% for ln in report.lines %}
+      <tr>
+        <td class="px-4 py-3 ink-2">{{ ln.date }}</td>
+        <td class="px-4 py-3">
+          {% if ln.source_type == 'expense' and ln.source_id %}<a href="/expenses/{{ ln.source_id }}" class="sae hover:underline">{{ ln.description or ln.ref }}</a>
+          {% elif ln.source_type == 'transfer' and ln.source_id %}<a href="/transfers/{{ ln.source_id }}" class="sae hover:underline">{{ ln.description or ln.ref }}</a>
+          {% else %}{{ ln.description or ln.ref }}{% endif %}
+        </td>
+        <td class="px-4 py-3 text-right tabular-nums">{% if ln.paid_in|float %}{{ num(ln.paid_in|float, 2) }}{% endif %}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{% if ln.paid_out|float %}{{ num(ln.paid_out|float, 2) }}{% endif %}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(ln.balance|float, 2) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-sm ink-3">{{ _("No entries in this period.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

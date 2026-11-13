@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("BAS periods") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% macro status_chip(status) -%}
+  {%- set s = (status or "open") | lower -%}
+  {%- if s == "lodged" -%}
+    <span class="chip" style="border-color:var(--pos);color:var(--pos);">{{ _("Lodged") }}</span>
+  {%- elif s == "locked" -%}
+    <span class="chip">{{ _("Locked") }}</span>
+  {%- else -%}
+    <span class="chip" style="border-color:var(--warm);color:var(--warm);">{{ _("Not lodged") }}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+<div class="mb-4">
+  <a href="/reports/bas-summary" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← BAS") }}</a>
+</div>
+
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1"><span class="nav-section-label">{{ _("BAS") }}</span></div>
+  <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("BAS periods") }}</h1>
+  <p class="text-xs ink-3 mt-2">
+    {% if data.get("basis") == "cash" %}{{ _("Cash basis") }}{% else %}{{ _("Accrual basis") }}{% endif %} ·
+    {% if data.get("frequency") == "monthly" %}{{ _("monthly") }}{% elif data.get("frequency") == "annual" %}{{ _("yearly") }}{% else %}{{ _("quarterly") }}{% endif %}
+    · <a href="/settings/company" class="sae hover:underline">{{ _("change") }}</a>
+  </p>
+  <p class="text-xs ink-3 mt-1">{{ _("Lodge your BAS in ATO online services or through your BAS agent, then record it here. Recording it protects the period: a void dated inside a lodged period asks you first.") }}</p>
+  <div class="drafting mt-4"></div>
+</header>
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
+  <span class="dot" style="background:var(--pos);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% elif error %}
+<div class="card p-3 mb-4" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>
+{% else %}
+
+{% if waiting %}
+<section class="card p-4 mb-6">
+  <p class="nav-section-label mb-2">{{ _("Waiting to be worked out") }}</p>
+  <ul class="space-y-2">
+    {% for w in waiting %}
+    <li class="flex flex-wrap items-center gap-3">
+      <span class="ink-1 text-sm flex-1">{{ w.label }} <span class="text-xs ink-3">· {{ _("due %(date)s") % {"date": w.due_date} }}</span></span>
+      <a class="btn-secondary text-sm" href="/reports/bas-summary?from_date={{ w.from_date }}&to_date={{ w.to_date }}">{{ _("Review") }}</a>
+      <form method="post" action="/bas/returns" class="inline">
+        {{ csrf_input(request)|safe }}
+        <input type="hidden" name="from_date" value="{{ w.from_date }}">
+        <input type="hidden" name="to_date" value="{{ w.to_date }}">
+        <button type="submit" class="btn-primary text-sm">{{ _("Save this BAS") }}</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<div class="space-y-4">
+{% for p in items %}
+  {% set r = p.get("return") %}
+  {% set f = (r.figures if r else {}) or {} %}
+  <section class="card p-4">
+    <div class="flex flex-wrap items-center gap-3 mb-2">
+      <h2 class="font-semibold ink-1 flex-1">{{ p.label }}</h2>
+      {{ status_chip(p.status) }}
+      <span class="text-xs ink-3">{{ _("due %(date)s") % {"date": p.due_date} }}</span>
+    </div>
+    {% if r %}
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-3">
+      <div><span class="text-xs ink-3 block">G1</span><a class="num hover:underline" href="/reports/gst-detail?label=G1&from_date={{ p.from_date }}&to_date={{ p.to_date }}">{{ num((f.get("G1") or 0) | float, 2) }}</a></div>
+      <div><span class="text-xs ink-3 block">1A</span><span class="num">{{ num((f.get("1A") or 0) | float, 2) }}</span></div>
+      <div><span class="text-xs ink-3 block">1B</span><span class="num">{{ num((f.get("1B") or 0) | float, 2) }}</span></div>
+      <div><span class="text-xs ink-3 block">{{ _("Label 9") }}</span><span class="num font-semibold">{{ num((f.get("9") or 0) | float, 2) }}</span></div>
+    </div>
+    {% if r.status == "lodged" %}
+      <p class="text-xs ink-2">{{ _("Lodged %(date)s") % {"date": r.lodged_on} }}{% if r.lodgement_reference %} · {{ _("ATO reference %(ref)s") % {"ref": r.lodgement_reference} }}{% endif %}</p>
+    {% else %}
+      <details class="mt-2">
+        <summary class="text-sm sae cursor-pointer">{{ _("Record as lodged") }}</summary>
+        <form method="post" action="/bas/returns/{{ r.id }}/lodge" class="mt-3 flex flex-wrap items-end gap-3">
+          {{ csrf_input(request)|safe }}
+          <div>
+            <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1" for="lodged_on_{{ r.id }}">{{ _("Date lodged") }}</label>
+            <input id="lodged_on_{{ r.id }}" type="date" name="lodged_on" value="{{ today }}" max="{{ today }}" required class="saebooks-input num text-sm py-1.5">
+          </div>
+          <div>
+            <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1" for="reference_{{ r.id }}">{{ _("ATO receipt or reference") }}</label>
+            <input id="reference_{{ r.id }}" type="text" name="reference" maxlength="64" class="saebooks-input text-sm py-1.5">
+          </div>
+          <label class="text-sm ink-2 flex items-center gap-2">
+            <input type="checkbox" name="lock_period" value="1">
+            {{ _("Also lock the books through %(date)s (administrators)") % {"date": p.to_date} }}
+          </label>
+          <button type="submit" class="btn-primary text-sm">{{ _("Record as lodged") }}</button>
+        </form>
+      </details>
+      <form method="post" action="/bas/returns" class="inline mt-2">
+        {{ csrf_input(request)|safe }}
+        <input type="hidden" name="from_date" value="{{ p.from_date }}">
+        <input type="hidden" name="to_date" value="{{ p.to_date }}">
+        <button type="submit" class="btn-secondary text-xs mt-2">{{ _("Work it out again") }}</button>
+      </form>
+    {% endif %}
+    {% else %}
+    <form method="post" action="/bas/returns" class="inline">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="from_date" value="{{ p.from_date }}">
+      <input type="hidden" name="to_date" value="{{ p.to_date }}">
+      <button type="submit" class="btn-primary text-sm">{{ _("Save this BAS") }}</button>
+    </form>
+    {% endif %}
+
+    <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+      <a class="sae hover:underline" href="/reports/bas-summary?from_date={{ p.from_date }}&to_date={{ p.to_date }}">{{ _("Open the BAS") }}</a>
+      {% set settled = (p.settlements or []) | selectattr("kind", "equalto", "bas_settlement") | list %}
+      {% if settled %}
+        <span class="ink-2">{{ _("Settled") }}: {% for s in p.settlements %}<a class="sae hover:underline" href="/journal-entries/{{ s.journal_entry_id }}">{{ s.ref }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</span>
+      {% else %}
+        <a class="btn-secondary text-sm" href="/bas/settle?from_date={{ p.from_date }}&to_date={{ p.to_date }}">{{ _("Settle with the ATO") }}</a>
+      {% endif %}
+    </div>
+  </section>
+{% else %}
+  <p class="text-sm ink-3">{{ _("No BAS saved yet. Open the BAS for a period and save it.") }}</p>
+{% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}

@@ -264,7 +264,9 @@ async def test_payment_edit_form_renders_draft_with_allocations(
 async def test_payment_edit_blocked_for_posted(
     respx_mock: respx.MockRouter,
 ) -> None:
-    """GET /payments/{id}/edit for a POSTED payment shows the blocked page (422)."""
+    """Batch 3 / gap P1-15: GET /payments/{id}/edit for a POSTED payment now
+    shows the limited correction form — reference, method, notes and the
+    supplier message only; never amount, date, contact, bank or allocations."""
     respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
         return_value=Response(200, json=_MOCK_PAYMENT_POSTED)
     )
@@ -276,12 +278,70 @@ async def test_payment_edit_blocked_for_posted(
     ) as client:
         resp = await client.get(f"/payments/{_PAYMENT_ID}/edit")
 
-    assert resp.status_code == 422
-    # Must NOT render the edit form.
-    assert 'name="version"' not in resp.text
+    assert resp.status_code == 200
+    assert 'name="posted_edit" value="1"' in resp.text
+    assert 'name="reference"' in resp.text
+    assert 'name="method"' in resp.text
+    assert 'name="notes"' in resp.text
+    # Financial fields are not editable once posted.
     assert 'name="payment_date"' not in resp.text
-    # Must show the blocked message.
-    assert "cannot be edited" in resp.text
+    assert 'name="amount"' not in resp.text
+    assert 'name="bank_account_id"' not in resp.text
+    assert "allocations[" not in resp.text
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_posted_payment_correction_patches_only_safe_fields(
+    respx_mock: respx.MockRouter,
+) -> None:
+    patch = respx_mock.patch(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(200, json={**_MOCK_PAYMENT_POSTED, "reference": "Fixed"})
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+        follow_redirects=False,
+    ) as client:
+        resp = await client.post(
+            f"/payments/{_PAYMENT_ID}/edit",
+            data={
+                "posted_edit": "1", "version": "3", "reference": "Fixed",
+                "method": "cheque", "notes": "", "remittance_note": "Thanks",
+                # Smuggled financial fields must be ignored.
+                "amount": "999.00", "payment_date": "2020-01-01",
+            },
+        )
+    assert resp.status_code == 303
+    sent = _json.loads(patch.calls.last.request.content)
+    assert sent == {"reference": "Fixed", "method": "cheque", "notes": "",
+                    "remittance_note": "Thanks"}
+    assert patch.calls.last.request.headers["If-Match"] == "3"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_posted_payment_correction_shows_engine_refusal(
+    respx_mock: respx.MockRouter,
+) -> None:
+    respx_mock.patch(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(422, json={"detail": "payment_not_draft: cannot edit"})
+    )
+    respx_mock.get(f"{_API_BASE}/api/v1/payments/{_PAYMENT_ID}").mock(
+        return_value=Response(200, json=_MOCK_PAYMENT_POSTED)
+    )
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        cookies={settings.session_cookie_name: _SESSION_COOKIE},
+    ) as client:
+        resp = await client.post(
+            f"/payments/{_PAYMENT_ID}/edit",
+            data={"posted_edit": "1", "version": "3", "reference": "x"},
+        )
+    assert resp.status_code == 422
+    assert "payment_not_draft" in resp.text
 
 
 # ---------------------------------------------------------------------------

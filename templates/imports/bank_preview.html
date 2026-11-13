@@ -24,6 +24,52 @@
     <a href="/admin/imports/bank" class="text-sm underline" style="color:var(--neg);">{{ _("Try again") }}</a>
   </div>
 </div>
+{% elif preview %}
+<div class="card p-4 mb-4">
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Read as") }}</p><p class="ink-1">{{ preview.format_label }}</p></div>
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Lines") }}</p><p class="ink-1">{{ preview.count }}</p></div>
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("New") }}</p><p class="ink-1">{{ preview.new_count }}{% if preview.duplicate_count %} <span class="ink-3">({{ _("%(n)s already imported, will be skipped") % {"n": preview.duplicate_count} }})</span>{% endif %}</p></div>
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Money in") }}</p><p class="font-mono" style="color:var(--pos);">{{ num(preview.money_in|float, 2) }}</p></div>
+    <div><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Money out") }}</p><p class="font-mono" style="color:var(--neg);">{{ num(preview.money_out|float, 2) }}</p></div>
+  </div>
+  {% if preview.date_from %}<p class="text-xs ink-3 mt-2">{{ _("From %(a)s to %(b)s.") % {"a": preview.date_from, "b": preview.date_to} }}</p>{% endif %}
+  {% for w in preview.warnings %}
+  <p class="text-sm mt-2" style="color:var(--warm);">{{ w }}</p>
+  {% endfor %}
+</div>
+<div class="card overflow-x-auto mb-4">
+  <table class="sae-table w-full text-sm">
+    <thead><tr>
+      <th class="text-left">{{ _("Date") }}</th>
+      <th class="text-left">{{ _("Description") }}</th>
+      <th class="text-right">{{ _("Money in") }}</th>
+      <th class="text-right">{{ _("Money out") }}</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+      {% for ln in preview.lines %}{% set a = ln.amount|float %}
+      <tr {% if ln.already_imported %}class="ink-3"{% endif %}>
+        <td class="font-mono text-xs">{{ ln.txn_date }}</td>
+        <td>{{ ln.description }}</td>
+        <td class="text-right font-mono text-xs">{% if a > 0 %}{{ num(a, 2) }}{% endif %}</td>
+        <td class="text-right font-mono text-xs">{% if a < 0 %}{{ num(-a, 2) }}{% endif %}</td>
+        <td class="text-xs">{% if ln.already_imported %}{{ _("already imported") }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if preview.count > preview.lines|length %}<p class="text-xs ink-3 p-2">{{ _("Showing the first %(n)s lines.") % {"n": preview.lines|length} }}</p>{% endif %}
+</div>
+<form method="post" action="/admin/imports/bank/apply" class="mt-4 flex items-center gap-3">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="wizard_id" value="{{ wizard_id }}">
+  {% if account_id %}<input type="hidden" name="account_id" value="{{ account_id }}">{% endif %}
+  <button type="submit" class="btn-primary text-sm" {% if not preview.new_count %}disabled{% endif %}>
+    {{ ngettext("Import %(n)s new line", "Import %(n)s new lines", preview.new_count) % {"n": preview.new_count} }}
+  </button>
+  <a href="/admin/imports/bank" class="text-sm ink-3 hover:ink-2">{{ _("Cancel") }}</a>
+</form>
 {% elif proxy_html %}
 <div class="card p-4">
   {{ proxy_html | safe }}

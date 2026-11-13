@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Stock adjustment") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+{% if flash %}<div class="card p-3 mb-6" style="border-color:var(--pos);"><span class="text-sm ink-2">{{ flash }}</span></div>{% endif %}
+{% if error %}<div class="card p-3 mb-6" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>{% endif %}
+{% if adj %}
+<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Stock adjustment") }} {{ adj.number or "" }}</h1>
+    <p class="text-sm ink-3 mt-1">
+      {{ adj.adjustment_date }} · {{ _(reasons.get(adj.reason, adj.reason)) }} ·
+      <span class="{% if adj.status == 'POSTED' %}badge-pos{% elif adj.status == 'VOIDED' %}badge-neg{% else %}badge-draft{% endif %}">{{ adj.status|capitalize }}</span>
+    </p>
+    {% set acct = accounts_by_id.get(adj.account_id) %}
+    <p class="text-sm ink-2 mt-1">{{ _("Difference posted to") }}: {% if acct %}<a href="/accounts/{{ acct.id }}" class="sae hover:underline">{{ acct.code }} {{ acct.name }}</a>{% else %}{{ adj.account_id }}{% endif %}</p>
+  </div>
+  <div class="flex items-center gap-2">
+    {% if adj.status == 'DRAFT' %}
+    <form method="post" action="/stock/adjustments/{{ adj.id }}/post">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ adj.version }}">
+      <button type="submit" class="btn-primary text-sm px-4 py-1.5">{{ _("Post") }}</button>
+    </form>
+    <form method="post" action="/stock/adjustments/{{ adj.id }}/delete">
+      {{ csrf_input(request)|safe }}
+      <button type="submit" onclick="return confirm('{{ _('Delete this draft?') }}')" class="btn-secondary text-sm px-4 py-1.5">{{ _("Delete draft") }}</button>
+    </form>
+    {% elif adj.status == 'POSTED' %}
+    {% if adj.journal_entry_id %}<a href="/journal-entries/{{ adj.journal_entry_id }}" class="btn-secondary text-sm px-4 py-1.5">{{ _("View journal") }}</a>{% endif %}
+    <form method="post" action="/stock/adjustments/{{ adj.id }}/void">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ adj.version }}">
+      <button type="submit" onclick="return confirm('{{ _('Void this adjustment and put the stock back?') }}')" class="btn-secondary text-sm px-4 py-1.5" style="color:var(--neg);">{{ _("Void") }}</button>
+    </form>
+    {% endif %}
+    <a href="/stock/adjustments" class="text-sm sae hover:underline">{{ _("← Back") }}</a>
+  </div>
+</div>
+<div class="card overflow-x-auto mb-6">
+  <table class="min-w-full sae-table text-sm">
+    <thead><tr>
+      <th class="px-4 py-3 text-left text-xs ink-3 uppercase">{{ _("Item") }}</th>
+      <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Counted") }}</th>
+      <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Change") }}</th>
+      <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Unit cost") }}</th>
+      <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Value") }}</th>
+    </tr></thead>
+    <tbody>
+      {% for ln in adj.lines %}
+      {% set it = items_by_id.get(ln.item_id) %}
+      <tr>
+        <td class="px-4 py-3"><a href="/items/{{ ln.item_id }}" class="sae hover:underline">{% if it %}{{ it.sku }} — {{ it.name }}{% else %}{{ ln.item_id }}{% endif %}</a></td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ ln.counted_qty if ln.counted_qty is not none else "—" }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ ln.quantity_change }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(ln.unit_cost|float, 4) }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(ln.value|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot><tr>
+      <td colspan="4" class="px-4 py-3 text-right font-semibold ink-1">{{ _("Total") }}</td>
+      <td class="px-4 py-3 text-right tabular-nums font-semibold ink-1">{{ num(adj.total_value|float, 2) }}</td>
+    </tr></tfoot>
+  </table>
+</div>
+{% if adj.status == 'DRAFT' %}
+<p class="text-xs ink-3">{{ _("A stocktake line's change is worked out against the quantity on hand at the moment you post, so anything sold in the meantime is allowed for.") }}</p>
+{% endif %}
+{% if adj.notes %}<div class="card p-4 text-sm ink-2">{{ adj.notes }}</div>{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Stock on hand and value") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Stock on hand and value") }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ _("Quantity and value of each stocked item, checked against the stock accounts on the balance sheet.") }}</p>
+  </div>
+  <form method="get" class="flex items-end gap-2">
+    <div>
+      <label for="as_of" class="block text-xs font-medium ink-3 mb-1">{{ _("As at") }}</label>
+      <input id="as_of" type="date" name="as_of" value="{{ as_of }}" class="saebooks-input text-sm px-2 py-1.5">
+    </div>
+    <button type="submit" class="btn-primary text-sm px-3 py-1.5">{{ _("Show") }}</button>
+    {% if report %}
+    <a href="/stock?{% if as_of %}as_of={{ as_of }}&{% endif %}format=csv" class="btn-secondary text-sm px-3 py-1.5">{{ _("Download spreadsheet (CSV)") }}</a>
+    {% endif %}
+  </form>
+</div>
+
+{% if error %}
+<div class="card p-3 mb-6" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>
+{% endif %}
+
+{% if report %}
+{% if report.note %}
+<div class="card p-3 mb-4" style="border-color:var(--warm);"><span class="text-sm ink-2">{{ report.note }}</span></div>
+{% endif %}
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Stock value") }}</p>
+    <p class="mt-1 text-lg font-semibold ink-1 tabular-nums">{{ num(report.total_value|float, 2) }}</p>
+    <p class="text-xs ink-3">{{ _("As at %(d)s") % {"d": report.as_of} }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Stock accounts in the ledger") }}</p>
+    <p class="mt-1 text-lg font-semibold ink-1 tabular-nums">{{ num(report.ledger_value|float, 2) }}</p>
+    <p class="text-xs ink-3">
+      {% for a in report.accounts %}<a href="/accounts/{{ a.account_id }}" class="sae hover:underline">{{ a.code }} {{ a.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+    </p>
+  </div>
+  <div class="card p-4" {% if report.difference|float != 0 %}style="border-color:var(--warm);"{% endif %}>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Difference") }}</p>
+    <p class="mt-1 text-lg font-semibold tabular-nums ink-1" {% if report.difference|float != 0 %}style="color:var(--warm)"{% endif %}>{{ num(report.difference|float, 2) }}</p>
+    <p class="text-xs ink-3">
+      {% if report.difference|float == 0 %}{{ _("The stock list agrees with the balance sheet.") }}
+      {% else %}{{ _("The stock list and the balance sheet disagree. Look for journals posted straight to a stock account, or count the stock and post a stock adjustment.") }}{% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="min-w-full sae-table text-sm">
+    <thead>
+      <tr>
+        <th class="px-4 py-3 text-left text-xs ink-3 uppercase">{{ _("Code") }}</th>
+        <th class="px-4 py-3 text-left text-xs ink-3 uppercase">{{ _("Item") }}</th>
+        <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Quantity") }}</th>
+        <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Average cost") }}</th>
+        <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Value") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in report.rows %}
+      <tr>
+        <td class="px-4 py-3 font-mono text-xs ink-2">{{ r.sku }}</td>
+        <td class="px-4 py-3"><a href="/items/{{ r.item_id }}" class="sae hover:underline">{{ r.name }}</a>
+          {% if r.below_reorder_level %}<span class="badge-warm ml-1">{{ _("Low") }}</span>{% endif %}
+          {% if r.archived %}<span class="badge-draft ml-1">{{ _("Archived") }}</span>{% endif %}
+        </td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ r.quantity }}{% if r.unit_of_measure %} <span class="ink-3 text-xs">{{ r.unit_of_measure }}</span>{% endif %}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(r.average_cost|float, 4) }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(r.value|float, 2) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-6 text-center ink-3">{{ _("No stocked items.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+    {% if report.rows %}
+    <tfoot>
+      <tr>
+        <td colspan="4" class="px-4 py-3 text-right font-semibold ink-1">{{ _("Total") }}</td>
+        <td class="px-4 py-3 text-right tabular-nums font-semibold ink-1">{{ num(report.total_value|float, 2) }}</td>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

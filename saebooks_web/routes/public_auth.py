@@ -323,7 +323,10 @@ async def reset_password_submit(
         async with _api_client() as client:
             resp = await client.post(
                 "/api/v1/auth/password-reset/confirm",
-                json={"token": token, "password": password},
+                # The engine's PasswordResetConfirmRequest field is
+                # ``new_password`` (b06 fix — the old key 422'd). ``password``
+                # is kept for any older engine build.
+                json={"token": token, "new_password": password, "password": password},
             )
     except httpx.RequestError:
         return _TEMPLATES.TemplateResponse(

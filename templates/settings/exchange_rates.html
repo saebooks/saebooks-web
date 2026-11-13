@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Exchange rates") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ _("Exchange rates") }}</h1>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+    {{ _("Invoices, bills, expenses and payments in another currency use the rate for their date. Your own rate is used first; otherwise the Reserve Bank of Australia's published rate. If neither exists the document asks you for one — it is never recorded at 1.00.") }}
+  </p>
+</div>
+
+{% include "settings/_nav.html" %}
+
+{% if flash %}
+<div class="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-700 dark:text-green-400 mb-6">{{ flash }}</div>
+{% endif %}
+{% if flash_error %}
+<div class="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400 mb-6">{{ flash_error }}</div>
+{% endif %}
+{% if error %}
+<div class="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400 mb-6">{{ error }}</div>
+{% endif %}
+
+<div class="max-w-4xl space-y-6">
+
+  {# ── Look up a rate ── #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-5 py-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ _("Look up a rate") }}</h2>
+    <form method="GET" action="/settings/exchange-rates" class="flex flex-wrap items-end gap-3">
+      <div>
+        <label for="lookup_currency" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ _("Currency") }}</label>
+        <select id="lookup_currency" name="currency" class="saebooks-input text-sm">
+          {% for c in fx.currencies if c.code != fx.base %}
+          <option value="{{ c.code }}" {% if lookup_currency == c.code %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="lookup_on" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ _("Date") }}</label>
+        <input type="date" id="lookup_on" name="on" value="{{ lookup_on }}" class="saebooks-input text-sm">
+      </div>
+      <button type="submit" class="btn-secondary text-sm">{{ _("Look up") }}</button>
+    </form>
+    {% if lookup %}
+    <p class="mt-3 text-sm text-gray-900 dark:text-gray-100 tabular-nums">
+      1 {{ lookup.currency }} = <strong>{{ lookup.rate }}</strong> {{ lookup.base_currency }}
+      <span class="text-gray-500 dark:text-gray-400">({{ lookup.source_label }})</span>
+    </p>
+    {% elif lookup_error %}
+    <p class="mt-3 text-sm text-red-700 dark:text-red-400">{{ lookup_error }}</p>
+    {% endif %}
+  </div>
+
+  {# ── Add your own rate ── #}
+  {% if can_edit %}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-5 py-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Add your own rate") }}</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("For a currency the Reserve Bank does not publish, a date before its table starts, or the rate your bank actually gave you. It is used for documents on that day and the following week.") }}</p>
+    <form method="POST" action="/settings/exchange-rates" class="flex flex-wrap items-end gap-3">
+      {{ csrf_input(request)|safe }}
+      <div>
+        <label for="currency" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ _("Currency") }} <span class="text-red-600">*</span></label>
+        <select id="currency" name="currency" required class="saebooks-input text-sm">
+          {% for c in fx.currencies if c.code != fx.base %}
+          <option value="{{ c.code }}">{{ c.code }} — {{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="rate_date" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ _("Date") }} <span class="text-red-600">*</span></label>
+        <input type="date" id="rate_date" name="rate_date" value="{{ today }}" required class="saebooks-input text-sm">
+      </div>
+      <div>
+        <label for="rate" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ _("1 of that currency = how many %(base)s") % {"base": fx.base} }} <span class="text-red-600">*</span></label>
+        <input type="number" id="rate" name="rate" step="any" min="0" required class="saebooks-input text-sm tabular-nums" placeholder="1.6250">
+      </div>
+      <div class="grow min-w-[12rem]">
+        <label for="note" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{{ _("Note") }} <span class="text-gray-400 font-normal">{{ _("(optional)") }}</span></label>
+        <input type="text" id="note" name="note" maxlength="255" class="saebooks-input w-full text-sm" placeholder="{{ _('e.g. rate on the bank confirmation') }}">
+      </div>
+      <button type="submit" class="btn-primary text-sm">{{ _("Save rate") }}</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {# ── Your rates ── #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div class="px-5 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-700">
+      <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ _("Your rates") }}</h2>
+      {% if can_edit %}
+      <form method="POST" action="/settings/exchange-rates/refresh">
+        {{ csrf_input(request)|safe }}
+        <button type="submit" class="btn-secondary text-sm">{{ _("Get the latest Reserve Bank rates") }}</button>
+      </form>
+      {% endif %}
+    </div>
+    {% if rates %}
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-900/40 text-left text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        <tr>
+          <th class="px-4 py-2">{{ _("Date") }}</th>
+          <th class="px-4 py-2">{{ _("Currency") }}</th>
+          <th class="px-4 py-2 text-right">{{ _("Rate") }}</th>
+          <th class="px-4 py-2">{{ _("Note") }}</th>
+          <th class="px-4 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+        {% for r in rates %}
+        <tr>
+          <td class="px-4 py-2 text-gray-900 dark:text-gray-100 tabular-nums">{{ r.rate_date }}</td>
+          <td class="px-4 py-2 text-gray-900 dark:text-gray-100 font-medium">{{ r.currency }}</td>
+          <td class="px-4 py-2 text-right text-gray-900 dark:text-gray-100 tabular-nums">1 {{ r.currency }} = {{ r.rate }} {{ fx.base }}</td>
+          <td class="px-4 py-2 text-gray-500 dark:text-gray-400">{{ r.note or "—" }}</td>
+          <td class="px-4 py-2 text-right">
+            {% if can_edit %}
+            <form method="POST" action="/settings/exchange-rates/{{ r.id }}/delete" class="inline"
+                  onsubmit="return confirm('{{ _('Remove this rate? Documents already saved keep their rate.') }}');">
+              {{ csrf_input(request)|safe }}
+              <button type="submit" class="text-xs text-red-600 dark:text-red-400 hover:underline">{{ _("Remove") }}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">{{ _("No rates of your own yet. The Reserve Bank's rates are used.") }}</div>
+    {% endif %}
+  </div>
+
+  <p class="text-xs text-gray-400 dark:text-gray-500">
+    {{ _("Reserve Bank rates are its 4pm daily indicative rates (statistical table F11.1), downloaded free from rba.gov.au.") }}
+    <a href="/reports/fx-revaluation" class="text-[#194291] dark:text-[#bdd0eb] hover:underline">{{ _("Foreign currency revaluation") }}</a>
+  </p>
+</div>
+
+{% endblock %}

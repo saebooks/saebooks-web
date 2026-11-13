@@ -3,6 +3,13 @@
 {% block title %}{{ _("Invoices") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
+{% if filter_project_id %}
+<div class="card p-3 mb-4 flex items-center justify-between gap-2" role="status">
+  <span class="text-sm ink-2">{{ _("Showing only documents on one project.") }} <a href="/projects/{{ filter_project_id }}" class="sae hover:underline">{{ _("Open the project") }}</a></span>
+  <a href="?" class="text-sm sae hover:underline">{{ _("Show all") }}</a>
+</div>
+{% endif %}
+
 
 {% if flash %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
@@ -41,19 +48,25 @@
   hx-swap="outerHTML"
   hx-push-url="true"
   class="card p-4 mb-5 flex flex-wrap gap-3 items-end"
+  role="search"
 >
+  {% import "_components/list_tools.html" as lt %}
+  {{ lt.search_box(filter_q) }}
+
   <div>
     <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Status") }}</label>
     <select id="status" name="status" class="saebooks-input text-sm py-1.5"
             onchange="this.form.requestSubmit()">
       <option value=""         {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="unpaid"   {% if filter_status == 'unpaid' %}selected{% endif %}>{{ _("All unpaid") }}</option>
       <option value="draft"    {% if filter_status == 'draft' %}selected{% endif %}>{{ _("Draft") }}</option>
-      <option value="open"     {% if filter_status == 'open' %}selected{% endif %}>{{ _("Open") }}</option>
+      <option value="open"     {% if filter_status == 'open' %}selected{% endif %}>{{ _("Unpaid, not yet due") }}</option>
       <option value="due-soon" {% if filter_status == 'due-soon' %}selected{% endif %}>{{ _("Due soon") }}</option>
       <option value="overdue"  {% if filter_status == 'overdue' %}selected{% endif %}>{{ _("Overdue") }}</option>
-      <option value="partial"  {% if filter_status == 'partial' %}selected{% endif %}>{{ _("Partial") }}</option>
+      <option value="partial"  {% if filter_status == 'partial' %}selected{% endif %}>{{ _("Part paid") }}</option>
       <option value="paid"     {% if filter_status == 'paid' %}selected{% endif %}>{{ _("Paid") }}</option>
       <option value="voided"   {% if filter_status == 'voided' %}selected{% endif %}>{{ _("Voided") }}</option>
+      <option value="written-off" {% if filter_status == 'written-off' %}selected{% endif %}>{{ _("Written off") }}</option>
     </select>
   </div>
 
@@ -67,10 +80,9 @@
     <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}" class="saebooks-input num text-sm py-1.5">
   </div>
 
-  <div class="flex-1 min-w-[220px]">
-    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Contact UUID") }}</label>
-    <input type="text" id="contact_id" name="contact_id" value="{{ filter_contact_id }}" placeholder="{{ _('optional') }}" class="saebooks-input num text-sm py-1.5 w-full">
-  </div>
+  {{ lt.contact_picker("contact_id", _("Customer"), "customer", filter_contact_id, filter_contact_name) }}
+
+  {{ lt.amount_range(filter_amount_min, filter_amount_max) }}
 
   <div class="self-center pb-1">
     <label class="inline-flex items-center gap-2 text-sm ink-2 cursor-pointer">
@@ -81,8 +93,10 @@
     </label>
   </div>
 
-  <input type="hidden" name="limit" value="{{ limit }}">
+  {{ lt.page_size(limit) }}
   <input type="hidden" name="offset" value="0">
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="direction" value="{{ direction }}">
 
   <button type="submit" class="btn-primary text-sm py-1.5">{{ _("Filter") }}</button>
 </form>
@@ -107,5 +121,6 @@
 {# Vanilla-JS module — kebab popovers, contextmenu, cross-page selection,
    confirmation modal. Loaded once per list page that uses these components. #}
 <script src="/static/js/list_table.js" defer></script>
+<script src="/static/js/contact_picker.js" defer></script>
 
 {% endblock %}

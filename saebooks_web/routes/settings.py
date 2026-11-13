@@ -130,6 +130,12 @@ def _prefill_form(company: dict) -> dict[str, str]:
     # state never round-tripped). gst_effective_date names the AU workflow.
     form["tax_registered"] = "true" if company.get("tax_registered") else ""
     form["gst_effective_date"] = str(company.get("gst_effective_date") or "")
+    # ATO registration as an employer of working holiday makers (engine 0225).
+    form["whm_employer_registered"] = "true" if company.get("whm_employer_registered") else ""
+    form["whm_employer_registered_on"] = str(company.get("whm_employer_registered_on") or "")
+    # GST accounting basis + BAS frequency (engine 0227_b05_gst_bas).
+    form["gst_accounting_basis"] = str(company.get("gst_accounting_basis") or "accrual")
+    form["gst_reporting_frequency"] = str(company.get("gst_reporting_frequency") or "quarterly")
 
     form["fin_year_start_month"] = str(company.get("fin_year_start_month") or 7)
     # Day-of-month precision unlocks only once the engine payload carries the
@@ -304,6 +310,21 @@ def _build_company_payload(form: dict[str, str], form_data, *, mode: str, jurisd
     lifecycle = form.get("lifecycle_status", "").strip()
     if lifecycle in _LIFECYCLE_VALUES:
         payload["lifecycle_status"] = lifecycle
+
+    # ATO working-holiday-maker employer registration (engine 0225) — AU
+    # only; the fieldset is not rendered for other jurisdictions, so an
+    # absent checkbox there must not be read as "unregistered".
+    if jurisdiction == "AU":
+        payload["whm_employer_registered"] = "whm_employer_registered" in form_data
+        whm_date = form.get("whm_employer_registered_on", "").strip()
+        if whm_date:
+            payload["whm_employer_registered_on"] = whm_date
+        basis = form.get("gst_accounting_basis", "").strip()
+        if basis in ("accrual", "cash"):
+            payload["gst_accounting_basis"] = basis
+        freq = form.get("gst_reporting_frequency", "").strip()
+        if freq in ("monthly", "quarterly", "annual"):
+            payload["gst_reporting_frequency"] = freq
 
     # EE company-registry identifiers — only meaningful on EE companies.
     if jurisdiction == "EE":
@@ -661,16 +682,26 @@ async def _list_tokens(request: Request) -> list[dict]:
 
 @router.get("/settings/users", response_class=HTMLResponse, response_model=None)
 async def users_page(request: Request) -> HTMLResponse | RedirectResponse:
-    """Read-only team roster. Degrades to an M2 banner when the module is
-    unavailable on this edition (404) rather than showing a blank page."""
+    """Team roster with invite, change role, remove and pending invitations
+    (b06, P0-32). Degrades to an M2 banner when the module is unavailable on
+    this edition (404) rather than showing a blank page."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     users: list[dict] = []
+    roles: list[dict] = []
     error: str | None = None
     degraded = False
+    roles_resp = None
     async with api_client(request) as client:
         resp = await client.get("/api/v1/users")
+        if resp.is_success:
+            # Custom roles are optional (tier-gated) — never let them break
+            # the roster.
+            try:
+                roles_resp = await client.get("/api/v1/roles")
+            except Exception:
+                roles_resp = None
     if resp.is_success:
         payload = resp.json()
         users = payload if isinstance(payload, list) else payload.get("items", [])
@@ -680,15 +711,27 @@ async def users_page(request: Request) -> HTMLResponse | RedirectResponse:
         error = "You don't have permission to view team members, or your session expired."
     else:
         error = f"API error: HTTP {resp.status_code}"
+    if roles_resp is not None and roles_resp.is_success and isinstance(roles_resp.json(), list):
+        # Custom roles only — the built-in ones map onto the base role list.
+        roles = [r for r in roles_resp.json() if not r.get("is_system")]
 
+    active = [u for u in users if not u.get("invite_pending")]
+    pending = [u for u in users if u.get("invite_pending")]
     return _TEMPLATES.TemplateResponse(
         request,
         "settings/users.html",
         {
-            "users": users,
+            "users": active,
+            "pending": pending,
+            "custom_roles": roles,
             "error": error,
             "degraded": degraded,
             "current_email": request.session.get("username", ""),
+            "is_admin": request.session.get("user_role", "") in ("owner", "admin")
+            or bool(request.session.get("is_sae_staff")),
+            "flash": request.session.pop("flash", None),
+            "flash_kind": request.session.pop("flash_kind", "pos"),
+            "invite_link": request.session.pop("invite_link", None),
             "mode": getattr(request.state, "active_company_bookkeeping_mode", "full") or "full",
         },
     )
@@ -810,10 +853,14 @@ async def period_lock_create(request: Request) -> HTMLResponse | RedirectRespons
     if not locked_through:
         request.session["flash"] = _("A lock date is required.")
         return RedirectResponse(url="/settings/period-locks", status_code=303)
+    # b15 (P2-3): the engine refuses a lock with no reason; say so here.
+    if not reason:
+        request.session["flash"] = _(
+            "Say why the period is being locked (for example, BAS lodged)."
+        )
+        return RedirectResponse(url="/settings/period-locks", status_code=303)
 
-    body: dict[str, str] = {"locked_through": locked_through}
-    if reason:
-        body["reason"] = reason
+    body: dict[str, str] = {"locked_through": locked_through, "reason": reason}
 
     async with api_client(request) as client:
         resp = await client.post("/api/v1/period-close/locks", json=body)

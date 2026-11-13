@@ -23,9 +23,10 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 
@@ -38,6 +39,38 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
+
+
+def _apply_payment_terms(
+    form: dict[str, str], payload: dict[str, object], errors: dict[str, str],
+    *, clear_when_blank: bool,
+) -> None:
+    """Payment terms from the contact form (batch 3, gap P0-15).
+
+    Basis blank means "no set terms": on edit both fields are cleared
+    (sent as null); on create they are simply left out. Days are required
+    once a basis is chosen.
+    """
+    basis = (form.get("payment_terms_basis") or "").strip().upper()
+    days_raw = (form.get("payment_terms_days") or "").strip()
+    if not basis:
+        if clear_when_blank:
+            payload["payment_terms_basis"] = None
+            payload["payment_terms_days"] = None
+        return
+    if basis not in ("DAYS", "EOM"):
+        errors["payment_terms_basis"] = "Choose how the days are counted."
+        return
+    try:
+        days = int(days_raw)
+    except ValueError:
+        errors["payment_terms_days"] = "Enter the number of days, for example 30."
+        return
+    if not 0 <= days <= 365:
+        errors["payment_terms_days"] = "Enter between 0 and 365 days."
+        return
+    payload["payment_terms_basis"] = basis
+    payload["payment_terms_days"] = days
 
 
 def _apply_einvoice_recipient_fields(
@@ -62,12 +95,68 @@ def _apply_einvoice_recipient_fields(
     payload["peppol_participant_id"] = peppol or None
 
 
+def _apply_tpar_field(
+    request: Request, form: dict[str, str], payload: dict[str, object]
+) -> None:
+    """Add the reportable-contractor (TPAR) flag to a contact write payload.
+
+    P1-74, batch 14. AU only — the checkbox renders only for an AU company,
+    so a non-AU submit stays byte-identical to before. Source of truth on
+    every submit, like ``is_one_off``.
+    """
+    jurisdiction = getattr(request.state, "active_company_jurisdiction", None) or "AU"
+    if jurisdiction != "AU":
+        return
+    payload["is_tpar_supplier"] = form.get("is_tpar_supplier") == "on"
+
+
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
 
 
-_CONTACT_TYPE_VALUES = {"CUSTOMER", "SUPPLIER", "BOTH", "BENEFICIARY"}
+_CONTACT_TYPE_VALUES = {
+    "CUSTOMER", "SUPPLIER", "CONTRACTOR", "SUB_CONTRACTOR", "BOTH", "BENEFICIARY",
+}
+_CONTACT_SORT_KEYS = {"name", "type", "email", "phone", "abn", "city", "created_at"}
+_LOOKUP_ROLES = {"customer", "supplier"}
+
+
+@router.get("/contacts/_lookup", response_model=None)
+async def contacts_lookup(
+    request: Request,
+    q: str = "",
+    role: str = "",
+    limit: int = 20,
+) -> Response:
+    """JSON for the type-ahead contact pickers on the list filters.
+
+    ``role=customer|supplier`` narrows to the contact types that can sit on
+    that side (supplier includes contractors and "both"). Returns
+    ``{"items": [{"id", "name", "type"}]}``, name order. Declared before
+    ``/contacts/{contact_id}`` so the literal path wins.
+    """
+    if not _require_auth(request):
+        return JSONResponse({"items": []}, status_code=401)
+    params: dict[str, object] = {
+        "limit": max(1, min(int(limit or 20), 50)),
+        "offset": 0,
+        "sort": "name",
+        "direction": "asc",
+    }
+    if q.strip():
+        params["q"] = q.strip()[:200]
+    if role.strip().lower() in _LOOKUP_ROLES:
+        params["role"] = role.strip().lower()
+    items: list[dict[str, object]] = []
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/contacts", params=params)
+        if resp.is_success:
+            items = [
+                {"id": c.get("id"), "name": c.get("name"), "type": c.get("contact_type")}
+                for c in resp.json().get("items", [])
+            ]
+    return JSONResponse({"items": items})
 
 
 @router.get("/contacts", response_class=HTMLResponse, response_model=None)
@@ -75,17 +164,28 @@ async def contacts_list(
     request: Request,
     show: str | None = None,
     contact_type: str | None = None,
+    owing: str | None = None,
+    q: str | None = None,
+    sort: str = "name",
+    direction: str = "asc",
+    export: str | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     """Render the contacts list page.
+
+    Each row carries the engine's balances (``include_balances=true``): owed
+    to us, we owe, credit either way. ``?owing=1`` lists only contacts with
+    something open (engine filter over the whole set, not the page).
 
     By default, one-off contacts (``is_one_off=true``) are hidden.
     ``?show=one-off`` lists ONLY the one-offs; ``?show=all`` lists
     everything. Anything else (or unset) renders the main pool.
 
-    ``?contact_type=CUSTOMER|SUPPLIER|BOTH|BENEFICIARY`` filters by the
-    underlying ContactType enum.
+    ``?contact_type=CUSTOMER|SUPPLIER|CONTRACTOR|SUB_CONTRACTOR|BOTH|BENEFICIARY``
+    filters by the underlying ContactType enum. ``?q=`` searches name,
+    email, ABN and other names; ``sort``/``direction`` sort on the server;
+    ``?export=csv`` downloads every matching contact as a spreadsheet.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -97,18 +197,40 @@ async def contacts_list(
     ct = (contact_type or "").upper().strip()
     if ct not in _CONTACT_TYPE_VALUES:
         ct = ""
+    sort = sort if sort in _CONTACT_SORT_KEYS else "name"
+    direction = "desc" if direction == "desc" else "asc"
+    q_clean = (q or "").strip()
 
-    limit = max(1, min(int(limit or 50), 500))
+    limit = lh.clamp_page_size(limit)
     offset = max(0, int(offset or 0))
 
-    params: dict[str, object] = {"limit": limit, "offset": offset}
+    params: dict[str, object] = {
+        "limit": limit, "offset": offset, "sort": sort, "direction": direction,
+        "include_balances": "true",
+    }
+    owing_only = (owing or "") in ("1", "true", "on", "yes")
+    if owing_only:
+        params["owing"] = "true"
     if ct:
         # The API list endpoint exposes the ContactType filter as ?type=
         # (alias on Query(default=None, alias="type")). Sending the field's
         # internal name "contact_type" is silently ignored.
         params["type"] = ct
+    if q_clean:
+        params["q"] = q_clean[:200]
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get(
+                "/api/v1/contacts", params={**params, "format": "csv"}
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "contacts.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/contacts", status_code=303)
         resp = await client.get("/api/v1/contacts", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -145,6 +267,10 @@ async def contacts_list(
             "flash": flash,
             "show": show or "",
             "filter_contact_type": ct,
+            "filter_owing": owing_only,
+            "filter_q": q_clean,
+            "sort": sort,
+            "direction": direction,
             "limit": limit,
             "offset": offset,
             "candidate_count": candidate_count,
@@ -312,12 +438,30 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
             payload[field] = val
 
     payload["is_one_off"] = form.get("is_one_off") == "on"
+    _apply_tpar_field(request, form, payload)
 
     # E-invoice recipient flag (EE only). The fields only appear in the EE
     # form, and touching them for AU companies would be a silent behaviour
     # change, so gate on the active company's jurisdiction — AU payloads are
     # byte-identical to before.
     _apply_einvoice_recipient_fields(request, form, payload)
+
+    terms_errors: dict[str, str] = {}
+    _apply_payment_terms(form, payload, terms_errors, clear_when_blank=False)
+    if terms_errors:
+        accounts, tax_codes = await _fetch_contact_dropdowns(request)
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "contacts/new.html",
+            {
+                "form": form,
+                "errors": terms_errors,
+                "idempotency_key": idempotency_key,
+                "accounts": accounts,
+                "tax_codes": tax_codes,
+            },
+            status_code=422,
+        )
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -454,7 +598,12 @@ async def contact_edit_form(
     # EE e-invoice-recipient fields (EE-gated in the template). "on"/"" keeps
     # the checkbox check trivial and matches the submit form's semantics.
     form["e_invoice_recipient"] = "on" if contact.get("e_invoice_recipient") else ""
+    form["is_tpar_supplier"] = "on" if contact.get("is_tpar_supplier") else ""
     form["peppol_participant_id"] = str(contact.get("peppol_participant_id") or "")
+    form["payment_terms_basis"] = str(contact.get("payment_terms_basis") or "")
+    form["payment_terms_days"] = (
+        "" if contact.get("payment_terms_days") is None else str(contact.get("payment_terms_days"))
+    )
 
     accounts, tax_codes = await _fetch_contact_dropdowns(request)
 
@@ -507,10 +656,32 @@ async def contact_update(
     # is_one_off is a checkbox — POST it on every edit (no "leave alone"
     # semantics; the edit form is the source of truth for the flag).
     payload["is_one_off"] = form.get("is_one_off") == "on"
+    _apply_tpar_field(request, form, payload)
 
     # E-invoice recipient flag (EE only) — same source-of-truth-on-submit
     # semantics as is_one_off. See _apply_einvoice_recipient_fields.
     _apply_einvoice_recipient_fields(request, form, payload)
+
+    # Payment terms — the form is the source of truth on submit (a blank
+    # basis clears them), but only when the form carried the field at all.
+    if "payment_terms_basis" in form:
+        terms_errors: dict[str, str] = {}
+        _apply_payment_terms(form, payload, terms_errors, clear_when_blank=True)
+        if terms_errors:
+            accounts, tax_codes = await _fetch_contact_dropdowns(request)
+            return _TEMPLATES.TemplateResponse(
+                request,
+                "contacts/edit.html",
+                {
+                    "contact": None,
+                    "form": form,
+                    "errors": terms_errors,
+                    "conflict": False,
+                    "accounts": accounts,
+                    "tax_codes": tax_codes,
+                },
+                status_code=422,
+            )
 
     async with api_client(request) as client:
         resp = await client.patch(
@@ -713,6 +884,91 @@ def _txn_sort_key(t: dict, key: str) -> object:
     return str(t.get(key) or "")
 
 
+# Engine contact-ledger kinds -> the label shown in the Type column/filter.
+_LEDGER_TYPE = {
+    "invoice": "Invoice",
+    "bill": "Bill",
+    "receipt": "Receipt",
+    "supplier_payment": "Payment",
+    "customer_refund": "Refund",
+    "supplier_refund": "Refund",
+    "credit_note": "Credit note",
+    "supplier_credit_note": "Supplier credit",
+    "write_off": "Write-off",
+    "credit_applied": "Credit applied",
+    "expense": "Expense",
+    "money_in": "Money in",
+}
+_TXN_TYPES = [
+    "Invoice", "Bill", "Receipt", "Payment", "Refund", "Credit note",
+    "Supplier credit", "Credit applied", "Write-off", "Expense", "Money in",
+]
+_LEDGER_URL = {
+    "invoices": "/invoices/",
+    "bills": "/bills/",
+    "payments": "/payments/",
+    "credit_notes": "/credit-notes/",
+    "supplier-credit-notes": "/supplier-credit-notes/",
+    "expenses": "/expenses/",
+    "receipts": "/receipts/",
+}
+
+
+def _ledger_row(r: dict) -> dict:
+    """One engine ledger row in the shape contacts/detail.html renders."""
+    related = None
+    if r.get("related_id") and r.get("related_kind") in ("bill", "invoice"):
+        related = {
+            "number": r.get("related_number") or r["related_kind"],
+            "url": ("/bills/" if r["related_kind"] == "bill" else "/invoices/") + r["related_id"],
+        }
+    return {
+        "type": _LEDGER_TYPE.get(r.get("kind", ""), (r.get("kind") or "").replace("_", " ").title()),
+        "kind": r.get("kind"),
+        "date": r.get("date") or "",
+        "number": r.get("number") or "—",
+        "ref": r.get("reference") or "",
+        "description": r.get("description") or "",
+        "amount": r.get("amount") or "0",
+        "effect": r.get("effect") or "0",
+        "balance": r.get("balance"),
+        "status": r.get("status") or "",
+        "url": _LEDGER_URL.get(r.get("url_kind") or "", "/") + (r.get("id") or ""),
+        "id": r.get("id"),
+        "related": related,
+    }
+
+
+def _position(contact: dict, ledger: dict | None) -> dict | None:
+    """Owing / credit figures for the card. Prefers the contact's live
+    ``balances`` (adds overdue); falls back to the ledger's position."""
+    from decimal import Decimal, InvalidOperation
+
+    def d(v: object) -> Decimal:
+        try:
+            return Decimal(str(v if v not in (None, "") else 0))
+        except (InvalidOperation, ValueError):
+            return Decimal("0")
+
+    b = contact.get("balances") or {}
+    lp = (ledger or {}).get("position") or {}
+    if not b and not lp:
+        return None
+    pos = {
+        "receivable": d(b.get("receivable_unpaid", lp.get("receivable_outstanding"))),
+        "receivable_overdue": d(b.get("receivable_overdue")),
+        "receivable_credit": d(b.get("receivable_credit", lp.get("receivable_credit"))),
+        "payable": d(b.get("payable_unpaid", lp.get("payable_outstanding"))),
+        "payable_overdue": d(b.get("payable_overdue")),
+        "payable_credit": d(b.get("payable_credit", lp.get("payable_credit"))),
+    }
+    pos["net"] = (pos["receivable"] - pos["receivable_credit"]) - (
+        pos["payable"] - pos["payable_credit"]
+    )
+    pos["open_credits"] = (ledger or {}).get("open_credits") or []
+    return pos
+
+
 @router.get("/contacts/{contact_id}", response_class=HTMLResponse, response_model=None)
 async def contact_detail(
     request: Request,
@@ -726,10 +982,16 @@ async def contact_detail(
 ) -> HTMLResponse | RedirectResponse:
     """Render a single contact detail page with their transaction history.
 
-    Fans out to /api/v1/{invoices,bills,payments,credit_notes,expenses}
-    filtered by ``contact_id``, merges results into one chronological list,
-    and applies the requested filter + sort. Each transaction row carries
-    enough metadata to deep-link back to its underlying detail page.
+    History comes from the engine's contact ledger
+    (``GET /api/v1/contacts/{id}/transactions``): invoices, bills, receipts,
+    supplier payments, refunds, customer and supplier credit notes,
+    write-offs, credit applications and paid-on-the-spot expenses, each with
+    a running balance (positive = they owe you). The position card reads the
+    contact's ``balances`` (``include_balances=true``) — receivable /
+    payable outstanding and overdue, plus unused credit either way.
+
+    If the engine predates the ledger endpoint (404), falls back to the old
+    fan-out over the per-document list endpoints (no running balance).
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -738,7 +1000,9 @@ async def contact_detail(
     direction = "asc" if direction == "asc" else "desc"
 
     async with api_client(request) as client:
-        resp = await client.get(f"/api/v1/contacts/{contact_id}")
+        resp = await client.get(
+            f"/api/v1/contacts/{contact_id}", params={"include_balances": "true"}
+        )
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
@@ -763,6 +1027,23 @@ async def contact_detail(
 
         contact = resp.json()
 
+        ledger: dict | None = None
+        ledger_params: dict[str, str] = {}
+        if date_from:
+            ledger_params["from"] = date_from
+        if date_to:
+            ledger_params["to"] = date_to
+        if (txn_status or "").upper() in ("DRAFT", "VOIDED"):
+            ledger_params["include_unposted"] = "true"
+        try:
+            lr = await client.get(
+                f"/api/v1/contacts/{contact_id}/transactions", params=ledger_params
+            )
+            if lr.is_success:
+                ledger = lr.json()
+        except Exception:  # fall back to the fan-out below
+            ledger = None
+
         params: dict[str, object] = {
             "contact_id": contact_id,
             "page": 1,
@@ -782,11 +1063,14 @@ async def contact_detail(
                 pass
             return []
 
-        invoices = await _safe_list("/api/v1/invoices")
-        bills = await _safe_list("/api/v1/bills")
-        payments = await _safe_list("/api/v1/payments")
-        credit_notes = await _safe_list("/api/v1/credit_notes")
-        expenses = await _safe_list("/api/v1/expenses")
+        if ledger is None:
+            invoices = await _safe_list("/api/v1/invoices")
+            bills = await _safe_list("/api/v1/bills")
+            payments = await _safe_list("/api/v1/payments")
+            credit_notes = await _safe_list("/api/v1/credit_notes")
+            expenses = await _safe_list("/api/v1/expenses")
+        else:
+            invoices = bills = payments = credit_notes = expenses = []
 
     # Normalise each source into one shape:
     #   {type, date, number, ref, amount, status, url, id}
@@ -832,7 +1116,7 @@ async def contact_detail(
             "ref": cn.get("reference") or "",
             "amount": cn.get("total") or "0",
             "status": cn.get("status") or "",
-            "url": f"/credit_notes/{cn['id']}",
+            "url": f"/credit-notes/{cn['id']}",
             "id": cn["id"],
         })
     for exp in expenses:
@@ -846,6 +1130,9 @@ async def contact_detail(
             "url": f"/expenses/{exp['id']}",
             "id": exp["id"],
         })
+
+    if ledger is not None:
+        transactions = [_ledger_row(r) for r in ledger.get("rows", [])]
 
     if txn_type:
         transactions = [t for t in transactions if t["type"].lower() == txn_type.lower()]
@@ -871,12 +1158,39 @@ async def contact_detail(
     elif att_resp.is_success:
         attachments = att_resp.json()
 
+    # Customer statements are one currency each: find which currencies this
+    # customer has activity in so the page can offer one statement per currency.
+    statement_currencies: list[str] = []
+    if (contact.get("contact_type") or "").upper() in ("CUSTOMER", "BOTH"):
+        try:
+            today = date.today()
+            async with api_client(request) as client:
+                st = await client.get(
+                    f"/api/v1/contacts/{contact_id}/statement",
+                    params={
+                        "from": (today - timedelta(days=365)).isoformat(),
+                        "to": today.isoformat(),
+                    },
+                )
+            if st.is_success:
+                body = st.json()
+                if isinstance(body, dict):
+                    first = body.get("currency")
+                    statement_currencies = [c for c in [first, *(body.get("other_currencies") or [])] if c]
+        except Exception:
+            statement_currencies = []
+
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "contacts/detail.html",
         {"contact": contact, "error": None, "flash": flash,
+         "statement_currencies": statement_currencies,
          "transactions": transactions,
+         "ledger": ledger,
+         "ledger_unavailable": ledger is None,
+         "position": _position(contact, ledger),
+         "txn_types": _TXN_TYPES,
          "txn_type": txn_type or "",
          "txn_status": txn_status or "",
          "date_from": date_from or "",
@@ -886,7 +1200,10 @@ async def contact_detail(
          "attachments": attachments,
          "vault_enabled": vault_enabled,
          "entity_kind": "contact",
-         "entity_id": contact_id},
+         "entity_id": contact_id,
+         # b11: statement period picker defaults — the last three months.
+         "statement_from": (date.today().replace(day=1) - timedelta(days=62)).replace(day=1).isoformat(),
+         "statement_to": date.today().isoformat()},
     )
 
 
@@ -1009,6 +1326,7 @@ async def contact_statement_pdf(
     contact_id: str,
     period_from: str | None = Query(default=None, alias="from"),
     period_to: str | None = Query(default=None, alias="to"),
+    currency: str | None = Query(default=None, min_length=3, max_length=3),
 ) -> Response | RedirectResponse:
     """Stream the customer AR statement PDF from the API.
 
@@ -1023,10 +1341,14 @@ async def contact_statement_pdf(
     today = date.today()
     pf = period_from or (today - timedelta(days=365)).isoformat()
     pt = period_to or today.isoformat()
+    pdf_params = {"from": pf, "to": pt}
+    if currency:
+        # One statement per currency (batch 10): the engine never mixes them.
+        pdf_params["currency"] = currency.upper()
     async with api_client(request) as client:
         resp = await client.get(
             f"/api/v1/contacts/{contact_id}/statement.pdf",
-            params={"from": pf, "to": pt},
+            params=pdf_params,
         )
     if resp.status_code == 401:
         request.session.clear()

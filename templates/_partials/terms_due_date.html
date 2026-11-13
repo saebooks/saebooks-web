@@ -1,0 +1,35 @@
+{# Fills #due_date from the chosen contact's payment terms (batch 3, P0-15).
+   Include right after the due-date input. Stops once the user types a due
+   date; a blank due date on save is filled by the engine the same way. #}
+<p id="terms-hint" class="text-xs ink-3 mt-1" aria-live="polite"></p>
+<script>
+(function () {
+  if (window.__termsDueDateWired) return;
+  window.__termsDueDateWired = true;
+  var due = document.getElementById("due_date");
+  var issue = document.getElementById("issue_date");
+  var contact = document.getElementById("contact_id");
+  var hint = document.getElementById("terms-hint");
+  if (!due || !issue || !contact) return;
+  var userSet = !!due.value && due.dataset.termsAuto !== "1";
+  due.addEventListener("input", function () { userSet = !!due.value; });
+  function refresh() {
+    if (!contact.value || !issue.value) { hint.textContent = ""; return; }
+    var url = "/terms/due-date?contact_id=" + encodeURIComponent(contact.value) +
+              "&issue_date=" + encodeURIComponent(issue.value);
+    fetch(url, {credentials: "same-origin"}).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (b) {
+        if (!b) return;
+        if (b.terms_text) {
+          hint.textContent = b.terms_text + (userSet ? "" : " — due date filled in.");
+          if (!userSet && b.due_date) { due.value = b.due_date; due.dataset.termsAuto = "1"; }
+        } else {
+          hint.textContent = "{{ _('No set payment terms for this contact — enter the due date, or leave it blank for the same day.') }}";
+        }
+      }).catch(function () {});
+  }
+  contact.addEventListener("change", refresh);
+  issue.addEventListener("change", refresh);
+  if (contact.value) refresh();
+})();
+</script>

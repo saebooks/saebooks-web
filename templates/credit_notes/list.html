@@ -28,13 +28,15 @@
 </div>
 
 {# Filter form — HTMX-powered, swaps only the table on submit #}
-<form
+<form role="search"
   hx-get="/credit-notes"
   hx-target="#credit-notes-table"
   hx-swap="outerHTML"
   hx-push-url="true"
   class="mb-4 flex flex-wrap gap-3 items-end"
 >
+  {% import "_components/list_tools.html" as lt %}
+  {{ lt.search_box(filter_q) }}
   <div>
     <label for="status" class="block text-xs font-medium text-gray-500 mb-1">{{ _("Status") }}</label>
     <select
@@ -46,6 +48,7 @@
       <option value="DRAFT" {% if filter_status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
       <option value="POSTED" {% if filter_status == 'POSTED' %}selected{% endif %}>{{ _("Posted") }}</option>
       <option value="VOIDED" {% if filter_status == 'VOIDED' %}selected{% endif %}>{{ _("Voided") }}</option>
+      <option value="UNAPPLIED" {% if filter_status == 'UNAPPLIED' %}selected{% endif %}>{{ _("Credit left to use") }}</option>
     </select>
   </div>
 
@@ -71,20 +74,12 @@
     >
   </div>
 
-  <div>
-    <label for="contact_id" class="block text-xs font-medium ink-3 mb-1">{{ _("Contact") }}</label>
-    <input
-      type="text"
-      id="contact_id"
-      name="contact_id"
-      value="{{ filter_contact_id }}"
-      placeholder="{{ _('optional') }}"
-      class="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#194291] w-64"
-    >
-  </div>
 
-  {# carry pagination limit; reset offset to 0 on new filter #}
-  <input type="hidden" name="limit" value="{{ limit }}">
+  {{ lt.contact_picker("contact_id", _('Customer'), 'customer', filter_contact_id, filter_contact_name) }}
+  {{ lt.amount_range(filter_amount_min, filter_amount_max) }}
+  {{ lt.page_size(limit) }}
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="direction" value="{{ direction }}">
   <input type="hidden" name="offset" value="0">
 
   <button
@@ -113,5 +108,7 @@
 ) }}
 
 <script src="/static/js/list_table.js" defer></script>
+
+<script src="/static/js/contact_picker.js" defer></script>
 
 {% endblock %}

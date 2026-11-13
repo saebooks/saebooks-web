@@ -81,11 +81,12 @@ async def test_manifest_keeps_structural_fields() -> None:
     assert doc["scope"] == "/"
     assert doc["start_url"] == "/"
     assert doc["categories"] == ["business", "finance", "productivity"]
+    # b15 (P2-25): phone shortcuts — receipt, needs attention, invoice, expense.
     assert [s["url"] for s in doc["shortcuts"]] == [
         "/inbox",
+        "/#attention-card",
         "/invoices/new",
-        "/",
-        "/reports",
+        "/expenses/new",
     ]
 
 
@@ -119,3 +120,14 @@ async def test_service_worker_follows_brand_pin(monkeypatch: pytest.MonkeyPatch)
     assert "<h1>SAE Books</h1>" in resp.text
     assert "__BRAND_NAME__" not in resp.text
     assert "Tasur" not in resp.text
+
+
+@pytest.mark.anyio
+async def test_service_worker_offline_page_shows_attention_snapshot() -> None:
+    """b15 (P2-25): offline is no longer a blank page — it reads the
+    count-only needs-attention snapshot the dashboard stored."""
+    resp = await _get("/sw.js")
+
+    assert "sb_attention_snapshot" in resp.text
+    assert "/static/js/inbox_upload.js" in resp.text
+    assert "/static/brand/tasur-icon-192.png" in resp.text

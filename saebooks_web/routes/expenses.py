@@ -22,11 +22,15 @@ from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from saebooks_web.api_client import api_client
+from saebooks_web import bulk_transitions
+from saebooks_web.routes._void_dating import lodged_conflict, render_lodged_confirm, void_body
+from saebooks_web import list_helpers as lh
+from saebooks_web.api_client import api_client, optional_get
 from saebooks_web.form_helpers import parse_lines as _parse_lines
+from saebooks_web.fx_context import company_currency
 
 router = APIRouter()
 
@@ -83,7 +87,11 @@ async def _fetch_dropdowns(
         payment_accounts.extend(liab_resp.json().get("items", []))
     payment_accounts.sort(key=lambda a: a.get("code", ""))
 
-    t_resp = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+    # b15 (P2-2): only codes that belong on a purchase (no export or
+    # margin-scheme sales codes), so GST lands in the right BAS box.
+    t_resp = await client.get(
+        "/api/v1/tax_codes", params={"page_size": 500, "usage": "purchases"}
+    )
     if t_resp.is_success:
         tax_codes = t_resp.json().get("items", [])
 
@@ -94,6 +102,58 @@ async def _fetch_dropdowns(
         projects = p_resp.json().get("items", [])
 
     return contacts, expense_accounts, payment_accounts, tax_codes, projects
+
+
+async def _fetch_owner_accounts(client, payment_accounts: list[dict]) -> list[dict]:
+    """Accounts an owner-paid expense may credit (P1-47, batch 14).
+
+    The owner loan account (a liability, from ``payment_accounts``) or the
+    owner's capital (equity). Blank on the form = the company's owner loan
+    account, resolved by the engine.
+    """
+    owner: list[dict] = [a for a in payment_accounts if a.get("account_type") == "LIABILITY"]
+    try:
+        resp = await client.get(
+            "/api/v1/accounts",
+            params={"account_type": "EQUITY", "limit": 500, "offset": 0},
+        )
+        if resp.is_success:
+            owner.extend(a for a in resp.json().get("items", []) if not a.get("is_header"))
+    except Exception:
+        pass
+    owner.sort(key=lambda a: a.get("code", ""))
+    return owner
+
+
+def _expense_lines_from_form(form: dict[str, str]) -> list[dict[str, object]]:
+    """``parse_lines`` plus the private share of each line (P1-47).
+
+    ``private_pct`` is expense-only, so it is read here rather than added to
+    the shared ``form_helpers._LINE_FIELDS`` that bills and invoices use.
+    Lines are matched by their form index; a blank line is dropped exactly as
+    ``parse_lines`` drops it.
+    """
+    indices: list[int] = []
+    for key in form:
+        if key.startswith("lines[") and "][" in key:
+            try:
+                idx = int(key.split("[")[1].split("]")[0])
+            except (ValueError, IndexError):
+                continue
+            if idx not in indices:
+                indices.append(idx)
+    out: list[dict[str, object]] = []
+    for idx in sorted(indices):
+        single = {k: v for k, v in form.items() if k.startswith(f"lines[{idx}][")}
+        parsed = _parse_lines(single)
+        if not parsed:
+            continue
+        line = parsed[0]
+        pct = (form.get(f"lines[{idx}][private_pct]") or "").strip()
+        if pct and pct not in ("0", "0.0", "0.00"):
+            line["private_pct"] = pct
+        out.append(line)
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -118,29 +178,44 @@ async def expenses_list(
     request: Request,
     status: str | None = None,
     contact_id: str | None = None,
+    project_id: str | None = None,
     payment_account_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
     flagged: bool | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
     sort: str = "expense_date",
     direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    sort = sort if sort in _EXPENSE_SORT_KEYS else "expense_date"
+    # Search, sort and paging run in the engine over every row.
+    sort = sort if sort in ('number', 'expense_date', 'contact', 'reference', 'total', 'status') else 'expense_date'
     direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
+
 
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
     params: dict[str, object] = {"page": page, "page_size": page_size}
+    params.update({"sort": sort, "direction": direction})
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
     if status:
         params["status"] = status
     if contact_id:
         params["contact_id"] = contact_id
+    # Batch 12 (P0-39 / P1-63): documents on one project.
+    if project_id:
+        params["project_id"] = project_id
     if payment_account_id:
         params["payment_account_id"] = payment_account_id
     if date_from:
@@ -156,8 +231,18 @@ async def expenses_list(
     expenses: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get("/api/v1/expenses", params={**params, "format": "csv"})
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "expenses.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/expenses", status_code=303)
         resp = await client.get("/api/v1/expenses", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -169,26 +254,22 @@ async def expenses_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-        # Resolve contact_id -> contact dict so the template can render the
-        # supplier NAME (not the raw UUID). SUPPLIER alone misses
-        # contact_type=BOTH (suppliers who are also customers), so do a
-        # second pass — mirrors invoices.py's CUSTOMER+BOTH.
-        for ctype in ("SUPPLIER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        # Names for exactly the suppliers on this page (and the filter).
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [r.get("contact_id") for r in expenses] + [contact_id]
+        )
+        if contact_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(contact_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
 
-    expenses.sort(key=lambda e: _expense_sort_key(e, sort), reverse=(direction == "desc"))
 
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
     flash = request.session.pop("flash", None)
 
     ctx = {
+        "filter_project_id": project_id or "",
         "expenses": expenses,
         "contacts_by_id": contacts_by_id,
         "total": total,
@@ -202,6 +283,10 @@ async def expenses_list(
         "filter_flagged": bool(flagged),
         "sort": sort,
         "direction": direction,
+        "filter_contact_name": filter_contact_name,
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,
@@ -232,12 +317,20 @@ async def expense_new_form(
         contacts, expense_accounts, payment_accounts, tax_codes, projects = (
             await _fetch_dropdowns(client)
         )
+        owner_accounts = await _fetch_owner_accounts(client, payment_accounts)
 
     initial_lines = [{"index": 0}]
 
-    form: dict[str, object] = {"expense_date": today}
+    form: dict[str, object] = {"expense_date": today, "paid_by": "business"}
     if contact_id:
         form["contact_id"] = contact_id
+    # Bank account page "Record spending" button (batch 4, P1-49).
+    _pa = request.query_params.get("payment_account_id", "").strip()
+    if _pa:
+        form["payment_account_id"] = _pa
+    # Batch 5 (P0-28): receipts show GST-inclusive prices, so new expenses
+    # start with "Amounts include GST" switched on.
+    form.setdefault("amounts_include_tax", "1")
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -249,6 +342,7 @@ async def expense_new_form(
             "contacts": contacts,
             "accounts": expense_accounts,
             "payment_accounts": payment_accounts,
+            "owner_accounts": owner_accounts,
             "tax_codes": tax_codes,
             "projects": projects,
             "lines": initial_lines,
@@ -270,7 +364,6 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
     payload: dict[str, object] = {}
     for field in (
         "contact_id",
-        "payment_account_id",
         "expense_date",
         "reference",
         "notes",
@@ -279,13 +372,34 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
         if val:
             payload[field] = val
 
-    currency = form.get("currency", "").strip().upper() or "AUD"
+    # Who paid (P1-47, batch 14). "owner" = paid with the owner's own money;
+    # the account is then the owner loan or capital account (blank = the
+    # company's owner loan account).
+    paid_by = "owner" if form.get("paid_by") == "owner" else "business"
+    payload["paid_by"] = paid_by
+    account_field = "owner_account_id" if paid_by == "owner" else "payment_account_id"
+    account_val = form.get(account_field, "").strip()
+    if account_val:
+        payload["payment_account_id"] = account_val
+
+    # Batch 10: blank rate on a foreign expense -> the engine looks up the
+    # published rate for the date (or refuses). A card conversion fee is
+    # in the company currency and goes to its own account (no GST).
+    base_ccy = company_currency(request)
+    currency = form.get("currency", "").strip().upper() or base_ccy
     payload["currency"] = currency
     fx_rate_raw = form.get("fx_rate", "").strip()
-    if fx_rate_raw and currency != "AUD":
+    if fx_rate_raw and currency != base_ccy:
         payload["fx_rate"] = fx_rate_raw
+    fee_raw = form.get("fx_fee_amount", "").strip()
+    if fee_raw and currency != base_ccy:
+        payload["fx_fee_amount"] = fee_raw
+        fee_acct = form.get("fx_fee_account_id", "").strip()
+        if fee_acct:
+            payload["fx_fee_account_id"] = fee_acct
 
-    payload["lines"] = _parse_lines(form)
+    payload["lines"] = _expense_lines_from_form(form)
+    payload["amounts_include_tax"] = bool(form.get("amounts_include_tax"))
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -324,8 +438,9 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
         contacts, expense_accounts, payment_accounts, tax_codes, projects = (
             await _fetch_dropdowns(client)
         )
+        owner_accounts = await _fetch_owner_accounts(client, payment_accounts)
 
-    raw_lines = _parse_lines(form)
+    raw_lines = _expense_lines_from_form(form)
     lines = [{"index": i, **ln} for i, ln in enumerate(raw_lines)] or [{"index": 0}]
 
     return _TEMPLATES.TemplateResponse(
@@ -338,6 +453,7 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
             "contacts": contacts,
             "accounts": expense_accounts,
             "payment_accounts": payment_accounts,
+            "owner_accounts": owner_accounts,
             "tax_codes": tax_codes,
             "projects": projects,
             "lines": lines,
@@ -400,6 +516,13 @@ async def expense_detail(
             if c.is_success:
                 contact_name = c.json().get("name", "")
 
+        # Batch 12 (P1-63): job codes for the lines.
+        projects_by_id: dict[str, dict] = {}
+        if any(ln.get("project_id") for ln in expense.get("lines", [])):
+            p = await optional_get(client, "/api/v1/projects", {"limit": 500, "offset": 0})
+            if p is not None:
+                projects_by_id = {str(x["id"]): x for x in p.json().get("items", [])}
+
         payment_account_name = ""
         pa_id = expense.get("payment_account_id")
         if pa_id:
@@ -416,6 +539,7 @@ async def expense_detail(
             "expense": expense,
             "contact_name": contact_name,
             "payment_account_name": payment_account_name,
+            "projects_by_id": projects_by_id,
             "flash": flash,
         },
     )
@@ -494,13 +618,30 @@ async def _transition(
             return RedirectResponse(url="/expenses", status_code=303)
 
         version = cur.json()["version"]
+        body = None
+        if action == "void":
+            # Batch 5: optional reversal date / lodged-period confirmation.
+            body = void_body(await request.form())
         resp = await client.post(
             f"/api/v1/expenses/{expense_id}/{action}",
             headers={
                 "If-Match": str(version),
                 "X-Idempotency-Key": str(uuid.uuid4()),
             },
+            json=body,
         )
+
+    if action == "void":
+        _conflict = lodged_conflict(resp)
+        if _conflict is not None:
+            return render_lodged_confirm(
+                request,
+                conflict=_conflict,
+                action_url=f"/expenses/{expense_id}/void",
+                back_url=f"/expenses/{expense_id}",
+                version=str(version),
+                what="expense",
+            )
 
     if resp.status_code == 200:
         request.session["flash"] = f"Expense {action}ed."
@@ -592,28 +733,13 @@ async def expenses_bulk_action(request: Request) -> RedirectResponse:
         return RedirectResponse(url="/expenses", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS_EXPENSES[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for row_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=row_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{row_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{row_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+        )
 
     label = action.replace("_", " ").title()
     if failed:

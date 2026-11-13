@@ -1,0 +1,9 @@
+{# b15 (P2-7): one plain sentence when DateParamMiddleware dropped a date
+   from the link because it was not a real date. #}
+{% set _dropped = request.state.dropped_date_params if request else None %}
+{% if _dropped %}
+<div class="card p-3 mb-4 flex items-center gap-2" role="status" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ _("A date in the link was not a real date, so the usual period is shown instead.") }}</span>
+</div>
+{% endif %}

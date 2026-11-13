@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"{% set _sb_df = request.cookies.get('sb_date_format') if request else None %}{% if _sb_df in ('dmy', 'long') %} data-date-format="{{ _sb_df }}"{% endif %}>
 <head>
   {% set brand = current_brand() -%}
   <meta charset="UTF-8">
@@ -49,6 +49,8 @@
   </script>
 
   <link rel="stylesheet" href="/static/tailwind.css">
+  {# b15 (P1-77): list tables become cards on a phone. #}
+  <link rel="stylesheet" href="/static/css/phone.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -409,6 +411,8 @@
   </style>
 
   <script src="https://unpkg.com/htmx.org@2" defer></script>
+  {# b15: phone table cards (P1-77), date display preference (P2-9). #}
+  <script src="/static/js/phone.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -526,6 +530,8 @@
                               or path.startswith('/invoices')
                               or path.startswith('/credit-notes')
                               or path.startswith('/recurring-invoices')
+                              or path == '/statements/send'
+                              or path == '/settings/getting-paid'
                               or path.startswith('/quotes')
                               or path.startswith('/customer-hub')
                               or path.startswith('/customers')
@@ -554,6 +560,12 @@
           <a href="/recurring-invoices" class="nav-item is-sub {% if path.startswith('/recurring-invoices') %}active{% endif %}">
             <i data-lucide="repeat" class="nav-ico"></i>{{ _("Recurring") }}
           </a>
+          <a href="/statements/send" class="nav-item is-sub {% if path == '/statements/send' %}active{% endif %}">
+            <i data-lucide="mails" class="nav-ico"></i>{{ _("Customer statements") }}
+          </a>
+          <a href="/settings/getting-paid" class="nav-item is-sub {% if path == '/settings/getting-paid' %}active{% endif %}">
+            <i data-lucide="bell-ring" class="nav-ico"></i>{{ _("Getting paid") }}
+          </a>
           <a href="/customer-hub/overview" class="nav-item is-sub {% if path.startswith('/customer-hub') %}active{% endif %}">
             <i data-lucide="users" class="nav-ico"></i>{{ _("Customer overview") }}
           </a>
@@ -569,6 +581,7 @@
       {# Purchases (Suppliers context) — symmetric to Sales. One-offs separated from terms/accounts. #}
       {% set vendors_open = path.startswith('/expenses-overview')
                             or path.startswith('/bills')
+                            or path.startswith('/recurring-bills')
                             or path.startswith('/expenses')
                             or path.startswith('/purchase_orders')
                             or path.startswith('/suppliers')
@@ -586,6 +599,12 @@
           </a>
           <a href="/bills" class="nav-item is-sub {% if path.startswith('/bills') %}active{% endif %}">
             <i data-lucide="receipt" class="nav-ico"></i>{{ _("Bills") }}
+          </a>
+          <a href="/recurring-bills" class="nav-item is-sub {% if path.startswith('/recurring-bills') %}active{% endif %}">
+            <i data-lucide="repeat" class="nav-ico"></i>{{ _("Recurring bills") }}
+          </a>
+          <a href="/approvals" class="nav-item is-sub {% if path.startswith('/approvals') %}active{% endif %}">
+            <i data-lucide="check-check" class="nav-ico"></i>{{ _("Approvals") }}
           </a>
           <a href="/expenses" class="nav-item is-sub {% if path.startswith('/expenses') and path != '/expenses-overview' %}active{% endif %}">
             <i data-lucide="credit-card" class="nav-ico"></i>{{ _("Expenses (paid)") }}
@@ -610,6 +629,7 @@
 
       {% set people_open = path.startswith('/time-entries')
                            or path.startswith('/pay-run')
+                           or path.startswith('/payroll')
                            or path.startswith('/employees')
                            or path.startswith('/super-funds') %}
       <details class="group" data-section="people" {% if people_open %}open{% endif %}>
@@ -628,13 +648,26 @@
           <a href="/super-funds" class="nav-item is-sub {% if path.startswith('/super-funds') %}active{% endif %}">
             <i data-lucide="piggy-bank" class="nav-ico"></i>{{ _("Super funds") }}
           </a>
+          {# b15 (P2-21): set up the wages accounts in one step. #}
+          <a href="/payroll/accounts" class="nav-item is-sub {% if path.startswith('/payroll/accounts') %}active{% endif %}">
+            <i data-lucide="list-checks" class="nav-ico"></i>{{ _("Payroll accounts") }}
+          </a>
           {% endif %}
           <a href="/time-entries/week" class="nav-item is-sub {% if path.startswith('/time-entries') %}active{% endif %}">
             <i data-lucide="clock" class="nav-ico"></i>{{ _("Time entries") }}
           </a>
           {% if request.state.jp.features.payroll %}
-          <a href="/pay-run" class="nav-item is-sub {% if path.startswith('/pay-run') %}active{% endif %}">
-            <i data-lucide="badge-dollar-sign" class="nav-ico"></i>{{ _("Pay Run") }}
+          <a href="/payroll/pay-runs" class="nav-item is-sub {% if path.startswith('/payroll/pay-runs') %}active{% endif %}">
+            <i data-lucide="hand-coins" class="nav-ico"></i>{{ _("Pay runs") }}
+          </a>
+          <a href="/payroll/stp" class="nav-item is-sub {% if path.startswith('/payroll/stp') %}active{% endif %}">
+            <i data-lucide="shield-check" class="nav-ico"></i>{{ _("Single Touch Payroll") }}
+          </a>
+          <a href="/payroll/super" class="nav-item is-sub {% if path.startswith('/payroll/super') %}active{% endif %}">
+            <i data-lucide="piggy-bank" class="nav-ico"></i>{{ _("Super owed") }}
+          </a>
+          <a href="/payroll/year-end" class="nav-item is-sub {% if path.startswith('/payroll/year-end') %}active{% endif %}">
+            <i data-lucide="calendar-check" class="nav-ico"></i>{{ _("Payroll year end") }}
           </a>
           {% endif %}
         </div>
@@ -674,8 +707,11 @@
                             or path.startswith('/bank-statement-lines')
                             or path.startswith('/reconciliation')
                             or path.startswith('/bank-rules')
+                            or path.startswith('/banking')
                             or path.startswith('/payments')
-                            or path.startswith('/transfers') %}
+                            or path.startswith('/transfers')
+                            or path.startswith('/loans')
+                            or path.startswith('/owner-money') %}
       <details class="group" data-section="banking" {% if banking_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>{{ _("Banking") }}</span>
@@ -691,19 +727,29 @@
           <a href="/transfers" class="nav-item is-sub {% if path.startswith('/transfers') %}active{% endif %}">
             <i data-lucide="arrow-right-left" class="nav-ico"></i>{{ _("Transfers") }}
           </a>
+          <a href="/loans" class="nav-item is-sub {% if path.startswith('/loans') %}active{% endif %}">
+            <i data-lucide="landmark" class="nav-ico"></i>{{ _("Loans and finance") }}
+          </a>
+          <a href="/owner-money" class="nav-item is-sub {% if path.startswith('/owner-money') %}active{% endif %}">
+            <i data-lucide="user-round" class="nav-ico"></i>{{ _("Owner money") }}
+          </a>
           <a href="/bank-statement-lines" class="nav-item is-sub {% if path.startswith('/bank-statement-lines') %}active{% endif %}">
             <i data-lucide="align-justify" class="nav-ico"></i>{{ _("Statement Lines") }}
           </a>
           <a href="/reconciliation" class="nav-item is-sub {% if path.startswith('/reconciliation') %}active{% endif %}">
             <i data-lucide="git-pull-request" class="nav-ico"></i>{{ _("Reconciliation") }}
           </a>
-          {% if user_role in ('owner', 'admin') or request.session.get('is_sae_staff') %}
-          {# Import a bank statement (CSV/OFX). The route lives under /admin/imports
-             but a user reconciling looks for it here in Banking, not under Admin. #}
+          {% if user_role in ('owner', 'admin', 'accountant', 'bookkeeper') or request.session.get('is_sae_staff') %}
+          {# Import a bank statement (CSV/OFX/QIF). The route lives under /admin/imports
+             but a user reconciling looks for it here in Banking, not under Admin.
+             Bookkeepers may import (batch 4, P1-20). #}
           <a href="/admin/imports/bank" class="nav-item is-sub {% if path.startswith('/admin/imports/bank') %}active{% endif %}">
             <i data-lucide="upload" class="nav-ico"></i>{{ _("Import Statement") }}
           </a>
           {% endif %}
+          <a href="/banking/feeds" class="nav-item is-sub {% if path.startswith('/banking/feeds') %}active{% endif %}">
+            <i data-lucide="rss" class="nav-ico"></i>{{ _("Bank Feeds") }}
+          </a>
           <a href="/bank-rules" class="nav-item is-sub {% if path.startswith('/bank-rules') %}active{% endif %}">
             <i data-lucide="wand-sparkles" class="nav-ico"></i>{{ _("Bank Rules") }}
           </a>
@@ -711,7 +757,7 @@
         {% set _nav_group = "banking" %}{% include "_partials/sidebar_module_nav.html" %}
       </details>
 
-      {% set inventory_open = path.startswith('/inventory') or path.startswith('/items') %}
+      {% set inventory_open = path.startswith('/inventory') or path.startswith('/items') or path.startswith('/stock') %}
       <details class="group" data-section="inventory" {% if inventory_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>{{ _("Inventory") }}</span>
@@ -723,6 +769,15 @@
           </a>
           <a href="/items" class="nav-item is-sub {% if path.startswith('/items') %}active{% endif %}">
             <i data-lucide="package" class="nav-ico"></i>{{ _("Items") }}
+          </a>
+          <a href="/stock" class="nav-item is-sub {% if path == '/stock' %}active{% endif %}">
+            <i data-lucide="warehouse" class="nav-ico"></i>{{ _("Stock value") }}
+          </a>
+          <a href="/stock/adjustments" class="nav-item is-sub {% if path.startswith('/stock/adjustments') %}active{% endif %}">
+            <i data-lucide="clipboard-check" class="nav-ico"></i>{{ _("Stocktakes and adjustments") }}
+          </a>
+          <a href="/stock/reports/sales-by-item" class="nav-item is-sub {% if path.startswith('/stock/reports') %}active{% endif %}">
+            <i data-lucide="bar-chart-2" class="nav-ico"></i>{{ _("Sales by item") }}
           </a>
         </div>
       </details>
@@ -741,6 +796,7 @@
                         or path.startswith('/admin/ato-sbr')
                         or path == '/reports/bas-summary'))
                         or path.startswith('/tax-codes')
+                        or (jurisdiction == 'AU' and path.startswith('/tpar'))
                         or (jurisdiction != 'AU' and path.startswith('/tax-returns')) %}
       <details class="group" data-section="gst" {% if gst_open %}open{% endif %}>
         <summary class="nav-section-label">
@@ -767,6 +823,11 @@
             <i data-lucide="landmark" class="nav-ico"></i>{{ _("ATO SBR") }}
           </a>
           {% endif %}
+          {% if jurisdiction == 'AU' %}
+          <a href="/tpar" class="nav-item is-sub {% if path.startswith('/tpar') %}active{% endif %}">
+            <i data-lucide="hard-hat" class="nav-ico"></i>{{ _("Contractor payments report") }}
+          </a>
+          {% endif %}
           {% if jurisdiction != 'AU' %}
           <a href="/tax-returns" class="nav-item is-sub {% if path.startswith('/tax-returns') %}active{% endif %}">
             <i data-lucide="file-check" class="nav-ico"></i>{{ _("Deklaratsioonid") }}
@@ -786,12 +847,23 @@
           <a href="/reports" class="nav-item is-sub {% if path == '/reports' %}active{% endif %}">
             <i data-lucide="line-chart" class="nav-ico"></i>{{ _("All Reports") }}
           </a>
-          <a href="/statements" class="nav-item is-sub {% if path.startswith('/statements') or path.startswith('/statement-templates') %}active{% endif %}">
-            <i data-lucide="file-check-2" class="nav-ico"></i>{{ _("Statements") }}
+          {# b11: this opens SUPPLIER statement reconciliation; the old label
+             "Statements" sent people looking for customer statements here. #}
+          <a href="/statements" class="nav-item is-sub {% if (path.startswith('/statements') and path != '/statements/send') or path.startswith('/statement-templates') %}active{% endif %}">
+            <i data-lucide="file-check-2" class="nav-ico"></i>{{ _("Supplier statements") }}
           </a>
           {% if (request.state.companies or []) | length > 1 %}
           <a href="/group" class="nav-item is-sub {% if path == '/group' %}active{% endif %}">
             <i data-lucide="building-2" class="nav-ico"></i>{{ _("Group Overview") }}
+          </a>
+          {% endif %}
+          {# b15 (P2-5, P2-3): cash outlook, and the year-end close out of hiding. #}
+          <a href="/reports/cash-forecast" class="nav-item is-sub {% if path.startswith('/reports/cash-forecast') %}active{% endif %}">
+            <i data-lucide="trending-up" class="nav-ico"></i>{{ _("Cash forecast") }}
+          </a>
+          {% if user_role in ('owner', 'admin') or request.session.get('is_sae_staff') %}
+          <a href="/reports/close-year" class="nav-item is-sub {% if path.startswith('/reports/close-year') %}active{% endif %}">
+            <i data-lucide="calendar-check" class="nav-ico"></i>{{ _("Close the year") }}
           </a>
           {% endif %}
         </div>
@@ -1036,7 +1108,7 @@
               <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">{{ _("Customers") }}</p>
               <a href="/invoices/new"           class="create-link"><i data-lucide="file-text"     class="w-4 h-4"></i>{{ _("Invoice") }}</a>
               <a href="/quotes/new"             class="create-link"><i data-lucide="file-pen-line" class="w-4 h-4"></i>{{ _("Quote") }}</a>
-              <a href="/payments/new?direction=IN" class="create-link"><i data-lucide="banknote-arrow-up" class="w-4 h-4"></i>{{ _("Receive payment") }}</a>
+              <a href="/payments/new?direction=INCOMING" class="create-link"><i data-lucide="banknote-arrow-up" class="w-4 h-4"></i>{{ _("Receive payment") }}</a>
               <a href="/credit-notes/new"       class="create-link"><i data-lucide="file-minus"    class="w-4 h-4"></i>{{ _("Credit note") }}</a>
               <a href="/recurring-invoices/new" class="create-link"><i data-lucide="repeat"        class="w-4 h-4"></i>{{ _("Recurring invoice") }}</a>
               <a href="/contacts/new?type=CUSTOMER" class="create-link"><i data-lucide="user-plus" class="w-4 h-4"></i>{{ _("Customer") }}</a>
@@ -1046,7 +1118,7 @@
               <a href="/bills/new"              class="create-link"><i data-lucide="receipt"      class="w-4 h-4"></i>{{ _("Bill") }}</a>
               <a href="/expenses/new"           class="create-link"><i data-lucide="credit-card"  class="w-4 h-4"></i>{{ _("Expense (paid)") }}</a>
               <a href="/purchase_orders/new"    class="create-link"><i data-lucide="shopping-cart" class="w-4 h-4"></i>{{ _("Purchase order") }}</a>
-              <a href="/payments/new?direction=OUT" class="create-link"><i data-lucide="banknote" class="w-4 h-4"></i>{{ _("Pay bill") }}</a>
+              <a href="/payments/new?direction=OUTGOING" class="create-link"><i data-lucide="banknote" class="w-4 h-4"></i>{{ _("Pay bill") }}</a>
               <a href="/contacts/new?type=SUPPLIER" class="create-link"><i data-lucide="user-plus" class="w-4 h-4"></i>{{ _("Supplier") }}</a>
               <div class="hairline border-t mt-2 pt-2"></div>
               <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">{{ _("People") }}</p>
@@ -1057,13 +1129,13 @@
               <a href="/time-entries/new"       class="create-link"><i data-lucide="clock"        class="w-4 h-4"></i>{{ _("Time entry") }}</a>
               <a href="/time-entries/week"      class="create-link"><i data-lucide="calendar-days" class="w-4 h-4"></i>{{ _("Weekly grid") }}</a>
               {% if request.state.jp.features.payroll %}
-              <a href="/pay-run/new"            class="create-link"><i data-lucide="badge-dollar-sign" class="w-4 h-4"></i>{{ _("Pay run") }}</a>
+              <a href="/payroll/pay-runs"       class="create-link"><i data-lucide="hand-coins" class="w-4 h-4"></i>{{ _("Pay run") }}</a>
               {% endif %}
             </div>
             <div>
               <p class="text-[11px] font-mono uppercase tracking-wider ink-3 mb-2">{{ _("Banking & Books") }}</p>
               <a href="/journal-entries/new"    class="create-link"><i data-lucide="book-open"    class="w-4 h-4"></i>{{ _("Journal entry") }}</a>
-              <a href="/payments/new?direction=TRANSFER" class="create-link"><i data-lucide="arrow-left-right" class="w-4 h-4"></i>{{ _("Transfer") }}</a>
+              <a href="/transfers/new" class="create-link"><i data-lucide="arrow-left-right" class="w-4 h-4"></i>{{ _("Transfer") }}</a>
               <a href="/bank-accounts/new"      class="create-link"><i data-lucide="landmark"     class="w-4 h-4"></i>{{ _("Bank account") }}</a>
               <a href="/bank-rules/new"         class="create-link"><i data-lucide="wand-sparkles" class="w-4 h-4"></i>{{ _("Bank rule") }}</a>
               <a href="/reconciliation"         class="create-link"><i data-lucide="git-pull-request" class="w-4 h-4"></i>{{ _("Reconcile") }}</a>
@@ -1093,6 +1165,7 @@
         {# Passive ephemeral-demo badge — renders only for a provisioned demo
            session (gated on the demo_tenant_id session marker inside). #}
         {% include "_partials/demo_banner.html" %}
+        {% include "b15/date_param_notice.html" %}
         {% block content %}{% endblock %}
       </div>
     </main>
@@ -1251,10 +1324,15 @@
     { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas-summary' },
     {% endif %}
     {% if request.state.jp.features.payroll %}
-    { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll · coming soon', href: '/pay-run' },
-    { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG · coming soon',         href: '/pay-run' },
+    { g: 'Compliance', i: 'shield-check', t: 'Single Touch Payroll', s: 'Pay events and what is overdue',   href: '/payroll/stp' },
+    { g: 'Compliance', i: 'piggy-bank',   t: 'Super owed',          s: 'Payday Super due dates by fund',     href: '/payroll/super' },
+    { g: 'Compliance', i: 'calendar-check', t: 'Payroll year end',  s: 'Finalise the year, income statements', href: '/payroll/year-end' },
     {% endif %}
-    { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report · coming soon', href: '/reports' },
+    {% if jurisdiction == 'AU' %}
+    { g: 'Compliance', i: 'hard-hat',     t: 'Taxable payments annual report', s: 'Contractor payments, due 28 August', href: '/tpar' },
+    {% endif %}
+    { g: 'Banking', i: 'landmark',        t: 'Loans and finance',   s: 'Loans, chattel mortgages, hire purchase', href: '/loans' },
+    { g: 'Banking', i: 'user-round',      t: 'Owner money',         s: 'Paid personally, reimbursements, owner loan', href: '/owner-money' },
     { g: 'Admin',   i: 'cog',          t: 'Company settings',      s: '{% if jurisdiction == "AU" %}ABN · GST · tax codes{% else %}Registration · tax codes{% endif %}',              href: '/settings/company' },
     { g: 'Admin',   i: 'key-round',    t: 'Licence',                s: 'Tier and seat count',                href: '/admin/license' },
     { g: 'Admin',   i: 'history',      t: 'Audit log',              s: 'All ledger mutations',               href: '/admin/audit' },
@@ -1329,6 +1407,13 @@
       cmdkFiltered = CMDK_ITEMS.filter(it =>
         it.t.toLowerCase().includes(q) || it.s.toLowerCase().includes(q) || it.g.toLowerCase().includes(q)
       );
+      // Always offer a full search of the books (numbers, references, names,
+      // amounts) as the first choice, so Enter finds records, not just pages.
+      const raw = cmdkInput.value.trim();
+      const safe = raw.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      cmdkFiltered = [{ g: {{ _('Search')|tojson }}, t: {{ _('Search the books for')|tojson }} + ' "' + safe + '"',
+                        s: {{ _('Numbers, references, names and amounts')|tojson }}, i: 'search',
+                        href: '/search?q=' + encodeURIComponent(raw) }, ...cmdkFiltered];
     }
     cmdkSel = 0; renderCmdK();
   }

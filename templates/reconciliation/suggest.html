@@ -4,28 +4,27 @@
 
 {% block content %}
 
-{# ── Flash banner ── #}
 {% if flash %}
-<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--pos);">
-  <span class="dot" style="background:var(--pos);"></span>
-  <span class="text-sm" style="color:var(--pos);">{{ flash }}</span>
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--sae);">
+  <span class="dot" style="background:var(--sae);"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
 </div>
 {% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-semibold ink-1">{{ _("Suggested Matches") }}</h1>
-    <p class="text-sm ink-3 mt-1">{{ _("BSL:") }} <span class="font-mono">{{ bsl_id }}</span></p>
+    <p class="text-sm ink-3 mt-1">{{ _("Records for exactly this amount that are not matched yet.") }}</p>
   </div>
-  <a
-    href="{% if account_id %}/reconciliation/{{ account_id }}/lines{% else %}/reconciliation{% endif %}"
-    class="rounded-md hairline px-4 py-2 text-sm font-medium ink-2
-           hover:bg-[color:var(--paper-2)] focus:outline-none focus:ring-2 focus:ring-offset-2"
-    style="--tw-ring-color:var(--sae);"
-  >
-    {{ _("Back to Reconciliation") }}
-  </a>
+  <div class="flex gap-2">
+    <a href="/reconciliation/{{ bsl_id }}/find?account_id={{ account_id }}" class="btn-secondary text-sm">{{ _("Search all records") }}</a>
+    <a href="{% if account_id %}/reconciliation/{{ account_id }}/lines{% else %}/reconciliation{% endif %}" class="btn-secondary text-sm">{{ _("Back to Reconciliation") }}</a>
+  </div>
 </div>
+
+{% if degraded %}
+<div class="card">{% include "_partials/degraded_panel.html" %}</div>
+{% else %}
 
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
@@ -35,56 +34,51 @@
 {% endif %}
 
 <div class="card overflow-x-auto">
-  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
-    <thead class="bg-[color:var(--paper-2)]">
+  <table class="sae-table w-full text-sm">
+    <thead>
       <tr>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Ref") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Description") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
-        <th scope="col" class="px-4 py-3"></th>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("Record") }}</th>
+        <th class="text-left">{{ _("Contact") }}</th>
+        <th class="text-left">{{ _("Description") }}</th>
+        <th class="text-right">{{ _("Amount") }}</th>
+        <th class="text-left">{{ _("How sure") }}</th>
+        <th></th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-[color:var(--line)]">
-      {% if suggestions %}
-        {% for entry in suggestions %}
-        <tr class="hover:bg-[color:var(--paper-2)]">
-          <td class="px-4 py-3 ink-3 font-mono text-xs">{{ entry.entry_date | default("—") }}</td>
-          <td class="px-4 py-3 font-mono text-xs ink-2">{{ entry.ref | default("—") }}</td>
-          <td class="px-4 py-3 font-medium ink-1">{{ entry.description | default("—") }}</td>
-          <td class="px-4 py-3">
-            <span class="badge-sae">
-              {{ entry.status | default("—") }}
-            </span>
+    <tbody>
+      {% for entry in suggestions %}
+        <tr>
+          <td class="ink-3 font-mono text-xs">{{ entry.entry_date | default("—") }}</td>
+          <td class="ink-1">{{ entry.get('source_label') or entry.ref }}</td>
+          <td class="ink-2">{{ entry.get('contact_name') or "—" }}</td>
+          <td class="ink-2">{{ entry.description | default("—") }}</td>
+          <td class="text-right font-mono text-xs">{% if entry.get('amount') %}{{ num((entry.get('amount')|float)|abs, 2) }}{% else %}—{% endif %}</td>
+          <td class="text-xs">
+            {% if entry.get('confidence') == "HIGH" %}{{ _("Very likely") }}{% elif entry.get('confidence') == "MEDIUM" %}{{ _("Likely") }}{% else %}{{ _("Same amount only") }}{% endif %}
           </td>
-          <td class="px-4 py-3 text-right">
+          <td class="text-right">
             <form method="POST" action="/reconciliation/match">
-    {{ csrf_input(request)|safe }}
-
+              {{ csrf_input(request)|safe }}
               <input type="hidden" name="bsl_id" value="{{ bsl_id }}">
               <input type="hidden" name="entry_id" value="{{ entry.id }}">
               <input type="hidden" name="account_id" value="{{ account_id }}">
-              <button
-                type="submit"
-                class="btn-primary text-xs"
-              >
-                {{ _("Match") }}
-              </button>
+              <button type="submit" class="btn-primary text-xs">{{ _("Match") }}</button>
             </form>
           </td>
         </tr>
-        {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center ink-3">
+          <td colspan="7" class="px-4 py-8 text-center ink-3">
             {{ _("No suggestions found for this transaction.") }}
-            <a href="{% if account_id %}/reconciliation/{{ account_id }}/lines{% else %}/reconciliation{% endif %}"
-               class="sae hover:underline ml-1">{{ _("Back to reconciliation.") }}</a>
+            <a href="/reconciliation/{{ bsl_id }}/find?account_id={{ account_id }}" class="sae hover:underline ml-1">{{ _("Search all records") }}</a>
+            · <a href="/reconciliation/{{ bsl_id }}/create?account_id={{ account_id }}" class="sae hover:underline">{{ _("Create a record") }}</a>
           </td>
         </tr>
-      {% endif %}
+      {% endfor %}
     </tbody>
   </table>
 </div>
+{% endif %}
 
 {% endblock %}

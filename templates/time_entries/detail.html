@@ -38,7 +38,11 @@
     </span>
     {% if entry.billable %}<span class="chip">{{ _("$ billable") }}</span>{% endif %}
     {% if entry.invoice_line_id %}
-      <a href="/invoices/" class="chip" title="{{ _('On invoice line') }}">{{ _("→ invoiced") }}</a>
+      {% if entry.invoice_id %}
+      <a href="/invoices/{{ entry.invoice_id }}" class="chip" title="{{ _('Open the invoice that holds this time') }}">{{ _("→ on invoice %(n)s") % {"n": entry.invoice_number or ""} }}</a>
+      {% else %}
+      <span class="chip" title="{{ _('On invoice line') }}">{{ _("→ invoiced") }}</span>
+      {% endif %}
     {% endif %}
   </div>
 </div>

@@ -961,8 +961,16 @@ async def bas_summary(
     request: Request,
     from_date: str | None = None,
     to_date: str | None = None,
+    basis: str | None = None,
+    payg_instalment: str | None = None,
 ) -> HTMLResponse | RedirectResponse:
-    """BAS summary report — G1, G3, G11, 1A, 1B, Net GST, remit/refund."""
+    """BAS — every label from the engine's one BAS calculation.
+
+    Batch 5: the engine resolves the active company's GST registration date
+    and accounting basis itself (this used to read the FIRST company in the
+    list, which could be the wrong one). ``basis`` overrides the company's
+    cash/accrual setting for a look at the other one.
+    """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
@@ -971,22 +979,16 @@ async def bas_summary(
     report: dict = {}
     error: str | None = None
     degraded = False
+    basis_ = basis if basis in ("accrual", "cash") else None
+    instalment = (payg_instalment or "").strip()
 
     try:
         async with api_client(request) as client:
-            # Fetch company GST registration date so we can split G1 for mid-quarter
-            # registrations (ATO compliance — HOBB-3).
-            gst_effective_date: str | None = None
-            clist_resp = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
-            if clist_resp.is_success:
-                companies = clist_resp.json().get("items", [])
-                if companies:
-                    gst_effective_date = companies[0].get("gst_effective_date") or None
-
             params: dict = {"from_date": from_, "to_date": to_}
-            if gst_effective_date:
-                params["registration_effective_date"] = gst_effective_date
-
+            if basis_:
+                params["basis"] = basis_
+            if instalment:
+                params["payg_instalment"] = instalment
             resp = await client.get("/api/v1/reports/bas_summary", params=params)
             if resp.status_code == 401:
                 request.session.clear()
@@ -1002,6 +1004,8 @@ async def bas_summary(
         "report": report,
         "from_date": from_,
         "to_date": to_,
+        "basis": basis_ or (report.get("basis") if report else None) or "accrual",
+        "payg_instalment": instalment,
         "error": error,
         "degraded": degraded,
     }
@@ -1148,6 +1152,7 @@ async def fx_revaluation(
 
     as_of = as_of_date or _today()
     report: dict = {}
+    reval: dict = {}
     error: str | None = None
     degraded = False
 
@@ -1164,14 +1169,27 @@ async def fx_revaluation(
                 report = resp.json()
             else:
                 error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+            # Batch 10 (P1-51): per-currency revaluation preview + post.
+            # Optional extra: a failure here must never break the report.
+            try:
+                prev = await client.get(
+                    "/api/v1/fx/revaluation", params={"through_date": as_of}
+                )
+                if prev.is_success:
+                    reval = prev.json()
+            except Exception:
+                reval = {}
     except ModuleUnavailable:
         degraded = True
 
     ctx = {
         "report": report,
+        "reval": reval,
         "as_of_date": as_of,
         "error": error,
         "degraded": degraded,
+        "flash": request.session.pop("flash", None),
+        "flash_error": request.session.pop("flash_error", None),
     }
 
     template = (
@@ -1505,10 +1523,10 @@ async def bas_payg_review(
 ) -> HTMLResponse | RedirectResponse:
     """BAS/PAYG review worksheet for a period.
 
-    Consolidates the GST labels (G1..G11, 1A, 1B, net GST) from
-    ``/api/v1/reports/bas_summary`` with PAYG withholding (W1 total gross,
-    W2 tax withheld) derived from finalised pay-runs whose payment date falls
-    in the period, and totals the amount payable to the ATO.
+    Batch 5 (P0-19): every figure — GST labels, W1, W2, label 4 and the
+    amount payable — comes from the engine's one BAS calculation, which
+    counts FINALISED pay runs only (this screen used to add up the first 500
+    pay runs of any status, so a draft run inflated the tax withheld).
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -1522,59 +1540,35 @@ async def bas_payg_review(
 
     try:
         async with api_client(request) as client:
-            # --- GST labels (BAS summary, with mid-period registration split) ---
-            gst_effective_date: str | None = None
-            clist = await client.get("/api/v1/companies", params={"limit": 1, "offset": 0})
-            if clist.is_success:
-                items = clist.json().get("items", [])
-                if items:
-                    gst_effective_date = items[0].get("gst_effective_date") or None
-
-            params: dict = {"from_date": from_, "to_date": to_}
-            if gst_effective_date:
-                params["registration_effective_date"] = gst_effective_date
-            resp = await client.get("/api/v1/reports/bas_summary", params=params)
+            resp = await client.get(
+                "/api/v1/reports/bas_summary",
+                params={"from_date": from_, "to_date": to_},
+            )
             if resp.status_code == 401:
                 request.session.clear()
                 return RedirectResponse(url="/login", status_code=303)
             if resp.is_success:
                 report = resp.json()
+                payg = {
+                    "w1_total_gross": float(report.get("w1_total_wages", 0) or 0),
+                    "w2_tax_withheld": float(report.get("w2_amounts_withheld", 0) or 0),
+                    "pay_run_count": int(report.get("pay_run_count", 0) or 0),
+                    "withholding_account_code": report.get("withholding_account_code"),
+                    "withholding_difference": float(report.get("withholding_difference", 0) or 0),
+                }
             else:
                 error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
-
-            # --- PAYG withholding from pay-runs in the period ---
-            pr = await client.get("/api/v1/pay-runs", params={"limit": 500, "offset": 0})
-            if pr.is_success:
-                w1 = 0.0
-                w2 = 0.0
-                count = 0
-                for run in pr.json().get("items", []):
-                    pay_date = run.get("payment_date") or run.get("period_end")
-                    if not (pay_date and from_ <= pay_date <= to_):
-                        continue
-                    count += 1
-                    for line in run.get("lines", []):
-                        try:
-                            w1 += float(line.get("gross") or 0)
-                            w2 += float(line.get("tax") or 0)
-                        except (TypeError, ValueError):
-                            continue
-                payg = {
-                    "w1_total_gross": round(w1, 2),
-                    "w2_tax_withheld": round(w2, 2),
-                    "pay_run_count": count,
-                }
     except ModuleUnavailable:
         degraded = True
 
-    # Amount payable to ATO = net GST (1A - 1B) + PAYG withheld (W2).
-    # PAYG instalment (5A/T7) is not modelled in the engine — entered on the
-    # ATO BAS directly; surfaced as a note on the worksheet.
     try:
         net_gst = float(report.get("net_gst", 0) or 0)
     except (TypeError, ValueError):
         net_gst = 0.0
-    amount_payable = round(net_gst + payg["w2_tax_withheld"], 2)
+    try:
+        amount_payable = float(report.get("label_9_amount_payable", 0) or 0)
+    except (TypeError, ValueError):
+        amount_payable = 0.0
 
     ctx = {
         "report": report,
@@ -1680,12 +1674,31 @@ _EXPORT_ENGINE_PATHS: dict[str, str] = {
     "cashbook_summary.csv": "/api/v1/cashbook/summary.csv",
     "cashbook_summary.xlsx": "/api/v1/cashbook/summary.xlsx",
     "statement_pack.pdf": "/api/v1/reports/statement_pack.pdf",
+    # Batch 7: PDFs that were missing, the general ledger, journal, asset
+    # register, period-column reports and the accountant pack.
+    "aged_receivables.pdf": "/api/v1/reports/aged_receivables.pdf",
+    "aged_payables.pdf": "/api/v1/reports/aged_payables.pdf",
+    "cashflow.pdf": "/api/v1/reports/cashflow.pdf",
+    "bas_summary.pdf": "/api/v1/reports/bas_summary.pdf",
+    "general_ledger.csv": "/api/v1/reports/general_ledger.csv",
+    "general_ledger.xlsx": "/api/v1/reports/general_ledger.xlsx",
+    "general_ledger.pdf": "/api/v1/reports/general_ledger.pdf",
+    "journal.csv": "/api/v1/reports/journal.csv",
+    "journal.xlsx": "/api/v1/reports/journal.xlsx",
+    "fixed_asset_register.csv": "/api/v1/reports/fixed_asset_register.csv",
+    "fixed_asset_register.xlsx": "/api/v1/reports/fixed_asset_register.xlsx",
+    "profit_loss_columns.csv": "/api/v1/reports/profit_loss_columns.csv",
+    "profit_loss_columns.xlsx": "/api/v1/reports/profit_loss_columns.xlsx",
+    "balance_sheet_columns.csv": "/api/v1/reports/balance_sheet_columns.csv",
+    "balance_sheet_columns.xlsx": "/api/v1/reports/balance_sheet_columns.xlsx",
+    "accountant_pack.zip": "/api/v1/reports/accountant_pack.zip",
 }
 
 _EXPORT_FALLBACK_MEDIA: dict[str, str] = {
     "csv": "text/csv; charset=utf-8",
     "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "pdf": "application/pdf",
+    "zip": "application/zip",
 }
 
 
@@ -1707,8 +1720,14 @@ async def report_export(request: Request, name: str) -> Response | RedirectRespo
         raise HTTPException(404, detail="Unknown export")
 
     params = dict(request.query_params)
+    ext = name.rsplit(".", 1)[-1]
     async with api_client(request) as client:
-        resp = await client.get(engine_path, params=params)
+        if ext in ("pdf", "zip"):
+            # PDFs compile through the render service and the accountant
+            # pack builds a dozen reports -- both outlast the 10 s default.
+            resp = await client.get(engine_path, params=params, timeout=180.0)
+        else:
+            resp = await client.get(engine_path, params=params)
 
     if resp.status_code == 401:
         request.session.clear()
@@ -1716,7 +1735,6 @@ async def report_export(request: Request, name: str) -> Response | RedirectRespo
     if resp.status_code != 200:
         raise HTTPException(resp.status_code, detail=f"Upstream returned {resp.status_code}")
 
-    ext = name.rsplit(".", 1)[-1]
     fallback_media = _EXPORT_FALLBACK_MEDIA.get(ext, "application/octet-stream")
     return Response(
         content=resp.content,

@@ -181,10 +181,90 @@ async def sql_tool_execute(request: Request) -> HTMLResponse | RedirectResponse:
 # ---------------------------------------------------------------------------
 
 
+# Plain-words names for the audit log (batch 13, P1-71). The engine's
+# table / action vocabulary is the filter VALUE; these are what people read.
+AUDIT_TABLES: dict[str, tuple[str, str | None]] = {
+    "invoices": ("Invoice", "/invoices/{id}"),
+    "bills": ("Bill", "/bills/{id}"),
+    "payments": ("Payment", "/payments/{id}"),
+    "credit_notes": ("Credit note", "/credit-notes/{id}"),
+    "supplier_credit_notes": ("Supplier credit", "/supplier-credit-notes/{id}"),
+    "receipts": ("Receipt", "/receipts/{id}"),
+    "expenses": ("Expense", "/expenses/{id}"),
+    "journal_entries": ("Journal entry", "/journal-entries/{id}"),
+    "companies": ("Company settings", None),
+    "period_locks": ("Period lock", None),
+}
+
+AUDIT_ACTIONS: dict[str, str] = {
+    "invoice.post": "Invoice posted",
+    "invoice.void": "Invoice voided",
+    "invoice.change_contact": "Invoice moved to another customer",
+    "invoice.duplicate": "Invoice copied",
+    "invoice.credit_and_reissue": "Invoice credited and reissued",
+    "invoice.void_and_copy": "Invoice voided and copied",
+    "invoice.write_off": "Invoice written off",
+    "bill.post": "Bill posted",
+    "bill.void": "Bill voided",
+    "bill.change_contact": "Bill moved to another supplier",
+    "bill.duplicate": "Bill copied",
+    "bill.void_and_copy": "Bill voided and copied",
+    "bill.approval_submit": "Bill sent for approval",
+    "bill.approve": "Bill approved",
+    "bill.approval_reject": "Bill sent back",
+    "bill.planned_pay_date": "Bill pay date planned",
+    "payment.post": "Payment posted",
+    "payment.void": "Payment voided",
+    "payment.approval_submit": "Payment sent for approval",
+    "payment.approve": "Payment approved",
+    "payment.approval_reject": "Payment sent back",
+    "credit_note.post": "Credit note posted",
+    "credit_note.void": "Credit note voided",
+    "supplier_credit_note.post": "Supplier credit posted",
+    "supplier_credit_note.void": "Supplier credit voided",
+    "receipt.post": "Receipt posted",
+    "receipt.void": "Receipt voided",
+    "reclassification.post": "Line moved to another account",
+    "journal.override_post": "Posted into a locked period",
+    "period_lock.delete": "Period lock removed",
+    "company.approval_settings": "Approval settings changed",
+    "hard_delete": "Deleted for good",
+}
+
+
+def _audit_filters(
+    entity_type: str | None,
+    action: str | None,
+    actor: str | None,
+    document: str | None,
+    date_from: str | None,
+    date_to: str | None,
+) -> dict[str, object]:
+    params: dict[str, object] = {}
+    if entity_type:
+        params["table"] = entity_type
+    if action:
+        params["action"] = action
+    if actor:
+        params["actor_user_id"] = actor
+    if document:
+        params["row_id"] = document.strip()
+    # Upstream 422s naive datetimes; the form gives date-only strings, so
+    # expand to UTC day bounds.
+    if date_from:
+        params["at_from"] = f"{date_from}T00:00:00+00:00"
+    if date_to:
+        params["at_to"] = f"{date_to}T23:59:59+00:00"
+    return params
+
+
 @router.get("/admin/audit", response_class=HTMLResponse, response_model=None)
 async def audit_log(
     request: Request,
     entity_type: str | None = None,
+    action: str | None = None,
+    actor: str | None = None,
+    document: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
     page: int = 1,
@@ -193,12 +273,8 @@ async def audit_log(
 
     Calls ``GET /api/v1/audit-log`` (JSON) on the upstream API — the
     tenant-scoped, admin-gated audit trail (RLS-enforced upstream) — and
-    renders rows in our own template.
-
-    The upstream returns rows ({id, actor_user_id, action, table_name,
-    row_id, row_snapshot, reason, at}) — we translate them to the field
-    names the template was written against ({id, table_name, row_id,
-    action, performed_by, performed_at}).
+    renders rows in our own template: who (by name), what (plain words),
+    which document (linked), when, and the reason given.
 
     Company admin — a tenant's own audit trail is customer-facing.
     (The cross-tenant staff surface is the SQL tool, which stays
@@ -212,22 +288,22 @@ async def audit_log(
     page_size = 50
     offset = max(0, (page - 1) * page_size)
     params: dict[str, object] = {"limit": page_size, "offset": offset}
-    if entity_type:
-        params["table"] = entity_type
-    # Upstream 422s naive datetimes; the form gives date-only strings, so
-    # expand to UTC day bounds.
-    if date_from:
-        params["at_from"] = f"{date_from}T00:00:00+00:00"
-    if date_to:
-        params["at_to"] = f"{date_to}T23:59:59+00:00"
+    params.update(_audit_filters(entity_type, action, actor, document, date_from, date_to))
 
     snapshots: list[dict] = []
     has_next = False
     error: str | None = None
-    entity_types: list[str] = []
+    users: list[dict] = []
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/audit-log", params=params)
+        try:
+            u_resp = await client.get("/api/v1/users", params={"limit": 200, "offset": 0})
+            if u_resp.is_success:
+                body = u_resp.json()
+                users = body.get("items", body) if isinstance(body, dict) else body
+        except Exception:  # the people filter is a convenience, never fatal
+            users = []
 
     if resp.status_code == 401:
         request.session.clear()
@@ -238,27 +314,39 @@ async def audit_log(
         items = data.get("items", [])
         total = int(data.get("total", 0) or 0)
         has_next = (offset + len(items)) < total
-        # Translate API field names → template field names.
         for r in items:
+            table = r.get("table_name") or ""
+            label, href = AUDIT_TABLES.get(table, (table.replace("_", " ").capitalize() or "—", None))
+            raw_action = r.get("action") or ""
             snapshots.append(
                 {
                     "id": r.get("id"),
-                    "table_name": r.get("table_name") or "—",
+                    "table_name": table or "—",
+                    "table_label": label,
                     "row_id": str(r.get("row_id") or ""),
-                    "action": (r.get("action") or "").upper() or "—",
-                    "performed_by": str(r.get("actor_user_id") or "system"),
+                    "href": href.format(id=r.get("row_id")) if href and r.get("row_id") else None,
+                    "action": raw_action.upper() or "—",
+                    "action_label": AUDIT_ACTIONS.get(raw_action, raw_action.replace("_", " ").replace(".", " ").capitalize() or "—"),
+                    "performed_by": r.get("actor_name") or "Name not recorded",
                     "performed_at": r.get("at"),
+                    "reason": r.get("reason"),
                 }
             )
-        # Distinct entity names visible on this page — populates the filter
-        # dropdown so the user has at least the current page's tables to pick
-        # from. Cheap and good enough; a dedicated /entities endpoint would
-        # be a future enhancement.
-        entity_types = sorted({s["table_name"] for s in snapshots if s["table_name"] != "—"})
     else:
         error = f"API error: HTTP {resp.status_code}"
 
     flash = request.session.pop("flash", None)
+    filters = {
+        "entity_type": entity_type or "",
+        "action": action or "",
+        "actor": actor or "",
+        "document": document or "",
+        "date_from": date_from or "",
+        "date_to": date_to or "",
+    }
+    from urllib.parse import urlencode
+
+    query = urlencode({k: v for k, v in filters.items() if v})
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -268,16 +356,50 @@ async def audit_log(
             "has_next": has_next,
             "page": page,
             "page_size": page_size,
-            "entity_types": entity_types,
-            "filters": {
-                "entity_type": entity_type or "",
-                "date_from": date_from or "",
-                "date_to": date_to or "",
-            },
+            "entity_types": sorted(AUDIT_TABLES.items(), key=lambda kv: kv[1][0]),
+            "actions": sorted(AUDIT_ACTIONS.items(), key=lambda kv: kv[1]),
+            "users": [u for u in users if isinstance(u, dict)],
+            "filters": filters,
+            "query": query,
             "error": error,
             "flash": flash,
         },
     )
+
+
+@router.get("/admin/audit/export.csv", response_model=None)
+async def audit_log_export(
+    request: Request,
+    entity_type: str | None = None,
+    action: str | None = None,
+    actor: str | None = None,
+    document: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+):
+    """Download the filtered audit log as a spreadsheet (CSV), with names.
+
+    Proxies ``GET /api/v1/audit-log.csv`` (admin-gated upstream, capped at
+    10,000 rows, formula-guarded cells)."""
+    from fastapi.responses import Response
+
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    if not _is_admin(request):
+        return HTMLResponse("Forbidden — admin role required", status_code=403)
+    params = _audit_filters(entity_type, action, actor, document, date_from, date_to)
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/audit-log.csv", params=params)
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if not resp.is_success:
+        request.session["flash"] = f"The export could not be made (error {resp.status_code})."
+        return RedirectResponse(url="/admin/audit", status_code=303)
+    headers = {"Content-Disposition": 'attachment; filename="audit-log.csv"'}
+    if resp.headers.get("X-Truncated"):
+        headers["X-Truncated"] = resp.headers["X-Truncated"]
+    return Response(content=resp.content, media_type="text/csv; charset=utf-8", headers=headers)
 
 
 # ---------------------------------------------------------------------------

@@ -27,6 +27,9 @@
     <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">{{ _("Voided") }}</span>
   {%- elif s == 'DRAFT' -%}
     <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">{{ _("Draft") }}</span>
+  {%- elif s == 'WRITTEN_OFF' -%}
+    {# b15 (P2-12): written off as a bad debt — nothing more to collect. #}
+    <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700" title="{{ _('Written off as a bad debt') }}">{{ _("Written off") }}</span>
   {%- elif s == 'POSTED' -%}
     {%- set total = (item.total or 0)|float -%}
     {%- set paid  = (item.amount_paid or 0)|float -%}
