@@ -429,3 +429,56 @@ def test_inbox_offers_supplier_credit_kind() -> None:
     from saebooks_web.routes import inbox
 
     assert "SUPPLIER_CREDIT_NOTE" in inbox._RECORD_KINDS
+
+
+_SUMMARY = {
+    "as_of_date": "2026-11-13",
+    "receivables": {"documents_total": 3869.25, "overdue": 100.0, "credit_on_account": 132.0,
+                    "net": 3737.25, "control_account_code": "1-1200", "control_balance": 3737.25,
+                    "tie_out_difference": 0.0, "open_contacts": 3},
+    "payables": {"documents_total": 5038.50, "overdue": 0.0, "credit_on_account": 1599.43,
+                 "net": 3439.07, "control_account_code": "2-1200", "control_balance": 3439.07,
+                 "tie_out_difference": 0.0, "open_contacts": 4},
+    "bank_accounts": [{"account_id": _B3, "code": "1-1114", "name": "Westpac Business One",
+                       "kind": "BANK", "balance": 1213.70}],
+    "cash_in_bank": 1213.70,
+    "links": {"receivables": "/reports/aged-receivables?as_of_date=2026-11-13",
+              "payables": "/reports/aged-payables?as_of_date=2026-11-13"},
+}
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_dashboard_uses_engine_summary_and_shows_cash_in_bank(respx_mock) -> None:
+    from tests.test_dashboard import _register_mocks
+
+    respx_mock.get(url__regex=rf"^{_API}/api/v1/reports/dashboard_summary(\?.*)?$").mock(
+        return_value=Response(200, json=_SUMMARY))
+    _register_mocks(respx_mock)
+    async with _client() as c:
+        r = await c.get("/")
+    assert r.status_code == 200, r.text
+    t = r.text
+    assert "Cash in bank" in t and "Westpac Business One" in t
+    assert "/reports/aged-payables?as_of_date=2026-11-13" in t
+    assert "supplier credit / on account" in t
+    assert "out from Trade" not in t  # ties out
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_aged_payables_page_shows_credit_lines_and_tie_out(respx_mock) -> None:
+    respx_mock.get(url__regex=rf"^{_API}/api/v1/reports/aged_payables(\?.*)?$").mock(
+        return_value=Response(200, json={
+            "as_of_date": "2026-11-13", "buckets": ["current", "1-30 days"],
+            "contacts": [], "totals": {"current": 0.0, "1-30 days": 0.0, "total": 0.0},
+            "unapplied_credits": [{"contact_id": _CONTACT, "contact_name": "Motion Australia Pty Ltd",
+                                   "kind": "supplier_credit_note", "id": _SCN, "number": "SCN-000003",
+                                   "date": "2026-09-14", "bucket": "current", "amount": -224.58}],
+            "unapplied_total": -224.58, "net_total": -224.58, "control_account_code": "2-1200",
+            "control_balance": -224.58, "tie_out_difference": 0.0}))
+    respx_mock.get(url__regex=rf"^{_API}/api/v1/.*$").mock(return_value=Response(200, json={"items": []}))
+    async with _client() as c:
+        r = await c.get("/reports/aged-payables")
+    assert r.status_code == 200, r.text
+    assert "SCN-000003" in r.text and "Agrees" in r.text and "Trade Creditors (2-1200)" in r.text
