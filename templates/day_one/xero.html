@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Moving from Xero") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="flex items-center gap-2 mb-1 text-sm">
+  <a href="/admin/imports" class="ink-3 hover:ink-2">{{ _("Imports") }}</a><span class="ink-4">/</span>
+  <span class="ink-1 font-medium">{{ _("Moving from Xero") }}</span>
+</div>
+<div class="mb-6 max-w-3xl">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Moving from Xero") }}</h1>
+  <p class="text-sm ink-3 mt-1">
+    {{ _("A direct connection to Xero is not available yet: it needs this service to be registered as a Xero app, which has not been done. Everything below works today with files you export from Xero — the importers read Xero's own column names, so you do not need to edit the files.") }}
+  </p>
+</div>
+<ol class="space-y-3 max-w-3xl">
+  <li class="card p-4"><p class="text-sm font-medium ink-1">{{ _("1. Pick your conversion date and enter your trial balance") }}</p>
+    <p class="text-xs ink-3 mt-1">{{ _("In Xero: Accounting → Reports → Trial Balance, dated the day before your conversion date → Export → CSV.") }}</p>
+    <a class="text-xs sae hover:underline" href="/setup/opening-balances">{{ _("Opening balances →") }}</a></li>
+  <li class="card p-4"><p class="text-sm font-medium ink-1">{{ _("2. Customers and suppliers") }}</p>
+    <p class="text-xs ink-3 mt-1">{{ _("In Xero: Contacts → All contacts → Export → CSV.") }}</p>
+    <a class="text-xs sae hover:underline" href="/admin/imports/csv/contacts">{{ _("Import contacts →") }}</a></li>
+  <li class="card p-4"><p class="text-sm font-medium ink-1">{{ _("3. Products and services, with stock on hand") }}</p>
+    <p class="text-xs ink-3 mt-1">{{ _("In Xero: Business → Products and services → Export.") }}</p>
+    <a class="text-xs sae hover:underline" href="/admin/imports/csv/items">{{ _("Import items →") }}</a></li>
+  <li class="card p-4"><p class="text-sm font-medium ink-1">{{ _("4. Unpaid invoices and bills") }}</p>
+    <p class="text-xs ink-3 mt-1">{{ _("In Xero: Business → Invoices → Awaiting payment → Export, and Business → Bills to pay → Awaiting payment → Export.") }}</p>
+    <a class="text-xs sae hover:underline" href="/admin/imports/csv/open-invoices">{{ _("Unpaid invoices →") }}</a> ·
+    <a class="text-xs sae hover:underline" href="/admin/imports/csv/open-bills">{{ _("Unpaid bills →") }}</a></li>
+  <li class="card p-4"><p class="text-sm font-medium ink-1">{{ _("5. Carry on your numbering and check the totals") }}</p>
+    <a class="text-xs sae hover:underline" href="/settings/numbering">{{ _("Numbering →") }}</a> ·
+    <a class="text-xs sae hover:underline" href="/setup/opening-balances/check">{{ _("Do the numbers match? →") }}</a></li>
+</ol>
+{% endblock %}

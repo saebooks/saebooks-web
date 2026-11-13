@@ -107,6 +107,7 @@ from saebooks_web.routes.switch_company import router as switch_company_router
 from saebooks_web.routes.locale import router as locale_router
 from saebooks_web.routes.fixed_assets import router as fixed_assets_router
 from saebooks_web.routes.imports import router as imports_router
+from saebooks_web.routes.day_one import router as day_one_router
 from saebooks_web.routes.inbox import router as inbox_router  # Document Inbox (#33)
 from saebooks_web.routes.invoices import router as invoices_router
 from saebooks_web.routes.email_log import router as email_log_router
@@ -477,6 +478,7 @@ app.include_router(pay_run_router)
 app.include_router(wages_router)
 app.include_router(admin_router)
 app.include_router(imports_router)
+app.include_router(day_one_router)
 app.include_router(inbox_router)
 app.include_router(ato_sbr_router)
 app.include_router(tax_returns_router)

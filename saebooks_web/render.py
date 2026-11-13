@@ -173,18 +173,51 @@ async def render_latex(template: str, ctx: dict) -> bytes:
     # when present, the text letterhead otherwise).  A logo_path already
     # present in ctx wins over the setting.
     ctx = dict(ctx)
+    # b06 (P1-36): a company's own uploaded logo travels in the ctx as
+    # ``company_logo = {filename, content_type, data_b64}``. It is handed to
+    # latex-api as a per-request asset and referenced by bare file name; it
+    # wins over the install-wide LATEX_LOGO_PATH. If latex-api cannot use it
+    # (an older latex-api without asset support, a corrupt image) the
+    # document is rendered again without it rather than failing.
+    files: dict[str, str] = {}
+    logo = ctx.get("company_logo")
+    if isinstance(logo, dict) and logo.get("data_b64") and logo.get("filename"):
+        files[str(logo["filename"])] = str(logo["data_b64"])
+        ctx.setdefault("logo_path", str(logo["filename"]))
     ctx.setdefault("logo_path", settings.latex_logo_path or None)
+    ctx.setdefault("document", {})
+    # The accent colour goes into \definecolor raw — accept only a 6-digit
+    # hex code here too (the engine validates it; this is belt and braces).
+    doc = dict(ctx.get("document") or {})
+    if doc.get("accent") and not re.fullmatch(r"[0-9A-Fa-f]{6}", str(doc["accent"])):
+        doc["accent"] = None
+    ctx["document"] = doc
 
+    try:
+        return await _compile(latex_api_url, template, ctx, files)
+    except LatexCompileError:
+        if not files:
+            raise
+        logger.warning("render %s: compile with company logo failed; retrying without it", template)
+        ctx["logo_path"] = settings.latex_logo_path or None
+        return await _compile(latex_api_url, template, ctx, {})
+
+
+async def _compile(latex_api_url: str, template: str, ctx: dict, files: dict[str, str]) -> bytes:
     env = get_env()
     tmpl = env.get_template(f"{template}.tex.j2")
     latex_src = tmpl.render(**ctx)
+
+    body: dict[str, Any] = {"latex": latex_src}
+    if files:
+        body["files"] = files
 
     # POST the LaTeX source to latex-api /compile.
     try:
         async with httpx.AsyncClient(timeout=120.0) as client:
             compile_resp = await client.post(
                 f"{latex_api_url}/compile",
-                json={"latex": latex_src},
+                json=body,
             )
     except httpx.ConnectError as exc:
         raise LatexServiceError(

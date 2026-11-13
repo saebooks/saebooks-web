@@ -97,6 +97,18 @@
   {{ text_input("default_sale_price", _("Default sale price"), placeholder="0.00", type="text") }}
 </fieldset>
 
+{# ── Opening stock (b06, P1-39) — new items only ── #}
+{% if show_opening %}
+<fieldset class="space-y-4 mt-6">
+  <legend class="text-sm font-semibold ink-1 mb-1">{{ _("Opening stock") }}</legend>
+  <p class="text-xs ink-3">{{ _("For a stocked item you already hold: the quantity on hand and what each one cost. This is posted to your inventory account against opening balance equity, dated the day before your conversion date (or today if you have not set one). Leave blank if you have none.") }}</p>
+  <div class="grid gap-4 sm:grid-cols-2">
+    {{ text_input("on_hand_qty", _("Quantity on hand"), placeholder="0") }}
+    {{ text_input("wac_cost", _("Unit cost"), placeholder="0.00") }}
+  </div>
+</fieldset>
+{% endif %}
+
 {# ── Accounts ── #}
 <fieldset class="space-y-4 mt-6">
   <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Linked Accounts") }}</legend>

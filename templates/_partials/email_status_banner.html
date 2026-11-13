@@ -1,0 +1,26 @@
+{# Sending status for customer email (b06, P1-38). `email_status` comes from
+   saebooks_web.comms.customer_email_status: mode send | draft | off,
+   a headline and plain-words reasons. Uses theme variables so it reads in
+   dark mode (the default) and light mode. #}
+{% if email_status %}
+{% set _c = {"send": "pos", "draft": "warm", "off": "warm"}[email_status.mode] %}
+<div class="card p-4 mb-5" style="border-color:var(--{{ _c }});" role="status">
+  <div class="flex items-start gap-3">
+    <span class="dot mt-1" style="background:var(--{{ _c }});"></span>
+    <div class="text-sm ink-1">
+      <div class="font-medium" style="color:var(--{{ _c }});">{{ _(email_status.headline) }}</div>
+      {% if email_status.reasons %}
+      <ul class="ink-2 mt-1 list-disc pl-5 space-y-0.5">
+        {% for r in email_status.reasons %}<li>{{ _(r) }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+      {% if email_status.mode != "send" %}
+      <p class="ink-3 mt-2 text-xs">
+        {{ _("An administrator can check this under") }}
+        <a href="/settings/documents#email" class="sae hover:underline">{{ _("Settings → Documents and email") }}</a>.
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}

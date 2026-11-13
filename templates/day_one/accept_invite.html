@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Join the books") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="flex min-h-[70vh] items-center justify-center">
+  <div class="w-full max-w-sm card px-8 py-10">
+    <h1 class="text-xl font-semibold ink-1 mb-1">{{ _("You have been invited") }}</h1>
+    <p class="text-sm ink-3 mb-6">{{ _("Choose a password to finish setting up your account. At least 10 characters with at least one letter and one number.") }}</p>
+    {% if error %}
+    <div class="mb-4 card p-3 text-sm ink-1" style="border-color:var(--neg);" role="alert">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/accept-invite">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="token" value="{{ token }}">
+      <label for="password" class="block text-sm font-medium ink-2 mb-1">{{ _("Password") }}</label>
+      <input id="password" name="password" type="password" required minlength="10" autocomplete="new-password" class="saebooks-input w-full mb-6">
+      <button type="submit" class="btn-primary w-full">{{ _("Join and sign in") }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

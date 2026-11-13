@@ -70,8 +70,7 @@
       {% endif %}
       {% if invoice.status == 'POSTED' %}
       <a href="/invoices/{{ invoice.id }}/email" class="btn-secondary text-sm"
-         style="border-color:var(--warm); color:var(--warm);"
-         title="{{ _('Compose email to customer — blocked by kill switch during build') }}">
+         title="{{ _('Email this to the customer') }}">
         {{ _("Send to customer") }}
       </a>
       {% set _outstanding = invoice.total|float - invoice.amount_paid|float %}

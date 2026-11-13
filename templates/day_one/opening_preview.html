@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Check your opening balances") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="flex items-center gap-2 mb-1 text-sm">
+  <a href="/setup" class="ink-3 hover:ink-2">{{ _("Getting set up") }}</a><span class="ink-4">/</span>
+  <a href="/setup/opening-balances" class="ink-3 hover:ink-2">{{ _("Opening balances") }}</a><span class="ink-4">/</span>
+  <span class="ink-1 font-medium">{{ _("Check") }}</span>
+</div>
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Check your opening balances") }}</h1>
+  <p class="text-sm ink-3 mt-1">{{ _("Nothing has been saved yet.") }}
+    {% if p.opening_date %}{{ _("These balances will be dated %(d)s.") % {"d": p.opening_date} }}{% endif %}</p>
+</div>
+{% include "day_one/_flash.html" %}
+
+{% if p.errors %}
+<div class="card p-4 mb-5 max-w-3xl" style="border-color:var(--neg);" role="alert">
+  <p class="text-sm font-medium" style="color:var(--neg);">{{ _("Fix these before saving:") }}</p>
+  <ul class="list-disc pl-5 mt-1 text-sm ink-1 space-y-0.5">{% for e in p.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<div class="grid gap-5 lg:grid-cols-2">
+  <section class="card p-5">
+    <h2 class="text-sm font-semibold ink-1 mb-3">{{ _("What you entered") }}</h2>
+    <table class="w-full text-sm">
+      <thead><tr class="text-xs ink-3 hairline-b text-left"><th class="py-1">{{ _("Account") }}</th><th class="py-1 text-right">{{ _("Debit") }}</th><th class="py-1 text-right">{{ _("Credit") }}</th></tr></thead>
+      <tbody>
+      {% for ln in p.lines %}
+        <tr class="hairline-b">
+          <td class="py-1"><span class="font-mono text-xs ink-3">{{ ln.code }}</span> {{ ln.name }}
+            {% if ln.role in ("receivables", "payables", "stock") %}
+            <span class="badge-open ml-1">{{ {"receivables": _("checked against unpaid invoices"), "payables": _("checked against unpaid bills"), "stock": _("checked against opening stock")}[ln.role] }}</span>
+            {% endif %}
+            {% if ln.is_bank %}<span class="badge-draft ml-1">{{ _("bank") }}</span>{% endif %}
+          </td>
+          <td class="py-1 text-right num">{% if ln.debit|float %}{{ num(ln.debit|float, 2) }}{% endif %}</td>
+          <td class="py-1 text-right num">{% if ln.credit|float %}{{ num(ln.credit|float, 2) }}{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr class="font-medium">
+        <td class="pt-2 text-right ink-2">{{ _("Totals") }}</td>
+        <td class="pt-2 text-right num">{{ num(p.total_debit|float, 2) }}</td>
+        <td class="pt-2 text-right num">{{ num(p.total_credit|float, 2) }}</td>
+      </tr></tfoot>
+    </table>
+    <p class="text-sm mt-3" style="color:var(--{{ 'pos' if p.balanced else 'neg' }});">
+      {% if p.balanced %}{{ _("Debits and credits balance.") }}{% else %}{{ _("Debits and credits are out by %(d)s.") % {"d": num((p.difference|float)|abs, 2)} }}{% endif %}
+    </p>
+  </section>
+
+  <section class="card p-5">
+    <h2 class="text-sm font-semibold ink-1 mb-1">{{ _("The opening journal we will post") }}</h2>
+    <p class="text-xs ink-3 mb-3">
+      {{ _("Receivables, payables and stock are left out here — they come in with your unpaid invoices, bills and items. The difference goes to %(a)s, which comes back to nil once those are brought across.") % {"a": p.equity_account.code ~ " " ~ p.equity_account.name} }}
+    </p>
+    <table class="w-full text-sm">
+      <thead><tr class="text-xs ink-3 hairline-b text-left"><th class="py-1">{{ _("Account") }}</th><th class="py-1 text-right">{{ _("Debit") }}</th><th class="py-1 text-right">{{ _("Credit") }}</th></tr></thead>
+      <tbody>
+      {% for j in p.journal %}
+        <tr class="hairline-b">
+          <td class="py-1"><span class="font-mono text-xs ink-3">{{ j.code }}</span> {{ j.name }}</td>
+          <td class="py-1 text-right num">{% if j.debit|float %}{{ num(j.debit|float, 2) }}{% endif %}</td>
+          <td class="py-1 text-right num">{% if j.credit|float %}{{ num(j.credit|float, 2) }}{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<div class="mt-6 flex items-center justify-between max-w-full">
+  <a href="/setup/opening-balances" class="btn-secondary text-sm">{{ _("Back and change") }}</a>
+  {% if p.ok and can_edit %}
+  <form method="post" action="/setup/opening-balances/save">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="lines_json" value="{{ lines_json }}">
+    <input type="hidden" name="conversion_date" value="{{ p.conversion_date or '' }}">
+    <button type="submit" class="btn-primary text-sm">{{ _("Save opening balances") }}</button>
+  </form>
+  {% elif not can_edit %}
+  <span class="text-xs ink-3">{{ _("Only an owner or administrator can save opening balances.") }}</span>
+  {% endif %}
+</div>
+{% endblock %}
