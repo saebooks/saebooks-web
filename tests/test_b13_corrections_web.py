@@ -397,6 +397,22 @@ async def test_payment_void_sends_reason_and_override(respx_mock) -> None:
 
 @pytest.mark.anyio
 @respx.mock
+async def test_payment_void_sends_reversal_date(respx_mock) -> None:
+    # Integration of batches 4 and 13: the payment void is dated like the
+    # document voids; a blank date is not sent (engine default).
+    route = respx_mock.delete(f"{_API}/api/v1/payments/{_PAY}").mock(return_value=Response(204))
+    async with _client() as c:
+        r = await c.post(f"/payments/{_PAY}/void", data={
+            "version": "4", "reason": "Bounced", "void_date": "2026-11-13"})
+        assert r.status_code == 303
+        q = route.calls.last.request.url.params
+        assert q["void_date"] == "2026-11-13" and q["reason"] == "Bounced"
+        await c.post(f"/payments/{_PAY}/void", data={"version": "4", "void_date": ""})
+        assert "void_date" not in route.calls.last.request.url.params
+
+
+@pytest.mark.anyio
+@respx.mock
 async def test_credit_note_void_sends_reason_and_override(respx_mock) -> None:
     cn = "aaaaaaaa-0000-0000-0000-0000000000cc"
     route = respx_mock.post(f"{_API}/api/v1/credit_notes/{cn}/void").mock(return_value=Response(204))

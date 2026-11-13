@@ -89,6 +89,11 @@
             onsubmit="return confirm('{{ _('Void this payment? A reversing entry is recorded, the original stays in the ledger, and the bank line it cleared goes back to be matched again. A line in a finished bank reconciliation cannot be voided.') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ payment.version }}">
+      <label class="text-xs ink-3" for="void_date">{{ _("Reverse on") }}</label>
+      <input type="date" id="void_date" name="void_date" class="saebooks-input num text-sm py-1.5"
+             min="{{ payment.payment_date }}"
+             title="{{ _('The reversal is posted on this date. Leave it on today to keep earlier BAS periods as they were; clear it to reverse on the original date.') }}">
+      <script>(function(i){if(i&&!i.value){var d=new Date();var t=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);i.value=(i.min&&i.min>t)?i.min:t;}})(document.getElementById('void_date'));</script>
       <input type="text" name="reason" maxlength="1000" class="saebooks-input text-sm" style="width:14rem" placeholder="{{ _('Why? (kept in the history)') }}">
       {% if request.session.get('user_role') in ('admin','accountant','owner') %}
       <input type="text" name="override_reason" maxlength="1000" class="saebooks-input text-sm" style="width:18rem" placeholder="{{ _('Only if in a locked period: why change it?') }}">

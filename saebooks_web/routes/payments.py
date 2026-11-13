@@ -1558,7 +1558,13 @@ async def payment_void(
         resp = await client.delete(
             f"/api/v1/payments/{payment_id}",
             headers={"If-Match": version},
-            params=_reason_body(form_data),
+            # Batch 4: the reversal is dated (void_date); blank = the
+            # payment's own date, as before.
+            params={
+                **_reason_body(form_data),
+                **({"void_date": str(form_data.get("void_date")).strip()}
+                   if str(form_data.get("void_date") or "").strip() else {}),
+            },
         )
 
     if resp.status_code == 401:
