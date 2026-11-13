@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Record a refund") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-4">
+  <a href="{% if source == 'payment' %}/payments/{{ record.id }}{% elif source == 'credit_note' %}/credit-notes/{{ record.id }}{% else %}/supplier-credit-notes/{{ record.id }}{% endif %}"
+     class="text-xs sae hover:underline font-mono uppercase tracking-wider">← {{ record.number or _("back") }}</a>
+</div>
+<h1 class="font-display text-2xl mb-1">{{ _(plan.label) }}</h1>
+<p class="text-sm ink-3 mb-6">
+  {% if contact %}{{ contact.name }} · {% endif %}
+  {{ _("%(amount)s available to refund.") % {"amount": num(plan.remaining|float, 2)} }}
+  {% if plan.money_out %}{{ _("Money goes out of the bank; what they are owed on their account comes down.") }}
+  {% else %}{{ _("Money comes into the bank; the credit they owed you comes down.") }}{% endif %}
+</p>
+
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<form method="post" action="/refunds/new" class="card p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="source" value="{{ source }}">
+  <input type="hidden" name="source_id" value="{{ record.id }}">
+  <input type="hidden" name="idem" value="{{ idem }}">
+  <div>
+    <label for="amount" class="block text-xs font-medium ink-3 mb-1">{{ _("Amount") }}</label>
+    <input type="number" step="0.01" min="0.01" max="{{ plan.remaining }}" id="amount" name="amount"
+           value="{{ plan.remaining }}" required class="saebooks-input w-full text-sm px-2 py-1.5 tabular-nums">
+  </div>
+  <div>
+    <label for="payment_date" class="block text-xs font-medium ink-3 mb-1">{{ _("Date") }}</label>
+    <input type="date" id="payment_date" name="payment_date" value="{{ today }}" required
+           class="saebooks-input w-full text-sm px-2 py-1.5">
+  </div>
+  <div>
+    <label for="bank_account_id" class="block text-xs font-medium ink-3 mb-1">{{ _("Bank account") }}</label>
+    <select id="bank_account_id" name="bank_account_id" required class="saebooks-input w-full text-sm px-2 py-1.5">
+      {% for b in bank_accounts %}
+      <option value="{{ b.id }}">{{ b.code }} · {{ b.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="method" class="block text-xs font-medium ink-3 mb-1">{{ _("Method") }}</label>
+    <select id="method" name="method" class="saebooks-input w-full text-sm px-2 py-1.5">
+      {% for value, label in methods %}<option value="{{ value }}">{{ _(label) }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="sm:col-span-2">
+    <label for="reference" class="block text-xs font-medium ink-3 mb-1">{{ _("Bank reference") }}</label>
+    <input type="text" id="reference" name="reference" maxlength="128" class="saebooks-input w-full text-sm px-2 py-1.5">
+  </div>
+  <div class="sm:col-span-2">
+    <label for="notes" class="block text-xs font-medium ink-3 mb-1">{{ _("Note (internal)") }}</label>
+    <input type="text" id="notes" name="notes" maxlength="2000" class="saebooks-input w-full text-sm px-2 py-1.5">
+  </div>
+  <div class="sm:col-span-2 flex items-center gap-3">
+    <button type="submit" class="btn-primary text-sm">{{ _("Save as draft refund") }}</button>
+    <span class="text-xs ink-3">{{ _("It opens as a draft payment for you to check and Post.") }}</span>
+  </div>
+</form>
+{% endblock %}

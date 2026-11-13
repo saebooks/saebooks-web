@@ -54,7 +54,10 @@ _TEMPLATES = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 _OPEN_STATUSES = ("RECEIVED", "EXTRACTING", "NEEDS_REVIEW", "READY", "FAILED")
 _ALL_STATUSES = (*_OPEN_STATUSES, "PUBLISHED", "REJECTED", "DUPLICATE")
 _REJECT_REASONS = ("DUPLICATE", "NOT_A_DOCUMENT", "PERSONAL", "OTHER")
-_RECORD_KINDS = ("EXPENSE", "BILL", "CREDIT_NOTE")
+# SUPPLIER_CREDIT_NOTE (engine 0227, gap P0-6): a credit a SUPPLIER gave
+# us. "CREDIT_NOTE" is a credit WE give a customer; a supplier's credit PDF
+# published as that posted to revenue and receivables.
+_RECORD_KINDS = ("EXPENSE", "BILL", "SUPPLIER_CREDIT_NOTE", "CREDIT_NOTE")
 
 
 def _require_auth(request: Request) -> str | None:
@@ -886,6 +889,7 @@ async def inbox_review_submit(
                 "EXPENSE": f"/expenses/{record_id}",
                 "BILL": f"/bills/{record_id}",
                 "CREDIT_NOTE": f"/credit-notes/{record_id}",
+                "SUPPLIER_CREDIT_NOTE": f"/supplier-credit-notes/{record_id}",
             }.get(kind, "/inbox")
             return RedirectResponse(url=detail_url, status_code=303)
 

@@ -39,6 +39,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import credit_apply
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines
@@ -78,7 +79,10 @@ async def credit_notes_list(
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
     params: dict[str, object] = {"page": page, "page_size": page_size}
-    if status:
+    if status and status.upper() == "UNAPPLIED":
+        # Posted credits with something left to use (engine 0227, P1-14).
+        params["unapplied"] = "true"
+    elif status:
         params["status"] = status
     if contact_id:
         params["contact_id"] = contact_id
@@ -862,12 +866,36 @@ async def credit_note_detail(
             )
 
     credit_note = resp.json()
+    capp = await credit_apply.load_context(request, credit_apply.CUSTOMER, credit_note)
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "credit_notes/detail.html",
-        {"credit_note": credit_note, "error": None, "flash": flash},
+        {"credit_note": credit_note, "error": None, "flash": flash, "capp": capp},
+    )
+
+
+@router.post("/credit-notes/{credit_note_id}/apply", response_class=HTMLResponse, response_model=None)
+async def credit_note_apply(request: Request, credit_note_id: str) -> RedirectResponse:
+    """Apply this posted credit note across the customer's open invoices."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await credit_apply.submit_apply(request, credit_apply.CUSTOMER, credit_note_id)
+
+
+@router.post(
+    "/credit-notes/{credit_note_id}/applications/{application_id}/unapply",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def credit_note_unapply(
+    request: Request, credit_note_id: str, application_id: str
+) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await credit_apply.submit_unapply(
+        request, credit_apply.CUSTOMER, credit_note_id, application_id
     )
 
 

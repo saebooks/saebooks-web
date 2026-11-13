@@ -75,10 +75,15 @@ async def contacts_list(
     request: Request,
     show: str | None = None,
     contact_type: str | None = None,
+    owing: str | None = None,
     limit: int = 50,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
     """Render the contacts list page.
+
+    Each row carries the engine's balances (``include_balances=true``): owed
+    to us, we owe, credit either way. ``?owing=1`` lists only contacts with
+    something open (engine filter over the whole set, not the page).
 
     By default, one-off contacts (``is_one_off=true``) are hidden.
     ``?show=one-off`` lists ONLY the one-offs; ``?show=all`` lists
@@ -101,7 +106,10 @@ async def contacts_list(
     limit = max(1, min(int(limit or 50), 500))
     offset = max(0, int(offset or 0))
 
-    params: dict[str, object] = {"limit": limit, "offset": offset}
+    params: dict[str, object] = {"limit": limit, "offset": offset, "include_balances": "true"}
+    owing_only = (owing or "") in ("1", "true", "on", "yes")
+    if owing_only:
+        params["owing"] = "true"
     if ct:
         # The API list endpoint exposes the ContactType filter as ?type=
         # (alias on Query(default=None, alias="type")). Sending the field's
@@ -145,6 +153,7 @@ async def contacts_list(
             "flash": flash,
             "show": show or "",
             "filter_contact_type": ct,
+            "filter_owing": owing_only,
             "limit": limit,
             "offset": offset,
             "candidate_count": candidate_count,
@@ -713,6 +722,91 @@ def _txn_sort_key(t: dict, key: str) -> object:
     return str(t.get(key) or "")
 
 
+# Engine contact-ledger kinds -> the label shown in the Type column/filter.
+_LEDGER_TYPE = {
+    "invoice": "Invoice",
+    "bill": "Bill",
+    "receipt": "Receipt",
+    "supplier_payment": "Payment",
+    "customer_refund": "Refund",
+    "supplier_refund": "Refund",
+    "credit_note": "Credit note",
+    "supplier_credit_note": "Supplier credit",
+    "write_off": "Write-off",
+    "credit_applied": "Credit applied",
+    "expense": "Expense",
+    "money_in": "Money in",
+}
+_TXN_TYPES = [
+    "Invoice", "Bill", "Receipt", "Payment", "Refund", "Credit note",
+    "Supplier credit", "Credit applied", "Write-off", "Expense", "Money in",
+]
+_LEDGER_URL = {
+    "invoices": "/invoices/",
+    "bills": "/bills/",
+    "payments": "/payments/",
+    "credit_notes": "/credit-notes/",
+    "supplier-credit-notes": "/supplier-credit-notes/",
+    "expenses": "/expenses/",
+    "receipts": "/receipts/",
+}
+
+
+def _ledger_row(r: dict) -> dict:
+    """One engine ledger row in the shape contacts/detail.html renders."""
+    related = None
+    if r.get("related_id") and r.get("related_kind") in ("bill", "invoice"):
+        related = {
+            "number": r.get("related_number") or r["related_kind"],
+            "url": ("/bills/" if r["related_kind"] == "bill" else "/invoices/") + r["related_id"],
+        }
+    return {
+        "type": _LEDGER_TYPE.get(r.get("kind", ""), (r.get("kind") or "").replace("_", " ").title()),
+        "kind": r.get("kind"),
+        "date": r.get("date") or "",
+        "number": r.get("number") or "—",
+        "ref": r.get("reference") or "",
+        "description": r.get("description") or "",
+        "amount": r.get("amount") or "0",
+        "effect": r.get("effect") or "0",
+        "balance": r.get("balance"),
+        "status": r.get("status") or "",
+        "url": _LEDGER_URL.get(r.get("url_kind") or "", "/") + (r.get("id") or ""),
+        "id": r.get("id"),
+        "related": related,
+    }
+
+
+def _position(contact: dict, ledger: dict | None) -> dict | None:
+    """Owing / credit figures for the card. Prefers the contact's live
+    ``balances`` (adds overdue); falls back to the ledger's position."""
+    from decimal import Decimal, InvalidOperation
+
+    def d(v: object) -> Decimal:
+        try:
+            return Decimal(str(v if v not in (None, "") else 0))
+        except (InvalidOperation, ValueError):
+            return Decimal("0")
+
+    b = contact.get("balances") or {}
+    lp = (ledger or {}).get("position") or {}
+    if not b and not lp:
+        return None
+    pos = {
+        "receivable": d(b.get("receivable_unpaid", lp.get("receivable_outstanding"))),
+        "receivable_overdue": d(b.get("receivable_overdue")),
+        "receivable_credit": d(b.get("receivable_credit", lp.get("receivable_credit"))),
+        "payable": d(b.get("payable_unpaid", lp.get("payable_outstanding"))),
+        "payable_overdue": d(b.get("payable_overdue")),
+        "payable_credit": d(b.get("payable_credit", lp.get("payable_credit"))),
+    }
+    pos["net"] = (pos["receivable"] - pos["receivable_credit"]) - (
+        pos["payable"] - pos["payable_credit"]
+    )
+    pos["open_credits"] = (ledger or {}).get("open_credits") or []
+    return pos
+
+
 @router.get("/contacts/{contact_id}", response_class=HTMLResponse, response_model=None)
 async def contact_detail(
     request: Request,
@@ -726,10 +820,16 @@ async def contact_detail(
 ) -> HTMLResponse | RedirectResponse:
     """Render a single contact detail page with their transaction history.
 
-    Fans out to /api/v1/{invoices,bills,payments,credit_notes,expenses}
-    filtered by ``contact_id``, merges results into one chronological list,
-    and applies the requested filter + sort. Each transaction row carries
-    enough metadata to deep-link back to its underlying detail page.
+    History comes from the engine's contact ledger
+    (``GET /api/v1/contacts/{id}/transactions``): invoices, bills, receipts,
+    supplier payments, refunds, customer and supplier credit notes,
+    write-offs, credit applications and paid-on-the-spot expenses, each with
+    a running balance (positive = they owe you). The position card reads the
+    contact's ``balances`` (``include_balances=true``) — receivable /
+    payable outstanding and overdue, plus unused credit either way.
+
+    If the engine predates the ledger endpoint (404), falls back to the old
+    fan-out over the per-document list endpoints (no running balance).
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -738,7 +838,9 @@ async def contact_detail(
     direction = "asc" if direction == "asc" else "desc"
 
     async with api_client(request) as client:
-        resp = await client.get(f"/api/v1/contacts/{contact_id}")
+        resp = await client.get(
+            f"/api/v1/contacts/{contact_id}", params={"include_balances": "true"}
+        )
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
@@ -763,6 +865,23 @@ async def contact_detail(
 
         contact = resp.json()
 
+        ledger: dict | None = None
+        ledger_params: dict[str, str] = {}
+        if date_from:
+            ledger_params["from"] = date_from
+        if date_to:
+            ledger_params["to"] = date_to
+        if (txn_status or "").upper() in ("DRAFT", "VOIDED"):
+            ledger_params["include_unposted"] = "true"
+        try:
+            lr = await client.get(
+                f"/api/v1/contacts/{contact_id}/transactions", params=ledger_params
+            )
+            if lr.is_success:
+                ledger = lr.json()
+        except Exception:  # fall back to the fan-out below
+            ledger = None
+
         params: dict[str, object] = {
             "contact_id": contact_id,
             "page": 1,
@@ -782,11 +901,14 @@ async def contact_detail(
                 pass
             return []
 
-        invoices = await _safe_list("/api/v1/invoices")
-        bills = await _safe_list("/api/v1/bills")
-        payments = await _safe_list("/api/v1/payments")
-        credit_notes = await _safe_list("/api/v1/credit_notes")
-        expenses = await _safe_list("/api/v1/expenses")
+        if ledger is None:
+            invoices = await _safe_list("/api/v1/invoices")
+            bills = await _safe_list("/api/v1/bills")
+            payments = await _safe_list("/api/v1/payments")
+            credit_notes = await _safe_list("/api/v1/credit_notes")
+            expenses = await _safe_list("/api/v1/expenses")
+        else:
+            invoices = bills = payments = credit_notes = expenses = []
 
     # Normalise each source into one shape:
     #   {type, date, number, ref, amount, status, url, id}
@@ -832,7 +954,7 @@ async def contact_detail(
             "ref": cn.get("reference") or "",
             "amount": cn.get("total") or "0",
             "status": cn.get("status") or "",
-            "url": f"/credit_notes/{cn['id']}",
+            "url": f"/credit-notes/{cn['id']}",
             "id": cn["id"],
         })
     for exp in expenses:
@@ -846,6 +968,9 @@ async def contact_detail(
             "url": f"/expenses/{exp['id']}",
             "id": exp["id"],
         })
+
+    if ledger is not None:
+        transactions = [_ledger_row(r) for r in ledger.get("rows", [])]
 
     if txn_type:
         transactions = [t for t in transactions if t["type"].lower() == txn_type.lower()]
@@ -877,6 +1002,10 @@ async def contact_detail(
         "contacts/detail.html",
         {"contact": contact, "error": None, "flash": flash,
          "transactions": transactions,
+         "ledger": ledger,
+         "ledger_unavailable": ledger is None,
+         "position": _position(contact, ledger),
+         "txn_types": _TXN_TYPES,
          "txn_type": txn_type or "",
          "txn_status": txn_status or "",
          "date_from": date_from or "",

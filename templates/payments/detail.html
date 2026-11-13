@@ -135,10 +135,14 @@
           </td>
           <td class="text-right num-display ink-1">{{ payment.currency }} {{ num(alloc.amount|float, 2) }}</td>
           <td class="text-right">
+            {% if (payment.status or '')|upper == 'POSTED' and (alloc.invoice_id or alloc.bill_id) %}
             <form method="post" action="/payments/{{ payment.id }}/unallocate" class="inline" onsubmit="return confirm('{{ _('Unmatch this allocation? This will leave a payment-on-account.') }}');">
+              {{ csrf_input(request)|safe }}
               <input type="hidden" name="allocation_id" value="{{ alloc.id }}">
+              <input type="hidden" name="version" value="{{ payment.version }}">
               <button type="submit" class="text-xs ink-3 hover:text-neg">{{ _("Unmatch") }}</button>
             </form>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -148,6 +152,9 @@
     </tbody>
   </table>
 </section>
+
+{# Money on account + apply / refund (engine 0227) — loaded separately. #}
+<div hx-get="/payments/{{ payment.id }}/apply-panel" hx-trigger="load" hx-swap="outerHTML"></div>
 
 {% if payment.notes %}
 <section class="mb-7">

@@ -46,7 +46,21 @@ _BILL_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "s
 # Payment-status values exposed to the UI. The dropdown sends these as the
 # `status` query param. They mirror the badges rendered by
 # templates/_status_macros.html :: payment_status_badge.
-_PAYMENT_STATUS_VALUES = {"draft", "open", "due-soon", "overdue", "partial", "paid", "voided"}
+_PAYMENT_STATUS_VALUES = {"draft", "open", "due-soon", "overdue", "partial", "paid", "voided", "unpaid"}
+
+# Payment statuses the engine filters server-side (0227, gap P0-11) — whole
+# set, counts applied credits, returns totals. "open" (unpaid, not yet due
+# soon) has no engine equivalent and stays client-side.
+_SERVER_STATUS = {
+    "unpaid": "unpaid",
+    "overdue": "overdue",
+    "due-soon": "due_soon",
+    "partial": "part_paid",
+    "paid": "paid",
+    "draft": "draft",
+    "voided": "voided",
+}
+_UNPAID_BUCKETS = {"open", "due-soon", "overdue", "partial"}
 
 # Map payment-status → raw API status to narrow the fetched set. The POSTED
 # bucket is still filtered in Python afterwards.
@@ -58,6 +72,7 @@ _PAYMENT_STATUS_RAW_HINT = {
     "overdue":  "POSTED",
     "partial":  "POSTED",
     "paid":     "POSTED",
+    "unpaid":   "POSTED",
 }
 
 # Sort order for the Status column — least-resolved first, then resolved.
@@ -162,9 +177,17 @@ async def bills_list(
     else:
         api_page, api_page_size = page, page_size
 
+    server_status = _SERVER_STATUS.get(status_norm)
+    if server_status:
+        filter_client_side = False
+        api_status = None
+        api_page, api_page_size = page, page_size
+
     params: dict[str, object] = {"page": api_page, "page_size": api_page_size}
     if api_status:
         params["status"] = api_status
+    if server_status:
+        params["payment_status"] = server_status
     if contact_id:
         params["contact_id"] = contact_id
     if date_from:
@@ -182,10 +205,22 @@ async def bills_list(
         if resp.status_code == 401:
             request.session.clear()
             return RedirectResponse(url="/login", status_code=303)
+        list_totals = None
         if resp.is_success:
             payload = resp.json()
             bills = payload.get("items", [])
             total = payload.get("total", len(bills))
+            list_totals = payload.get("totals")
+            if server_status and list_totals is None:
+                # Older engine without server-side status: fall back to the
+                # wide fetch + client-side filter.
+                filter_client_side = True
+                params.pop("payment_status", None)
+                params.update({"page": 1, "page_size": 500, "status": _PAYMENT_STATUS_RAW_HINT[status_norm]})
+                resp = await client.get("/api/v1/bills", params=params)
+                payload = resp.json() if resp.is_success else {}
+                bills = payload.get("items", [])
+                total = payload.get("total", len(bills))
         else:
             error = f"API error: HTTP {resp.status_code}"
 
@@ -205,7 +240,7 @@ async def bills_list(
     if filter_client_side:
         # Drop rows that don't match the requested payment status, then sort
         # and slice in Python so total/pagination reflect the filtered set.
-        bills = [b for b in bills if _bill_payment_status(b, _today_iso, _due_soon_iso) == status_norm]
+        bills = [b for b in bills if ((_bill_payment_status(b, _today_iso, _due_soon_iso) in _UNPAID_BUCKETS) if status_norm == "unpaid" else (_bill_payment_status(b, _today_iso, _due_soon_iso) == status_norm))]
         bills.sort(
             key=lambda b: _bill_sort_key(b, sort, _today_iso, _due_soon_iso),
             reverse=(direction == "desc"),
@@ -230,6 +265,7 @@ async def bills_list(
     ctx = {
         "bills": bills,
         "total": total,
+        "list_totals": list_totals if not filter_client_side else None,
         "error": error,
         "flash": flash,
         "contacts_by_id": contacts_by_id,

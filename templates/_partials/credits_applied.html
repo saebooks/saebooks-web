@@ -1,0 +1,34 @@
+{#
+  "Credits applied" list on a bill / invoice detail page (engine 0227).
+  Expects: doc (bill or invoice JSON with credits_applied), credit_web
+  (/supplier-credit-notes or /credit-notes).
+#}
+{% if doc.get('credits_applied') %}
+<section class="card overflow-hidden mb-7">
+  <div class="px-6 py-3 hairline-b flex items-baseline justify-between">
+    <p class="nav-section-label">{{ _("Credits applied") }}</p>
+    <p class="text-xs ink-3">{{ _("Counted in Paid above — no cash moved for these.") }}</p>
+  </div>
+  <table class="sae-table w-full text-sm">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Credit") }}</th>
+        <th class="text-left">{{ _("Their reference") }}</th>
+        <th class="text-left">{{ _("Applied on") }}</th>
+        <th class="text-right">{{ _("Amount") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in doc.credits_applied %}
+      {% set _cid = c.supplier_credit_note_id or c.credit_note_id %}
+      <tr>
+        <td><a href="{{ credit_web }}/{{ _cid }}" class="sae hover:underline">{{ c.credit_number or _cid[:8] }}</a></td>
+        <td class="ink-3">{{ c.credit_reference or "—" }}</td>
+        <td class="num ink-2">{{ c.applied_date }}</td>
+        <td class="text-right num ink-1">{{ num(c.amount|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}

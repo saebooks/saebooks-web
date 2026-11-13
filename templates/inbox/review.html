@@ -52,7 +52,7 @@
 <div class="rounded-md bg-[color:var(--pos-tint)] border border-[color:var(--pos)] px-4 py-3 text-base mb-4" style="color: var(--pos);">
   {{ _("Published as") }}
   {% set kind = (doc.published_record_kind or '')|upper %}
-  {% set record_url = {'EXPENSE': '/expenses/', 'BILL': '/bills/', 'CREDIT_NOTE': '/credit-notes/'}.get(kind) %}
+  {% set record_url = {'EXPENSE': '/expenses/', 'BILL': '/bills/', 'CREDIT_NOTE': '/credit-notes/', 'SUPPLIER_CREDIT_NOTE': '/supplier-credit-notes/'}.get(kind) %}
   {% if record_url and doc.published_record_id %}
     <a href="{{ record_url }}{{ doc.published_record_id }}" class="underline font-medium">DRAFT {{ kind }}</a>
   {% else %}DRAFT {{ kind }}{% endif %}
@@ -123,7 +123,11 @@
         <label for="record_kind" class="block text-base font-medium ink-3">{{ _("Publish as") }}</label>
         <select id="record_kind" name="record_kind" class="saebooks-input w-full">
           {% for kind in record_kinds %}
-          <option value="{{ kind }}" {% if kind == 'EXPENSE' %}selected{% endif %}>{{ kind.replace('_', ' ')|title }}</option>
+          <option value="{{ kind }}" {% if kind == 'EXPENSE' %}selected{% endif %}>
+            {%- if kind == 'SUPPLIER_CREDIT_NOTE' %}{{ _("Supplier credit note (a supplier credited us)") }}
+            {%- elif kind == 'CREDIT_NOTE' %}{{ _("Customer credit note (we credit a customer)") }}
+            {%- else %}{{ kind.replace('_', ' ')|title }}{% endif -%}
+          </option>
           {% endfor %}
         </select>
         <p class="mt-1 text-xs ink-3">{{ _("Always created as a DRAFT — posting stays a deliberate second step on the record.") }}</p>

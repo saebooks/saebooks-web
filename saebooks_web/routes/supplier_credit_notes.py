@@ -11,7 +11,9 @@ POST /supplier-credit-notes/new           — submit to upstream API
 GET  /supplier-credit-notes/_add_line     — HTMX partial: blank line row
 POST /supplier-credit-notes/{id}/post     — DRAFT -> POSTED
 POST /supplier-credit-notes/{id}/void     — POSTED -> VOIDED
-GET  /supplier-credit-notes/{id}          — detail
+POST /supplier-credit-notes/{id}/apply    — apply the credit to open bills
+POST /supplier-credit-notes/{id}/applications/{app_id}/unapply — un-apply one
+GET  /supplier-credit-notes/{id}          — detail (applications + apply form)
 
 Route ordering: /supplier-credit-notes/new and /_add_line MUST be declared
 before /supplier-credit-notes/{id}/post and /{id}/void, which must be
@@ -49,6 +51,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import credit_apply
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 
@@ -125,7 +128,10 @@ async def supplier_credit_notes_list(
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
     params: dict[str, object] = {"page": page, "page_size": page_size}
-    if status:
+    if status and status.upper() == "UNAPPLIED":
+        # Posted credits with something left to use (engine 0227, P1-14).
+        params["unapplied"] = "true"
+    elif status:
         params["status"] = status
     if contact_id:
         params["contact_id"] = contact_id
@@ -422,9 +428,38 @@ async def supplier_credit_note_detail(request: Request, scn_id: str) -> HTMLResp
             )
 
     scn = resp.json()
+    capp = await credit_apply.load_context(request, credit_apply.SUPPLIER, scn)
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "supplier_credit_notes/detail.html",
-        {"scn": scn, "error": None, "flash": flash},
+        {"scn": scn, "error": None, "flash": flash, "capp": capp},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Apply / un-apply — POST only, distinct paths, so ordering vs the GET
+# catch-all does not matter.
+# ---------------------------------------------------------------------------
+
+
+@router.post("/supplier-credit-notes/{scn_id}/apply", response_class=HTMLResponse, response_model=None)
+async def supplier_credit_note_apply(request: Request, scn_id: str) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await credit_apply.submit_apply(request, credit_apply.SUPPLIER, scn_id)
+
+
+@router.post(
+    "/supplier-credit-notes/{scn_id}/applications/{application_id}/unapply",
+    response_class=HTMLResponse,
+    response_model=None,
+)
+async def supplier_credit_note_unapply(
+    request: Request, scn_id: str, application_id: str
+) -> RedirectResponse:
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await credit_apply.submit_unapply(
+        request, credit_apply.SUPPLIER, scn_id, application_id
     )

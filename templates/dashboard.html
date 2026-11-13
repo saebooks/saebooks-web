@@ -91,7 +91,7 @@
    ───────────────────────────────────────────────────────────────────────── #}
 <div data-widget-zone="kpi"
      class="grid grid-cols-2 lg:grid-cols-3 gap-px bg-paper-2 rounded-xl overflow-hidden mb-8 hairline">
-  <section data-widget="kpi-ar" data-widget-title="{{ _('AR · outstanding') }}" data-widget-href="/invoices" class="card bg-paper p-5 rounded-none">
+  <section data-widget="kpi-ar" data-widget-title="{{ _('AR · outstanding') }}" data-widget-href="{{ summary.links.receivables if summary else '/invoices' }}" class="card bg-paper p-5 rounded-none">
       {% if "ar" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
     <p class="nav-section-label mb-2">AR · {{ _("outstanding") }}</p>
     <p class="num-display text-2xl sae">
@@ -104,10 +104,14 @@
         <span style="color:var(--neg);">· {{ _("%(n)s overdue") % {"n": ar.overdue_count} }}</span>
       {% endif %}
     </p>
+    {% if summary %}{% set _r = summary.receivables %}
+    {% if (_r.credit_on_account or 0) > 0 %}<p class="text-xs ink-3">{{ _("after %(amount)s customer credit / on account") % {"amount": money(_r.credit_on_account|float, decimals=0)} }}</p>{% endif %}
+    {% if (_r.tie_out_difference or 0)|abs > 0.005 %}<p class="text-xs" style="color:var(--warm);">{{ _("%(amount)s out from Trade Debtors") % {"amount": money(_r.tie_out_difference|float)} }}</p>{% endif %}
+    {% endif %}
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkAr" data-seed="{{ ar.paid_total|round|int }}" data-tint="var(--sae)"></canvas></div>
   {% endif %}
     </section>
-  <section data-widget="kpi-ap" data-widget-title="{{ _('AP · outstanding') }}" data-widget-href="/bills" class="card bg-paper p-5 rounded-none">
+  <section data-widget="kpi-ap" data-widget-title="{{ _('AP · outstanding') }}" data-widget-href="{{ summary.links.payables if summary else '/bills' }}" class="card bg-paper p-5 rounded-none">
       {% if "ap" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
     <p class="nav-section-label mb-2">AP · {{ _("outstanding") }}</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
@@ -120,9 +124,27 @@
         <span style="color:var(--warm);">· {{ _("%(n)s due ≤7d") % {"n": ap.due_soon_count} }}</span>
       {% endif %}
     </p>
+    {% if summary %}{% set _p = summary.payables %}
+    {% if (_p.credit_on_account or 0) > 0 %}<p class="text-xs ink-3">{{ _("after %(amount)s supplier credit / on account") % {"amount": money(_p.credit_on_account|float, decimals=0)} }}</p>{% endif %}
+    {% if (_p.tie_out_difference or 0)|abs > 0.005 %}<p class="text-xs" style="color:var(--warm);">{{ _("%(amount)s out from Trade Creditors") % {"amount": money(_p.tie_out_difference|float)} }}</p>{% endif %}
+    {% endif %}
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkAp" data-seed="{{ ap.paid_total|round|int }}" data-tint="var(--sae-2)"></canvas></div>
   {% endif %}
     </section>
+  {% if summary and summary.bank_accounts %}
+  <section data-widget="kpi-bank" data-widget-title="{{ _('Cash in bank') }}" data-widget-href="/reconciliation" class="card bg-paper p-5 rounded-none">
+    <p class="nav-section-label mb-2">{{ _("Cash in bank") }}</p>
+    <p class="num-display text-2xl" style="color: {% if summary.cash_in_bank >= 0 %}var(--pos){% else %}var(--neg){% endif %};">
+      {% if summary.cash_in_bank < 0 %}−{% endif %}{{ money(summary.cash_in_bank|abs|float, decimals=0) }}
+    </p>
+    <ul class="mt-1 text-xs ink-3 space-y-0.5">
+      {% for b in summary.bank_accounts[:4] %}
+      <li class="flex justify-between gap-2"><span class="truncate">{{ b.name }}</span><span class="num">{{ money(b.balance|float, decimals=0) }}</span></li>
+      {% endfor %}
+    </ul>
+    <p class="text-[10px] ink-4 mt-1">{{ _("Ledger balance as at today") }}</p>
+  </section>
+  {% endif %}
   <section data-widget="kpi-cash" data-widget-title="{{ _('Cash · this month') }}" data-widget-href="/payments" class="card bg-paper p-5 rounded-none">
       {% if "cash" in (degraded_tiles or []) %}{% include "_partials/degraded_panel.html" %}{% else %}
     <p class="nav-section-label mb-2">{{ _("Cash · this month") }}</p>

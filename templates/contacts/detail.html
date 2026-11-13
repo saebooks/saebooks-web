@@ -78,11 +78,62 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
   <div class="card p-5">
     <p class="nav-section-label mb-3">{{ _("Contact details") }}</p>
-    <div class="mt-2">
-      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Owing / Overdue") }}</p>
-      <p class="font-display text-xl num sae">{% if contact.unpaid_balance %}{{ num(contact.unpaid_balance|float, 2) }}{% else %}—{% endif %}</p>
-      <p class="text-xs ink-3">{% if contact.overdue_days %}{{ _("Overdue %(days)s days") % {"days": contact.overdue_days} }}{% else %}{{ _("Up to date") }}{% endif %}</p>
+    {% if position %}
+    {% set _net = position.net|float %}
+    <div class="mt-2 mb-4" id="contact-position">
+      <p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Owing / credit") }}</p>
+      {% if _net > 0.004 %}
+        <p class="font-display text-xl num" style="color:var(--pos);">{{ money(_net) }}</p>
+        <p class="text-xs ink-2">
+          {% if position.receivable|float == 0 and position.payable_credit|float > 0 %}
+            {{ _("%(name)s owes you %(amount)s credit — unapplied supplier credit you can use on their next bills or ask them to refund.") % {"name": contact.name, "amount": money(_net)} }}
+          {% else %}
+            {{ _("%(name)s owes you %(amount)s.") % {"name": contact.name, "amount": money(_net)} }}
+          {% endif %}
+        </p>
+      {% elif _net < -0.004 %}
+        <p class="font-display text-xl num" style="color:var(--warm);">{{ money(-_net) }}</p>
+        <p class="text-xs ink-2">
+          {% if position.payable|float == 0 and position.receivable_credit|float > 0 %}
+            {{ _("You owe %(name)s %(amount)s — money they paid on account or credit notes not yet used.") % {"name": contact.name, "amount": money(-_net)} }}
+          {% else %}
+            {{ _("You owe %(name)s %(amount)s.") % {"name": contact.name, "amount": money(-_net)} }}
+          {% endif %}
+        </p>
+      {% else %}
+        <p class="font-display text-xl num ink-2">{{ money(0) }}</p>
+        <p class="text-xs ink-3">{{ _("Square — nothing owing either way.") }}</p>
+      {% endif %}
+      <dl class="mt-2 space-y-0.5 text-xs">
+        {% if position.receivable|float %}
+        <div class="flex justify-between gap-3"><dt class="ink-3">{{ _("Open invoices") }}</dt><dd class="num ink-1">{{ money(position.receivable|float) }}{% if position.receivable_overdue|float %} <span style="color:var(--neg);">({{ _("%(amount)s overdue") % {"amount": money(position.receivable_overdue|float)} }})</span>{% endif %}</dd></div>
+        {% endif %}
+        {% if position.receivable_credit|float %}
+        <div class="flex justify-between gap-3"><dt class="ink-3">{{ _("Their credit with you") }}</dt><dd class="num ink-1">−{{ money(position.receivable_credit|float) }}</dd></div>
+        {% endif %}
+        {% if position.payable|float %}
+        <div class="flex justify-between gap-3"><dt class="ink-3">{{ _("Open bills") }}</dt><dd class="num ink-1">{{ money(position.payable|float) }}{% if position.payable_overdue|float %} <span style="color:var(--neg);">({{ _("%(amount)s overdue") % {"amount": money(position.payable_overdue|float)} }})</span>{% endif %}</dd></div>
+        {% endif %}
+        {% if position.payable_credit|float %}
+        <div class="flex justify-between gap-3"><dt class="ink-3">{{ _("Your credit with them") }}</dt><dd class="num ink-1">−{{ money(position.payable_credit|float) }}</dd></div>
+        {% endif %}
+      </dl>
+      {% if position.open_credits %}
+      <ul class="mt-2 space-y-0.5 text-xs">
+        {% for oc in position.open_credits %}
+        {% set _oc_url = {"credit_note": "/credit-notes/", "supplier_credit_note": "/supplier-credit-notes/", "receipt": "/payments/", "supplier_payment": "/payments/"}[oc.kind] ~ oc.id %}
+        <li class="flex justify-between gap-3">
+          <a href="{{ _oc_url }}" class="sae hover:underline">
+            {% if oc.kind == 'supplier_credit_note' %}{{ _("Supplier credit") }}{% elif oc.kind == 'credit_note' %}{{ _("Credit note") }}{% elif oc.kind == 'receipt' %}{{ _("Paid on account") }}{% else %}{{ _("Paid to them on account") }}{% endif %}
+            {{ oc.number or "" }}
+          </a>
+          <span class="num ink-2">{{ _("%(amount)s left") % {"amount": money(oc.remaining|float)} }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </div>
+    {% endif %}
     <dl class="space-y-2 text-sm">
       <div class="flex gap-3">
         <dt class="w-20 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">{{ _("Email") }}</dt>
@@ -206,13 +257,19 @@
   <span class="text-sm ink-3 tabular-nums">{{ _("%(n)s record") % {"n": transactions|length} if transactions|length == 1 else _("%(n)s records") % {"n": transactions|length} }}</span>
 </div>
 
+{% if ledger_unavailable %}
+<div class="card p-3 mb-3 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ _("The running balance could not be loaded, so this list shows documents only — it may be incomplete.") }}</span>
+</div>
+{% endif %}
 <form method="get" class="card mb-3 flex flex-wrap gap-3 items-end px-4 py-3">
   <div>
     <label for="txn_type" class="block text-xs font-medium ink-3 mb-1">{{ _("Type") }}</label>
     <select id="txn_type" name="txn_type"
       class="saebooks-input text-sm px-2 py-1.5">
       <option value="">{{ _("All") }}</option>
-      {% for opt in ['Invoice','Bill','Payment','Credit Note','Expense'] %}
+      {% for opt in (txn_types if txn_types is defined and txn_types else ['Invoice','Bill','Payment','Credit Note','Expense']) %}
       <option value="{{ opt }}" {% if txn_type == opt %}selected{% endif %}>{{ opt }}</option>
       {% endfor %}
     </select>
@@ -257,6 +314,7 @@
         <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('number', _("Number"), sort, direction) }}</th>
         <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ _("Reference") }}</th>
         <th scope="col" class="px-3 py-2 text-right font-medium ink-2">{{ sort_link('amount', _("Amount"), sort, direction) }}</th>
+        {% if ledger %}<th scope="col" class="px-3 py-2 text-right font-medium ink-2" title="{{ _('Positive: they owe you. Negative: you owe them.') }}">{{ _("Balance") }}</th>{% endif %}
         <th scope="col" class="px-3 py-2 text-left font-medium ink-2">{{ sort_link('status', _("Status"), sort, direction) }}</th>
       </tr>
     </thead>
@@ -269,17 +327,31 @@
             {% if t.type == 'Invoice' %}badge-sae
             {% elif t.type == 'Bill' %}badge-warm
             {% elif t.type == 'Payment' %}badge-pos
-            {% elif t.type == 'Credit Note' %}badge-sae
+            {% elif t.type in ('Credit Note', 'Credit note', 'Supplier credit') %}badge-sae
+            {% elif t.type in ('Receipt', 'Refund') %}badge-pos
             {% elif t.type == 'Expense' %}badge-warm
             {% else %}badge-draft{% endif %}">
             {{ t.type }}
           </span>
         </td>
         <td class="px-3 py-2"><a href="{{ t.url }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ t.number }}</a></td>
-        <td class="px-3 py-2 ink-3">{{ t.ref or "—" }}</td>
-        <td class="px-3 py-2 text-right ink-1 font-semibold tabular-nums">{{ money(t.amount|float, grouping=False) }}</td>
+        <td class="px-3 py-2 ink-3">
+          {% if t.kind == 'credit_applied' and t.related %}
+            {{ _("Applied to") }} <a href="{{ t.related.url }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ t.related.number }}</a>
+          {% else %}
+            {{ t.ref or t.description or "—" }}
+          {% endif %}
+        </td>
+        <td class="px-3 py-2 text-right tabular-nums {% if t.kind == 'credit_applied' %}ink-3{% else %}ink-1 font-semibold{% endif %}">{{ money(t.amount|float, grouping=False) }}</td>
+        {% if ledger %}
+        <td class="px-3 py-2 text-right tabular-nums {% if t.kind == 'credit_applied' or t.kind in ('expense','money_in') %}ink-4{% else %}ink-2{% endif %}">
+          {% if t.balance is not none %}{{ money(t.balance|float, grouping=False) }}{% else %}—{% endif %}
+        </td>
+        {% endif %}
         <td class="px-3 py-2">
-          {% if t.status == "POSTED" %}
+          {% if t.status == "APPLIED" %}
+            <span class="badge-sae">{{ _("Applied") }}</span>
+          {% elif t.status == "POSTED" %}
             <span class="badge-pos">{{ _("Posted") }}</span>
           {% elif t.status == "VOIDED" %}
             <span class="badge-ink">{{ _("Voided") }}</span>
