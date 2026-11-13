@@ -4,11 +4,11 @@
 {% elif preview %}
   {% set p = preview %}
   <div class="card px-4 py-3" style="background:var(--paper-2);">
-    <p class="nav-section-label mb-2">{{ _("What this disposal will record") }}</p>
+    <p class="nav-section-label mb-2">{{ _("Book value and gain or loss on this date") }}</p>
     <dl class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
       <dt class="ink-3">{{ _("Cost") }}</dt><dd class="text-right num ink-1">{{ money(p.cost|float) }}</dd>
       {% if (p.depreciation_to_catch_up|float) > 0 %}
-      <dt class="ink-3">{{ _("Depreciation still to post to this date") }}</dt><dd class="text-right num ink-1">{{ money(p.depreciation_to_catch_up|float) }}</dd>
+      <dt class="ink-3">{{ _("Depreciation not yet posted to this date") }}</dt><dd class="text-right num ink-1">{{ money(p.depreciation_to_catch_up|float) }}</dd>
       {% endif %}
       <dt class="ink-3">{{ _("Depreciation to this date") }}</dt><dd class="text-right num ink-1">{{ money(p.accumulated_depreciation|float) }}</dd>
       <dt class="ink-2 font-medium">{{ _("Book value") }}</dt><dd class="text-right num ink-1 font-medium">{{ money(p.book_value|float) }}</dd>
@@ -20,5 +20,9 @@
       <dt class="ink-2 font-medium">{% if p.outcome == 'gain' %}{{ _("Gain on sale") }}{% elif p.outcome == 'loss' %}{{ _("Loss on sale") }}{% else %}{{ _("Gain or loss") }}{% endif %}</dt>
       <dd class="text-right num font-medium" style="color:var(--{{ 'pos' if p.outcome == 'gain' else ('neg' if p.outcome == 'loss' else 'ink') }});">{{ money((p.gain_or_loss|float)|abs) }}</dd>
     </dl>
+    {# Review fix: the Dispose button (POST /api/v1/fixed_assets/{id}/dispose)
+       only marks the asset disposed. It posts nothing to the ledger, so this
+       panel must not say it "will record" these figures. #}
+    <p class="text-xs ink-3 mt-2">{{ _("Disposing here marks the asset as disposed. It does not post the remaining depreciation, the sale, the GST or the gain or loss to the ledger.") }}</p>
   </div>
 {% endif %}
