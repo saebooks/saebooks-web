@@ -1,0 +1,71 @@
+{# HTMX partial — journal listing, one block per entry. #}
+<div id="report-content">
+
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% else %}
+
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div id="report-spinner" class="htmx-indicator text-sm ink-3 font-mono mb-4">{{ _("Loading...") }}</div>
+
+{% if report and report.get("entries") %}
+<p class="text-xs ink-3 mb-3">{{ _("%(count)s entries in this period.") % {"count": total} }}</p>
+<div class="card overflow-hidden" id="journal-listing">
+  <div class="overflow-x-auto">
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left w-28">{{ _("Date") }}</th>
+        <th class="text-left w-28">{{ _("Reference") }}</th>
+        <th class="text-left">{{ _("Account") }}</th>
+        <th class="text-left">{{ _("Description") }}</th>
+        <th class="text-right w-28">{{ _("Debit") }}</th>
+        <th class="text-right w-28">{{ _("Credit") }}</th>
+      </tr>
+    </thead>
+    {% for e in report.get("entries", []) %}
+    <tbody class="hairline-t">
+      <tr>
+        <td class="num ink-1 font-medium">{{ e.get("date", "") }}</td>
+        <td class="num ink-1 font-medium">
+          <a href="/journal-entries/{{ e.get('entry_id') }}" class="sae hover:underline">{{ e.get("ref", "") }}</a>
+        </td>
+        <td colspan="4" class="ink-2">
+          <span class="text-xs ink-3">{{ e.get("source", "") }}{% if e.get("status") == "REVERSED" %} · {{ _("reversed") }}{% endif %}</span>
+          {% if e.get("description") %} — {{ e.get("description") }}{% endif %}
+        </td>
+      </tr>
+      {% for ln in e.get("lines", []) %}
+      <tr>
+        <td></td>
+        <td></td>
+        <td class="ink-2"><span class="num ink-3">{{ ln.get("account_code", "") }}</span> {{ ln.get("account_name", "") }}</td>
+        <td class="ink-3 text-sm">{{ ln.get("description", "") }}</td>
+        <td class="text-right num ink-2">{% if ln.get("debit") %}{{ num(ln.get("debit") | float, 2) }}{% endif %}</td>
+        <td class="text-right num ink-2">{% if ln.get("credit") %}{{ num(ln.get("credit") | float, 2) }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% if pages > 1 %}
+<nav class="flex items-center justify-between mt-4 text-sm" aria-label="{{ _('Pages') }}">
+  {% if page > 1 %}<a class="sae hover:underline" href="/reports/journal?{{ page_qs(page - 1) }}">{{ _("← Earlier") }}</a>{% else %}<span></span>{% endif %}
+  <span class="ink-3">{{ _("Page %(page)s of %(pages)s") % {"page": page, "pages": pages} }}</span>
+  {% if page < pages %}<a class="sae hover:underline" href="/reports/journal?{{ page_qs(page + 1) }}">{{ _("Later →") }}</a>{% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+{% elif not error %}
+<p class="text-sm ink-3">{{ _("Nothing was posted in this period.") }}</p>
+{% endif %}
+
+{% endif %}{# end degraded #}
+</div>

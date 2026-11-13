@@ -21,7 +21,7 @@
     </div>
     <div class="flex items-center gap-2">
       {% set export_qs = "as_of_date=" ~ as_of_date %}
-      {% with export_base = "aged_receivables" %}{% include "reports/_export_menu.html" %}{% endwith %}
+      {% with export_base = "aged_receivables", pdf_href = "/reports/export/aged_receivables.pdf?" ~ export_qs %}{% include "reports/_export_menu.html" %}{% endwith %}
       <button type="button" onclick="window.print()" class="btn-secondary text-sm">{{ _("Print") }}</button>
     </div>
   </div>

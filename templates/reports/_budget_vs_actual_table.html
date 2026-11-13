@@ -22,9 +22,41 @@
 
 {% if report %}
 {% set lines = report.get("lines", []) %}
+{% set income_lines = lines | selectattr("section", "equalto", "income") | list %}
+{% set expense_lines = lines | rejectattr("section", "equalto", "income") | list %}
+{% set has_sections = (lines | selectattr("section") | list | length) > 0 %}
 {% set total_budget = report.get("total_budget", 0) | float %}
 {% set total_actual = report.get("total_actual", 0) | float %}
 {% set total_variance = report.get("total_variance", 0) | float %}
+
+{# A variance is good when income beats its budget or an expense comes in
+   under it; colour by that, not by the sign. #}
+{% macro budget_row(line, is_income) -%}
+{% set variance = line.get("variance", 0) | float %}
+{% set good = (variance >= 0) if is_income else (variance <= 0) %}
+<tr>
+  <td class="num ink-2">{{ line.get("account_code", "") }}</td>
+  <td class="ink-1">{{ line.get("account_name", "") }}</td>
+  <td class="text-right num ink-2">{{ num(line.get("budget", 0) | float, 2) }}</td>
+  <td class="text-right num ink-2">{{ num(line.get("actual", 0) | float, 2) }}</td>
+  <td class="text-right num font-medium" style="color:var({{ '--pos' if good else '--neg' }});">{{ num(variance, 2) }}</td>
+  {% if line.get("variance_pct") is none %}
+  <td class="text-right num ink-3">—</td>
+  {% else %}
+  <td class="text-right num" style="color:var({{ '--pos' if good else '--neg' }});">{{ num(line.get("variance_pct") | float, 1) }}%</td>
+  {% endif %}
+</tr>
+{%- endmacro %}
+
+{% macro subtotal_row(label, budget, actual, variance) -%}
+<tr class="hairline-t">
+  <td colspan="2" class="font-semibold ink-1">{{ label }}</td>
+  <td class="text-right num font-semibold ink-1">{{ num(budget | float, 2) }}</td>
+  <td class="text-right num font-semibold ink-1">{{ num(actual | float, 2) }}</td>
+  <td class="text-right num font-semibold ink-1">{{ num(variance | float, 2) }}</td>
+  <td></td>
+</tr>
+{%- endmacro %}
 
 <div class="card overflow-hidden" id="budget-vs-actual-table">
   <table class="sae-table w-full">
@@ -39,42 +71,33 @@
       </tr>
     </thead>
     <tbody>
-      {% for line in lines %}
-      {% set variance = line.get("variance", 0) | float %}
-      <tr>
-        <td class="num ink-2">{{ line.get("account_code", "") }}</td>
-        <td class="ink-1">{{ line.get("account_name", "") }}</td>
-        <td class="text-right num ink-2">{{ num(line.get("budget", 0) | float, 2) }}</td>
-        <td class="text-right num ink-2">{{ num(line.get("actual", 0) | float, 2) }}</td>
-        {% if variance >= 0 %}
-        <td class="text-right num font-medium" style="color:var(--pos);">{{ num(variance, 2) }}</td>
-        {% else %}
-        <td class="text-right num font-medium" style="color:var(--neg);">{{ num(variance, 2) }}</td>
-        {% endif %}
-        {% set variance_pct = line.get("variance_pct", 0) | float %}
-        {% if variance_pct >= 0 %}
-        <td class="text-right num" style="color:var(--pos);">{{ num(variance_pct, 1) }}%</td>
-        {% else %}
-        <td class="text-right num" style="color:var(--neg);">{{ num(variance_pct, 1) }}%</td>
-        {% endif %}
-      </tr>
+      {% if has_sections %}
+      <tr><td colspan="6" class="nav-section-label pt-3">{{ _("Income") }}</td></tr>
+      {% for line in income_lines %}{{ budget_row(line, true) }}{% else %}
+      <tr><td colspan="6" class="text-xs ink-3">{{ _("No income budgeted or earned in this period.") }}</td></tr>
       {% endfor %}
+      {{ subtotal_row(_("Total income"), report.get("total_income_budget", 0), report.get("total_income_actual", 0), report.get("total_income_variance", 0)) }}
+      <tr><td colspan="6" class="nav-section-label pt-3">{{ _("Expenses") }}</td></tr>
+      {% for line in expense_lines %}{{ budget_row(line, false) }}{% else %}
+      <tr><td colspan="6" class="text-xs ink-3">{{ _("No expenses budgeted or spent in this period.") }}</td></tr>
+      {% endfor %}
+      {{ subtotal_row(_("Total expenses"), report.get("total_expense_budget", 0), report.get("total_expense_actual", 0), report.get("total_expense_variance", 0)) }}
+      {% else %}
+      {% for line in lines %}{{ budget_row(line, false) }}{% endfor %}
+      {% endif %}
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="2" class="font-semibold ink-1">{{ _("Totals") }}</td>
+        <td colspan="2" class="font-semibold ink-1">{{ _("Net profit") if has_sections else _("Totals") }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total_budget, 2) }}</td>
         <td class="text-right num-display font-semibold ink-1">{{ num(total_actual, 2) }}</td>
-        {% if total_variance >= 0 %}
-        <td class="text-right num-display font-semibold" style="color:var(--pos);">{{ num(total_variance, 2) }}</td>
-        {% else %}
-        <td class="text-right num-display font-semibold" style="color:var(--neg);">{{ num(total_variance, 2) }}</td>
-        {% endif %}
+        <td class="text-right num-display font-semibold" style="color:var({{ '--pos' if total_variance >= 0 else '--neg' }});">{{ num(total_variance, 2) }}</td>
         <td class="text-right num ink-3">—</td>
       </tr>
     </tfoot>
   </table>
 </div>
+<p class="text-xs ink-3 mt-2">{{ _("Income and expense accounts only. Net profit is income less expenses.") }}</p>
 
 {% elif not error %}
 <p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>

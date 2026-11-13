@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Accountant Pack") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+  <a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← reports") }}</a>
+</div>
+
+<header class="mb-6 relative">
+  <div class="dot-grid-soft absolute inset-0 -z-10 opacity-30"></div>
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">{{ _("Year end") }}</span>
+    <span class="reg-mark"></span>
+  </div>
+  <h1 class="font-display text-3xl leading-none tracking-tight">{{ _("Accountant Pack") }}</h1>
+  <p class="text-sm ink-2 mt-3 max-w-2xl">{{ _("One download with the reports your accountant asks for at year end. Each file comes from the same report you see on screen.") }}</p>
+  <div class="drafting mt-4"></div>
+</header>
+
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% endif %}
+
+<form method="get" action="/reports/accountant-pack" class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
+  <div>
+    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From date") }}</label>
+    <input id="from_date" type="date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <div>
+    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("To date") }}</label>
+    <input id="to_date" type="date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <button type="submit" class="btn-secondary text-sm">{{ _("Change period") }}</button>
+</form>
+
+<div class="card p-5 max-w-2xl">
+  <p class="text-sm ink-1 font-semibold mb-2">{{ _("What is in the pack") }}</p>
+  <ul class="text-sm ink-2 list-disc pl-5 space-y-1 mb-4">
+    <li>{{ _("Profit and loss for the period, and month by month") }}</li>
+    <li>{{ _("Balance sheet and trial balance on the last day") }}</li>
+    <li>{{ _("General ledger and journal for the period") }}</li>
+    <li>{{ _("Cash flow statement") }}</li>
+    <li>{{ _("Money owed to you and by you on the last day") }}</li>
+    <li>{{ _("Fixed asset register with depreciation") }}</li>
+    {% if request.state.jp.features.tax_reports %}<li>{{ _("GST summary for the period") }}</li>{% endif %}
+    <li>{{ _("Financial statements as a PDF") }}</li>
+  </ul>
+  <a href="/reports/export/accountant_pack.zip?{{ download_qs }}" class="btn-primary text-sm" id="download-pack">{{ _("Download pack (ZIP)") }}</a>
+  <p class="text-xs ink-3 mt-3">{{ _("It can take up to a minute to build. If a report cannot be produced, the pack still downloads and its README says which one is missing.") }}</p>
+</div>
+
+{% endblock %}

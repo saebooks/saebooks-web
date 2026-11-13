@@ -130,6 +130,12 @@ TEMPLATE_NAMES: frozenset[str] = frozenset(
         "purchase_order",
         "contact_statement",
         "statement_pack",
+        # Single-report PDFs (profit and loss, balance sheet, trial balance and
+        # the generic "table" kind used by aged, cash flow, BAS and general
+        # ledger). The engine has asked for this template since the report
+        # PDFs were added, but it was never allowed here, so every one of
+        # those downloads failed with "unknown template" (P1-28).
+        "report_single",
     }
 )
 

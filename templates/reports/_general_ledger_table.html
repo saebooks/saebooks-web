@@ -1,0 +1,82 @@
+{# HTMX partial — general ledger, one card per account. #}
+<div id="report-content">
+
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% else %}
+
+{% if error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div id="report-spinner" class="htmx-indicator flex items-center gap-2 text-sm ink-3 font-mono mb-4">
+  {{ _("Loading...") }}
+</div>
+
+{% if report and report.get("accounts") %}
+<p class="text-xs ink-3 mb-4">{{ _("Balances are shown on each account's normal side: assets and expenses as debits; liabilities, equity and income as credits.") }}</p>
+<div class="space-y-6" id="general-ledger">
+  {% for acct in report.get("accounts", []) %}
+  <div class="card overflow-hidden">
+    <div class="px-6 py-3 hairline-b flex items-baseline justify-between gap-4">
+      <p class="font-semibold ink-1"><span class="num ink-3">{{ acct.get("code", "") }}</span> {{ acct.get("name", "") }}</p>
+      <a href="/reports/general-ledger?account_id={{ acct.get('account_id') }}&amp;from_date={{ from_date }}&amp;to_date={{ to_date }}" class="text-xs sae hover:underline">{{ _("Only this account") }}</a>
+    </div>
+    <div class="overflow-x-auto">
+    <table class="sae-table w-full">
+      <thead>
+        <tr>
+          <th class="text-left w-28">{{ _("Date") }}</th>
+          <th class="text-left w-28">{{ _("Reference") }}</th>
+          <th class="text-left w-36">{{ _("From") }}</th>
+          <th class="text-left">{{ _("Description") }}</th>
+          <th class="text-right w-28">{{ _("Debit") }}</th>
+          <th class="text-right w-28">{{ _("Credit") }}</th>
+          <th class="text-right w-32">{{ _("Balance") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="num ink-3">{{ from_date }}</td>
+          <td colspan="5" class="ink-2">{{ _("Opening balance") }}</td>
+          <td class="text-right num ink-1">{{ num(acct.get("opening", 0) | float, 2) }}</td>
+        </tr>
+        {% for ln in acct.get("lines", []) %}
+        <tr>
+          <td class="num ink-2">{{ ln.get("date", "") }}</td>
+          <td class="num ink-2">{{ ln.get("ref", "") }}</td>
+          <td class="ink-3 text-xs">{{ ln.get("source", "") }}</td>
+          <td class="ink-1">{{ ln.get("description", "") }}</td>
+          <td class="text-right num ink-2">{% if ln.get("debit") %}{{ num(ln.get("debit") | float, 2) }}{% endif %}</td>
+          <td class="text-right num ink-2">{% if ln.get("credit") %}{{ num(ln.get("credit") | float, 2) }}{% endif %}</td>
+          <td class="text-right num ink-1">{{ num(ln.get("balance", 0) | float, 2) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="num ink-3">{{ to_date }}</td>
+          <td colspan="3" class="font-semibold ink-1">{{ _("Closing balance") }}</td>
+          <td class="text-right num font-semibold ink-1">{{ num(acct.get("total_debit", 0) | float, 2) }}</td>
+          <td class="text-right num font-semibold ink-1">{{ num(acct.get("total_credit", 0) | float, 2) }}</td>
+          <td class="text-right num-display font-semibold ink-1">{{ num(acct.get("closing", 0) | float, 2) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="card p-4 flex items-center justify-between">
+    <span class="text-sm font-semibold ink-1">{{ _("Total debits and credits in the period") }}</span>
+    <span class="num ink-1">{{ num(report.get("total_debit", 0) | float, 2) }} / {{ num(report.get("total_credit", 0) | float, 2) }}</span>
+  </div>
+</div>
+{% elif not error %}
+<p class="text-sm ink-3">{{ _("Nothing was posted in this period.") }}</p>
+{% endif %}
+
+{% endif %}{# end degraded #}
+</div>

@@ -1660,12 +1660,31 @@ _EXPORT_ENGINE_PATHS: dict[str, str] = {
     "cashbook_summary.csv": "/api/v1/cashbook/summary.csv",
     "cashbook_summary.xlsx": "/api/v1/cashbook/summary.xlsx",
     "statement_pack.pdf": "/api/v1/reports/statement_pack.pdf",
+    # Batch 7: PDFs that were missing, the general ledger, journal, asset
+    # register, period-column reports and the accountant pack.
+    "aged_receivables.pdf": "/api/v1/reports/aged_receivables.pdf",
+    "aged_payables.pdf": "/api/v1/reports/aged_payables.pdf",
+    "cashflow.pdf": "/api/v1/reports/cashflow.pdf",
+    "bas_summary.pdf": "/api/v1/reports/bas_summary.pdf",
+    "general_ledger.csv": "/api/v1/reports/general_ledger.csv",
+    "general_ledger.xlsx": "/api/v1/reports/general_ledger.xlsx",
+    "general_ledger.pdf": "/api/v1/reports/general_ledger.pdf",
+    "journal.csv": "/api/v1/reports/journal.csv",
+    "journal.xlsx": "/api/v1/reports/journal.xlsx",
+    "fixed_asset_register.csv": "/api/v1/reports/fixed_asset_register.csv",
+    "fixed_asset_register.xlsx": "/api/v1/reports/fixed_asset_register.xlsx",
+    "profit_loss_columns.csv": "/api/v1/reports/profit_loss_columns.csv",
+    "profit_loss_columns.xlsx": "/api/v1/reports/profit_loss_columns.xlsx",
+    "balance_sheet_columns.csv": "/api/v1/reports/balance_sheet_columns.csv",
+    "balance_sheet_columns.xlsx": "/api/v1/reports/balance_sheet_columns.xlsx",
+    "accountant_pack.zip": "/api/v1/reports/accountant_pack.zip",
 }
 
 _EXPORT_FALLBACK_MEDIA: dict[str, str] = {
     "csv": "text/csv; charset=utf-8",
     "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "pdf": "application/pdf",
+    "zip": "application/zip",
 }
 
 
@@ -1687,8 +1706,14 @@ async def report_export(request: Request, name: str) -> Response | RedirectRespo
         raise HTTPException(404, detail="Unknown export")
 
     params = dict(request.query_params)
+    ext = name.rsplit(".", 1)[-1]
     async with api_client(request) as client:
-        resp = await client.get(engine_path, params=params)
+        if ext in ("pdf", "zip"):
+            # PDFs compile through the render service and the accountant
+            # pack builds a dozen reports -- both outlast the 10 s default.
+            resp = await client.get(engine_path, params=params, timeout=180.0)
+        else:
+            resp = await client.get(engine_path, params=params)
 
     if resp.status_code == 401:
         request.session.clear()
@@ -1696,7 +1721,6 @@ async def report_export(request: Request, name: str) -> Response | RedirectRespo
     if resp.status_code != 200:
         raise HTTPException(resp.status_code, detail=f"Upstream returned {resp.status_code}")
 
-    ext = name.rsplit(".", 1)[-1]
     fallback_media = _EXPORT_FALLBACK_MEDIA.get(ext, "application/octet-stream")
     return Response(
         content=resp.content,
