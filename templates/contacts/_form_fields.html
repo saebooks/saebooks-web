@@ -179,6 +179,29 @@
   </div>
 </div>
 
+{# ── Reportable contractor (TPAR, AU only) — P1-74 ── #}
+{% if (request.state.active_company_jurisdiction or "AU") == 'AU' %}
+<div class="mt-6 flex items-start gap-3">
+  <div class="flex items-center h-5">
+    <input
+      type="checkbox"
+      id="is_tpar_supplier"
+      name="is_tpar_supplier"
+      value="on"
+      {% if form.get("is_tpar_supplier") in ("on", True, "true", "True") %}checked{% endif %}
+      class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]"
+    >
+  </div>
+  <div>
+    <label for="is_tpar_supplier" class="block text-sm font-medium ink-2">{{ _("Report payments to this contractor") }}</label>
+    <p class="text-xs ink-3 mt-0.5">
+      {{ _("Include what you pay them in the taxable payments annual report. Tick this for contractors who provide building, cleaning, courier, road freight, IT or security services.") }}
+      <a href="/tpar" class="sae hover:underline">{{ _("About the report") }}</a>
+    </p>
+  </div>
+</div>
+{% endif %}
+
 {# ── E-invoicing (EE only) ── #}
 {% set jurisdiction = request.state.active_company_jurisdiction or "AU" %}
 {% if jurisdiction == 'EE' %}

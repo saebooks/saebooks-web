@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Taxable payments annual report") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="mb-6 flex items-start justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Taxable payments annual report") }}</h1>
+    {% if run %}
+    <p class="text-sm ink-3 mt-1">{{ run.fy_start }} {{ _("to") }} {{ run.fy_end }} ·
+      {% if run.status|upper == 'DRAFT' %}{{ _("Draft") }}{% elif run.status|upper == 'FINALISED' %}{{ _("Finalised") }}{% else %}{{ run.status|capitalize }}{% endif %}
+    </p>
+    {% endif %}
+  </div>
+  <a href="/tpar" class="text-sm sae hover:underline">← {{ _("All reports") }}</a>
+</div>
+
+{% if run %}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 mb-6">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Contractors") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ run.total_payee_count }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Total paid, including GST") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(run.total_gross_amount|float) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("GST in those payments") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ money(run.total_gst_amount|float) }}</p>
+  </div>
+</div>
+
+{% if missing_abn %}
+<div class="card p-3 mb-6 text-sm" style="border-color:var(--warm);">
+  {% if missing_abn == 1 %}{{ _("1 contractor has no ABN. Add it on their contact before you finalise.") }}
+  {% else %}{{ _("%(n)s contractors have no ABN. Add them on each contact before you finalise.") % {"n": missing_abn} }}{% endif %}
+</div>
+{% endif %}
+
+<div class="flex flex-wrap items-center gap-3 mb-6">
+  <a href="/tpar/{{ run.id }}/download.csv" class="btn-secondary text-sm">{{ _("Download spreadsheet") }}</a>
+  <a href="/tpar/{{ run.id }}/download.bde" class="btn-secondary text-sm">{{ _("Download ATO file") }}</a>
+  {% if run.status|upper == 'DRAFT' %}
+  <form method="POST" action="/tpar" class="inline" data-submit-once>
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="fy_start" value="{{ run.fy_start }}">
+    <button type="submit" class="btn-secondary text-sm">{{ _("Prepare again") }}</button>
+  </form>
+  <form method="POST" action="/tpar/{{ run.id }}/finalise" class="inline" data-submit-once>
+    {{ csrf_input(request)|safe }}
+    <button type="submit" class="btn-primary text-sm"
+      onclick="return confirm('{{ _('Finalise this report? It can no longer be prepared again for this year.') }}')">
+      {{ _("Finalise") }}
+    </button>
+  </form>
+  {% endif %}
+</div>
+<p class="text-xs ink-3 mb-6 max-w-2xl">
+  {{ _("The app does not send this report to the ATO. Download the ATO file and upload it through Online services for business, or give it to your tax agent.") }}
+</p>
+
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Contractor") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("ABN") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Bills and expenses") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Total paid") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("GST") }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[color:var(--line)]">
+      {% for ln in lines %}
+      <tr>
+        <td class="px-4 py-3"><a href="/contacts/{{ ln.contact_id }}" class="sae hover:underline">{{ ln.payee_name }}</a></td>
+        <td class="px-4 py-3 font-mono text-xs">
+          {% if ln.payee_abn %}{{ ln.payee_abn }}{% else %}<span style="color:var(--neg);">{{ _("Missing") }}</span>{% endif %}
+        </td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ (ln.bill_count or 0) + (ln.expense_count or 0) }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(ln.gross_paid|float, 2) }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(ln.gst_paid|float, 2) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-sm ink-3">
+        {{ _("No payments to reportable contractors in this year. Mark contractors on their contact page, then prepare the report again.") }}
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% include "_partials/submit_once.html" %}
+{% endblock %}

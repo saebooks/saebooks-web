@@ -1,0 +1,46 @@
+{# HTMX partial — the repayment and schedule for the terms entered. Posts nothing. #}
+{% if error %}
+<p class="text-sm" style="color:var(--neg);">{{ error }}</p>
+{% elif preview %}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-3">
+  <div class="card p-3">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Amount financed") }}</p>
+    <p class="text-sm font-medium ink-1 tabular-nums">{{ money(preview.principal|float) }}</p>
+  </div>
+  <div class="card p-3">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Each repayment") }}</p>
+    <p class="text-sm font-medium ink-1 tabular-nums">{{ money(preview.repayment_amount|float) }}</p>
+  </div>
+  <div class="card p-3">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Total interest") }}</p>
+    <p class="text-sm font-medium ink-1 tabular-nums">{{ money(preview.total_interest|float) }}</p>
+  </div>
+  <div class="card p-3">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Total repaid") }}</p>
+    <p class="text-sm font-medium ink-1 tabular-nums">{{ money(preview.total_repayments|float) }}</p>
+  </div>
+</div>
+<details>
+  <summary class="cursor-pointer text-sm sae">{{ _("Repayment schedule") }} ({{ preview.schedule|length }})</summary>
+  <div class="overflow-x-auto mt-2 max-h-80 overflow-y-auto">
+    <table class="min-w-full text-xs">
+      <thead><tr class="ink-3">
+        <th class="px-2 py-1 text-left">#</th><th class="px-2 py-1 text-left">{{ _("Due") }}</th>
+        <th class="px-2 py-1 text-right">{{ _("Payment") }}</th><th class="px-2 py-1 text-right">{{ _("Interest") }}</th>
+        <th class="px-2 py-1 text-right">{{ _("Off the loan") }}</th><th class="px-2 py-1 text-right">{{ _("Still owed") }}</th>
+      </tr></thead>
+      <tbody>
+      {% for r in preview.schedule %}
+      <tr class="hairline-b">
+        <td class="px-2 py-1">{{ r.number }}</td><td class="px-2 py-1">{{ r.due_date }}</td>
+        <td class="px-2 py-1 text-right tabular-nums">{{ num(r.payment|float, 2) }}</td>
+        <td class="px-2 py-1 text-right tabular-nums">{{ num(r.interest|float, 2) }}</td>
+        <td class="px-2 py-1 text-right tabular-nums">{{ num(r.principal|float, 2) }}</td>
+        <td class="px-2 py-1 text-right tabular-nums">{{ num(r.balance_after|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+{% endif %}

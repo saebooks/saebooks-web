@@ -8,10 +8,13 @@
 <div class="mb-8">
   <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Dispose Asset") }}</h2>
   <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--neg);">
-    <p class="text-sm ink-3 mb-4">
-      {{ _("Disposing an asset marks it as disposed and records the disposal date and proceeds. This action cannot be undone.") }}
+    <p class="text-sm ink-3 mb-2">
+      {{ _("Disposing an asset brings its depreciation up to the disposal date, takes it off the balance sheet, records the money received and works out the gain or loss. This cannot be undone.") }}
     </p>
-    <form method="POST" action="/fixed-assets/{{ asset.id }}/dispose" novalidate>
+    <p class="text-xs ink-3 mb-4">
+      {{ _("If you charged GST on the sale, raise an invoice for the sale and enter 0 here: the invoice records the money and the GST, and the asset is written off here.") }}
+    </p>
+    <form method="POST" action="/fixed-assets/{{ asset.id }}/dispose" novalidate data-submit-once>
     {{ csrf_input(request)|safe }}
 
       <input type="hidden" name="version" value="{{ asset.version }}">
@@ -42,6 +45,20 @@
             required
             class="saebooks-input w-full max-w-xs px-3 py-2 text-sm"
           >
+        </div>
+
+        <div>
+          <label for="proceeds_account_id" class="block text-sm font-medium ink-2 mb-1">
+            {{ _("Money received into") }}
+          </label>
+          <select id="proceeds_account_id" name="proceeds_account_id"
+                  class="saebooks-input w-full max-w-lg px-3 py-2 text-sm">
+            <option value="">{{ _("— nothing received (scrapped or written off) —") }}</option>
+            {% for a in pay_accounts or [] %}
+            <option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>
+            {% endfor %}
+          </select>
+          <p class="mt-1 text-xs ink-3">{{ _("Needed when the proceeds are more than 0.") }}</p>
         </div>
 
         <div>

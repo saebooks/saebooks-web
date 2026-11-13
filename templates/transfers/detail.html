@@ -57,6 +57,10 @@
   </div>
 </div>
 
+{% if purpose_label %}
+<p class="text-sm ink-2 mb-4">{{ _("What this was:") }} <span class="font-medium ink-1">{{ _(purpose_label) }}</span></p>
+{% endif %}
+
 <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Transfer date") }}</p>

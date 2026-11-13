@@ -146,7 +146,7 @@
 {% if not is_edit %}
 <fieldset class="space-y-4 mt-6">
   <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Financial details") }}</legend>
-  {{ text_input("cost", _("Cost"), required=true, placeholder="0.00") }}
+  {{ text_input("cost", _("Cost before GST"), required=true, placeholder="0.00") }}
   {{ text_input("residual_value", _("Residual value"), placeholder="0.00") }}
   {{ text_input("purchase_date", _("Purchase date"), required=true, placeholder="2024-01-15", type="date") }}
   {{ text_input("in_service_date", _("In service date"), placeholder="2024-01-20", type="date") }}
@@ -179,4 +179,93 @@
   {{ account_select("accum_dep_account_id", _("Accumulated depreciation account"), required=true) }}
   {{ account_select("dep_expense_account_id", _("Depreciation expense account"), required=true) }}
 </fieldset>
+
+{# ── How was it paid for? (P1-73, batch 14) ──
+   Adding an asset used to post nothing, so the register and the balance
+   sheet could disagree. Each choice below either posts the purchase, links
+   the bill that already did, or says it is already in the books. #}
+{% set pm = form.get("purchase_method") or "paid" %}
+<fieldset class="space-y-4 mt-6" id="purchase-fieldset">
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("How was it paid for?") }}</legend>
+  <div class="space-y-2 text-sm">
+    <label class="flex items-start gap-2">
+      <input type="radio" name="purchase_method" value="paid" {% if pm == 'paid' %}checked{% endif %} class="mt-1">
+      <span><span class="ink-1">{{ _("Paid now from an account") }}</span><br>
+        <span class="ink-3 text-xs">{{ _("Records the purchase: the asset goes onto the balance sheet and the money comes out of the account you choose.") }}</span></span>
+    </label>
+    <label class="flex items-start gap-2">
+      <input type="radio" name="purchase_method" value="bill" {% if pm == 'bill' %}checked{% endif %} class="mt-1">
+      <span><span class="ink-1">{{ _("A supplier bill I have already entered") }}</span><br>
+        <span class="ink-3 text-xs">{{ _("Links the bill. The bill line must use the asset's cost account, so nothing is counted twice.") }}</span></span>
+    </label>
+    <label class="flex items-start gap-2">
+      <input type="radio" name="purchase_method" value="finance" {% if pm == 'finance' %}checked{% endif %} class="mt-1">
+      <span><span class="ink-1">{{ _("Bought on finance (loan, chattel mortgage or hire purchase)") }}</span><br>
+        <span class="ink-3 text-xs">{{ _("Record it with the loan instead, so the asset, the GST and what you owe are entered together.") }}
+        <a href="/loans/new?funding=asset" class="sae hover:underline">{{ _("New loan for an asset") }}</a></span></span>
+    </label>
+    <label class="flex items-start gap-2">
+      <input type="radio" name="purchase_method" value="existing" {% if pm == 'existing' %}checked{% endif %} class="mt-1">
+      <span><span class="ink-1">{{ _("Already in my books") }}</span><br>
+        <span class="ink-3 text-xs">{{ _("For an asset that is already in the balance sheet, for example from your opening balances. Nothing is posted.") }}</span></span>
+    </label>
+  </div>
+
+  <div data-purchase="paid" class="grid grid-cols-1 gap-4 sm:grid-cols-3" {% if pm != 'paid' %}hidden{% endif %}>
+    <div class="sm:col-span-3">
+      <label for="paid_from_account_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Paid from") }}</label>
+      <select id="paid_from_account_id" name="paid_from_account_id" class="saebooks-input w-full px-3 py-2 text-sm">
+        <option value="">{{ _("— choose the bank, card or owner account —") }}</option>
+        {% for a in pay_accounts or [] %}
+        <option value="{{ a.id }}" {% if form.get('paid_from_account_id') == a.id %}selected{% endif %}>{{ a.code }} — {{ a.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="purchase_gst_amount" class="block text-sm font-medium ink-2 mb-1">{{ _("GST paid") }}</label>
+      <input type="number" step="0.01" min="0" id="purchase_gst_amount" name="purchase_gst_amount"
+             value="{{ form.get('purchase_gst_amount', '') }}" placeholder="0.00"
+             class="saebooks-input w-full px-3 py-2 text-sm">
+      <p class="mt-1 text-xs ink-3">{{ _("Enter the cost above without GST.") }}</p>
+    </div>
+    <div class="sm:col-span-2">
+      <label for="purchase_tax_code_id" class="block text-sm font-medium ink-2 mb-1">{{ _("GST code") }}</label>
+      <select id="purchase_tax_code_id" name="purchase_tax_code_id" class="saebooks-input w-full px-3 py-2 text-sm">
+        <option value="">{{ _("— none —") }}</option>
+        {% for t in tax_codes or [] %}
+        <option value="{{ t.id }}" {% if form.get('purchase_tax_code_id') == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div data-purchase="bill" {% if pm != 'bill' %}hidden{% endif %}>
+    <label for="purchase_bill_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Supplier bill") }}</label>
+    <select id="purchase_bill_id" name="purchase_bill_id" class="saebooks-input w-full px-3 py-2 text-sm">
+      <option value="">{{ _("— choose a posted bill —") }}</option>
+      {% for b in bills or [] %}
+      <option value="{{ b.id }}" {% if form.get('purchase_bill_id') == b.id %}selected{% endif %}>
+        {{ b.number or b.supplier_reference or b.id[:8] }} · {{ b.issue_date }} · {{ num(b.total|float, 2) }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+</fieldset>
+<script>
+(function () {
+  var fs = document.getElementById("purchase-fieldset");
+  if (!fs) return;
+  function show() {
+    var chosen = fs.querySelector('input[name="purchase_method"]:checked');
+    var v = chosen ? chosen.value : "";
+    fs.querySelectorAll("[data-purchase]").forEach(function (el) {
+      el.hidden = el.dataset.purchase !== v;
+    });
+  }
+  fs.querySelectorAll('input[name="purchase_method"]').forEach(function (r) {
+    r.addEventListener("change", show);
+  });
+  show();
+})();
+</script>
 {% endif %}

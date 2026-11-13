@@ -33,6 +33,38 @@
   </div>
 </div>
 
+{# Register vs ledger check (P1-73, batch 14) #}
+{% if tie_out and not tie_out.in_step %}
+<div class="card px-4 py-3 mb-6 text-sm" style="border-color:var(--warm);">
+  <p class="ink-1 font-medium mb-1">{{ _("The asset register and the accounts do not agree.") }}</p>
+  <ul class="ink-2 space-y-1">
+    {% for row in tie_out.accounts %}
+      {% if row.cost_difference|float != 0 %}
+      <li>{{ row.cost_account_code }} {{ row.cost_account_name }}:
+        {% if row.cost_difference|float > 0 %}
+          {{ _("the accounts hold %(amt)s more than the register.") % {"amt": num(row.cost_difference|float, 2)} }}
+        {% else %}
+          {{ _("the register holds %(amt)s more than the accounts.") % {"amt": num((0 - row.cost_difference|float), 2)} }}
+        {% endif %}
+      </li>
+      {% endif %}
+      {% if row.accum_dep_difference|float != 0 %}
+      <li>{{ row.cost_account_code }} {{ row.cost_account_name }}:
+        {{ _("depreciation in the accounts differs from the register by %(amt)s.") % {"amt": num(row.accum_dep_difference|float, 2)} }}
+      </li>
+      {% endif %}
+    {% endfor %}
+    {% if tie_out.unlinked_assets %}
+    <li>
+      {% if tie_out.unlinked_assets|length == 1 %}{{ _("1 asset is not linked to a purchase:") }}
+      {% else %}{{ _("%(n)s assets are not linked to a purchase:") % {"n": tie_out.unlinked_assets|length} }}{% endif %}
+      {% for u in tie_out.unlinked_assets[:8] %}<a href="/fixed-assets/{{ u.id }}" class="sae hover:underline">{{ u.code }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+    </li>
+    {% endif %}
+  </ul>
+</div>
+{% endif %}
+
 {# Filter form — HTMX-powered, swaps only the table on submit #}
 <form
   hx-get="/fixed-assets"

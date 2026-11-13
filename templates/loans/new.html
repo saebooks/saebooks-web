@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("New loan") }} — {{ current_brand().name }}{% endblock %}
+
+{% macro acct_select(name, label, options, help="") %}
+<div>
+  <label for="{{ name }}" class="block text-sm font-medium ink-2 mb-1">{{ label }}</label>
+  <select id="{{ name }}" name="{{ name }}" class="saebooks-input w-full">
+    <option value="">{{ _("— choose —") }}</option>
+    {% for a in options %}
+    <option value="{{ a.id }}" {% if form.get(name) == a.id|string %}selected{% endif %}>{{ a.code }} — {{ a.name }}</option>
+    {% endfor %}
+  </select>
+  {% if help %}<p class="mt-1 text-xs ink-3">{{ help }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro field(name, label, type="text", help="", step="", placeholder="") %}
+<div>
+  <label for="{{ name }}" class="block text-sm font-medium ink-2 mb-1">{{ label }}</label>
+  <input type="{{ type }}" id="{{ name }}" name="{{ name }}" value="{{ form.get(name, '') }}"
+         {% if step %}step="{{ step }}" min="0"{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+         class="saebooks-input w-full">
+  {% if help %}<p class="mt-1 text-xs ink-3">{{ help }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New loan") }}</h1>
+  <a href="/loans" class="text-sm sae hover:underline">← {{ _("Loans and finance") }}</a>
+</div>
+
+{% if errors.get("__all__") %}
+<div class="card p-3 mb-6 text-sm" style="border-color:var(--neg);color:var(--neg);">{{ errors["__all__"] }}</div>
+{% endif %}
+
+<form method="POST" action="/loans/new" id="loan-form" class="space-y-6 max-w-3xl" data-submit-once novalidate>
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+  {# Step 1 — what kind #}
+  <section class="card px-6 py-5">
+    <h2 class="text-base font-semibold ink-1 mb-3">{{ _("1. What kind of finance is it?") }}</h2>
+    <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      {% for k in kinds %}
+      <label class="card p-3 flex items-start gap-2 cursor-pointer">
+        <input type="radio" name="kind" value="{{ k.value }}" {% if form.get('kind') == k.value %}checked{% endif %} class="mt-1">
+        <span><span class="text-sm ink-1">{{ _(k.label) }}</span><br><span class="text-xs ink-3">{{ _(k.help) }}</span></span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mt-4">
+      {{ field("name", _("Name"), placeholder=_("For example: Ute finance")) }}
+      <div>
+        <label for="lender_contact_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Lender") }}</label>
+        <select id="lender_contact_id" name="lender_contact_id" class="saebooks-input w-full">
+          <option value="">{{ _("— not recorded —") }}</option>
+          {% for c in contacts %}<option value="{{ c.id }}" {% if form.get('lender_contact_id') == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+      </div>
+      {{ field("reference", _("Contract number")) }}
+    </div>
+  </section>
+
+  {# Step 2 — what it paid for #}
+  <section class="card px-6 py-5" id="funding-section">
+    <h2 class="text-base font-semibold ink-1 mb-3">{{ _("2. What did it pay for?") }}</h2>
+    <div class="flex flex-wrap gap-6 text-sm mb-4">
+      <label class="flex items-center gap-2"><input type="radio" name="funding" value="cash" {% if form.get('funding') != 'asset' %}checked{% endif %}> {{ _("Money paid into my bank account") }}</label>
+      <label class="flex items-center gap-2"><input type="radio" name="funding" value="asset" {% if form.get('funding') == 'asset' %}checked{% endif %}> {{ _("A vehicle or equipment, paid straight to the seller") }}</label>
+    </div>
+    <div data-funding="cash" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {{ field("principal", _("Amount borrowed"), type="number", step="0.01") }}
+      {{ acct_select("drawdown_account_id", _("Paid into"), assets) }}
+    </div>
+    <div data-funding="asset" class="space-y-4" hidden>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {{ field("asset_name", _("What was bought"), placeholder=_("For example: Toyota Hilux")) }}
+        {{ field("serial_number", _("Registration or serial number")) }}
+        {{ field("asset_cost", _("Price before GST"), type="number", step="0.01") }}
+        {{ field("asset_gst_amount", _("GST on the price"), type="number", step="0.01", help=_("Claimed on your next BAS if you are registered for GST.")) }}
+        <div>
+          <label for="asset_tax_code_id" class="block text-sm font-medium ink-2 mb-1">{{ _("GST code") }}</label>
+          <select id="asset_tax_code_id" name="asset_tax_code_id" class="saebooks-input w-full">
+            <option value="">{{ _("— none —") }}</option>
+            {% for t in tax_codes %}<option value="{{ t.id }}" {% if form.get('asset_tax_code_id') == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>{% endfor %}
+          </select>
+        </div>
+        {{ field("deposit", _("Deposit you paid"), type="number", step="0.01") }}
+        {{ acct_select("deposit_account_id", _("Deposit paid from"), balance_sheet) }}
+        <div>
+          <label for="depreciation_model_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Depreciation") }}</label>
+          <select id="depreciation_model_id" name="depreciation_model_id" class="saebooks-input w-full">
+            <option value="">{{ _("— choose —") }}</option>
+            {% for m in dep_models %}<option value="{{ m.id }}" {% if form.get('depreciation_model_id') == m.id %}selected{% endif %}>{{ m.id | replace("asset_", "") | replace("_", " ") }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <details class="text-sm">
+        <summary class="cursor-pointer sae">{{ _("Asset accounts") }}</summary>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mt-3">
+          {{ acct_select("cost_account_id", _("Cost account"), assets) }}
+          {{ acct_select("accum_dep_account_id", _("Accumulated depreciation account"), assets) }}
+          {{ acct_select("dep_expense_account_id", _("Depreciation expense account"), expense_accounts) }}
+        </div>
+      </details>
+      <p class="text-xs ink-3">{{ _("The amount financed is the price plus GST less the deposit. The asset is added to the asset register and linked to this loan.") }}</p>
+    </div>
+  </section>
+
+  {# Step 3 — terms #}
+  <section class="card px-6 py-5">
+    <h2 class="text-base font-semibold ink-1 mb-3">{{ _("3. Repayments") }}</h2>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {{ field("annual_rate_pct", _("Interest rate, per cent a year"), type="number", step="0.0001") }}
+      {{ field("term_periods", _("Number of repayments"), type="number", step="1") }}
+      <div>
+        <label for="frequency" class="block text-sm font-medium ink-2 mb-1">{{ _("How often") }}</label>
+        <select id="frequency" name="frequency" class="saebooks-input w-full">
+          {% for f in frequencies %}<option value="{{ f.value }}" {% if form.get('frequency') == f.value %}selected{% endif %}>{{ _(f.label) }}</option>{% endfor %}
+        </select>
+      </div>
+      {{ field("start_date", _("Start date"), type="date") }}
+      {{ field("first_repayment_date", _("First repayment"), type="date") }}
+      {{ field("balloon", _("Balloon (final lump sum)"), type="number", step="0.01", help=_("Leave blank if there is none.")) }}
+      {{ field("repayment_amount", _("Repayment amount"), type="number", step="0.01", help=_("Leave blank to work it out, or enter the figure on your contract.")) }}
+    </div>
+    <button type="button" class="btn-secondary text-sm mt-4"
+            hx-get="/loans/preview" hx-include="#loan-form" hx-target="#loan-preview" hx-swap="innerHTML">
+      {{ _("Show the repayments") }}
+    </button>
+    <div id="loan-preview" class="mt-4"></div>
+  </section>
+
+  {# Step 4 — accounts #}
+  <section class="card px-6 py-5">
+    <h2 class="text-base font-semibold ink-1 mb-3">{{ _("4. Accounts") }}</h2>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {{ acct_select("liability_account_id", _("Loan account (what you owe)"), liabilities) }}
+      {{ acct_select("interest_account_id", _("Interest expense account"), expense_accounts) }}
+      <div data-kind="hire_purchase" hidden>
+        {{ acct_select("unexpired_interest_account_id", _("Interest not yet charged"), liabilities, help=_("Hire purchase only. Usually called unexpired interest or deferred charges.")) }}
+      </div>
+    </div>
+    <p class="text-xs ink-3 mt-3">
+      {{ _("No loan account yet?") }}
+      <a href="/owner-money/settings" class="sae hover:underline">{{ _("Create the standard accounts") }}</a>
+    </p>
+  </section>
+
+  <div>
+    <label for="notes" class="block text-sm font-medium ink-2 mb-1">{{ _("Notes") }}</label>
+    <textarea id="notes" name="notes" rows="2" class="saebooks-input w-full">{{ form.get('notes', '') }}</textarea>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <button type="submit" class="btn-primary text-sm">{{ _("Record loan") }}</button>
+    <a href="/loans" class="btn-secondary text-sm">{{ _("Cancel") }}</a>
+  </div>
+</form>
+
+<script>
+(function () {
+  var form = document.getElementById("loan-form");
+  if (!form) return;
+  function radio(name) { var r = form.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ""; }
+  function show() {
+    var funding = radio("funding"), kind = radio("kind");
+    form.querySelectorAll("[data-funding]").forEach(function (el) { el.hidden = el.dataset.funding !== funding; });
+    form.querySelectorAll("[data-kind]").forEach(function (el) { el.hidden = el.dataset.kind !== kind; });
+  }
+  form.querySelectorAll('input[name="funding"], input[name="kind"]').forEach(function (r) { r.addEventListener("change", show); });
+  show();
+})();
+</script>
+{% include "_partials/submit_once.html" %}
+{% endblock %}

@@ -37,7 +37,20 @@
 <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-base mb-6">
   <div>
     <dt class="font-medium text-gray-500">{{ _("Paid from") }}</dt>
-    <dd class="text-gray-900">{{ payment_account_name or expense.payment_account_id }}</dd>
+    <dd class="text-gray-900">
+      {{ payment_account_name or expense.payment_account_id }}
+      {% if expense.paid_by == 'owner' %}
+      <span class="block text-sm ink-3">
+        {{ _("Paid personally by the owner.") }}
+        {% if expense.reimbursed_at %}
+          {{ _("Paid back on %(date)s.") % {"date": expense.reimbursed_at[:10]} }}
+          {% if expense.reimbursement_transfer_id %}<a href="/transfers/{{ expense.reimbursement_transfer_id }}" class="sae hover:underline">{{ _("View transfer") }}</a>{% endif %}
+        {% elif expense.status|lower == 'posted' %}
+          <a href="/owner-money" class="sae hover:underline">{{ _("Not paid back yet") }}</a>
+        {% endif %}
+      </span>
+      {% endif %}
+    </dd>
   </div>
   <div>
     <dt class="font-medium text-gray-500">{{ _("Supplier") }}</dt>
@@ -69,7 +82,11 @@
     {% for line in expense.lines %}
     <tr>
       <td class="px-3 py-2 text-gray-500">{{ line.line_no }}</td>
-      <td class="px-3 py-2">{{ line.description }}</td>
+      <td class="px-3 py-2">{{ line.description }}
+        {% if line.private_pct and line.private_pct|float > 0 %}
+        <span class="block text-sm ink-3">{{ _("%(pct)s%% private: that share goes to drawings with no GST claimed") % {"pct": line.private_pct|float|round(2)} }}</span>
+        {% endif %}
+      </td>
       <td class="px-3 py-2 text-right tabular-nums">{{ num(line.quantity|float, 4) }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ num(line.unit_price|float, 4) }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ money(line.line_subtotal|float, grouping=False) }}</td>

@@ -96,6 +96,58 @@ async def _fetch_dropdowns(
     return contacts, expense_accounts, payment_accounts, tax_codes, projects
 
 
+async def _fetch_owner_accounts(client, payment_accounts: list[dict]) -> list[dict]:
+    """Accounts an owner-paid expense may credit (P1-47, batch 14).
+
+    The owner loan account (a liability, from ``payment_accounts``) or the
+    owner's capital (equity). Blank on the form = the company's owner loan
+    account, resolved by the engine.
+    """
+    owner: list[dict] = [a for a in payment_accounts if a.get("account_type") == "LIABILITY"]
+    try:
+        resp = await client.get(
+            "/api/v1/accounts",
+            params={"account_type": "EQUITY", "limit": 500, "offset": 0},
+        )
+        if resp.is_success:
+            owner.extend(a for a in resp.json().get("items", []) if not a.get("is_header"))
+    except Exception:
+        pass
+    owner.sort(key=lambda a: a.get("code", ""))
+    return owner
+
+
+def _expense_lines_from_form(form: dict[str, str]) -> list[dict[str, object]]:
+    """``parse_lines`` plus the private share of each line (P1-47).
+
+    ``private_pct`` is expense-only, so it is read here rather than added to
+    the shared ``form_helpers._LINE_FIELDS`` that bills and invoices use.
+    Lines are matched by their form index; a blank line is dropped exactly as
+    ``parse_lines`` drops it.
+    """
+    indices: list[int] = []
+    for key in form:
+        if key.startswith("lines[") and "][" in key:
+            try:
+                idx = int(key.split("[")[1].split("]")[0])
+            except (ValueError, IndexError):
+                continue
+            if idx not in indices:
+                indices.append(idx)
+    out: list[dict[str, object]] = []
+    for idx in sorted(indices):
+        single = {k: v for k, v in form.items() if k.startswith(f"lines[{idx}][")}
+        parsed = _parse_lines(single)
+        if not parsed:
+            continue
+        line = parsed[0]
+        pct = (form.get(f"lines[{idx}][private_pct]") or "").strip()
+        if pct and pct not in ("0", "0.0", "0.00"):
+            line["private_pct"] = pct
+        out.append(line)
+    return out
+
+
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
@@ -232,10 +284,11 @@ async def expense_new_form(
         contacts, expense_accounts, payment_accounts, tax_codes, projects = (
             await _fetch_dropdowns(client)
         )
+        owner_accounts = await _fetch_owner_accounts(client, payment_accounts)
 
     initial_lines = [{"index": 0}]
 
-    form: dict[str, object] = {"expense_date": today}
+    form: dict[str, object] = {"expense_date": today, "paid_by": "business"}
     if contact_id:
         form["contact_id"] = contact_id
 
@@ -249,6 +302,7 @@ async def expense_new_form(
             "contacts": contacts,
             "accounts": expense_accounts,
             "payment_accounts": payment_accounts,
+            "owner_accounts": owner_accounts,
             "tax_codes": tax_codes,
             "projects": projects,
             "lines": initial_lines,
@@ -270,7 +324,6 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
     payload: dict[str, object] = {}
     for field in (
         "contact_id",
-        "payment_account_id",
         "expense_date",
         "reference",
         "notes",
@@ -279,13 +332,23 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
         if val:
             payload[field] = val
 
+    # Who paid (P1-47, batch 14). "owner" = paid with the owner's own money;
+    # the account is then the owner loan or capital account (blank = the
+    # company's owner loan account).
+    paid_by = "owner" if form.get("paid_by") == "owner" else "business"
+    payload["paid_by"] = paid_by
+    account_field = "owner_account_id" if paid_by == "owner" else "payment_account_id"
+    account_val = form.get(account_field, "").strip()
+    if account_val:
+        payload["payment_account_id"] = account_val
+
     currency = form.get("currency", "").strip().upper() or "AUD"
     payload["currency"] = currency
     fx_rate_raw = form.get("fx_rate", "").strip()
     if fx_rate_raw and currency != "AUD":
         payload["fx_rate"] = fx_rate_raw
 
-    payload["lines"] = _parse_lines(form)
+    payload["lines"] = _expense_lines_from_form(form)
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -324,8 +387,9 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
         contacts, expense_accounts, payment_accounts, tax_codes, projects = (
             await _fetch_dropdowns(client)
         )
+        owner_accounts = await _fetch_owner_accounts(client, payment_accounts)
 
-    raw_lines = _parse_lines(form)
+    raw_lines = _expense_lines_from_form(form)
     lines = [{"index": i, **ln} for i, ln in enumerate(raw_lines)] or [{"index": 0}]
 
     return _TEMPLATES.TemplateResponse(
@@ -338,6 +402,7 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
             "contacts": contacts,
             "accounts": expense_accounts,
             "payment_accounts": payment_accounts,
+            "owner_accounts": owner_accounts,
             "tax_codes": tax_codes,
             "projects": projects,
             "lines": lines,

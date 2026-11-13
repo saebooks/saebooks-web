@@ -76,6 +76,10 @@
             {%- if status_lower in ('matched', 'reconciled') %}
               {%- set _x = actions.append(("unmatch", _("Unmatch"), "/bank-statement-lines/" ~ line.id ~ "/unmatch", "post", true)) %}
             {%- endif %}
+            {#- Batch 14 (P0-44): record a loan repayment straight from a money-out line. #}
+            {%- if status_lower == 'unmatched' and (line.amount|float) < 0 %}
+              {%- set _x = actions.append(("loan_repayment", _("Loan repayment"), "/loans/repay?statement_line_id=" ~ line.id, "link", false)) %}
+            {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
             {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/bank-statement-lines/" ~ line.id ~ "/hard-delete", "post", true)) %}
             {%- endif %}

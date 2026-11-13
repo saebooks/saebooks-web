@@ -62,6 +62,21 @@ def _apply_einvoice_recipient_fields(
     payload["peppol_participant_id"] = peppol or None
 
 
+def _apply_tpar_field(
+    request: Request, form: dict[str, str], payload: dict[str, object]
+) -> None:
+    """Add the reportable-contractor (TPAR) flag to a contact write payload.
+
+    P1-74, batch 14. AU only — the checkbox renders only for an AU company,
+    so a non-AU submit stays byte-identical to before. Source of truth on
+    every submit, like ``is_one_off``.
+    """
+    jurisdiction = getattr(request.state, "active_company_jurisdiction", None) or "AU"
+    if jurisdiction != "AU":
+        return
+    payload["is_tpar_supplier"] = form.get("is_tpar_supplier") == "on"
+
+
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
@@ -312,6 +327,7 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
             payload[field] = val
 
     payload["is_one_off"] = form.get("is_one_off") == "on"
+    _apply_tpar_field(request, form, payload)
 
     # E-invoice recipient flag (EE only). The fields only appear in the EE
     # form, and touching them for AU companies would be a silent behaviour
@@ -454,6 +470,7 @@ async def contact_edit_form(
     # EE e-invoice-recipient fields (EE-gated in the template). "on"/"" keeps
     # the checkbox check trivial and matches the submit form's semantics.
     form["e_invoice_recipient"] = "on" if contact.get("e_invoice_recipient") else ""
+    form["is_tpar_supplier"] = "on" if contact.get("is_tpar_supplier") else ""
     form["peppol_participant_id"] = str(contact.get("peppol_participant_id") or "")
 
     accounts, tax_codes = await _fetch_contact_dropdowns(request)
@@ -507,6 +524,7 @@ async def contact_update(
     # is_one_off is a checkbox — POST it on every edit (no "leave alone"
     # semantics; the edit form is the source of truth for the flag).
     payload["is_one_off"] = form.get("is_one_off") == "on"
+    _apply_tpar_field(request, form, payload)
 
     # E-invoice recipient flag (EE only) — same source-of-truth-on-submit
     # semantics as is_one_off. See _apply_einvoice_recipient_fields.

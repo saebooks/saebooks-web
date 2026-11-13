@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Owner money") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="mb-6 flex items-start justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Owner money") }}</h1>
+    <p class="text-sm ink-3 mt-1 max-w-2xl">
+      {{ _("Money between the business and its owner or director: business costs you paid with your own money, paying yourself back, and the running balance of what one owes the other.") }}
+    </p>
+  </div>
+  <div class="flex items-center gap-3">
+    <a href="/owner-money/report" class="btn-secondary text-sm">{{ _("Owner loan balance") }}</a>
+    <a href="/owner-money/settings" class="btn-secondary text-sm">{{ _("Settings") }}</a>
+  </div>
+</div>
+
+{% if not settings.get('owner_loan_account') %}
+<div class="card px-4 py-3 mb-6 text-sm" style="border-color:var(--warm);">
+  {{ _("There is no owner loan account yet, so expenses you pay personally have nowhere to go.") }}
+  <a href="/owner-money/settings" class="sae hover:underline">{{ _("Choose or create one") }}</a>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Expenses not yet paid back") }}</p>
+    <p class="mt-1 text-lg font-medium ink-1 tabular-nums">{{ money(owing.total|float) }}</p>
+    <p class="text-xs ink-3">{{ owing.count }} {{ _("expenses") if owing.count != 1 else _("expense") }}</p>
+  </div>
+  {% if balance %}
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("The business owes the owner") }}</p>
+    <p class="mt-1 text-lg font-medium ink-1 tabular-nums">{{ money(balance.business_owes_owner|float) }}</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("The owner owes the business") }}</p>
+    <p class="mt-1 text-lg font-medium tabular-nums" {% if balance.owner_owes_business|float > 0 %}style="color:var(--neg);"{% endif %}>{{ money(balance.owner_owes_business|float) }}</p>
+    {% if balance.owner_owes_business|float > 0 %}
+    <p class="text-xs ink-3 mt-1">{{ _("For a company, talk to your accountant about this before 30 June.") }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<form method="POST" action="/owner-money/reimburse" data-submit-once id="reimburse-form">
+  {{ csrf_input(request)|safe }}
+  <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+  <div class="card overflow-x-auto mb-4">
+    <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
+      <thead class="bg-[color:var(--paper-2)]">
+        <tr>
+          <th scope="col" class="px-4 py-3 text-left w-8">
+            <input type="checkbox" id="select-all" aria-label="{{ _('Select all') }}">
+          </th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Expense") }}</th>
+          <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Owed in") }}</th>
+          <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-[color:var(--line)]">
+        {% for e in owing["items"] %}
+        <tr>
+          <td class="px-4 py-3">
+            <input type="checkbox" name="expense_ids" value="{{ e.id }}" data-amount="{{ e.total }}"
+                   aria-label="{{ _('Select expense %(n)s') % {'n': e.number or e.id[:8]} }}">
+          </td>
+          <td class="px-4 py-3 ink-2">{{ e.expense_date }}</td>
+          <td class="px-4 py-3">
+            <a href="/expenses/{{ e.id }}" class="sae hover:underline">{{ e.number or e.reference or e.id[:8] }}</a>
+            {% if e.notes %}<span class="ink-3"> · {{ e.notes[:60] }}</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 ink-2">{{ e.owner_account_code }} {{ e.owner_account_name }}</td>
+          <td class="px-4 py-3 text-right tabular-nums">{{ num(e.total|float, 2) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="px-4 py-8 text-center text-sm ink-3">
+          {{ _("Nothing owed. When you pay for something with your own money, record the expense and choose “I paid with my own money”.") }}
+          <a href="/expenses/new" class="sae hover:underline">{{ _("New expense") }}</a>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if owing["items"] %}
+  <div class="card px-4 py-4 flex flex-wrap items-end gap-4">
+    <div>
+      <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Selected") }}</p>
+      <p class="text-base font-medium ink-1 tabular-nums" id="selected-total">0.00</p>
+    </div>
+    <div>
+      <label for="from_account_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Pay from") }}</label>
+      <select id="from_account_id" name="from_account_id" required class="saebooks-input">
+        <option value="">{{ _("— choose the bank account —") }}</option>
+        {% for a in banks %}<option value="{{ a.id }}">{{ a.code }} — {{ a.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="reimbursement_date" class="block text-sm font-medium ink-2 mb-1">{{ _("Date paid") }}</label>
+      <input type="date" id="reimbursement_date" name="reimbursement_date" value="{{ today }}" class="saebooks-input">
+    </div>
+    <div>
+      <label for="reference" class="block text-sm font-medium ink-2 mb-1">{{ _("Reference") }}</label>
+      <input type="text" id="reference" name="reference" maxlength="64" class="saebooks-input">
+    </div>
+    <button type="submit" class="btn-primary text-sm">{{ _("Reimburse selected") }}</button>
+  </div>
+  <p class="text-xs ink-3 mt-2">{{ _("Records one transfer from the bank to the owner loan account for the selected total, and marks those expenses as paid back.") }}</p>
+  {% endif %}
+</form>
+
+<script>
+(function () {
+  var form = document.getElementById("reimburse-form");
+  if (!form) return;
+  var boxes = form.querySelectorAll('input[name="expense_ids"]');
+  var total = document.getElementById("selected-total");
+  function sum() {
+    var t = 0;
+    boxes.forEach(function (b) { if (b.checked) t += parseFloat(b.dataset.amount || "0"); });
+    if (total) total.textContent = t.toFixed(2);
+  }
+  boxes.forEach(function (b) { b.addEventListener("change", sum); });
+  var all = document.getElementById("select-all");
+  if (all) all.addEventListener("change", function () {
+    boxes.forEach(function (b) { b.checked = all.checked; });
+    sum();
+  });
+  sum();
+})();
+</script>
+{% include "_partials/submit_once.html" %}
+{% endblock %}

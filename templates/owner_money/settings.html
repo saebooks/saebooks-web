@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Owner money settings") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-6 text-sm" style="border-color:var(--neg);color:var(--neg);">{{ error }}</div>
+{% endif %}
+
+<div class="mb-6 flex items-start justify-between">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("Owner money settings") }}</h1>
+  <a href="/owner-money" class="text-sm sae hover:underline">← {{ _("Owner money") }}</a>
+</div>
+
+<form method="POST" action="/owner-money/settings" class="card px-6 py-5 max-w-2xl space-y-5" data-submit-once>
+  {{ csrf_input(request)|safe }}
+  <div>
+    <label for="owner_loan_account_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Owner loan account") }}</label>
+    <select id="owner_loan_account_id" name="owner_loan_account_id" class="saebooks-input w-full">
+      <option value="">{{ _("— keep the current one —") }}</option>
+      {% for a in owner_options %}
+      <option value="{{ a.id }}" {% if settings.owner_loan_account and settings.owner_loan_account.id == a.id %}selected{% endif %}>{{ a.code }} — {{ a.name }}</option>
+      {% endfor %}
+    </select>
+    <p class="mt-1 text-xs ink-3">
+      {{ _("Holds what the business owes its owner or director, for example expenses they paid personally. For a company this is usually called the director loan account.") }}
+      {% if settings.owner_loan_account %}{{ _("Now:") }} {{ settings.owner_loan_account.code }} {{ settings.owner_loan_account.name }}{% else %}<span style="color:var(--neg);">{{ _("Not set.") }}</span>{% endif %}
+    </p>
+  </div>
+  <div>
+    <label for="drawings_account_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Private use account") }}</label>
+    <select id="drawings_account_id" name="drawings_account_id" class="saebooks-input w-full">
+      <option value="">{{ _("— keep the current one —") }}</option>
+      {% for a in owner_options %}
+      <option value="{{ a.id }}" {% if settings.drawings_account and settings.drawings_account.id == a.id %}selected{% endif %}>{{ a.code }} — {{ a.name }}</option>
+      {% endfor %}
+    </select>
+    <p class="mt-1 text-xs ink-3">
+      {{ _("Takes the private share of a receipt that was partly personal. For a sole trader or partnership use drawings; for a company use the director loan account.") }}
+      {% if settings.drawings_account %}{{ _("Now:") }} {{ settings.drawings_account.code }} {{ settings.drawings_account.name }}{% else %}<span style="color:var(--neg);">{{ _("Not set.") }}</span>{% endif %}
+    </p>
+  </div>
+  <button type="submit" class="btn-primary text-sm">{{ _("Save") }}</button>
+</form>
+
+{% if settings.missing_standard_accounts %}
+<div class="card px-6 py-5 max-w-2xl mt-6">
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Create the standard accounts") }}</h2>
+  <p class="text-sm ink-3 mb-3">
+    {{ _("These standard accounts are not in your chart of accounts yet:") }}
+    <span class="font-mono">{{ settings.missing_standard_accounts|join(", ") }}</span>.
+    {{ _("They cover owner loans, drawings, and hire purchase or chattel mortgage finance. Nothing else changes.") }}
+  </p>
+  <form method="POST" action="/owner-money/setup-accounts" data-submit-once>
+    {{ csrf_input(request)|safe }}
+    <button type="submit" class="btn-secondary text-sm">{{ _("Create them") }}</button>
+  </form>
+</div>
+{% endif %}
+
+{% include "_partials/submit_once.html" %}
+{% endblock %}
