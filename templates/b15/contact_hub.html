@@ -1,0 +1,124 @@
+{# People, notes and emails for a contact (b15, P2-26). HTMX fragment from
+   GET /contacts/{id}/hub; forms post back and redirect to the contact. #}
+<div id="contact-hub" class="space-y-6 mb-7">
+  {% if error %}
+  <div class="card p-3 flex items-center gap-2" style="border-color:var(--neg);">
+    <span class="dot" style="background:var(--neg);"></span>
+    <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+  </div>
+  {% endif %}
+  {% if unavailable %}
+  <p class="text-sm ink-3">{{ _("People and notes could not be loaded just now.") }}</p>
+  {% else %}
+
+  {# ── People ── #}
+  <section aria-labelledby="hub-people">
+    <h2 id="hub-people" class="nav-section-label mb-2">{{ _("People") }}</h2>
+    {% if people %}
+    <ul class="card divide-y" style="border-color:var(--line);">
+      {% for p in people %}
+      <li class="px-4 py-3 flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-sm ink-1 font-medium">{{ p.name }}{% if p.role %} <span class="ink-3 font-normal">· {{ p.role }}</span>{% endif %}</p>
+          <p class="text-sm ink-2 flex flex-wrap gap-x-4 gap-y-1 mt-1">
+            {% if p.email %}<a href="mailto:{{ p.email }}" class="sae hover:underline">{{ p.email }}</a>{% endif %}
+            {% if p.phone %}<a href="tel:{{ p.phone|replace(' ', '') }}" class="sae hover:underline num">{{ p.phone }}</a>{% endif %}
+          </p>
+          {% if p.receives_documents %}<p class="text-xs ink-3 mt-1">{{ _("Gets a copy of invoices and statements") }}</p>{% endif %}
+        </div>
+        <form method="post" action="/contacts/{{ contact_id }}/people/{{ p.id }}/remove"
+              onsubmit="return confirm('{{ _('Stop using this person? They stay in the history.') }}');">
+          {{ csrf_input(request)|safe }}
+          <button type="submit" class="text-sm ink-3 hover:underline min-h-[44px]">{{ _("Remove") }}</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-sm ink-3">{{ _("No people added yet. Add the accounts person so invoices reach the right inbox.") }}</p>
+    {% endif %}
+    <details class="mt-2">
+      <summary class="text-sm sae cursor-pointer min-h-[44px] inline-flex items-center">+ {{ _("Add a person") }}</summary>
+      <form method="post" action="/contacts/{{ contact_id }}/people" class="card p-4 mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {{ csrf_input(request)|safe }}
+        <label class="text-sm ink-2">{{ _("Name") }}
+          <input name="name" required maxlength="255" class="saebooks-input w-full mt-1" autocomplete="name"></label>
+        <label class="text-sm ink-2">{{ _("Role") }}
+          <input name="role" maxlength="100" placeholder="{{ _('Accounts, site manager…') }}" class="saebooks-input w-full mt-1"></label>
+        <label class="text-sm ink-2">{{ _("Email") }}
+          <input name="email" type="email" maxlength="255" class="saebooks-input w-full mt-1" autocomplete="email"></label>
+        <label class="text-sm ink-2">{{ _("Phone") }}
+          <input name="phone" type="tel" maxlength="64" class="saebooks-input w-full mt-1" autocomplete="tel"></label>
+        <label class="text-sm ink-2 sm:col-span-2 flex items-center gap-2">
+          <input type="checkbox" name="receives_documents" value="1"> {{ _("Send them a copy of invoices and statements") }}</label>
+        <div class="sm:col-span-2"><button type="submit" class="btn-primary text-sm min-h-[44px]">{{ _("Add person") }}</button></div>
+      </form>
+    </details>
+  </section>
+
+  {# ── Notes ── #}
+  <section aria-labelledby="hub-notes">
+    <h2 id="hub-notes" class="nav-section-label mb-2">{{ _("Notes") }}</h2>
+    <form method="post" action="/contacts/{{ contact_id }}/notes" class="card p-3 mb-3 flex flex-col sm:flex-row gap-2 sm:items-end">
+      {{ csrf_input(request)|safe }}
+      <label class="text-sm ink-2 flex-1">{{ _("New note") }}
+        <textarea name="body" rows="2" required maxlength="10000" class="saebooks-input w-full mt-1"
+                  placeholder="{{ _('Rang about invoice 1042, promised payment Friday') }}"></textarea></label>
+      <label class="text-sm ink-2">{{ _("Date") }}
+        <input type="date" name="note_date" class="saebooks-input mt-1"></label>
+      <button type="submit" class="btn-primary text-sm min-h-[44px]">{{ _("Add note") }}</button>
+    </form>
+    {% if notes %}
+    <ol class="space-y-2">
+      {% for n in notes %}
+      <li class="card px-4 py-3">
+        <div class="flex items-start justify-between gap-3">
+          <p class="text-xs ink-3 font-mono">{{ n.note_date }}{% if n.created_by %} · {{ n.created_by }}{% endif %}</p>
+          <form method="post" action="/contacts/{{ contact_id }}/notes/{{ n.id }}/delete"
+                onsubmit="return confirm('{{ _('Delete this note?') }}');">
+            {{ csrf_input(request)|safe }}
+            <button type="submit" class="text-xs ink-3 hover:underline">{{ _("Delete") }}</button>
+          </form>
+        </div>
+        <p class="text-sm ink-1 whitespace-pre-wrap mt-1">{{ n.body }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="text-sm ink-3">{{ _("No notes yet.") }}</p>
+    {% endif %}
+  </section>
+
+  {# ── Emails sent ── #}
+  <section aria-labelledby="hub-emails">
+    <h2 id="hub-emails" class="nav-section-label mb-2">{{ _("Emails sent") }}</h2>
+    {% if emails %}
+    <div class="card overflow-hidden">
+      <table class="sae-table w-full text-sm">
+        <thead><tr>
+          <th class="text-left">{{ _("Sent") }}</th>
+          <th class="text-left">{{ _("Document") }}</th>
+          <th class="text-left">{{ _("Subject") }}</th>
+          <th class="text-left">{{ _("To") }}</th>
+          <th class="text-left">{{ _("Delivery") }}</th>
+        </tr></thead>
+        <tbody>
+        {% for e in emails %}
+          <tr>
+            <td class="num ink-2">{{ (e.sent_at or '')[:10] }}</td>
+            <td>{% if e.doc_url %}<a href="{{ e.doc_url }}" class="sae hover:underline">{{ e.doc_number or e.doc_type|replace('_', ' ') }}</a>{% else %}{{ e.doc_number or e.doc_type }}{% endif %}</td>
+            <td class="ink-2">{{ e.subject }}</td>
+            <td class="ink-3">{{ (e.to or [])|join(', ') }}</td>
+            <td><span class="text-xs font-medium" style="color:var(--{{ e.state_tone }});"
+                      {% if e.detail %}title="{{ e.detail }}"{% endif %}>{{ e.state_label }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-sm ink-3">{{ _("Nothing has been emailed to this contact from the books yet.") }}</p>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>

@@ -45,6 +45,33 @@
     </button>
   </div>
 
+  {# ── Dates and numbers (b15, P2-9) ── #}
+  {% set _df = request.cookies.get('sb_date_format') or 'iso' %}
+  {% set _ng = request.cookies.get('sb_num_group') == '1' %}
+  <div id="display" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Dates and numbers") }}</h2>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("How dates and amounts are shown on this device. Forms and exports keep the standard format.") }}</p>
+    <form method="POST" action="/settings/preferences/display" class="space-y-3">
+      {{ csrf_input(request)|safe }}
+      <fieldset>
+        <legend class="text-sm text-gray-700 dark:text-gray-300 mb-1">{{ _("Show dates as") }}</legend>
+        {% for value, label in [('iso', '2026-11-13'), ('dmy', '13/11/2026'), ('long', '13 Nov 2026')] %}
+        <label class="inline-flex items-center gap-2 mr-4 text-sm text-gray-700 dark:text-gray-300 min-h-[44px]">
+          <input type="radio" name="date_format" value="{{ value }}" {% if _df == value %}checked{% endif %}> <span class="font-mono">{{ label }}</span>
+        </label>
+        {% endfor %}
+      </fieldset>
+      <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 min-h-[44px]">
+        <input type="checkbox" name="num_group" value="1" {% if _ng %}checked{% endif %}>
+        {{ _("Always show thousands separators (12,345.67 instead of 12345.67)") }}
+      </label>
+      <button type="submit" class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372] min-h-[44px]">{{ _("Save") }}</button>
+    </form>
+  </div>
+
+  {# ── Company time zone (b15, P2-7) — "today" for reports and due dates ── #}
+  <div hx-get="/settings/preferences/timezone" hx-trigger="load" hx-swap="outerHTML"></div>
+
   {# ── Bookkeeping mode ── #}
   <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5">
     <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Bookkeeping mode") }}</h2>

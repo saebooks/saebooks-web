@@ -9,7 +9,11 @@
   "background_color": "#194291",
   "theme_color": "#194291",
   "lang": "en-AU",
-  "categories": ["business", "finance", "productivity"],
+  "categories": [
+    "business",
+    "finance",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/static/pwa/icons/icon-192.png",
@@ -33,9 +37,15 @@
   "shortcuts": [
     {
       "name": "Snap a receipt",
-      "short_name": "Inbox",
-      "description": "Photograph a receipt or invoice into the document inbox",
+      "short_name": "Receipt",
+      "description": "Photograph a receipt or supplier invoice into the inbox",
       "url": "/inbox"
+    },
+    {
+      "name": "Needs attention",
+      "short_name": "To do",
+      "description": "Overdue invoices, bills due and bank lines to reconcile",
+      "url": "/#attention-card"
     },
     {
       "name": "New invoice",
@@ -44,14 +54,10 @@
       "url": "/invoices/new"
     },
     {
-      "name": "Dashboard",
-      "short_name": "Home",
-      "url": "/"
-    },
-    {
-      "name": "Reports",
-      "short_name": "Reports",
-      "url": "/reports"
+      "name": "Record an expense",
+      "short_name": "Expense",
+      "description": "Record something paid by card or cash",
+      "url": "/expenses/new"
     }
   ]
 }

@@ -75,6 +75,9 @@
   <div class="drafting mt-4"></div>
 </header>
 
+{# b15 (P1-75/P1-76): call, email and the everyday actions, contact prefilled. #}
+{% include "b15/contact_actions.html" %}
+
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
   <div class="card p-5">
     <p class="nav-section-label mb-3">{{ _("Contact details") }}</p>
@@ -94,7 +97,11 @@
       </div>
       <div class="flex gap-3">
         <dt class="w-20 shrink-0 ink-3 font-mono uppercase text-[10px] tracking-wider pt-0.5">{{ _("Phone") }}</dt>
-        <dd class="ink-1 num">{{ contact.phone or "—" }}</dd>
+        <dd class="ink-1 num">
+          {% if contact.phone %}
+            <a href="tel:{{ contact.phone|replace(' ', '') }}" class="sae hover:underline">{{ contact.phone }}</a>
+          {% else %}<span class="ink-4">—</span>{% endif %}
+        </dd>
       </div>
     </dl>
   </div>
@@ -174,13 +181,11 @@
 </section>
 {% endif %}
 
-{% if contact.contact_type in ('SUPPLIER', 'BOTH') and not contact.archived_at %}
-<div class="mb-6">
-  <a href="/bills/new?contact_id={{ contact.id }}" class="btn-secondary text-sm">
-    + {{ _("New bill from this supplier") }}
-  </a>
+{# b15 (P2-26): people at this contact, dated notes and emails sent —
+   loaded on its own so the page never waits on it. #}
+<div hx-get="/contacts/{{ contact.id }}/hub" hx-trigger="load" hx-swap="outerHTML">
+  <p class="text-sm ink-3 mb-6">{{ _("Loading people and notes…") }}</p>
 </div>
-{% endif %}
 
 {# ── Attachments ── #}
 <section class="mb-7">

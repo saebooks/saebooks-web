@@ -1,0 +1,35 @@
+{# Company time zone card (b15, P2-7/P2-9). HTMX fragment. #}
+<div id="timezone" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-6 py-5">
+  <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ _("Time zone") }}</h2>
+  <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ _("Decides what \"today\" is for report dates, due dates and the needs-attention list. Applies to everyone in this company.") }}</p>
+  {% if error %}<p class="text-sm mb-3" style="color:var(--neg);">{{ error }}</p>{% endif %}
+  {% if not company %}
+    <p class="text-sm text-gray-500 dark:text-gray-400">{{ _("The company could not be loaded just now.") }}</p>
+  {% else %}
+    {% set current = company.timezone or '' %}
+    <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">
+      {% if current %}{{ _("Now:") }} <span class="font-mono">{{ current }}</span>
+      {% else %}{{ _("Not set. Using the default for the company's country (Brisbane time for Australia).") }}{% endif %}
+    </p>
+    {% if can_edit %}
+    <form method="POST" action="/settings/preferences/timezone" class="flex flex-wrap items-end gap-3">
+      {{ csrf_input(request)|safe }}
+      <label class="text-sm text-gray-700 dark:text-gray-300">{{ _("Time zone") }}
+        <select name="timezone" class="block mt-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm">
+          <option value="" {% if not current %}selected{% endif %}>{{ _("Country default") }}</option>
+          {% for value, label in zones %}
+          <option value="{{ value }}" {% if current == value %}selected{% endif %}>{{ _(label) }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="text-sm text-gray-700 dark:text-gray-300">{{ _("Or type another") }}
+        <input name="timezone_other" placeholder="Asia/Singapore" maxlength="64"
+               class="block mt-1 w-48 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm">
+      </label>
+      <button type="submit" class="rounded-md bg-[#194291] px-4 py-2 text-sm font-medium text-white hover:bg-[#133372] min-h-[44px]">{{ _("Save") }}</button>
+    </form>
+    {% else %}
+    <p class="text-xs text-gray-500 dark:text-gray-400">{{ _("Only an owner or admin can change it.") }}</p>
+    {% endif %}
+  {% endif %}
+</div>

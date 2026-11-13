@@ -288,7 +288,11 @@
 
     <div class="flex flex-wrap items-center gap-3">
       {% if publishable %}
-      <button type="submit" name="action" value="publish" class="btn-primary">{{ _("Publish as draft") }}</button>
+      {# b15 (P2-23): one tap from receipt to posted expense or bill. Credits
+         stay drafts (applying one is a decision); routes/inbox_post.py. #}
+      <button type="submit" name="action" value="publish_post" class="btn-primary min-h-[44px]"
+              title="{{ _('Save it as an expense or bill and post it to the books in one step') }}">{{ _("Save and post") }}</button>
+      <button type="submit" name="action" value="publish" class="btn-secondary min-h-[44px]">{{ _("Save as draft") }}</button>
       {% else %}
       <span class="text-sm ink-3" title="{{ _('The engine forbids publishing before extraction has run.') }}">
         {{ _("Extraction hasn't run yet — re-run extraction below (or wait for the sweep) before publishing.") }}

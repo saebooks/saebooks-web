@@ -156,6 +156,34 @@
     <p class="text-xs ink-3 leading-relaxed">{{ _("Open foreign-currency invoices and bills revalued at spot rate.") }}</p>
   </a>
 
+  {# b15 (P2-5, P2-6) #}
+  <a href="/reports/cash-forecast" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="trending-up" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Cash") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Cash forecast") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Your bank balance week by week, from invoices you expect to be paid and bills you have to pay.") }}</p>
+  </a>
+
+  <a href="/reports/aged-detail?side=receivables" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="list-tree" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Receivables") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("Who owes you, invoice by invoice") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Every unpaid invoice under its customer, aged by due date or invoice date.") }}</p>
+  </a>
+
+  <a href="/reports/aged-detail?side=payables" class="card p-5 block transition-shadow hover:shadow-md">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="list-tree" class="w-4 h-4 ink-3" aria-hidden="true"></i>
+      <span class="nav-section-label">{{ _("Payables") }}</span>
+    </div>
+    <h2 class="font-display text-lg ink-1 mb-1">{{ _("What you owe, bill by bill") }}</h2>
+    <p class="text-xs ink-3 leading-relaxed">{{ _("Every unpaid bill under its supplier, aged by due date or bill date.") }}</p>
+  </a>
+
   {% if request.state.jp.features.tax_reports %}
   <a href="/reports/bas-payg" class="card p-5 block transition-shadow hover:shadow-md">
     <div class="flex items-center gap-2 mb-2">

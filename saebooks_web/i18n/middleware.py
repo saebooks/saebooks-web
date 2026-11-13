@@ -51,7 +51,7 @@ from __future__ import annotations
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from saebooks_web.i18n import SUPPORTED_LOCALES, current_locale, normalize_locale
-from saebooks_web.i18n.format import current_currency, resolve_currency
+from saebooks_web.i18n.format import current_currency, force_grouping, resolve_currency
 
 #: Session/cookie key for an explicit user override, e.g. a "language"
 #: picker in account settings. Read-only in this packet — no UI writes it
@@ -129,11 +129,14 @@ class LocaleMiddleware(BaseHTTPMiddleware):
         currency = resolve_currency(jurisdiction)
         currency_token = current_currency.set(currency)
         request.state.active_currency = currency
+        # b15 (P2-9): "always show thousands separators" display preference.
+        grouping_token = force_grouping.set(request.cookies.get("sb_num_group") == "1")
         try:
             return await call_next(request)
         finally:
             current_locale.reset(locale_token)
             current_currency.reset(currency_token)
+            force_grouping.reset(grouping_token)
 
 
 __all__ = ["LocaleMiddleware", "resolve_locale", "SESSION_LOCALE_KEY", "COOKIE_NAME"]

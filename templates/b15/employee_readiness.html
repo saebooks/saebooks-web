@@ -1,0 +1,22 @@
+{# Ready to pay checklist (b15, P2-20). Fragment for #employee-readiness. #}
+<section id="employee-readiness" class="card p-4 mb-6" aria-labelledby="readiness-h">
+  <h2 id="readiness-h" class="font-display text-xl mb-2">{{ _("Ready to pay") }}</h2>
+  {% if not data %}
+    <p class="text-sm ink-3">{{ _("The checklist could not be loaded just now.") }}</p>
+  {% else %}
+    {% if data.ready %}
+    <p class="text-sm ink-2 mb-2 flex items-center gap-2"><span class="dot" style="background:var(--pos);"></span>{{ _("Nothing stops this person being paid.") }}</p>
+    {% else %}
+    <p class="text-sm mb-2" style="color:var(--neg);">{{ _("Fix the items marked below before the next pay run.") }}</p>
+    {% endif %}
+    <ul class="space-y-1">
+      {% for i in data['items'] %}
+      <li class="flex items-start gap-2 text-sm">
+        <span class="dot mt-1.5" style="background:var(--{{ 'pos' if i.ok else ('neg' if i.level == 'blocker' else 'warm') }});"></span>
+        <span class="{{ 'ink-2' if i.ok else 'ink-1' }}">{{ i.message }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <a href="/employees/{{ employee_id }}/edit" class="text-sm sae hover:underline inline-block mt-2">{{ _("Edit employee") }}</a>
+  {% endif %}
+</section>

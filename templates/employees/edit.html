@@ -279,6 +279,14 @@
                value="{{ form.base_rate }}"
                class="w-full rounded-md hairline px-3 py-2 bg-paper num-display">
       </div>
+      {# b15 (P2-19) #}
+      <div>
+        <label class="block text-sm ink-3 mb-1" for="casual_loading_pct">{{ _("Casual loading %") }}
+          <span class="ink-4 text-xs">{{ _("(casuals only, usually 25; leave blank if the base rate already includes it)") }}</span></label>
+        <input type="number" id="casual_loading_pct" name="casual_loading_pct" step="0.01" min="0" max="100"
+               value="{{ form.casual_loading_pct if form.casual_loading_pct is not none else '' }}"
+               class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+      </div>
       <div>
         <label class="block text-sm ink-3 mb-1">{{ _("Weekly hours") }}</label>
         <input type="number" name="weekly_hours" step="0.01" min="0"

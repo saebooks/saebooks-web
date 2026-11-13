@@ -44,6 +44,11 @@
   </div>
 </div>
 
+{% if not employee.end_date and not employee.archived_at %}
+{# b15 (P2-20): what is missing before this person can be paid. #}
+<div hx-get="/employees/{{ employee.id }}/readiness" hx-trigger="load" hx-swap="outerHTML"></div>
+{% endif %}
+
 <div class="grid grid-cols-3 gap-6">
 
   {# ── Main detail columns ─────────────────────────────────────────────── #}
@@ -242,6 +247,12 @@
           <dt class="ink-3">{{ _("Base rate") }}</dt>
           <dd class="col-span-2 num-display">{{ money(employee.base_rate|float, decimals=4, grouping=False) }}</dd>
         </div>
+        {% if employee.casual_loading_pct is not none and employee.casual_loading_pct != '' %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">{{ _("Casual loading") }}</dt>
+          <dd class="col-span-2 num">{{ num(employee.casual_loading_pct|float, 2) }}% {{ _("on ordinary hours") }}</dd>
+        </div>
+        {% endif %}
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">{{ _("Weekly hours") }}</dt>
           <dd class="col-span-2 num">{{ num(employee.weekly_hours|float, 2) }}h</dd>

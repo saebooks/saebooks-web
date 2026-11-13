@@ -87,7 +87,11 @@ _INVOICE_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total",
 # the computed payment-status badge (templates/_status_macros.html ::
 # payment_status_badge), so filter+sort must mirror the badge — not the
 # raw DRAFT/POSTED/VOIDED field.
-_PAYMENT_STATUS_VALUES = {"draft", "open", "due-soon", "overdue", "partial", "paid", "voided"}
+_PAYMENT_STATUS_VALUES = {
+    "draft", "open", "due-soon", "overdue", "partial", "paid", "voided",
+    # b15 (P2-12): a written-off invoice is its own state, never "open".
+    "written-off",
+}
 
 _PAYMENT_STATUS_RAW_HINT = {
     "draft":    "DRAFT",
@@ -97,6 +101,7 @@ _PAYMENT_STATUS_RAW_HINT = {
     "overdue":  "POSTED",
     "partial":  "POSTED",
     "paid":     "POSTED",
+    "written-off": "WRITTEN_OFF",
 }
 
 _PAYMENT_STATUS_RANK = {
@@ -107,6 +112,7 @@ _PAYMENT_STATUS_RANK = {
     "partial":  4,
     "paid":     5,
     "voided":   6,
+    "written-off": 7,
 }
 
 
@@ -116,6 +122,8 @@ def _invoice_payment_status(inv: dict, today: str, due_soon_cutoff: str) -> str:
     s = (inv.get("status") or "").upper()
     if s == "VOIDED":
         return "voided"
+    if s == "WRITTEN_OFF":
+        return "written-off"
     if s == "DRAFT":
         return "draft"
     if s == "POSTED":
@@ -358,7 +366,13 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
         request,
         "invoices/new.html",
         {
-            "form": {"issue_date": today, "due_date": due},
+            # b15 (P1-76): "New invoice" on a contact page prefills the customer.
+            "form": {
+                "issue_date": today,
+                "due_date": due,
+                **({"contact_id": request.query_params["contact_id"]}
+                   if request.query_params.get("contact_id") else {}),
+            },
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "contacts": contacts,

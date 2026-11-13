@@ -188,6 +188,9 @@ async def quote_new_form(request: Request) -> HTMLResponse | RedirectResponse:
                 "expiry_date": expiry,
                 "deposit_pct": "50",
                 "late_fee_pct_per_month": "2.5",
+                # b15 (P1-76): "New quote" on a contact page prefills the customer.
+                **({"customer_id": request.query_params["contact_id"]}
+                   if request.query_params.get("contact_id") else {}),
             },
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),

@@ -1,0 +1,24 @@
+{# Disposal preview (b15, P2-4). innerHTML of #disposal-preview. #}
+{% if error %}
+  <p class="text-sm" style="color:var(--neg);">{{ _(error) }}</p>
+{% elif preview %}
+  {% set p = preview %}
+  <div class="card px-4 py-3" style="background:var(--paper-2);">
+    <p class="nav-section-label mb-2">{{ _("What this disposal will record") }}</p>
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+      <dt class="ink-3">{{ _("Cost") }}</dt><dd class="text-right num ink-1">{{ money(p.cost|float) }}</dd>
+      {% if (p.depreciation_to_catch_up|float) > 0 %}
+      <dt class="ink-3">{{ _("Depreciation still to post to this date") }}</dt><dd class="text-right num ink-1">{{ money(p.depreciation_to_catch_up|float) }}</dd>
+      {% endif %}
+      <dt class="ink-3">{{ _("Depreciation to this date") }}</dt><dd class="text-right num ink-1">{{ money(p.accumulated_depreciation|float) }}</dd>
+      <dt class="ink-2 font-medium">{{ _("Book value") }}</dt><dd class="text-right num ink-1 font-medium">{{ money(p.book_value|float) }}</dd>
+      <dt class="ink-3">{{ _("Sale price") }}{% if p.sale_price_includes_gst %} {{ _("(including GST)") }}{% endif %}</dt><dd class="text-right num ink-1">{{ money(p.sale_price|float) }}</dd>
+      {% if p.sale_price_includes_gst %}
+      <dt class="ink-3">{{ _("GST on the sale (goes on the BAS)") }}</dt><dd class="text-right num ink-1">{{ money(p.gst_on_sale|float) }}</dd>
+      <dt class="ink-3">{{ _("Sale price excluding GST") }}</dt><dd class="text-right num ink-1">{{ money(p.sale_price_ex_gst|float) }}</dd>
+      {% endif %}
+      <dt class="ink-2 font-medium">{% if p.outcome == 'gain' %}{{ _("Gain on sale") }}{% elif p.outcome == 'loss' %}{{ _("Loss on sale") }}{% else %}{{ _("Gain or loss") }}{% endif %}</dt>
+      <dd class="text-right num font-medium" style="color:var(--{{ 'pos' if p.outcome == 'gain' else ('neg' if p.outcome == 'loss' else 'ink') }});">{{ money((p.gain_or_loss|float)|abs) }}</dd>
+    </dl>
+  </div>
+{% endif %}

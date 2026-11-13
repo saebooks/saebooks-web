@@ -83,7 +83,11 @@ async def _fetch_dropdowns(
         payment_accounts.extend(liab_resp.json().get("items", []))
     payment_accounts.sort(key=lambda a: a.get("code", ""))
 
-    t_resp = await client.get("/api/v1/tax_codes", params={"page_size": 500})
+    # b15 (P2-2): only codes that belong on a purchase (no export or
+    # margin-scheme sales codes), so GST lands in the right BAS box.
+    t_resp = await client.get(
+        "/api/v1/tax_codes", params={"page_size": 500, "usage": "purchases"}
+    )
     if t_resp.is_success:
         tax_codes = t_resp.json().get("items", [])
 

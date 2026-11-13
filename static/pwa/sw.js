@@ -15,7 +15,10 @@
  * the app is "online-only for writes" — same as the desktop product.
  */
 
-const VERSION = 'sae-books-pwa-v1';
+// v2 (b15, P2-25): brand icons, phone helpers and the offline snapshot page.
+// The cache name keeps the 'sae-books-pwa-' prefix so activate() still
+// clears every older cache.
+const VERSION = 'sae-books-pwa-v2';
 const STATIC_CACHE = `${VERSION}-static`;
 
 // Static assets safe to cache at install time.
@@ -28,6 +31,13 @@ const PRECACHE = [
   '/static/pwa/icons/apple-touch-icon-180.png',
   '/static/pwa/icons/favicon-16.png',
   '/static/pwa/icons/favicon-32.png',
+  '/static/brand/tasur-icon-192.png',
+  '/static/brand/tasur-icon-512.png',
+  '/static/brand/tasur-icon-maskable-512.png',
+  '/static/brand/tasur-favicon.png',
+  '/static/css/phone.css',
+  '/static/js/phone.js',
+  '/static/js/inbox_upload.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -129,18 +139,32 @@ self.addEventListener('fetch', (event) => {
           return res;
         })
         .catch(() => {
-          // Offline. Browser shows its own offline page; we don't
-          // attempt a fallback because we have no safe page to serve.
+          // b15 (P2-25): instead of a blank page, show what was waiting
+          // the last time this phone had signal. The dashboard's
+          // needs-attention card stores a count-only snapshot (labels and
+          // counts, no names or amounts) in localStorage; this page reads
+          // it in the browser. Photos taken in the inbox while offline are
+          // kept on the phone and sent when the signal returns.
           return new Response(
-            '<!doctype html><meta charset=utf-8><title>Offline</title>' +
-              '<style>body{font-family:system-ui;background:#194291;color:#fff;' +
+            '<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">' +
+              '<title>Offline</title>' +
+              '<style>body{font-family:system-ui;background:#0f1a33;color:#fff;' +
               'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-              'height:100vh;margin:0;padding:24px;text-align:center}' +
-              'h1{font-weight:800;letter-spacing:-0.025em}</style>' +
+              'min-height:100vh;margin:0;padding:24px;text-align:center}' +
+              'h1{font-weight:800;letter-spacing:-0.025em}ul{list-style:none;padding:0;margin:16px 0;text-align:left;min-width:260px}' +
+              'li{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.2)}' +
+              'small{opacity:.7}a{color:#fff}</style>' +
               '<h1>__BRAND_NAME__</h1>' +
-              '<p>You appear to be offline. __BRAND_NAME__ needs a connection to your ledger ' +
-              'to load this page. We will reconnect when you do.</p>' +
-              '<p><a href="/" style="color:#fff;text-decoration:underline">Try again</a></p>',
+              '<p>No connection just now. __BRAND_NAME__ needs a connection to your ledger to load this page; it will work again when you are back online.</p>' +
+              '<div id=snap></div>' +
+              '<p><a href="/" style="text-decoration:underline">Try again</a></p>' +
+              '<script>(function(){try{var s=JSON.parse(localStorage.getItem("sb_attention_snapshot")||"null");' +
+              'if(!s)return;var el=document.getElementById("snap");var h="<p><small>Last checked "+' +
+              'new Date(s.at).toLocaleString()+"</small></p>";' +
+              'if(!s.items.length){h+="<p>Nothing was waiting.</p>";}else{h+="<p>Waiting then:</p><ul>";' +
+              's.items.forEach(function(i){var li=document.createElement("li");var a=document.createElement("span");' +
+              'a.textContent=i.label;var b=document.createElement("strong");b.textContent=String(i.count);' +
+              'li.appendChild(a);li.appendChild(b);h+=li.outerHTML;});h+="</ul>";}el.innerHTML=h;}catch(e){}})();</script>',
             {
               status: 503,
               statusText: 'Offline',
