@@ -47,8 +47,11 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
-      {% if bill.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
+      {% if bill.status == 'DRAFT' or is_feature_enabled("edit_frozen_state") %}
       <a href="/bills/{{ bill.id }}/edit" class="btn-secondary text-sm">{% if bill.status in ('POSTED', 'PAID', 'VOIDED') %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
+      {% endif %}
+      {% if bill.status != 'DRAFT' %}
+      <a href="/bills/{{ bill.id }}/fix" class="btn-secondary text-sm">{{ _("Fix or correct") }}</a>
       {% endif %}
       {% if bill.status == 'DRAFT' %}
       <form method="post" action="/bills/{{ bill.id }}/post"
@@ -83,6 +86,9 @@
   </div>
   <div class="drafting mt-4"></div>
 </header>
+
+{# ── Approval (batch 13, P1-72) ── #}
+{% with approval_kind="bill", approval_doc=bill %}{% include "_partials/approval_panel.html" %}{% endwith %}
 
 {% if bill.currency and bill.currency | upper != 'AUD' %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--sae);">
@@ -167,9 +173,8 @@
   {% include "_partials/attachments.html" with context %}
 </section>
 
-<div class="card p-4 mb-4 text-center ink-3 font-mono text-xs" style="border-style:dashed;">
-  change log · TODO
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="bill", history_id=bill.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if bill #}
 

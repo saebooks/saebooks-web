@@ -125,4 +125,9 @@
 </p>
 {% endif %}
 
+{# ── History (batch 13, P1-71) ── #}
+<div class="mt-6">
+{% with history_entity="expense", history_id=expense.id %}{% include "_partials/document_history.html" %}{% endwith %}
+</div>
+
 {% endblock %}

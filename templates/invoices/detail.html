@@ -77,8 +77,14 @@
       </a>
       {% endif %}
       {% endif %}
-      {% if invoice.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
+      {% if invoice.status == 'DRAFT' or is_feature_enabled("edit_frozen_state") %}
       <a href="/invoices/{{ invoice.id }}/edit" class="btn-secondary text-sm">{% if invoice.status in ('POSTED', 'PAID', 'VOIDED') %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
+      {% endif %}
+      {% if invoice.status != 'DRAFT' %}
+      <a href="/invoices/{{ invoice.id }}/fix" class="btn-secondary text-sm">{{ _("Fix or correct") }}</a>
+      {% endif %}
+      {% if invoice.status == 'POSTED' and (invoice.total|float - invoice.amount_paid|float) > 0 %}
+      <a href="/invoices/{{ invoice.id }}/fix#write-off" class="btn-secondary text-sm">{{ _("Write off") }}</a>
       {% endif %}
       {% if invoice.status == 'DRAFT' %}
       <form method="post" action="/invoices/{{ invoice.id }}/post"
@@ -261,10 +267,8 @@
 </section>
 {% endif %}
 
-{# ── Change log stub ── #}
-<div class="card p-6 text-center" style="border-style:dashed;">
-  <p class="text-xs ink-3 font-mono">{{ _("— change log — TODO —") }}</p>
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="invoice", history_id=invoice.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if invoice #}
 

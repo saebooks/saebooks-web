@@ -226,10 +226,8 @@
 </div>
 {% endif %}
 
-{# ── Change log stub ── #}
-<div class="card px-4 py-6 text-center text-sm ink-3" style="border-style:dashed;">
-  {{ _("Change log view — TODO") }}
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="credit_note", history_id=credit_note.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if credit_note #}
 

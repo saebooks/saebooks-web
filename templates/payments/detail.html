@@ -85,6 +85,9 @@
   <div class="drafting mt-4"></div>
 </header>
 
+{# ── Approval (batch 13, P1-72) ── #}
+{% with approval_kind="payment", approval_doc=payment %}{% include "_partials/approval_panel.html" %}{% endwith %}
+
 <section class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-7 hairline">
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">{{ _("Date") }}</p>
@@ -162,9 +165,8 @@
   {% include "_partials/attachments.html" with context %}
 </section>
 
-<div class="card p-4 mb-4 text-center ink-3 font-mono text-xs" style="border-style:dashed;">
-  change log · TODO
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="payment", history_id=payment.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if payment #}
 

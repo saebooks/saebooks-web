@@ -1,0 +1,32 @@
+{#- Events for the History panel, newest first. Rendered by GET /history/{entity}/{id}. -#}
+{% if error %}
+  <p class="text-sm" style="color:var(--neg);">{{ error }}</p>
+{% elif not events %}
+  <p class="text-sm ink-3">{{ _("No changes have been recorded yet.") }}</p>
+{% else %}
+  <ol class="space-y-3">
+    {% for ev in events %}
+    <li class="text-sm">
+      <div class="flex flex-wrap items-baseline gap-x-2">
+        <span class="ink-1 font-medium">{{ ev.label }}</span>
+        <span class="ink-3">{{ _("by") }} {{ ev.user_name }}</span>
+        <time class="ink-4 text-xs num" datetime="{{ ev.at }}">{{ ev.when }}</time>
+      </div>
+      {% if ev.reason %}
+      <p class="ink-2 mt-0.5"><span class="ink-3">{{ _("Reason:") }}</span> {{ ev.reason }}</p>
+      {% endif %}
+      {% if ev.changes %}
+      <ul class="mt-1 ml-4 list-disc ink-2">
+        {% for ch in ev.changes %}
+        <li>
+          {{ ch.label }}:
+          {% if ch.before %}<span class="ink-3">{{ ch.before }}</span> → {% endif %}
+          <span class="ink-1">{{ ch.after if ch.after else _("(blank)") }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+{% endif %}

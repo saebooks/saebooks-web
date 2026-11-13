@@ -1,0 +1,12 @@
+{#- History panel for one document (batch 13, P1-71).
+    Include with: {% with history_entity="invoice", history_id=invoice.id %}{% include "_partials/document_history.html" %}{% endwith %}
+    Loads lazily so the detail page never waits on it. -#}
+<section class="mb-7" aria-labelledby="history-{{ history_id }}">
+  <p id="history-{{ history_id }}" class="nav-section-label mb-2">{{ _("History") }}</p>
+  <div class="card px-4 py-3"
+       hx-get="/history/{{ history_entity }}/{{ history_id }}"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <p class="text-sm ink-3">{{ _("Loading the history…") }}</p>
+  </div>
+</section>
