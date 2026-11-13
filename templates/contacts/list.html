@@ -53,6 +53,11 @@
         <option value="BENEFICIARY" {% if filter_contact_type == 'BENEFICIARY' %}selected{% endif %}>{{ _("Beneficiary") }}</option>
       </select>
     </div>
+    <label class="flex items-center gap-1.5 text-sm ink-2 pb-1.5">
+      <input type="checkbox" name="owing" value="1" {% if filter_owing %}checked{% endif %}
+             onchange="this.form.requestSubmit()" class="h-4 w-4">
+      {{ _("Only with money owing either way") }}
+    </label>
   </form>
 </div>
 
@@ -78,6 +83,8 @@
         <th scope="col" class="text-left">{{ _("Email") }}</th>
         <th scope="col" class="text-left">{{ _("Phone") }}</th>
         <th scope="col" class="text-left">{{ _("City") }}</th>
+        <th scope="col" class="text-right" title="{{ _('Open invoices less any credit they hold with you') }}">{{ _("Owed to us") }}</th>
+        <th scope="col" class="text-right" title="{{ _('Open bills less any credit you hold with them') }}">{{ _("We owe") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -102,6 +109,14 @@
           <td class="ink-2">{{ c.email or "—" }}</td>
           <td class="ink-2 num">{{ c.phone or "—" }}</td>
           <td class="ink-2">{{ c.city or "—" }}</td>
+          {%- set _b = c.balances or {} %}
+          {%- set _net = (_b.net_position or 0)|float %}
+          <td class="text-right num">
+            {% if _net > 0.004 %}<span {% if (_b.receivable_overdue or 0)|float > 0 %}style="color:var(--neg);" title="{{ _('%(amount)s overdue') % {'amount': num((_b.receivable_overdue or 0)|float, 2)} }}"{% endif %}>{{ num(_net, 2) }}</span>{% else %}<span class="ink-4">—</span>{% endif %}
+          </td>
+          <td class="text-right num">
+            {% if _net < -0.004 %}<span {% if (_b.payable_overdue or 0)|float > 0 %}style="color:var(--warm);" title="{{ _('%(amount)s overdue') % {'amount': num((_b.payable_overdue or 0)|float, 2)} }}"{% endif %}>{{ num(-_net, 2) }}</span>{% else %}<span class="ink-4">—</span>{% endif %}
+          </td>
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set actions = [
               ("view",    _("View"),    "/contacts/" ~ c.id,             "link", false),
@@ -116,7 +131,7 @@
         </tr>
         {% endfor %}
       {% else %}
-        {{ empty.row(8, "users", _("No contacts yet"),
+        {{ empty.row(10, "users", _("No contacts yet"),
                      _("Add the customers and suppliers you work with."),
                      _("Add contact"), "/contacts/new") }}
       {% endif %}

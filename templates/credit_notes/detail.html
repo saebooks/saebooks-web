@@ -122,7 +122,10 @@
 </div>
 
 {# ── Summary cards ── #}
-<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+{% set _status = (credit_note.status or '')|upper %}
+{% set _remaining = (credit_note.get('amount_remaining') if credit_note.get('amount_remaining') is not none
+                     else (credit_note.total|float) - (credit_note.amount_allocated|float))|float %}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-5 mb-8">
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Issue date") }}</p>
     <p class="mt-1 text-sm font-medium ink-1">{{ credit_note.issue_date }}</p>
@@ -134,20 +137,30 @@
     </p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Amount allocated") }}</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Applied to invoices") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
+      {{ num((credit_note.get('amount_applied') or 0)|float, 2) }}
+    </p>
+  </div>
+  <div class="card p-4">
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Refunded") }}</p>
     <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
       {{ num(credit_note.amount_allocated|float, 2) }}
     </p>
   </div>
-  <div class="card p-4">
+  <div class="card p-4" {% if _remaining > 0 and _status == 'POSTED' %}style="border-color:var(--pos);"{% endif %}>
     <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Remaining") }}</p>
-    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
-      {{ num((credit_note.total|float) - (credit_note.amount_allocated|float), 2) }}
+    <p class="mt-1 text-sm font-semibold ink-1 tabular-nums" {% if _remaining > 0 and _status == 'POSTED' %}style="color:var(--pos);"{% endif %}>
+      {{ num(_remaining, 2) }}
     </p>
   </div>
 </div>
 
-{# ── Applied-to section ── #}
+{# ── Applications (0227) ── #}
+{% if capp %}
+{% set credit = credit_note %}
+{% include "_partials/credit_applications.html" with context %}
+{% else %}
 <div class="mb-8">
   <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Applied To") }}</h2>
   <div class="card px-4 py-3 text-sm ink-2">
@@ -162,6 +175,7 @@
     {% endif %}
   </div>
 </div>
+{% endif %}
 
 {# ── Lines ── #}
 <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Lines") }}</h2>

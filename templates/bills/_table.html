@@ -31,6 +31,7 @@
         <th class="text-left">{{ srt.sort_link('due_date',   _('Due'),         sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('contact_id', _('Supplier'),    sort, direction, filters) }}</th>
         <th class="text-right">{{ srt.sort_link('total',     _('Total'),       sort, direction, filters) }}</th>
+        <th class="text-right">{{ _('Owing') }}</th>
         <th class="text-left">{{ srt.sort_link('status',    _('Status'),      sort, direction, filters) }}</th>
         <th class="w-8"></th>{# kebab column header — intentionally empty #}
       </tr>
@@ -57,6 +58,10 @@
             {%- else %}—{% endif %}
           </td>
           <td class="text-right num-display ink-1 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.currency }} {{ num(bill.total|float, 2) }}</td>
+          <td class="text-right num ink-2 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">
+            {%- set _due = (bill.get('amount_due') if bill.get('amount_due') is not none else ((bill.total|float - bill.amount_paid|float) if (bill.status or '')|upper == 'POSTED' else 0))|float %}
+            {% if _due > 0 %}{{ num(_due, 2) }}{% else %}<span class="ink-4">—</span>{% endif %}
+          </td>
           <td class="cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ sb.payment_status_badge(bill, today, due_soon_cutoff) }}</td>
           <td class="text-right" onclick="event.stopPropagation()">
             {%- set status_lower = (bill.status or 'draft')|lower %}
@@ -79,15 +84,25 @@
         {% endfor %}
       {% else %}
         {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-        {{ empty.row(8, "inbox", _("No bills yet"),
+        {{ empty.row(9, "inbox", _("No bills yet"),
                      _("Record your first supplier bill."),
                      _("New bill"), "/bills/new") }}
         {% else %}
-        {{ empty.row(8, "search-x", _("No bills match these filters"),
+        {{ empty.row(9, "search-x", _("No bills match these filters"),
                      _("Try clearing the filters above.")) }}
         {% endif %}
       {% endif %}
     </tbody>
+  {% if list_totals %}
+  <tfoot>
+    <tr class="hairline-t">
+      <td colspan="5" class="text-right text-xs ink-3 font-mono uppercase tracking-wider py-2">{{ _("%(n)s matching") % {"n": list_totals.count} }}</td>
+      <td class="text-right num-display ink-1 py-2">{{ num(list_totals.total|float, 2) }}</td>
+      <td class="text-right num-display ink-1 py-2" title="{{ _('Still owing, after cash and credits applied') }}">{{ num(list_totals.amount_due|float, 2) }}</td>
+      <td colspan="2"></td>
+    </tr>
+  </tfoot>
+  {% endif %}
   </table>
 </div>
 

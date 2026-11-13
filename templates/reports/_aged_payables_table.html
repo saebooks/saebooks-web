@@ -69,5 +69,7 @@
 <p class="text-sm ink-3 font-mono">{{ _("— no data —") }}</p>
 {% endif %}
 
+{% set aged_side = "payable" %}
+{% include "reports/_aged_tie_out.html" with context %}
 {% endif %}{# end degraded #}
 </div>

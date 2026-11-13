@@ -39,6 +39,7 @@
     <select id="status" name="status" class="saebooks-input text-sm py-1.5"
             onchange="this.form.requestSubmit()">
       <option value=""         {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="unpaid"   {% if filter_status == "unpaid" %}selected{% endif %}>{{ _("Unpaid (all owing)") }}</option>
       <option value="draft"    {% if filter_status == "draft" %}selected{% endif %}>{{ _("Draft") }}</option>
       <option value="open"     {% if filter_status == "open" %}selected{% endif %}>{{ _("Open") }}</option>
       <option value="due-soon" {% if filter_status == "due-soon" %}selected{% endif %}>{{ _("Due soon") }}</option>

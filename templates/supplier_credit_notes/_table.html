@@ -17,7 +17,7 @@
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("SCN #") }}</th>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Supplier") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Applied To") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Credit left") }}</th>
         <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
         <th scope="col" class="w-8"></th>
@@ -39,12 +39,17 @@
             {%- else %}—{% endif %}
           </td>
           <td class="px-4 py-3 ink-2">
-            {% if scn.original_bill_id %}
-            <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline" onclick="event.stopPropagation()">
-              {{ _("BILL") }} {{ scn.original_bill_id[:8] }}…
-            </a>
+            {%- set _st = (scn.status or '')|upper %}
+            {%- set _left = (scn.get('amount_remaining') or 0)|float %}
+            {% if _st == 'POSTED' and _left > 0 %}
+              <span class="tabular-nums font-medium" style="color:var(--pos);">{{ num(_left, 2) }}</span>
+              <span class="ink-3 text-xs">{{ _("to apply") }}</span>
+            {% elif _st == 'POSTED' %}
+              <span class="ink-3">{{ _("Fully applied") }}</span>
+            {% elif scn.original_bill_id %}
+              <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline" onclick="event.stopPropagation()">{{ _("Linked bill") }}</a>
             {% else %}
-            <span class="ink-3">{{ _("Unapplied") }}</span>
+              <span class="ink-3">—</span>
             {% endif %}
           </td>
           <td class="px-4 py-3 text-right ink-1 font-medium tabular-nums">

@@ -1,0 +1,40 @@
+{# HTMX fragment: money still on account on a posted payment (engine 0227). #}
+{% set s = capp.side %}
+{% set _left = capp.remaining|float %}
+{% if (payment.status or '')|upper == 'POSTED' and _left > 0 %}
+<section class="mb-7" id="payment-on-account">
+  <div class="card p-4 mb-3 flex flex-wrap items-center justify-between gap-3" style="border-color:var(--warm);">
+    <div>
+      <p class="nav-section-label mb-1">{{ _("On account") }}</p>
+      <p class="num-display text-lg" style="color:var(--warm);">{{ payment.currency }} {{ num(_left, 2) }}</p>
+      <p class="text-xs ink-3">
+        {% if s.key == 'payment_in' %}{{ _("Received but not matched to any invoice.") }}
+        {% else %}{{ _("Paid but not matched to any bill.") }}{% endif %}
+      </p>
+    </div>
+    {% if capp.refund_url %}
+    <a href="{{ capp.refund_url }}" class="btn-secondary text-sm">
+      {% if s.key == 'payment_in' %}{{ _("Refund it to the customer") }}{% else %}{{ _("Record the supplier refunding it") }}{% endif %}
+    </a>
+    {% endif %}
+  </div>
+  {% if capp.open_docs %}
+    <p class="text-sm ink-3 mb-2">
+      {% if s.key == 'payment_in' %}{{ _("Apply it to this customer's open invoices (oldest first). No journal changes — only which invoices it paid.") }}
+      {% else %}{{ _("Apply it to this supplier's open bills (oldest first). No journal changes — only which bills it paid.") }}{% endif %}
+    </p>
+    {% set apply_action = "/payments/" ~ payment.id ~ "/allocate" %}
+    {% set apply_version = payment.version %}
+    {% set apply_min_date = payment.payment_date %}
+    {% set apply_show_date = false %}
+    {% set apply_button = _("Apply") %}
+    <div>
+      {% include "_partials/apply_form.html" with context %}
+    </div>
+  {% else %}
+    <div class="card px-4 py-3 text-sm ink-3">
+      {% if s.key == 'payment_in' %}{{ _("No open invoices for this customer to apply it to.") }}{% else %}{{ _("No open bills for this supplier to apply it to.") }}{% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endif %}

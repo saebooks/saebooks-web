@@ -1,0 +1,101 @@
+{#
+  Credit applications panel — shared by the supplier credit note page
+  (credit -> bills) and the customer credit note page (credit -> invoices).
+
+  Expects:
+    credit  — the credit note JSON (status UPPERCASE, version, id,
+              issue_date, original_bill_id / original_invoice_id)
+    capp    — saebooks_web.credit_apply.load_context(...) result
+#}
+{% set s = capp.side %}
+{% set _status = (credit.status or '')|upper %}
+{% set _doc = _("Bill") if s.key == 'supplier' else _("Invoice") %}
+
+<section class="mb-8" id="credit-applications">
+  <h2 class="text-base font-semibold ink-1 mb-3">
+    {% if s.key == 'supplier' %}{{ _("Applied to bills") }}{% else %}{{ _("Applied to invoices") }}{% endif %}
+  </h2>
+
+  {% if capp.applications %}
+  <div class="card overflow-x-auto mb-4">
+    <table class="sae-table min-w-full w-full text-sm">
+      <thead>
+        <tr>
+          <th class="px-4 py-2 text-left">{{ _("Applied on") }}</th>
+          <th class="px-4 py-2 text-left">{{ _doc }}</th>
+          {% if s.ref_field %}<th class="px-4 py-2 text-left">{{ _("Their reference") }}</th>{% endif %}
+          <th class="px-4 py-2 text-right">{{ _("Amount") }}</th>
+          <th class="px-4 py-2 text-left">{{ _("How") }}</th>
+          <th class="px-4 py-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in capp.applications %}
+        {% set _doc_id = a.bill_id if s.key == 'supplier' else a.invoice_id %}
+        <tr>
+          <td class="px-4 py-2 ink-2 tabular-nums">{{ a.applied_date }}</td>
+          <td class="px-4 py-2">
+            <a href="{{ s.doc_web }}/{{ _doc_id }}" class="sae hover:underline">{{ a.document_number or _doc_id[:8] }}</a>
+          </td>
+          {% if s.ref_field %}<td class="px-4 py-2 ink-3">{{ a.document_reference or "—" }}</td>{% endif %}
+          <td class="px-4 py-2 text-right tabular-nums ink-1 font-medium">{{ num(a.amount|float, 2) }}</td>
+          <td class="px-4 py-2 ink-3 text-xs">
+            {% if a.source == 'LINK' %}{{ _("Linked when posted") }}
+            {% elif a.source == 'MIGRATED' %}{{ _("Carried over from the old link") }}
+            {% else %}{{ a.created_by or _("Applied") }}{% endif %}
+          </td>
+          <td class="px-4 py-2 text-right">
+            {% if _status == 'POSTED' %}
+            <form method="post" action="{{ s.credit_web }}/{{ credit.id }}/applications/{{ a.id }}/unapply"
+                  onsubmit="return confirm('{{ _('Un-apply this credit? The document re-opens for this amount.') }}');" class="inline">
+              {{ csrf_input(request)|safe }}
+              <input type="hidden" name="version" value="{{ credit.version }}">
+              <button type="submit" class="text-xs ink-3 hover:underline">{{ _("Un-apply") }}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card px-4 py-3 text-sm ink-3 mb-4">
+    {% if s.key == 'supplier' %}{{ _("Unapplied — not applied to any bill yet.") }}{% else %}{{ _("Unapplied — not applied to any invoice yet.") }}{% endif %}
+    {% set _link = credit.get('original_bill_id') if s.key == 'supplier' else credit.get('original_invoice_id') %}
+    {% if _link %}
+      <br>
+      {% if _status == 'DRAFT' %}{{ _("Linked document — the credit is applied to it when posted:") }}{% else %}{{ _("Linked document:") }}{% endif %}
+      <a href="{{ s.doc_web }}/{{ _link }}" class="sae hover:underline font-medium">{{ _link }}</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if _status == 'POSTED' and capp.remaining > 0 %}
+    {% if capp.refund_url %}
+    <div class="mb-2 mt-6 flex justify-end">
+      <a href="{{ capp.refund_url }}" class="btn-secondary text-sm">
+        {% if s.key == 'supplier' %}{{ _("Supplier refunded this credit") }}{% else %}{{ _("Refund this credit to the customer") }}{% endif %}
+      </a>
+    </div>
+    {% endif %}
+    <h2 class="text-base font-semibold ink-1 mb-1 mt-2">
+      {% if s.key == 'supplier' %}{{ _("Use this credit on open bills") }}{% else %}{{ _("Use this credit on open invoices") }}{% endif %}
+    </h2>
+    <p class="text-sm ink-3 mb-3">
+      {{ _("%(amount)s of credit is left. Amounts are filled in oldest first; change any of them. Nothing is posted to the ledger — the credit note already did that — this only marks which documents it paid.") % {"amount": num(capp.remaining|float, 2)} }}
+    </p>
+    {% if capp.open_docs %}
+    {% set apply_action = s.credit_web ~ "/" ~ credit.id ~ "/apply" %}
+    {% set apply_version = credit.version %}
+    {% set apply_min_date = credit.issue_date %}
+    {% set apply_show_date = true %}
+    {% include "_partials/apply_form.html" with context %}
+    {% else %}
+    <div class="card px-4 py-3 text-sm ink-3">
+      {% if s.key == 'supplier' %}{{ _("This supplier has no open bills. The credit stays available until a new bill arrives or they refund it.") }}
+      {% else %}{{ _("This customer has no open invoices. The credit stays available for a future invoice, or refund it with a payment.") }}{% endif %}
+    </div>
+    {% endif %}
+  {% endif %}
+</section>
