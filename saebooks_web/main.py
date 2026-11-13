@@ -118,6 +118,8 @@ from saebooks_web.routes.super_funds import router as super_funds_router
 from saebooks_web.routes.pay_run import router as pay_run_router
 from saebooks_web.routes.wages import router as wages_router
 from saebooks_web.routes.payments import router as payments_router
+from saebooks_web.routes.remittance import router as remittance_router
+from saebooks_web.routes.terms import router as terms_router
 from saebooks_web.routes.profile import router as profile_router
 from saebooks_web.routes.projects import router as projects_router
 from saebooks_web.routes.proration import router as proration_router
@@ -432,6 +434,8 @@ app.include_router(time_entries_router)
 app.include_router(purchase_orders_router)
 app.include_router(proration_router)
 app.include_router(payments_router)
+app.include_router(remittance_router)
+app.include_router(terms_router)
 app.include_router(credit_notes_router)
 app.include_router(transfers_router)
 app.include_router(receipts_router)

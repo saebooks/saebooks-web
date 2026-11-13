@@ -33,7 +33,8 @@
       {% elif scn.status == 'VOIDED' %}<span class="badge-neg">{{ scn.status | capitalize }}</span>
       {% else %}<span class="badge-draft">{{ scn.status | capitalize }}</span>{% endif %}
     </div>
-    <p class="text-sm ink-3 mt-1">{{ _("Supplier: %(contact)s") % {"contact": scn.contact_id} }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("Supplier") }}:
+      <a href="/contacts/{{ scn.contact_id }}" class="sae hover:underline">{{ supplier_name or _("view supplier") }}</a></p>
     {% if scn.supplier_reference %}
     <p class="text-sm ink-3 mt-0.5">{{ _("Supplier's reference: %(ref)s") % {"ref": scn.supplier_reference} }}</p>
     {% endif %}
@@ -88,7 +89,7 @@
   <div class="card px-4 py-3 text-sm ink-2">
     {% if scn.original_bill_id %}
     <span class="ink-3">{{ _("Bill:") }} </span>
-    <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline font-medium">{{ scn.original_bill_id }}</a>
+    <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline font-medium">{% if original_bill %}{{ original_bill.supplier_reference or original_bill.number }}{% if original_bill.supplier_reference and original_bill.number %} ({{ original_bill.number }}){% endif %}{% else %}{{ _("View bill") }}{% endif %}</a>
     {% else %}
     <span class="ink-3">{{ _("Unapplied — not linked to a bill") }}</span>
     {% endif %}

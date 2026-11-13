@@ -46,16 +46,35 @@
       <h1 class="font-display text-3xl leading-none tracking-tight num-display">
         {{ payment.reference or payment.number or "—" }}
       </h1>
-      <p class="text-xs ink-3 font-mono mt-2">{{ _("contact") }} · <span class="ink-2">{{ payment.contact_id }}</span></p>
+      {% set _contact_name = (settlement.contact.name if settlement and settlement.contact else None) or payment.one_off_vendor_name or payment.one_off_customer_name %}
+      <p class="text-sm ink-3 mt-2">
+        {% if payment.direction == 'OUTGOING' %}{{ _("Paid to") }}{% else %}{{ _("Received from") }}{% endif %}
+        {% if payment.contact_id %}<a href="/contacts/{{ payment.contact_id }}" class="sae hover:underline">{{ _contact_name or _("this contact") }}</a>{% else %}<span class="ink-2">{{ _contact_name or "—" }}</span>{% endif %}
+        {% if payment.number and payment.reference %}<span class="ink-4"> · </span><span class="font-mono text-xs">{{ payment.number }}</span>{% endif %}
+      </p>
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
+      {% if payment.direction == 'OUTGOING' and payment.status == 'POSTED' %}
+      <a href="/payments/{{ payment.id }}/remittance.pdf" target="_blank" rel="noopener" class="btn-secondary text-sm">{{ _("View remittance") }}</a>
+      <a href="/payments/{{ payment.id }}/remittance.pdf?download=1" class="btn-secondary text-sm">{{ _("Download remittance") }}</a>
+      <a href="/payments/{{ payment.id }}/remittance/email" class="btn-secondary text-sm">{{ _("Email remittance") }}</a>
+      {% endif %}
+      {% if payment.status == 'POSTED' and not is_feature_enabled('edit_frozen_state') %}
+      <a href="/payments/{{ payment.id }}/edit" class="btn-secondary text-sm">{{ _("Correct details") }}</a>
+      {% endif %}
       {% if payment.status == 'DRAFT' or is_feature_enabled('edit_frozen_state') %}
       <a href="/payments/{{ payment.id }}/edit" class="btn-secondary text-sm">{% if payment.status != 'DRAFT' %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
       <form method="post" action="/payments/{{ payment.id }}/post"
-            onsubmit="return confirm('{{ _('Post this payment? This cannot be undone easily.') }}');" class="inline">
+            onsubmit="return confirm('{{ _('Post this payment? This cannot be undone easily.') }}');" class="inline-flex items-center gap-2">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ payment.version }}">
+        {% if payment.direction == 'OUTGOING' and payment.status == 'DRAFT' %}
+        <label class="text-xs ink-2 flex items-center gap-1">
+          <input type="checkbox" name="email_remittance" value="1">
+          {{ _("Email the remittance to the supplier") }}
+        </label>
+        {% endif %}
         <button type="submit" class="btn-primary text-sm" style="background:var(--pos);border-color:var(--pos);">{{ _("Post") }}</button>
       </form>
       <form method="post" action="/payments/{{ payment.id }}/archive"
@@ -105,13 +124,16 @@
 </section>
 
 <section class="card overflow-hidden mb-7">
-  <div class="px-6 py-3 hairline-b"><p class="nav-section-label">{{ _("Allocated against") }}</p></div>
+  <div class="px-6 py-3 hairline-b"><p class="nav-section-label">{{ _("What this payment covers") }}</p></div>
   <table class="sae-table w-full">
     <thead>
       <tr>
         <th class="text-left">{{ _("Type") }}</th>
         <th class="text-left">{{ _("Document") }}</th>
-        <th class="text-right">{{ _("Allocated amount") }}</th>
+        <th class="text-right">{{ _("Paid by this") }}</th>
+        <th class="text-right">{{ _("Still owing") }}</th>
+        <th></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -124,16 +146,31 @@
             {% elif alloc.credit_note_id %}{{ _("Credit note") }}
             {% else %}—{% endif %}
           </td>
+          {% set _s = settled_by_alloc.get(alloc.id|string) if settled_by_alloc is defined else None %}
+          {% set _label = (_s.supplier_reference or _s.number) if _s else None %}
           <td>
             {% if alloc.invoice_id %}
-              <a href="/invoices/{{ alloc.invoice_id }}" class="sae hover:underline font-mono text-xs">{{ alloc.invoice_id }}</a>
+              <a href="/invoices/{{ alloc.invoice_id }}" class="sae hover:underline">{{ _label or _("View invoice") }}</a>
             {% elif alloc.bill_id %}
-              <a href="/bills/{{ alloc.bill_id }}" class="sae hover:underline font-mono text-xs">{{ alloc.bill_id }}</a>
+              <a href="/bills/{{ alloc.bill_id }}" class="sae hover:underline">{{ _label or _("View bill") }}</a>
+              {% if _s and _s.supplier_reference and _s.number %}<span class="ink-3 text-xs"> · {{ _s.number }}</span>{% endif %}
             {% elif alloc.credit_note_id %}
-              <span class="ink-3 font-mono text-xs">{{ alloc.credit_note_id }}</span>
+              <a href="/credit-notes/{{ alloc.credit_note_id }}" class="sae hover:underline">{{ _label or _("View credit note") }}</a>
             {% else %}—{% endif %}
+            {% if _s and _s.credits %}
+              <p class="text-xs ink-3 mt-0.5">
+                {% for cr in _s.credits %}{{ _("less credit") }} {{ cr.reference or cr.number }} {{ num(cr.amount|float, 2) }}{% if not loop.last %}, {% endif %}{% endfor %}
+              </p>
+            {% endif %}
           </td>
           <td class="text-right num-display ink-1">{{ payment.currency }} {{ num(alloc.amount|float, 2) }}</td>
+          <td class="text-right num ink-2">{% if _s and _s.amount_due is not none %}{{ num(_s.amount_due|float, 2) }}{% else %}—{% endif %}</td>
+          <td class="text-right whitespace-nowrap">
+            {% if alloc.bill_id and supplier_pdfs is defined and supplier_pdfs.get(alloc.bill_id|string) %}
+            {% set _pdf = supplier_pdfs.get(alloc.bill_id|string) %}
+            <a href="/attachments/{{ _pdf.id }}/view" target="_blank" rel="noopener" class="text-xs sae hover:underline">{{ _("Supplier's invoice") }} ↗</a>
+            {% endif %}
+          </td>
           <td class="text-right">
             <form method="post" action="/payments/{{ payment.id }}/unallocate" class="inline" onsubmit="return confirm('{{ _('Unmatch this allocation? This will leave a payment-on-account.') }}');">
               <input type="hidden" name="allocation_id" value="{{ alloc.id }}">
@@ -143,15 +180,26 @@
         </tr>
         {% endfor %}
       {% else %}
-        <tr><td colspan="3" class="text-center ink-3 font-mono text-sm py-6">{{ _("— no allocations —") }}</td></tr>
+        <tr><td colspan="6" class="text-center ink-3 text-sm py-6">{{ _("Not applied to any bill or invoice — the whole amount is on the contact's account.") }}</td></tr>
       {% endif %}
     </tbody>
   </table>
 </section>
 
+{% if settlement and (settlement.unallocated|float) > 0 and payment.allocations %}
+<p class="text-sm ink-2 -mt-4 mb-7">{{ _("Left on the contact's account:") }} <span class="num">{{ payment.currency }} {{ num(settlement.unallocated|float, 2) }}</span></p>
+{% endif %}
+
+{% if payment.remittance_note %}
+<section class="mb-7">
+  <p class="nav-section-label mb-2">{{ _("Message to the supplier") }}</p>
+  <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap leading-relaxed">{{ payment.remittance_note }}</div>
+</section>
+{% endif %}
+
 {% if payment.notes %}
 <section class="mb-7">
-  <p class="nav-section-label mb-2">{{ _("Notes") }}</p>
+  <p class="nav-section-label mb-2">{{ _("Internal notes") }} <span class="ink-4 normal-case">· {{ _("never printed on the remittance") }}</span></p>
   <div class="card px-4 py-3 text-sm ink-2 whitespace-pre-wrap leading-relaxed">{{ payment.notes }}</div>
 </section>
 {% endif %}

@@ -108,12 +108,13 @@
     {# Due date #}
     <div>
       <label for="due_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        {{ _("Due date") }} <span style="color:var(--neg);">*</span>
+        {{ _("Due date") }}
       </label>
       <input type="date" id="due_date" name="due_date" value="{{ form.get('due_date', '') }}"
-             required class="saebooks-input num"
+             class="saebooks-input num"
              {% if errors.get('due_date') %}style="border-color:var(--neg);"{% endif %}>
       {% if errors.get("due_date") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["due_date"] }}</p>{% endif %}
+      {% include "_partials/terms_due_date.html" %}
     </div>
   </div>
 

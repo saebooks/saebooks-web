@@ -130,11 +130,23 @@
   </div>
 </fieldset>
 
+{% set _with_picker = open_docs is defined %}
 <fieldset class="mt-7">
-  <legend class="nav-section-label mb-2">{{ _("Allocations") }}</legend>
-  <p class="text-[11px] ink-3 mb-3 font-mono">
-    {{ _("Optional — leave blank for unallocated.") }}
-  </p>
+  <legend class="nav-section-label mb-2">{% if form.get("direction") == "OUTGOING" %}{{ _("Bills this pays") }}{% else %}{{ _("Invoices this pays") }}{% endif %}</legend>
+
+  {% if _with_picker %}
+    {% with picked=(picked if picked is defined and picked else {}) %}
+    {% include "payments/_open_documents.html" %}
+    {% endwith %}
+  {% endif %}
+
+  <p id="alloc-summary" class="text-sm ink-2 mt-3 num" aria-live="polite"
+     data-label-applied="{{ _('Applied') }}" data-label-left="{{ _('Left on account') }}"
+     data-label-over="{{ _('More than the payment by') }}"></p>
+
+  <details class="mt-4" {% if not _with_picker or (allocations and allocations[0].get("target_id")) %}open{% endif %}>
+    <summary class="text-sm sae cursor-pointer">{{ _("Add by number instead") }}</summary>
+    <p class="text-[11px] ink-3 my-2">{{ _("Type an invoice or bill number. Leave everything blank to keep the whole payment on the contact's account.") }}</p>
 
   <input type="hidden" id="allocation-count" value="{{ allocation_count }}">
 
@@ -167,11 +179,110 @@
           onclick="document.getElementById('allocation-count').value = parseInt(document.getElementById('allocation-count').value) + 1">
     + {{ _("Add allocation") }}
   </button>
+  </details>
 </fieldset>
 
-<div class="mt-7">
-  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Notes") }}</label>
+<div class="mt-7" id="remittance-note-field" {% if form.get("direction") != "OUTGOING" %}hidden{% endif %}>
+  <label for="remittance_note" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Message to the supplier") }}</label>
+  <textarea id="remittance_note" name="remittance_note" rows="2" class="saebooks-input" maxlength="2000"
+            placeholder="{{ _('Optional. Printed on the remittance advice.') }}"
+            {% if errors.get('remittance_note') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("remittance_note", "") }}</textarea>
+  {% if errors.get("remittance_note") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["remittance_note"] }}</p>{% endif %}
+</div>
+
+<div class="mt-5">
+  <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Internal notes") }}</label>
   <textarea id="notes" name="notes" rows="3" class="saebooks-input"
-            placeholder="Optional internal notes"
+            placeholder="{{ _('Optional. Only you see these — never printed for the supplier or customer.') }}"
             {% if errors.get('notes') %}style="border-color:var(--neg);"{% endif %}>{{ form.get("notes", "") }}</textarea>
 </div>
+
+<script>
+/* Payment form: open-document picker totals, "Pay oldest first", the
+   supplier-message field, and keeping the payment amount in step with what
+   is ticked until the user types an amount themselves. (Batch 3, P0-14.) */
+(function () {
+  if (window.__paymentPickerWired) return;
+  window.__paymentPickerWired = true;
+  var amountTouched = false;
+  function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  function money(n) { return n.toLocaleString("en-AU", {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+  function rows() { return Array.prototype.slice.call(document.querySelectorAll("#open-docs .open-doc-row")); }
+  function amountEl() { return document.getElementById("amount"); }
+  function recompute() {
+    var applied = 0;
+    rows().forEach(function (r) {
+      var pick = r.querySelector("[data-open-doc-pick]");
+      var amt = r.querySelector("[data-open-doc-amount]");
+      if (pick && pick.checked) applied += num(amt.value || amt.dataset.due);
+    });
+    document.querySelectorAll("#allocation-rows input[name$='[amount]']").forEach(function (i) {
+      var row = i.closest("tr"); var t = row && row.querySelector("input[name$='[target_id]']");
+      if (t && t.value.trim()) applied += num(i.value);
+    });
+    var a = amountEl();
+    if (a && !amountTouched && rows().length && applied > 0) a.value = applied.toFixed(2);
+    var total = a ? num(a.value) : 0;
+    var out = document.getElementById("alloc-summary");
+    if (!out) return;
+    if (!applied && !total) { out.textContent = ""; return; }
+    var left = Math.round((total - applied) * 100) / 100;
+    var text = out.dataset.labelApplied + " $" + money(applied);
+    if (left > 0) text += " · " + out.dataset.labelLeft + " $" + money(left);
+    if (left < 0) text += " · " + out.dataset.labelOver + " $" + money(-left);
+    out.textContent = text;
+    out.style.color = left < 0 ? "var(--neg)" : "";
+  }
+  document.addEventListener("change", function (e) {
+    var t = e.target;
+    if (t.matches && t.matches("[data-open-doc-pick]")) {
+      var amt = t.closest("tr").querySelector("[data-open-doc-amount]");
+      if (t.checked && !amt.value) amt.value = amt.dataset.due;
+      if (!t.checked) amt.value = "";
+      recompute();
+    }
+    if (t.id === "direction") {
+      var f = document.getElementById("remittance-note-field");
+      if (f) f.hidden = t.value !== "OUTGOING";
+    }
+  });
+  document.addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.id === "amount") { amountTouched = true; recompute(); return; }
+    if (t.matches && t.matches("[data-open-doc-amount]")) {
+      var pick = t.closest("tr").querySelector("[data-open-doc-pick]");
+      pick.checked = num(t.value) > 0;
+      recompute();
+    } else if (t.closest && t.closest("#allocation-rows")) { recompute(); }
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-open-docs-action]");
+    if (!b) return;
+    var mode = b.getAttribute("data-open-docs-action");
+    var left = num((amountEl() || {}).value);
+    if (mode === "oldest" && left <= 0) {
+      /* No amount yet: tick everything, oldest first. */
+      mode = "all";
+    } else if (mode === "oldest") {
+      amountTouched = true;
+    }
+    rows().forEach(function (r) {
+      var pick = r.querySelector("[data-open-doc-pick]");
+      var amt = r.querySelector("[data-open-doc-amount]");
+      var due = num(amt.dataset.due);
+      if (mode === "none") { pick.checked = false; amt.value = ""; return; }
+      if (mode === "all") { pick.checked = true; amt.value = due.toFixed(2); return; }
+      var take = Math.min(left, due);
+      left = Math.round((left - take) * 100) / 100;
+      pick.checked = take > 0;
+      amt.value = take > 0 ? take.toFixed(2) : "";
+    });
+    recompute();
+  });
+  document.addEventListener("htmx:afterSwap", function (e) {
+    if (e.target && e.target.id === "open-docs") recompute();
+  });
+  document.addEventListener("DOMContentLoaded", recompute);
+  if (document.readyState !== "loading") setTimeout(recompute, 0);
+})();
+</script>

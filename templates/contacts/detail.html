@@ -115,6 +115,39 @@
   </div>
 </div>
 
+{# Payment terms and bank details (batch 3, gap P0-15) — the terms set the
+   due date on new bills and invoices; the bank details were only on the
+   edit form before. #}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div class="card p-5">
+    <p class="nav-section-label mb-3">{{ _("Payment terms") }}</p>
+    <p class="text-sm ink-1">
+      {% if contact.payment_terms_basis and contact.payment_terms_days is not none %}
+        {% if contact.payment_terms_basis == "EOM" %}
+          {% if contact.payment_terms_days == 0 %}{{ _("Due at the end of the month") }}{% else %}{{ _("Due %(days)s days after the end of the month") % {"days": contact.payment_terms_days} }}{% endif %}
+        {% else %}
+          {% if contact.payment_terms_days == 0 %}{{ _("Due on receipt") }}{% else %}{{ _("Due %(days)s days after the invoice date") % {"days": contact.payment_terms_days} }}{% endif %}
+        {% endif %}
+      {% else %}
+        <span class="ink-3">{{ _("No set terms — the due date is typed on each bill or invoice.") }}</span>
+      {% endif %}
+    </p>
+    <a href="/contacts/{{ contact.id }}/edit" class="text-xs sae hover:underline mt-2 inline-block">{{ _("Change") }}</a>
+  </div>
+  <div class="card p-5">
+    <p class="nav-section-label mb-3">{{ _("Bank details") }}</p>
+    {% set _bank = namespace(any=false) %}
+    <dl class="space-y-2 text-sm">
+      {% for _f in request.state.jp.bank_fields %}
+      {% if contact.get(_f.key) %}{% set _bank.any = true %}
+      <div class="flex gap-3"><dt class="w-28 shrink-0 ink-3 text-xs pt-0.5">{{ _f.label }}</dt><dd class="ink-1 num">{{ contact.get(_f.key) }}</dd></div>
+      {% endif %}
+      {% endfor %}
+    </dl>
+    {% if not _bank.any %}<p class="text-sm ink-3">{{ _("No bank details on file.") }}</p>{% endif %}
+  </div>
+</div>
+
 {% if contact.default_tax_code or contact.default_account_id or contact.currency_code %}
 <div class="card p-5 mb-6">
   <p class="nav-section-label mb-3">{{ _("Accounting defaults") }}</p>

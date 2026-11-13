@@ -25,6 +25,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import bulk_transitions
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 
@@ -592,28 +593,13 @@ async def expenses_bulk_action(request: Request) -> RedirectResponse:
         return RedirectResponse(url="/expenses", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS_EXPENSES[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for row_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=row_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{row_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{row_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+        )
 
     label = action.replace("_", " ").title()
     if failed:

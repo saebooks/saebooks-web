@@ -15,7 +15,7 @@ Auth guard: redirect to /login (303) if no session token.
 from __future__ import annotations
 
 import uuid
-from datetime import date, timedelta
+from datetime import date
 from datetime import date as _date
 from datetime import timedelta as _td
 from pathlib import Path
@@ -24,6 +24,8 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import bulk_transitions
+from saebooks_web import settlement as settlement_reads
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines_shared
@@ -322,7 +324,9 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
         return RedirectResponse(url="/login", status_code=303)
 
     today = date.today().isoformat()
-    due = (date.today() + timedelta(days=30)).isoformat()
+    # Blank: filled from the contact's payment terms as soon as one is
+    # chosen, or by the engine on save (gap P0-15) — never a flat 30 days.
+    due = ""
 
     contacts: list[dict] = []
     accounts: list[dict] = []
@@ -1221,28 +1225,13 @@ async def invoices_bulk_action(request: Request) -> RedirectResponse:
         return RedirectResponse(url="/invoices", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for inv_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=inv_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{inv_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{inv_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+        )
 
     label = action.replace("_", " ").title()
     if failed:
@@ -1525,6 +1514,10 @@ async def invoice_detail(
     elif att_resp.is_success:
         attachments = att_resp.json()
 
+    # Customer name, balance due, payments and credits applied (gap P1-2).
+    async with api_client(request) as client:
+        settlement = await settlement_reads.document_settlement(client, "invoice", invoice_id)
+
     # Best-effort: pull send history for this invoice — don't fail the page
     # if the email-log endpoint is unavailable (mirrors quotes.quote_detail).
     email_log: list = []
@@ -1548,6 +1541,9 @@ async def invoice_detail(
             "attachments": attachments,
             "vault_enabled": vault_enabled,
             "email_log": email_log,
+            "settlement": settlement,
+            "entity_kind": "invoice",
+            "entity_id": invoice_id,
         },
     )
 

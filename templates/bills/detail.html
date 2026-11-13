@@ -43,10 +43,23 @@
       <h1 class="font-display text-3xl leading-none tracking-tight num-display">
         {{ bill.number or "—" }}
       </h1>
-      <p class="text-xs ink-3 font-mono mt-2">{{ _("supplier") }} · <span class="ink-2">{{ bill.contact_id }}</span></p>
+      <p class="text-sm ink-3 mt-2">
+        {{ _("From") }}
+        {% if bill.contact_id %}<a href="/contacts/{{ bill.contact_id }}" class="sae hover:underline">{{ supplier_name or _("this supplier") }}</a>{% else %}—{% endif %}
+        {% if bill.supplier_reference %}<span class="ink-4"> · </span>{{ _("their invoice") }} <span class="ink-1">{{ bill.supplier_reference }}</span>{% endif %}
+      </p>
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
+      {% if supplier_pdf %}
+      <button type="button" class="btn-secondary text-sm" aria-controls="supplier-invoice-viewer"
+              onclick="var v=document.getElementById('supplier-invoice-viewer'); v.hidden=!v.hidden; document.body.classList.toggle('supplier-viewer-open', !v.hidden); this.setAttribute('aria-expanded', String(!v.hidden));"
+              aria-expanded="false">{{ _("View invoice") }}</button>
+      {% endif %}
+      {% if bill.status == 'POSTED' and (balance_due|float) > 0 %}
+      <a href="/payments/new?direction=OUTGOING&amp;bill_id={{ bill.id|urlencode }}{% if bill.contact_id %}&amp;contact_id={{ bill.contact_id|urlencode }}{% endif %}"
+         class="btn-primary text-sm">{{ _("Pay") }}</a>
+      {% endif %}
       {% if bill.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
       <a href="/bills/{{ bill.id }}/edit" class="btn-secondary text-sm">{% if bill.status in ('POSTED', 'PAID', 'VOIDED') %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
       {% endif %}
@@ -94,7 +107,34 @@
 </div>
 {% endif %}
 
-<section class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-7 hairline">
+{% if supplier_pdf %}
+{# Side by side on wide screens: the supplier's invoice is pinned to the
+   right while the bill stays readable on the left (gap P1-3). #}
+<style>
+  @media (min-width: 1024px) {
+    body.supplier-viewer-open #supplier-invoice-viewer {
+      position: fixed; right: 1rem; top: 5rem; bottom: 1rem; width: 44vw;
+      z-index: 30; margin: 0; display: flex; flex-direction: column;
+    }
+    body.supplier-viewer-open #supplier-invoice-viewer embed,
+    body.supplier-viewer-open #supplier-invoice-viewer img { flex: 1; height: auto !important; max-height: none !important; }
+    body.supplier-viewer-open main#main { margin-right: 46vw; }
+  }
+</style>
+<section id="supplier-invoice-viewer" class="card overflow-hidden mb-7" hidden>
+  <div class="px-4 py-2 hairline-b flex items-center justify-between text-sm">
+    <span class="ink-2">{{ _("Supplier's invoice") }} · {{ supplier_pdf.filename }}</span>
+    <a href="/attachments/{{ supplier_pdf.id }}/view" target="_blank" rel="noopener" class="sae hover:underline text-xs">{{ _("Open in a new tab") }} ↗</a>
+  </div>
+  {% if ((supplier_pdf.content_type or '')|lower).startswith('image/') %}
+  <img src="/attachments/{{ supplier_pdf.id }}/view" alt="{{ _("Supplier's invoice") }}" class="w-full h-auto" style="max-height:80vh;object-fit:contain;background:var(--paper-2);">
+  {% else %}
+  <embed src="/attachments/{{ supplier_pdf.id }}/view" type="application/pdf" class="w-full" style="height:80vh;">
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="grid grid-cols-2 sm:grid-cols-5 gap-px bg-paper-2 rounded-xl overflow-hidden mb-7 hairline">
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">{{ _("Issued") }}</p>
     <p class="num ink-1 text-sm">{{ bill.issue_date }}</p>
@@ -108,10 +148,48 @@
     <p class="num-display ink-1 text-lg">{{ bill.currency }} {{ num(bill.total|float, 2) }}</p>
   </div>
   <div class="card bg-paper p-4 rounded-none">
-    <p class="nav-section-label mb-1">{{ _("Paid") }}</p>
+    <p class="nav-section-label mb-1">{{ _("Paid or credited") }}</p>
     <p class="num-display ink-1 text-lg">{{ bill.currency }} {{ num(bill.amount_paid|float, 2) }}</p>
   </div>
+  <div class="card bg-paper p-4 rounded-none">
+    <p class="nav-section-label mb-1">{{ _("Balance due") }}</p>
+    <p class="num-display text-lg {% if (balance_due|float) > 0 %}ink-1{% else %}ink-3{% endif %}">{{ bill.currency }} {{ num(balance_due|float, 2) }}</p>
+  </div>
 </section>
+
+{% if settlement and (settlement.payments or settlement.credits) %}
+<section class="card overflow-hidden mb-7">
+  <div class="px-6 py-3 hairline-b"><p class="nav-section-label">{{ _("Payments and credits") }}</p></div>
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("What") }}</th>
+        <th class="text-left">{{ _("Reference") }}</th>
+        <th class="text-right">{{ _("Amount") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in settlement.payments %}
+      <tr>
+        <td class="num ink-2">{{ p.date or "—" }}</td>
+        <td><a href="/payments/{{ p.id }}" class="sae hover:underline">{{ _("Payment") }} {{ p.number or "" }}</a>{% if p.status == 'VOIDED' %} <span class="badge-overdue">{{ _("Voided") }}</span>{% endif %}</td>
+        <td class="ink-2">{{ p.reference or "—" }}</td>
+        <td class="text-right num ink-1">{{ num(p.amount|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+      {% for c in settlement.credits %}
+      <tr>
+        <td class="num ink-2">{{ c.date or "—" }}</td>
+        <td><a href="/supplier-credit-notes/{{ c.id }}" class="sae hover:underline">{{ _("Supplier credit") }} {{ c.number or "" }}</a></td>
+        <td class="ink-2">{{ c.reference or "—" }}</td>
+        <td class="text-right num ink-1">{{ num(c.amount|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
 
 <section class="card overflow-hidden mb-7">
   <div class="px-6 py-3 hairline-b"><p class="nav-section-label">{{ _("Lines") }}</p></div>

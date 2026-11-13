@@ -1101,3 +1101,124 @@ async def test_inbox_review_line_index_is_monotonic_counter(
     assert "var inboxLineIdx = 1;" in resp.text  # one extracted line
     assert "inboxLineIdx++" in resp.text
     assert ".inbox-line-row').length" not in resp.text
+
+
+# ---------------------------------------------------------------------------
+# Batch 3 — the printed due date survives publish (P0-15); an attachment
+# that failed to link is reported, not claimed (P1-3).
+# ---------------------------------------------------------------------------
+
+
+def _bill_publish_ok(respx_mock: respx.MockRouter, headers: dict | None = None):
+    respx_mock.patch(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc(version=2, status="READY"))
+    )
+    return respx_mock.post(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}/publish").mock(
+        return_value=Response(
+            201,
+            headers=headers or {"X-Attachment-Linked": "true"},
+            json={
+                "document": _doc(version=3, status="PUBLISHED",
+                                 published_record_kind="BILL",
+                                 published_record_id=_BILL_ID),
+                "record": {"kind": "BILL", "id": _BILL_ID, "status": "DRAFT"},
+            },
+        )
+    )
+
+
+def _flash(resp) -> str:
+    raw = resp.cookies.get(settings.session_cookie_name)
+    signer = _TimestampSigner(settings.secret_key)
+    from base64 import b64decode as _b64decode
+    return _json.loads(_b64decode(signer.unsign(raw))).get("flash", "")
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_bill_publish_keeps_printed_due_date(respx_mock: respx.MockRouter) -> None:
+    publish = _bill_publish_ok(respx_mock)
+    async with _client() as client:
+        resp = await client.post(
+            f"/inbox/{_DOC_ID}/review",
+            data=_review_form(action="publish", record_kind="BILL",
+                              payment_account_id="", due_date="2026-07-31"),
+        )
+    assert resp.status_code == 303
+    body = _json.loads(publish.calls.last.request.content)
+    assert body["due_date"] == "2026-07-31"
+    # The reviewer's due date is saved with the review too.
+    patch = respx_mock.calls[0].request
+    assert _json.loads(patch.content)["extraction_override"]["due_date"] == "2026-07-31"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_bill_publish_blank_due_date_leaves_it_to_terms(
+    respx_mock: respx.MockRouter,
+) -> None:
+    publish = _bill_publish_ok(respx_mock)
+    async with _client() as client:
+        await client.post(
+            f"/inbox/{_DOC_ID}/review",
+            data=_review_form(action="publish", record_kind="BILL",
+                              payment_account_id="", due_date=""),
+        )
+    assert "due_date" not in _json.loads(publish.calls.last.request.content)
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_due_date_before_invoice_date_is_a_form_error(
+    respx_mock: respx.MockRouter,
+) -> None:
+    respx_mock.patch(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=_doc(version=2, status="READY"))
+    )
+    publish = respx_mock.post(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}/publish")
+    respx_mock.get(url__regex=rf"{_API_BASE}/api/v1/.*").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+    async with _client() as client:
+        resp = await client.post(
+            f"/inbox/{_DOC_ID}/review",
+            data=_review_form(action="publish", record_kind="BILL", payment_account_id="",
+                              date="2026-06-20", due_date="2026-06-01"),
+        )
+    assert resp.status_code == 422
+    assert "The due date is before the invoice date." in resp.text
+    assert not publish.called
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_publish_reports_attachment_not_linked(respx_mock: respx.MockRouter) -> None:
+    _bill_publish_ok(respx_mock, headers={
+        "X-Attachment-Linked": "false", "X-Attachment-Error": "vault unavailable",
+    })
+    async with _client(follow_redirects=False) as client:
+        resp = await client.post(
+            f"/inbox/{_DOC_ID}/review",
+            data=_review_form(action="publish", record_kind="BILL", payment_account_id=""),
+        )
+    assert resp.status_code == 303
+    flash = _flash(resp)
+    assert "could not be attached" in flash and "vault unavailable" in flash
+    assert "source document attached" not in flash
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_inbox_review_shows_extracted_due_date(respx_mock: respx.MockRouter) -> None:
+    doc = _doc()
+    doc["extract"]["due_date"] = "2026-07-20"
+    respx_mock.get(f"{_API_BASE}/api/v1/inbox/documents/{_DOC_ID}").mock(
+        return_value=Response(200, json=doc)
+    )
+    respx_mock.get(url__regex=rf"{_API_BASE}/api/v1/(?!inbox).*").mock(
+        return_value=Response(200, json={"items": [], "total": 0})
+    )
+    async with _client() as client:
+        resp = await client.get(f"/inbox/{_DOC_ID}")
+    assert resp.status_code == 200
+    assert 'id="due_date" name="due_date" value="2026-07-20"' in resp.text

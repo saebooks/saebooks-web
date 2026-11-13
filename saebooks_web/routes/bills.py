@@ -18,7 +18,7 @@ Auth guard: redirect to /login (303) if no session token.
 from __future__ import annotations
 
 import uuid
-from datetime import date, timedelta
+from datetime import date
 from datetime import date as _date
 from datetime import timedelta as _td
 from pathlib import Path
@@ -27,6 +27,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import bulk_transitions
+from saebooks_web import settlement as settlement_reads
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines
@@ -281,7 +283,9 @@ async def bill_new_form(
         return RedirectResponse(url="/login", status_code=303)
 
     today = date.today().isoformat()
-    due = (date.today() + timedelta(days=30)).isoformat()
+    # Blank: filled from the contact's payment terms as soon as one is
+    # chosen, or by the engine on save (gap P0-15) — never a flat 30 days.
+    due = ""
 
     contacts: list[dict] = []
     accounts: list[dict] = []
@@ -1043,10 +1047,40 @@ async def bill_detail(
             "/api/v1/attachments",
             params={"entity_kind": "bill", "entity_id": bill_id},
         )
+        # Supplier name, balance due, payments and credits (gap P1-2).
+        settlement = await settlement_reads.document_settlement(client, "bill", bill_id)
+        supplier: dict = {}
+        if bill.get("contact_id") and not (settlement and settlement.get("contact", {}).get("name")):
+            supplier = await settlement_reads.get_json(
+                client, f"/api/v1/contacts/{bill['contact_id']}"
+            ) or {}
     if att_resp.status_code == 503:
         vault_enabled = False
     elif att_resp.is_success:
         attachments = att_resp.json()
+
+    # The supplier's own invoice (attached by the inbox on publish, or
+    # uploaded) for the side-by-side viewer (gap P1-3).
+    supplier_pdf = next(
+        (
+            a for a in attachments
+            if not a.get("archived_at")
+            and (
+                str(a.get("content_type") or "").lower() == "application/pdf"
+                or str(a.get("content_type") or "").lower().startswith("image/")
+                or str(a.get("filename") or "").lower().endswith(".pdf")
+            )
+        ),
+        None,
+    )
+    supplier_name = (
+        (settlement or {}).get("contact", {}).get("name") or supplier.get("name") or None
+    )
+    total = float(bill.get("total") or 0)
+    paid = float(bill.get("amount_paid") or 0)
+    balance_due = (settlement or {}).get("amount_due")
+    if balance_due is None:
+        balance_due = f"{max(total - paid, 0):.2f}"
 
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
@@ -1059,6 +1093,12 @@ async def bill_detail(
             "flash": flash,
             "attachments": attachments,
             "vault_enabled": vault_enabled,
+            "entity_kind": "bill",
+            "entity_id": bill_id,
+            "settlement": settlement,
+            "supplier_name": supplier_name,
+            "supplier_pdf": supplier_pdf,
+            "balance_due": balance_due,
         },
     )
 
@@ -1072,6 +1112,52 @@ _BULK_ACTIONS = {
     "void":    ("POST",   "/api/v1/bills/{id}/void"),
     "archive": ("DELETE", "/api/v1/bills/{id}"),
 }
+
+
+async def _bills_bulk_pay(request: Request, ids: list[str]) -> RedirectResponse:
+    """"Pay selected" (gap P0-14): open one supplier payment with the ticked
+    bills already ticked in the picker. A payment goes to one supplier, so a
+    selection across suppliers is refused with a plain message."""
+    contacts: set[str] = set()
+    payable: list[str] = []
+    skipped: list[str] = []
+    async with api_client(request) as client:
+        for bill_id in ids:
+            resp = await client.get(f"/api/v1/bills/{bill_id}")
+            if not resp.is_success:
+                skipped.append(bill_id[:8])
+                continue
+            bill = resp.json()
+            owing = float(bill.get("total") or 0) - float(bill.get("amount_paid") or 0)
+            if str(bill.get("status")).upper() != "POSTED" or owing <= 0:
+                skipped.append(str(bill.get("number") or bill_id[:8]))
+                continue
+            contacts.add(str(bill.get("contact_id")))
+            payable.append(bill_id)
+    if not payable:
+        request.session["flash"] = (
+            "None of the selected bills can be paid — only posted bills with "
+            "something still owing can."
+        )
+        return RedirectResponse(url="/bills", status_code=303)
+    if len(contacts) > 1:
+        request.session["flash"] = (
+            "Those bills are from more than one supplier. A payment goes to one "
+            "supplier — select one supplier's bills at a time."
+        )
+        return RedirectResponse(url="/bills", status_code=303)
+    if skipped:
+        request.session["flash"] = (
+            "Left out (not posted, or nothing owing): " + ", ".join(skipped[:5])
+        )
+    from urllib.parse import urlencode
+
+    query = urlencode({
+        "direction": "OUTGOING",
+        "contact_id": next(iter(contacts)),
+        "bill_ids": ",".join(payable),
+    })
+    return RedirectResponse(url=f"/payments/new?{query}", status_code=303)
 
 
 @router.post("/bills/bulk", response_class=HTMLResponse, response_model=None)
@@ -1090,7 +1176,7 @@ async def bills_bulk_action(request: Request) -> RedirectResponse:
 
     form_data = await request.form()
     action = str(form_data.get("action", "")).strip()
-    if action not in _BULK_ACTIONS:
+    if action not in _BULK_ACTIONS and action != "pay":
         request.session["flash"] = f"Unknown bulk action: {action!r}"
         return RedirectResponse(url="/bills", status_code=303)
 
@@ -1099,29 +1185,17 @@ async def bills_bulk_action(request: Request) -> RedirectResponse:
         request.session["flash"] = "No rows selected."
         return RedirectResponse(url="/bills", status_code=303)
 
+    if action == "pay":
+        return await _bills_bulk_pay(request, ids)
+
     method, path_tpl = _BULK_ACTIONS[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for bill_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=bill_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{bill_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{bill_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+        )
 
     label = action.replace("_", " ").title()
     if failed:

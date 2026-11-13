@@ -173,6 +173,15 @@
                class="saebooks-input w-full">
         {% if errors.date %}<p class="mt-1 text-sm" style="color: var(--neg);">{{ errors.date }}</p>{% endif %}
       </div>
+      <div id="due-date-field">
+        <label for="due_date" class="block text-base font-medium ink-3">
+          {{ _("Due date") }} {{ chips.provenance_badge(provenance.due_date) }}
+        </label>
+        <input type="date" id="due_date" name="due_date" value="{{ merged.due_date or '' }}"
+               class="saebooks-input w-full">
+        <p class="mt-1 text-xs ink-3">{{ _("Bills only. As printed on the invoice — leave blank to use the supplier's payment terms.") }}</p>
+        {% if errors.due_date %}<p class="mt-1 text-sm" style="color: var(--neg);">{{ errors.due_date }}</p>{% endif %}
+      </div>
       <div>
         <label for="invoice_number" class="block text-base font-medium ink-3">
           {{ _("Reference / invoice #") }} {{ chips.provenance_badge(provenance.invoice_number) }}
@@ -396,6 +405,8 @@
       pay.required = isExpense;
       pay.disabled = !isExpense;
       wrap.style.opacity = isExpense ? '' : '0.45';
+      var due = document.getElementById('due-date-field');
+      if (due) due.style.opacity = kind === 'BILL' ? '' : '0.45';
     }
     document.getElementById('record_kind').addEventListener('change', inboxKindSync);
     inboxKindSync();
