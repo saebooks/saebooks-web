@@ -63,7 +63,10 @@
             {%- elif bill.one_off_vendor_name %}<span class="ink-2">{{ bill.one_off_vendor_name }}</span>
             {%- else %}—{% endif %}
           </td>
-          <td class="text-right num-display ink-1 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.currency }} {{ num(bill.total|float, 2) }}</td>
+          <td class="text-right num-display ink-1 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.currency }} {{ num(bill.total|float, 2) }}
+            {% if bill.base_total is defined and bill.base_total is not none and bill.currency and bill.currency != fx_context(request).base %}
+            <span class="block text-xs ink-3 font-normal">{{ fx_context(request).base }} {{ num(bill.base_total|float, 2) }}</span>
+            {% endif %}</td>
           <td class="text-right num ink-2 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">
             {%- set _due = (bill.get('amount_due') if bill.get('amount_due') is not none else ((bill.total|float - bill.amount_paid|float) if (bill.status or '')|upper == 'POSTED' else 0))|float %}
             {% if _due > 0 %}{{ num(_due, 2) }}{% else %}<span class="ink-4">—</span>{% endif %}

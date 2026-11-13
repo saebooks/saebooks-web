@@ -102,7 +102,7 @@ async def test_fx_revaluation_get_200(respx_mock: respx.MockRouter) -> None:
     assert resp.status_code == 200
     assert "<html" in resp.text
     # Title present
-    assert "FX Revaluation" in resp.text
+    assert "Foreign currency revaluation" in resp.text
     # Base currency shown
     assert "AUD" in resp.text
     # Invoice item
@@ -193,4 +193,4 @@ async def test_fx_revaluation_empty_items(respx_mock: respx.MockRouter) -> None:
     assert "<html" in resp.text
     # Empty state message
     # Empty-state message (see templates/reports/_fx_revaluation_table.html)
-    assert "no foreign-currency documents found" in resp.text
+    assert "Nothing is owed in another currency" in resp.text

@@ -24,6 +24,9 @@
 {% set buckets = report.get("buckets", []) %}
 {% set contacts = report.get("contacts", []) %}
 {% set totals = report.get("totals", {}) %}
+{% if report.get("contacts") and (report.get("contacts") | selectattr("foreign_balances") | list) %}
+<p class="text-xs ink-3 mb-2">{{ _("Amounts are in %(base)s. Balances in other currencies are converted at the rate they were booked at.") % {"base": fx_context(request).base} }}</p>
+{% endif %}
 {% set retentions_receivable = report.get("retentions_receivable") %}
 
 <div class="card overflow-hidden">
@@ -41,7 +44,13 @@
       {% if contacts %}
         {% for contact in contacts %}
         <tr>
-          <td class="ink-1">{{ contact.get("contact_name", "—") }}</td>
+          <td class="ink-1">{{ contact.get("contact_name", "—") }}
+            {# Batch 10 (P0-27): amounts are in the company currency; the
+               foreign balances behind them are listed here. #}
+            {% for _ccy, _amt in (contact.get("foreign_balances") or {}).items() %}
+            <span class="block text-xs ink-3 num">{{ _("includes %(ccy)s %(amt)s") % {"ccy": _ccy, "amt": "{:,.2f}".format(_amt | float)} }}</span>
+            {% endfor %}
+          </td>
           {% for bucket in buckets %}
           <td class="text-right num ink-2">{{ num(contact.get(bucket, 0) | float, 2) }}</td>
           {% endfor %}

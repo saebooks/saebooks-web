@@ -65,6 +65,9 @@
           </td>
           <td class="text-right num-display ink-1 cursor-pointer" style="font-weight:500;" onclick="window.location='/invoices/{{ inv.id }}'">
             {{ inv.currency }} {{ num(inv.total|float, 2) }}
+            {% if inv.base_total is defined and inv.base_total is not none and inv.currency and inv.currency != fx_context(request).base %}
+            <span class="block text-xs ink-3 font-normal">{{ fx_context(request).base }} {{ num(inv.base_total|float, 2) }}</span>
+            {% endif %}
           </td>
           <td class="text-right num ink-2 cursor-pointer" onclick="window.location='/invoices/{{ inv.id }}'">
             {%- set _due = (inv.get('amount_due') if inv.get('amount_due') is not none else ((inv.total|float - inv.amount_paid|float) if (inv.status or '')|upper == 'POSTED' else 0))|float %}

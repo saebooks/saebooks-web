@@ -161,18 +161,23 @@
 <fieldset class="space-y-4 mt-7">
   <legend class="nav-section-label mb-3">{{ _("Billing currency") }}</legend>
   <div>
+    {# Batch 10 (P1-53): a picker, not free text. New invoices, quotes and
+       bills for this contact start in this currency. #}
+    {% set _fx = fx_context(request) %}
+    {% set _cur = (form.get('currency_code') or '') | upper %}
     <label for="currency_code" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-      {{ _("Currency code") }}
-      {# "leave blank for <default>" — the default currency comes from the
-         jurisdiction contract, so an EE company sees EUR, not AUD. #}
-      {% set _cur = request.state.jp.default_currency %}
-      {% if _cur %}<span class="ink-4 font-normal normal-case ml-1">{{ _("(ISO 4217 — leave blank for %(cur)s)") % {"cur": _cur} }}</span>{% else %}<span class="ink-4 font-normal normal-case ml-1">{{ _("(ISO 4217)") }}</span>{% endif %}
+      {{ _("Currency") }}
     </label>
-    <input type="text" id="currency_code" name="currency_code"
-           value="{{ form.get('currency_code', '') }}"
-           placeholder="e.g. JPY, USD, EUR" maxlength="3"
-           class="saebooks-input num w-32"
-           {% if errors.get('currency_code') %}style="border-color:var(--neg);"{% endif %}>
+    <select id="currency_code" name="currency_code" class="saebooks-input sm:max-w-xs"
+            {% if errors.get('currency_code') %}style="border-color:var(--neg);"{% endif %}>
+      <option value="" {% if not _cur %}selected{% endif %}>{{ _("Same as the company (%(cur)s)") % {"cur": _fx.base} }}</option>
+      {% set _codes = _fx.currencies | map(attribute="code") | list %}
+      {% if _cur and _cur not in _codes %}<option value="{{ _cur }}" selected>{{ _cur }}</option>{% endif %}
+      {% for c in _fx.currencies if c.code != _fx.base %}
+      <option value="{{ c.code }}" {% if _cur == c.code %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>
+      {% endfor %}
+    </select>
+    <p class="text-xs ink-3 mt-1">{{ _("New invoices, quotes and bills for this contact start in this currency.") }}</p>
     {% if errors.get("currency_code") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["currency_code"] }}</p>{% endif %}
   </div>
 </fieldset>

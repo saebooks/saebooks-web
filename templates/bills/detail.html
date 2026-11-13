@@ -93,12 +93,13 @@
   <div class="drafting mt-4"></div>
 </header>
 
-{% if bill.currency and bill.currency | upper != 'AUD' %}
+{% set _base = fx_context(request).base %}
+{% if bill.currency and bill.currency | upper != _base %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--sae);">
   <span class="dot" style="background:var(--sae);"></span>
   <span class="text-sm ink-2">
-    {{ _("Foreign currency") }} — {{ bill.currency }} {{ _("at") }} <span class="num">{{ "%.6g"|format(bill.fx_rate|float) }}</span> {{ _("AUD per 1 %(currency)s.") % {"currency": bill.currency} }}
-    {{ _("AUD total:") }} <strong class="num-display">{{ num(bill.base_total|float if bill.base_total is defined else bill.total|float, 2) }}</strong>
+    {{ _("Foreign currency") }} — 1 {{ bill.currency }} = <span class="num">{{ "%.6g"|format(bill.fx_rate|float) }}</span> {{ _base }}.
+    {{ _("Total in %(base)s:") % {"base": _base} }} <strong class="num-display">{{ num(bill.base_total|float if (bill.base_total is defined and bill.base_total is not none) else bill.total|float, 2) }}</strong>
   </span>
 </div>
 {% endif %}

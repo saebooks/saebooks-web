@@ -58,6 +58,9 @@
       tabular-nums">
       {{ num(line.amount | float, 2) }}
     </p>
+    {% if line.foreign_amount is not none and line.foreign_currency %}
+    <p class="text-xs ink-3 tabular-nums">{{ _("Charged as %(ccy)s %(amt)s") % {"ccy": line.foreign_currency, "amt": num(line.foreign_amount | float, 2)} }}</p>
+    {% endif %}
   </div>
   <div class="card rounded-xl p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Balance") }}</p>

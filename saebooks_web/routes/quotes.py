@@ -249,7 +249,7 @@ async def quote_create(request: Request) -> HTMLResponse | RedirectResponse:
     idempotency_key = form.get("idempotency_key", str(uuid.uuid4()))
 
     payload: dict[str, object] = {}
-    for field in ("customer_id", "issue_date", "expiry_date", "title", "notes", "terms"):
+    for field in ("customer_id", "issue_date", "expiry_date", "title", "notes", "terms", "currency"):
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
@@ -498,7 +498,7 @@ async def quote_add_line(
 # literal-vs-parameter ordering reason as /quotes/new.
 # ---------------------------------------------------------------------------
 
-_EDIT_FIELDS = ("customer_id", "issue_date", "expiry_date", "title", "notes", "terms")
+_EDIT_FIELDS = ("customer_id", "issue_date", "expiry_date", "title", "notes", "terms", "currency")
 _LOCKED_STATUSES = {"ACCEPTED", "DECLINED", "ARCHIVED", "INVOICED"}
 
 

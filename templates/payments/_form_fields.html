@@ -113,6 +113,11 @@
     {% if errors.get("reference") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["reference"] }}</p>{% endif %}
   </div>
 
+  {# Batch 10: a foreign invoice or bill is paid in its own currency, with
+     the amount that actually went through the bank in the company currency. #}
+  {% import "_currency_macros.html" as fxm with context %}
+  {{ fxm.payment_currency_fields(form, errors, fx_context(request)) }}
+
   <div>
     <label for="bank_account_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
       {{ _("Bank account") }}

@@ -239,7 +239,7 @@ async def recurring_invoice_create(request: Request) -> HTMLResponse | RedirectR
     # Build the top-level payload.
     payload: dict[str, object] = {}
     for field in ("contact_id", "name", "frequency", "next_run", "end_date",
-                  "payment_terms", "notes"):
+                  "payment_terms", "notes", "currency"):
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
@@ -371,7 +371,7 @@ async def recurring_invoice_add_line(
 
 _EDIT_FIELDS = (
     "contact_id", "name", "frequency", "next_run", "end_date",
-    "payment_terms", "notes",
+    "payment_terms", "notes", "currency",
 )
 
 

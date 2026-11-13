@@ -112,6 +112,10 @@
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">{{ _("Amount") }}</p>
     <p class="num-display ink-1 text-lg">{{ payment.currency }} {{ num(payment.amount|float, 2) }}</p>
+    {% set _base = fx_context(request).base %}
+    {% if payment.currency and payment.currency | upper != _base and payment.base_amount is defined and payment.base_amount is not none %}
+    <p class="text-xs ink-3 num">{{ _("Through the bank: %(base)s %(amt)s") % {"base": _base, "amt": num(payment.base_amount|float, 2)} }} · 1 {{ payment.currency }} = {{ "%.6g"|format(payment.fx_rate|float) }} {{ _base }}</p>
+    {% endif %}
   </div>
   <div class="card bg-paper p-4 rounded-none">
     <p class="nav-section-label mb-1">{{ _("Method") }}</p>

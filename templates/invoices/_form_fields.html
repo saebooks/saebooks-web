@@ -127,6 +127,13 @@
            placeholder="{{ _('e.g. Net 30') }}" class="saebooks-input sm:w-56"
            {% if errors.get('payment_terms') %}style="border-color:var(--neg);"{% endif %}>
   </div>
+
+  {# Batch 10: invoice in the customer's currency; rate prefilled from the
+     published rate for the issue date. #}
+  {% import "_currency_macros.html" as fxm with context %}
+  {{ fxm.currency_fields(form, errors, fx_context(request), "issue_date", "lines",
+                         "contact_id", contact_currencies(contacts),
+                         locked=(form.get("version") not in (None, ""))) }}
 </fieldset>
 
 {# ── Line items ── #}

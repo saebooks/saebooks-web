@@ -1,0 +1,124 @@
+{#
+  _currency_macros.html — currency, exchange rate and company-currency value
+  for invoices, quotes, bills, expenses and payments (batch 10).
+
+  fx = {"base": "AUD", "currencies": [{code, name}], "enabled": bool}
+  from saebooks_web.routes.fx.currency_context.
+
+  The rate is filled from the published rate for the document date by
+  /static/js/fx_fields.js and its source is shown under it. Left blank,
+  the engine looks the rate up itself; if there is none the document is
+  refused with a plain message — it is never booked at 1.00.
+#}
+
+{% macro currency_select(form, errors, fx, field="currency") %}
+{% set _base = (fx.base if fx else "AUD") | upper %}
+{% set _cur = (form.get(field) or _base) | upper %}
+<label for="{{ field }}" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Currency") }}</label>
+{% if fx and fx.enabled %}
+<select id="{{ field }}" name="{{ field }}" data-fx-currency class="saebooks-input num"
+        {% if errors.get(field) %}style="border-color:var(--neg);"{% endif %}>
+  {% set _codes = fx.currencies | map(attribute="code") | list %}
+  {% if _cur not in _codes %}<option value="{{ _cur }}" selected>{{ _cur }}</option>{% endif %}
+  {% for c in fx.currencies %}
+  <option value="{{ c.code }}" {% if _cur == c.code %}selected{% endif %}>{{ c.code }} — {{ c.name }}</option>
+  {% endfor %}
+</select>
+{% else %}
+<input type="hidden" id="{{ field }}" name="{{ field }}" value="{{ _cur }}" data-fx-currency>
+<p class="saebooks-input num ink-2" aria-readonly="true">{{ _cur }}</p>
+{% endif %}
+{% if errors.get(field) %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors[field] }}</p>{% endif %}
+{% endmacro %}
+
+
+{% macro currency_fields(form, errors, fx, date_input_id, total_source="lines", contact_select_id=None, contact_currencies=None, locked=False) %}
+{% set _base = (fx.base if fx else "AUD") | upper %}
+{% set _cur = (form.get("currency") or _base) | upper %}
+{% set _foreign = _cur != _base %}
+<div data-fx-root data-base="{{ _base }}" data-date-input="{{ date_input_id }}"
+     data-total-source="{{ total_source or '' }}"
+     {% if contact_select_id %}data-contact-select="{{ contact_select_id }}"
+     data-contact-currencies='{{ (contact_currencies or {}) | tojson }}'{% endif %}
+     {% if locked %}data-locked="1"{% endif %}
+     class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div>
+    {{ currency_select(form, errors, fx) }}
+  </div>
+  <div data-fx-foreign-only {% if not _foreign %}style="display:none"{% endif %}>
+    <label for="fx_rate" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+      {{ _("Exchange rate") }}
+      <span class="ink-4 font-normal normal-case">(1 <span data-fx-ccy-label>{{ _cur }}</span> = ? {{ _base }})</span>
+    </label>
+    <input type="number" id="fx_rate" name="fx_rate" value="{{ form.get('fx_rate', '') }}"
+           step="any" min="0" data-fx-rate class="saebooks-input num"
+           placeholder="{{ _('Filled in from the published rate') }}"
+           {% if errors.get('fx_rate') %}style="border-color:var(--neg);"{% endif %}>
+    <p class="text-xs ink-3 mt-1" data-fx-source aria-live="polite"></p>
+    {% if errors.get("fx_rate") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["fx_rate"] }}</p>{% endif %}
+  </div>
+  <div data-fx-foreign-only {% if not _foreign %}style="display:none"{% endif %}>
+    <span class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("In %(base)s") % {"base": _base} }}</span>
+    <p class="text-sm num ink-1 pt-2" data-fx-base-total aria-live="polite"></p>
+    <p class="text-xs ink-3 mt-1">
+      {{ _("Need a different rate?") }}
+      <a href="/settings/exchange-rates" class="sae hover:underline" target="_blank" rel="noopener">{{ _("Exchange rates") }}</a>
+    </p>
+  </div>
+</div>
+<script src="/static/js/fx_fields.js" defer></script>
+{% endmacro %}
+
+
+{# Amount shown in its own currency, with the company-currency value under
+   it when they differ. ``base_amount`` may be None. #}
+{% macro amount_both(amount, currency, base_amount, base) %}
+{% set _ccy = (currency or base or "AUD") | upper %}
+{% if _ccy != (base or "AUD") | upper %}
+<span class="num">{{ _ccy }} {{ "{:,.2f}".format(amount | float) }}</span>
+{% if base_amount is not none %}<span class="block text-xs ink-3 num">{{ base }} {{ "{:,.2f}".format(base_amount | float) }}</span>{% endif %}
+{% else %}
+<span class="num">{{ "{:,.2f}".format(amount | float) }}</span>
+{% endif %}
+{% endmacro %}
+
+
+{# Payment: a foreign invoice or bill is paid in its own currency; the
+   amount that actually left or reached the bank (company currency) sets
+   the rate, and the difference to the document's rate is booked as a
+   realised exchange gain or loss by the engine. #}
+{% macro payment_currency_fields(form, errors, fx) %}
+{% set _base = (fx.base if fx else "AUD") | upper %}
+{% set _cur = (form.get("currency") or _base) | upper %}
+{% set _foreign = _cur != _base %}
+<div data-fx-root data-base="{{ _base }}" data-date-input="payment_date"
+     data-total-source="#amount" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div>
+    {{ currency_select(form, errors, fx) }}
+    <p class="text-xs ink-3 mt-1">{{ _("Use the currency of the invoice or bill being paid.") }}</p>
+  </div>
+  <div data-fx-foreign-only {% if not _foreign %}style="display:none"{% endif %}>
+    <label for="base_amount" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+      {{ _("Amount in %(base)s through the bank") % {"base": _base} }}
+    </label>
+    <input type="number" id="base_amount" name="base_amount" step="0.01" min="0"
+           value="{{ form.get('base_amount', '') }}" data-fx-bank-amount
+           class="saebooks-input num"
+           {% if errors.get('base_amount') %}style="border-color:var(--neg);"{% endif %}>
+    <p class="text-xs ink-3 mt-1">{{ _("What your bank statement shows. Leave blank to use the rate.") }}</p>
+    {% if errors.get("base_amount") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["base_amount"] }}</p>{% endif %}
+  </div>
+  <div data-fx-foreign-only {% if not _foreign %}style="display:none"{% endif %}>
+    <label for="fx_rate" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+      {{ _("Exchange rate") }}
+      <span class="ink-4 font-normal normal-case">(1 <span data-fx-ccy-label>{{ _cur }}</span> = ? {{ _base }})</span>
+    </label>
+    <input type="number" id="fx_rate" name="fx_rate" value="{{ form.get('fx_rate', '') }}"
+           step="any" min="0" data-fx-rate class="saebooks-input num"
+           {% if errors.get('fx_rate') %}style="border-color:var(--neg);"{% endif %}>
+    <p class="text-xs ink-3 mt-1" data-fx-source aria-live="polite"></p>
+    <p class="text-sm num ink-1" data-fx-base-total aria-live="polite"></p>
+  </div>
+</div>
+<script src="/static/js/fx_fields.js" defer></script>
+{% endmacro %}

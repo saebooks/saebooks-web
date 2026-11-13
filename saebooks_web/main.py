@@ -134,6 +134,7 @@ from saebooks_web.routes.statement_templates import router as statement_template
 from saebooks_web.routes.recurring_invoices import router as recurring_invoices_router
 from saebooks_web.routes.reports import router as reports_router
 from saebooks_web.routes.reports_ledger import router as reports_ledger_router  # batch 7
+from saebooks_web.routes.fx import router as fx_router
 from saebooks_web.routes.search import router as search_router
 from saebooks_web.routes.companies import router as companies_router
 from saebooks_web.routes.settings import router as settings_router
@@ -467,6 +468,7 @@ app.include_router(statements_router)
 app.include_router(statement_templates_router)
 app.include_router(budgets_router)
 app.include_router(allocations_router)
+app.include_router(fx_router)
 app.include_router(reports_router)
 app.include_router(reports_ledger_router)
 app.include_router(search_router)

@@ -72,6 +72,14 @@
     <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["contact_id"] }}</p>
     {% endif %}
   </div>
+
+  {# Batch 10: repeating invoices in the customer's currency. Each invoice
+     gets the published rate for its own date. #}
+  {% import "_currency_macros.html" as fxm with context %}
+  <div class="sm:max-w-xs mt-4">
+    {{ fxm.currency_select(form, errors, fx_context(request)) }}
+    <p class="text-xs ink-3 mt-1">{{ _("Each invoice uses the exchange rate for the day it is raised.") }}</p>
+  </div>
 </fieldset>
 
 {# ── Schedule ── #}

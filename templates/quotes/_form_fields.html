@@ -87,6 +87,14 @@
       </label>
     </div>
   </div>
+
+  {# Batch 10: quote in the customer's currency. The rate is set when the
+     quote becomes an invoice, for the invoice date. #}
+  {% import "_currency_macros.html" as fxm with context %}
+  <div class="sm:max-w-xs" data-fx-root data-base="{{ fx_context(request).base }}">
+    {{ fxm.currency_select(form, errors, fx_context(request)) }}
+    <p class="text-xs ink-3 mt-1">{{ _("The exchange rate is set when the quote becomes an invoice.") }}</p>
+  </div>
 </fieldset>
 
 <fieldset class="mt-7">
