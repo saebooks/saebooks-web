@@ -10,20 +10,22 @@
       class="saebooks-input w-full px-2 py-1 text-base">
   </td>
   <td class="px-2 py-1">
-    <select name="lines[{{ index }}][account_id]" required
+    <select name="lines[{{ index }}][account_id]" required data-sets-tax-code
       class="saebooks-input w-full px-2 py-1 text-base">
       <option value="">{{ _("— expense account —") }}</option>
       {% for a in accounts %}
-      <option value="{{ a.id }}" {% if line.account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
+      <option value="{{ a.id }}" data-tax-code="{{ a.default_tax_code or '' }}" {% if line.account_id == a.id %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
       {% endfor %}
     </select>
   </td>
   <td class="px-2 py-1">
-    <select name="lines[{{ index }}][tax_code_id]"
+    {# b15 (P2-2): purchase codes only; picking an account fills its default
+       tax code unless one was chosen by hand (static/js/phone.js). #}
+    <select name="lines[{{ index }}][tax_code_id]" data-tax-code-select
       class="saebooks-input w-full px-2 py-1 text-base">
       <option value="">{{ _("none") }}</option>
       {% for t in tax_codes %}
-      <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %} data-rate="{{ t.rate }}">{{ t.code }} ({{ t.rate }}%)</option>
+      <option value="{{ t.id }}" data-code="{{ t.code }}" {% if line.tax_code_id == t.id %}selected{% endif %} data-rate="{{ t.rate }}">{{ t.code }} ({{ t.rate }}%)</option>
       {% endfor %}
     </select>
   </td>

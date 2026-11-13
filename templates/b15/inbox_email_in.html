@@ -1,0 +1,16 @@
+{# Email-in address card (b15, P2-24). #}
+<div id="inbox-email-in" class="card p-3 mb-4 flex flex-wrap items-center gap-3">
+  <i data-lucide="mail" class="w-5 h-5" style="color:var(--sae);"></i>
+  {% if state == 'ready' %}
+    <p class="text-sm ink-2">{{ _("Forward receipts and supplier invoices to") }}
+      <span class="font-mono ink-1 select-all" id="email-in-address">{{ address }}</span></p>
+    <button type="button" class="btn-secondary text-sm min-h-[44px]"
+            onclick="navigator.clipboard && navigator.clipboard.writeText('{{ address }}').then(function(){ this.textContent = '{{ _('Copied') }}'; }.bind(this));">{{ _("Copy") }}</button>
+  {% elif state == 'no_domain' %}
+    <p class="text-sm ink-3">{{ _("Email-in is switched on, but this server has no mail address set up yet. Ask your administrator.") }}</p>
+  {% elif state == 'not_on_plan' %}
+    <p class="text-sm ink-3">{{ _("Forwarding receipts by email is part of the Business plan. You can still photograph or upload them below.") }}</p>
+  {% else %}
+    <p class="text-sm ink-3">{{ _("The email-in address could not be loaded just now.") }}</p>
+  {% endif %}
+</div>

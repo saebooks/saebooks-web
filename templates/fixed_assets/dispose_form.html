@@ -47,6 +47,14 @@
           >
         </div>
 
+        {# b15 (P2-4): book value, GST and gain or loss before anything is
+           recorded. Refreshes as the date and price are typed. #}
+        <div id="disposal-preview" aria-live="polite"
+             hx-get="/fixed-assets/{{ asset.id }}/disposal-preview"
+             hx-trigger="change from:#disposal_date, keyup changed delay:500ms from:#proceeds"
+             hx-include="#disposal_date, #proceeds"
+             hx-swap="innerHTML"></div>
+
         <div>
           <label for="proceeds_account_id" class="block text-sm font-medium ink-2 mb-1">
             {{ _("Money received into") }}

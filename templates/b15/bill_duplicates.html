@@ -1,0 +1,14 @@
+{# Possible duplicate bill warning (b15, P2-13). #}
+<div class="card p-3 mt-2" style="border-color:var(--warm);" role="alert">
+  <p class="text-sm ink-1 font-medium" style="color:var(--warm);">
+    {% if duplicates|length == 1 %}{{ _("This supplier already has a bill with invoice number %(ref)s.") % {"ref": reference} }}
+    {% else %}{{ _("This supplier already has %(n)s bills with invoice number %(ref)s.") % {"n": duplicates|length, "ref": reference} }}{% endif %}
+  </p>
+  <ul class="mt-1 text-sm ink-2 space-y-1">
+    {% for d in duplicates %}
+    <li><a href="/bills/{{ d.id }}" target="_blank" rel="noopener" class="sae hover:underline">{{ d.number or _("Draft bill") }}</a>
+      · {{ d.issue_date }} · {{ money(d.total|float) }} · {{ {'DRAFT': _('Draft'), 'POSTED': _('Entered')}.get(d.status, d.status) }}</li>
+    {% endfor %}
+  </ul>
+  <p class="text-xs ink-3 mt-1">{{ _("Check it is not the same invoice before saving. You can still save if it is a different one.") }}</p>
+</div>

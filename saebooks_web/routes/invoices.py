@@ -311,7 +311,13 @@ async def invoice_new_form(request: Request) -> HTMLResponse | RedirectResponse:
         request,
         "invoices/new.html",
         {
-            "form": {"issue_date": today, "due_date": due},
+            # b15 (P1-76): "New invoice" on a contact page prefills the customer.
+            "form": {
+                "issue_date": today,
+                "due_date": due,
+                **({"contact_id": request.query_params["contact_id"]}
+                   if request.query_params.get("contact_id") else {}),
+            },
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "contacts": contacts,

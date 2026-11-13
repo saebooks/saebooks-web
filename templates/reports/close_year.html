@@ -56,6 +56,12 @@
   <button type="submit" class="btn-secondary text-sm">{{ _("Preview") }}</button>
 </form>
 
+{# b15 (P2-3): drafts, unreconciled bank lines, depreciation and pay runs
+   still open in the year being closed. #}
+<div hx-get="/reports/close-year/checklist?through={{ through }}" hx-trigger="load" hx-swap="outerHTML">
+  <p class="text-sm ink-3 mb-4">{{ _("Checking what is still open in this period…") }}</p>
+</div>
+
 {% if preview %}
   {% if preview.get("has_anything_to_close") %}
   <div class="card p-4 mb-4">
@@ -86,6 +92,9 @@
       <label for="override_reason" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Override reason (only if the close date is already locked)") }}</label>
       <input id="override_reason" type="text" name="override_reason" placeholder="{{ _('e.g. re-close after adjustment') }}" class="saebooks-input text-sm py-1.5 w-full">
     </div>
+    {# Filled by the checklist (out-of-band) with a required tick when
+       anything is still open in the period. #}
+    <div id="close-ack-slot" class="w-full"></div>
     <button type="submit" class="rounded-md bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700">{{ _("Post close-year journal") }}</button>
   </form>
   {% else %}

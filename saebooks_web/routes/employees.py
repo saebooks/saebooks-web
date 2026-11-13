@@ -216,6 +216,10 @@ async def employee_create(request: Request) -> HTMLResponse | RedirectResponse:
     base_rate = _parse_decimal(form.get("base_rate"))
     if base_rate is not None:
         payload["base_rate"] = str(base_rate)
+    # b15 (P2-19): casual loading on ordinary hours (blank = none).
+    casual_loading = _parse_decimal(form.get("casual_loading_pct"))
+    if casual_loading is not None:
+        payload["casual_loading_pct"] = str(casual_loading)
 
     # Optional identity
     for field in ("employee_number", "dob", "payee_id_bms"):
@@ -543,6 +547,12 @@ async def employee_edit_submit(
     weekly_hours = _parse_decimal(form.get("weekly_hours"))
     if weekly_hours is not None:
         payload["weekly_hours"] = str(weekly_hours)
+    # b15 (P2-19): casual loading; a cleared field removes it.
+    if "casual_loading_pct" in form_data:
+        casual_loading = _parse_decimal(form.get("casual_loading_pct"))
+        payload["casual_loading_pct"] = (
+            str(casual_loading) if casual_loading is not None else None
+        )
 
     for field in (
         "claims_tax_free_threshold",

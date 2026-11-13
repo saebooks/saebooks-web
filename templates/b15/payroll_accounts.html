@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Payroll accounts") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-4"><a href="/payroll/pay-runs" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← pay runs") }}</a></div>
+<header class="mb-6">
+  <span class="nav-section-label">{{ _("Payroll") }}</span>
+  <h1 class="font-display text-3xl leading-none tracking-tight mt-1">{{ _("Payroll accounts") }}</h1>
+  <p class="text-sm ink-2 mt-3 max-w-2xl">{{ _("A pay run posts one journal to these accounts: wages and super as expenses, and the tax withheld, super and net wages you owe until they are paid. Each must exist before the first pay run.") }}</p>
+  <div class="drafting mt-4"></div>
+</header>
+{% if flash %}<div class="card p-3 mb-4 text-sm ink-1" style="border-color:var(--sae);">{{ flash }}</div>{% endif %}
+{% if degraded %}{% include "_partials/degraded_panel.html" %}
+{% elif error %}<div class="card p-3 mb-4" style="border-color:var(--neg);"><p class="text-sm" style="color:var(--neg);">{{ error }}</p></div>
+{% else %}
+<div class="card overflow-hidden mb-4">
+  <table class="sae-table w-full text-sm">
+    <thead><tr>
+      <th class="text-left">{{ _("Used for") }}</th>
+      <th class="text-left">{{ _("Account") }}</th>
+      <th class="text-left">{{ _("Name") }}</th>
+      <th class="text-left">{{ _("State") }}</th>
+    </tr></thead>
+    <tbody>
+    {% for c in data.accounts or [] %}
+      <tr>
+        <td>{{ c.purpose }}</td>
+        <td class="font-mono">{{ c.code }}</td>
+        <td>{{ c.account_name or "—" }}</td>
+        <td>
+          {% if c.status == 'OK' %}<span class="chip chip-pos text-xs">{{ _("Ready") }}</span>
+          {% elif c.status == 'MISSING' %}<span class="chip chip-warm text-xs">{{ _("Missing") }}</span>
+          {% else %}<span class="chip chip-neg text-xs">{{ _("Wrong kind of account") }}</span>{% endif %}
+          {% if c.problem and c.status != 'MISSING' %}<span class="block text-xs ink-3 mt-1">{{ c.problem }}</span>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if data.missing_count %}
+  {% if can_edit %}
+  <form method="post" action="/payroll/accounts" class="mb-6">
+    {{ csrf_input(request)|safe }}
+    <button type="submit" class="btn-primary text-sm min-h-[44px]">{{ _("Create the %(n)s missing accounts") % {"n": data.missing_count} }}</button>
+    <p class="text-xs ink-3 mt-2">{{ _("Creates them with the codes above. Nothing that already exists is changed.") }}</p>
+  </form>
+  {% else %}
+  <p class="text-sm ink-3 mb-6">{{ _("Ask an owner or admin to create the missing accounts.") }}</p>
+  {% endif %}
+{% elif data.ready %}
+  <p class="text-sm ink-2 mb-6 flex items-center gap-2"><span class="dot" style="background:var(--pos);"></span>{{ _("All payroll accounts are ready.") }}</p>
+{% endif %}
+{% if data.owing %}
+<h2 class="nav-section-label mb-2">{{ _("What payroll owes now") }}</h2>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+  {% for o in data.owing %}
+  <a href="/accounts?q={{ o.code }}" class="card p-4 block hover:shadow-md">
+    <p class="text-[11px] ink-3">{{ o.purpose }}</p>
+    <p class="font-display text-xl num">{{ money(o.balance|float) }}</p>
+    <p class="text-xs ink-3 font-mono">{{ o.code }} {{ o.name }}</p>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

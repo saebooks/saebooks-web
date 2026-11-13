@@ -166,6 +166,17 @@ from saebooks_web.render import router as render_router
 # Internal server-to-server outbound email (engine #32) — token-gated,
 # exempt from session auth (same /internal/ skip lists as render).
 from saebooks_web.comms import router as comms_router
+# b15 phone and polish (2026-11-13 sweep) — small routers with their own
+# paths, registered ahead of the big routers (see the include block below).
+from saebooks_web.routes.attention import router as b15_attention_router
+from saebooks_web.routes.contact_hub import router as b15_contact_hub_router
+from saebooks_web.routes.b15_reports import router as b15_reports_router
+from saebooks_web.routes.year_end import router as b15_year_end_router
+from saebooks_web.routes.payroll_setup import router as b15_payroll_setup_router
+from saebooks_web.routes.preferences_extra import router as b15_preferences_router
+from saebooks_web.routes.inbox_email_in import router as b15_inbox_email_in_router
+from saebooks_web.routes.bill_duplicates import router as b15_bill_duplicates_router
+from saebooks_web.routes.asset_disposal import router as b15_asset_disposal_router
 from saebooks_web.brand import current_brand
 from saebooks_web import __version__
 
@@ -259,6 +270,13 @@ else:
 # which point CompanyContextMiddleware has already set request.state.jp +
 # active_company_jurisdiction. Redirects a resolved non-AU company away from
 # AU-only payroll/BAS pages reached by direct URL (nav already hides them).
+# b15 (P2-7): drop or convert malformed date query parameters so a bad
+# link falls back to the default period instead of a server error. Pure
+# ASGI, innermost: it only rewrites the query string the routes read.
+from saebooks_web.date_params import DateParamMiddleware, apply_default_timezone
+app.add_middleware(DateParamMiddleware)
+apply_default_timezone()
+
 from saebooks_web.jurisdiction_gate import JurisdictionGateMiddleware
 app.add_middleware(JurisdictionGateMiddleware)
 
@@ -438,6 +456,20 @@ app.include_router(recurring_bills_router)
 app.include_router(contact_router)
 app.include_router(billing_router)
 app.include_router(dashboard_router)
+# b15 — before contacts/bills/inbox/reports so fixed paths such as
+# /bills/duplicate-check and /inbox/_email-in are not read as an id.
+for _b15_router in (
+    b15_attention_router,
+    b15_contact_hub_router,
+    b15_reports_router,
+    b15_year_end_router,
+    b15_payroll_setup_router,
+    b15_preferences_router,
+    b15_inbox_email_in_router,
+    b15_bill_duplicates_router,
+    b15_asset_disposal_router,
+):
+    app.include_router(_b15_router)
 app.include_router(demo_isolation_router)
 app.include_router(switch_company_router)
 app.include_router(locale_router)

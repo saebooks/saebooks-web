@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Aged by invoice") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-4"><a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← reports") }}</a></div>
+<header class="mb-6">
+  <span class="nav-section-label">{{ _("Aged report") }}</span>
+  <h1 class="font-display text-3xl leading-none tracking-tight mt-1">
+    {% if side == 'receivables' %}{{ _("What customers owe, invoice by invoice") }}{% else %}{{ _("What you owe suppliers, bill by bill") }}{% endif %}
+  </h1>
+  <form method="get" class="card mt-4 p-3 flex flex-wrap gap-3 items-end">
+    <label class="text-sm ink-2">{{ _("Show") }}
+      <select name="side" class="saebooks-input text-sm py-1.5 block mt-1">
+        <option value="receivables" {% if side == 'receivables' %}selected{% endif %}>{{ _("Customers (receivables)") }}</option>
+        <option value="payables" {% if side == 'payables' %}selected{% endif %}>{{ _("Suppliers (payables)") }}</option>
+      </select></label>
+    <label class="text-sm ink-2">{{ _("Age by") }}
+      <select name="age_by" class="saebooks-input text-sm py-1.5 block mt-1">
+        <option value="due" {% if age_by == 'due' %}selected{% endif %}>{{ _("Days past the due date") }}</option>
+        <option value="issue" {% if age_by == 'issue' %}selected{% endif %}>{{ _("Days since the invoice date") }}</option>
+      </select></label>
+    <label class="text-sm ink-2">{{ _("As at") }}
+      <input type="date" name="as_at" value="{{ as_at }}" class="saebooks-input text-sm py-1.5 block mt-1"></label>
+    <button type="submit" class="btn-primary text-sm min-h-[44px]">{{ _("Show") }}</button>
+  </form>
+  <div class="drafting mt-4"></div>
+</header>
+{% if degraded %}{% include "_partials/degraded_panel.html" %}
+{% elif error %}<div class="card p-3 mb-4" style="border-color:var(--neg);"><p class="text-sm" style="color:var(--neg);">{{ error }}</p></div>
+{% else %}
+{% set buckets = report.buckets or [] %}
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+  {% for b in buckets %}
+  <div class="card p-3"><p class="text-[11px] ink-3">{{ _(b.label) }}</p><p class="font-display text-lg num">{{ money((report.totals or {}).get(b.key, 0)|float) }}</p></div>
+  {% endfor %}
+  <div class="card p-3 border-sae"><p class="text-[11px] ink-3">{{ _("Total") }}</p><p class="font-display text-lg num sae">{{ money(report.grand_total|float) }}</p></div>
+</div>
+{% for c in report.contacts or [] %}
+<section class="mb-5">
+  <div class="flex items-baseline justify-between gap-3 mb-1">
+    <h2 class="text-base font-semibold ink-1">{% if c.contact_id %}<a href="/contacts/{{ c.contact_id }}" class="hover:underline">{{ c.contact_name }}</a>{% else %}{{ c.contact_name }}{% endif %}</h2>
+    <span class="num font-medium">{{ money(c.total|float) }}</span>
+  </div>
+  <div class="card overflow-hidden">
+    <table class="sae-table w-full text-sm">
+      <thead><tr>
+        <th class="text-left">{{ _("Number") }}</th>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("Due") }}</th>
+        <th class="text-right">{{ _("Total") }}</th>
+        <th class="text-right">{{ _("Paid") }}</th>
+        <th class="text-right">{{ _("Owing") }}</th>
+        <th class="text-right">{{ _("Days") }}</th>
+      </tr></thead>
+      <tbody>
+      {% for d in c.documents %}
+        <tr>
+          <td><a href="{{ doc_base }}{{ d.id }}" class="sae hover:underline">{{ d.number }}</a></td>
+          <td class="num">{{ d.issue_date }}</td>
+          <td class="num">{{ d.due_date }}</td>
+          <td class="text-right num">{{ money(d.total|float) }}</td>
+          <td class="text-right num ink-3">{{ money(d.paid|float) }}</td>
+          <td class="text-right num font-medium">{{ money(d.outstanding|float) }}</td>
+          <td class="text-right num" {% if age_by == 'due' and d.age_days > 30 %}style="color:var(--neg);"{% endif %}>{{ d.age_days if d.age_days > 0 else (_("not due") if age_by == 'due' else 0) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<p class="text-sm ink-3">{{ _("Nothing is owing as at this date.") }}</p>
+{% endfor %}
+{% endif %}
+{% endblock %}

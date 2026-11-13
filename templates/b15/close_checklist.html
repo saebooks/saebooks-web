@@ -1,0 +1,34 @@
+{# Year-end close checklist (b15, P2-3). Fragment for #close-checklist. #}
+<section id="close-checklist" class="card p-4 mb-4" aria-labelledby="close-checklist-h">
+  <h2 id="close-checklist-h" class="nav-section-label mb-2">{{ _("Before you close") }}</h2>
+  {% if failed %}
+    <p class="text-sm ink-3">{{ _("The checklist could not be loaded. Check drafts, bank reconciliation and depreciation by hand before closing.") }}</p>
+  {% else %}
+    {% if already_locked %}
+    <p class="text-sm mb-2" style="color:var(--warm);">{{ _("This period is already locked to %(date)s. Closing again needs an override reason.") % {"date": locked_through} }}</p>
+    {% endif %}
+    {% if ready %}
+    <p class="text-sm ink-2 flex items-center gap-2"><span class="dot" style="background:var(--pos);"></span>{{ _("Nothing open in this period. Ready to close.") }}</p>
+    {% else %}
+    <ul class="divide-y" style="border-color:var(--line);">
+      {% for line in lines %}
+      <li class="flex items-center justify-between gap-3 py-2 min-h-[44px]">
+        <span class="flex items-center gap-2 text-sm ink-1">
+          <span class="dot" style="background:var(--{{ 'pos' if line.count == 0 else 'warm' }});"></span>
+          {% if line.count %}<a href="{{ line.href }}" class="hover:underline">{{ line.label }}</a>{% else %}{{ line.label }}{% endif %}
+        </span>
+        <span class="text-sm num {{ 'ink-3' if line.count == 0 else '' }}">{% if line.count %}{{ line.count }}{% if line.oldest %} · {{ _("oldest %(date)s") % {"date": line.oldest} }}{% endif %}{% else %}{{ _("none") }}{% endif %}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  {% endif %}
+</section>
+{% if not ready %}
+<div id="close-ack-slot" hx-swap-oob="true" class="w-full">
+  <label class="flex items-start gap-2 text-sm ink-1">
+    <input type="checkbox" name="checklist_ack" value="1" required class="mt-1">
+    <span>{{ _("I have checked the list above and want to close anyway.") }}</span>
+  </label>
+</div>
+{% endif %}

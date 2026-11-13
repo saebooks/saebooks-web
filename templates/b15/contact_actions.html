@@ -1,0 +1,51 @@
+{# Contact action row (b15, P1-75/P1-76). Big tap targets, contact prefilled.
+   Needs: contact. Customers get sales actions, suppliers get purchase
+   actions, "both" gets both. Email statement and payment reminders are
+   added by the getting-paid batch (b11) next to "Statement PDF". #}
+{% set _ct = (contact.contact_type or '')|upper %}
+{% set is_customer = _ct in ('CUSTOMER', 'BOTH') %}
+{% set is_supplier = _ct in ('SUPPLIER', 'BOTH') %}
+{% if not contact.archived_at %}
+<nav class="mb-6" aria-label="{{ _('Actions for this contact') }}">
+  <div class="flex flex-wrap gap-2" data-contact-actions>
+    {% if contact.phone %}
+    <a href="tel:{{ contact.phone|replace(' ', '') }}" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="phone" class="w-4 h-4"></i>{{ _("Call") }}
+    </a>
+    {% endif %}
+    {% if contact.email %}
+    <a href="mailto:{{ contact.email }}" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="mail" class="w-4 h-4"></i>{{ _("Email") }}
+    </a>
+    {% endif %}
+    {% if is_customer %}
+    <a href="/invoices/new?contact_id={{ contact.id }}" class="btn-primary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="file-plus" class="w-4 h-4"></i>{{ _("New invoice") }}
+    </a>
+    <a href="/quotes/new?contact_id={{ contact.id }}" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="file-text" class="w-4 h-4"></i>{{ _("New quote") }}
+    </a>
+    <a href="/payments/new?direction=INCOMING&amp;contact_id={{ contact.id }}" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="hand-coins" class="w-4 h-4"></i>{{ _("Receive payment") }}
+    </a>
+    <a href="/credit-notes?contact_id={{ contact.id }}" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="undo-2" class="w-4 h-4"></i>{{ _("Credits and refunds") }}
+    </a>
+    <a href="/contacts/{{ contact.id }}/statement/pdf" target="_blank" rel="noopener" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="scroll-text" class="w-4 h-4"></i>{{ _("Statement PDF") }}
+    </a>
+    {% endif %}
+    {% if is_supplier %}
+    <a href="/bills/new?contact_id={{ contact.id }}" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="receipt" class="w-4 h-4"></i>{{ _("New bill") }}
+    </a>
+    <a href="/payments/new?direction=OUTGOING&amp;contact_id={{ contact.id }}" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="send" class="w-4 h-4"></i>{{ _("Pay this supplier") }}
+    </a>
+    <a href="/expenses/new?contact_id={{ contact.id }}" class="btn-secondary text-sm min-h-[44px] inline-flex items-center gap-1.5">
+      <i data-lucide="credit-card" class="w-4 h-4"></i>{{ _("New expense") }}
+    </a>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}

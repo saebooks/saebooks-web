@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Cash flow forecast") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-4"><a href="/reports" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← reports") }}</a></div>
+<header class="mb-6">
+  <span class="nav-section-label">{{ _("Cash") }}</span>
+  <h1 class="font-display text-3xl leading-none tracking-tight mt-1">{{ _("Cash flow forecast") }}</h1>
+  <p class="text-sm ink-2 mt-3 max-w-2xl">{{ _("Money expected in from invoices customers have not paid yet, and out to bills you have not paid, by due date, plus recurring invoices. Starts from today's bank balance.") }}</p>
+  <div class="flex flex-wrap gap-2 mt-4" role="group" aria-label="{{ _('How far ahead') }}">
+    {% for d in horizons %}
+    <a href="?days={{ d }}" class="chip {% if d == days %}chip-active{% endif %}">{{ _("%(n)s days") % {"n": d} }}</a>
+    {% endfor %}
+  </div>
+  <div class="drafting mt-4"></div>
+</header>
+{% if degraded %}{% include "_partials/degraded_panel.html" %}
+{% elif error %}<div class="card p-3 mb-4" style="border-color:var(--neg);"><p class="text-sm" style="color:var(--neg);">{{ error }}</p></div>
+{% else %}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("In the bank now") }}</p><p class="font-display text-xl num">{{ money(report.opening_balance|float) }}</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Expected in") }}</p><p class="font-display text-xl num" style="color:var(--pos);">{{ money(report.total_inflows|float) }}</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("Expected out") }}</p><p class="font-display text-xl num" style="color:var(--neg);">{{ money(report.total_outflows|float|abs) }}</p></div>
+  <div class="card p-4"><p class="text-[11px] uppercase tracking-wider ink-3">{{ _("In the bank on %(date)s") % {"date": report.to_date} }}</p><p class="font-display text-xl num">{{ money(report.projected_closing|float) }}</p></div>
+</div>
+{% if lowest is not none and lowest < 0 %}
+<div class="card p-3 mb-4" style="border-color:var(--neg);"><p class="text-sm" style="color:var(--neg);">{{ _("The balance is forecast to go below zero. The lowest week is marked below.") }}</p></div>
+{% endif %}
+<h2 class="nav-section-label mb-2">{{ _("Week by week") }}</h2>
+<div class="card overflow-hidden mb-6">
+  <table class="sae-table w-full text-sm">
+    <thead><tr>
+      <th class="text-left">{{ _("Week starting") }}</th>
+      <th class="text-right">{{ _("In") }}</th>
+      <th class="text-right">{{ _("Out") }}</th>
+      <th class="text-right">{{ _("Net") }}</th>
+      <th class="text-right">{{ _("Bank balance") }}</th>
+    </tr></thead>
+    <tbody>
+    {% for w in weeks %}
+      <tr {% if w.running_balance == lowest %}style="background:var(--warm-tint, rgba(200,140,40,.08));"{% endif %}>
+        <td class="num">{{ w.start }}</td>
+        <td class="text-right num">{{ money(w.inflows|float) }}</td>
+        <td class="text-right num">{{ money(w.outflows|float|abs) }}</td>
+        <td class="text-right num">{{ money(w.net|float) }}</td>
+        <td class="text-right num font-medium" {% if w.running_balance < 0 %}style="color:var(--neg);"{% endif %}>{{ money(w.running_balance|float) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<h2 class="nav-section-label mb-2">{{ _("Expected items") }}</h2>
+{% if items %}
+<div class="card overflow-hidden">
+  <table class="sae-table w-full text-sm">
+    <thead><tr>
+      <th class="text-left">{{ _("Expected") }}</th>
+      <th class="text-left">{{ _("What") }}</th>
+      <th class="text-left">{{ _("From") }}</th>
+      <th class="text-right">{{ _("Amount") }}</th>
+    </tr></thead>
+    <tbody>
+    {% for i in items %}
+      {% set href = {'invoice': '/invoices/', 'bill': '/bills/', 'recurring': '/recurring-invoices/'}.get(i.source, '') %}
+      <tr>
+        <td class="num">{{ i.expected_date }}</td>
+        <td>{% if href %}<a href="{{ href }}{{ i.source_id }}" class="sae hover:underline">{{ i.description }}</a>{% else %}{{ i.description }}{% endif %}</td>
+        <td class="ink-3">{{ {'invoice': _('Invoice'), 'bill': _('Bill'), 'recurring': _('Recurring invoice')}.get(i.source, i.source) }}</td>
+        <td class="text-right num" style="color:var(--{{ 'pos' if i.amount > 0 else 'neg' }});">{{ money(i.amount|float) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-sm ink-3">{{ _("Nothing is expected in or out in this period.") }}</p>
+{% endif %}
+{% endif %}
+{% endblock %}

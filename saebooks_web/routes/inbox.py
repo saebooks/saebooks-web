@@ -759,7 +759,10 @@ async def inbox_review_submit(
 
         doc = patch_resp.json()
 
-        if action != "publish":
+        # "publish_post" (b15, P2-23) = publish the draft, then post it
+        # straight away through the normal post endpoint.
+        post_after_publish = action == "publish_post"
+        if action not in ("publish", "publish_post"):
             request.session["flash"] = _("Review saved.")
             return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
 
@@ -899,6 +902,10 @@ async def inbox_review_submit(
                 return RedirectResponse(url=f"/inbox/{document_id}", status_code=303)
             return _gate_page(request, pub_resp.status_code)
 
+        if pub_resp.status_code == 201 and post_after_publish:
+            from saebooks_web.routes.inbox_post import post_published_record
+
+            return await post_published_record(request, client, pub_resp.json())
         if pub_resp.status_code == 201:
             body = pub_resp.json()
             record = body.get("record", {})

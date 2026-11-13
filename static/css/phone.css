@@ -1,0 +1,61 @@
+/* Phone layout for list tables (b15, gap P1-77).
+ *
+ * On a phone, wide list tables used to scroll sideways, so the amount and
+ * status were off screen (and the reconciliation lines card clipped them
+ * with no scroll at all). static/js/phone.js marks list tables with
+ * .stack-on-phone and copies each column heading into data-label on its
+ * cells; below 640px each row becomes a card of label / value pairs.
+ *
+ * Opt out with data-no-stack on the <table>. Line-item entry tables keep
+ * their own layout (.line-items-table in base.html).
+ */
+@media (max-width: 640px) {
+  table.stack-on-phone { min-width: 0 !important; width: 100%; border-collapse: separate; }
+  .card:has(> table.stack-on-phone),
+  .card:has(> div > table.stack-on-phone) { overflow: visible; }
+  table.stack-on-phone thead { display: none; }
+  table.stack-on-phone tbody,
+  table.stack-on-phone tfoot { display: block; }
+  table.stack-on-phone tr {
+    display: block;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.stack-on-phone tbody tr:last-child { border-bottom: 0; }
+  table.stack-on-phone td,
+  table.stack-on-phone th[scope="row"] {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 4px 0 !important;
+    border: 0 !important;
+    text-align: right;
+    min-height: 28px;
+    white-space: normal;
+  }
+  table.stack-on-phone td[data-label]::before,
+  table.stack-on-phone th[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    max-width: 45%;
+    text-align: left;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-3);
+  }
+  /* The first cell is the row's title: full width, no label, left aligned. */
+  table.stack-on-phone td:first-child {
+    justify-content: flex-start;
+    text-align: left;
+    font-weight: 600;
+  }
+  table.stack-on-phone td:first-child::before { display: none; }
+  /* Empty cells (checkbox gutters, blank action columns) take no space. */
+  table.stack-on-phone td:empty { display: none; }
+  /* Row actions stay reachable with a thumb. */
+  table.stack-on-phone td a,
+  table.stack-on-phone td button { min-height: 32px; }
+}

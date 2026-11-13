@@ -86,6 +86,12 @@
   <div class="drafting mt-5"></div>
 </header>
 
+{# b15 (P1-32): what needs doing now, first on the page (and on a phone).
+   Loaded on its own so a slow engine never holds up the dashboard. #}
+<div id="attention-card" hx-get="/dashboard/attention" hx-trigger="load" hx-swap="innerHTML">
+  <section class="card p-4 sm:p-5 mb-6"><p class="text-sm ink-3">{{ _("Checking what needs attention…") }}</p></section>
+</div>
+
 
 {# ─────────────────────────────────────────────────────────────────────────
    KPI strip — four primary numbers, JetBrains-Mono display.

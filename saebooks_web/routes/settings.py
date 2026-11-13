@@ -853,10 +853,14 @@ async def period_lock_create(request: Request) -> HTMLResponse | RedirectRespons
     if not locked_through:
         request.session["flash"] = _("A lock date is required.")
         return RedirectResponse(url="/settings/period-locks", status_code=303)
+    # b15 (P2-3): the engine refuses a lock with no reason; say so here.
+    if not reason:
+        request.session["flash"] = _(
+            "Say why the period is being locked (for example, BAS lodged)."
+        )
+        return RedirectResponse(url="/settings/period-locks", status_code=303)
 
-    body: dict[str, str] = {"locked_through": locked_through}
-    if reason:
-        body["reason"] = reason
+    body: dict[str, str] = {"locked_through": locked_through, "reason": reason}
 
     async with api_client(request) as client:
         resp = await client.post("/api/v1/period-close/locks", json=body)

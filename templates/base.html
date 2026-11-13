@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"{% set _sb_df = request.cookies.get('sb_date_format') if request else None %}{% if _sb_df in ('dmy', 'long') %} data-date-format="{{ _sb_df }}"{% endif %}>
 <head>
   {% set brand = current_brand() -%}
   <meta charset="UTF-8">
@@ -49,6 +49,8 @@
   </script>
 
   <link rel="stylesheet" href="/static/tailwind.css">
+  {# b15 (P1-77): list tables become cards on a phone. #}
+  <link rel="stylesheet" href="/static/css/phone.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -409,6 +411,8 @@
   </style>
 
   <script src="https://unpkg.com/htmx.org@2" defer></script>
+  {# b15: phone table cards (P1-77), date display preference (P2-9). #}
+  <script src="/static/js/phone.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -644,6 +648,10 @@
           <a href="/super-funds" class="nav-item is-sub {% if path.startswith('/super-funds') %}active{% endif %}">
             <i data-lucide="piggy-bank" class="nav-ico"></i>{{ _("Super funds") }}
           </a>
+          {# b15 (P2-21): set up the wages accounts in one step. #}
+          <a href="/payroll/accounts" class="nav-item is-sub {% if path.startswith('/payroll/accounts') %}active{% endif %}">
+            <i data-lucide="list-checks" class="nav-ico"></i>{{ _("Payroll accounts") }}
+          </a>
           {% endif %}
           <a href="/time-entries/week" class="nav-item is-sub {% if path.startswith('/time-entries') %}active{% endif %}">
             <i data-lucide="clock" class="nav-ico"></i>{{ _("Time entries") }}
@@ -847,6 +855,15 @@
           {% if (request.state.companies or []) | length > 1 %}
           <a href="/group" class="nav-item is-sub {% if path == '/group' %}active{% endif %}">
             <i data-lucide="building-2" class="nav-ico"></i>{{ _("Group Overview") }}
+          </a>
+          {% endif %}
+          {# b15 (P2-5, P2-3): cash outlook, and the year-end close out of hiding. #}
+          <a href="/reports/cash-forecast" class="nav-item is-sub {% if path.startswith('/reports/cash-forecast') %}active{% endif %}">
+            <i data-lucide="trending-up" class="nav-ico"></i>{{ _("Cash forecast") }}
+          </a>
+          {% if user_role in ('owner', 'admin') or request.session.get('is_sae_staff') %}
+          <a href="/reports/close-year" class="nav-item is-sub {% if path.startswith('/reports/close-year') %}active{% endif %}">
+            <i data-lucide="calendar-check" class="nav-ico"></i>{{ _("Close the year") }}
           </a>
           {% endif %}
         </div>
@@ -1148,6 +1165,7 @@
         {# Passive ephemeral-demo badge — renders only for a provisioned demo
            session (gated on the demo_tenant_id session marker inside). #}
         {% include "_partials/demo_banner.html" %}
+        {% include "b15/date_param_notice.html" %}
         {% block content %}{% endblock %}
       </div>
     </main>
