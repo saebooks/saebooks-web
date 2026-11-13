@@ -89,6 +89,10 @@
             onsubmit="return confirm('{{ _('Void this payment? A reversing entry is recorded, the original stays in the ledger, and the bank line it cleared goes back to be matched again. A line in a finished bank reconciliation cannot be voided.') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ payment.version }}">
+      <input type="text" name="reason" maxlength="1000" class="saebooks-input text-sm" style="width:14rem" placeholder="{{ _('Why? (kept in the history)') }}">
+      {% if request.session.get('user_role') in ('admin','accountant','owner') %}
+      <input type="text" name="override_reason" maxlength="1000" class="saebooks-input text-sm" style="width:18rem" placeholder="{{ _('Only if in a locked period: why change it?') }}">
+      {% endif %}
         <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
       </form>
       {% endif %}
@@ -103,6 +107,9 @@
   </div>
   <div class="drafting mt-4"></div>
 </header>
+
+{# ── Approval (batch 13, P1-72) ── #}
+{% with approval_kind="payment", approval_doc=payment %}{% include "_partials/approval_panel.html" %}{% endwith %}
 
 <section class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-7 hairline">
   <div class="card bg-paper p-4 rounded-none">
@@ -217,9 +224,8 @@
   {% include "_partials/attachments.html" with context %}
 </section>
 
-<div class="card p-4 mb-4 text-center ink-3 font-mono text-xs" style="border-style:dashed;">
-  change log · TODO
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="payment", history_id=payment.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if payment #}
 

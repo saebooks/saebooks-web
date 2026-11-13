@@ -94,7 +94,7 @@
       {{ csrf_input(request)|safe }}
       <button type="submit" class="btn-primary text-sm">{{ _("Email to customer") }}</button>
     </form>
-    {{ void_dated('/credit-notes/' ~ credit_note.id ~ '/void', credit_note.version, _("credit note")) }}
+    {{ void_dated('/credit-notes/' ~ credit_note.id ~ '/void', credit_note.version, _("credit note"), reasons=True) }}
     {% endif %}
     {% if is_admin %}
     {{ icons.hard_delete(
@@ -235,10 +235,8 @@
 </div>
 {% endif %}
 
-{# ── Change log stub ── #}
-<div class="card px-4 py-6 text-center text-sm ink-3" style="border-style:dashed;">
-  {{ _("Change log view — TODO") }}
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="credit_note", history_id=credit_note.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if credit_note #}
 

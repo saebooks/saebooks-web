@@ -101,6 +101,7 @@ from saebooks_web.routes.receipts import router as receipts_router
 from saebooks_web.routes.supplier_credit_notes import router as supplier_credit_notes_router
 from saebooks_web.routes.payment_allocations import router as payment_allocations_router
 from saebooks_web.routes.reclassifications import router as reclassifications_router
+from saebooks_web.routes.corrections import router as corrections_router  # batch 13
 from saebooks_web.routes.dashboard import router as dashboard_router
 from saebooks_web.routes.demo_isolation import router as demo_isolation_router
 from saebooks_web.routes.switch_company import router as switch_company_router
@@ -458,6 +459,7 @@ app.include_router(supplier_credit_notes_router)
 app.include_router(payment_allocations_router)
 app.include_router(journal_entries_router)
 app.include_router(reclassifications_router)
+app.include_router(corrections_router)  # batch 13: fix, history, approvals
 app.include_router(journal_templates_router)
 app.include_router(accounts_router)
 app.include_router(account_ranges_router)

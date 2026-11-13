@@ -10,6 +10,7 @@
   <form method="post" action="{{ action_url }}" class="card p-4 mb-3 space-y-2">
     {{ csrf_input(request)|safe }}
     <input type="hidden" name="version" value="{{ version }}">
+    {% for _k, _v in (carry or {}).items() %}<input type="hidden" name="{{ _k }}" value="{{ _v }}">{% endfor %}
     <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block" for="reversal_date">{{ _("Reverse on a date in an open period") }}</label>
     <input id="reversal_date" type="date" name="reversal_date" min="{{ conflict.get('period_end') }}" required class="saebooks-input num text-sm py-1.5">
     <button type="submit" class="btn-primary text-sm">{{ _("Void on this date") }}</button>
@@ -18,6 +19,7 @@
   <form method="post" action="{{ action_url }}" class="card p-4 mb-3 space-y-2">
     {{ csrf_input(request)|safe }}
     <input type="hidden" name="version" value="{{ version }}">
+    {% for _k, _v in (carry or {}).items() %}<input type="hidden" name="{{ _k }}" value="{{ _v }}">{% endfor %}
     <input type="hidden" name="reversal_date" value="{{ conflict.get('reversal_date') }}">
     <input type="hidden" name="confirm_lodged_period" value="1">
     <p class="text-xs ink-3">{{ _("Only if you will correct the lodged BAS with the ATO.") }}</p>

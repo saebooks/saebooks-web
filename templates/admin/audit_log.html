@@ -12,29 +12,47 @@
 </div>
 {% endif %}
 
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
   <div>
     <h1 class="text-2xl font-semibold ink-1">{{ _("Audit Log") }}</h1>
-    <p class="text-sm ink-3 mt-1">{{ _("Immutable record of all data changes") }}</p>
+    <p class="text-sm ink-3 mt-1">{{ _("Who posted, voided, moved or approved what, and why. Each document also shows its own history.") }}</p>
   </div>
-  <a href="/admin/audit/export.csv"
+  <a href="/admin/audit/export.csv{% if query %}?{{ query }}{% endif %}"
      class="rounded-md hairline px-4 py-2 text-sm font-medium ink-2 hover:bg-[color:var(--paper-2)]">
-    {{ _("Export CSV") }}
+    {{ _("Download spreadsheet (CSV)") }}
   </a>
 </div>
 
 {# ── Filters ── #}
-<form method="get" action="/admin/audit" class="card p-4 mb-6 grid grid-cols-4 gap-4 items-end">
+<form method="get" action="/admin/audit" class="card p-4 mb-6 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
   <div>
-    <label class="block text-xs font-medium ink-2 mb-1" for="entity_type">{{ _("Entity Type") }}</label>
+    <label class="block text-xs font-medium ink-2 mb-1" for="entity_type">{{ _("Document type") }}</label>
     <select id="entity_type" name="entity_type" class="saebooks-input w-full">
       <option value="">{{ _("All types") }}</option>
-      {% for t in entity_types %}
-      <option value="{{ t }}" {% if filters.entity_type == t %}selected{% endif %}>{{ t }}</option>
+      {% for value, meta in entity_types %}
+      <option value="{{ value }}" {% if filters.entity_type == value %}selected{% endif %}>{{ _(meta[0]) }}</option>
       {% endfor %}
-      {% if filters.entity_type and filters.entity_type not in entity_types %}
+      {% if filters.entity_type and filters.entity_type not in (entity_types|map('first')|list) %}
       <option value="{{ filters.entity_type }}" selected>{{ filters.entity_type }}</option>
       {% endif %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs font-medium ink-2 mb-1" for="action">{{ _("What happened") }}</label>
+    <select id="action" name="action" class="saebooks-input w-full">
+      <option value="">{{ _("Anything") }}</option>
+      {% for value, label in actions %}
+      <option value="{{ value }}" {% if filters.action == value %}selected{% endif %}>{{ _(label) }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs font-medium ink-2 mb-1" for="actor">{{ _("Who") }}</label>
+    <select id="actor" name="actor" class="saebooks-input w-full">
+      <option value="">{{ _("Anyone") }}</option>
+      {% for u in users %}
+      <option value="{{ u.id }}" {% if filters.actor == (u.id|string) %}selected{% endif %}>{{ u.display_name or u.username or u.email }}</option>
+      {% endfor %}
     </select>
   </div>
   <div>
@@ -46,6 +64,7 @@
     <input type="date" id="date_to" name="date_to" value="{{ filters.date_to }}" class="saebooks-input w-full">
   </div>
   <div class="flex gap-2">
+    <input type="hidden" name="document" value="{{ filters.document }}">
     <button type="submit" class="btn-primary text-sm">
       {{ _("Filter") }}
     </button>
@@ -67,34 +86,25 @@
   <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Timestamp") }}</th>
-        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Action") }}</th>
-        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Entity") }}</th>
-        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("By") }}</th>
-        <th scope="col" class="px-4 py-2"></th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("When") }}</th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("What happened") }}</th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Document") }}</th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Who") }}</th>
+        <th scope="col" class="px-4 py-2 text-left text-xs font-medium ink-3 uppercase tracking-wide">{{ _("Reason") }}</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-[color:var(--line)]">
       {% if snapshots %}
         {% for snap in snapshots %}
         <tr class="hover:bg-[color:var(--paper-2)]">
-          <td class="px-4 py-2 font-mono text-xs ink-3">{{ snap.performed_at | default(snap.created_at) | default("—") }}</td>
-          <td class="px-4 py-2">
-            {% if snap.action == 'CREATE' %}<span class="badge-pos">{{ snap.action }}</span>
-            {% elif snap.action == 'UPDATE' %}<span class="badge-sae">{{ snap.action }}</span>
-            {% elif snap.action == 'DELETE' %}<span class="badge-neg">{{ snap.action }}</span>
-            {% else %}<span class="badge-ink">{{ snap.action | default("—") }}</span>{% endif %}
-          </td>
+          <td class="px-4 py-2 num text-xs ink-3 whitespace-nowrap">{{ (snap.performed_at or "—")[:16] | replace("T", " ") }}</td>
+          <td class="px-4 py-2 ink-1">{{ _(snap.action_label) }}</td>
           <td class="px-4 py-2 ink-2">
-            {{ snap.table_name | default("—") }}
-            {% if snap.row_id %}<span class="font-mono text-xs ink-4 ml-1">{{ snap.row_id[:8] }}…</span>{% endif %}
+            {% if snap.href %}<a href="{{ snap.href }}" class="sae hover:underline">{{ _(snap.table_label) }}</a>{% else %}{{ _(snap.table_label) }}{% endif %}
+            {% if snap.row_id %}<a href="/admin/audit?document={{ snap.row_id }}" class="text-xs ink-4 ml-1 hover:underline" title="{{ _('Everything that happened to this document') }}">{{ _("all changes") }}</a>{% endif %}
           </td>
-          <td class="px-4 py-2 ink-2 text-xs">{{ snap.performed_by | default(_("system")) }}</td>
-          <td class="px-4 py-2 text-right">
-            {% if snap.id %}
-            <a href="/admin/audit/{{ snap.id }}" class="text-xs sae hover:underline">{{ _("Detail") }}</a>
-            {% endif %}
-          </td>
+          <td class="px-4 py-2 ink-2">{{ snap.performed_by }}</td>
+          <td class="px-4 py-2 ink-2 text-xs">{{ snap.reason or "" }}</td>
         </tr>
         {% endfor %}
       {% else %}
@@ -113,14 +123,14 @@
 <div class="flex items-center justify-between mt-4 text-sm ink-2">
   <div>
     {% if page > 1 %}
-    <a href="?entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&page={{ page - 1 }}"
+    <a href="?{{ query }}{% if query %}&{% endif %}page={{ page - 1 }}"
        class="rounded-md hairline px-3 py-1 hover:bg-[color:var(--paper-2)]">{{ _("Previous") }}</a>
     {% endif %}
   </div>
   <div class="text-xs ink-3">{{ _("Page %(page)s") % {"page": page} }}</div>
   <div>
     {% if has_next %}
-    <a href="?entity_type={{ filters.entity_type }}&date_from={{ filters.date_from }}&date_to={{ filters.date_to }}&page={{ page + 1 }}"
+    <a href="?{{ query }}{% if query %}&{% endif %}page={{ page + 1 }}"
        class="rounded-md hairline px-3 py-1 hover:bg-[color:var(--paper-2)]">{{ _("Next") }}</a>
     {% endif %}
   </div>

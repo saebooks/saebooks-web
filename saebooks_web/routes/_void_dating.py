@@ -53,6 +53,7 @@ def render_lodged_confirm(
     back_url: str,
     version: str,
     what: str,
+    carry: dict | None = None,
 ) -> HTMLResponse:
     return _TEMPLATES.TemplateResponse(
         request,
@@ -63,6 +64,8 @@ def render_lodged_confirm(
             "back_url": back_url,
             "version": version,
             "what": what,
+            # Batch 13: reason / override_reason typed on the first form.
+            "carry": carry or {},
         },
         status_code=409,
     )

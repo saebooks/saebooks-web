@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{#- "Fix this invoice / bill" (batch 13: P1-8, P1-9, P1-69, P1-70).
+    Every way to correct a document in one place, each saying in plain words
+    what it does to the books. -#}
+{% block title %}{{ _("Fix %(doc)s") % {"doc": (doc.number or _("draft"))} }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% set _what = _("invoice") if kind == "invoice" else _("bill") %}
+{% set _who = _("customer") if kind == "invoice" else _("supplier") %}
+{% set _label = doc.number or (_("draft") ~ " " ~ _what) %}
+{% if flash %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);" role="status">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
+<div class="mb-4">
+  <a href="/{{ base }}/{{ doc.id }}" class="text-sm sae hover:underline">← {{ _("Back to %(doc)s") % {"doc": _label} }}</a>
+</div>
+
+<header class="mb-6">
+  <h1 class="font-display text-3xl leading-none tracking-tight">
+    {% if kind == "invoice" %}{{ _("Fix invoice %(n)s") % {"n": _label} }}{% else %}{{ _("Fix bill %(n)s") % {"n": _label} }}{% endif %}
+  </h1>
+  <p class="text-sm ink-2 mt-2">
+    {{ contact_name or "—" }} · {{ doc.issue_date }} · {{ doc.currency }} {{ num(doc.total|float, 2) }}
+    {% if doc.status == 'POSTED' %}· {{ _("Posted") }}{% elif doc.status == 'DRAFT' %}· {{ _("Draft") }}{% else %}· {{ doc.status|capitalize }}{% endif %}
+  </p>
+  {% if doc.status == 'DRAFT' %}
+  <p class="text-sm ink-2 mt-2">{{ _("This is still a draft, so you can simply edit it.") }}
+    <a class="sae hover:underline" href="/{{ base }}/{{ doc.id }}/edit">{{ _("Edit it") }}</a></p>
+  {% endif %}
+</header>
+
+{% macro reversal_field() %}
+  <label class="block text-xs ink-2">{{ _("Reverse on") }}
+    <input type="date" name="reversal_date" value="{{ today_iso or '' }}" class="saebooks-input num w-full mt-1">
+  </label>
+  <p class="text-xs ink-3">{{ _("The reversal is posted on this date. Leave it on today to keep earlier BAS periods as they were; clear it to reverse on the original date.") }}</p>
+{% endmacro %}
+
+{% macro override_field() %}
+  {% if can_override %}
+  <label class="block text-xs ink-2 mt-2">{{ _("Only if the date is in a locked period: why are you changing a locked period?") }}
+    <input type="text" name="override_reason" maxlength="1000" class="saebooks-input w-full mt-1"
+           placeholder="{{ _('For example: found at year end, agreed with the accountant') }}">
+  </label>
+  {% endif %}
+{% endmacro %}
+
+<div class="grid gap-5 lg:grid-cols-2">
+
+{% if doc.status == 'POSTED' %}
+  {# ── Correct details (no effect on the books) ── #}
+  <section class="card p-5">
+    <h2 class="text-lg ink-1 mb-1">{{ _("Correct the details") }}</h2>
+    <p class="text-sm ink-3 mb-3">{{ _("Changes the due date or notes only. Amounts, GST and the books are not touched.") }}</p>
+    <form method="post" action="/{{ base }}/{{ doc.id }}/correct" class="space-y-2">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ doc.version }}">
+      <label class="block text-xs ink-2">{{ _("Due date") }}
+        <input type="date" name="due_date" value="{{ doc.due_date }}" class="saebooks-input w-full mt-1">
+      </label>
+      {% if kind == "invoice" %}
+      <label class="block text-xs ink-2">{{ _("Payment terms") }}
+        <input type="text" name="payment_terms" value="{{ doc.payment_terms or '' }}" class="saebooks-input w-full mt-1">
+      </label>
+      {% else %}
+      <label class="block text-xs ink-2">{{ _("Supplier's invoice number") }}
+        <input type="text" name="supplier_reference" maxlength="64" value="{{ doc.supplier_reference or '' }}" class="saebooks-input w-full mt-1">
+      </label>
+      <label class="block text-xs ink-2">{{ _("Planned to pay on") }}
+        <input type="date" name="planned_pay_date" value="{{ doc.planned_pay_date or '' }}" class="saebooks-input w-full mt-1">
+      </label>
+      {% endif %}
+      <label class="block text-xs ink-2">{{ _("Notes") }}
+        <textarea name="notes" rows="3" class="saebooks-input w-full mt-1">{{ doc.notes or '' }}</textarea>
+      </label>
+      <button type="submit" class="btn-primary text-sm">{{ _("Save details") }}</button>
+    </form>
+  </section>
+
+  {% if kind == "invoice" %}
+  {# ── Credit and reissue ── #}
+  <section class="card p-5">
+    <h2 class="text-lg ink-1 mb-1">{{ _("Credit it and send a corrected invoice") }}</h2>
+    <p class="text-sm ink-3 mb-3">{{ _("Use this when the customer already has the invoice. A credit note cancels the whole invoice, and a new draft copy opens for you to correct and send. Both stay on record.") }}</p>
+    {% if (doc.amount_paid|float) > 0 %}
+    <p class="text-sm" style="color:var(--warm);">{{ _("Not available: payments or credits are already applied to this invoice.") }}</p>
+    {% else %}
+    <form method="post" action="/invoices/{{ doc.id }}/credit-and-reissue" class="space-y-2">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ doc.version }}">
+      <label class="block text-xs ink-2">{{ _("What was wrong?") }}
+        <input type="text" name="reason" required maxlength="1000" class="saebooks-input w-full mt-1">
+      </label>
+      <label class="block text-xs ink-2">{{ _("Credit note date") }}
+        <input type="date" name="credit_date" value="{{ today }}" class="saebooks-input w-full mt-1">
+      </label>
+      <button type="submit" class="btn-primary text-sm">{{ _("Credit and reissue") }}</button>
+    </form>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# ── Void and copy ── #}
+  <section class="card p-5">
+    <h2 class="text-lg ink-1 mb-1">{{ _("Void it and start a corrected copy") }}</h2>
+    <p class="text-sm ink-3 mb-3">
+      {% if kind == "invoice" %}{{ _("Use this when the customer never received it. The invoice is voided (its entry is reversed) and a new draft copy opens.") }}
+      {% else %}{{ _("The usual fix for a bill entered wrongly. The bill is voided (its entry is reversed) and a new draft copy opens with the same supplier's invoice number.") }}{% endif %}
+    </p>
+    {% if (doc.amount_paid|float) > 0 %}
+    <p class="text-sm" style="color:var(--warm);">{{ _("Not available: payments or credits are applied. Remove them first.") }}</p>
+    {% else %}
+    <form method="post" action="/{{ base }}/{{ doc.id }}/void-and-copy" class="space-y-2"
+          onsubmit="return confirm('{{ _('Void it and open a new draft copy?') }}');">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ doc.version }}">
+      <label class="block text-xs ink-2">{{ _("What was wrong?") }}
+        <input type="text" name="reason" required maxlength="1000" class="saebooks-input w-full mt-1">
+      </label>
+      {{ reversal_field() }}
+      {{ override_field() }}
+      <button type="submit" class="btn-secondary text-sm">{{ _("Void and copy") }}</button>
+    </form>
+    {% endif %}
+  </section>
+
+  {# ── Change contact ── #}
+  <section class="card p-5">
+    <h2 class="text-lg ink-1 mb-1">{% if kind == "invoice" %}{{ _("Move it to another customer") }}{% else %}{{ _("Move it to another supplier") }}{% endif %}</h2>
+    <p class="text-sm ink-3 mb-3">{{ _("For a document booked to the wrong %(who)s. The amounts and GST stay the same; what each %(who)s owes is corrected.") % {"who": _who} }}</p>
+    {% if (doc.amount_paid|float) > 0 %}
+    <p class="text-sm" style="color:var(--warm);">{{ _("Not available: payments or credits are applied. Remove them first, move it, then apply them again.") }}</p>
+    {% else %}
+    <form method="post" action="/{{ base }}/{{ doc.id }}/change-contact" class="space-y-2">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ doc.version }}">
+      <label class="block text-xs ink-2">{% if kind == "invoice" %}{{ _("Right customer") }}{% else %}{{ _("Right supplier") }}{% endif %}
+        <select name="contact_id" required class="saebooks-input w-full mt-1">
+          <option value="">{{ _("Choose…") }}</option>
+          {% for c in contacts %}{% if c.id != doc.contact_id %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endif %}{% endfor %}
+        </select>
+      </label>
+      <label class="block text-xs ink-2">{{ _("Why?") }}
+        <input type="text" name="reason" required maxlength="1000" class="saebooks-input w-full mt-1">
+      </label>
+      {{ override_field() }}
+      <button type="submit" class="btn-secondary text-sm">{{ _("Move it") }}</button>
+    </form>
+    {% endif %}
+  </section>
+
+  {% if kind == "invoice" and outstanding > 0 %}
+  {# ── Write off (P1-9) ── #}
+  <section class="card p-5" id="write-off">
+    <h2 class="text-lg ink-1 mb-1">{{ _("Write off what is still owing") }}</h2>
+    <p class="text-sm ink-3 mb-3">{{ _("For a customer who will not pay, for example one that has gone out of business. %(amt)s is written off as a bad debt and the GST on it is adjusted.") % {"amt": doc.currency ~ " " ~ num(outstanding, 2)} }}</p>
+    <form method="post" action="/invoices/{{ doc.id }}/write-off" class="space-y-2"
+          onsubmit="return confirm('{{ _('Write off the amount still owing as a bad debt?') }}');">
+      {{ csrf_input(request)|safe }}
+      <label class="block text-xs ink-2">{{ _("Date") }}
+        <input type="date" name="write_off_date" value="{{ today }}" class="saebooks-input w-full mt-1">
+      </label>
+      <label class="block text-xs ink-2">{{ _("Why?") }}
+        <input type="text" name="reason" required maxlength="500" class="saebooks-input w-full mt-1"
+               placeholder="{{ _('For example: customer has gone into liquidation') }}">
+      </label>
+      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Write off") }}</button>
+    </form>
+  </section>
+  {% endif %}
+
+  {# ── Void with a reason ── #}
+  <section class="card p-5" id="void">
+    <h2 class="text-lg ink-1 mb-1">{% if kind == "invoice" %}{{ _("Void this invoice") }}{% else %}{{ _("Void this bill") }}{% endif %}</h2>
+    <p class="text-sm ink-3 mb-3">{{ _("Cancels it. Its entry is reversed and the reason is kept in its history.") }}</p>
+    <form method="post" action="/{{ base }}/{{ doc.id }}/void-with-reason" class="space-y-2"
+          onsubmit="return confirm('{{ _('Void it?') }}');">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ doc.version }}">
+      <label class="block text-xs ink-2">{{ _("Why?") }}
+        <input type="text" name="reason" required maxlength="1000" class="saebooks-input w-full mt-1">
+      </label>
+      {{ reversal_field() }}
+      {{ override_field() }}
+      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
+    </form>
+  </section>
+{% endif %}
+
+  {# ── Copy (any status) ── #}
+  <section class="card p-5">
+    <h2 class="text-lg ink-1 mb-1">{{ _("Copy to a new draft") }}</h2>
+    <p class="text-sm ink-3 mb-3">{{ _("Starts a new draft with the same %(who)s and lines. This one is not changed.") % {"who": _who} }}</p>
+    <form method="post" action="/{{ base }}/{{ doc.id }}/duplicate">
+      {{ csrf_input(request)|safe }}
+      <button type="submit" class="btn-secondary text-sm">{{ _("Copy") }}</button>
+    </form>
+  </section>
+</div>
+
+{% if doc.status == 'POSTED' and lines %}
+{# ── Change account on a line (P1-70) ── #}
+<section class="card overflow-hidden mt-6">
+  <div class="px-5 py-4 hairline-b">
+    <h2 class="text-lg ink-1">{{ _("Move a line to another account") }}</h2>
+    <p class="text-sm ink-3 mt-1">{{ _("For a line coded to the wrong account. The amount before GST is moved by a correcting entry dated the same day as the document (or the date you choose). The original entry is kept as it was.") }}</p>
+  </div>
+  <div class="overflow-x-auto">
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Line") }}</th>
+        <th class="text-left">{{ _("Account now") }}</th>
+        <th class="text-right">{{ _("Amount before GST") }}</th>
+        <th class="text-left">{{ _("Move to") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ln in lines %}
+      <tr>
+        <td class="ink-1">{{ ln.description }}</td>
+        <td class="ink-2">{{ ln.current_account_name or "—" }}{% if ln.moved %} <span class="text-xs ink-3">({{ _("moved") }})</span>{% endif %}</td>
+        <td class="text-right num">{{ num(ln.line_subtotal|float, 2) }}</td>
+        <td>
+          <form method="post" action="/{{ base }}/{{ doc.id }}/lines/{{ ln.id }}/change-account" class="flex flex-wrap items-end gap-2">
+            {{ csrf_input(request)|safe }}
+            <select name="to_account_id" required class="saebooks-input" aria-label="{{ _('Account it belongs in') }}">
+              <option value="">{{ _("Choose account…") }}</option>
+              {% for a in accounts %}{% if a.id != ln.current_account_id %}
+              <option value="{{ a.id }}">{{ a.code }} {{ a.name }}</option>
+              {% endif %}{% endfor %}
+            </select>
+            <input type="text" name="reason" required maxlength="1000" class="saebooks-input" placeholder="{{ _('Why?') }}" aria-label="{{ _('Why?') }}">
+            <input type="date" name="reclass_date" class="saebooks-input" aria-label="{{ _('Date (optional)') }}" title="{{ _('Date (optional, defaults to the document date)') }}">
+            {% if can_override %}
+            <input type="text" name="override_reason" maxlength="1000" class="saebooks-input" placeholder="{{ _('Locked period reason (if needed)') }}" aria-label="{{ _('Reason for changing a locked period') }}">
+            {% endif %}
+            <button type="submit" class="btn-secondary text-sm">{{ _("Move") }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+
+{% with history_entity=kind, history_id=doc.id %}
+<div class="mt-6">{% include "_partials/document_history.html" %}</div>
+{% endwith %}
+
+{% endblock %}

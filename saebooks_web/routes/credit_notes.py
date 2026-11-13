@@ -749,6 +749,15 @@ async def credit_note_post(
 # ---------------------------------------------------------------------------
 
 
+def _reason_body(form_data: object) -> dict[str, str]:
+    body: dict[str, str] = {}
+    for key in ("reason", "override_reason"):
+        val = str(form_data.get(key, "") or "").strip()
+        if val:
+            body[key] = val
+    return body
+
+
 @router.post(
     "/credit-notes/{credit_note_id}/void",
     response_class=HTMLResponse,
@@ -775,7 +784,7 @@ async def credit_note_void(
         resp = await client.post(
             f"/api/v1/credit_notes/{credit_note_id}/void",
             headers={"If-Match": version},
-            json=void_body(form_data),
+            json={**(void_body(form_data) or {}), **_reason_body(form_data)} or None,
         )
 
     if resp.status_code == 401:
@@ -792,6 +801,7 @@ async def credit_note_void(
             back_url=f"/credit-notes/{credit_note_id}",
             version=version,
             what="credit note",
+            carry=_reason_body(form_data),
         )
 
     if resp.status_code == 204:

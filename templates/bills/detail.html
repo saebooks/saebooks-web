@@ -64,8 +64,11 @@
       <a href="/payments/new?direction=OUTGOING&amp;bill_id={{ bill.id|urlencode }}{% if bill.contact_id %}&amp;contact_id={{ bill.contact_id|urlencode }}{% endif %}"
          class="btn-primary text-sm">{{ _("Pay") }}</a>
       {% endif %}
-      {% if bill.status != 'VOIDED' or is_feature_enabled("edit_frozen_state") %}
+      {% if bill.status == 'DRAFT' or is_feature_enabled("edit_frozen_state") %}
       <a href="/bills/{{ bill.id }}/edit" class="btn-secondary text-sm">{% if bill.status in ('POSTED', 'PAID', 'VOIDED') %}{{ _("Edit (override)") }}{% else %}{{ _("Edit") }}{% endif %}</a>
+      {% endif %}
+      {% if bill.status != 'DRAFT' %}
+      <a href="/bills/{{ bill.id }}/fix" class="btn-secondary text-sm">{{ _("Fix or correct") }}</a>
       {% endif %}
       {% if bill.status == 'DRAFT' %}
       <form method="post" action="/bills/{{ bill.id }}/post"
@@ -82,7 +85,7 @@
       </form>
       {% endif %}
       {% if bill.status == 'POSTED' %}
-      {{ void_dated('/bills/' ~ bill.id ~ '/void', bill.version, _("bill")) }}
+      <a href="/bills/{{ bill.id }}/fix#void" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</a>
       {% endif %}
       {% if is_admin %}
       {{ icons.hard_delete(
@@ -95,6 +98,9 @@
   </div>
   <div class="drafting mt-4"></div>
 </header>
+
+{# ── Approval (batch 13, P1-72) ── #}
+{% with approval_kind="bill", approval_doc=bill %}{% include "_partials/approval_panel.html" %}{% endwith %}
 
 {% set _base = fx_context(request).base %}
 {% if bill.currency and bill.currency | upper != _base %}
@@ -240,9 +246,8 @@
   {% include "_partials/attachments.html" with context %}
 </section>
 
-<div class="card p-4 mb-4 text-center ink-3 font-mono text-xs" style="border-style:dashed;">
-  change log · TODO
-</div>
+{# ── History (batch 13, P1-71) ── #}
+{% with history_entity="bill", history_id=bill.id %}{% include "_partials/document_history.html" %}{% endwith %}
 
 {% endif %}{# end if bill #}
 
