@@ -251,7 +251,7 @@
           <dt class="ink-3">{{ _("Base rate") }}</dt>
           <dd class="col-span-2 num-display">{{ money(employee.base_rate|float, decimals=4, grouping=False) }}</dd>
         </div>
-        {% if employee.casual_loading_pct is not none and employee.casual_loading_pct != '' %}
+        {% if employee.get('casual_loading_pct') is not none and employee.get('casual_loading_pct') != '' %}
         <div class="grid grid-cols-3 gap-2">
           <dt class="ink-3">{{ _("Casual loading") }}</dt>
           <dd class="col-span-2 num">{{ num(employee.casual_loading_pct|float, 2) }}% {{ _("on ordinary hours") }}</dd>

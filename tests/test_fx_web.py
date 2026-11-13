@@ -416,5 +416,7 @@ async def test_contact_page_offers_one_statement_per_currency(respx_mock: respx.
     async with _client() as c:
         r = await c.get(f"/contacts/{_CONTACT}")
     assert r.status_code == 200
-    assert f"/contacts/{_CONTACT}/statement/pdf?currency=AUD" in r.text
-    assert f"/contacts/{_CONTACT}/statement/pdf?currency=EUR" in r.text
+    assert f"/contacts/{_CONTACT}/statement/pdf" in r.text
+    assert 'name="currency"' in r.text
+    assert '<option value="AUD">AUD</option>' in r.text
+    assert '<option value="EUR">EUR</option>' in r.text

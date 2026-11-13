@@ -403,7 +403,7 @@ async def test_bills_list_unpaid_uses_engine_status_and_totals(respx_mock) -> No
     assert r.status_code == 200, r.text
     assert route.calls.last.request.url.params["payment_status"] == "unpaid"
     assert "952.21" in r.text and "1 matching" in r.text
-    assert "Unpaid (all owing)" in r.text
+    assert "All unpaid" in r.text
 
 
 @pytest.mark.anyio

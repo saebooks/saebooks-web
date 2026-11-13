@@ -510,7 +510,7 @@ async def test_contact_identifier_label_au_is_abn(respx_mock: respx.MockRouter) 
     assert 'name="iban"' not in resp.text
     # AU currency + country defaults
     assert 'placeholder="Australia"' in resp.text
-    assert "leave blank for AUD" in resp.text
+    assert "Same as the company (AUD)" in resp.text
 
 
 @pytest.mark.anyio
@@ -538,9 +538,9 @@ async def test_contact_identifier_label_ee_is_registrikood(
     assert ">BSB<" not in resp.text
     # EE currency + country defaults — EUR/Estonia, never AUD/Australia
     assert 'placeholder="Estonia"' in resp.text
-    assert "leave blank for EUR" in resp.text
+    assert "Same as the company (EUR)" in resp.text
     assert 'placeholder="Australia"' not in resp.text
-    assert "leave blank for AUD" not in resp.text
+    assert "Same as the company (AUD)" not in resp.text
 
 
 @pytest.mark.anyio

@@ -420,7 +420,13 @@ async def test_post_with_email_but_no_supplier_email_says_so(respx_mock: respx.M
 @pytest.mark.anyio
 @respx.mock
 async def test_bill_detail_names_balance_pay_and_viewer(respx_mock: respx.MockRouter) -> None:
-    respx_mock.get(f"{_API}/api/v1/bills/{_BILL_A}").mock(return_value=Response(200, json=_bill(_BILL_A)))
+    _bill_a = _bill(_BILL_A)
+    # Integration: applied credits render from the bill's credits_applied
+    # (batch 1 partial), not from batch 3's settlement table.
+    _bill_a["credits_applied"] = [{"supplier_credit_note_id": "s1", "credit_number": "SCN-1",
+                                   "credit_reference": "CR-77", "applied_date": "2026-05-02",
+                                   "amount": "22.00"}]
+    respx_mock.get(f"{_API}/api/v1/bills/{_BILL_A}").mock(return_value=Response(200, json=_bill_a))
     respx_mock.get(f"{_API}/api/v1/attachments").mock(return_value=Response(200, json=[
         {"id": _ATT, "filename": "inv-1860.pdf", "content_type": "application/pdf", "size": 10,
          "archived_at": None}]))
@@ -436,7 +442,7 @@ async def test_bill_detail_names_balance_pay_and_viewer(respx_mock: respx.MockRo
     assert "Balance due" in t and "88.00" in t
     assert f"/payments/new?direction=OUTGOING&amp;bill_id={_BILL_A}" in t
     assert f'/attachments/{_ATT}/view' in t and "View invoice" in t
-    assert "Payments and credits" in t and "CR-77" in t
+    assert "Credits applied" in t and "CR-77" in t
     assert f"supplier · <span class=\"ink-2\">{_SUPPLIER}" not in t
 
 

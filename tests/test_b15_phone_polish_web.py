@@ -396,10 +396,11 @@ async def test_invoice_list_written_off_filter_and_badge() -> None:
 
 
 def test_written_off_is_its_own_payment_status() -> None:
-    from saebooks_web.routes.invoices import _invoice_payment_status
+    # Integration: batch 8 moved the invoice status filter to the engine;
+    # written-off is its own document state there, never an owing bucket.
+    from saebooks_web.routes.invoices import _STATUS_FILTERS
 
-    inv = {"status": "WRITTEN_OFF", "total": "100", "amount_paid": "0", "due_date": "2020-01-01"}
-    assert _invoice_payment_status(inv, "2026-11-13", "2026-11-20") == "written-off"
+    assert _STATUS_FILTERS["written-off"] == ("status", "WRITTEN_OFF")
 
 
 # ---------------------------------------------------------------------------
