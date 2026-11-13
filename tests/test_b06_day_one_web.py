@@ -74,6 +74,34 @@ def _doc_settings(**over) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def test_default_from_prefers_company_own_address(monkeypatch: pytest.MonkeyPatch) -> None:
+    from saebooks_web import comms
+    from saebooks_web.comms import customer_email_status
+    from saebooks_web.email_defaults import compose
+
+    monkeypatch.setattr(settings, "customer_email_draft_mode", False)
+    monkeypatch.setattr(settings, "customer_email_send_enabled", True)
+    monkeypatch.setattr(settings, "resend_api_key", "k")
+    monkeypatch.setattr(settings, "email_platform_from", "noreply@mail.example")
+    monkeypatch.setattr(
+        comms, "allowed_from_addresses",
+        lambda t: {"accounts@x.example", "admin@x.example", "noreply@mail.example"},
+    )
+    st = customer_email_status(tenant_id="t", from_addr=None, tenant_outbound_enabled=True,
+                               company_email="admin@x.example")
+    assert st["default_from"] == "admin@x.example"
+    # An explicit per-document default still wins.
+    st = customer_email_status(tenant_id="t", from_addr="accounts@x.example",
+                               tenant_outbound_enabled=True, company_email="admin@x.example")
+    assert st["default_from"] == "accounts@x.example"
+    # Company email not on the allowlist falls back to the platform address.
+    st = customer_email_status(tenant_id="t", from_addr=None, tenant_outbound_enabled=True,
+                               company_email="other@x.example")
+    assert st["default_from"] == "noreply@mail.example"
+    out = compose("quote", {"company": {"email": "admin@x.example"}, "tenant_id": "t"}, {})
+    assert out["default_from"] == "admin@x.example"
+
+
 @respx.mock
 async def test_checklist_links_each_step() -> None:
     respx.get(f"{_API}/api/v1/setup/checklist").mock(

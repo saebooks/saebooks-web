@@ -105,6 +105,7 @@ def compose(doc_type: str, s: dict[str, Any], values: dict[str, Any]) -> dict[st
         from_addr=preferred,
         tenant_outbound_enabled=bool(s.get("outbound_email_enabled")),
         company_addresses=s.get("from_addresses") or [],
+        company_email=company.get("email"),
     )
     options = list(status["from_options"])
     if preferred and preferred not in options:

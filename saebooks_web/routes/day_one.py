@@ -879,6 +879,7 @@ async def documents_page(request: Request) -> HTMLResponse | RedirectResponse:
         from_addr=None,
         tenant_outbound_enabled=bool(settings_ and settings_.get("outbound_email_enabled")),
         company_addresses=(settings_ or {}).get("from_addresses") or [],
+        company_email=((settings_ or {}).get("company") or {}).get("email"),
     )
     return _render(
         request,

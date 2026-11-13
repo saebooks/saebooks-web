@@ -24,6 +24,9 @@
 \markboth{ {{ title | latex_escape }} }{}
 
 \begin{center}
+  {% if logo_path -%}
+  \includegraphics[height=16mm]{{ "{" }}{{ logo_path }}{{ "}" }}\\[4mm]
+  {%- endif %}
   {\LARGE\bfseries\color{saegreen} {{ (company.legal_name or company.name) | latex_escape }} }\\[2mm]
   {% if company.acn -%}{\small ACN {{ company.acn | latex_escape }}}\\[0.5mm]{%- endif %}
   {% if company.abn -%}{\small {{ company.identifier_label | latex_escape }} {{ company.abn | latex_escape }}}\\[0.5mm]{%- endif %}

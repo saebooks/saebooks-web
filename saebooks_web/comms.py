@@ -593,6 +593,7 @@ def customer_email_status(
     from_addr: str | None,
     tenant_outbound_enabled: bool,
     company_addresses: list[str] | None = None,
+    company_email: str | None = None,
 ) -> dict:
     """Plain-words status of customer email for the banner on the send and
     settings screens (b06, P1-38). Mirrors the gates in
@@ -606,10 +607,15 @@ def customer_email_status(
     pending = [
         a for a in (company_addresses or []) if a.strip().lower() not in allowed
     ]
+    own = (company_email or "").strip().lower()
     default_from = from_addr or (
-        settings.email_platform_from.strip().lower()
-        if settings.email_platform_from
-        else (options[0] if options else "")
+        own
+        if own and own in allowed
+        else (
+            settings.email_platform_from.strip().lower()
+            if settings.email_platform_from
+            else (options[0] if options else "")
+        )
     )
     if settings.customer_email_draft_mode:
         return {
