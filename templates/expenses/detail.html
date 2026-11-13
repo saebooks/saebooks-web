@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_partials/void_dated.html" import void_dated with context %}
 
 {% block title %}{{ _("Expense %(number)s") % {"number": expense.number or expense.id} }} — {{ current_brand().name }}{% endblock %}
 
@@ -96,13 +97,7 @@
   </form>
   {% endif %}
   {% if expense.status != "VOIDED" %}
-  <form method="post" action="/expenses/{{ expense.id }}/void" class="inline"
-    onsubmit="return confirm('{{ _('Void this expense? If POSTED, a reversing journal entry will be created.') }}');">
-  {{ csrf_input(request) | safe }}
-    <button type="submit" class="rounded-md bg-gray-200 px-4 py-2 text-base font-medium text-gray-800 hover:bg-gray-300">
-      {{ _("Void") }}
-    </button>
-  </form>
+  {{ void_dated('/expenses/' ~ expense.id ~ '/void', expense.version, _("expense")) }}
   {% endif %}
   {% if expense.archived_at is none %}
   <form method="post" action="/expenses/{{ expense.id }}/archive" class="inline"

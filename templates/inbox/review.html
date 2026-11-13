@@ -249,7 +249,7 @@
                         class="saebooks-input w-full px-2 py-1 text-base">
                   <option value="">{{ _("none") }}</option>
                   {% for t in tax_codes %}
-                  <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>
+                  <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %} data-rate="{{ t.rate }}">{{ t.code }} ({{ t.rate }}%)</option>
                   {% endfor %}
                 </select>
               </td>
@@ -280,6 +280,11 @@
          the human is the authority. #}
       <div id="inbox-variance" class="mt-2 rounded-md border px-3 py-2 text-sm font-mono hidden"></div>
     </div>
+
+    {# Batch 5 (P0-28): on by default — receipts print GST-inclusive prices.
+       A re-render after an error keeps what was chosen. #}
+    {% set inclusive_checked = (form_values.get("amounts_include_tax") if form_values is defined and form_values else true) %}
+    {% include "_partials/gst_inclusive_totals.html" %}
 
     <div>
       <label for="notes" class="block text-base font-medium ink-3">{{ _("Notes") }}</label>
@@ -419,7 +424,7 @@
         <select name="lines[__INDEX__][tax_code_id]" class="saebooks-input w-full px-2 py-1 text-base">
           <option value="">{{ _("none") }}</option>
           {% for t in tax_codes %}
-          <option value="{{ t.id }}">{{ t.code }} ({{ t.rate }}%)</option>
+          <option value="{{ t.id }}" data-rate="{{ t.rate }}">{{ t.code }} ({{ t.rate }}%)</option>
           {% endfor %}
         </select>
       </td>

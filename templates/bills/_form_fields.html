@@ -189,6 +189,11 @@
   </button>
 </fieldset>
 
+<div class="mt-5">
+  {% set inclusive_checked = form.get("amounts_include_tax") %}
+  {% include "_partials/gst_inclusive_totals.html" %}
+</div>
+
 <div class="mt-7">
   <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Notes") }}</label>
   <textarea id="notes" name="notes" rows="3" class="saebooks-input"

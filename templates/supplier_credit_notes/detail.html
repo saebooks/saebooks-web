@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_partials/void_dated.html" import void_dated with context %}
 
 {% block title %}
   {% if scn %}{{ _("Supplier Credit Note %(number)s") % {"number": (scn.number or scn.id)} }} — {{ current_brand().name }}{% else %}{{ _("Supplier Credit Note Not Found") }} — {{ current_brand().name }}{% endif %}
@@ -53,12 +54,7 @@
     </form>
     {% endif %}
     {% if scn.status == 'POSTED' %}
-    <form method="post" action="/supplier-credit-notes/{{ scn.id }}/void"
-          onsubmit="return confirm('{{ _('Void this supplier credit note?') }}');" class="inline">
-    {{ csrf_input(request)|safe }}
-      <input type="hidden" name="version" value="{{ scn.version }}">
-      <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
-    </form>
+    {{ void_dated('/supplier-credit-notes/' ~ scn.id ~ '/void', scn.version, _("supplier credit note")) }}
     {% endif %}
     <a href="/supplier-credit-notes" class="text-sm sae hover:underline">← {{ _("Back to supplier credit notes") }}</a>
   </div>

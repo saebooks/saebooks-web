@@ -170,6 +170,28 @@
         {% if errors.get('gst_effective_date') %}
         <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ errors.get('gst_effective_date') }}</p>
         {% endif %}
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="gst_accounting_basis" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("GST accounting basis") }}</label>
+            <select id="gst_accounting_basis" name="gst_accounting_basis"
+              class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+              <option value="accrual" {% if form.get('gst_accounting_basis', 'accrual') == 'accrual' %}selected{% endif %}>{{ _("Accrual: report on the invoice or bill date") }}</option>
+              <option value="cash" {% if form.get('gst_accounting_basis') == 'cash' %}selected{% endif %}>{{ _("Cash: report when money is received or paid") }}</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("Use the same basis you told the ATO you use.") }}</p>
+          </div>
+          <div>
+            <label for="gst_reporting_frequency" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ _("How often you lodge your BAS") }}</label>
+            <select id="gst_reporting_frequency" name="gst_reporting_frequency"
+              class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm shadow-sm focus:border-[#194291] focus:outline-none focus:ring-1 focus:ring-[#194291]">
+              <option value="quarterly" {% if form.get('gst_reporting_frequency', 'quarterly') == 'quarterly' %}selected{% endif %}>{{ _("Quarterly") }}</option>
+              <option value="monthly" {% if form.get('gst_reporting_frequency') == 'monthly' %}selected{% endif %}>{{ _("Monthly") }}</option>
+              <option value="annual" {% if form.get('gst_reporting_frequency') == 'annual' %}selected{% endif %}>{{ _("Yearly") }}</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("Sets the BAS period and due date on the dashboard.") }}</p>
+          </div>
+        </div>
       </div>
     </fieldset>
 

@@ -24,7 +24,7 @@
       </p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
-      <a href="/reports/bas" class="btn btn-primary">
+      <a href="/reports/bas-summary" class="btn btn-primary">
         <i data-lucide="file-check" class="w-4 h-4"></i> {{ _("BAS worksheet") }}
       </a>
       <a href="/admin/ato-sbr" class="btn btn-secondary">
@@ -72,14 +72,14 @@
     <p class="num-display text-2xl" style="color:var(--pos);">
       {{ money(gst_out|float) }}
     </p>
-    <p class="mt-1 text-xs ink-3">{{ _("on %(amount)s sales") % {"amount": money(sales_excl|float, decimals=0)} }}</p>
+    <p class="mt-1 text-xs ink-3">{{ _("on %(amount)s sales including GST") % {"amount": money(sales_excl|float, decimals=0)} }}</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">{{ _("GST paid · %(q)s") % {"q": q_label} }}</p>
     <p class="num-display text-2xl" style="color:var(--sae-2);">
       {{ money(gst_in|float) }}
     </p>
-    <p class="mt-1 text-xs ink-3">{{ _("on %(amount)s purchases") % {"amount": money(purchases_excl|float, decimals=0)} }}</p>
+    <p class="mt-1 text-xs ink-3">{{ _("on %(amount)s purchases including GST") % {"amount": money(purchases_excl|float, decimals=0)} }}</p>
   </div>
   <div class="card bg-paper p-5 rounded-none">
     <p class="nav-section-label mb-2">{{ _("Net GST · %(q)s") % {"q": q_label} }}</p>
@@ -114,12 +114,12 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
   <section class="card p-6">
     <div class="flex items-start justify-between mb-4">
-      <p class="nav-section-label">{{ _("BAS quarter · %(q)s") % {"q": q_label} }}</p>
-      <a href="/reports/bas" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("worksheet →") }}</a>
+      <p class="nav-section-label">{{ _("BAS period · %(q)s") % {"q": q_label} }}</p>
+      <a href="/reports/bas-summary?from_date={{ q_start }}&amp;to_date={{ today_iso }}" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("open the BAS →") }}</a>
     </div>
     <ul class="space-y-3 text-sm">
       <li class="flex justify-between hairline-t pt-3">
-        <span class="ink-3">{{ _("Sales (excl. GST)") }}</span>
+        <span class="ink-3">{{ _("Sales including GST (G1)") }}</span>
         <span class="num-display">{{ money(sales_excl|float) }}</span>
       </li>
       <li class="flex justify-between hairline-t pt-3">
@@ -127,7 +127,7 @@
         <span class="num-display" style="color:var(--pos);">{{ money(gst_out|float) }}</span>
       </li>
       <li class="flex justify-between hairline-t pt-3">
-        <span class="ink-3">{{ _("Purchases (excl. GST)") }}</span>
+        <span class="ink-3">{{ _("Purchases including GST (G10 + G11)") }}</span>
         <span class="num-display">{{ money(purchases_excl|float) }}</span>
       </li>
       <li class="flex justify-between hairline-t pt-3">
@@ -142,7 +142,7 @@
       </li>
     </ul>
     <p class="text-[11px] ink-3 mt-4 font-mono">
-      {{ _("Computed from POSTED invoices & bills in the quarter. See BAS worksheet for the authoritative ATO figures.") }}
+      {{ _("The same figures as the BAS for this period, to today.") }}
     </p>
   </section>
 

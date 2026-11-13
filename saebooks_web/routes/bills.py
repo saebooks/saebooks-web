@@ -27,6 +27,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web.routes._void_dating import lodged_conflict, render_lodged_confirm, void_body
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines
@@ -423,6 +424,7 @@ async def bill_create(request: Request) -> HTMLResponse | RedirectResponse:
         payload["fx_rate"] = fx_rate_raw
 
     payload["lines"] = _parse_lines(form)
+    payload["amounts_include_tax"] = bool(form.get("amounts_include_tax"))
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -648,6 +650,8 @@ async def bill_edit_form(
     # Pre-populate the form dict from the API response.
     form: dict[str, object] = {field: bill.get(field) or "" for field in _EDIT_FIELDS}
     form["version"] = str(bill.get("version", ""))
+    # Batch 5: keep the "Amounts include GST" switch as the bill was saved.
+    form["amounts_include_tax"] = "1" if bill.get("amounts_include_tax") else ""
     # fx_rate is numeric — only pre-populate when the bill is foreign-currency.
     stored_rate = bill.get("fx_rate")
     if stored_rate and str(bill.get("currency", "AUD")).upper() != "AUD":
@@ -731,6 +735,7 @@ async def bill_update(
 
     # Lines are always sent (full replace semantics).
     payload["lines"] = _parse_lines(form)
+    payload["amounts_include_tax"] = bool(form.get("amounts_include_tax"))
 
     from saebooks_web.features import is_feature_enabled as _ff
     _params = {"force": "true"} if _ff("edit_frozen_state") else None
@@ -976,11 +981,24 @@ async def bill_void(
         resp = await client.post(
             f"/api/v1/bills/{bill_id}/void",
             headers={"If-Match": version},
+            json=void_body(form_data),
         )
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+
+    # Batch 5: the reversal would land in a lodged BAS period — ask first.
+    _conflict = lodged_conflict(resp)
+    if _conflict is not None:
+        return render_lodged_confirm(
+            request,
+            conflict=_conflict,
+            action_url=f"/bills/{bill_id}/void",
+            back_url=f"/bills/{bill_id}",
+            version=version,
+            what="bill",
+        )
 
     if resp.status_code == 200:
         request.session["flash"] = "Bill voided."

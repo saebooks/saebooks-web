@@ -49,6 +49,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web.routes._void_dating import lodged_conflict, render_lodged_confirm, void_body
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 
@@ -373,11 +374,24 @@ async def supplier_credit_note_void(request: Request, scn_id: str) -> RedirectRe
         resp = await client.post(
             f"/api/v1/supplier_credit_notes/{scn_id}/void",
             headers={"If-Match": version},
+            json=void_body(form_data),
         )
 
     if resp.status_code == 401:
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
+
+    # Batch 5: the reversal would land in a lodged BAS period — ask first.
+    _conflict = lodged_conflict(resp)
+    if _conflict is not None:
+        return render_lodged_confirm(
+            request,
+            conflict=_conflict,
+            action_url=f"/supplier-credit-notes/{scn_id}/void",
+            back_url=f"/supplier-credit-notes/{scn_id}",
+            version=version,
+            what="supplier credit note",
+        )
 
     if resp.status_code == 200:
         request.session["flash"] = "Supplier credit note voided."

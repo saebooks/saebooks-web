@@ -34,7 +34,7 @@
     <select name="lines[{{ index }}][tax_code_id]" aria-label="{{ _('Tax code, row %(index)s') % {'index': index} }}" class="saebooks-input text-sm py-1.5">
       <option value="">{{ _("— none —") }}</option>
       {% for tc in tax_codes %}
-      <option value="{{ tc.id }}" {% if line.get("tax_code_id") == tc.id %}selected{% endif %}>
+      <option value="{{ tc.id }}" {% if line.get("tax_code_id") == tc.id %}selected{% endif %} data-rate="{{ tc.rate }}">
         {{ tc.name }}
       </option>
       {% endfor %}

@@ -705,36 +705,30 @@ async def gst_overview(request: Request) -> HTMLResponse | RedirectResponse:
     today = date.today()
     fy_from, fy_to = _au_fy_range()
 
-    # BAS quarter — Q1: Jul-Sep, Q2: Oct-Dec, Q3: Jan-Mar, Q4: Apr-Jun
-    month = today.month
-    year = today.year
-    if month in (7, 8, 9):
-        q_start, q_end, q_label = date(year, 7, 1), date(year, 9, 30), "Q1"
-    elif month in (10, 11, 12):
-        q_start, q_end, q_label = date(year, 10, 1), date(year, 12, 31), "Q2"
-    elif month in (1, 2, 3):
-        q_start, q_end, q_label = date(year, 1, 1), date(year, 3, 31), "Q3"
-    else:
-        q_start, q_end, q_label = date(year, 4, 1), date(year, 6, 30), "Q4"
-
+    # Batch 5 (P0-18): the period, its due date and every GST figure come
+    # from the engine's one BAS calculation (``/api/v1/bas/position`` +
+    # ``/api/v1/reports/bas_summary``). This screen used to add up the
+    # first 500 posted invoices and bills itself and used quarter end + 28
+    # days as the due date, which is wrong for October to December.
     async with api_client(request) as client:
+        position = await _fetch_json(client, "/api/v1/bas/position")
+        cur = position.get("current") or {}
+        q_start_s = cur.get("from_date") or today.replace(day=1).isoformat()
+        q_end_s = cur.get("to_date") or today.isoformat()
         (
             ytd_raw,
             tax_codes_raw,
-            invoices_qtr,
-            bills_qtr,
+            bas_raw,
         ) = await asyncio.gather(
             _fetch_json(client, "/api/v1/reports/ytd_turnover"),
             _fetch_items(client, "/api/v1/tax_codes", {"page": 1, "page_size": 100}),
-            _fetch_items(client, "/api/v1/invoices",
-                         {"status": "POSTED", "page": 1, "page_size": 500,
-                          "from_date": q_start.isoformat(),
-                          "to_date": q_end.isoformat()}),
-            _fetch_items(client, "/api/v1/bills",
-                         {"status": "POSTED", "page": 1, "page_size": 500,
-                          "from_date": q_start.isoformat(),
-                          "to_date": q_end.isoformat()}),
+            _fetch_json(client, "/api/v1/reports/bas_summary",
+                        {"from_date": q_start_s,
+                         "to_date": min(today.isoformat(), q_end_s)}),
         )
+    q_start = date.fromisoformat(q_start_s)
+    q_end = date.fromisoformat(q_end_s)
+    q_label = cur.get("label") or f"{q_start.isoformat()} to {q_end.isoformat()}"
 
     ytd_turnover = _to_decimal(ytd_raw.get("ytd_turnover", 0))
     threshold = _to_decimal(ytd_raw.get("threshold", 75000))
@@ -742,22 +736,17 @@ async def gst_overview(request: Request) -> HTMLResponse | RedirectResponse:
     threshold_crossed = bool(ytd_raw.get("threshold_crossed", False))
     threshold_approaching = bool(ytd_raw.get("threshold_approaching", False))
 
-    # GST collected (output) vs paid (input) — best-effort from line tax_amount
-    gst_out = Decimal("0")  # collected on sales
-    gst_in = Decimal("0")   # paid on purchases
-    sales_excl = Decimal("0")
-    purchases_excl = Decimal("0")
-    for inv in invoices_qtr:
-        sales_excl += _to_decimal(inv.get("subtotal", 0) or inv.get("total_excl_tax", 0) or 0)
-        gst_out += _to_decimal(inv.get("tax_total", 0) or inv.get("total_tax", 0) or 0)
-    for b in bills_qtr:
-        purchases_excl += _to_decimal(b.get("subtotal", 0) or b.get("total_excl_tax", 0) or 0)
-        gst_in += _to_decimal(b.get("tax_total", 0) or b.get("total_tax", 0) or 0)
-
+    # Engine figures: G1/G11 include GST; 1A/1B from the GST accounts.
+    sales_excl = _to_decimal(bas_raw.get("g1_total_sales", 0))
+    purchases_excl = _to_decimal(bas_raw.get("g11_other_acquisitions", 0)) + _to_decimal(
+        bas_raw.get("g10_capital_acquisitions", 0)
+    )
+    gst_out = _to_decimal(bas_raw.get("label_1a_gst_on_sales", 0))
+    gst_in = _to_decimal(bas_raw.get("label_1b_gst_on_purchases", 0))
     net_gst = gst_out - gst_in
 
-    # BAS due date — quarter end + 28 days
-    bas_due = q_end + timedelta(days=28)
+    due_raw = cur.get("due_date")
+    bas_due = date.fromisoformat(due_raw) if due_raw else q_end + timedelta(days=28)
     days_to_bas = (bas_due - today).days
 
     ctx = {

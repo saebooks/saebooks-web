@@ -23,7 +23,7 @@
       class="saebooks-input w-full px-2 py-1 text-base">
       <option value="">{{ _("none") }}</option>
       {% for t in tax_codes %}
-      <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %}>{{ t.code }} ({{ t.rate }}%)</option>
+      <option value="{{ t.id }}" {% if line.tax_code_id == t.id %}selected{% endif %} data-rate="{{ t.rate }}">{{ t.code }} ({{ t.rate }}%)</option>
       {% endfor %}
     </select>
   </td>
@@ -34,5 +34,10 @@
   <td class="px-2 py-1">
     <input type="number" name="lines[{{ index }}][unit_price]" value="{{ line.unit_price or '0' }}" step="0.0001" min="0"
       class="saebooks-input w-32 px-2 py-1 text-base text-right">
+  </td>
+  <td class="px-2 py-1">
+    <input type="number" name="lines[{{ index }}][tax_override]" value="{{ line.tax_override or '' }}" step="0.01" min="0"
+      aria-label="{{ _('GST (leave blank to work it out)') }}"
+      class="saebooks-input w-24 px-2 py-1 text-base text-right">
   </td>
 </tr>

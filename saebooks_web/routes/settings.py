@@ -133,6 +133,9 @@ def _prefill_form(company: dict) -> dict[str, str]:
     # ATO registration as an employer of working holiday makers (engine 0225).
     form["whm_employer_registered"] = "true" if company.get("whm_employer_registered") else ""
     form["whm_employer_registered_on"] = str(company.get("whm_employer_registered_on") or "")
+    # GST accounting basis + BAS frequency (engine 0227_b05_gst_bas).
+    form["gst_accounting_basis"] = str(company.get("gst_accounting_basis") or "accrual")
+    form["gst_reporting_frequency"] = str(company.get("gst_reporting_frequency") or "quarterly")
 
     form["fin_year_start_month"] = str(company.get("fin_year_start_month") or 7)
     # Day-of-month precision unlocks only once the engine payload carries the
@@ -316,6 +319,12 @@ def _build_company_payload(form: dict[str, str], form_data, *, mode: str, jurisd
         whm_date = form.get("whm_employer_registered_on", "").strip()
         if whm_date:
             payload["whm_employer_registered_on"] = whm_date
+        basis = form.get("gst_accounting_basis", "").strip()
+        if basis in ("accrual", "cash"):
+            payload["gst_accounting_basis"] = basis
+        freq = form.get("gst_reporting_frequency", "").strip()
+        if freq in ("monthly", "quarterly", "annual"):
+            payload["gst_reporting_frequency"] = freq
 
     # EE company-registry identifiers — only meaningful on EE companies.
     if jurisdiction == "EE":

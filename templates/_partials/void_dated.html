@@ -1,0 +1,20 @@
+{# Void with a reversal date (batch 5). Usage:
+   {% from "_partials/void_dated.html" import void_dated with context %}
+   {{ void_dated(action_url, version, what) }}
+   The reversing journal is posted on the chosen date (today by default),
+   so an earlier BAS period is left as it was. #}
+{% macro void_dated(action_url, version, what, uid="") -%}
+<details class="inline-block align-top">
+  <summary class="btn-secondary text-sm cursor-pointer list-none" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</summary>
+  <form method="post" action="{{ action_url }}" class="card p-3 mt-2 space-y-2" style="min-width:16rem;"
+        onsubmit="return confirm('{{ _('Void this %(what)s?') % {'what': what} }}');">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="version" value="{{ version }}">
+    <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block" for="reversal_date_{{ uid }}{{ version }}">{{ _("Reverse on") }}</label>
+    <input id="reversal_date_{{ uid }}{{ version }}" type="date" name="reversal_date" class="saebooks-input num text-sm py-1.5">
+    <script>(function(i){if(i&&!i.value){var d=new Date();i.value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}})(document.getElementById('reversal_date_{{ uid }}{{ version }}'));</script>
+    <p class="text-xs ink-3">{{ _("The reversal is posted on this date. Leave it on today to keep earlier BAS periods as they were; clear it to reverse on the original date.") }}</p>
+    <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
+  </form>
+</details>
+{%- endmacro %}

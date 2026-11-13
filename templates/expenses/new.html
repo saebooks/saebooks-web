@@ -75,16 +75,17 @@
       </button>
     </div>
     <table class="min-w-full divide-y divide-gray-200 text-base">
-      <thead class="bg-gray-50 text-sm text-gray-500">
+      <thead class="text-sm ink-3">
         <tr>
           <th class="px-2 py-1 text-left">{{ _("Description") }}</th>
           <th class="px-2 py-1 text-left">{{ _("Account") }}</th>
           <th class="px-2 py-1 text-left">{{ _("Tax") }}</th>
           <th class="px-2 py-1 text-right">{{ _("Qty") }}</th>
           <th class="px-2 py-1 text-right">{{ _("Unit price") }}</th>
+          <th class="px-2 py-1 text-right">{{ _("GST") }}</th>
         </tr>
       </thead>
-      <tbody id="expense-lines-body" class="divide-y divide-gray-100 bg-white">
+      <tbody id="expense-lines-body" class="divide-y divide-gray-100 dark:divide-gray-700">
         {% for line in lines %}
           {# ``index`` must be a real integer: parse_lines does int() on it and
              silently drops the row on ValueError. Without this the server-
@@ -95,6 +96,9 @@
       </tbody>
     </table>
   </div>
+
+  {% set inclusive_checked = form.amounts_include_tax %}
+  {% include "_partials/gst_inclusive_totals.html" %}
 
   <div class="flex items-center gap-3">
     <button type="submit" class="btn-primary">{{ _("Save draft") }}</button>

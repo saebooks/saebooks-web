@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}{{ label }} — {{ _("GST detail") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+  <a href="{{ back_url }}" class="text-xs sae hover:underline font-mono uppercase tracking-wider">{{ _("← BAS") }}</a>
+</div>
+
+<header class="mb-6">
+  <div class="flex items-center gap-2 mb-1">
+    <span class="nav-section-label">{{ _("GST detail") }}</span>
+  </div>
+  <h1 class="font-display text-3xl leading-none tracking-tight">{{ label }} · {{ label_text }}</h1>
+  <p class="text-xs ink-3 font-mono mt-2">{{ from_date }} → {{ to_date }} · {% if basis == "cash" %}{{ _("cash basis") }}{% else %}{{ _("accrual basis") }}{% endif %}</p>
+  <div class="drafting mt-4"></div>
+</header>
+
+<form method="get" action="/reports/gst-detail" class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
+  <div>
+    <label for="label" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Label") }}</label>
+    <select id="label" name="label" class="saebooks-input text-sm py-1.5">
+      {% for l in labels %}<option value="{{ l }}" {% if l == label %}selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="from_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From date") }}</label>
+    <input id="from_date" type="date" name="from_date" value="{{ from_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <div>
+    <label for="to_date" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("To date") }}</label>
+    <input id="to_date" type="date" name="to_date" value="{{ to_date }}" class="saebooks-input num text-sm py-1.5">
+  </div>
+  <div>
+    <label for="basis" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("GST basis") }}</label>
+    <select id="basis" name="basis" class="saebooks-input text-sm py-1.5">
+      <option value="accrual" {% if basis == "accrual" %}selected{% endif %}>{{ _("Accrual") }}</option>
+      <option value="cash" {% if basis == "cash" %}selected{% endif %}>{{ _("Cash") }}</option>
+    </select>
+  </div>
+  <button type="submit" class="btn-primary text-sm">{{ _("Show") }}</button>
+</form>
+
+{% if degraded %}
+{% include "_partials/degraded_panel.html" %}
+{% elif error %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% else %}
+
+{% set tie = detail.get("tie_out") %}
+{% if tie %}
+<div class="card p-4 mb-4 text-sm">
+  {% if tie.get("account_code") %}
+  <p class="ink-2">
+    {{ _("Movement on account %(code)s in the period: %(mv)s. This label: %(lab)s. Difference: %(diff)s.") % {
+        "code": tie.get("account_code"),
+        "mv": num(tie.get("account_movement", 0) | float, 2),
+        "lab": num(tie.get("label_total", 0) | float, 2),
+        "diff": num(tie.get("difference", 0) | float, 2)} }}
+  </p>
+  {% if tie.get("settlement_journals") %}
+  <p class="text-xs ink-3 mt-1">{{ _("The difference includes BAS settlement journals, which clear the account and never count on a BAS:") }}
+    {% for s in tie.get("settlement_journals") %}<a class="sae hover:underline" href="/journal-entries/{{ s.journal_entry_id }}">{{ s.ref }}</a> ({{ num(s.amount | float, 2) }}){% if not loop.last %}, {% endif %}{% endfor %}</p>
+  {% endif %}
+  {% else %}
+  <p class="ink-2">
+    {% if (tie.get("difference", 0) | float) == 0 %}
+      {{ _("The rows below add up to the label: %(lab)s.") % {"lab": num(tie.get("label_total", 0) | float, 2)} }}
+    {% else %}
+      {{ _("The rows below differ from the label by %(diff)s.") % {"diff": num(tie.get("difference", 0) | float, 2)} }}
+    {% endif %}
+  </p>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card overflow-hidden">
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("Journal") }}</th>
+        <th class="text-left">{{ _("Description") }}</th>
+        <th class="text-left">{{ _("Account") }}</th>
+        <th class="text-right">{{ _("Amount (AUD)") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in detail.get("rows", []) %}
+      <tr>
+        <td class="num ink-2">{{ row.get("date") }}</td>
+        <td class="ink-2">{% if row.get("url") %}<a class="sae hover:underline" href="{{ row.url }}">{{ row.get("ref") or _("Open") }}</a>{% else %}{{ row.get("ref") or "" }}{% endif %}</td>
+        <td class="ink-1">{{ row.get("description") or "" }}
+          {% if row.get("portion") and (row.get("portion") | float) < 1 %}
+          <span class="text-xs ink-3">· {{ _("%(pct)s%% paid in this period") % {"pct": num((row.get("portion") | float) * 100, 0)} }}</span>
+          {% endif %}
+        </td>
+        <td class="text-xs ink-3">{{ (row.get("accounts") or []) | join(", ") }}</td>
+        <td class="text-right num ink-1">{{ num(row.get("amount", 0) | float, 2) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-sm ink-3">{{ _("Nothing in this period.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr style="background:var(--sae-tint);">
+        <td colspan="4" class="font-semibold sae">{{ _("Total") }}</td>
+        <td class="text-right num-display font-semibold sae">{{ num(detail.get("total", 0) | float, 2) }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}

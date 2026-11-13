@@ -809,6 +809,12 @@ async def inbox_review_submit(
                         if line.get("project_id")
                         else {}
                     ),
+                    # Batch 5: typed GST (within one cent of the worked GST).
+                    **(
+                        {"tax_override": str(line["tax_override"])}
+                        if line.get("tax_override") and record_kind != "CREDIT_NOTE"
+                        else {}
+                    ),
                 }
             )
 
@@ -821,6 +827,10 @@ async def inbox_review_submit(
         }
         if record_kind == "EXPENSE":
             payload["payment_account_id"] = form["payment_account_id"].strip()
+        # Batch 5 (P0-28): receipt prices typed GST-inclusive. Credit notes
+        # stay GST-exclusive (the engine ignores the switch for them).
+        if record_kind in ("EXPENSE", "BILL"):
+            payload["amounts_include_tax"] = bool(form.get("amounts_include_tax"))
         reference = (form.get("invoice_number") or "").strip()
         if reference:
             payload["reference"] = reference

@@ -1,0 +1,55 @@
+{# "Amounts include GST" switch + live subtotal / GST / total (batch 5, P0-28).
+   Include INSIDE the <form>. Needs, on each line row:
+     lines[N][quantity], lines[N][unit_price], lines[N][tax_code_id]
+     (options carrying data-rate) and optionally lines[N][tax_override]
+     and lines[N][discount_pct].
+   ``inclusive_checked`` — whether the switch starts on. #}
+<div class="card p-4 space-y-3" data-gst-totals>
+  <label class="flex items-center gap-2 text-base ink-2">
+    <input type="checkbox" name="amounts_include_tax" value="1" {% if inclusive_checked %}checked{% endif %} data-gst-inclusive>
+    {{ _("Amounts include GST") }}
+  </label>
+  <p class="text-xs ink-3">{{ _("On: type prices as they appear on the receipt, and the GST is worked out of them ($110 is $100 plus $10 GST). Off: type prices before GST. You can type the GST yourself if the receipt rounded it differently; it may differ by one cent.") }}</p>
+  <dl class="grid grid-cols-3 gap-3 text-sm">
+    <div><dt class="text-xs ink-3">{{ _("Subtotal before GST") }}</dt><dd class="num ink-1" data-gst-out="subtotal">0.00</dd></div>
+    <div><dt class="text-xs ink-3">{{ _("GST") }}</dt><dd class="num ink-1" data-gst-out="gst">0.00</dd></div>
+    <div><dt class="text-xs ink-3">{{ _("Total") }}</dt><dd class="num font-semibold ink-1" data-gst-out="total">0.00</dd></div>
+  </dl>
+</div>
+<script>
+(function () {
+  var panel = document.currentScript.previousElementSibling;
+  var form = panel.closest("form");
+  if (!form) return;
+  function r2(x) { return Math.round((x + Number.EPSILON) * 100) / 100; }
+  function field(row, name) { return row.querySelector('[name$="[' + name + ']"]'); }
+  function recalc() {
+    var inclusive = panel.querySelector("[data-gst-inclusive]").checked;
+    var sub = 0, gst = 0, tot = 0;
+    var seen = new Set();
+    form.querySelectorAll('[name$="[unit_price]"]').forEach(function (price) {
+      var row = price.closest("tr") || price.parentElement;
+      if (seen.has(row)) return; seen.add(row);
+      var qty = parseFloat((field(row, "quantity") || {}).value || "1") || 0;
+      var disc = parseFloat((field(row, "discount_pct") || {}).value || "0") || 0;
+      var amount = r2(qty * (parseFloat(price.value || "0") || 0) * (100 - disc) / 100);
+      var sel = field(row, "tax_code_id");
+      var opt = sel && sel.selectedOptions && sel.selectedOptions[0];
+      var rate = opt ? parseFloat(opt.getAttribute("data-rate") || "0") || 0 : 0;
+      var worked = inclusive ? r2(amount * rate / (100 + rate)) : r2(amount * rate / 100);
+      var ov = field(row, "tax_override");
+      if (ov) ov.placeholder = worked.toFixed(2);
+      var lineGst = (ov && ov.value !== "") ? r2(parseFloat(ov.value) || 0) : worked;
+      if (inclusive) { tot += amount; gst += lineGst; sub += amount - lineGst; }
+      else { sub += amount; gst += lineGst; tot += amount + lineGst; }
+    });
+    panel.querySelector('[data-gst-out="subtotal"]').textContent = r2(sub).toFixed(2);
+    panel.querySelector('[data-gst-out="gst"]').textContent = r2(gst).toFixed(2);
+    panel.querySelector('[data-gst-out="total"]').textContent = r2(tot).toFixed(2);
+  }
+  form.addEventListener("input", recalc);
+  form.addEventListener("change", recalc);
+  document.body.addEventListener("htmx:afterSwap", recalc);
+  recalc();
+})();
+</script>
