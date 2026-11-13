@@ -871,11 +871,34 @@ async def contact_detail(
     elif att_resp.is_success:
         attachments = att_resp.json()
 
+    # Customer statements are one currency each: find which currencies this
+    # customer has activity in so the page can offer one statement per currency.
+    statement_currencies: list[str] = []
+    if (contact.get("contact_type") or "").upper() in ("CUSTOMER", "BOTH"):
+        try:
+            today = date.today()
+            async with api_client(request) as client:
+                st = await client.get(
+                    f"/api/v1/contacts/{contact_id}/statement",
+                    params={
+                        "from": (today - timedelta(days=365)).isoformat(),
+                        "to": today.isoformat(),
+                    },
+                )
+            if st.is_success:
+                body = st.json()
+                if isinstance(body, dict):
+                    first = body.get("currency")
+                    statement_currencies = [c for c in [first, *(body.get("other_currencies") or [])] if c]
+        except Exception:
+            statement_currencies = []
+
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "contacts/detail.html",
         {"contact": contact, "error": None, "flash": flash,
+         "statement_currencies": statement_currencies,
          "transactions": transactions,
          "txn_type": txn_type or "",
          "txn_status": txn_status or "",
@@ -1009,6 +1032,7 @@ async def contact_statement_pdf(
     contact_id: str,
     period_from: str | None = Query(default=None, alias="from"),
     period_to: str | None = Query(default=None, alias="to"),
+    currency: str | None = Query(default=None, min_length=3, max_length=3),
 ) -> Response | RedirectResponse:
     """Stream the customer AR statement PDF from the API.
 
@@ -1023,10 +1047,14 @@ async def contact_statement_pdf(
     today = date.today()
     pf = period_from or (today - timedelta(days=365)).isoformat()
     pt = period_to or today.isoformat()
+    pdf_params = {"from": pf, "to": pt}
+    if currency:
+        # One statement per currency (batch 10): the engine never mixes them.
+        pdf_params["currency"] = currency.upper()
     async with api_client(request) as client:
         resp = await client.get(
             f"/api/v1/contacts/{contact_id}/statement.pdf",
-            params={"from": pf, "to": pt},
+            params=pdf_params,
         )
     if resp.status_code == 401:
         request.session.clear()

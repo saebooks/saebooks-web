@@ -51,8 +51,15 @@
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
       {% if contact.contact_type in ("CUSTOMER", "BOTH") %}
-      <a href="/contacts/{{ contact.id }}/statement/pdf" target="_blank" rel="noopener"
-         class="btn-secondary text-sm">{{ _("Statement PDF") }}</a>
+      {% if statement_currencies and statement_currencies|length > 1 %}
+        {% for _ccy in statement_currencies %}
+      <a href="/contacts/{{ contact.id }}/statement/pdf?currency={{ _ccy }}" target="_blank" rel="noopener"
+         class="btn-secondary text-sm">{{ _("Statement PDF") }} ({{ _ccy }})</a>
+        {% endfor %}
+      {% else %}
+      <a href="/contacts/{{ contact.id }}/statement/pdf{% if statement_currencies %}?currency={{ statement_currencies[0] }}{% endif %}" target="_blank" rel="noopener"
+         class="btn-secondary text-sm">{{ _("Statement PDF") }}{% if statement_currencies %} ({{ statement_currencies[0] }}){% endif %}</a>
+      {% endif %}
       {% endif %}
       <a href="/contacts/{{ contact.id }}/edit" class="btn-secondary text-sm">{{ _("Edit") }}</a>
       {% if not contact.archived_at %}

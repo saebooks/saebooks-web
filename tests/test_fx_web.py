@@ -385,3 +385,36 @@ async def test_invoice_form_has_picker_and_contact_currencies(respx_mock: respx.
     assert "EUR — Euro" in resp.text
     assert f'"{_CONTACT}": "EUR"' in resp.text
     assert "/static/js/fx_fields.js" in resp.text
+
+
+# ---------------------------------------------------------------------------
+# Customer statements are one currency each (web side)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_statement_pdf_forwards_currency(respx_mock: respx.MockRouter) -> None:
+    route = respx_mock.get(f"{_API}/api/v1/contacts/{_CONTACT}/statement.pdf").mock(
+        return_value=Response(200, content=b"%PDF-1.5 x", headers={"content-type": "application/pdf"})
+    )
+    async with _client() as c:
+        r = await c.get(f"/contacts/{_CONTACT}/statement/pdf?currency=eur")
+    assert r.status_code == 200
+    assert route.calls.last.request.url.params["currency"] == "EUR"
+
+
+@pytest.mark.anyio
+async def test_contact_page_offers_one_statement_per_currency(respx_mock: respx.MockRouter) -> None:
+    respx_mock.get(f"{_API}/api/v1/contacts/{_CONTACT}").mock(
+        return_value=Response(200, json={"id": _CONTACT, "name": "Acme", "contact_type": "CUSTOMER", "version": 1})
+    )
+    respx_mock.get(f"{_API}/api/v1/attachments").mock(return_value=Response(200, json=[]))
+    respx_mock.get(f"{_API}/api/v1/contacts/{_CONTACT}/statement").mock(
+        return_value=Response(200, json={"currency": "AUD", "other_currencies": ["EUR"]})
+    )
+    _fallback(respx_mock)
+    async with _client() as c:
+        r = await c.get(f"/contacts/{_CONTACT}")
+    assert r.status_code == 200
+    assert f"/contacts/{_CONTACT}/statement/pdf?currency=AUD" in r.text
+    assert f"/contacts/{_CONTACT}/statement/pdf?currency=EUR" in r.text
