@@ -379,3 +379,30 @@ async def test_audit_log_shows_names_and_exports(respx_mock) -> None:
     assert x.status_code == 200 and "attachment" in x.headers["content-disposition"]
     q = dict(csv.calls.last.request.url.params)
     assert q["action"] == "invoice.change_contact" and q["at_from"].startswith("2026-11-01")
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_payment_void_sends_reason_and_override(respx_mock) -> None:
+    route = respx_mock.delete(f"{_API}/api/v1/payments/{_PAY}").mock(return_value=Response(204))
+    async with _client() as c:
+        r = await c.post(f"/payments/{_PAY}/void", data={
+            "version": "4", "reason": "Wrong customer",
+            "override_reason": "Agreed with the accountant"})
+    assert r.status_code == 303
+    q = route.calls.last.request.url.params
+    assert q["reason"] == "Wrong customer"
+    assert q["override_reason"] == "Agreed with the accountant"
+
+
+@pytest.mark.anyio
+@respx.mock
+async def test_credit_note_void_sends_reason_and_override(respx_mock) -> None:
+    cn = "aaaaaaaa-0000-0000-0000-0000000000cc"
+    route = respx_mock.post(f"{_API}/api/v1/credit_notes/{cn}/void").mock(return_value=Response(204))
+    async with _client() as c:
+        r = await c.post(f"/credit-notes/{cn}/void", data={
+            "version": "2", "reason": "Issued twice", "override_reason": "Locked, accountant agreed"})
+    assert r.status_code == 303
+    assert _json.loads(route.calls.last.request.content) == {
+        "reason": "Issued twice", "override_reason": "Locked, accountant agreed"}

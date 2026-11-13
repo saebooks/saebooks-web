@@ -168,7 +168,7 @@
   {% endif %}
 
   {# ── Void with a reason ── #}
-  <section class="card p-5">
+  <section class="card p-5" id="void">
     <h2 class="text-lg ink-1 mb-1">{% if kind == "invoice" %}{{ _("Void this invoice") }}{% else %}{{ _("Void this bill") }}{% endif %}</h2>
     <p class="text-sm ink-3 mb-3">{{ _("Cancels it. Its entry is reversed and the reason is kept in its history.") }}</p>
     <form method="post" action="/{{ base }}/{{ doc.id }}/void-with-reason" class="space-y-2"

@@ -70,6 +70,10 @@
             onsubmit="return confirm('{{ _('Void this payment?') }}');" class="inline">
         {{ csrf_input(request)|safe }}
         <input type="hidden" name="version" value="{{ payment.version }}">
+      <input type="text" name="reason" maxlength="1000" class="saebooks-input text-sm" style="width:14rem" placeholder="{{ _('Why? (kept in the history)') }}">
+      {% if request.session.get('user_role') in ('admin','accountant','owner') %}
+      <input type="text" name="override_reason" maxlength="1000" class="saebooks-input text-sm" style="width:18rem" placeholder="{{ _('Only if in a locked period: why change it?') }}">
+      {% endif %}
         <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
       </form>
       {% endif %}

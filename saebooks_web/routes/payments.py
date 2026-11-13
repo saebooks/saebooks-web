@@ -1190,6 +1190,15 @@ async def payment_post(
 # ---------------------------------------------------------------------------
 
 
+def _reason_body(form_data: object) -> dict[str, str]:
+    body: dict[str, str] = {}
+    for key in ("reason", "override_reason"):
+        val = str(form_data.get(key, "") or "").strip()
+        if val:
+            body[key] = val
+    return body
+
+
 @router.post(
     "/payments/{payment_id}/void", response_class=HTMLResponse, response_model=None
 )
@@ -1220,6 +1229,7 @@ async def payment_void(
         resp = await client.delete(
             f"/api/v1/payments/{payment_id}",
             headers={"If-Match": version},
+            params=_reason_body(form_data),
         )
 
     if resp.status_code == 401:

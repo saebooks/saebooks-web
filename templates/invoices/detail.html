@@ -101,12 +101,7 @@
       </form>
       {% endif %}
       {% if invoice.status == 'POSTED' %}
-      <form method="post" action="/invoices/{{ invoice.id }}/void"
-            onsubmit="return confirm('{{ _('Void this invoice?') }}');" class="inline">
-        {{ csrf_input(request)|safe }}
-        <input type="hidden" name="version" value="{{ invoice.version }}">
-        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
-      </form>
+      <a href="/invoices/{{ invoice.id }}/fix#void" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</a>
       {% endif %}
       {% if is_admin %}
       {{ icons.hard_delete(
