@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Super owed") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="font-display text-3xl">{{ _("Super owed") }}</h1>
+  <p class="text-base ink-3 mt-1">{{ _("Payday Super: from 1 July 2026 each contribution must reach the employee's fund within 7 business days of payday, or 20 business days for a new employee or a new fund. Late super attracts the super guarantee charge.") }}</p>
+  <p class="text-sm ink-3 mt-1">{{ _("Due dates count weekdays and the public holidays that cover a whole state or territory. A few state holidays set each year by proclamation are not counted, so a due date can be a day or two earlier than the legal deadline, never later.") }}</p>
+</div>
+
+{% include "payroll/_flash.html" %}
+
+{% if data %}
+<div class="card p-4 mb-6">
+  <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+    <h2 class="font-display text-xl">{{ _("Still to pay, by fund") }}</h2>
+    <div class="text-base">{{ _("Total") }} <strong class="num">{{ money(data.total_owed) }}</strong>
+      {% if data.overdue_count %}<span class="chip chip-neg text-xs">{{ data.overdue_count }} {{ _("overdue") }}</span>{% endif %}
+    </div>
+  </div>
+  {% if data.funds %}
+  <table class="w-full text-base">
+    <thead>
+      <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="px-3 py-2">{{ _("Fund") }}</th>
+        <th class="px-3 py-2">{{ _("Unique superannuation identifier") }}</th>
+        <th class="px-3 py-2">{{ _("Next due") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Owed") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for f in data.funds %}
+      <tr class="border-t hairline">
+        <td class="px-3 py-2">{{ f.fund_name }}</td>
+        <td class="px-3 py-2 font-mono">{{ f.fund_usi or "" }}</td>
+        <td class="px-3 py-2 num">{{ f.next_due or "" }} {% if f.overdue %}<span class="chip chip-neg text-xs">{{ _("Overdue") }}</span>{% endif %}</td>
+        <td class="px-3 py-2 text-right num-display">{{ money(f.owed) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-base ink-3">{{ _("Nothing owed. All super from finalised pay runs is recorded as paid.") }}</p>
+  {% endif %}
+</div>
+
+<div class="card mb-6 overflow-x-auto">
+  <table class="w-full text-base">
+    <thead>
+      <tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+        <th class="px-3 py-2">{{ _("Pay run") }}</th>
+        <th class="px-3 py-2">{{ _("Payday") }}</th>
+        <th class="px-3 py-2">{{ _("Must reach the fund by") }}</th>
+        <th class="px-3 py-2 text-right">{{ _("Amount") }}</th>
+        <th class="px-3 py-2">{{ _("Status") }}</th>
+        <th class="px-3 py-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in data.runs %}
+      <tr class="border-t hairline align-top" data-super-run="{{ r.id }}">
+        <td class="px-3 py-2 num"><a class="underline" href="/payroll/pay-runs/{{ r.pay_run_id }}">{{ r.period_start }} {{ _("to") }} {{ r.period_end }}</a>
+          <details class="text-sm mt-1"><summary class="cursor-pointer ink-3">{{ r.employee_count }} {{ _("employees") }}</summary>
+            <ul class="mt-1">
+            {% for ln in r.lines %}<li>{{ ln.employee_name }}: {{ money(ln.amount) }} {{ _("to") }} {{ ln.fund_name or _("no fund recorded") }}{% if ln.member_number %} ({{ _("member") }} {{ ln.member_number }}){% endif %}{% if ln.first_contribution %} · {{ _("first contribution, 20 business days") }}{% endif %}</li>{% endfor %}
+            </ul>
+          </details>
+        </td>
+        <td class="px-3 py-2 num">{{ r.payment_date }}</td>
+        <td class="px-3 py-2 num">{{ r.due_date or "" }}</td>
+        <td class="px-3 py-2 text-right num-display">{{ money(r.total_amount) }}</td>
+        <td class="px-3 py-2">
+          {% if r.state == 'PAID' %}<span class="chip chip-pos text-xs">{{ _("Paid") }} {{ r.paid_on }}</span>
+          {% elif r.state == 'OVERDUE' %}<span class="chip chip-neg text-xs">{{ _("Overdue") }}</span>
+          {% elif r.state == 'VOIDED' %}<span class="chip text-xs ink-3">{{ _("Voided") }}</span>
+          {% else %}<span class="chip chip-warm text-xs">{{ _("Owed") }}</span>{% endif %}
+        </td>
+        <td class="px-3 py-2">
+          <a class="btn btn-secondary text-sm" href="/payroll/super/{{ r.id }}/file">{{ _("Download super file") }}</a>
+          {% if r.state in ['DUE', 'OVERDUE'] %}
+          <form method="post" action="/payroll/super/{{ r.id }}/mark-paid" class="mt-2 flex flex-wrap gap-2 items-end">
+            {{ csrf_input(request) | safe }}
+            <input type="hidden" name="back" value="/payroll/super">
+            <div>
+              <label for="bank_{{ r.id }}" class="block text-xs ink-3 mb-1">{{ _("Paid from") }}</label>
+              <select id="bank_{{ r.id }}" name="bank_account_id" required class="rounded-md hairline px-2 py-1.5 bg-paper text-sm">
+                {% for b in bank_accounts %}<option value="{{ b.id }}">{{ b.name }} ({{ b.code }})</option>{% endfor %}
+              </select>
+            </div>
+            <div>
+              <label for="paid_{{ r.id }}" class="block text-xs ink-3 mb-1">{{ _("Paid on") }}</label>
+              <input id="paid_{{ r.id }}" type="date" name="paid_on" value="{{ today }}" required class="rounded-md hairline px-2 py-1.5 bg-paper text-sm num">
+            </div>
+            <div>
+              <label for="ref_{{ r.id }}" class="block text-xs ink-3 mb-1">{{ _("Reference (optional)") }}</label>
+              <input id="ref_{{ r.id }}" name="reference" maxlength="64" class="rounded-md hairline px-2 py-1.5 bg-paper text-sm w-36">
+            </div>
+            <button type="submit" class="btn btn-primary text-sm">{{ _("Mark paid") }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="px-3 py-6 text-center ink-3">{{ _("No super worked out yet. Super is worked out when a pay run is finalised.") }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-sm ink-3">{{ _("Mark paid records the payment as money out of the chosen bank account against super owing (account 2-1400), so it matches the bank line when you reconcile. The super file is for uploading to a clearing house or your fund's employer portal.") }}</p>
+{% endif %}
+{% endblock %}

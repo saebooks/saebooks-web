@@ -137,6 +137,10 @@
             {% elif employee.tfn_status == 'EXEMPT_PENSIONER' %}<span class="chip chip-ink">{{ _("Exempt — pensioner") }}</span>
             {% elif employee.tfn_status == 'EXEMPT_UNDER_18' %}<span class="chip chip-ink">{{ _("Exempt — under 18") }}</span>
             {% else %}<span class="chip">{{ employee.tfn_status }}</span>{% endif %}
+            {% if employee.tfn_declaration_date %}<span class="ink-3 text-sm">· {{ _("declaration received") }} {{ employee.tfn_declaration_date }}</span>{% endif %}
+            {% if employee.tfn_status in ['APPLIED_FOR', 'NEW_PAYEE_30D'] %}
+            <div class="text-sm text-amber-700 mt-1">{{ _("Normal rates apply for 28 days from the declaration; after that 47% is withheld until the TFN is recorded.") }}</div>
+            {% endif %}
           </dd>
         </div>
         <div class="grid grid-cols-3 gap-2">
@@ -279,6 +283,17 @@
           <dd class="col-span-2 num">{{ employee.super_member_number }}</dd>
         </div>
         {% endif %}
+        <div class="grid grid-cols-3 gap-2">
+          <dt class="ink-3">{{ _("Fund chosen by") }}</dt>
+          <dd class="col-span-2">
+            {% if employee.super_choice_source == 'EMPLOYEE_CHOICE' %}{{ _("The employee's choice form") }}
+            {% elif employee.super_choice_source == 'STAPLED_FUND' %}{{ _("Stapled fund from the ATO") }}
+            {% elif employee.super_choice_source == 'EMPLOYER_DEFAULT' %}{{ _("Our default fund (ATO found no stapled fund)") }}
+            {% else %}<span class="chip chip-warm">{{ _("Not recorded") }}</span>{% endif %}
+            {% if employee.super_choice_date %}<span class="ink-3 text-sm">· {{ employee.super_choice_date }}</span>{% endif %}
+            {% if employee.stapled_fund_requested_on %}<div class="ink-3 text-sm">{{ _("Stapled fund asked for on") }} {{ employee.stapled_fund_requested_on }}</div>{% endif %}
+          </dd>
+        </div>
         <div class="grid grid-cols-3 gap-2 hairline border-t pt-3">
           <dt class="ink-3">{{ _("Bank account") }}</dt>
           <dd class="col-span-2">
@@ -290,6 +305,78 @@
           </dd>
         </div>
       </dl>
+    </div>
+
+    {# Leave #}
+    <div class="card p-6" id="leave">
+      <p class="nav-section-label mb-4">{{ _("Leave") }}</p>
+      {% if flash %}<div class="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 mb-3" role="status">{{ flash }}</div>{% endif %}
+      {% if flash_error %}<div class="rounded-md bg-rose-50 border border-rose-300 px-3 py-2 text-sm text-rose-800 mb-3" role="alert">{{ flash_error }}</div>{% endif %}
+      <table class="w-full text-base mb-4">
+        <thead><tr class="text-left text-xs font-mono uppercase tracking-wider ink-3 border-b hairline">
+          <th class="py-1">{{ _("Type") }}</th><th class="py-1 text-right">{{ _("Hours owed") }}</th><th class="py-1 text-right">{{ _("Opening balance") }}</th></tr></thead>
+        <tbody>
+        {% for b in leave_balances or [] %}
+          <tr class="border-t hairline"><td class="py-1">{{ b.leave_type|replace('_', ' ')|lower|capitalize }}</td>
+            <td class="py-1 text-right num">{{ b.balance_hours }}</td>
+            <td class="py-1 text-right num ink-3">{{ b.opening_balance_hours }}{% if b.opening_balance_as_at %} ({{ b.opening_balance_as_at[:10] }}){% endif %}</td></tr>
+        {% else %}
+          <tr><td colspan="3" class="py-2 ink-3">{{ _("No leave recorded yet. Full-time and part-time employees earn annual and personal leave on every finalised pay run.") }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <details class="mb-3">
+        <summary class="cursor-pointer text-sm font-medium">{{ _("Set an opening balance or adjust a balance") }}</summary>
+        <form method="post" action="/employees/{{ employee.id }}/leave" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {{ csrf_input(request) | safe }}
+          <div>
+            <label for="leave_action" class="block text-sm ink-3 mb-1">{{ _("What to do") }}</label>
+            <select id="leave_action" name="action" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+              <option value="opening">{{ _("Opening balance (moving from another system)") }}</option>
+              <option value="adjust">{{ _("Adjust: add or take away hours") }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="leave_type_sel" class="block text-sm ink-3 mb-1">{{ _("Leave type") }}</label>
+            <select id="leave_type_sel" name="leave_type" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+              <option value="ANNUAL">{{ _("Annual leave") }}</option>
+              <option value="PERSONAL">{{ _("Personal or carer's leave") }}</option>
+              <option value="LONG_SERVICE">{{ _("Long service leave") }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="leave_hours_in" class="block text-sm ink-3 mb-1">{{ _("Hours (use a minus sign to take hours away)") }}</label>
+            <input id="leave_hours_in" name="hours" inputmode="decimal" required class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+          </div>
+          <div>
+            <label for="leave_as_at" class="block text-sm ink-3 mb-1">{{ _("Opening balance as at (opening only)") }}</label>
+            <input id="leave_as_at" type="date" name="as_at" class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+          </div>
+          <div class="md:col-span-2">
+            <label for="leave_reason" class="block text-sm ink-3 mb-1">{{ _("Reason (needed for an adjustment)") }}</label>
+            <input id="leave_reason" name="reason" maxlength="200" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+          </div>
+          <div><button type="submit" class="btn btn-primary">{{ _("Save") }}</button></div>
+        </form>
+      </details>
+      {% if leave_history %}
+      <details>
+        <summary class="cursor-pointer text-sm font-medium">{{ _("Leave history") }}</summary>
+        <table class="w-full text-sm mt-2">
+          <tbody>
+          {% for h in leave_history %}
+            <tr class="border-t hairline">
+              <td class="py-1 num ink-3">{{ (h.created_at or '')[:10] }}</td>
+              <td class="py-1">{{ h.leave_type|replace('_', ' ')|lower|capitalize }}</td>
+              <td class="py-1">{% if h.kind == 'ACCRUE' %}{{ _("Earned") }}{% elif h.kind == 'TAKE' %}{{ _("Taken") }}{% elif h.kind == 'ADJUST' %}{{ _("Adjusted") }}{% else %}{{ h.kind|lower|capitalize }}{% endif %}{% if h.reason %}: {{ h.reason }}{% endif %}</td>
+              <td class="py-1 text-right num">{{ h.hours }}</td>
+              <td class="py-1 text-right num ink-3">{{ _("balance") }} {{ h.balance_after }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </details>
+      {% endif %}
     </div>
 
     {# Audit / version row #}
@@ -372,7 +459,7 @@
       <a href="/super-funds/{{ employee.super_fund_id }}"
          class="block text-sm sae hover:underline mt-1">{{ super_fund.name }} →</a>
       {% endif %}
-      <a href="/pay-run" class="block text-sm sae hover:underline mt-1">{{ _("Pay runs →") }}</a>
+      <a href="/payroll/pay-runs" class="block text-sm sae hover:underline mt-1">{{ _("Pay runs →") }}</a>
     </div>
   </aside>
 

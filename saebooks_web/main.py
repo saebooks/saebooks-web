@@ -117,6 +117,7 @@ from saebooks_web.routes.employees import router as employees_router
 from saebooks_web.routes.super_funds import router as super_funds_router
 from saebooks_web.routes.pay_run import router as pay_run_router
 from saebooks_web.routes.wages import router as wages_router
+from saebooks_web.routes.payroll_compliance import router as payroll_compliance_router
 from saebooks_web.routes.payments import router as payments_router
 from saebooks_web.routes.profile import router as profile_router
 from saebooks_web.routes.projects import router as projects_router
@@ -466,6 +467,7 @@ app.include_router(employees_router)
 app.include_router(super_funds_router)
 app.include_router(pay_run_router)
 app.include_router(wages_router)
+app.include_router(payroll_compliance_router)
 app.include_router(admin_router)
 app.include_router(imports_router)
 app.include_router(inbox_router)

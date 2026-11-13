@@ -1,0 +1,90 @@
+{#
+  payslip.tex.j2 -- one employee's payslip for one pay run, attached to the
+  payslip email (engine services.payroll_compliance.email_payslips).
+
+  Context: {"slip": <engine payslip dict>} -- employer, employee, period,
+  earnings, paid_leave, allowances, additional_payments, deductions, totals,
+  super, ytd, leave_balances. Every string goes through |latex_escape.
+  Self-contained (no _preamble include: that preamble's header and footer
+  are for financial statements and expect a ``company`` key).
+#}
+{% macro amt(v) -%}{{ "%.2f"|format((v or 0)|float) | latex_escape }}{%- endmacro %}
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,top=20mm,bottom=20mm,left=20mm,right=20mm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Liberation Sans}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[table]{xcolor}
+\definecolor{saegreen}{HTML}{3E7A4E}
+\definecolor{midgrey}{HTML}{6B7280}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+\begin{document}
+
+{\LARGE\bfseries\color{saegreen} Payslip}\\[1mm]
+{\small\color{midgrey} {% if slip.status != 'FINALIZED' %}DRAFT -- figures may still change{% else %}Pay date {{ slip.period.payment_date | latex_escape }}{% endif %}}
+
+\vspace{4mm}
+\begin{tabularx}{\textwidth}{X X}
+\textbf{Employer} & \textbf{Employee} \\
+{{ (slip.employer.legal_name or slip.employer.name) | latex_escape }} & {{ slip.employee.name | latex_escape }} \\
+ABN {{ (slip.employer.abn or 'not recorded') | latex_escape }} & Employee number {{ slip.employee.employee_number | latex_escape }} \\
+\end{tabularx}
+
+\vspace{2mm}
+Pay period {{ slip.period.start | latex_escape }} to {{ slip.period.end | latex_escape }} \quad Date of payment {{ slip.period.payment_date | latex_escape }}
+
+\vspace{4mm}
+{\bfseries\color{saegreen} Earnings}\\[1mm]
+\begin{tabularx}{\textwidth}{X r r r}
+\toprule
+Description & Hours & Rate & Amount \\
+\midrule
+{% for e in slip.earnings -%}
+{{ e.description | latex_escape }} & {% if e.hours is not none %}{{ amt(e.hours) }}{% endif %} & {% if e.rate is not none %}\${{ amt(e.rate) }}{% endif %} & {% if e.amount is not none %}\${{ amt(e.amount) }}{% endif %} \\
+{% endfor -%}
+{% for p in slip.paid_leave or [] -%}
+{{ (p.leave_type or '') | replace('_', ' ') | lower | capitalize | latex_escape }} leave & {{ amt(p.hours) }} & & \${{ amt(p.amount) }} \\
+{% endfor -%}
+{% for a in slip.allowances -%}
+Allowance: {{ (a.description or a.type) | latex_escape }}{% if a.taxable is sameas false %} (no tax withheld){% endif %} & & & \${{ amt(a.amount) }} \\
+{% endfor -%}
+{% for a in slip.additional_payments or [] -%}
+{{ (a.kind or '') | replace('_', ' ') | lower | capitalize | latex_escape }}{% if a.description %}: {{ a.description | latex_escape }}{% endif %} & & & \${{ amt(a.amount) }} \\
+{% endfor -%}
+\midrule
+\textbf{Gross pay} & & & \textbf{\${{ amt(slip.totals.gross) }}} \\
+\bottomrule
+\end{tabularx}
+
+\vspace{4mm}
+{\bfseries\color{saegreen} Tax and deductions}\\[1mm]
+\begin{tabularx}{\textwidth}{X r}
+\toprule
+Tax withheld (paid to the Australian Taxation Office) & \${{ amt(slip.totals.payg) }} \\
+{% for d in slip.deductions -%}
+{{ (d.description or d.type) | latex_escape }} & \${{ amt(d.amount) }} \\
+{% endfor -%}
+\midrule
+\textbf{Net pay} & \textbf{\${{ amt(slip.totals.net) }}} \\
+\bottomrule
+\end{tabularx}
+
+\vspace{4mm}
+{\bfseries\color{saegreen} Superannuation}\\[1mm]
+Employer super guarantee contribution \${{ amt(slip.super.amount) }}{% if slip.super.fund_name %} to {{ slip.super.fund_name | latex_escape }}{% endif %}{% if slip.super.member_number %}, member {{ slip.super.member_number | latex_escape }}{% endif %}.
+
+\vspace{4mm}
+{\bfseries\color{saegreen} Year to date}\\[1mm]
+Gross \${{ amt(slip.ytd.gross) }} \quad Tax withheld \${{ amt(slip.ytd.payg) }} \quad Superannuation \${{ amt(slip.ytd.super) }}
+
+{% if slip.leave_balances %}
+\vspace{4mm}
+{\bfseries\color{saegreen} Leave owed after this pay}\\[1mm]
+{% for k, v in slip.leave_balances.items() %}{{ k | replace('_', ' ') | lower | capitalize | latex_escape }} leave {{ amt(v) }} hours{% if not loop.last %} \quad {% endif %}{% endfor %}
+{% endif %}
+
+\end{document}

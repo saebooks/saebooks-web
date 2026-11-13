@@ -130,6 +130,7 @@ TEMPLATE_NAMES: frozenset[str] = frozenset(
         "purchase_order",
         "contact_statement",
         "statement_pack",
+        "payslip",
     }
 )
 

@@ -635,10 +635,16 @@
           </a>
           {% if request.state.jp.features.payroll %}
           <a href="/payroll/pay-runs" class="nav-item is-sub {% if path.startswith('/payroll/pay-runs') %}active{% endif %}">
-            <i data-lucide="hand-coins" class="nav-ico"></i>{{ _("Wages pay runs") }}
+            <i data-lucide="hand-coins" class="nav-ico"></i>{{ _("Pay runs") }}
           </a>
-          <a href="/pay-run" class="nav-item is-sub {% if path.startswith('/pay-run') %}active{% endif %}">
-            <i data-lucide="badge-dollar-sign" class="nav-ico"></i>{{ _("Pay Run") }}
+          <a href="/payroll/stp" class="nav-item is-sub {% if path.startswith('/payroll/stp') %}active{% endif %}">
+            <i data-lucide="shield-check" class="nav-ico"></i>{{ _("Single Touch Payroll") }}
+          </a>
+          <a href="/payroll/super" class="nav-item is-sub {% if path.startswith('/payroll/super') %}active{% endif %}">
+            <i data-lucide="piggy-bank" class="nav-ico"></i>{{ _("Super owed") }}
+          </a>
+          <a href="/payroll/year-end" class="nav-item is-sub {% if path.startswith('/payroll/year-end') %}active{% endif %}">
+            <i data-lucide="calendar-check" class="nav-ico"></i>{{ _("Payroll year end") }}
           </a>
           {% endif %}
         </div>
@@ -1061,7 +1067,7 @@
               <a href="/time-entries/new"       class="create-link"><i data-lucide="clock"        class="w-4 h-4"></i>{{ _("Time entry") }}</a>
               <a href="/time-entries/week"      class="create-link"><i data-lucide="calendar-days" class="w-4 h-4"></i>{{ _("Weekly grid") }}</a>
               {% if request.state.jp.features.payroll %}
-              <a href="/pay-run/new"            class="create-link"><i data-lucide="badge-dollar-sign" class="w-4 h-4"></i>{{ _("Pay run") }}</a>
+              <a href="/payroll/pay-runs"       class="create-link"><i data-lucide="hand-coins" class="w-4 h-4"></i>{{ _("Pay run") }}</a>
               {% endif %}
             </div>
             <div>
@@ -1255,8 +1261,9 @@
     { g: 'Reports', i: 'percent',      t: 'GST · BAS worksheet',   s: 'Activity statement',                 href: '/reports/bas-summary' },
     {% endif %}
     {% if request.state.jp.features.payroll %}
-    { g: 'Compliance', i: 'shield-check', t: 'STP Phase 2',         s: 'Single Touch Payroll · coming soon', href: '/pay-run' },
-    { g: 'Compliance', i: 'piggy-bank',   t: 'Super stream',        s: 'Quarterly SG · coming soon',         href: '/pay-run' },
+    { g: 'Compliance', i: 'shield-check', t: 'Single Touch Payroll', s: 'Pay events and what is overdue',   href: '/payroll/stp' },
+    { g: 'Compliance', i: 'piggy-bank',   t: 'Super owed',          s: 'Payday Super due dates by fund',     href: '/payroll/super' },
+    { g: 'Compliance', i: 'calendar-check', t: 'Payroll year end',  s: 'Finalise the year, income statements', href: '/payroll/year-end' },
     {% endif %}
     { g: 'Compliance', i: 'hard-hat',     t: 'TPAR',                s: 'Taxable payments annual report · coming soon', href: '/reports' },
     { g: 'Admin',   i: 'cog',          t: 'Company settings',      s: '{% if jurisdiction == "AU" %}ABN · GST · tax codes{% else %}Registration · tax codes{% endif %}',              href: '/settings/company' },
