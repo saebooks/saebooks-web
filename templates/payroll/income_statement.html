@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" class="dark" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ _("Income statement") }} — {{ st.employee.name }} — {{ st.financial_year }}</title>
+  <script>
+    (function () {
+      var stored = localStorage.getItem('saebooks-payslip-theme');
+      var dark = stored !== 'light';
+      document.documentElement.classList.toggle('dark', dark);
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    })();
+  </script>
+  <style>
+    :root { --bg:#ffffff; --fg:#111827; --muted:#4b5563; --line:#d1d5db; --panel:#f9fafb; }
+    html.dark { --bg:#0e1a2a; --fg:#e5e7eb; --muted:#9ca3af; --line:#334155; --panel:#13233a; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:Inter, system-ui, sans-serif; font-size:14px; }
+    .sheet { max-width: 760px; margin: 24px auto; padding: 32px; border:1px solid var(--line); }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 24px 0 8px; }
+    table { width:100%; border-collapse: collapse; }
+    td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
+    .num { font-family: "JetBrains Mono", ui-monospace, monospace; text-align: right; }
+    .muted { color: var(--muted); }
+    .note { border:1px solid var(--line); padding:8px 12px; border-radius:6px; margin-top:16px; }
+    .toolbar { max-width:760px; margin: 16px auto 0; display:flex; gap:8px; justify-content:flex-end; }
+    .toolbar button, .toolbar a { font: inherit; padding: 6px 12px; border:1px solid var(--line); background:var(--panel); color:var(--fg); border-radius:6px; cursor:pointer; text-decoration:none; }
+    @media print {
+      html, html.dark { --bg:#ffffff; --fg:#000000; --muted:#374151; --line:#9ca3af; --panel:#ffffff; }
+      .toolbar { display:none; } .sheet { border:none; margin:0; }
+    }
+  </style>
+</head>
+<body>
+<div class="toolbar">
+  <a href="/payroll/year-end?year={{ year }}">{{ _("Back to year end") }}</a>
+  <button type="button" onclick="(function(){var d=!document.documentElement.classList.contains('dark');document.documentElement.classList.toggle('dark',d);localStorage.setItem('saebooks-payslip-theme',d?'dark':'light');})()">{{ _("Light or dark") }}</button>
+  <button type="button" onclick="window.print()">{{ _("Print") }}</button>
+</div>
+<div class="sheet">
+  <h1>{{ _("Income statement") }}</h1>
+  <p class="muted">{{ _("Financial year") }} {{ st.period_start }} {{ _("to") }} {{ st.period_end }}</p>
+  <h2>{{ _("Employer") }}</h2>
+  <div><strong>{{ st.employer.name }}</strong></div>
+  <div>{{ _("Australian Business Number") }}: {{ st.employer.abn or _("not recorded") }}</div>
+  <h2>{{ _("Employee") }}</h2>
+  <div><strong>{{ st.employee.name }}</strong> <span class="muted">({{ st.employee.employee_number }})</span></div>
+  <div class="muted">{{ st.employee.address }}</div>
+  <h2>{{ _("Amounts for the year") }}</h2>
+  <table>
+    <tr><td>{{ _("Gross payments") }}</td><td class="num">{{ money(st.amounts.gross) }}</td></tr>
+    <tr><td>{{ _("Tax withheld") }}</td><td class="num">{{ money(st.amounts.tax) }}</td></tr>
+    <tr><td>{{ _("Allowances") }}</td><td class="num">{{ money(st.amounts.allowances) }}</td></tr>
+    <tr><td>{{ _("Bonuses, commissions and back pay (included in gross)") }}</td><td class="num">{{ money(st.amounts.bonuses_and_back_pay) }}</td></tr>
+    <tr><td>{{ _("Deductions") }}</td><td class="num">{{ money(st.amounts.deductions) }}</td></tr>
+    <tr><td>{{ _("Super guarantee") }}</td><td class="num">{{ money(st.amounts.super) }}</td></tr>
+  </table>
+  <p class="note">{{ st.status_note }} {{ _("The official income statement is the one in the employee's myGov account, from what was reported to the ATO.") }}</p>
+</div>
+</body>
+</html>

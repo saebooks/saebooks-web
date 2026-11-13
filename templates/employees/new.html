@@ -99,11 +99,17 @@
         <select id="tfn_status" name="tfn_status" class="w-full rounded-md hairline px-3 py-2 bg-paper">
           <option value="NOT_PROVIDED"    {% if form.tfn_status == 'NOT_PROVIDED' %}selected{% endif %}>{{ _("Not provided") }}</option>
           <option value="PROVIDED"        {% if form.tfn_status == 'PROVIDED' %}selected{% endif %}>{{ _("Provided") }}</option>
-          <option value="NEW_PAYEE_30D"   {% if form.tfn_status == 'NEW_PAYEE_30D' %}selected{% endif %}>{{ _("New payee (30-day exemption)") }}</option>
-          <option value="APPLIED_FOR"     {% if form.tfn_status == 'APPLIED_FOR' %}selected{% endif %}>{{ _("Applied for") }}</option>
+          <option value="NEW_PAYEE_30D"   {% if form.tfn_status == 'NEW_PAYEE_30D' %}selected{% endif %}>{{ _("New payee, TFN not given yet (28 days)") }}</option>
+          <option value="APPLIED_FOR"     {% if form.tfn_status == 'APPLIED_FOR' %}selected{% endif %}>{{ _("Applied for a TFN (28 days)") }}</option>
           <option value="EXEMPT_PENSIONER" {% if form.tfn_status == 'EXEMPT_PENSIONER' %}selected{% endif %}>{{ _("Exempt — pensioner") }}</option>
           <option value="EXEMPT_UNDER_18" {% if form.tfn_status == 'EXEMPT_UNDER_18' %}selected{% endif %}>{{ _("Exempt — under 18") }}</option>
         </select>
+      </div>
+
+      <div>
+        <label class="block text-sm ink-3 mb-1" for="tfn_declaration_date">{{ _("Date the TFN declaration was received") }}</label>
+        <input type="date" id="tfn_declaration_date" name="tfn_declaration_date" value="{{ form.tfn_declaration_date or '' }}" class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+        <p class="text-xs ink-3 mt-1">{{ _("If the employee has applied for a tax file number, normal tax rates apply for 28 days from this date. After that 47% is withheld until you record their TFN.") }}</p>
       </div>
 
       <div>
@@ -336,6 +342,29 @@
                class="w-full rounded-md hairline px-3 py-2 bg-paper num">
       </div>
 
+      <div class="col-span-2 hairline border-t pt-4" data-section="super-choice">
+        <p class="text-sm font-medium mb-1">{{ _("How the super fund was chosen") }}</p>
+        <p class="text-xs ink-3 mb-3">{{ _("Pay into the fund the employee chose on their choice form. If they did not choose, ask the ATO for their stapled fund (in Online services for business). Only if the ATO says there is none may you use your default fund.") }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-sm ink-3 mb-1" for="super_choice_source">{{ _("Chosen by") }}</label>
+            <select id="super_choice_source" name="super_choice_source" class="w-full rounded-md hairline px-3 py-2 bg-paper">
+              <option value="" {% if not form.super_choice_source %}selected{% endif %}>{{ _("Not recorded") }}</option>
+              <option value="EMPLOYEE_CHOICE" {% if form.super_choice_source == 'EMPLOYEE_CHOICE' %}selected{% endif %}>{{ _("The employee's choice form") }}</option>
+              <option value="STAPLED_FUND" {% if form.super_choice_source == 'STAPLED_FUND' %}selected{% endif %}>{{ _("Stapled fund from the ATO") }}</option>
+              <option value="EMPLOYER_DEFAULT" {% if form.super_choice_source == 'EMPLOYER_DEFAULT' %}selected{% endif %}>{{ _("Our default fund (ATO found no stapled fund)") }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm ink-3 mb-1" for="super_choice_date">{{ _("Date the choice or ATO answer arrived") }}</label>
+            <input type="date" id="super_choice_date" name="super_choice_date" value="{{ form.super_choice_date or '' }}" class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+          </div>
+          <div>
+            <label class="block text-sm ink-3 mb-1" for="stapled_fund_requested_on">{{ _("Date you asked the ATO for the stapled fund") }}</label>
+            <input type="date" id="stapled_fund_requested_on" name="stapled_fund_requested_on" value="{{ form.stapled_fund_requested_on or '' }}" class="w-full rounded-md hairline px-3 py-2 bg-paper num">
+          </div>
+        </div>
+      </div>
       <div class="col-span-2 hairline border-t pt-4">
         <p class="text-sm ink-3 mb-3">
           {{ _("Bank account for net-pay disbursement") }}

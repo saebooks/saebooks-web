@@ -181,6 +181,10 @@ async def employee_new_form(request: Request) -> HTMLResponse | RedirectResponse
                 "payslip_delivery": "EMAIL",
                 "super_fund_id": str(default_fund["id"]) if default_fund else "",
                 "super_member_number": "",
+                "tfn_declaration_date": "",
+                "super_choice_source": "",
+                "super_choice_date": "",
+                "stapled_fund_requested_on": "",
                 "bsb": "",
                 "account_number": "",
                 "account_name": "",
@@ -237,6 +241,11 @@ async def employee_create(request: Request) -> HTMLResponse | RedirectResponse:
         "vevo_checked_on",
         "vevo_work_entitlement",
         "vevo_conditions",
+        # Batch 9: TFN declaration date (28-day rule) and super fund choice.
+        "tfn_declaration_date",
+        "super_choice_source",
+        "super_choice_date",
+        "stapled_fund_requested_on",
     ):
         if val := form.get(field, "").strip():
             payload[field] = val
@@ -354,6 +363,21 @@ async def employee_detail(
             if sf_resp.is_success:
                 super_fund = sf_resp.json()
 
+        # Leave tab: balances + recent movements.
+        leave_balances: list[dict] = []
+        leave_history: list[dict] = []
+        # Best effort: the employee page must still open if the leave
+        # endpoints are unavailable.
+        try:
+            lb = await client.get(f"/api/v1/leave/balances/{employee_id}")
+            if lb.is_success:
+                leave_balances = lb.json()
+            lh = await client.get(f"/api/v1/leave/history/{employee_id}", params={"limit": 50})
+            if lh.is_success:
+                leave_history = lh.json().get("items", [])
+        except Exception:  # transport error / unexpected payload
+            leave_balances, leave_history = [], []
+
     return _TEMPLATES.TemplateResponse(
         request,
         "employees/detail.html",
@@ -363,8 +387,54 @@ async def employee_detail(
             "super_fund": super_fund,
             "error": error,
             "tfn_plaintext": tfn_plaintext,
+            "leave_balances": leave_balances,
+            "leave_history": leave_history,
+            "flash": request.session.pop("flash", None),
+            "flash_error": request.session.pop("flash_error", None),
         },
     )
+
+
+_LEAVE_TYPES = ("ANNUAL", "PERSONAL", "LONG_SERVICE")
+
+
+@router.post("/employees/{employee_id}/leave", response_model=None)
+async def employee_leave_change(employee_id: uuid.UUID, request: Request) -> RedirectResponse:
+    """Set an opening leave balance (moving from another system) or adjust
+    a balance with a reason. Both go through the engine's leave ledger."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    form = await request.form()
+    back = f"/employees/{employee_id}#leave"
+    leave_type = str(form.get("leave_type") or "")
+    action = str(form.get("action") or "")
+    hours = _parse_decimal(str(form.get("hours") or ""))
+    if leave_type not in _LEAVE_TYPES or hours is None or action not in ("opening", "adjust"):
+        request.session["flash_error"] = "Choose the leave type and enter the hours as a number."
+        return RedirectResponse(url=back, status_code=303)
+    async with api_client(request) as client:
+        if action == "opening":
+            body = {"leave_type": leave_type, "hours": str(hours)}
+            as_at = str(form.get("as_at") or "").strip()
+            if as_at:
+                body["as_at"] = as_at
+            r = await client.post(f"/api/v1/leave/balances/{employee_id}/opening", json=body)
+        else:
+            reason = str(form.get("reason") or "").strip()
+            if not reason:
+                request.session["flash_error"] = "Say why the balance is being changed."
+                return RedirectResponse(url=back, status_code=303)
+            r = await client.post(f"/api/v1/leave/balances/{employee_id}/adjust", json={
+                "leave_type": leave_type, "delta_hours": str(hours), "reason": reason})
+    if r.is_success:
+        request.session["flash"] = "Leave balance saved."
+    else:
+        try:
+            detail = r.json().get("detail")
+        except Exception:
+            detail = None
+        request.session["flash_error"] = f"Leave not saved: {detail or 'HTTP ' + str(r.status_code)}"
+    return RedirectResponse(url=back, status_code=303)
 
 
 # ---------------------------------------------------------------------------
@@ -458,6 +528,10 @@ async def employee_edit_submit(
         "super_fund_id",
         "super_member_number",
         "tfn_status",
+        "tfn_declaration_date",
+        "super_choice_source",
+        "super_choice_date",
+        "stapled_fund_requested_on",
     ):
         if field in form_data:
             val = form.get(field, "").strip()

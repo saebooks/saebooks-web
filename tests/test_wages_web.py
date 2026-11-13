@@ -89,12 +89,22 @@ async def test_list_renders_totals_and_form(respx_mock: respx.MockRouter) -> Non
     respx_mock.get(f"{_API}/api/v1/pay-runs").mock(
         return_value=Response(200, json={"items": [_run("finalized")], "total": 1,
                                          "limit": 100, "offset": 0}))
+    respx_mock.get(f"{_API}/api/v1/payroll/settings").mock(
+        return_value=Response(200, json={"leave_provision": False,
+                                         "stp_lodging_enabled": False}))
+    respx_mock.get(f"{_API}/api/v1/payroll/stp").mock(return_value=Response(200, json={
+        "items": [{"id": "s1", "pay_run_id": _RUN, "state": "READY", "overdue": True}],
+        "finalisations": [], "overdue_count": 1, "lodging_enabled": False}))
     async with _client() as c:
         r = await c.get("/payroll/pay-runs")
     assert r.status_code == 200, r.text[:400]
     assert "Wages pay runs" in r.text
     assert 'action="/payroll/pay-runs/new"' in r.text
     assert "1,130.00" in r.text and "Finalised" in r.text
+    # Batch 9: monthly pay, the STP column with its overdue flag, leave setting.
+    assert 'value="MONTHLY"' in r.text
+    assert "Not reported" in r.text and "Overdue" in r.text
+    assert 'action="/payroll/settings"' in r.text
 
 
 @pytest.mark.anyio
@@ -168,16 +178,19 @@ async def test_detail_blocked_has_no_finalise_form(respx_mock: respx.MockRouter)
 @respx.mock
 async def test_finalised_shows_net_pay_transfers(respx_mock: respx.MockRouter) -> None:
     _mock_detail(respx_mock, _view("finalized"))
+    respx_mock.get(f"{_API}/api/v1/bank_accounts").mock(
+        return_value=Response(200, json={"items": [], "total": 0}))
     async with _client() as c:
         r = await c.get(f"/payroll/pay-runs/{_RUN}")
     assert "Net pay to transfer" in r.text and "062-000" in r.text
-    assert "does not produce a bank file" in r.text
+    assert f'action="/payroll/pay-runs/{_RUN}/bank-file"' in r.text
+    assert "Download bank file" in r.text
     assert f'action="/payroll/pay-runs/{_RUN}/lines"' not in r.text
 
 
 @pytest.mark.anyio
 @respx.mock
-async def test_add_line_sends_hours_only(respx_mock: respx.MockRouter) -> None:
+async def test_add_line_sends_hours_and_no_items(respx_mock: respx.MockRouter) -> None:
     sent: list[dict] = []
 
     def _cap(request, *_):
@@ -191,7 +204,9 @@ async def test_add_line_sends_hours_only(respx_mock: respx.MockRouter) -> None:
             "overtime_multiplier": "2.0"})
     assert r.status_code == 303
     assert sent == [{"employee_id": _EMP, "ordinary_hours": "38",
-                     "overtime_hours": "4", "overtime_multiplier": "2.0"}]
+                     "overtime_hours": "4", "overtime_multiplier": "2.0",
+                     "full_period_salary": False, "allowances": [], "deductions": [],
+                     "leave_taken": [], "additional_payments": []}]
 
 
 @pytest.mark.anyio

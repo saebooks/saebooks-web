@@ -136,6 +136,7 @@ TEMPLATE_NAMES: frozenset[str] = frozenset(
         # PDFs were added, but it was never allowed here, so every one of
         # those downloads failed with "unknown template" (P1-28).
         "report_single",
+        "payslip",
     }
 )
 

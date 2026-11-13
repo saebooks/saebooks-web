@@ -22,6 +22,7 @@ from starlette.responses import RedirectResponse
 _GATED: tuple[tuple[str, str], ...] = (
     ("/employees", "payroll"),
     ("/pay-run", "payroll"),
+    ("/payroll", "payroll"),
     ("/super-funds", "payroll"),
     ("/reports/bas-summary", "tax_reports"),
     ("/reports/bas-payg", "tax_reports"),
