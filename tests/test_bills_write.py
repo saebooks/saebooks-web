@@ -549,8 +549,15 @@ async def test_bill_create_api_error_string_detail(respx_mock: respx.MockRouter)
 
 @pytest.mark.anyio
 @respx.mock
-async def test_bill_new_form_has_currency_fields(respx_mock: respx.MockRouter) -> None:
-    """GET /bills/new renders a currency selector and fx_rate input (ETSY-3 fix)."""
+async def test_bill_new_form_has_currency_fields(
+    respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """GET /bills/new renders a currency selector and fx_rate input (ETSY-3 fix).
+
+    Batch 10: the picker shows on plans with foreign currency (not the
+    free community plan, where the engine refuses foreign documents).
+    """
+    monkeypatch.setenv("SAEBOOKS_EDITION", "enterprise")
     _mock_dropdowns(respx_mock)
 
     async with AsyncClient(

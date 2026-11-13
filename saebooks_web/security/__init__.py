@@ -114,6 +114,13 @@ def _patch_jinja_templates() -> None:
             register_format_globals(self)
         except Exception:
             pass
+        # Batch 10: fx_context(request) / contact_currencies(contacts) for
+        # the currency fields on documents — see fx_context.py.
+        try:
+            from saebooks_web.fx_context import register_fx_global
+            register_fx_global(self)
+        except Exception:
+            pass
 
     _patched_init._saebooks_csrf_patched = True  # type: ignore[attr-defined]
     Jinja2Templates.__init__ = _patched_init  # type: ignore[method-assign]

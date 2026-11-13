@@ -27,6 +27,7 @@ from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
+from saebooks_web.fx_context import company_currency
 
 router = APIRouter()
 
@@ -279,11 +280,21 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
         if val:
             payload[field] = val
 
-    currency = form.get("currency", "").strip().upper() or "AUD"
+    # Batch 10: blank rate on a foreign expense -> the engine looks up the
+    # published rate for the date (or refuses). A card conversion fee is
+    # in the company currency and goes to its own account (no GST).
+    base_ccy = company_currency(request)
+    currency = form.get("currency", "").strip().upper() or base_ccy
     payload["currency"] = currency
     fx_rate_raw = form.get("fx_rate", "").strip()
-    if fx_rate_raw and currency != "AUD":
+    if fx_rate_raw and currency != base_ccy:
         payload["fx_rate"] = fx_rate_raw
+    fee_raw = form.get("fx_fee_amount", "").strip()
+    if fee_raw and currency != base_ccy:
+        payload["fx_fee_amount"] = fee_raw
+        fee_acct = form.get("fx_fee_account_id", "").strip()
+        if fee_acct:
+            payload["fx_fee_account_id"] = fee_acct
 
     payload["lines"] = _parse_lines(form)
 

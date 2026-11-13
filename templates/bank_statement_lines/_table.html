@@ -55,6 +55,9 @@
             {% if amt >= 0 %}text-[color:var(--pos)]{% else %}text-[color:var(--neg)]{% endif %}
           ">
             {{ num(line.amount | float, 2) }}
+            {% if line.foreign_amount is not none and line.foreign_currency %}
+            <span class="block text-xs ink-3 font-normal">{{ line.foreign_currency }} {{ num(line.foreign_amount | float, 2) }}</span>
+            {% endif %}
           </td>
           <td class="px-4 py-3 text-right tabular-nums ink-2">
             {% if line.balance is not none %}{{ num(line.balance | float, 2) }}{% else %}—{% endif %}

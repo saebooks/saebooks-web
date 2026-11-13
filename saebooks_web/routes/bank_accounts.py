@@ -29,6 +29,7 @@ from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
+from saebooks_web.fx_context import company_currency
 
 router = APIRouter()
 
@@ -45,6 +46,7 @@ _EDIT_FIELDS = (
     "bank_account_title",
     "bank_abbreviation",
     "apca_user_id",
+    "currency",
 )
 
 # Display order + label for the Bank Accounts list sections.
@@ -209,6 +211,7 @@ async def bank_account_create(request: Request) -> HTMLResponse | RedirectRespon
         "bank_account_title",
         "bank_abbreviation",
         "apca_user_id",
+        "currency",
     ):
         val = form.get(optional_field, "").strip()
         if val:
@@ -371,6 +374,9 @@ async def bank_account_update(
 
     # Boolean checkbox — always included so unchecking clears trust designation.
     payload["is_trust_account"] = form.get("is_trust_account") == "on"
+    # Batch 10: blank = the company currency (the engine stores it as none).
+    if not payload.get("currency"):
+        payload["currency"] = company_currency(request)
 
     async with api_client(request) as client:
         resp = await client.patch(

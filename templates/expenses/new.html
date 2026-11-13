@@ -56,6 +56,48 @@
     </div>
   </div>
 
+  {# Batch 10: paid in another currency (e.g. a USD card purchase). The
+     rate is prefilled for the date; the card's conversion fee is kept
+     separate so it lands in Bank fees, not in the purchase. #}
+  {% import "_currency_macros.html" as fxm with context %}
+  {% set _fx = fx_context(request) %}
+  {{ fxm.currency_fields(form, errors, _fx, "expense_date", "lines",
+                         "contact_id", contact_currencies(contacts)) }}
+  <div data-fx-fee-block class="grid grid-cols-1 md:grid-cols-2 gap-4"
+       {% if (form.get("currency") or _fx.base) | upper == _fx.base %}style="display:none"{% endif %}>
+    <div>
+      <label for="fx_fee_amount" class="block text-base font-medium ink-3">
+        {{ _("Card conversion fee in %(base)s") % {"base": _fx.base} }}
+        <span class="ink-4 text-sm">{{ _("(optional)") }}</span>
+      </label>
+      <input type="number" id="fx_fee_amount" name="fx_fee_amount" step="0.01" min="0"
+             value="{{ form.get('fx_fee_amount', '') }}" class="saebooks-input w-full num"
+             placeholder="{{ _('e.g. 4.20 from the card statement') }}">
+      {% if errors.fx_fee_amount %}<p class="mt-1 text-sm text-red-600">{{ errors.fx_fee_amount }}</p>{% endif %}
+    </div>
+    <div>
+      <label for="fx_fee_account_id" class="block text-base font-medium ink-3">{{ _("Fee account") }}</label>
+      <select id="fx_fee_account_id" name="fx_fee_account_id" class="saebooks-input w-full">
+        {% set _picked = form.get("fx_fee_account_id") %}
+        {% for a in accounts %}
+        {% set _is_fee = ("bank fee" in (a.name or "") | lower) or ("bank charge" in (a.name or "") | lower) %}
+        <option value="{{ a.id }}" {% if (_picked and _picked == a.id) or (not _picked and _is_fee) %}selected{% endif %}>{{ a.code }} {{ a.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var sel = document.querySelector("[data-fx-root] [data-fx-currency]");
+      var block = document.querySelector("[data-fx-fee-block]");
+      if (!sel || !block) return;
+      var base = document.querySelector("[data-fx-root]").dataset.base;
+      sel.addEventListener("change", function () {
+        block.style.display = sel.value !== base ? "" : "none";
+      });
+    })();
+  </script>
+
   <div>
     <label for="notes" class="block text-base font-medium ink-3">{{ _("Notes") }}</label>
     <textarea id="notes" name="notes" rows="2"

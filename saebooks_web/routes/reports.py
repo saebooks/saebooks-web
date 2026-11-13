@@ -1148,6 +1148,7 @@ async def fx_revaluation(
 
     as_of = as_of_date or _today()
     report: dict = {}
+    reval: dict = {}
     error: str | None = None
     degraded = False
 
@@ -1164,14 +1165,27 @@ async def fx_revaluation(
                 report = resp.json()
             else:
                 error = _("The report could not be loaded (HTTP %(code)s).") % {"code": resp.status_code}
+            # Batch 10 (P1-51): per-currency revaluation preview + post.
+            # Optional extra: a failure here must never break the report.
+            try:
+                prev = await client.get(
+                    "/api/v1/fx/revaluation", params={"through_date": as_of}
+                )
+                if prev.is_success:
+                    reval = prev.json()
+            except Exception:
+                reval = {}
     except ModuleUnavailable:
         degraded = True
 
     ctx = {
         "report": report,
+        "reval": reval,
         "as_of_date": as_of,
         "error": error,
         "degraded": degraded,
+        "flash": request.session.pop("flash", None),
+        "flash_error": request.session.pop("flash_error", None),
     }
 
     template = (

@@ -122,31 +122,12 @@
            {% if errors.get('supplier_reference') %}style="border-color:var(--neg);"{% endif %}>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <div>
-      <label for="currency" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Currency") }}</label>
-      <select id="currency" name="currency" class="saebooks-input num"
-              onchange="document.getElementById('fx-rate-row').style.display = this.value !== 'AUD' ? '' : 'none'"
-              {% if errors.get('currency') %}style="border-color:var(--neg);"{% endif %}>
-        {% set _cur = form.get('currency', 'AUD') | upper %}
-        {% for code in ['AUD', 'JPY', 'USD', 'EUR', 'GBP', 'NZD', 'SGD', 'CNY', 'HKD', 'CAD'] %}
-        <option value="{{ code }}" {% if _cur == code %}selected{% endif %}>{{ code }}</option>
-        {% endfor %}
-      </select>
-      {% if errors.get("currency") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["currency"] }}</p>{% endif %}
-    </div>
-
-    <div id="fx-rate-row" {% if form.get('currency', 'AUD') | upper == 'AUD' %}style="display:none"{% endif %}>
-      <label for="fx_rate" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
-        {{ _("Exchange rate") }} <span class="ink-4 font-normal normal-case">({{ _("1 foreign = ? AUD") }})</span>
-      </label>
-      <input type="number" id="fx_rate" name="fx_rate" value="{{ form.get('fx_rate', '') }}"
-             placeholder="e.g. 0.0089 for JPY→AUD" step="any" min="0.000001"
-             class="saebooks-input num"
-             {% if errors.get('fx_rate') %}style="border-color:var(--neg);"{% endif %}>
-      {% if errors.get("fx_rate") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["fx_rate"] }}</p>{% endif %}
-    </div>
-  </div>
+  {# Batch 10: currency, rate prefilled from the published rate, value in
+     the company currency. Supplier's billing currency is picked on a new bill. #}
+  {% import "_currency_macros.html" as fxm with context %}
+  {{ fxm.currency_fields(form, errors, fx_context(request), "issue_date", "lines",
+                         "contact_id", contact_currencies(contacts),
+                         locked=(form.get("version") not in (None, ""))) }}
 </fieldset>
 
 <fieldset class="mt-7">

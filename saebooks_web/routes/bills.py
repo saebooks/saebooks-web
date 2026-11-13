@@ -30,6 +30,7 @@ from fastapi.templating import Jinja2Templates
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines
+from saebooks_web.fx_context import company_currency
 
 router = APIRouter()
 
@@ -416,10 +417,13 @@ async def bill_create(request: Request) -> HTMLResponse | RedirectResponse:
                 status_code=400,
             )
 
-    currency = form.get("currency", "").strip().upper() or "AUD"
+    # Batch 10: blank rate on a foreign bill -> the engine looks up the
+    # published rate for the bill date (or refuses); never a silent 1.00.
+    base_ccy = company_currency(request)
+    currency = form.get("currency", "").strip().upper() or base_ccy
     payload["currency"] = currency
     fx_rate_raw = form.get("fx_rate", "").strip()
-    if fx_rate_raw and currency != "AUD":
+    if fx_rate_raw and currency != base_ccy:
         payload["fx_rate"] = fx_rate_raw
 
     payload["lines"] = _parse_lines(form)
@@ -650,7 +654,7 @@ async def bill_edit_form(
     form["version"] = str(bill.get("version", ""))
     # fx_rate is numeric — only pre-populate when the bill is foreign-currency.
     stored_rate = bill.get("fx_rate")
-    if stored_rate and str(bill.get("currency", "AUD")).upper() != "AUD":
+    if stored_rate and str(bill.get("currency", "AUD")).upper() != company_currency(request):
         form["fx_rate"] = str(stored_rate)
 
     # Build lines list for the form, keyed by zero-based index.
@@ -724,9 +728,10 @@ async def bill_update(
             payload[field] = val
 
     # fx_rate is only meaningful for foreign-currency bills.
-    currency = str(payload.get("currency", "AUD")).upper()
+    base_ccy = company_currency(request)
+    currency = str(payload.get("currency", base_ccy)).upper()
     fx_rate_raw = form.get("fx_rate", "").strip()
-    if fx_rate_raw and currency != "AUD":
+    if fx_rate_raw and currency != base_ccy:
         payload["fx_rate"] = fx_rate_raw
 
     # Lines are always sent (full replace semantics).

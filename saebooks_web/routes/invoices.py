@@ -19,6 +19,7 @@ from datetime import date, timedelta
 from datetime import date as _date
 from datetime import timedelta as _td
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -27,6 +28,7 @@ from fastapi.templating import Jinja2Templates
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines_shared
+from saebooks_web.fx_context import company_currency
 from saebooks_web.invoice_pdf_ee import (
     build_ee_invoice_ctx,
     build_vat_rate_breakdown,
@@ -442,6 +444,7 @@ async def invoice_create(request: Request) -> HTMLResponse | RedirectResponse:
                 status_code=400,
             )
 
+    _apply_currency(request, form, payload)
     payload["lines"] = _parse_lines(form)
 
     async with api_client(request) as client:
@@ -574,7 +577,21 @@ async def invoice_add_line(request: Request, index: int = 0) -> HTMLResponse | R
 # literal-vs-parameter ordering reason as /invoices/new.
 # ---------------------------------------------------------------------------
 
-_EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "payment_terms")
+_EDIT_FIELDS = ("contact_id", "issue_date", "due_date", "notes", "payment_terms", "currency")
+
+
+def _apply_currency(request: Request, form: Any, payload: dict[str, object]) -> None:
+    """Batch 10: currency + rate on an invoice.
+
+    A blank rate on a foreign invoice is left out so the engine looks up
+    the published rate for the issue date (or refuses) — never 1.00.
+    """
+    base_ccy = company_currency(request)
+    currency = str(form.get("currency", "") or "").strip().upper() or base_ccy
+    payload["currency"] = currency
+    fx_rate_raw = str(form.get("fx_rate", "") or "").strip()
+    if fx_rate_raw and currency != base_ccy:
+        payload["fx_rate"] = fx_rate_raw
 
 # Statuses that block editing. POSTED invoices are mutable — the backend
 # regenerates the journal entry in place when lines change (per Richard's
@@ -668,6 +685,8 @@ async def invoice_edit_form(
     # Pre-populate the form dict from the API response.
     form: dict[str, object] = {field: invoice.get(field) or "" for field in _EDIT_FIELDS}
     form["version"] = str(invoice.get("version", ""))
+    if str(invoice.get("currency") or "").upper() not in ("", company_currency(request)):
+        form["fx_rate"] = str(invoice.get("fx_rate") or "")
 
     # Build lines list for the form, keyed by zero-based index.
     api_lines = invoice.get("lines", [])
@@ -738,6 +757,7 @@ async def invoice_update(
         val = form.get(field, "").strip()
         if val:
             payload[field] = val
+    _apply_currency(request, form, payload)
 
     # Lines are always sent (full replace semantics).
     payload["lines"] = _parse_lines(form)

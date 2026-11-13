@@ -77,6 +77,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web.api_client import api_client
+from saebooks_web.fx_context import company_currency
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.routes.bad_debt_recovery import detect_recovery_prompt  # Task 11
 
@@ -560,6 +561,42 @@ async def payments_list(
 # ---------------------------------------------------------------------------
 
 
+def _apply_payment_currency(
+    request: Request, form: dict[str, str], payload: dict[str, object]
+) -> None:
+    """Batch 10: currency, bank amount and rate on a payment.
+
+    For a foreign payment the bank amount (company currency) wins: the
+    engine works the rate out from it. A blank bank amount and blank rate
+    leaves the engine to use the published rate for the payment date.
+    """
+    base_ccy = company_currency(request)
+    currency = (form.get("currency", "") or "").strip().upper() or base_ccy
+    payload["currency"] = currency
+    if currency == base_ccy:
+        return
+    base_amount = (form.get("base_amount", "") or "").strip()
+    fx_rate = (form.get("fx_rate", "") or "").strip()
+    if base_amount:
+        payload["base_amount"] = base_amount
+    elif fx_rate:
+        payload["fx_rate"] = fx_rate
+
+
+async def _document_currency(request: Request, kind: str, doc_id: str) -> str | None:
+    if not _is_uuid(doc_id):
+        return None
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(f"/api/v1/{kind}/{doc_id}")
+    except Exception:
+        return None
+    if not resp.is_success:
+        return None
+    ccy = str(resp.json().get("currency") or "").upper()
+    return ccy or None
+
+
 @router.get("/payments/new", response_class=HTMLResponse, response_model=None)
 async def payment_new_form(
     request: Request,
@@ -620,6 +657,13 @@ async def payment_new_form(
         form["amount"] = amount
     if reference:
         form["reference"] = reference
+    if target_id:
+        # Batch 10: pay a foreign invoice or bill in its own currency.
+        doc_ccy = await _document_currency(
+            request, "bills" if bill_id else "invoices", target_id
+        )
+        if doc_ccy:
+            form["currency"] = doc_ccy
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -678,6 +722,7 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
     if payload.get("direction"):
         payload["direction"] = _normalise_direction(str(payload["direction"]))
         form["direction"] = str(payload["direction"])
+    _apply_payment_currency(request, form, payload)
 
     rows = _raw_allocation_rows(form)
     errors: dict[str, str] = {}
