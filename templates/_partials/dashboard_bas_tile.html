@@ -1,0 +1,23 @@
+{# Batch 5 (P1-31): GST to set aside for the current BAS period, and the
+   next BAS due. ``bas_position`` = /api/v1/bas/position. #}
+{% set cur = bas_position.current %}
+{% set due = bas_position.due %}
+<section data-widget="kpi-gst-set-aside" data-widget-title="{{ _('GST to set aside') }}" data-widget-href="/bas"
+         class="card bg-paper p-5 rounded-none">
+  <p class="nav-section-label mb-2">{{ _("GST to set aside") }}</p>
+  <p class="num-display text-2xl" style="color:var(--warm);">{{ money(cur.set_aside|float, decimals=0) }}</p>
+  <p class="mt-1 text-xs ink-3">
+    {{ cur.label }} ·
+    <a class="hover:underline" href="/reports/bas-summary?from_date={{ cur.from_date }}&amp;to_date={{ bas_position.as_of }}">{{ _("GST %(gst)s, tax withheld %(wh)s") % {"gst": money(cur.net_gst|float, decimals=0), "wh": money(cur.tax_withheld|float, decimals=0)} }}</a>
+  </p>
+  {% if due %}
+  <p class="mt-2 text-xs" style="color: {% if due.overdue %}var(--neg){% elif due.days_to_due <= 14 %}var(--warm){% else %}var(--ink-3){% endif %};">
+    {% if due.overdue %}
+      {{ _("BAS for %(period)s was due %(date)s and is not marked lodged.") % {"period": due.label, "date": due.due_date} }}
+    {% else %}
+      {{ _("BAS for %(period)s is due %(date)s (%(n)s days).") % {"period": due.label, "date": due.due_date, "n": due.days_to_due} }}
+    {% endif %}
+    <a href="/bas" class="sae hover:underline">{{ _("Open") }}</a>
+  </p>
+  {% endif %}
+</section>

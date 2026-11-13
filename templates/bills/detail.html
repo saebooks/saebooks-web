@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_partials/void_dated.html" import void_dated with context %}
 {% import "_icons.html" as icons %}
 
 {% block title %}
@@ -78,12 +79,7 @@
       </form>
       {% endif %}
       {% if bill.status == 'POSTED' %}
-      <form method="post" action="/bills/{{ bill.id }}/void"
-            onsubmit="return confirm('{{ _('Void this bill? A reversing entry is recorded and any bank line matched to it goes back to be matched again.') }}');" class="inline">
-        {{ csrf_input(request)|safe }}
-        <input type="hidden" name="version" value="{{ bill.version }}">
-        <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void") }}</button>
-      </form>
+      {{ void_dated('/bills/' ~ bill.id ~ '/void', bill.version, _("bill")) }}
       {% endif %}
       {% if is_admin %}
       {{ icons.hard_delete(

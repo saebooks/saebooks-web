@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_partials/void_dated.html" import void_dated with context %}
 {% import "_icons.html" as icons %}
 
 {% block title %}
@@ -87,20 +88,7 @@
     </form>
     {% endif %}
     {% if credit_note.status == 'POSTED' %}
-    <form
-      method="post"
-      action="/credit-notes/{{ credit_note.id }}/void"
-      onsubmit="return confirm('{{ _('Void this credit note?') }}');"
-      class="inline"
-    >
-    {{ csrf_input(request)|safe }}
-
-      <input type="hidden" name="version" value="{{ credit_note.version }}">
-      <button
-        type="submit"
-        class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);"
-      >{{ _("Void") }}</button>
-    </form>
+    {{ void_dated('/credit-notes/' ~ credit_note.id ~ '/void', credit_note.version, _("credit note")) }}
     {% endif %}
     {% if is_admin %}
     {{ icons.hard_delete(

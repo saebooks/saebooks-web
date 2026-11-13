@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ _("This changes a lodged BAS") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="max-w-xl">
+  <h1 class="font-display text-2xl mb-3">{{ _("This changes a lodged BAS") }}</h1>
+  <div class="card p-4 mb-4" style="border-color:var(--warm);">
+    <p class="text-sm ink-1">{{ conflict.get("message") }}</p>
+  </div>
+
+  <form method="post" action="{{ action_url }}" class="card p-4 mb-3 space-y-2">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="version" value="{{ version }}">
+    <label class="text-[10px] font-mono uppercase tracking-wider ink-3 block" for="reversal_date">{{ _("Reverse on a date in an open period") }}</label>
+    <input id="reversal_date" type="date" name="reversal_date" min="{{ conflict.get('period_end') }}" required class="saebooks-input num text-sm py-1.5">
+    <button type="submit" class="btn-primary text-sm">{{ _("Void on this date") }}</button>
+  </form>
+
+  <form method="post" action="{{ action_url }}" class="card p-4 mb-3 space-y-2">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="version" value="{{ version }}">
+    <input type="hidden" name="reversal_date" value="{{ conflict.get('reversal_date') }}">
+    <input type="hidden" name="confirm_lodged_period" value="1">
+    <p class="text-xs ink-3">{{ _("Only if you will correct the lodged BAS with the ATO.") }}</p>
+    <button type="submit" class="btn-secondary text-sm" style="color:var(--neg);border-color:rgba(161,67,51,0.4);">{{ _("Void %(what)s and change the lodged BAS") % {"what": what} }}</button>
+  </form>
+
+  <a href="{{ back_url }}" class="text-sm sae hover:underline">{{ _("Cancel") }}</a>
+</div>
+{% endblock %}

@@ -45,7 +45,7 @@
         {% if income_lines %}
           {% for line in income_lines %}
           <tr>
-            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-1">{% if line.account_id %}<a class="hover:underline" href="/accounts/{{ line.account_id }}?date_from={{ from_date }}&amp;date_to={{ to_date }}">{{ line.account_name }}</a>{% else %}{{ line.account_name }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
             <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
             <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
@@ -90,7 +90,7 @@
         {% if expense_lines %}
           {% for line in expense_lines %}
           <tr>
-            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-1">{% if line.account_id %}<a class="hover:underline" href="/accounts/{{ line.account_id }}?date_from={{ from_date }}&amp;date_to={{ to_date }}">{{ line.account_name }}</a>{% else %}{{ line.account_name }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
             <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
             <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
@@ -166,7 +166,7 @@
         {% if income_lines %}
           {% for line in income.get("INCOME", []) %}
           <tr>
-            <td class="ink-1">{{ line.get("account_name", "—") }}</td>
+            <td class="ink-1">{% if line.get("account_id") %}<a class="hover:underline" href="/accounts/{{ line.get("account_id") }}?date_from={{ from_date }}&amp;date_to={{ to_date }}">{{ line.get("account_name", "—") }}</a>{% else %}{{ line.get("account_name", "—") }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">{{ _("Income") }}</td>
             <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
@@ -174,7 +174,7 @@
           {% endfor %}
           {% for line in income.get("OTHER_INCOME", []) %}
           <tr>
-            <td class="ink-1">{{ line.get("account_name", "—") }}</td>
+            <td class="ink-1">{% if line.get("account_id") %}<a class="hover:underline" href="/accounts/{{ line.get("account_id") }}?date_from={{ from_date }}&amp;date_to={{ to_date }}">{{ line.get("account_name", "—") }}</a>{% else %}{{ line.get("account_name", "—") }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">{{ _("Other Income") }}</td>
             <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
@@ -216,7 +216,7 @@
         {% if expense_lines %}
           {% for line in expenses.get("EXPENSE", []) %}
           <tr>
-            <td class="ink-1">{{ line.get("account_name", "—") }}</td>
+            <td class="ink-1">{% if line.get("account_id") %}<a class="hover:underline" href="/accounts/{{ line.get("account_id") }}?date_from={{ from_date }}&amp;date_to={{ to_date }}">{{ line.get("account_name", "—") }}</a>{% else %}{{ line.get("account_name", "—") }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">{{ _("Expense") }}</td>
             <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
@@ -224,7 +224,7 @@
           {% endfor %}
           {% for line in expenses.get("COST_OF_SALES", []) %}
           <tr>
-            <td class="ink-1">{{ line.get("account_name", "—") }}</td>
+            <td class="ink-1">{% if line.get("account_id") %}<a class="hover:underline" href="/accounts/{{ line.get("account_id") }}?date_from={{ from_date }}&amp;date_to={{ to_date }}">{{ line.get("account_name", "—") }}</a>{% else %}{{ line.get("account_name", "—") }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">{{ _("Cost of Sales") }}</td>
             <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>
@@ -232,7 +232,7 @@
           {% endfor %}
           {% for line in expenses.get("OTHER_EXPENSE", []) %}
           <tr>
-            <td class="ink-1">{{ line.get("account_name", "—") }}</td>
+            <td class="ink-1">{% if line.get("account_id") %}<a class="hover:underline" href="/accounts/{{ line.get("account_id") }}?date_from={{ from_date }}&amp;date_to={{ to_date }}">{{ line.get("account_name", "—") }}</a>{% else %}{{ line.get("account_name", "—") }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="ink-2">{{ _("Other Expense") }}</td>
             <td class="text-right num ink-1">{{ num(line.get("amount", 0) | float, 2) }}</td>

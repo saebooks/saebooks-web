@@ -1,0 +1,8 @@
+{# Batch 5 (P1-31): BAS due reminder chip in the dashboard header. #}
+{% if bas_position and bas_position.due %}
+{% set due = bas_position.due %}
+<a href="/bas" class="chip" style="border-color:{% if due.overdue %}var(--neg){% elif due.days_to_due <= 14 %}var(--warm){% else %}var(--line){% endif %};color:{% if due.overdue %}var(--neg){% elif due.days_to_due <= 14 %}var(--warm){% else %}var(--ink-3){% endif %};">
+  <span class="dot" style="background:{% if due.overdue %}var(--neg){% else %}var(--warm){% endif %};"></span>
+  {% if due.overdue %}BAS · {{ _("overdue since %(date)s") % {"date": due.due_date} }}{% else %}BAS · {{ _("due %(date)s") % {"date": due.due_date} }}{% endif %}
+</a>
+{% endif %}

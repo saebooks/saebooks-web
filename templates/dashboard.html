@@ -50,6 +50,7 @@
         <span data-customise-label>{{ _("Customise") }}</span>
       </button>
       {% if jurisdiction == 'AU' %}
+      {% include "_partials/dashboard_bas_chip.html" %}
       {% if gst and gst.threshold_crossed %}
         <a href="#gst-tile" class="chip" style="border-color:var(--neg);color:var(--neg);">
           <span class="dot" style="background:var(--neg);"></span>
@@ -160,6 +161,7 @@
     <div class="kpi-spark" style="height:24px;margin-top:8px;"><canvas id="kpiSparkCash" data-seed="{{ (cash.in_total + cash.out_total)|round|int }}" data-tint="var(--pos)"></canvas></div>
   {% endif %}
     </section>
+  {% if jurisdiction == 'AU' and bas_position %}{% include "_partials/dashboard_bas_tile.html" %}{% endif %}
   {% if jurisdiction == 'AU' %}
   {# GST turnover tile — default HIDDEN. Under-$75k orgs belong on Cashbook;
      this only resurfaces if a user explicitly adds it via Customise. #}

@@ -58,7 +58,7 @@
         {% if asset_lines %}
           {% for line in asset_lines %}
           <tr>
-            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-1">{% if line.account_id %}<a class="hover:underline" href="/accounts/{{ line.account_id }}?date_to={{ as_of_date }}">{{ line.account_name }}</a>{% else %}{{ line.account_name }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
             <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
             <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
@@ -97,7 +97,7 @@
         {% if liability_lines %}
           {% for line in liability_lines %}
           <tr>
-            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-1">{% if line.account_id %}<a class="hover:underline" href="/accounts/{{ line.account_id }}?date_to={{ as_of_date }}">{{ line.account_name }}</a>{% else %}{{ line.account_name }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
             <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
             <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
@@ -136,7 +136,7 @@
         {% if equity_lines %}
           {% for line in equity_lines %}
           <tr>
-            <td class="ink-1">{{ line.account_name }}</td>
+            <td class="ink-1">{% if line.account_id %}<a class="hover:underline" href="/accounts/{{ line.account_id }}?date_to={{ as_of_date }}">{{ line.account_name }}</a>{% else %}{{ line.account_name }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.code }}</td>
             <td class="text-right num ink-1">{% if line.current_amount %}{{ num(line.current_amount, 2) }}{% else %}—{% endif %}</td>
             <td class="text-right num ink-3">{% if line.prior_amount %}{{ num(line.prior_amount, 2) }}{% else %}—{% endif %}</td>
@@ -199,7 +199,7 @@
         {% if asset_lines %}
           {% for line in asset_lines %}
           <tr>
-            <td class="ink-1">{{ line.get("account_name", "—") }}</td>
+            <td class="ink-1">{% if line.get("account_id") %}<a class="hover:underline" href="/accounts/{{ line.get("account_id") }}?date_to={{ as_of_date }}">{{ line.get("account_name", "—") }}</a>{% else %}{{ line.get("account_name", "—") }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="text-right num ink-1">{{ num(line.get("balance", 0) | float, 2) }}</td>
           </tr>
@@ -239,7 +239,7 @@
         {% if liability_lines %}
           {% for line in liability_lines %}
           <tr>
-            <td class="ink-1">{{ line.get("account_name", "—") }}</td>
+            <td class="ink-1">{% if line.get("account_id") %}<a class="hover:underline" href="/accounts/{{ line.get("account_id") }}?date_to={{ as_of_date }}">{{ line.get("account_name", "—") }}</a>{% else %}{{ line.get("account_name", "—") }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="text-right num ink-1">{{ num(line.get("balance", 0) | float, 2) }}</td>
           </tr>
@@ -279,7 +279,7 @@
         {% if equity_lines %}
           {% for line in equity_lines %}
           <tr>
-            <td class="ink-1">{{ line.get("account_name", "—") }}</td>
+            <td class="ink-1">{% if line.get("account_id") %}<a class="hover:underline" href="/accounts/{{ line.get("account_id") }}?date_to={{ as_of_date }}">{{ line.get("account_name", "—") }}</a>{% else %}{{ line.get("account_name", "—") }}{% endif %}</td>
             <td class="ink-3 num text-xs">{{ line.get("code", "") }}</td>
             <td class="text-right num ink-1">{{ num(line.get("balance", 0) | float, 2) }}</td>
           </tr>

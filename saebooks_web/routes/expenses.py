@@ -26,6 +26,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web import bulk_transitions
+from saebooks_web.routes._void_dating import lodged_conflict, render_lodged_confirm, void_body
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 
@@ -243,6 +244,9 @@ async def expense_new_form(
     _pa = request.query_params.get("payment_account_id", "").strip()
     if _pa:
         form["payment_account_id"] = _pa
+    # Batch 5 (P0-28): receipts show GST-inclusive prices, so new expenses
+    # start with "Amounts include GST" switched on.
+    form.setdefault("amounts_include_tax", "1")
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -291,6 +295,7 @@ async def expense_create(request: Request) -> HTMLResponse | RedirectResponse:
         payload["fx_rate"] = fx_rate_raw
 
     payload["lines"] = _parse_lines(form)
+    payload["amounts_include_tax"] = bool(form.get("amounts_include_tax"))
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -499,13 +504,30 @@ async def _transition(
             return RedirectResponse(url="/expenses", status_code=303)
 
         version = cur.json()["version"]
+        body = None
+        if action == "void":
+            # Batch 5: optional reversal date / lodged-period confirmation.
+            body = void_body(await request.form())
         resp = await client.post(
             f"/api/v1/expenses/{expense_id}/{action}",
             headers={
                 "If-Match": str(version),
                 "X-Idempotency-Key": str(uuid.uuid4()),
             },
+            json=body,
         )
+
+    if action == "void":
+        _conflict = lodged_conflict(resp)
+        if _conflict is not None:
+            return render_lodged_confirm(
+                request,
+                conflict=_conflict,
+                action_url=f"/expenses/{expense_id}/void",
+                back_url=f"/expenses/{expense_id}",
+                version=str(version),
+                what="expense",
+            )
 
     if resp.status_code == 200:
         request.session["flash"] = f"Expense {action}ed."

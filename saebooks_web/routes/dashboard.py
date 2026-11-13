@@ -420,6 +420,23 @@ def _weekly_takings_tile(payments: list[dict]) -> dict:
     }
 
 
+async def _bas_position(request: Request) -> dict | None:
+    """``/api/v1/bas/position`` for the GST set-aside tile; None when the
+    company is not GST registered or the call fails (tile hidden)."""
+    try:
+        async with api_client(request) as client:
+            resp = await client.get("/api/v1/bas/position")
+        if not resp.is_success:
+            return None
+        data = resp.json()
+    except Exception as exc:  # degrade the tile, never the page
+        logger.info("dashboard bas position unavailable: %r", exc)
+        return None
+    if not data.get("registered"):
+        return None
+    return data
+
+
 def _gst_tile(ytd_data: dict) -> dict:
     """Extract GST turnover data from the ytd_turnover API response.
 
@@ -939,10 +956,16 @@ async def dashboard(
     if revenue_concentration_raw.get("rows"):
         top_customer_name = revenue_concentration_raw["rows"][0].get("contact_name", "")
 
+    # Batch 5 (P1-31): GST to set aside for the current BAS period and the
+    # next BAS due date, from the engine's one BAS calculation. Fetched on
+    # its own so a failure only blanks this tile.
+    bas_position = await _bas_position(request)
+
     return _TEMPLATES.TemplateResponse(
         request,
         "dashboard.html",
         {
+            "bas_position": bas_position,
             "ar": ar,
             "ap": ap,
             "summary": summary,
