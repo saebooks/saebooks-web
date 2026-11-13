@@ -24,6 +24,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 
@@ -86,16 +87,31 @@ async def purchase_orders_list(
     contact_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
+    sort: str = "issue_date",
+    direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
+
+    # Search, sort and paging run in the engine over every row.
+    sort = sort if sort in ('number', 'issue_date', 'expected_date', 'contact', 'total', 'status') else 'issue_date'
+    direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
 
     page_size = limit
     page = (offset // page_size) + 1 if page_size > 0 else 1
 
     params: dict[str, object] = {"page": page, "page_size": page_size}
+    params.update({"sort": sort, "direction": direction})
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
     if status:
         params["status"] = status
     if contact_id:
@@ -109,8 +125,18 @@ async def purchase_orders_list(
     pos: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get("/api/v1/purchase_orders", params={**params, "format": "csv"})
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "purchase-orders.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/purchase_orders", status_code=303)
         resp = await client.get("/api/v1/purchase_orders", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -123,14 +149,13 @@ async def purchase_orders_list(
             error = f"API error: HTTP {resp.status_code}"
 
         # Resolve supplier names — POs are AP-side.
-        for ctype in ("SUPPLIER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [r.get("contact_id") for r in pos] + [contact_id]
+        )
+        if contact_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(contact_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
 
     prev_offset = max(offset - limit, 0) if offset > 0 else None
     next_offset = offset + limit if (offset + limit) < total else None
@@ -146,6 +171,12 @@ async def purchase_orders_list(
         "filter_contact_id": contact_id or "",
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "filter_contact_name": filter_contact_name,
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
+        "sort": sort,
+        "direction": direction,
         "limit": limit,
         "offset": offset,
         "prev_offset": prev_offset,

@@ -5,10 +5,14 @@
 {% import "_status_macros.html" as sb %}
 {% import "_partials/empty_state.html" as empty %}
 {% import "_components/kebab_menu.html" as km %}
+{% import "_components/list_tools.html" as lt %}
 {% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
                   'date_from': filter_date_from, 'date_to': filter_date_to,
-                  'limit': limit, 'offset': offset} %}
+                  'q': filter_q, 'amount_min': filter_amount_min,
+                  'amount_max': filter_amount_max, 'limit': limit} %}
 <div id="bills-table">
+
+<div class="flex justify-end mb-2">{{ lt.export_link('/bills', dict(filters, sort=sort, direction=direction)) }}</div>
 
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
@@ -27,9 +31,10 @@
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
         <th class="text-left">{{ srt.sort_link('number',     _('Bill number'), sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('supplier_reference', _('Supplier invoice number'), sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('issue_date', _('Date'),        sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('due_date',   _('Due'),         sort, direction, filters) }}</th>
-        <th class="text-left">{{ srt.sort_link('contact_id', _('Supplier'),    sort, direction, filters) }}</th>
+        <th class="text-left">{{ srt.sort_link('contact', _('Supplier'),    sort, direction, filters) }}</th>
         <th class="text-right">{{ srt.sort_link('total',     _('Total'),       sort, direction, filters) }}</th>
         <th class="text-left">{{ srt.sort_link('status',    _('Status'),      sort, direction, filters) }}</th>
         <th class="w-8"></th>{# kebab column header — intentionally empty #}
@@ -48,6 +53,7 @@
           <td class="num-display cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">
             <a href="/bills/{{ bill.id }}" class="sae hover:underline font-medium" onclick="event.stopPropagation()">{{ bill.number or "—" }}</a>
           </td>
+          <td class="ink-2 num cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.supplier_reference or "—" }}</td>
           <td class="ink-2 num cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.issue_date }}</td>
           <td class="ink-2 num cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">{{ bill.due_date }}</td>
           <td class="ink-2 cursor-pointer" onclick="window.location='/bills/{{ bill.id }}'">
@@ -78,12 +84,12 @@
         </tr>
         {% endfor %}
       {% else %}
-        {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to %}
-        {{ empty.row(8, "inbox", _("No bills yet"),
+        {% if not filter_status and not filter_contact_id and not filter_date_from and not filter_date_to and not filter_q and not filter_amount_min and not filter_amount_max %}
+        {{ empty.row(9, "inbox", _("No bills yet"),
                      _("Record your first supplier bill."),
                      _("New bill"), "/bills/new") }}
         {% else %}
-        {{ empty.row(8, "search-x", _("No bills match these filters"),
+        {{ empty.row(9, "search-x", _("No bills match these filters"),
                      _("Try clearing the filters above.")) }}
         {% endif %}
       {% endif %}
@@ -94,9 +100,7 @@
 {# Pagination — page-number selection via _pagination_macros.html. Filter state
    preserved through the URL via the pg_filters dict. #}
 {% import "_pagination_macros.html" as pg %}
-{% set pg_filters = {'status': filter_status, 'contact_id': filter_contact_id,
-                     'date_from': filter_date_from, 'date_to': filter_date_to,
-                     'sort': sort, 'direction': direction} %}
+{% set pg_filters = dict(filters, sort=sort, direction=direction, limit='') %}
 {{ pg.page_numbers('/bills', total, limit, offset, pg_filters, target='#bills-table') }}
 
 </div>

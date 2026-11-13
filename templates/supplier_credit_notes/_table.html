@@ -1,7 +1,15 @@
 {# HTMX partial — supplier credit notes table body + pagination. #}
 {% import "_components/kebab_menu.html" as km %}
 {% import "_partials/empty_state.html" as empty %}
+{% import "_sort_macros.html" as srt %}
+{% import "_components/list_tools.html" as lt %}
+{% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
+                  'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'q': filter_q, 'amount_min': filter_amount_min,
+                  'amount_max': filter_amount_max, 'limit': limit} %}
 <div id="supplier-credit-notes-table">
+
+<div class="flex justify-end mb-2">{{ lt.export_link('/supplier-credit-notes', dict(filters, sort=sort, direction=direction)) }}</div>
 
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
@@ -14,12 +22,12 @@
   <table class="min-w-full divide-y divide-[color:var(--line)] text-sm">
     <thead class="bg-[color:var(--paper-2)]">
       <tr>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("SCN #") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Supplier") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('number', _('Supplier credit number'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('issue_date', _('Date'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('contact', _('Supplier'), sort, direction, filters) }}</th>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Applied To") }}</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('total', _('Amount'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('status', _('Status'), sort, direction, filters) }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -80,12 +88,7 @@
 </div>
 
 {% import "_pagination_macros.html" as pg %}
-{% set pg_filters = {
-  'status': filter_status,
-  'contact_id': filter_contact_id,
-  'date_from': filter_date_from,
-  'date_to': filter_date_to
-} %}
+{% set pg_filters = dict(filters, sort=sort, direction=direction, limit='') %}
 {{ pg.page_numbers('/supplier-credit-notes', total, limit, offset, pg_filters, target='#supplier-credit-notes-table') }}
 
 </div>{# end #supplier-credit-notes-table #}

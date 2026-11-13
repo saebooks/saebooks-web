@@ -40,7 +40,10 @@
   hx-swap="outerHTML"
   hx-push-url="true"
   class="card p-4 mb-5 flex flex-wrap gap-3 items-end"
+  role="search"
 >
+  {% import "_components/list_tools.html" as lt %}
+  {{ lt.search_box(filter_q, _("Number, title, customer or amount")) }}
   <div>
     <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Status") }}</label>
     <select id="status" name="status" class="saebooks-input text-sm py-1.5"
@@ -55,13 +58,11 @@
     </select>
   </div>
 
-  <div class="flex-1 min-w-[220px]">
-    <label for="customer_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Customer") }}</label>
-    <input type="text" id="customer_id" name="customer_id" value="{{ filter_customer_id }}"
-           placeholder="{{ _('optional') }}" class="saebooks-input num text-sm py-1.5 w-full">
-  </div>
-
-  <input type="hidden" name="limit" value="{{ limit }}">
+  {{ lt.contact_picker("customer_id", _("Customer"), "customer", filter_customer_id, filter_contact_name) }}
+  {{ lt.amount_range(filter_amount_min, filter_amount_max) }}
+  {{ lt.page_size(limit) }}
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="direction" value="{{ direction }}">
   <input type="hidden" name="offset" value="0">
 
   <button type="submit" class="btn-primary text-sm py-1.5">{{ _("Filter") }}</button>
@@ -85,5 +86,7 @@
 ) }}
 
 <script src="/static/js/list_table.js" defer></script>
+
+<script src="/static/js/contact_picker.js" defer></script>
 
 {% endblock %}

@@ -24,9 +24,10 @@ from datetime import timedelta as _td
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines
@@ -41,78 +42,26 @@ def _require_auth(request: Request) -> str | None:
     """Return the token if present, else None (caller redirects)."""
     return request.session.get("api_token")
 
-_BILL_SORT_KEYS = {"number", "issue_date", "due_date", "contact_id", "total", "status"}
-
-# Payment-status values exposed to the UI. The dropdown sends these as the
-# `status` query param. They mirror the badges rendered by
-# templates/_status_macros.html :: payment_status_badge.
-_PAYMENT_STATUS_VALUES = {"draft", "open", "due-soon", "overdue", "partial", "paid", "voided"}
-
-# Map payment-status → raw API status to narrow the fetched set. The POSTED
-# bucket is still filtered in Python afterwards.
-_PAYMENT_STATUS_RAW_HINT = {
-    "draft":    "DRAFT",
-    "voided":   "VOIDED",
-    "open":     "POSTED",
-    "due-soon": "POSTED",
-    "overdue":  "POSTED",
-    "partial":  "POSTED",
-    "paid":     "POSTED",
+_BILL_SORT_KEYS = {
+    "number", "supplier_reference", "issue_date", "due_date", "contact",
+    "total", "amount_due", "status",
 }
+# Old links said contact_id; the engine sorts by the supplier's NAME.
+_SORT_ALIASES = {"contact_id": "contact"}
 
-# Sort order for the Status column — least-resolved first, then resolved.
-_PAYMENT_STATUS_RANK = {
-    "draft":    0,
-    "overdue":  1,
-    "due-soon": 2,
-    "open":     3,
-    "partial":  4,
-    "paid":     5,
-    "voided":   6,
+# Status dropdown value -> engine filter. Document states go to ``status``;
+# what-is-owed buckets go to ``payment_status`` and are worked out by the
+# engine over ALL bills (the old screen fetched 500 and filtered those).
+_STATUS_FILTERS: dict[str, tuple[str, str]] = {
+    "draft":    ("status", "DRAFT"),
+    "voided":   ("status", "VOIDED"),
+    "unpaid":   ("payment_status", "unpaid"),
+    "open":     ("payment_status", "open"),
+    "due-soon": ("payment_status", "due_soon"),
+    "overdue":  ("payment_status", "overdue"),
+    "partial":  ("payment_status", "part_paid"),
+    "paid":     ("payment_status", "paid"),
 }
-
-
-def _bill_payment_status(b: dict, today: str, due_soon_cutoff: str) -> str:
-    """Derive the payment-status string for a bill. Mirror of the Jinja
-    ``payment_status_badge`` macro so filter/sort match what the user sees."""
-    s = (b.get("status") or "").upper()
-    if s == "VOIDED":
-        return "voided"
-    if s == "DRAFT":
-        return "draft"
-    if s == "POSTED":
-        try:
-            total = float(b.get("total") or 0)
-        except (TypeError, ValueError):
-            total = 0.0
-        try:
-            paid = float(b.get("amount_paid") or 0)
-        except (TypeError, ValueError):
-            paid = 0.0
-        if total > 0 and paid >= total:
-            return "paid"
-        if paid > 0:
-            return "partial"
-        due = b.get("due_date") or ""
-        if due and due < today:
-            return "overdue"
-        if due and due <= due_soon_cutoff:
-            return "due-soon"
-        return "open"
-    return "open"
-
-
-def _bill_sort_key(b: dict, key: str, today: str, due_soon_cutoff: str) -> object:
-    if key == "total":
-        try:
-            return float(b.get("total") or 0)
-        except (TypeError, ValueError):
-            return 0.0
-    if key == "status":
-        return _PAYMENT_STATUS_RANK.get(
-            _bill_payment_status(b, today, due_soon_cutoff), 99
-        )
-    return str(b.get(key) or "")
 
 
 @router.get("/bills", response_class=HTMLResponse, response_model=None)
@@ -122,12 +71,21 @@ async def bills_list(
     contact_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
+    q: str | None = None,
+    amount_min: str | None = None,
+    amount_max: str | None = None,
+    export: str | None = None,
     sort: str = "issue_date",
     direction: str = "desc",
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     """Render the bills list page (full or HTMX fragment).
+
+    Searching (``q``: our number, the supplier's invoice number, supplier
+    name or an amount), the amount range, the status filter, sorting and
+    paging all happen in the engine, so they cover every bill. ``?export=csv``
+    downloads every matching bill as a spreadsheet.
 
     When the request carries an ``HX-Request: true`` header the response is
     the ``bills/_table.html`` partial only.  Otherwise the full page
@@ -136,48 +94,54 @@ async def bills_list(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    sort = _SORT_ALIASES.get(sort, sort)
     sort = sort if sort in _BILL_SORT_KEYS else "issue_date"
     direction = "asc" if direction == "asc" else "desc"
+    limit = lh.clamp_page_size(limit)
+    offset = max(0, offset)
 
     _today_iso = _date.today().isoformat()
     _due_soon_iso = (_date.today() + _td(days=7)).isoformat()
 
-    # The status filter is a payment-status value (draft / open / due-soon /
-    # overdue / partial / paid / voided). For the POSTED-derived buckets the
-    # API can only narrow to raw status=POSTED — the final filter and the
-    # total count are computed in Python below.
     status_norm = (status or "").lower().strip()
-    filter_client_side = status_norm in _PAYMENT_STATUS_VALUES
-    api_status = _PAYMENT_STATUS_RAW_HINT.get(status_norm) if filter_client_side else None
+    if status_norm not in _STATUS_FILTERS:
+        status_norm = ""
 
-    # The API uses page/page_size rather than limit/offset.
-    page_size = limit
-    page = (offset // page_size) + 1 if page_size > 0 else 1
-
-    # When filtering by payment status we fetch a single wide page from the
-    # API (capped at 500 — the API's hard upper bound) and slice in Python
-    # so the total count and pagination reflect the filtered set.
-    if filter_client_side:
-        api_page, api_page_size = 1, 500
-    else:
-        api_page, api_page_size = page, page_size
-
-    params: dict[str, object] = {"page": api_page, "page_size": api_page_size}
-    if api_status:
-        params["status"] = api_status
+    params: dict[str, object] = {
+        "page": (offset // limit) + 1,
+        "page_size": limit,
+        "sort": sort,
+        "direction": direction,
+    }
+    if status_norm:
+        key, value = _STATUS_FILTERS[status_norm]
+        params[key] = value
     if contact_id:
         params["contact_id"] = contact_id
     if date_from:
         params["date_from"] = date_from
     if date_to:
         params["date_to"] = date_to
+    search = lh.search_params(q, amount_min, amount_max)
+    params.update(search)
 
     error: str | None = None
     bills: list[dict] = []
     total: int = 0
     contacts_by_id: dict[str, dict] = {}
+    filter_contact_name = ""
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get("/api/v1/bills", params={**params, "format": "csv"})
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "bills.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/bills", status_code=303)
+
         resp = await client.get("/api/v1/bills", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -189,36 +153,15 @@ async def bills_list(
         else:
             error = f"API error: HTTP {resp.status_code}"
 
-        # Fetch suppliers so the template can show contact NAME, not the
-        # raw UUID. SUPPLIER alone misses contact_type=BOTH (suppliers who
-        # are also customers, e.g. General Engineering, Steve's Backhoe),
-        # so do a second pass — mirrors invoices.py's CUSTOMER+BOTH.
-        for ctype in ("SUPPLIER", "BOTH"):
-            c_resp = await client.get(
-                "/api/v1/contacts",
-                params={"type": ctype, "limit": 500, "offset": 0},
+        # Names for exactly the suppliers on this page (and the filter) —
+        # contractors and "both" included, however many contacts exist.
+        contacts_by_id = await lh.fetch_contact_names(
+            client, [b.get("contact_id") for b in bills] + [contact_id]
+        )
+        if contact_id:
+            filter_contact_name = str(
+                (contacts_by_id.get(contact_id) or {}).get("name") or ""
             )
-            if c_resp.is_success:
-                for c in c_resp.json().get("items", []):
-                    contacts_by_id[c["id"]] = c
-
-    if filter_client_side:
-        # Drop rows that don't match the requested payment status, then sort
-        # and slice in Python so total/pagination reflect the filtered set.
-        bills = [b for b in bills if _bill_payment_status(b, _today_iso, _due_soon_iso) == status_norm]
-        bills.sort(
-            key=lambda b: _bill_sort_key(b, sort, _today_iso, _due_soon_iso),
-            reverse=(direction == "desc"),
-        )
-        total = len(bills)
-        bills = bills[offset:offset + limit]
-    else:
-        # Page-level sort. Sorts the current page of results; for global sort
-        # across all pages, narrow with filters first.
-        bills.sort(
-            key=lambda b: _bill_sort_key(b, sort, _today_iso, _due_soon_iso),
-            reverse=(direction == "desc"),
-        )
 
     # Compute pagination offsets for previous / next links.
     prev_offset = max(offset - limit, 0) if offset > 0 else None
@@ -238,8 +181,12 @@ async def bills_list(
         # Filter values echoed back to the form.
         "filter_status": status_norm,
         "filter_contact_id": contact_id or "",
+        "filter_contact_name": filter_contact_name,
         "filter_date_from": date_from or "",
         "filter_date_to": date_to or "",
+        "filter_q": search.get("q", ""),
+        "filter_amount_min": search.get("amount_min", ""),
+        "filter_amount_max": search.get("amount_max", ""),
         "sort": sort,
         "direction": direction,
         "limit": limit,

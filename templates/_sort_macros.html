@@ -16,13 +16,16 @@
 
 {% macro _filter_qs(filters) -%}
   {%- for k, v in (filters or {}).items() -%}
-    {%- if v %}&amp;{{ k }}={{ v }}{% endif -%}
+    {%- if v %}&amp;{{ k }}={{ v | string | urlencode }}{% endif -%}
   {%- endfor -%}
 {%- endmacro %}
 
-{% macro sort_link(col, label, current_sort, current_dir, filters=None, fragment=None) -%}
+{#- ``param`` names the sort-order query parameter; lists where "direction"
+    already means something else (payments: money in or out) pass
+    param='sort_direction'. -#}
+{% macro sort_link(col, label, current_sort, current_dir, filters=None, fragment=None, param='direction') -%}
   {% set next_dir = 'asc' if (col == current_sort and current_dir == 'desc') else ('desc' if col == current_sort else 'asc') %}
-  <a href="?sort={{ col }}&amp;direction={{ next_dir }}{{ _filter_qs(filters) }}{% if fragment %}#{{ fragment }}{% endif %}"
+  <a href="?sort={{ col }}&amp;{{ param }}={{ next_dir }}{{ _filter_qs(filters) }}{% if fragment %}#{{ fragment }}{% endif %}"
      class="inline-flex items-center gap-1 hover:text-indigo-600">
     {{ label }}{{ sort_arrow(col, current_sort, current_dir) }}
   </a>
