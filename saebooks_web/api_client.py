@@ -88,3 +88,19 @@ async def api_client(request: Request) -> AsyncGenerator[httpx.AsyncClient, None
             # out) → typed. ModuleUnavailable subclasses RequestError so
             # existing per-route `except httpx.RequestError` UX still fires.
             raise ModuleUnavailable(detail=str(exc)) from exc
+
+
+async def optional_get(
+    client: httpx.AsyncClient, url: str, params: dict | None = None
+) -> httpx.Response | None:
+    """GET for a best-effort page panel (batch 12).
+
+    Returns the response when it succeeded, else ``None`` — a module that is
+    switched off, an older engine without the endpoint, or a connection
+    failure just hides the panel instead of failing the whole page.
+    """
+    try:
+        resp = await client.get(url, params=params)
+    except Exception:  # a missing panel must never break the page
+        return None
+    return resp if resp.is_success else None

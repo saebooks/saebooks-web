@@ -30,7 +30,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from saebooks_web.api_client import api_client
+from saebooks_web.api_client import api_client, optional_get
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 
 router = APIRouter()
@@ -54,7 +54,21 @@ _EDIT_FIELDS = (
     "start_date",
     "end_date",
     "notes",
+    # Batch 12 (P0-39): who the job is for and its budget.
+    "customer_id",
+    "budget_income",
+    "budget_cost",
 )
+
+
+async def _customers(request: Request) -> list[dict]:
+    """Customer contacts for the project form's "customer" select."""
+    async with api_client(request) as client:
+        resp = await optional_get(client, "/api/v1/contacts", {"type": "CUSTOMER", "limit": 500})
+    if resp is None:
+        return []
+    body = resp.json()
+    return body.get("items", []) if isinstance(body, dict) else []
 
 
 def _require_auth(request: Request) -> str | None:
@@ -157,6 +171,7 @@ async def project_new_form(request: Request) -> HTMLResponse | RedirectResponse:
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "project_statuses": PROJECT_STATUSES,
+            "customers": await _customers(request),
         },
     )
 
@@ -184,7 +199,10 @@ async def project_create(request: Request) -> HTMLResponse | RedirectResponse:
         payload[required_field] = val
 
     # Optional fields — include only when non-empty.
-    for optional_field in ("status", "start_date", "end_date", "notes"):
+    for optional_field in (
+        "status", "start_date", "end_date", "notes",
+        "customer_id", "budget_income", "budget_cost",
+    ):
         val = form.get(optional_field, "").strip()
         if val:
             payload[optional_field] = val
@@ -230,6 +248,7 @@ async def project_create(request: Request) -> HTMLResponse | RedirectResponse:
             "errors": errors,
             "idempotency_key": idempotency_key,
             "project_statuses": PROJECT_STATUSES,
+            "customers": await _customers(request),
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
@@ -269,6 +288,7 @@ async def project_edit_form(
                 "errors": {"__all__": "Project not found"},
                 "conflict": False,
                 "project_statuses": PROJECT_STATUSES,
+            "customers": await _customers(request),
             },
             status_code=404,
         )
@@ -282,6 +302,7 @@ async def project_edit_form(
                 "errors": {"__all__": f"API error: HTTP {resp.status_code}"},
                 "conflict": False,
                 "project_statuses": PROJECT_STATUSES,
+            "customers": await _customers(request),
             },
             status_code=resp.status_code,
         )
@@ -309,6 +330,7 @@ async def project_edit_form(
             "errors": {},
             "conflict": False,
             "project_statuses": PROJECT_STATUSES,
+            "customers": await _customers(request),
         },
     )
 
@@ -376,6 +398,7 @@ async def project_update(
                 "conflict": True,
                 "server_project": server_project,
                 "project_statuses": PROJECT_STATUSES,
+            "customers": await _customers(request),
             },
             status_code=409,
         )
@@ -418,6 +441,7 @@ async def project_update(
             "errors": errors,
             "conflict": False,
             "project_statuses": PROJECT_STATUSES,
+            "customers": await _customers(request),
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
@@ -491,12 +515,71 @@ async def project_detail(
             )
 
     project = resp.json()
+    # Batch 12 (P0-39 / P0-41): job summary + unbilled work.
+    summary = None
+    unbilled = None
+    tax_codes: list[dict] = []
+    async with api_client(request) as client:
+        s_resp = await optional_get(client, f"/api/v1/projects/{project_id}/summary")
+        if s_resp is not None:
+            summary = s_resp.json()
+        u_resp = await optional_get(client, f"/api/v1/projects/{project_id}/unbilled")
+        if u_resp is not None:
+            unbilled = u_resp.json()
+        t_resp = await optional_get(client, "/api/v1/tax_codes", {"limit": 200, "offset": 0})
+        if t_resp is not None:
+            tax_codes = t_resp.json().get("items", [])
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "projects/detail.html",
-        {"project": project, "error": None, "flash": flash},
+        {
+            "project": project, "error": None, "flash": flash,
+            "summary": summary, "unbilled": unbilled, "tax_codes": tax_codes,
+            "tab": request.query_params.get("tab", "invoices"),
+        },
     )
+
+
+@router.post("/projects/{project_id}/bill-unbilled", response_class=HTMLResponse, response_model=None)
+async def project_bill_unbilled(request: Request, project_id: str) -> RedirectResponse:
+    """Put the ticked time and costs on one draft invoice (P0-41)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    form = await request.form()
+    payload: dict[str, object] = {
+        "time_entry_ids": [str(v) for v in form.getlist("time_entry_ids") if v],
+        "cost_line_ids": [str(v) for v in form.getlist("cost_line_ids") if v],
+    }
+    markup = str(form.get("markup_percent", "") or "").strip()
+    if markup:
+        payload["markup_percent"] = markup
+    tax = str(form.get("tax_code_id", "") or "").strip()
+    if tax:
+        payload["tax_code_id"] = tax
+    issue = str(form.get("issue_date", "") or "").strip()
+    if issue:
+        payload["issue_date"] = issue
+    if not payload["time_entry_ids"] and not payload["cost_line_ids"]:
+        request.session["flash"] = "Tick the time and costs to bill first."
+        return RedirectResponse(url=f"/projects/{project_id}?tab=unbilled", status_code=303)
+    async with api_client(request) as client:
+        resp = await client.post(f"/api/v1/projects/{project_id}/bill-unbilled", json=payload)
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 201:
+        inv_id = resp.json()["invoice_id"]
+        request.session["flash"] = (
+            "Draft invoice created from the project's unbilled work. Check it, then post and send it."
+        )
+        return RedirectResponse(url=f"/invoices/{inv_id}", status_code=303)
+    try:
+        detail = resp.json().get("detail")
+    except Exception:
+        detail = None
+    request.session["flash"] = f"Could not bill the work: {detail or resp.status_code}"
+    return RedirectResponse(url=f"/projects/{project_id}?tab=unbilled", status_code=303)
 
 
 # ---------------------------------------------------------------------------

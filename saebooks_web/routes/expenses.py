@@ -28,7 +28,7 @@ from fastapi.templating import Jinja2Templates
 from saebooks_web import bulk_transitions
 from saebooks_web.routes._void_dating import lodged_conflict, render_lodged_confirm, void_body
 from saebooks_web import list_helpers as lh
-from saebooks_web.api_client import api_client
+from saebooks_web.api_client import api_client, optional_get
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 from saebooks_web.fx_context import company_currency
 
@@ -122,6 +122,7 @@ async def expenses_list(
     request: Request,
     status: str | None = None,
     contact_id: str | None = None,
+    project_id: str | None = None,
     payment_account_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
@@ -156,6 +157,9 @@ async def expenses_list(
         params["status"] = status
     if contact_id:
         params["contact_id"] = contact_id
+    # Batch 12 (P0-39 / P1-63): documents on one project.
+    if project_id:
+        params["project_id"] = project_id
     if payment_account_id:
         params["payment_account_id"] = payment_account_id
     if date_from:
@@ -209,6 +213,7 @@ async def expenses_list(
     flash = request.session.pop("flash", None)
 
     ctx = {
+        "filter_project_id": project_id or "",
         "expenses": expenses,
         "contacts_by_id": contacts_by_id,
         "total": total,
@@ -442,6 +447,13 @@ async def expense_detail(
             if c.is_success:
                 contact_name = c.json().get("name", "")
 
+        # Batch 12 (P1-63): job codes for the lines.
+        projects_by_id: dict[str, dict] = {}
+        if any(ln.get("project_id") for ln in expense.get("lines", [])):
+            p = await optional_get(client, "/api/v1/projects", {"limit": 500, "offset": 0})
+            if p is not None:
+                projects_by_id = {str(x["id"]): x for x in p.json().get("items", [])}
+
         payment_account_name = ""
         pa_id = expense.get("payment_account_id")
         if pa_id:
@@ -458,6 +470,7 @@ async def expense_detail(
             "expense": expense,
             "contact_name": contact_name,
             "payment_account_name": payment_account_name,
+            "projects_by_id": projects_by_id,
             "flash": flash,
         },
     )

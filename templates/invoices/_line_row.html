@@ -3,6 +3,7 @@
   Rendered for the new form and as an HTMX fragment from GET /invoices/_add_line?index=N.
   On mobile (<768px) each <tr> is reflowed as a card via .line-items-table CSS in base.html.
 #}
+{% from "_components/item_picker.html" import item_picker with context %}
 <tr class="line-row">
   <td class="px-3 py-2" data-label="{{ _('Account') }}">
     <select name="lines[{{ index }}][account_id]" aria-label="{{ _('Account, row %(index)s') % {'index': index} }}" class="saebooks-input text-sm py-1.5">
@@ -16,6 +17,7 @@
   </td>
 
   <td class="px-3 py-2" data-label="{{ _('Description') }}">
+    {{ item_picker(index, line, "sale") }}
     <input type="text" name="lines[{{ index }}][description]" aria-label="{{ _('Description, row %(index)s') % {'index': index} }}" value="{{ line.get('description', '') }}"
            placeholder="{{ _('Description') }}" class="saebooks-input text-sm py-1.5">
   </td>

@@ -4,6 +4,7 @@
   Used both when rendering the full new-PO form and as an HTMX fragment
   returned by GET /purchase_orders/_add_line?index=N.
 #}
+{% from "_components/item_picker.html" import item_picker with context %}
 <tr class="line-row hairline-b">
   {# Account #}
   <td class="px-3 py-2">
@@ -23,6 +24,7 @@
 
   {# Description #}
   <td class="px-3 py-2">
+    {{ item_picker(index, line, "purchase") }}
     <input
       type="text"
       name="lines[{{ index }}][description]"

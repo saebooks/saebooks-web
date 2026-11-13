@@ -22,11 +22,12 @@
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded border-gray-300 text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("SKU") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Code") }}</th>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Type") }}</th>
         <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Sale price") }}</th>
         <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("On hand") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Stock value") }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -60,14 +61,26 @@
           </td>
           <td class="px-4 py-3 text-right tabular-nums ink-2">
             {% if item.item_type == 'inventory' %}
-              {{ item.on_hand_qty }}
+              {{ item.on_hand_qty }}{% if item.unit_of_measure %} <span class="ink-3 text-xs">{{ item.unit_of_measure }}</span>{% endif %}
+              {% if item.below_reorder_level %}
+              <span class="badge-warm ml-1" title="{{ _('At or below the reorder level') }}">{{ _("Low") }}</span>
+              {% endif %}
             {% else %}—{% endif %}
+            {% if item.archived_at %}<span class="badge-draft ml-1">{{ _("Archived") }}</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right tabular-nums ink-2">
+            {% if item.item_type == 'inventory' %}{{ num((item.inventory_value or 0)|float, 2) }}{% else %}—{% endif %}
           </td>
           <td class="px-4 py-3 text-right" onclick="event.stopPropagation()">
             {%- set actions = [
               ("view",    _("View"),    "/items/" ~ item.id,             "link", false),
               ("edit",    _("Edit"),    "/items/" ~ item.id ~ "/edit",   "link", false),
               ("archive", _("Archive"), "/items/" ~ item.id ~ "/archive","post", true),            ] %}
+              {%- if item.archived_at %}
+              {%- set actions = [
+                ("view",    _("View"),    "/items/" ~ item.id,             "link", false),
+              ] %}
+              {%- endif %}
               {%- if is_feature_enabled("hard_delete") %}
               {%- set _x = actions.append(("hard_delete", _("Delete (hard)"), "/items/" ~ item.id ~ "/hard-delete", "post", true)) %}
               {%- endif %}
@@ -76,16 +89,25 @@
         </tr>
         {% endfor %}
       {% else %}
-        {% if not filter_item_type %}
-        {{ empty.row(7, "package", _("No items yet"),
+        {% if not (filter_item_type or filter_stock or filter_archived or filter_q) %}
+        {{ empty.row(8, "package", _("No items yet"),
                      _("Add your first product or service to start invoicing."),
                      _("New item"), "/items/new") }}
         {% else %}
-        {{ empty.row(7, "search-x", _("No items match this filter"),
-                     _("Try clearing the type filter above.")) }}
+        {{ empty.row(8, "search-x", _("No items match this filter"),
+                     _("Try clearing the filters above.")) }}
         {% endif %}
       {% endif %}
     </tbody>
+    {% if total_value is not none and items %}
+    <tfoot>
+      <tr>
+        <td colspan="6" class="px-4 py-3 text-right text-xs ink-3 uppercase tracking-wide">{{ _("Stock value of all matching items") }}</td>
+        <td class="px-4 py-3 text-right tabular-nums font-semibold ink-1">{{ num(total_value|float, 2) }}</td>
+        <td></td>
+      </tr>
+    </tfoot>
+    {% endif %}
   </table>
 </div>
 
@@ -98,8 +120,8 @@
   <div class="flex gap-3">
     {% if prev_offset is not none %}
     <a
-      href="/items?offset={{ prev_offset }}&limit={{ limit }}{% if filter_item_type %}&item_type={{ filter_item_type }}{% endif %}"
-      hx-get="/items?offset={{ prev_offset }}&limit={{ limit }}{% if filter_item_type %}&item_type={{ filter_item_type }}{% endif %}"
+      href="/items?offset={{ prev_offset }}&limit={{ limit }}{% if filter_item_type %}&item_type={{ filter_item_type }}{% endif %}{% if filter_stock %}&stock={{ filter_stock }}{% endif %}{% if filter_archived %}&archived={{ filter_archived }}{% endif %}{% if filter_q %}&q={{ filter_q|urlencode }}{% endif %}"
+      hx-get="/items?offset={{ prev_offset }}&limit={{ limit }}{% if filter_item_type %}&item_type={{ filter_item_type }}{% endif %}{% if filter_stock %}&stock={{ filter_stock }}{% endif %}{% if filter_archived %}&archived={{ filter_archived }}{% endif %}{% if filter_q %}&q={{ filter_q|urlencode }}{% endif %}"
       hx-target="#items-table"
       hx-swap="outerHTML"
       hx-push-url="true"
@@ -108,8 +130,8 @@
     {% endif %}
     {% if next_offset is not none %}
     <a
-      href="/items?offset={{ next_offset }}&limit={{ limit }}{% if filter_item_type %}&item_type={{ filter_item_type }}{% endif %}"
-      hx-get="/items?offset={{ next_offset }}&limit={{ limit }}{% if filter_item_type %}&item_type={{ filter_item_type }}{% endif %}"
+      href="/items?offset={{ next_offset }}&limit={{ limit }}{% if filter_item_type %}&item_type={{ filter_item_type }}{% endif %}{% if filter_stock %}&stock={{ filter_stock }}{% endif %}{% if filter_archived %}&archived={{ filter_archived }}{% endif %}{% if filter_q %}&q={{ filter_q|urlencode }}{% endif %}"
+      hx-get="/items?offset={{ next_offset }}&limit={{ limit }}{% if filter_item_type %}&item_type={{ filter_item_type }}{% endif %}{% if filter_stock %}&stock={{ filter_stock }}{% endif %}{% if filter_archived %}&archived={{ filter_archived }}{% endif %}{% if filter_q %}&q={{ filter_q|urlencode }}{% endif %}"
       hx-target="#items-table"
       hx-swap="outerHTML"
       hx-push-url="true"

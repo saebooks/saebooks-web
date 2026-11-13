@@ -68,7 +68,7 @@
 <fieldset class="space-y-4">
   <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Identity") }}</legend>
 
-  {{ text_input("sku", _("SKU"), required=true, placeholder="WIDGET-001") }}
+  {{ text_input("sku", _("Item code"), required=true, placeholder="WIDGET-001") }}
   {{ text_input("name", _("Name"), required=true, placeholder="Widget, 10mm") }}
 
   <div>
@@ -79,6 +79,7 @@
       id="item_type"
       name="item_type"
       class="saebooks-input w-full"
+      {% if item is defined and item %}disabled title="{{ _('The type cannot be changed once the item exists.') }}"{% endif %}
       {% if errors.get('item_type') %}style="border-color:var(--neg)"{% endif %}
     >
       <option value="inventory" {% if form.get("item_type", "inventory") == "inventory" %}selected{% endif %}>{{ _("Inventory") }}</option>
@@ -91,10 +92,33 @@
 
 </fieldset>
 
-{# ── Pricing ── #}
+{# Macro: a select over arbitrary {id, label} options #}
+{% macro ref_select(name, label, options, empty_label, help="") %}
+<div>
+  <label for="{{ name }}" class="block text-sm font-medium ink-2 mb-1">{{ label }}</label>
+  <select id="{{ name }}" name="{{ name }}" class="saebooks-input w-full"
+    {% if errors.get(name) %}style="border-color:var(--neg)"{% endif %}>
+    <option value="" {% if not form.get(name) %}selected{% endif %}>{{ empty_label }}</option>
+    {% for opt in options %}
+    <option value="{{ opt.id }}" {% if form.get(name) == opt.id|string %}selected{% endif %}>{{ opt.label }}</option>
+    {% endfor %}
+  </select>
+  {% if help %}<p class="mt-1 text-xs ink-3">{{ help }}</p>{% endif %}
+  {% if errors.get(name) %}<p class="mt-1 text-xs" style="color:var(--neg)">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% set tax_opts = [] %}
+{% for tc in (tax_codes or []) %}{% set _ = tax_opts.append({"id": tc.id, "label": tc.name}) %}{% endfor %}
+{% set supplier_opts = [] %}
+{% for c in (suppliers or []) %}{% set _ = supplier_opts.append({"id": c.id, "label": c.name}) %}{% endfor %}
+
+{# ── Selling ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Pricing") }}</legend>
-  {{ text_input("default_sale_price", _("Default sale price"), placeholder="0.00", type="text") }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Selling") }}</legend>
+  {{ text_input("default_sale_price", _("Sale price (excluding GST)"), placeholder="0.00", type="text") }}
+  {{ account_select("income_account_id", _("Income account")) }}
+  {{ ref_select("sale_tax_code_id", _("GST when sold"), tax_opts, _("— none —")) }}
 </fieldset>
 
 {# ── Opening stock (b06, P1-39) — new items only ── #}
@@ -109,13 +133,41 @@
 </fieldset>
 {% endif %}
 
-{# ── Accounts ── #}
+{# ── Buying ── #}
 <fieldset class="space-y-4 mt-6">
-  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Linked Accounts") }}</legend>
-  {{ account_select("income_account_id", _("Income account"), required=true) }}
-  {{ account_select("cogs_account_id", _("COGS account"), required=true) }}
-  {{ account_select("inventory_account_id", _("Inventory account"), required=true) }}
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Buying") }}</legend>
+  {{ text_input("purchase_price", _("Purchase price (excluding GST)"), placeholder="0.00", type="text") }}
+  <div data-show-for="service">
+    {{ account_select("purchase_account_id", _("Expense account for purchases")) }}
+  </div>
+  {{ ref_select("purchase_tax_code_id", _("GST when bought"), tax_opts, _("— none —")) }}
+  {{ ref_select("preferred_supplier_id", _("Usual supplier"), supplier_opts, _("— none —")) }}
 </fieldset>
+
+{# ── Stock (stocked items only) ── #}
+<fieldset class="space-y-4 mt-6" data-show-for="inventory">
+  <legend class="text-sm font-semibold ink-1 mb-2">{{ _("Stock") }}</legend>
+  <p class="text-xs ink-3">{{ _("A stocked item needs these three accounts. Services do not hold stock.") }}</p>
+  {{ account_select("inventory_account_id", _("Stock on hand account")) }}
+  {{ account_select("cogs_account_id", _("Cost of sales account")) }}
+  {{ text_input("unit_of_measure", _("Unit (for example: each, metre, kg)"), placeholder="each") }}
+  {{ text_input("reorder_level", _("Reorder when stock falls to"), placeholder="0") }}
+</fieldset>
+
+<script>
+  (function () {
+    var sel = document.getElementById("item_type");
+    if (!sel) return;
+    function sync() {
+      var t = sel.value || "inventory";
+      document.querySelectorAll("[data-show-for]").forEach(function (el) {
+        el.style.display = el.getAttribute("data-show-for") === t ? "" : "none";
+      });
+    }
+    sel.addEventListener("change", sync);
+    sync();
+  })();
+</script>
 
 {# ── Description ── #}
 <div class="mt-6">

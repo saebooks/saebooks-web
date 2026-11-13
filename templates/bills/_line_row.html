@@ -1,6 +1,7 @@
 {# _line_row.html — single bill line-item row.
    On mobile (<768px) each <tr> is reflowed as a card via .line-items-table CSS in base.html.
 #}
+{% from "_components/item_picker.html" import item_picker with context %}
 <tr class="line-row">
   <td class="px-3 py-2" data-label="{{ _('Account') }}">
     <select name="lines[{{ index }}][account_id]" aria-label="{{ _('Account, row %(index)s') % {'index': index} }}" class="saebooks-input text-sm py-1.5">
@@ -14,6 +15,7 @@
   </td>
 
   <td class="px-3 py-2" data-label="{{ _('Description') }}">
+    {{ item_picker(index, line, "purchase") }}
     <input type="text" name="lines[{{ index }}][description]" aria-label="{{ _('Description, row %(index)s') % {'index': index} }}" value="{{ line.get('description', '') }}"
            placeholder="Description" class="saebooks-input text-sm py-1.5">
   </td>
@@ -51,6 +53,15 @@
       </option>
       {% endfor %}
     </select>
+    <label class="flex items-center gap-1 mt-1 text-xs ink-3"
+           title="{{ _('Pass this cost on to the project’s customer when you bill the project') }}">
+      <input type="checkbox" name="lines[{{ index }}][billable]" value="true"
+             {% if line.get("billable") %}checked{% endif %}>
+      {{ _("Bill to customer") }}
+    </label>
+    {% if line.get("purchase_order_line_id") %}
+    <input type="hidden" name="lines[{{ index }}][purchase_order_line_id]" value="{{ line.get('purchase_order_line_id') }}">
+    {% endif %}
   </td>
 
   <td class="px-3 py-2 w-32" data-label="{{ _('Vehicle / VIN') }}">

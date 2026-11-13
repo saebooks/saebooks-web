@@ -40,4 +40,19 @@
       aria-label="{{ _('GST (leave blank to work it out)') }}"
       class="saebooks-input w-24 px-2 py-1 text-base text-right">
   </td>
+  {# Batch 12 (P1-63): tag the cost to a job, and pass it on to the customer. #}
+  <td class="px-2 py-1">
+    <select name="lines[{{ index }}][project_id]" aria-label="{{ _('Project, row %(index)s') % {'index': index} }}"
+      class="saebooks-input w-full px-2 py-1 text-base">
+      <option value="">{{ _("— no project —") }}</option>
+      {% for proj in (projects or []) %}
+      <option value="{{ proj.id }}" {% if line.project_id and line.project_id|string == proj.id|string %}selected{% endif %}>{{ proj.code }} — {{ proj.name }}</option>
+      {% endfor %}
+    </select>
+    <label class="flex items-center gap-1 mt-1 text-xs ink-3"
+           title="{{ _('Pass this cost on to the project’s customer when you bill the project') }}">
+      <input type="checkbox" name="lines[{{ index }}][billable]" value="true" {% if line.billable %}checked{% endif %}>
+      {{ _("Bill to customer") }}
+    </label>
+  </td>
 </tr>

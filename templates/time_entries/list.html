@@ -157,7 +157,7 @@
             {{ e.approval_status }}
           </span>
           {% if e.billable %}<span class="chip ml-1">$</span>{% endif %}
-          {% if e.invoice_line_id %}<span class="chip ml-1" title="{{ _('On invoice line') }}">{{ _("→ inv") }}</span>{% endif %}
+          {% if e.invoice_line_id %}{% if e.invoice_id %}<a href="/invoices/{{ e.invoice_id }}" class="chip ml-1" onclick="event.stopPropagation()" title="{{ _('Open the invoice that holds this time') }}">{{ _("→ %(n)s") % {"n": e.invoice_number or _("invoice")} }}</a>{% else %}<span class="chip ml-1" title="{{ _('On invoice line') }}">{{ _("→ invoice") }}</span>{% endif %}{% endif %}
         </td>
         <td class="px-2 py-2 text-right" onclick="event.stopPropagation()">
           {%- set status_lower = (e.approval_status or 'draft')|lower %}

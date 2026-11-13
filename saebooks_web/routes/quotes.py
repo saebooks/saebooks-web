@@ -560,6 +560,7 @@ async def quote_edit_form(
             "quantity": str(ln.get("quantity", "1")),
             "unit_price": str(ln.get("unit_price", "")),
             "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "item_id": str(ln.get("item_id") or ""),
         })
     if not lines:
         lines = [{"index": 0}]
@@ -815,10 +816,28 @@ async def quote_convert_to_invoice(
     form_data = await request.form()
     version = str(form_data.get("version", ""))
     idempotency_key = str(uuid.uuid4())
+    # Batch 12 (P0-40): full | deposit | progress | remainder, with a
+    # percentage or an amount (ex GST).
+    mode = str(form_data.get("mode", "") or "full").strip()
+    body: dict[str, object] | None = None
+    if mode != "full":
+        body = {"mode": mode}
+        how = str(form_data.get("by", "percent"))
+        pct = str(form_data.get("percent", "") or "").strip()
+        amt = str(form_data.get("amount", "") or "").strip()
+        if mode in ("deposit", "progress"):
+            if how == "amount" and amt:
+                body["amount"] = amt
+            elif pct:
+                body["percent"] = pct
+        issue = str(form_data.get("issue_date", "") or "").strip()
+        if issue:
+            body["issue_date"] = issue
 
     async with api_client(request) as client:
         resp = await client.post(
             f"/api/v1/quotes/{quote_id}/convert-to-invoice",
+            json=body,
             headers={
                 "If-Match": version,
                 "X-Idempotency-Key": idempotency_key,
@@ -832,7 +851,11 @@ async def quote_convert_to_invoice(
     if resp.status_code == 200:
         body = resp.json()
         invoice_id = body.get("invoice_id")
-        request.session["flash"] = "Quote converted to invoice."
+        request.session["flash"] = {
+            "deposit": "Deposit invoice created as a draft.",
+            "progress": "Progress claim created as a draft invoice.",
+            "remainder": "Final invoice for the rest of the quote created as a draft.",
+        }.get(mode, "Quote converted to invoice.")
         if invoice_id:
             return RedirectResponse(url=f"/invoices/{invoice_id}", status_code=303)
         return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
@@ -849,6 +872,22 @@ async def quote_convert_to_invoice(
         detail = f"API error: HTTP {resp.status_code}"
     request.session["flash"] = str(detail)
     return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
+
+
+@router.post("/quotes/{quote_id}/revise", response_class=HTMLResponse, response_model=None)
+async def quote_revise(request: Request, quote_id: str) -> RedirectResponse:
+    """Make the next revision of a quote (P2-14)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await _copy_quote(request, quote_id, "revise")
+
+
+@router.post("/quotes/{quote_id}/duplicate", response_class=HTMLResponse, response_model=None)
+async def quote_duplicate(request: Request, quote_id: str) -> RedirectResponse:
+    """Copy a quote into a new draft (P2-14)."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    return await _copy_quote(request, quote_id, "duplicate")
 
 
 # ---------------------------------------------------------------------------
@@ -889,6 +928,14 @@ async def quote_detail(
                  "flash": None, "email_log": []},
                 status_code=resp.status_code,
             )
+        # Batch 12 (P0-40): invoiced so far / left to invoice.
+        billing = None
+        try:
+            b_resp = await client.get(f"/api/v1/quotes/{quote_id}/billing")
+            if b_resp.status_code == 200:
+                billing = b_resp.json()
+        except Exception:
+            billing = None
         # Best-effort: pull send history for this quote — don't fail the page
         # if the email-log endpoint is unavailable.
         email_log: list = []
@@ -909,8 +956,46 @@ async def quote_detail(
             "error":     None,
             "flash":     flash,
             "email_log": email_log,
+            "billing":   billing,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Revise / copy (batch 12, P2-14)
+# ---------------------------------------------------------------------------
+
+
+async def _copy_quote(request: Request, quote_id: str, kind: str) -> RedirectResponse:
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    async with api_client(request) as client:
+        if kind == "revise":
+            resp = await client.post(
+                f"/api/v1/quotes/{quote_id}/revise", headers={"If-Match": version}
+            )
+        else:
+            resp = await client.post(f"/api/v1/quotes/{quote_id}/duplicate")
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.status_code == 201:
+        new = resp.json()
+        request.session["flash"] = (
+            f"Revision {new.get('revision')} created. The earlier version is archived."
+            if kind == "revise"
+            else "Copy created as a new draft quote."
+        )
+        return RedirectResponse(url=f"/quotes/{new['id']}/edit", status_code=303)
+    try:
+        detail = resp.json().get("detail", f"HTTP {resp.status_code}")
+    except Exception:
+        detail = f"HTTP {resp.status_code}"
+    request.session["flash"] = (
+        "Someone changed this quote. Reload and try again."
+        if resp.status_code == 409 else str(detail)
+    )
+    return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
 
 
 # ---------------------------------------------------------------------------

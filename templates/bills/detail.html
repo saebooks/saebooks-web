@@ -49,6 +49,9 @@
         {% if bill.contact_id %}<a href="/contacts/{{ bill.contact_id }}" class="sae hover:underline">{{ supplier_name or _("this supplier") }}</a>{% else %}—{% endif %}
         {% if bill.supplier_reference %}<span class="ink-4"> · </span>{{ _("their invoice") }} <span class="ink-1">{{ bill.supplier_reference }}</span>{% endif %}
       </p>
+      {% if bill.purchase_order_id %}
+      <p class="text-xs ink-3 mt-1">{{ _("Made from") }} <a href="/purchase_orders/{{ bill.purchase_order_id }}" class="sae hover:underline">{{ _("a purchase order") }}</a></p>
+      {% endif %}
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">

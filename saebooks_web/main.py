@@ -113,6 +113,7 @@ from saebooks_web.routes.invoices import router as invoices_router
 from saebooks_web.routes.email_log import router as email_log_router
 from saebooks_web.routes.quotes import router as quotes_router
 from saebooks_web.routes.items import router as items_router
+from saebooks_web.routes.stock import router as stock_router
 from saebooks_web.routes.journal_entries import router as journal_entries_router
 from saebooks_web.routes.journal_templates import router as journal_templates_router
 from saebooks_web.routes.employees import router as employees_router
@@ -461,6 +462,7 @@ app.include_router(journal_templates_router)
 app.include_router(accounts_router)
 app.include_router(account_ranges_router)
 app.include_router(items_router)
+app.include_router(stock_router)
 app.include_router(tax_codes_router)
 app.include_router(projects_router)
 app.include_router(fixed_assets_router)

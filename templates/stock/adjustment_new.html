@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ _("New stock adjustment") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-semibold ink-1">{{ _("New stock adjustment") }}</h1>
+  <a href="/stock/adjustments" class="text-sm sae hover:underline">{{ _("← Back to adjustments") }}</a>
+</div>
+{% if error %}<div class="card p-3 mb-4" style="border-color:var(--neg);" role="alert"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>{% endif %}
+<form method="post" class="card p-6 space-y-6">
+  {{ csrf_input(request)|safe }}
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div>
+      <label for="adjustment_date" class="block text-sm font-medium ink-2 mb-1">{{ _("Date") }}</label>
+      <input id="adjustment_date" type="date" name="adjustment_date" required value="{{ form.get('adjustment_date', '') }}" class="saebooks-input w-full">
+    </div>
+    <div>
+      <label for="reason" class="block text-sm font-medium ink-2 mb-1">{{ _("Reason") }}</label>
+      <select id="reason" name="reason" class="saebooks-input w-full">
+        {% for code, label in reasons %}
+        <option value="{{ code }}" {% if form.get('reason') == code %}selected{% endif %}>{{ _(label) }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="account_id" class="block text-sm font-medium ink-2 mb-1">{{ _("Post the difference to") }}</label>
+      <select id="account_id" name="account_id" required class="saebooks-input w-full">
+        <option value="">{{ _("— choose an account —") }}</option>
+        {% for acct in accounts %}
+        {% if acct.account_type in ('EXPENSE', 'COST_OF_SALES', 'OTHER_EXPENSE', 'OTHER_INCOME', 'EQUITY') %}
+        <option value="{{ acct.id }}" {% if form.get('account_id') == acct.id %}selected{% endif %}>{{ acct.code }} — {{ acct.name }}</option>
+        {% endif %}
+        {% endfor %}
+      </select>
+      <p class="mt-1 text-xs ink-3">{{ _("Usually a stock write-off or stock adjustment expense account.") }}</p>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full sae-table text-sm">
+      <thead><tr>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Item") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("On hand now") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Counted") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Or change by") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Unit cost (stock added)") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for line in lines %}
+        {% set i = loop.index0 %}
+        <tr>
+          <td class="px-3 py-2">
+            <select name="lines[{{ i }}][item_id]" aria-label="{{ _('Item, row %(n)s') % {'n': i + 1} }}" class="saebooks-input w-full text-sm">
+              <option value="">{{ _("— item —") }}</option>
+              {% for it in items %}
+              <option value="{{ it.id }}" {% if line.get('item_id') == it.id %}selected{% endif %}>{{ it.sku }} — {{ it.name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td class="px-3 py-2 text-right tabular-nums ink-3">
+            {% for it in items %}{% if line.get('item_id') == it.id %}{{ it.on_hand_qty }}{% endif %}{% endfor %}
+          </td>
+          <td class="px-3 py-2"><input type="number" step="0.0001" min="0" name="lines[{{ i }}][counted_qty]" value="{{ line.get('counted_qty', '') }}" aria-label="{{ _('Counted quantity, row %(n)s') % {'n': i + 1} }}" class="saebooks-input w-28 text-right text-sm"></td>
+          <td class="px-3 py-2"><input type="number" step="0.0001" name="lines[{{ i }}][quantity_change]" value="{{ line.get('quantity_change', '') }}" placeholder="-2" aria-label="{{ _('Change in quantity, row %(n)s') % {'n': i + 1} }}" class="saebooks-input w-28 text-right text-sm"></td>
+          <td class="px-3 py-2"><input type="number" step="0.0001" min="0" name="lines[{{ i }}][unit_cost]" value="{{ line.get('unit_cost', '') }}" placeholder="{{ _('average') }}" aria-label="{{ _('Unit cost, row %(n)s') % {'n': i + 1} }}" class="saebooks-input w-28 text-right text-sm"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="text-xs ink-3">{{ _("For a stocktake, enter what you counted; the change is worked out against the quantity on hand when you post. For a write-off, enter the change instead (for example -2). Stock taken off is valued at its average cost. Rows left without an item are ignored.") }}</p>
+
+  <div>
+    <label for="notes" class="block text-sm font-medium ink-2 mb-1">{{ _("Notes") }}</label>
+    <textarea id="notes" name="notes" rows="2" class="saebooks-input w-full">{{ form.get('notes', '') or '' }}</textarea>
+  </div>
+  <div class="flex items-center gap-3">
+    <button type="submit" class="btn-primary text-sm px-5 py-2">{{ _("Save as draft") }}</button>
+    <a href="/stock/adjustments" class="btn-secondary text-sm px-5 py-2">{{ _("Cancel") }}</a>
+  </div>
+</form>
+{% endblock %}
