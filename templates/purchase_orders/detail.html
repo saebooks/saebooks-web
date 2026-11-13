@@ -48,6 +48,9 @@
     <p class="text-sm ink-3 mt-1">{{ _("Supplier:") }} {% if contact_name %}<a href="/contacts/{{ po.contact_id }}" class="sae hover:underline">{{ contact_name }}</a>{% else %}—{% endif %}</p>
   </div>
   <div class="flex items-center gap-3 flex-wrap justify-end">
+    {% if po.status not in ('CANCELLED',) %}
+    <a href="/purchase_orders/{{ po.id }}/email" class="btn-secondary text-sm">{{ _("Email to supplier") }}</a>
+    {% endif %}
     {% if po.status == 'DRAFT' %}
     <a href="/purchase_orders/{{ po.id }}/edit" class="btn-secondary text-sm">{{ _("Edit") }}</a>
     <form method="post" action="/purchase_orders/{{ po.id }}/send" class="inline"
@@ -251,6 +254,73 @@
   </div>
   {% endif %}
 </form>
+
+{# ── Bills from this order (batch 12, P1-62) ── #}
+{% if po_bills and (po_bills.bills or po_bills.lines) %}
+<div class="mb-8">
+  <h2 class="text-base font-semibold ink-1 mb-2">{{ _("Bills from this order") }}</h2>
+  <p class="text-sm ink-3 mb-3">
+    {{ _("Billed %(b)s of %(o)s ordered (excluding GST), %(l)s left to bill.") % {
+      "b": num(po_bills.billed_subtotal|float, 2), "o": num(po_bills.order_subtotal|float, 2),
+      "l": num(po_bills.left_to_bill|float, 2)} }}
+    {% if po_bills.price_variance|float != 0 %}
+    <span style="color:var(--warm)">{{ _("The supplier charged %(v)s more than ordered.") % {"v": num(po_bills.price_variance|float, 2)} if po_bills.price_variance|float > 0 else _("The supplier charged %(v)s less than ordered.") % {"v": num((0 - po_bills.price_variance|float), 2)} }}</span>
+    {% endif %}
+  </p>
+  {% if po_bills.bills %}
+  <div class="card overflow-x-auto mb-4">
+    <table class="min-w-full sae-table text-sm">
+      <thead><tr>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Bill") }}</th>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Supplier's reference") }}</th>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Date") }}</th>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Status") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Total") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Paid") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for b in po_bills.bills %}
+        <tr {% if not b.counts %}class="ink-3" style="text-decoration:line-through"{% endif %}>
+          <td class="px-4 py-2"><a href="/bills/{{ b.id }}" class="sae hover:underline">{{ b.number or _("Draft") }}</a></td>
+          <td class="px-4 py-2 ink-2">{{ b.supplier_reference or "—" }}</td>
+          <td class="px-4 py-2 ink-2">{{ b.issue_date }}</td>
+          <td class="px-4 py-2 ink-2">{{ b.status|capitalize }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{{ num(b.total|float, 2) }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{{ num(b.amount_paid|float, 2) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  <div class="card overflow-x-auto">
+    <table class="min-w-full sae-table text-sm">
+      <thead><tr>
+        <th class="px-4 py-2 text-left text-xs ink-3">{{ _("Line") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Ordered") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Billed") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Left to bill") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Order price") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Billed price") }}</th>
+        <th class="px-4 py-2 text-right text-xs ink-3">{{ _("Difference") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for ln in po_bills.lines %}
+        <tr>
+          <td class="px-4 py-2 ink-1">{{ ln.line_no }}. {{ ln.description }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{{ ln.ordered_qty }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{{ ln.billed_qty }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{{ ln.left_to_bill_qty }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{{ num(ln.order_unit_price|float, 2) }}</td>
+          <td class="px-4 py-2 text-right tabular-nums">{% if ln.billed_unit_price is not none %}{{ num(ln.billed_unit_price|float, 2) }}{% else %}—{% endif %}</td>
+          <td class="px-4 py-2 text-right tabular-nums" {% if ln.price_variance|float != 0 %}style="color:var(--warm)"{% endif %}>{{ num(ln.price_variance|float, 2) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 
 {# ── Notes ── #}
 {% if po.notes %}

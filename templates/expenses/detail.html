@@ -69,7 +69,12 @@
     {% for line in expense.lines %}
     <tr>
       <td class="px-3 py-2 text-gray-500">{{ line.line_no }}</td>
-      <td class="px-3 py-2">{{ line.description }}</td>
+      <td class="px-3 py-2">{{ line.description }}
+        {% if line.project_id %}{% set pj = (projects_by_id or {}).get(line.project_id|string) %}
+        <div class="text-xs ink-3"><a href="/projects/{{ line.project_id }}" class="sae hover:underline">{{ _("Project") }} {{ pj.code if pj else "" }}</a>
+          {% if line.billable %}· {% if line.rebill_invoice_line_id %}{{ _("billed to customer") }}{% else %}{{ _("to bill to customer") }}{% endif %}{% endif %}</div>
+        {% endif %}
+      </td>
       <td class="px-3 py-2 text-right tabular-nums">{{ num(line.quantity|float, 4) }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ num(line.unit_price|float, 4) }}</td>
       <td class="px-3 py-2 text-right tabular-nums">{{ money(line.line_subtotal|float, grouping=False) }}</td>

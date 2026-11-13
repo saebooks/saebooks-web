@@ -65,6 +65,15 @@
       </button>
     </form>
     {% endif %}
+    {% if item.archived_at %}
+    <form method="POST" action="/items/{{ item.id }}/restore" class="inline">
+      {{ csrf_input(request)|safe }}
+      <input type="hidden" name="version" value="{{ item.version }}">
+      <button type="submit" class="btn-primary text-sm px-4 py-1.5">{{ _("Restore") }}</button>
+    </form>
+    {% elif item.item_type == 'inventory' %}
+    <a href="/stock/adjustments/new?item_id={{ item.id }}" class="btn-secondary text-sm px-4 py-1.5">{{ _("Adjust stock") }}</a>
+    {% endif %}
     <a href="/items" class="text-sm sae hover:underline">
       {{ _("← Back to items") }}
     </a>
@@ -80,13 +89,19 @@
     </p>
   </div>
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Cost method") }}</p>
-    <p class="mt-1 text-sm font-medium ink-1">{{ item.cost_method }}</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("Purchase price") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ num((item.purchase_price or 0)|float, 2) }}</p>
   </div>
   {% if item.item_type == 'inventory' %}
   <div class="card p-4">
-    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("On hand qty") }}</p>
-    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">{{ item.on_hand_qty }}</p>
+    <p class="text-xs ink-3 uppercase tracking-wide">{{ _("On hand") }}</p>
+    <p class="mt-1 text-sm font-medium ink-1 tabular-nums">
+      {{ item.on_hand_qty }}{% if item.unit_of_measure %} {{ item.unit_of_measure }}{% endif %}
+      {% if item.below_reorder_level %}<span class="badge-warm ml-1">{{ _("Low on stock") }}</span>{% endif %}
+    </p>
+    {% if item.reorder_level is not none %}
+    <p class="mt-1 text-xs ink-3">{{ _("Reorder at %(n)s") % {"n": item.reorder_level} }}</p>
+    {% endif %}
   </div>
   <div class="card p-4">
     <p class="text-xs ink-3 uppercase tracking-wide">{{ _("WAC cost") }}</p>
@@ -123,30 +138,89 @@
 </div>
 {% endif %}
 
-{# ── Accounts ── #}
+{# ── Accounts and defaults ── #}
 <div class="card p-5 mb-6">
-  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Linked Accounts") }}</h2>
-  <dl class="grid grid-cols-1 gap-y-2 text-sm sm:grid-cols-3">
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Accounts and defaults") }}</h2>
+  <dl class="grid grid-cols-1 gap-y-2 text-sm sm:grid-cols-2">
+    {% for key, label in [
+      ("income_account_id", _("Income account")),
+      ("purchase_account_id", _("Expense account for purchases")),
+      ("inventory_account_id", _("Stock on hand account")),
+      ("cogs_account_id", _("Cost of sales account")),
+    ] %}
+    {% if item.get(key) %}
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">{{ _("Income account") }}</dt>
-      <dd class="ink-1 font-mono text-xs">
-        <a href="/accounts/{{ item.income_account_id }}" class="sae hover:underline">{{ item.income_account_id }}</a>
-      </dd>
+      <dt class="w-48 shrink-0 ink-3">{{ label }}</dt>
+      <dd class="ink-1"><a href="/accounts/{{ item[key] }}" class="sae hover:underline">{{ _("Open account") }}</a></dd>
     </div>
+    {% endif %}
+    {% endfor %}
+    {% if item.preferred_supplier_id %}
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">{{ _("COGS account") }}</dt>
-      <dd class="ink-1 font-mono text-xs">
-        <a href="/accounts/{{ item.cogs_account_id }}" class="sae hover:underline">{{ item.cogs_account_id }}</a>
-      </dd>
+      <dt class="w-48 shrink-0 ink-3">{{ _("Usual supplier") }}</dt>
+      <dd class="ink-1"><a href="/contacts/{{ item.preferred_supplier_id }}" class="sae hover:underline">{{ _("Open supplier") }}</a></dd>
     </div>
+    {% endif %}
+    {% if item.unit_of_measure %}
     <div class="flex gap-2">
-      <dt class="w-36 shrink-0 ink-3">{{ _("Inventory account") }}</dt>
-      <dd class="ink-1 font-mono text-xs">
-        <a href="/accounts/{{ item.inventory_account_id }}" class="sae hover:underline">{{ item.inventory_account_id }}</a>
-      </dd>
+      <dt class="w-48 shrink-0 ink-3">{{ _("Unit") }}</dt>
+      <dd class="ink-1">{{ item.unit_of_measure }}</dd>
+    </div>
+    {% endif %}
+    <div class="flex gap-2">
+      <dt class="w-48 shrink-0 ink-3">{{ _("GST when sold / bought") }}</dt>
+      <dd class="ink-1">{{ _("set") if item.sale_tax_code_id else _("not set") }} / {{ _("set") if item.purchase_tax_code_id else _("not set") }}</dd>
     </div>
   </dl>
 </div>
+
+{# ── Movement history (stock ledger) ── #}
+{% if item.item_type == 'inventory' %}
+<div class="card p-5 mb-6">
+  <h2 class="text-xs font-medium ink-3 uppercase tracking-wide mb-3">{{ _("Stock movements") }}</h2>
+  {% if movements %}
+  <div class="overflow-x-auto">
+  <table class="min-w-full sae-table text-sm">
+    <thead>
+      <tr>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Date") }}</th>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("What") }}</th>
+        <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Reference") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Quantity") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Value") }}</th>
+        <th class="px-3 py-2 text-right text-xs ink-3">{{ _("On hand after") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set kind_labels = {
+        "opening": _("Opening stock"), "bill": _("Bought"), "bill_void": _("Bill voided"),
+        "invoice": _("Sold"), "invoice_void": _("Sale voided"),
+        "credit_note": _("Returned by customer"), "credit_note_void": _("Return voided"),
+        "adjustment": _("Stock adjustment"), "adjustment_void": _("Adjustment voided"),
+      } %}
+      {% set doc_urls = {"bill": "/bills/", "invoice": "/invoices/", "credit_note": "/credit-notes/", "stock_adjustment": "/stock/adjustments/"} %}
+      {% for mv in movements %}
+      <tr>
+        <td class="px-3 py-2 ink-2">{{ mv.movement_date }}</td>
+        <td class="px-3 py-2 ink-1">{{ kind_labels.get(mv.movement_type, mv.movement_type) }}</td>
+        <td class="px-3 py-2">
+          {% if mv.source_id and mv.source_type in doc_urls %}
+          <a href="{{ doc_urls[mv.source_type] }}{{ mv.source_id }}" class="sae hover:underline">{{ mv.reference or _("View") }}</a>
+          {% else %}<span class="ink-3">{{ mv.reference or "—" }}</span>{% endif %}
+        </td>
+        <td class="px-3 py-2 text-right tabular-nums" {% if mv.quantity|float < 0 %}style="color:var(--neg)"{% endif %}>{{ mv.quantity }}</td>
+        <td class="px-3 py-2 text-right tabular-nums">{{ num(mv.value|float, 2) }}</td>
+        <td class="px-3 py-2 text-right tabular-nums ink-2">{{ mv.balance_after if mv.balance_after is defined else "" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="text-sm ink-3">{{ _("No stock movements yet.") }}</p>
+  {% endif %}
+</div>
+{% endif %}
 
 {# ── System info ── #}
 <div class="card p-5 mb-6">

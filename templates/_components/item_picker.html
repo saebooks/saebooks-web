@@ -1,0 +1,17 @@
+{#
+  item_picker(index, line, side) — product / service type-ahead for a
+  document line row (batch 12, P0-42). Sits above the description box.
+
+  side: "sale" (invoices, quotes, credit notes) or "purchase" (bills,
+  purchase orders). Picking an item fills description, price, account and
+  GST from the item; see static/js/item_picker.js.
+#}
+{% macro item_picker(index, line, side="sale") %}
+<input type="hidden" class="item-picker-id" name="lines[{{ index }}][item_id]"
+       value="{{ line.get('item_id') or '' }}">
+<input type="text" class="item-picker saebooks-input text-xs py-1 mb-1"
+       list="sb-item-options" data-side="{{ side }}" autocomplete="off"
+       placeholder="{{ _('Product or service (optional)') }}"
+       aria-label="{{ _('Product or service, row %(index)s') % {'index': index} }}">
+<script src="/static/js/item_picker.js" defer></script>
+{% endmacro %}

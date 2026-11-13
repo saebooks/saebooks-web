@@ -120,6 +120,7 @@ async def bills_list(
     request: Request,
     status: str | None = None,
     contact_id: str | None = None,
+    project_id: str | None = None,
     date_from: str | None = None,
     date_to: str | None = None,
     sort: str = "issue_date",
@@ -167,6 +168,9 @@ async def bills_list(
         params["status"] = api_status
     if contact_id:
         params["contact_id"] = contact_id
+    # Batch 12 (P0-39 / P1-63): documents on one project.
+    if project_id:
+        params["project_id"] = project_id
     if date_from:
         params["date_from"] = date_from
     if date_to:
@@ -228,6 +232,7 @@ async def bills_list(
     flash = request.session.pop("flash", None)
 
     ctx = {
+        "filter_project_id": project_id or "",
         "bills": bills,
         "total": total,
         "error": error,
@@ -664,6 +669,9 @@ async def bill_edit_form(
             "quantity": str(ln.get("quantity", "1")),
             "unit_price": str(ln.get("unit_price", "")),
             "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "item_id": str(ln.get("item_id") or ""),
+            "billable": bool(ln.get("billable")),
+            "purchase_order_line_id": str(ln.get("purchase_order_line_id") or ""),
             "project_id": str(ln.get("project_id") or ""),
         })
     if not lines:

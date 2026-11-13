@@ -44,6 +44,9 @@
         {{ bill.number or "—" }}
       </h1>
       <p class="text-xs ink-3 font-mono mt-2">{{ _("supplier") }} · <span class="ink-2">{{ bill.contact_id }}</span></p>
+      {% if bill.purchase_order_id %}
+      <p class="text-xs ink-3 mt-1">{{ _("Made from") }} <a href="/purchase_orders/{{ bill.purchase_order_id }}" class="sae hover:underline">{{ _("a purchase order") }}</a></p>
+      {% endif %}
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">

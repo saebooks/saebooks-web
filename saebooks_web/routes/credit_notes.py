@@ -468,6 +468,8 @@ async def credit_note_edit_form(
             "quantity": str(ln.get("quantity", "1")),
             "unit_price": str(ln.get("unit_price", "")),
             "tax_code_id": str(ln.get("tax_code_id") or ""),
+            "item_id": str(ln.get("item_id") or ""),
+            "project_id": str(ln.get("project_id") or ""),
         })
     if not lines:
         lines = [{"index": 0}]

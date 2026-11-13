@@ -22,10 +22,10 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from saebooks_web.api_client import api_client
+from saebooks_web.api_client import api_client, optional_get
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 
 router = APIRouter()
@@ -48,6 +48,35 @@ async def _fetch_accounts(request: Request) -> list[dict]:
     return []
 
 
+async def _form_refs(request: Request) -> dict[str, list[dict]]:
+    """Accounts, GST codes and suppliers for the item form (batch 12)."""
+    accounts = await _fetch_accounts(request)
+    tax_codes: list[dict] = []
+    suppliers: list[dict] = []
+    async with api_client(request) as client:
+        t = await optional_get(client, "/api/v1/tax_codes", {"limit": 200, "offset": 0})
+        if t is not None:
+            tax_codes = t.json().get("items", [])
+        c = await optional_get(
+            client, "/api/v1/contacts", {"type": "SUPPLIER", "limit": 500}
+        )
+        if c is not None:
+            body = c.json()
+            suppliers = body.get("items", []) if isinstance(body, dict) else []
+    return {"accounts": accounts, "tax_codes": tax_codes, "suppliers": suppliers}
+
+
+# Fields the create and edit forms send (batch 12 adds the purchase side,
+# GST defaults and stock control).
+_OPTIONAL_TEXT = ("description", "item_type", "cost_method", "unit_of_measure")
+_NUMBER_FIELDS = ("default_sale_price", "purchase_price", "reorder_level")
+_UUID_FIELDS = (
+    "inventory_account_id", "cogs_account_id", "income_account_id",
+    "purchase_account_id", "sale_tax_code_id", "purchase_tax_code_id",
+    "preferred_supplier_id",
+)
+
+
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
@@ -57,16 +86,29 @@ async def _fetch_accounts(request: Request) -> list[dict]:
 async def items_list(
     request: Request,
     item_type: str | None = None,
+    stock: str | None = None,
+    archived: str | None = None,
+    q: str | None = None,
     limit: int = 200,
     offset: int = 0,
 ) -> HTMLResponse | RedirectResponse:
-    """Render the items list page (full or HTMX fragment)."""
+    """Render the items list page (full or HTMX fragment).
+
+    Batch 12 (P2-16): filter by stock level and archived state, search,
+    and show each item's stock value with the total for the filter."""
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     params: dict[str, object] = {"limit": limit, "offset": offset}
     if item_type:
         params["item_type"] = item_type
+    if stock:
+        params["stock"] = stock
+    if archived:
+        params["archived"] = archived
+    if q:
+        params["search"] = q
+    total_value = None
 
     error: str | None = None
     items: list[dict] = []
@@ -81,6 +123,7 @@ async def items_list(
             payload = resp.json()
             items = payload.get("items", [])
             total = payload.get("total", len(items))
+            total_value = payload.get("total_value")
         elif resp.status_code == 404:
             # Feature not enabled on this edition
             error = "Items and inventory require the Offline edition or higher."
@@ -99,6 +142,10 @@ async def items_list(
         "limit": limit,
         "offset": offset,
         "filter_item_type": item_type or "",
+        "filter_stock": stock or "",
+        "filter_archived": archived or "",
+        "filter_q": q or "",
+        "total_value": total_value,
         "prev_offset": prev_offset,
         "next_offset": next_offset,
         "error": error,
@@ -108,6 +155,36 @@ async def items_list(
     is_htmx = request.headers.get("HX-Request") == "true"
     template = "items/_table.html" if is_htmx else "items/list.html"
     return _TEMPLATES.TemplateResponse(request, template, ctx)
+
+
+# ---------------------------------------------------------------------------
+# Line-row picker data — GET /items/_options (batch 12, P0-42)
+# NOTE: before /items/{item_id} so the literal path wins.
+# ---------------------------------------------------------------------------
+
+_OPTION_FIELDS = (
+    "id", "sku", "name", "description", "item_type", "default_sale_price",
+    "purchase_price", "income_account_id", "purchase_account_id",
+    "inventory_account_id", "sale_tax_code_id", "purchase_tax_code_id",
+    "unit_of_measure", "on_hand_qty",
+)
+
+
+@router.get("/items/_options", response_model=None)
+async def items_options(request: Request) -> JSONResponse:
+    """Active products and services for the line-row type-ahead. Empty
+    when the inventory module is off, so the picker just stays empty."""
+    if not _require_auth(request):
+        return JSONResponse({"items": []}, status_code=401)
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/items", params={"limit": 1000, "offset": 0})
+    if not resp.is_success:
+        return JSONResponse({"items": []})
+    rows = [
+        {k: it.get(k) for k in _OPTION_FIELDS}
+        for it in resp.json().get("items", [])
+    ]
+    return JSONResponse({"items": rows})
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +199,7 @@ async def item_new_form(request: Request) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
-    accounts = await _fetch_accounts(request)
+    refs = await _form_refs(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -131,7 +208,7 @@ async def item_new_form(request: Request) -> HTMLResponse | RedirectResponse:
             "form": {},
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
-            "accounts": accounts,
+            **refs,
         },
     )
 
@@ -160,24 +237,14 @@ async def item_create(request: Request) -> HTMLResponse | RedirectResponse:
         val = form.get(required_field, "").strip()
         payload[required_field] = val
 
-    for optional_field in (
-        "description",
-        "item_type",
-        "cost_method",
-    ):
+    for optional_field in (*_OPTIONAL_TEXT, *_NUMBER_FIELDS, *_UUID_FIELDS):
         val = form.get(optional_field, "").strip()
         if val:
             payload[optional_field] = val
-
-    for price_field in ("default_sale_price",):
-        val = form.get(price_field, "").strip()
-        if val:
-            payload[price_field] = val
-
-    for uuid_field in ("inventory_account_id", "cogs_account_id", "income_account_id"):
-        val = form.get(uuid_field, "").strip()
-        if val:
-            payload[uuid_field] = val
+    if payload.get("item_type") == "service":
+        # A service holds no stock: never send stock accounts for it.
+        payload.pop("inventory_account_id", None)
+        payload.pop("cogs_account_id", None)
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -212,7 +279,7 @@ async def item_create(request: Request) -> HTMLResponse | RedirectResponse:
     else:
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
-    accounts = await _fetch_accounts(request)
+    refs = await _form_refs(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -221,7 +288,7 @@ async def item_create(request: Request) -> HTMLResponse | RedirectResponse:
             "form": form,
             "errors": errors,
             "idempotency_key": idempotency_key,
-            "accounts": accounts,
+            **refs,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
@@ -240,6 +307,13 @@ _EDIT_FIELDS = (
     "inventory_account_id",
     "cogs_account_id",
     "income_account_id",
+    "purchase_price",
+    "purchase_account_id",
+    "sale_tax_code_id",
+    "purchase_tax_code_id",
+    "unit_of_measure",
+    "reorder_level",
+    "preferred_supplier_id",
 )
 
 
@@ -293,10 +367,11 @@ async def item_edit_form(
             status_code=422,
         )
 
-    accounts = await _fetch_accounts(request)
+    refs = await _form_refs(request)
 
     form: dict[str, str] = {field: str(item.get(field) or "") for field in _EDIT_FIELDS}
     form["version"] = str(item.get("version", ""))
+    form["item_type"] = str(item.get("item_type") or "")
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -306,7 +381,7 @@ async def item_edit_form(
             "form": form,
             "errors": {},
             "conflict": False,
-            "accounts": accounts,
+            **refs,
         },
     )
 
@@ -364,7 +439,7 @@ async def item_update(
         conflict_form = dict(form)
         conflict_form["version"] = server_version
 
-        accounts = await _fetch_accounts(request)
+        refs = await _form_refs(request)
 
         return _TEMPLATES.TemplateResponse(
             request,
@@ -375,7 +450,7 @@ async def item_update(
                 "errors": {},
                 "conflict": True,
                 "server_item": server_item,
-                "accounts": accounts,
+                **refs,
             },
             status_code=409,
         )
@@ -409,7 +484,7 @@ async def item_update(
     else:
         errors["__all__"] = f"API error: HTTP {resp.status_code}"
 
-    accounts = await _fetch_accounts(request)
+    refs = await _form_refs(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -419,7 +494,7 @@ async def item_update(
             "form": form,
             "errors": errors,
             "conflict": False,
-            "accounts": accounts,
+            **refs,
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
     )
@@ -456,6 +531,38 @@ async def item_archive(
         list_url="/items",
         detail_url=f"/items/{item_id}",
     )
+
+
+# ---------------------------------------------------------------------------
+# Restore — POST /{item_id}/restore (P2-16)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/items/{item_id}/restore", response_class=HTMLResponse, response_model=None)
+async def item_restore(request: Request, item_id: str) -> RedirectResponse:
+    """Bring an archived item back."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    form_data = await request.form()
+    version = str(form_data.get("version", ""))
+    async with api_client(request) as client:
+        resp = await client.post(
+            f"/api/v1/items/{item_id}/restore", headers={"If-Match": version}
+        )
+    if resp.status_code == 401:
+        request.session.clear()
+        return RedirectResponse(url="/login", status_code=303)
+    if resp.is_success:
+        request.session["flash"] = "Item restored."
+    elif resp.status_code == 409:
+        request.session["flash"] = "Someone changed this item. Reload and try again."
+    else:
+        try:
+            detail = resp.json().get("detail")
+        except Exception:
+            detail = None
+        request.session["flash"] = detail or f"Could not restore the item (HTTP {resp.status_code})."
+    return RedirectResponse(url=f"/items/{item_id}", status_code=303)
 
 
 # ---------------------------------------------------------------------------
@@ -499,17 +606,26 @@ async def item_detail(
         # engine 404s it for service items and archived items; any failure
         # just hides the panel rather than erroring the page.
         stock = None
+        movements: list[dict] = []
         if item.get("item_type") == "inventory" and not item.get("archived_at"):
             stock_resp = await client.get(f"/api/v1/items/{item_id}/stock")
             if stock_resp.is_success:
                 stock = stock_resp.json()
+        if item.get("item_type") == "inventory":
+            # P1-66: movement history from the stock ledger.
+            mv_resp = await optional_get(
+                client, "/api/v1/stock/movements", {"item_id": item_id, "limit": 50}
+            )
+            if mv_resp is not None:
+                movements = mv_resp.json().get("items", [])
 
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "items/detail.html",
-        {"item": item, "error": None, "flash": flash, "stock": stock},
+        {"item": item, "error": None, "flash": flash, "stock": stock,
+         "movements": movements},
     )
 
 

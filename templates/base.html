@@ -715,7 +715,7 @@
         {% set _nav_group = "banking" %}{% include "_partials/sidebar_module_nav.html" %}
       </details>
 
-      {% set inventory_open = path.startswith('/inventory') or path.startswith('/items') %}
+      {% set inventory_open = path.startswith('/inventory') or path.startswith('/items') or path.startswith('/stock') %}
       <details class="group" data-section="inventory" {% if inventory_open %}open{% endif %}>
         <summary class="nav-section-label">
           <span>{{ _("Inventory") }}</span>
@@ -727,6 +727,15 @@
           </a>
           <a href="/items" class="nav-item is-sub {% if path.startswith('/items') %}active{% endif %}">
             <i data-lucide="package" class="nav-ico"></i>{{ _("Items") }}
+          </a>
+          <a href="/stock" class="nav-item is-sub {% if path == '/stock' %}active{% endif %}">
+            <i data-lucide="warehouse" class="nav-ico"></i>{{ _("Stock value") }}
+          </a>
+          <a href="/stock/adjustments" class="nav-item is-sub {% if path.startswith('/stock/adjustments') %}active{% endif %}">
+            <i data-lucide="clipboard-check" class="nav-ico"></i>{{ _("Stocktakes and adjustments") }}
+          </a>
+          <a href="/stock/reports/sales-by-item" class="nav-item is-sub {% if path.startswith('/stock/reports') %}active{% endif %}">
+            <i data-lucide="bar-chart-2" class="nav-ico"></i>{{ _("Sales by item") }}
           </a>
         </div>
       </details>

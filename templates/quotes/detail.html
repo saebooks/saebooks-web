@@ -40,6 +40,8 @@
           <span class="badge-paid">{{ _("Accepted") }}</span>
         {% elif quote.status == 'INVOICED' %}
           <span class="badge-open">{{ _("Invoiced") }}</span>
+        {% elif quote.status == 'PART_INVOICED' %}
+          <span class="badge-pending">{{ _("Part invoiced") }}</span>
         {% elif quote.status == 'SENT' %}
           <span class="badge-pending">{{ _("Sent") }}</span>
         {% elif quote.status == 'DRAFT' %}
@@ -111,17 +113,58 @@
       </form>
       {% endif %}
 
-      {% if quote.status == 'ACCEPTED' %}
-      <form method="post" action="/quotes/{{ quote.id }}/convert-to-invoice"
-            onsubmit="return confirm('{{ _('Convert this quote to a draft invoice? The quote will be locked.') }}');"
-            class="inline">
-        {{ csrf_input(request)|safe }}
-        <input type="hidden" name="version" value="{{ quote.version }}">
-        <button type="submit" class="btn-primary text-sm">{{ _("Convert to invoice") }}</button>
-      </form>
+      {% set _left = (billing.remaining|float) if billing else (0 if quote.status == 'INVOICED' else 1) %}
+      {% if quote.status in ('ACCEPTED', 'PART_INVOICED') or (quote.status == 'INVOICED' and _left > 0) %}
+      <details class="relative inline-block" id="quote-invoice-dialog">
+        <summary class="btn-primary text-sm cursor-pointer list-none">{{ _("Create invoice") }}</summary>
+        <form method="post" action="/quotes/{{ quote.id }}/convert-to-invoice"
+              class="card p-4 absolute right-0 z-20 mt-2 w-80 space-y-3 text-left" style="background:var(--paper);">
+          {{ csrf_input(request)|safe }}
+          <input type="hidden" name="version" value="{{ quote.version }}">
+          <fieldset class="space-y-2">
+            <legend class="text-sm font-semibold ink-1 mb-1">{{ _("What to invoice") }}</legend>
+            {% if quote.status == 'ACCEPTED' and not (billing and billing.claims) %}
+            <label class="flex items-center gap-2 text-sm ink-2"><input type="radio" name="mode" value="full" checked> {{ _("The whole quote") }}</label>
+            {% endif %}
+            <label class="flex items-center gap-2 text-sm ink-2"><input type="radio" name="mode" value="deposit"> {{ _("A deposit") }}</label>
+            <label class="flex items-center gap-2 text-sm ink-2"><input type="radio" name="mode" value="progress" {% if quote.status != 'ACCEPTED' or (billing and billing.claims) %}checked{% endif %}> {{ _("A progress claim") }}</label>
+            {% if billing and billing.claims %}
+            <label class="flex items-center gap-2 text-sm ink-2"><input type="radio" name="mode" value="remainder"> {{ _("Everything left (%(amt)s)") % {"amt": num(billing.remaining|float, 2)} }}</label>
+            {% endif %}
+          </fieldset>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="text-xs ink-3">{{ _("Percentage") }}
+              <input type="number" name="percent" step="0.01" min="0.01" max="100" placeholder="{{ quote.deposit_pct }}" class="saebooks-input w-full text-sm">
+            </label>
+            <label class="text-xs ink-3">{{ _("Or amount (ex GST)") }}
+              <input type="number" name="amount" step="0.01" min="0.01" class="saebooks-input w-full text-sm"
+                     oninput="this.form.by.value = this.value ? 'amount' : 'percent'">
+            </label>
+          </div>
+          <input type="hidden" name="by" value="percent">
+          <label class="block text-xs ink-3">{{ _("Invoice date") }}
+            <input type="date" name="issue_date" class="saebooks-input w-full text-sm">
+          </label>
+          <p class="text-xs ink-3">{{ _("A deposit with no percentage uses the quote's deposit (%(p)s%%). The invoice is created as a draft; nothing is posted until you post it.") % {"p": quote.deposit_pct} }}</p>
+          <button type="submit" class="btn-primary text-sm w-full">{{ _("Create draft invoice") }}</button>
+        </form>
+      </details>
       {% endif %}
 
-      {% if quote.status not in ('INVOICED', 'ARCHIVED') %}
+      {% if quote.status in ('DRAFT', 'SENT', 'ACCEPTED', 'DECLINED') %}
+      <form method="post" action="/quotes/{{ quote.id }}/revise" class="inline"
+            onsubmit="return confirm('{{ _('Make a new revision of this quote? This version will be archived.') }}');">
+        {{ csrf_input(request)|safe }}
+        <input type="hidden" name="version" value="{{ quote.version }}">
+        <button type="submit" class="btn-secondary text-sm">{{ _("Revise") }}</button>
+      </form>
+      {% endif %}
+      <form method="post" action="/quotes/{{ quote.id }}/duplicate" class="inline">
+        {{ csrf_input(request)|safe }}
+        <button type="submit" class="btn-secondary text-sm">{{ _("Copy") }}</button>
+      </form>
+
+      {% if quote.status not in ('INVOICED', 'PART_INVOICED', 'ARCHIVED') %}
       <form method="post" action="/quotes/{{ quote.id }}/archive"
             onsubmit="return confirm('{{ _('Archive this quote?') }}');" class="inline">
         {{ csrf_input(request)|safe }}
@@ -130,7 +173,7 @@
       </form>
       {% endif %}
 
-      {% if quote.status == 'INVOICED' and quote.invoice_id %}
+      {% if quote.status in ('INVOICED', 'PART_INVOICED') and quote.invoice_id %}
       <a href="/invoices/{{ quote.invoice_id }}" class="btn-primary text-sm">{{ _("View invoice →") }}</a>
       {% endif %}
 
@@ -165,6 +208,44 @@
     <p class="num-display ink-1 text-lg">{{ quote.deposit_pct }}%</p>
   </div>
 </section>
+
+{# ── Invoiced so far (batch 12, P0-40) ── #}
+{% if billing and billing.claims %}
+<section class="card p-4 mb-5">
+  <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+    <h2 class="nav-section-label">{{ _("Invoiced so far") }}</h2>
+    <p class="text-sm ink-2">
+      {{ _("%(so_far)s of %(total)s invoiced (%(pct)s%%), %(left)s left. Amounts exclude GST.") % {
+        "so_far": num(billing.invoiced_so_far|float, 2), "total": num(billing.quote_subtotal|float, 2),
+        "pct": billing.invoiced_percent, "left": num(billing.remaining|float, 2)} }}
+    </p>
+  </div>
+  <table class="min-w-full sae-table text-sm">
+    <thead><tr>
+      <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Claim") }}</th>
+      <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Invoice") }}</th>
+      <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Date") }}</th>
+      <th class="px-3 py-2 text-left text-xs ink-3">{{ _("Status") }}</th>
+      <th class="px-3 py-2 text-right text-xs ink-3">{{ _("Amount (ex GST)") }}</th>
+    </tr></thead>
+    <tbody>
+      {% set mode_labels = {"full": _("Whole quote"), "deposit": _("Deposit"), "progress": _("Progress claim"), "remainder": _("Final claim")} %}
+      {% for c in billing.claims %}
+      <tr {% if not c.counts %}class="ink-3" style="text-decoration:line-through"{% endif %}>
+        <td class="px-3 py-2">{{ c.claim_no }}. {{ mode_labels.get(c.mode, c.mode) }}{% if c.percent %} ({{ c.percent|float|round(2) }}%){% endif %}</td>
+        <td class="px-3 py-2"><a href="/invoices/{{ c.invoice_id }}" class="sae hover:underline">{{ c.invoice_number or _("Draft") }}</a></td>
+        <td class="px-3 py-2">{{ c.issue_date or "—" }}</td>
+        <td class="px-3 py-2">{{ (c.invoice_status or "")|replace('_', ' ')|capitalize }}{% if not c.counts %} — {{ _("does not count") }}{% endif %}</td>
+        <td class="px-3 py-2 text-right tabular-nums">{{ num(c.amount|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% if quote.parent_quote_id %}
+<p class="text-xs ink-3 mb-4">{{ _("Revision %(n)s of") % {"n": quote.revision} }} <a href="/quotes/{{ quote.parent_quote_id }}" class="sae hover:underline">{{ _("the earlier quote") }}</a>.</p>
+{% endif %}
 
 {# ── Secondary info ── #}
 <section class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-paper-2 rounded-xl overflow-hidden mb-7 hairline">

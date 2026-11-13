@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Stocktakes and adjustments") }} — {{ current_brand().name }}{% endblock %}
+{% block content %}
+{% if flash %}
+<div class="card p-3 mb-6" style="border-color:var(--pos);"><span class="text-sm ink-2">{{ flash }}</span></div>
+{% endif %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Stocktakes and adjustments") }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ _("Count your stock, or write off damaged and lost stock. Posting updates the quantities and the ledger.") }}</p>
+  </div>
+  <a href="/stock/adjustments/new" class="btn-primary text-sm px-4 py-2">{{ _("New adjustment") }}</a>
+</div>
+<form method="get" class="mb-4 flex items-end gap-2">
+  <div>
+    <label for="status" class="block text-xs font-medium ink-3 mb-1">{{ _("Status") }}</label>
+    <select id="status" name="status" class="saebooks-input text-sm px-2 py-1.5">
+      <option value="" {% if not status %}selected{% endif %}>{{ _("All") }}</option>
+      <option value="DRAFT" {% if status == 'DRAFT' %}selected{% endif %}>{{ _("Draft") }}</option>
+      <option value="POSTED" {% if status == 'POSTED' %}selected{% endif %}>{{ _("Posted") }}</option>
+      <option value="VOIDED" {% if status == 'VOIDED' %}selected{% endif %}>{{ _("Voided") }}</option>
+    </select>
+  </div>
+  <button type="submit" class="btn-secondary text-sm px-3 py-1.5">{{ _("Filter") }}</button>
+</form>
+{% if error %}<div class="card p-3 mb-4" style="border-color:var(--neg);"><span class="text-sm" style="color:var(--neg);">{{ error }}</span></div>{% endif %}
+<div class="card overflow-x-auto">
+  <table class="min-w-full sae-table text-sm">
+    <thead><tr>
+      <th class="px-4 py-3 text-left text-xs ink-3 uppercase">{{ _("Number") }}</th>
+      <th class="px-4 py-3 text-left text-xs ink-3 uppercase">{{ _("Date") }}</th>
+      <th class="px-4 py-3 text-left text-xs ink-3 uppercase">{{ _("Reason") }}</th>
+      <th class="px-4 py-3 text-left text-xs ink-3 uppercase">{{ _("Status") }}</th>
+      <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Items") }}</th>
+      <th class="px-4 py-3 text-right text-xs ink-3 uppercase">{{ _("Value") }}</th>
+    </tr></thead>
+    <tbody>
+      {% for a in adjustments %}
+      <tr class="hover:bg-[color:var(--paper-2)] cursor-pointer" onclick="window.location='/stock/adjustments/{{ a.id }}'">
+        <td class="px-4 py-3"><a href="/stock/adjustments/{{ a.id }}" class="sae hover:underline">{{ a.number or _("Draft") }}</a></td>
+        <td class="px-4 py-3 ink-2">{{ a.adjustment_date }}</td>
+        <td class="px-4 py-3 ink-2">{{ a.reason|replace('_', ' ')|capitalize }}</td>
+        <td class="px-4 py-3"><span class="{% if a.status == 'POSTED' %}badge-pos{% elif a.status == 'VOIDED' %}badge-neg{% else %}badge-draft{% endif %}">{{ a.status|capitalize }}</span></td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ a.lines|length }}</td>
+        <td class="px-4 py-3 text-right tabular-nums">{{ num(a.total_value|float, 2) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="px-4 py-6 text-center ink-3">{{ _("No stock adjustments yet.") }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

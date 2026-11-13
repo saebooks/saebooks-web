@@ -3,6 +3,13 @@
 {% block title %}{{ _("Invoices") }} — {{ current_brand().name }}{% endblock %}
 
 {% block content %}
+{% if filter_project_id %}
+<div class="card p-3 mb-4 flex items-center justify-between gap-2" role="status">
+  <span class="text-sm ink-2">{{ _("Showing only documents on one project.") }} <a href="/projects/{{ filter_project_id }}" class="sae hover:underline">{{ _("Open the project") }}</a></span>
+  <a href="?" class="text-sm sae hover:underline">{{ _("Show all") }}</a>
+</div>
+{% endif %}
+
 
 {% if flash %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">

@@ -19,12 +19,16 @@
     <p class="text-sm ink-3 mt-1">{{ _("%(n)s item") % {"n": total} if total == 1 else _("%(n)s items") % {"n": total} }}</p>
     {% endif %}
   </div>
-  <a
-    href="/items/new"
-    class="btn-primary text-sm px-4 py-2"
-  >
-    {{ _("New item") }}
-  </a>
+  <div class="flex items-center gap-2">
+    <a href="/stock" class="btn-secondary text-sm px-4 py-2">{{ _("Stock value") }}</a>
+    <a href="/stock/adjustments" class="btn-secondary text-sm px-4 py-2">{{ _("Stock adjustments") }}</a>
+    <a
+      href="/items/new"
+      class="btn-primary text-sm px-4 py-2"
+    >
+      {{ _("New item") }}
+    </a>
+  </div>
 </div>
 
 {# Filter form #}
@@ -46,6 +50,31 @@
       <option value="inventory" {% if filter_item_type == 'inventory' %}selected{% endif %}>{{ _("Inventory") }}</option>
       <option value="service" {% if filter_item_type == 'service' %}selected{% endif %}>{{ _("Service") }}</option>
     </select>
+  </div>
+
+  <div>
+    <label for="stock" class="block text-xs font-medium ink-3 mb-1">{{ _("Stock") }}</label>
+    <select id="stock" name="stock" class="saebooks-input text-sm px-2 py-1.5">
+      <option value="" {% if not filter_stock %}selected{% endif %}>{{ _("Any") }}</option>
+      <option value="in_stock" {% if filter_stock == 'in_stock' %}selected{% endif %}>{{ _("In stock") }}</option>
+      <option value="out_of_stock" {% if filter_stock == 'out_of_stock' %}selected{% endif %}>{{ _("Out of stock") }}</option>
+      <option value="low_stock" {% if filter_stock == 'low_stock' %}selected{% endif %}>{{ _("Low on stock") }}</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="archived" class="block text-xs font-medium ink-3 mb-1">{{ _("Show") }}</label>
+    <select id="archived" name="archived" class="saebooks-input text-sm px-2 py-1.5">
+      <option value="" {% if not filter_archived %}selected{% endif %}>{{ _("Active items") }}</option>
+      <option value="archived" {% if filter_archived == 'archived' %}selected{% endif %}>{{ _("Archived items") }}</option>
+      <option value="all" {% if filter_archived == 'all' %}selected{% endif %}>{{ _("All items") }}</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="q" class="block text-xs font-medium ink-3 mb-1">{{ _("Search") }}</label>
+    <input id="q" name="q" type="search" value="{{ filter_q }}" placeholder="{{ _('Code or name') }}"
+           class="saebooks-input text-sm px-2 py-1.5">
   </div>
 
   <input type="hidden" name="limit" value="{{ limit }}">

@@ -69,7 +69,7 @@
             {% if e.rate %}{{ _("%(rate)s/h") % {"rate": money(e.rate|float, grouping=False)} }}
               · <span class="num-display">{{ money((e.rate|float) * (e.hours|float), grouping=False) }}</span>
             {% else %}{{ _("billable") }}{% endif %}
-            {% if e.invoice_line_id %} {{ _("→ on invoice") }}{% endif %}
+            {% if e.invoice_line_id %}{% if e.invoice_id %} <a href="/invoices/{{ e.invoice_id }}" class="sae hover:underline">{{ _("→ %(n)s") % {"n": e.invoice_number or _("on invoice")} }}</a>{% else %} {{ _("→ on invoice") }}{% endif %}{% endif %}
           </p>
           {% endif %}
         </a>
