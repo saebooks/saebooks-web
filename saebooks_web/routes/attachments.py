@@ -245,6 +245,11 @@ async def attachment_download(
     )
 
 
+_INLINE_SAFE_MIMES = frozenset(
+    {"application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp"}
+)
+
+
 @router.get(
     "/attachments/{file_id}/view",
     response_model=None,
@@ -281,8 +286,19 @@ async def attachment_view(
             async for chunk in api_resp.aiter_bytes(chunk_size=65536):
                 yield chunk
 
+    # Only PDFs and raster images are shown in the page. Anything else
+    # (HTML, SVG, unknown) is forced to download so it cannot run script on
+    # the books origin.
+    base_mime = mime.split(";")[0].strip().lower()
+    disposition = "inline" if base_mime in _INLINE_SAFE_MIMES else "attachment"
+    if disposition == "attachment":
+        mime = "application/octet-stream"
     return StreamingResponse(
         _relay(),
         media_type=mime,
-        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+        headers={
+            "Content-Disposition": f'{disposition}; filename="{filename}"',
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "sandbox; default-src 'none'; object-src 'self'",
+        },
     )

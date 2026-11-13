@@ -451,6 +451,24 @@ async def test_attachment_view_is_inline(respx_mock: respx.MockRouter) -> None:
         r = await c.get(f"/attachments/{_ATT}/view")
     assert r.headers["content-disposition"].startswith("inline")
     assert r.content == b"%PDF"
+    assert r.headers["x-content-type-options"] == "nosniff"
+    assert "sandbox" in r.headers["content-security-policy"]
+
+
+@pytest.mark.parametrize("mime", ["text/html", "image/svg+xml", "application/octet-stream"])
+@pytest.mark.anyio
+async def test_attachment_view_unsafe_types_download(mime: str) -> None:
+  with respx.mock as respx_mock:
+      respx_mock.get(f"{_API}/api/v1/attachments/{_ATT}").mock(return_value=Response(200, json={
+          "id": _ATT, "filename": "x.bin", "content_type": mime}))
+      respx_mock.get(f"{_API}/api/v1/attachments/{_ATT}/download").mock(
+          return_value=Response(200, content=b"<script>alert(1)</script>"))
+      async with _client() as c:
+          r = await c.get(f"/attachments/{_ATT}/view")
+      assert r.headers["content-disposition"].startswith("attachment")
+      assert r.headers["x-content-type-options"] == "nosniff"
+      assert "sandbox" in r.headers["content-security-policy"]
+      assert not r.headers["content-type"].startswith(("text/html", "image/svg"))
 
 
 # ---------------------------------------------------------------------------
