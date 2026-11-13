@@ -38,8 +38,8 @@ POST /payments/{id}/post
     back to detail with flash.
 
 POST /payments/{id}/void
-    Transition POSTED -> VOIDED. POSTs to /api/v1/payments/{id}/void with
-    If-Match. 200 -> 303 with flash; 409/422 -> 303 back to detail with flash.
+    Transition POSTED -> VOIDED. DELETE /api/v1/payments/{id} with
+    If-Match (the engine has no /void route). 200 -> 303 with flash; 409/422 -> 303 back to detail with flash.
 
 GET /payments/{id}
     Renders templates/payments/detail.html.
@@ -163,6 +163,7 @@ def _parse_allocations(form: dict[str, str]) -> list[dict[str, object]]:
 
 async def _fetch_payment_dropdowns(
     client,
+    keep_bank_id: str | None = None,
 ) -> tuple[list[dict], list[dict], list[dict]]:
     """Fetch customers, suppliers, and bank accounts for the payment form."""
     customers: list[dict] = []
@@ -187,13 +188,270 @@ async def _fetch_payment_dropdowns(
         if _r.is_success:
             suppliers.extend(_r.json().get("items", []))
 
-    # Bank accounts: filter to ASSET type accounts — no dedicated endpoint,
-    # so we fetch all accounts and rely on the template to show a useful list.
-    a_resp = await client.get("/api/v1/accounts", params={"limit": 200, "offset": 0})
-    if a_resp.is_success:
-        bank_accounts = a_resp.json().get("items", [])
+    # Bank accounts: the engine has no dedicated endpoint, so page through the
+    # whole chart and keep the reconcilable (bank / card) postable accounts.
+    # The API requires bank_account_id, so this list must contain every
+    # account a payment can really go through — never a truncated first page.
+    all_accounts: list[dict] = []
+    offset = 0
+    for _ in range(50):  # hard stop: 50 x 1000 accounts
+        a_resp = await client.get(
+            "/api/v1/accounts", params={"limit": 1000, "offset": offset}
+        )
+        if not a_resp.is_success:
+            break
+        body = a_resp.json()
+        items = body.get("items", [])
+        all_accounts.extend(items)
+        offset += len(items)
+        if not items or offset >= int(body.get("total", offset)):
+            break
+    bank_accounts = _bank_accounts_from(all_accounts, keep_id=keep_bank_id)
 
     return customers, suppliers, bank_accounts
+
+
+def _bank_accounts_from(
+    accounts: list[dict], keep_id: str | None = None
+) -> list[dict]:
+    """Filter a chart of accounts down to accounts a payment can go through.
+
+    Primary rule: ``reconcile`` is true and the account is not a header
+    (bank accounts and credit cards). Fallback when a company has flagged
+    nothing reconcilable: every non-header ASSET account, so the form is
+    never left with an empty required dropdown. ``keep_id`` (the account
+    already on an edited payment) is always kept so editing never silently
+    swaps it.
+    """
+    postable = [a for a in accounts if not a.get("is_header")]
+    banks = [a for a in postable if a.get("reconcile")]
+    if not banks:
+        banks = [
+            a for a in postable
+            if str(a.get("account_type", "")).upper() == "ASSET"
+        ]
+    if keep_id and not any(str(a.get("id")) == keep_id for a in banks):
+        banks.extend(a for a in accounts if str(a.get("id")) == keep_id)
+    return sorted(banks, key=lambda a: str(a.get("code") or ""))
+
+
+# Error keys that have their own slot in templates/payments/_form_fields.html.
+# Anything else is folded into the "__all__" banner so no error is ever lost.
+_SLOTTED_ERROR_KEYS = {
+    "__all__", "direction", "contact_id", "payment_date", "amount",
+    "method", "reference", "bank_account_id", "notes",
+}
+
+
+def _api_errors(resp) -> dict[str, str]:
+    """Turn any API error response into form errors.
+
+    Handles FastAPI ``detail`` lists (allocation errors keyed
+    ``allocations.N``), plain-string ``detail``, and the ``{code, message}``
+    shape the idempotency layer returns. Never returns an empty dict for a
+    failed response.
+    """
+    errors: dict[str, str] = {}
+    try:
+        body = resp.json()
+    except Exception:
+        body = None
+    if isinstance(body, dict):
+        detail = body.get("detail")
+        if isinstance(detail, list):
+            for err in detail:
+                if not isinstance(err, dict):
+                    continue
+                loc = [p for p in err.get("loc", []) if p != "body"]
+                msg = err.get("msg", "Invalid value")
+                if len(loc) >= 2 and loc[0] == "allocations" and isinstance(loc[1], int):
+                    key = f"allocations.{loc[1]}"
+                else:
+                    key = str(loc[0]) if loc else "__all__"
+                errors[key] = msg
+        elif isinstance(detail, str) and detail:
+            errors["__all__"] = detail
+        elif body.get("message"):
+            errors["__all__"] = str(body["message"])
+    if not errors:
+        errors["__all__"] = f"The payment could not be saved (HTTP {resp.status_code})."
+    return errors
+
+
+def _fold_unslotted(errors: dict[str, str], alloc_indices: set[int]) -> dict[str, str]:
+    """Copy every error that has no visible slot into the ``__all__`` banner."""
+    extra: list[str] = []
+    for key, msg in errors.items():
+        if key in _SLOTTED_ERROR_KEYS:
+            continue
+        if key.startswith("allocations."):
+            try:
+                if int(key.split(".", 1)[1]) in alloc_indices:
+                    continue
+            except ValueError:
+                pass
+        extra.append(f"{key.replace('_', ' ')}: {msg}")
+    if extra:
+        parts = [errors["__all__"]] if errors.get("__all__") else []
+        errors["__all__"] = " · ".join(parts + extra)
+    return errors
+
+
+def _raw_allocation_rows(form: dict[str, str]) -> list[dict[str, str]]:
+    """Return the allocation rows exactly as typed (non-blank target only),
+    in submitted order, for resolution and for re-rendering."""
+    indices: set[int] = set()
+    for key in form:
+        if key.startswith("allocations[") and "][" in key:
+            try:
+                indices.add(int(key.split("[")[1].split("]")[0]))
+            except (ValueError, IndexError):
+                pass
+    rows: list[dict[str, str]] = []
+    for idx in sorted(indices):
+        target_id = form.get(f"allocations[{idx}][target_id]", "").strip()
+        if not target_id:
+            continue
+        rows.append({
+            "target_type": form.get(f"allocations[{idx}][target_type]", "").strip().upper()
+            or "INVOICE",
+            "target_id": target_id,
+            "amount": form.get(f"allocations[{idx}][amount]", "").strip(),
+        })
+    return rows
+
+
+def _is_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(value)
+        return True
+    except (ValueError, AttributeError, TypeError):
+        return False
+
+
+_DIRECTION_ALIASES = {
+    "IN": "INCOMING", "INCOMING": "INCOMING", "RECEIPT": "INCOMING", "AR": "INCOMING",
+    "OUT": "OUTGOING", "OUTGOING": "OUTGOING", "PAYMENT": "OUTGOING", "AP": "OUTGOING",
+}
+
+
+def _normalise_direction(value: str | None) -> str | None:
+    """Map the short forms the nav links use (IN / OUT) to the engine's
+    PaymentDirection values. Unknown values are returned unchanged so the
+    API can reject them visibly."""
+    if not value:
+        return None
+    return _DIRECTION_ALIASES.get(value.strip().upper(), value.strip().upper())
+
+
+def _digits(value: str) -> str:
+    return "".join(ch for ch in value if ch.isdigit()).lstrip("0")
+
+
+async def _find_document_id(
+    client, kind: str, typed: str, contact_id: str | None
+) -> tuple[str | None, str | None]:
+    """Look an invoice or bill up by the number the user typed.
+
+    Returns ``(id, None)`` on a unique match, ``(None, reason)`` otherwise.
+    Matches the document number case-insensitively (bills also match the
+    supplier's own reference); if nothing matches exactly, a unique match on
+    the numeric part (``80`` -> ``INV-000080``) is accepted.
+    """
+    path = "/api/v1/invoices" if kind == "INVOICE" else "/api/v1/bills"
+    wanted = typed.strip().lower()
+    wanted_digits = _digits(typed)
+    exact: list[str] = []
+    by_digits: list[str] = []
+    page = 1
+    while page <= 40:  # hard stop: 40 x 500 documents
+        params: dict[str, object] = {"page": page, "page_size": 500}
+        if contact_id and _is_uuid(contact_id):
+            params["contact_id"] = contact_id
+        r = await client.get(path, params=params)
+        if not r.is_success:
+            return None, f"could not look up {kind.lower()}s (HTTP {r.status_code})"
+        body = r.json()
+        items = body.get("items", [])
+        for doc in items:
+            refs = [str(doc.get("number") or "")]
+            if kind == "BILL":
+                refs.append(str(doc.get("supplier_reference") or ""))
+            refs = [x for x in refs if x]
+            if any(x.lower() == wanted for x in refs):
+                exact.append(str(doc["id"]))
+            elif wanted_digits and any(_digits(x) == wanted_digits for x in refs[:1]):
+                by_digits.append(str(doc["id"]))
+        if not items or page * 500 >= int(body.get("total", 0)):
+            break
+        page += 1
+    matches = exact or by_digits
+    if len(set(matches)) == 1:
+        return matches[0], None
+    if len(set(matches)) > 1:
+        return None, f"more than one {kind.lower()} matches '{typed}' — use the full number"
+    return None, None
+
+
+async def _resolve_allocations(
+    client,
+    rows: list[dict[str, str]],
+    contact_id: str | None,
+    payment_amount: str | None,
+) -> tuple[list[dict[str, object]], dict[str, str]]:
+    """Turn typed allocation rows into API allocations.
+
+    A UUID is passed straight through (the invoice "Record payment" prefill).
+    Anything else is treated as an invoice / bill number and resolved. If the
+    number is not found under the chosen type, the other type is tried (a
+    user who leaves the type on "Invoice" and types BILL-000327 still gets
+    the bill). A single row with a blank amount takes the payment amount.
+    Errors are keyed ``allocations.N`` (N = row position) for the row slot.
+    """
+    allocations: list[dict[str, object]] = []
+    errors: dict[str, str] = {}
+    for i, row in enumerate(rows):
+        kind = row["target_type"] if row["target_type"] in ("BILL", "CREDIT_NOTE") else "INVOICE"
+        typed = row["target_id"]
+        doc_id: str | None = None
+        if _is_uuid(typed):
+            doc_id = typed
+        else:
+            if typed.upper().startswith("BILL"):
+                kind = "BILL"
+            elif typed.upper().startswith("INV") or kind == "CREDIT_NOTE":
+                kind = "INVOICE"
+            doc_id, reason = await _find_document_id(client, kind, typed, contact_id)
+            if doc_id is None and reason is None:
+                other = "INVOICE" if kind == "BILL" else "BILL"
+                doc_id, reason = await _find_document_id(client, other, typed, contact_id)
+                if doc_id is not None:
+                    kind = other
+            if doc_id is None:
+                errors[f"allocations.{i}"] = (
+                    reason
+                    or f"No invoice or bill numbered '{typed}' was found for this contact."
+                )
+                continue
+        amount = row["amount"]
+        if not amount:
+            if len(rows) == 1 and payment_amount:
+                amount = payment_amount
+            else:
+                errors[f"allocations.{i}"] = "Enter the amount to allocate to this row."
+                continue
+        alloc: dict[str, object] = {"amount": amount}
+        key = {"BILL": "bill_id", "CREDIT_NOTE": "credit_note_id"}.get(kind, "invoice_id")
+        alloc[key] = doc_id
+        allocations.append(alloc)
+    return allocations, errors
+
+
+def _alloc_rows_for_render(rows: list[dict[str, str]]) -> list[dict[str, object]]:
+    """Allocation rows for re-render: what the user typed, re-indexed 0..N."""
+    if not rows:
+        return [{"index": 0}]
+    return [{"index": i, **row} for i, row in enumerate(rows)]
 
 
 # ---------------------------------------------------------------------------
@@ -328,6 +586,12 @@ async def payment_new_form(
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
+    # A transfer between own accounts is not a payment — send it to the
+    # transfer form (origin=TRANSFER) rather than a customer receipt.
+    if (direction or "").strip().upper() == "TRANSFER":
+        return RedirectResponse(url="/transfers/new", status_code=303)
+    direction = _normalise_direction(direction)
+
     today = date.today().isoformat()
 
     async with api_client(request) as client:
@@ -411,13 +675,37 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
         if val:
             payload[field] = val
 
-    payload["allocations"] = _parse_allocations(form)
+    if payload.get("direction"):
+        payload["direction"] = _normalise_direction(str(payload["direction"]))
+        form["direction"] = str(payload["direction"])
 
+    rows = _raw_allocation_rows(form)
+    errors: dict[str, str] = {}
+    if not payload.get("bank_account_id"):
+        errors["bank_account_id"] = (
+            "Choose the bank account or card the money went through."
+        )
+
+    resp = None
     async with api_client(request) as client:
-        resp = await client.post(
-            "/api/v1/payments",
-            json=payload,
-            headers={"X-Idempotency-Key": idempotency_key},
+        allocations, alloc_errors = await _resolve_allocations(
+            client,
+            rows,
+            str(payload.get("contact_id") or "") or None,
+            str(payload.get("amount") or "") or None,
+        )
+        errors.update(alloc_errors)
+        if not errors:
+            payload["allocations"] = allocations
+            resp = await client.post(
+                "/api/v1/payments",
+                json=payload,
+                headers={"X-Idempotency-Key": idempotency_key},
+            )
+
+    if resp is None:
+        return await _render_new_with_errors(
+            request, form, errors, rows, str(uuid.uuid4()), 422
         )
 
     if resp.status_code == 401:
@@ -465,37 +753,30 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
                 pass  # detection is best-effort; never block the payment
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
-    # Parse errors for re-render.
-    errors: dict[str, str] = {}
-    if resp.status_code == 422:
-        try:
-            detail = resp.json().get("detail", [])
-            if isinstance(detail, list):
-                for err in detail:
-                    loc = err.get("loc", [])
-                    field_parts = [p for p in loc if p != "body"]
-                    field_key = str(field_parts[0]) if field_parts else "__all__"
-                    errors[field_key] = err.get("msg", "Invalid value")
-            elif isinstance(detail, str):
-                # API returns a plain string for allocation/amount violations.
-                errors["__all__"] = detail
-        except Exception:
-            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
-    else:
-        errors["__all__"] = f"API error: HTTP {resp.status_code}"
-
-    # Re-fetch dropdowns for re-render.
-    async with api_client(request) as client:
-        customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(client)
-
-    # Reconstruct allocation rows for re-render from submitted form keys.
-    raw_allocs = _parse_allocations(form)
-    alloc_rows = (
-        [{"index": i, **a} for i, a in enumerate(raw_allocs)]
-        if raw_allocs
-        else [{"index": 0}]
+    # Any other outcome: show every error the API gave, nothing silent.
+    # After a 422 nothing was created, so a fresh idempotency key lets the
+    # corrected form be resubmitted; on other failures keep the key so a
+    # retry can never double-record.
+    errors = _api_errors(resp)
+    next_key = str(uuid.uuid4()) if resp.status_code == 422 else idempotency_key
+    return await _render_new_with_errors(
+        request, form, errors, rows, next_key, resp.status_code
     )
 
+
+async def _render_new_with_errors(
+    request: Request,
+    form: dict[str, str],
+    errors: dict[str, str],
+    rows: list[dict[str, str]],
+    idempotency_key: str,
+    status_code: int,
+) -> HTMLResponse:
+    """Re-render the create form with errors and the user's typed values."""
+    async with api_client(request) as client:
+        customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(client)
+    alloc_rows = _alloc_rows_for_render(rows)
+    errors = _fold_unslotted(errors, set(range(len(alloc_rows))))
     return _TEMPLATES.TemplateResponse(
         request,
         "payments/new.html",
@@ -510,7 +791,7 @@ async def payment_create(request: Request) -> HTMLResponse | RedirectResponse:
             "allocations": alloc_rows,
             "allocation_count": len(alloc_rows),
         },
-        status_code=422 if resp.status_code == 422 else resp.status_code,
+        status_code=status_code,
     )
 
 
@@ -656,7 +937,9 @@ async def payment_edit_form(
         alloc_rows = [{"index": 0}]
 
     async with api_client(request) as client:
-        customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(client)
+        customers, suppliers, bank_accounts = await _fetch_payment_dropdowns(
+            client, keep_bank_id=str(payment.get("bank_account_id") or "") or None
+        )
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -713,7 +996,17 @@ async def payment_update(
             payload[field] = val
 
     # Allocations are always sent (full replace semantics, mirrors JE lines).
-    payload["allocations"] = _parse_allocations(form)
+    rows = _raw_allocation_rows(form)
+    async with api_client(request) as client:
+        allocations, alloc_errors = await _resolve_allocations(
+            client, rows, form.get("contact_id") or None, None
+        )
+    if alloc_errors:
+        return await _render_edit_with_errors(
+            request, form, alloc_errors, rows, idempotency_key, 422,
+            keep_bank_id=form.get("bank_account_id") or None,
+        )
+    payload["allocations"] = allocations
 
     from saebooks_web.features import is_feature_enabled as _ff
     _params = {"force": "true"} if _ff("edit_frozen_state") else None
@@ -754,12 +1047,7 @@ async def payment_update(
         conflict_form["version"] = server_version
 
         # Reconstruct allocation rows for re-render from submitted values.
-        raw_allocs = _parse_allocations(form)
-        alloc_rows = (
-            [{"index": i, **a} for i, a in enumerate(raw_allocs)]
-            if raw_allocs
-            else [{"index": 0}]
-        )
+        alloc_rows = _alloc_rows_for_render(rows)
 
         return _TEMPLATES.TemplateResponse(
             request,
@@ -782,45 +1070,41 @@ async def payment_update(
         )
 
     # 422 or other — parse per-field or plain-string validation errors.
-    errors: dict[str, str] = {}
-    if resp.status_code == 422:
-        try:
-            detail = resp.json().get("detail", [])
-            if isinstance(detail, list):
-                for err in detail:
-                    loc = err.get("loc", [])
-                    field_parts = [p for p in loc if p != "body"]
-                    field_key = str(field_parts[0]) if field_parts else "__all__"
-                    errors[field_key] = err.get("msg", "Invalid value")
-            elif isinstance(detail, str):
-                # API returns a plain string for allocation/amount violations.
-                errors["__all__"] = detail
-        except Exception:
-            errors["__all__"] = f"Validation error (HTTP {resp.status_code})"
-    elif resp.status_code == 428:
+    if resp.status_code == 428:
         import logging as _logging
         _logging.getLogger(__name__).error(
             "PATCH /api/v1/payments/%s returned 428 — If-Match header was missing",
             payment_id,
         )
-        errors["__all__"] = (
+        errors = {"__all__": (
             "Precondition required: version information was missing. "
             "Please reload and try again."
-        )
+        )}
     else:
-        errors["__all__"] = f"API error: HTTP {resp.status_code}"
+        errors = _api_errors(resp)
 
-    # Re-fetch dropdowns for re-render.
-    async with api_client(request) as client:
-        customers2, suppliers2, bank_accounts2 = await _fetch_payment_dropdowns(client)
-
-    raw_allocs2 = _parse_allocations(form)
-    alloc_rows2 = (
-        [{"index": i, **a} for i, a in enumerate(raw_allocs2)]
-        if raw_allocs2
-        else [{"index": 0}]
+    return await _render_edit_with_errors(
+        request, form, errors, rows, idempotency_key, resp.status_code,
+        keep_bank_id=form.get("bank_account_id") or None,
     )
 
+
+async def _render_edit_with_errors(
+    request: Request,
+    form: dict[str, str],
+    errors: dict[str, str],
+    rows: list[dict[str, str]],
+    idempotency_key: str,
+    status_code: int,
+    keep_bank_id: str | None = None,
+) -> HTMLResponse:
+    """Re-render the edit form with errors and the user's typed values."""
+    async with api_client(request) as client:
+        customers2, suppliers2, bank_accounts2 = await _fetch_payment_dropdowns(
+            client, keep_bank_id=keep_bank_id
+        )
+    alloc_rows2 = _alloc_rows_for_render(rows)
+    errors = _fold_unslotted(errors, set(range(len(alloc_rows2))))
     return _TEMPLATES.TemplateResponse(
         request,
         "payments/edit.html",
@@ -837,7 +1121,7 @@ async def payment_update(
             "allocations": alloc_rows2,
             "allocation_count": len(alloc_rows2),
         },
-        status_code=422 if resp.status_code == 422 else resp.status_code,
+        status_code=status_code,
     )
 
 
@@ -915,8 +1199,8 @@ async def payment_void(
 ) -> RedirectResponse:
     """Transition a POSTED payment to VOIDED.
 
-    POSTs to POST /api/v1/payments/{id}/void with If-Match.
-    - 200 -> 303 to detail with flash "Payment voided."
+    DELETE /api/v1/payments/{id} with If-Match (the engine's void).
+    - 204 -> 303 to detail with flash "Payment voided."
     - 409 -> 303 back to detail with flash "Version conflict — try again."
     - 422 -> 303 back to detail with the API's error message as flash.
     """
@@ -924,11 +1208,17 @@ async def payment_void(
         return RedirectResponse(url="/login", status_code=303)
 
     form_data = await request.form()
-    version = str(form_data.get("version", ""))
+    version = str(form_data.get("version", "")).strip()
 
+    # The engine voids a payment with DELETE /api/v1/payments/{id} +
+    # If-Match: <version> (204). There is no /void route.
     async with api_client(request) as client:
-        resp = await client.post(
-            f"/api/v1/payments/{payment_id}/void",
+        if not version:
+            cur = await client.get(f"/api/v1/payments/{payment_id}")
+            if cur.is_success:
+                version = str(cur.json().get("version", ""))
+        resp = await client.delete(
+            f"/api/v1/payments/{payment_id}",
             headers={"If-Match": version},
         )
 
@@ -936,22 +1226,20 @@ async def payment_void(
         request.session.clear()
         return RedirectResponse(url="/login", status_code=303)
 
-    if resp.status_code == 200:
+    if 200 <= resp.status_code < 300:
         request.session["flash"] = "Payment voided."
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
     if resp.status_code == 409:
-        request.session["flash"] = "Version conflict — try again."
+        request.session["flash"] = (
+            "Version conflict — the payment changed since this page loaded. "
+            "Reload and try again."
+        )
         return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
-    # 422 or other — surface the API's detail message.
-    try:
-        detail = resp.json().get("detail", f"API error: HTTP {resp.status_code}")
-        if isinstance(detail, list) and detail:
-            detail = detail[0].get("msg", str(detail))
-    except Exception:
-        detail = f"API error: HTTP {resp.status_code}"
-    request.session["flash"] = str(detail)
+    # 404 / 422 / 428 / other — show exactly what the API said.
+    errors = _api_errors(resp)
+    request.session["flash"] = "Void failed: " + " · ".join(errors.values())
     return RedirectResponse(url=f"/payments/{payment_id}", status_code=303)
 
 
@@ -1066,7 +1354,7 @@ async def payment_detail(
 
 _BULK_ACTIONS_PAYMENTS = {
     "post": ("POST", "/api/v1/payments/{id}/post"),
-    "void": ("POST", "/api/v1/payments/{id}/void"),
+    "void": ("DELETE", "/api/v1/payments/{id}"),
     "archive": ("DELETE", "/api/v1/payments/{id}"),
 }
 
@@ -1102,7 +1390,17 @@ async def payments_bulk_action(request: Request) -> RedirectResponse:
     async with api_client(request) as client:
         for row_id in ids:
             try:
-                resp = await client.request(method, path_tpl.format(id=row_id))
+                # Every payment transition needs If-Match: <version>; fetch
+                # it per row (post also needs an idempotency key).
+                headers: dict[str, str] = {}
+                cur = await client.get(f"/api/v1/payments/{row_id}")
+                if cur.is_success:
+                    headers["If-Match"] = str(cur.json().get("version", ""))
+                if action == "post":
+                    headers["X-Idempotency-Key"] = str(uuid.uuid4())
+                resp = await client.request(
+                    method, path_tpl.format(id=row_id), headers=headers
+                )
                 if 200 <= resp.status_code < 300:
                     ok += 1
                 else:
@@ -1114,6 +1412,8 @@ async def payments_bulk_action(request: Request) -> RedirectResponse:
                             msg = detail
                         elif isinstance(detail, list) and detail:
                             msg = detail[0].get("msg", str(detail))
+                        elif body.get("message"):
+                            msg = str(body["message"])
                     except Exception:
                         msg = ""
                     failed.append(f"{row_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
