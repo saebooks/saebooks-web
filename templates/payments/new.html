@@ -10,6 +10,13 @@
   <h1 class="font-display text-xl ink-1">{{ _("New payment") }}</h1>
 </div>
 
+{% if flash %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+
 <div class="card p-6">
   <form method="POST" action="/payments/new" novalidate>
     {{ csrf_input(request)|safe }}

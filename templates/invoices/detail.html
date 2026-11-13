@@ -51,7 +51,11 @@
       <h1 class="font-display text-3xl leading-none tracking-tight num-display">
         {{ invoice.number or "—" }}
       </h1>
-      <p class="text-xs ink-3 font-mono mt-2">{{ _("contact") }} · {{ invoice.contact_id }}</p>
+      {% set _cust = (settlement.contact.name if settlement and settlement.contact else None) or invoice.one_off_customer_name %}
+      <p class="text-sm ink-3 mt-2">
+        {{ _("To") }}
+        {% if invoice.contact_id %}<a href="/contacts/{{ invoice.contact_id }}" class="sae hover:underline">{{ _cust or _("this customer") }}</a>{% else %}<span class="ink-2">{{ _cust or "—" }}</span>{% endif %}
+      </p>
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
@@ -135,8 +139,36 @@
     <p class="num-display text-lg" style="color:{% if invoice.amount_paid|float >= invoice.total|float %}var(--pos){% else %}var(--ink){% endif %};">
       {{ invoice.currency }} {{ num(invoice.amount_paid|float, 2) }}
     </p>
+    {% set _due_left = (settlement.amount_due|float) if settlement else ((invoice.total|float) - (invoice.amount_paid|float)) %}
+    <p class="text-xs ink-3 mt-1">{{ _("Balance due") }} <span class="num {% if _due_left > 0 %}ink-1{% endif %}">{{ num(_due_left if _due_left > 0 else 0, 2) }}</span></p>
   </div>
 </section>
+
+{% if settlement and settlement.payments %}
+<section class="card overflow-hidden mb-7">
+  <div class="px-6 py-3 hairline-b"><p class="nav-section-label">{{ _("Payments") }}</p></div>
+  <table class="sae-table w-full">
+    <thead>
+      <tr>
+        <th class="text-left">{{ _("Date") }}</th>
+        <th class="text-left">{{ _("What") }}</th>
+        <th class="text-left">{{ _("Reference") }}</th>
+        <th class="text-right">{{ _("Amount") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in settlement.payments %}
+      <tr>
+        <td class="num ink-2">{{ p.date or "—" }}</td>
+        <td><a href="/payments/{{ p.id }}" class="sae hover:underline">{{ _("Payment") }} {{ p.number or "" }}</a>{% if p.status == 'VOIDED' %} <span class="badge-overdue">{{ _("Voided") }}</span>{% endif %}</td>
+        <td class="ink-2">{{ p.reference or "—" }}</td>
+        <td class="text-right num ink-1">{{ num(p.amount|float, 2) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
 
 {% set doc = invoice %}{% set credit_web = "/credit-notes" %}
 {% include "_partials/credits_applied.html" with context %}

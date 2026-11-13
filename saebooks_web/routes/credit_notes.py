@@ -39,7 +39,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from saebooks_web import credit_apply
+from saebooks_web import bulk_transitions, credit_apply
+from saebooks_web import settlement as settlement_reads
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 from saebooks_web.form_helpers import parse_lines as _parse_lines
@@ -867,12 +868,26 @@ async def credit_note_detail(
 
     credit_note = resp.json()
     capp = await credit_apply.load_context(request, credit_apply.CUSTOMER, credit_note)
+    # Names instead of IDs (gap P1-2): the customer and the invoice credited.
+    contact_name = None
+    original_invoice = None
+    async with api_client(request) as client:
+        if credit_note.get("contact_id"):
+            c = await settlement_reads.get_json(
+                client, f"/api/v1/contacts/{credit_note['contact_id']}"
+            )
+            contact_name = c.get("name") if isinstance(c, dict) else None
+        if credit_note.get("original_invoice_id"):
+            original_invoice = await settlement_reads.get_json(
+                client, f"/api/v1/invoices/{credit_note['original_invoice_id']}"
+            )
     # Consume and clear any flash message from session.
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "credit_notes/detail.html",
-        {"credit_note": credit_note, "error": None, "flash": flash, "capp": capp},
+        {"credit_note": credit_note, "error": None, "flash": flash, "capp": capp,
+         "contact_name": contact_name, "original_invoice": original_invoice},
     )
 
 
@@ -936,28 +951,13 @@ async def credit_notes_bulk_action(request: Request) -> RedirectResponse:
         return RedirectResponse(url="/credit-notes", status_code=303)
 
     method, path_tpl = _BULK_ACTIONS_CREDIT_NOTES[action]
-    ok = 0
-    failed: list[str] = []
+    # Each row's current version goes with the request (the engine 428s
+    # without it) and a row in the wrong state is skipped with a reason —
+    # gap P0-12.
     async with api_client(request) as client:
-        for row_id in ids:
-            try:
-                resp = await client.request(method, path_tpl.format(id=row_id))
-                if 200 <= resp.status_code < 300:
-                    ok += 1
-                else:
-                    msg = ""
-                    try:
-                        body = resp.json()
-                        detail = body.get("detail")
-                        if isinstance(detail, str):
-                            msg = detail
-                        elif isinstance(detail, list) and detail:
-                            msg = detail[0].get("msg", str(detail))
-                    except Exception:
-                        msg = ""
-                    failed.append(f"{row_id[:8]} ({resp.status_code}{': ' + msg if msg else ''})")
-            except Exception as exc:
-                failed.append(f"{row_id[:8]} (transport error: {exc!s})")
+        ok, failed = await bulk_transitions.run_bulk(
+            client, ids, method=method, path_tpl=path_tpl, action=action,
+        )
 
     label = action.replace("_", " ").title()
     if failed:

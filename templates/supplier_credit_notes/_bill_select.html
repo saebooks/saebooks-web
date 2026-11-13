@@ -1,0 +1,27 @@
+{# _bill_select.html — which of the supplier's bills this credit is against
+   (batch 3, gap P1-2). Re-fetched when the supplier changes. #}
+<div id="scn-bill-select"
+     hx-get="/supplier-credit-notes/_bill_options"
+     hx-trigger="change from:#contact_id"
+     hx-include="#contact_id"
+     hx-swap="outerHTML">
+  <label for="original_bill_id" class="block text-sm font-medium ink-2 mb-1">
+    {{ _("Bill it credits") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
+  </label>
+  <select id="original_bill_id" name="original_bill_id" class="saebooks-input w-full"
+          {% if errors.get('original_bill_id') %}style="border-color:var(--neg);"{% endif %}>
+    <option value="">{% if form.get("contact_id") %}{{ _("Not against a particular bill") }}{% else %}{{ _("Choose the supplier first") }}{% endif %}</option>
+    {% set _sel = form.get("original_bill_id", "") %}
+    {% set _found = namespace(v=false) %}
+    {% for b in bills %}
+    {% if b.id == _sel %}{% set _found.v = true %}{% endif %}
+    <option value="{{ b.id }}" {% if b.id == _sel %}selected{% endif %}>
+      {{ b.supplier_reference or b.number }}{% if b.supplier_reference and b.number %} ({{ b.number }}){% endif %} · {{ b.issue_date }} · {{ b.currency }} {{ num(b.total|float, 2) }}
+    </option>
+    {% endfor %}
+    {% if _sel and not _found.v %}<option value="{{ _sel }}" selected>{{ _("The bill chosen earlier") }}</option>{% endif %}
+  </select>
+  {% if errors.get("original_bill_id") %}
+  <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["original_bill_id"] }}</p>
+  {% endif %}
+</div>

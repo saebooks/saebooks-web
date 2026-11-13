@@ -243,3 +243,62 @@ async def attachment_download(
             "Content-Disposition": f'attachment; filename="{filename}"',
         },
     )
+
+
+_INLINE_SAFE_MIMES = frozenset(
+    {"application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp"}
+)
+
+
+@router.get(
+    "/attachments/{file_id}/view",
+    response_model=None,
+)
+async def attachment_view(
+    request: Request,
+    file_id: str,
+) -> StreamingResponse | RedirectResponse:
+    """Stream an attachment for viewing in the page (``inline``).
+
+    Same relay as :func:`attachment_download`, but the browser shows the file
+    instead of saving it — used by the side-by-side supplier invoice viewer
+    on the bill and payment pages (batch 3, gap P1-3).
+    """
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with api_client(request) as client:
+        meta_resp = await client.get(f"/api/v1/attachments/{file_id}")
+    if not meta_resp.is_success:
+        return RedirectResponse(url="/", status_code=303)
+    meta = meta_resp.json()
+    mime = meta.get("content_type") or "application/octet-stream"
+    filename = (meta.get("filename") or "file").replace('"', "")
+
+    async def _relay():
+        async with (
+            api_client(request) as client,
+            client.stream("GET", f"/api/v1/attachments/{file_id}/download") as api_resp,
+        ):
+            if not api_resp.is_success:
+                logger.warning("view relay: upstream %s for file %s", api_resp.status_code, file_id)
+                return
+            async for chunk in api_resp.aiter_bytes(chunk_size=65536):
+                yield chunk
+
+    # Only PDFs and raster images are shown in the page. Anything else
+    # (HTML, SVG, unknown) is forced to download so it cannot run script on
+    # the books origin.
+    base_mime = mime.split(";")[0].strip().lower()
+    disposition = "inline" if base_mime in _INLINE_SAFE_MIMES else "attachment"
+    if disposition == "attachment":
+        mime = "application/octet-stream"
+    return StreamingResponse(
+        _relay(),
+        media_type=mime,
+        headers={
+            "Content-Disposition": f'{disposition}; filename="{filename}"',
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "sandbox; default-src 'none'; object-src 'self'",
+        },
+    )

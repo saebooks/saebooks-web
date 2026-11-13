@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Email remittance advice") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="/payments/{{ payment.id }}" class="text-xs sae hover:underline font-mono uppercase tracking-wider">← {{ _("back to payment") }}</a>
+</div>
+
+<header class="mb-6">
+  <span class="nav-section-label">{{ _("Email remittance advice") }}</span>
+  <h1 class="font-display text-2xl leading-none tracking-tight mt-1">
+    {{ payment.number or payment.reference or "—" }}
+  </h1>
+  <p class="text-sm ink-3 mt-2">
+    {{ _("To") }} {{ (settlement.contact.name if settlement and settlement.contact else None) or supplier.name or _("the supplier") }}
+    · {{ payment.currency }} {{ num(payment.amount|float, 2) }} · {{ payment.payment_date }}
+  </p>
+</header>
+
+{% if flash %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--{{ flash_kind or 'warm' }});">
+  <span class="dot" style="background:var(--{{ flash_kind or 'warm' }});"></span>
+  <span class="text-sm ink-1">{{ flash }}</span>
+</div>
+{% endif %}
+
+{% if no_email %}
+<div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">
+    {{ _("This supplier has no email address on file. Type one below, or add it on the supplier's page so it is filled in next time.") }}
+    {% if payment.contact_id %}<a href="/contacts/{{ payment.contact_id }}/edit" class="sae hover:underline">{{ _("Edit supplier") }}</a>{% endif %}
+  </span>
+</div>
+{% endif %}
+
+<form method="post" action="/payments/{{ payment.id }}/remittance/email" class="space-y-5">
+  {{ csrf_input(request)|safe }}
+
+  <fieldset class="space-y-4">
+    <div>
+      <label for="from_addr" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("From") }}</label>
+      <select id="from_addr" name="from_addr" required class="saebooks-input">
+        {% for addr in from_options %}
+        <option value="{{ addr }}" {% if addr == form.from_addr %}selected{% endif %}>{{ addr }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="to" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+        {{ _("To") }} <span style="color:var(--neg);">*</span>
+      </label>
+      <input type="text" id="to" name="to" required value="{{ form.to or '' }}" class="saebooks-input"
+             placeholder="{{ _('accounts@supplier.com.au') }}">
+      <p class="text-xs ink-3 mt-1">{{ _("Separate more than one address with commas.") }}</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="cc" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Copy to") }}</label>
+        <input type="text" id="cc" name="cc" value="{{ form.cc or '' }}" class="saebooks-input" placeholder="{{ _('optional') }}">
+      </div>
+      <div>
+        <label for="bcc" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Blind copy to") }}</label>
+        <input type="text" id="bcc" name="bcc" value="{{ form.bcc or '' }}" class="saebooks-input" placeholder="{{ _('optional') }}">
+      </div>
+    </div>
+    <div>
+      <label for="subject" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">
+        {{ _("Subject") }} <span style="color:var(--neg);">*</span>
+      </label>
+      <input type="text" id="subject" name="subject" required maxlength="255" value="{{ form.subject or '' }}" class="saebooks-input">
+    </div>
+    <div>
+      <label for="body_html" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Message") }}</label>
+      <textarea id="body_html" name="body_html" required rows="10" class="saebooks-input text-sm" style="line-height:1.5;">{{ form.body_html or '' }}</textarea>
+    </div>
+  </fieldset>
+
+  <div class="card p-3 flex items-center gap-3 flex-wrap">
+    <span class="text-xs font-mono ink-3 uppercase tracking-wider">PDF</span>
+    <span class="ink-1 text-sm">{{ _("Remittance advice %(number)s") % {"number": (payment.number or "")} }}</span>
+    <span class="ink-3 text-xs">{{ _("attached when you send. Your internal notes are not on it.") }}</span>
+    <a href="/payments/{{ payment.id }}/remittance.pdf" target="_blank" rel="noopener"
+       class="text-xs sae hover:underline ml-auto">{{ _("Preview") }} ↗</a>
+  </div>
+
+  <div class="flex items-center justify-between pt-3 hairline-t">
+    <a href="/payments/{{ payment.id }}" class="btn-secondary text-sm">{{ _("Cancel") }}</a>
+    <button type="submit" class="btn-primary text-sm">{{ _("Send") }}</button>
+  </div>
+</form>
+{% endblock %}

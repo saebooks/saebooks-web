@@ -1,0 +1,79 @@
+{# _open_documents.html — the contact's open bills / invoices with tick boxes
+   (batch 3, gap P0-14). Swapped in by HTMX when the contact or direction
+   changes; posted as open[N][pick|kind|id|amount|due]. Totals and "Pay
+   oldest first" are driven by the script in _form_fields.html. #}
+{% set _dir = form.get("direction", "INCOMING") %}
+{% set _docs_label = _("bills") if _dir == "OUTGOING" else _("invoices") %}
+<div id="open-docs"
+     hx-get="/payments/_open_documents"
+     hx-trigger="change from:#contact_id, change from:#direction"
+     hx-include="#contact_id, #direction"
+     hx-swap="outerHTML">
+  {% if not form.get("contact_id") %}
+    <p class="text-sm ink-3">{{ _("Choose who the payment is to or from to see what they owe or are owed.") }}</p>
+  {% elif not open_docs %}
+    <p class="text-sm ink-3">
+      {% if _dir == "OUTGOING" %}{{ _("No unpaid bills for this supplier. The payment will be left on their account.") }}
+      {% else %}{{ _("No unpaid invoices for this customer. The payment will be left on their account.") }}{% endif %}
+    </p>
+  {% else %}
+    <div class="flex items-center gap-3 flex-wrap mb-2">
+      <p class="text-sm ink-2">
+        {% if _dir == "OUTGOING" %}{{ _("Tick the bills this payment covers.") }}{% else %}{{ _("Tick the invoices this payment covers.") }}{% endif %}
+      </p>
+      <button type="button" class="text-sm sae hover:underline" data-open-docs-action="oldest">{{ _("Pay oldest first") }}</button>
+      <button type="button" class="text-sm sae hover:underline" data-open-docs-action="all">{{ _("Tick all") }}</button>
+      <button type="button" class="text-sm ink-3 hover:underline" data-open-docs-action="none">{{ _("Clear") }}</button>
+    </div>
+    <div class="card overflow-x-auto p-0">
+      <table class="sae-table w-full text-sm">
+        <thead>
+          <tr>
+            <th class="w-10"></th>
+            <th class="text-left">{% if _dir == "OUTGOING" %}{{ _("Supplier's invoice") }}{% else %}{{ _("Invoice") }}{% endif %}</th>
+            <th class="text-left">{{ _("Dated") }}</th>
+            <th class="text-left">{{ _("Due") }}</th>
+            <th class="text-right">{{ _("Total") }}</th>
+            <th class="text-right">{{ _("Still owing") }}</th>
+            <th class="text-right w-36">{{ _("Pay now") }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in open_docs %}
+          {% set _picked = d.id in picked %}
+          <tr class="open-doc-row">
+            <td class="px-3 py-2 text-center">
+              <input type="checkbox" name="open[{{ loop.index0 }}][pick]" value="1"
+                     aria-label="{{ _('Pay %(doc)s') % {'doc': (d.supplier_reference or d.number or '')} }}"
+                     data-open-doc-pick {% if _picked %}checked{% endif %}>
+              <input type="hidden" name="open[{{ loop.index0 }}][kind]" value="{{ d.kind }}">
+              <input type="hidden" name="open[{{ loop.index0 }}][id]" value="{{ d.id }}">
+              <input type="hidden" name="open[{{ loop.index0 }}][due]" value="{{ d.amount_due }}">
+            </td>
+            <td class="px-3 py-2">
+              {% if d.kind == "bill" %}
+                <a href="/bills/{{ d.id }}" target="_blank" rel="noopener" class="sae hover:underline">{{ d.supplier_reference or d.number }}</a>
+                {% if d.supplier_reference and d.number %}<span class="ink-3 text-xs"> · {{ d.number }}</span>{% endif %}
+              {% else %}
+                <a href="/invoices/{{ d.id }}" target="_blank" rel="noopener" class="sae hover:underline">{{ d.number }}</a>
+              {% endif %}
+            </td>
+            <td class="px-3 py-2 num ink-2">{{ d.issue_date or "—" }}</td>
+            <td class="px-3 py-2 num {% if not d.overdue %}ink-2{% endif %}" {% if d.overdue %}style="color:var(--neg);"{% endif %}>
+              {{ d.due_date or "—" }}{% if d.overdue %} <span class="badge-overdue">{{ _("Overdue") }}</span>{% endif %}
+            </td>
+            <td class="px-3 py-2 text-right num ink-2">{{ num(d.total|float, 2) }}</td>
+            <td class="px-3 py-2 text-right num ink-1">{{ num(d.amount_due|float, 2) }}</td>
+            <td class="px-3 py-2">
+              <input type="number" name="open[{{ loop.index0 }}][amount]" step="0.01" min="0"
+                     max="{{ d.amount_due }}" data-due="{{ d.amount_due }}" data-open-doc-amount
+                     value="{{ picked.get(d.id, '') if _picked else '' }}"
+                     placeholder="0.00" class="saebooks-input num-display text-sm py-1.5 text-right">
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>

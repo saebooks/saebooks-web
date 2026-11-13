@@ -40,6 +40,38 @@ def _require_auth(request: Request) -> str | None:
     return request.session.get("api_token")
 
 
+def _apply_payment_terms(
+    form: dict[str, str], payload: dict[str, object], errors: dict[str, str],
+    *, clear_when_blank: bool,
+) -> None:
+    """Payment terms from the contact form (batch 3, gap P0-15).
+
+    Basis blank means "no set terms": on edit both fields are cleared
+    (sent as null); on create they are simply left out. Days are required
+    once a basis is chosen.
+    """
+    basis = (form.get("payment_terms_basis") or "").strip().upper()
+    days_raw = (form.get("payment_terms_days") or "").strip()
+    if not basis:
+        if clear_when_blank:
+            payload["payment_terms_basis"] = None
+            payload["payment_terms_days"] = None
+        return
+    if basis not in ("DAYS", "EOM"):
+        errors["payment_terms_basis"] = "Choose how the days are counted."
+        return
+    try:
+        days = int(days_raw)
+    except ValueError:
+        errors["payment_terms_days"] = "Enter the number of days, for example 30."
+        return
+    if not 0 <= days <= 365:
+        errors["payment_terms_days"] = "Enter between 0 and 365 days."
+        return
+    payload["payment_terms_basis"] = basis
+    payload["payment_terms_days"] = days
+
+
 def _apply_einvoice_recipient_fields(
     request: Request, form: dict[str, str], payload: dict[str, object]
 ) -> None:
@@ -328,6 +360,23 @@ async def contact_create(request: Request) -> HTMLResponse | RedirectResponse:
     # byte-identical to before.
     _apply_einvoice_recipient_fields(request, form, payload)
 
+    terms_errors: dict[str, str] = {}
+    _apply_payment_terms(form, payload, terms_errors, clear_when_blank=False)
+    if terms_errors:
+        accounts, tax_codes = await _fetch_contact_dropdowns(request)
+        return _TEMPLATES.TemplateResponse(
+            request,
+            "contacts/new.html",
+            {
+                "form": form,
+                "errors": terms_errors,
+                "idempotency_key": idempotency_key,
+                "accounts": accounts,
+                "tax_codes": tax_codes,
+            },
+            status_code=422,
+        )
+
     async with api_client(request) as client:
         resp = await client.post(
             "/api/v1/contacts",
@@ -464,6 +513,10 @@ async def contact_edit_form(
     # the checkbox check trivial and matches the submit form's semantics.
     form["e_invoice_recipient"] = "on" if contact.get("e_invoice_recipient") else ""
     form["peppol_participant_id"] = str(contact.get("peppol_participant_id") or "")
+    form["payment_terms_basis"] = str(contact.get("payment_terms_basis") or "")
+    form["payment_terms_days"] = (
+        "" if contact.get("payment_terms_days") is None else str(contact.get("payment_terms_days"))
+    )
 
     accounts, tax_codes = await _fetch_contact_dropdowns(request)
 
@@ -520,6 +573,27 @@ async def contact_update(
     # E-invoice recipient flag (EE only) — same source-of-truth-on-submit
     # semantics as is_one_off. See _apply_einvoice_recipient_fields.
     _apply_einvoice_recipient_fields(request, form, payload)
+
+    # Payment terms — the form is the source of truth on submit (a blank
+    # basis clears them), but only when the form carried the field at all.
+    if "payment_terms_basis" in form:
+        terms_errors: dict[str, str] = {}
+        _apply_payment_terms(form, payload, terms_errors, clear_when_blank=True)
+        if terms_errors:
+            accounts, tax_codes = await _fetch_contact_dropdowns(request)
+            return _TEMPLATES.TemplateResponse(
+                request,
+                "contacts/edit.html",
+                {
+                    "contact": None,
+                    "form": form,
+                    "errors": terms_errors,
+                    "conflict": False,
+                    "accounts": accounts,
+                    "tax_codes": tax_codes,
+                },
+                status_code=422,
+            )
 
     async with api_client(request) as client:
         resp = await client.patch(

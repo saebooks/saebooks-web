@@ -52,6 +52,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from saebooks_web import credit_apply
+from saebooks_web import settlement as settlement_reads
 from saebooks_web.api_client import api_client
 from saebooks_web.form_helpers import parse_lines as _parse_lines
 
@@ -198,14 +199,26 @@ async def supplier_credit_notes_list(
 
 
 @router.get("/supplier-credit-notes/new", response_class=HTMLResponse, response_model=None)
-async def supplier_credit_note_new_form(request: Request) -> HTMLResponse | RedirectResponse:
+async def supplier_credit_note_new_form(
+    request: Request, bill_id: str | None = None, contact_id: str | None = None
+) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
 
     today = date.today().isoformat()
+    form: dict[str, str] = {"issue_date": today}
 
     async with api_client(request) as client:
         contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+        if bill_id:
+            # "Record a supplier credit" from a bill: supplier and bill known.
+            b = await settlement_reads.get_json(client, f"/api/v1/bills/{bill_id}")
+            if isinstance(b, dict):
+                form["original_bill_id"] = bill_id
+                contact_id = contact_id or str(b.get("contact_id") or "")
+        if contact_id:
+            form["contact_id"] = contact_id
+        bills = await _supplier_bills(client, contact_id)
 
     initial_lines = [{"index": 0}]
 
@@ -213,7 +226,8 @@ async def supplier_credit_note_new_form(request: Request) -> HTMLResponse | Redi
         request,
         "supplier_credit_notes/new.html",
         {
-            "form": {"issue_date": today},
+            "bills": bills,
+            "form": form,
             "errors": {},
             "idempotency_key": str(uuid.uuid4()),
             "contacts": contacts,
@@ -277,6 +291,7 @@ async def supplier_credit_note_create(request: Request) -> HTMLResponse | Redire
 
     async with api_client(request) as client:
         contacts, accounts, tax_codes = await _fetch_dropdowns(client)
+        bills = await _supplier_bills(client, form.get("contact_id"))
 
     raw_lines = _parse_lines(form)
     lines = [{"index": i, **ln} for i, ln in enumerate(raw_lines)] or [{"index": 0}]
@@ -286,6 +301,7 @@ async def supplier_credit_note_create(request: Request) -> HTMLResponse | Redire
         "supplier_credit_notes/new.html",
         {
             "form": form,
+            "bills": bills,
             "errors": errors,
             "idempotency_key": idempotency_key,
             "contacts": contacts,
@@ -295,6 +311,40 @@ async def supplier_credit_note_create(request: Request) -> HTMLResponse | Redire
             "line_count": len(lines),
         },
         status_code=422 if resp.status_code == 422 else resp.status_code,
+    )
+
+
+async def _supplier_bills(client, contact_id: str | None) -> list[dict]:
+    """The supplier's posted bills, newest first, for the "credit against
+    which bill" picker (gap P1-2) — so nobody pastes a bill ID."""
+    if not contact_id:
+        return []
+    body = await settlement_reads.get_json(
+        client,
+        "/api/v1/bills",
+        {"contact_id": contact_id, "status": "POSTED", "page": 1, "page_size": 200},
+    )
+    items = body.get("items", []) if isinstance(body, dict) else []
+    return sorted(items, key=lambda b: str(b.get("issue_date") or ""), reverse=True)
+
+
+@router.get(
+    "/supplier-credit-notes/_bill_options", response_class=HTMLResponse, response_model=None
+)
+async def supplier_credit_note_bill_options(
+    request: Request, contact_id: str | None = None, original_bill_id: str | None = None
+) -> HTMLResponse | RedirectResponse:
+    """HTMX partial: the bill picker for the chosen supplier."""
+    if not _require_auth(request):
+        return RedirectResponse(url="/login", status_code=303)
+    async with api_client(request) as client:
+        bills = await _supplier_bills(client, contact_id)
+    return _TEMPLATES.TemplateResponse(
+        request,
+        "supplier_credit_notes/_bill_select.html",
+        {"bills": bills, "form": {"contact_id": contact_id or "",
+                                  "original_bill_id": original_bill_id or ""},
+         "errors": {}},
     )
 
 
@@ -429,11 +479,23 @@ async def supplier_credit_note_detail(request: Request, scn_id: str) -> HTMLResp
 
     scn = resp.json()
     capp = await credit_apply.load_context(request, credit_apply.SUPPLIER, scn)
+    # Names instead of IDs (gap P1-2): the supplier, and the bill credited.
+    supplier_name = None
+    original_bill = None
+    async with api_client(request) as client:
+        if scn.get("contact_id"):
+            c = await settlement_reads.get_json(client, f"/api/v1/contacts/{scn['contact_id']}")
+            supplier_name = c.get("name") if isinstance(c, dict) else None
+        if scn.get("original_bill_id"):
+            original_bill = await settlement_reads.get_json(
+                client, f"/api/v1/bills/{scn['original_bill_id']}"
+            )
     flash = request.session.pop("flash", None)
     return _TEMPLATES.TemplateResponse(
         request,
         "supplier_credit_notes/detail.html",
-        {"scn": scn, "error": None, "flash": flash, "capp": capp},
+        {"scn": scn, "error": None, "flash": flash, "capp": capp,
+         "supplier_name": supplier_name, "original_bill": original_bill},
     )
 
 

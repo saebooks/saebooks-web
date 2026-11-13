@@ -73,21 +73,9 @@
         </div>
 
         <div>
-          <label for="original_bill_id" class="block text-sm font-medium ink-2 mb-1">
-            {{ _("Original bill ID") }} <span class="ink-3 font-normal">{{ _("(optional)") }}</span>
-          </label>
-          <input
-            type="text"
-            id="original_bill_id"
-            name="original_bill_id"
-            value="{{ form.get('original_bill_id', '') }}"
-            placeholder="{{ _('UUID of bill being credited') }}"
-            class="saebooks-input w-full"
-            {% if errors.get('original_bill_id') %}style="border-color:var(--neg);"{% endif %}
-          >
-          {% if errors.get("original_bill_id") %}
-          <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["original_bill_id"] }}</p>
-          {% endif %}
+          {% with bills=(bills if bills is defined else []) %}
+          {% include "supplier_credit_notes/_bill_select.html" %}
+          {% endwith %}
         </div>
       </div>
 

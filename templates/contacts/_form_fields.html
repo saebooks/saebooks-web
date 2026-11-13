@@ -82,6 +82,32 @@
 </fieldset>
 
 <fieldset class="space-y-4 mt-7">
+  <legend class="nav-section-label mb-3">{{ _("Payment terms") }}</legend>
+  <p class="text-xs ink-3 -mt-2">{{ _("Sets the due date on new bills and invoices for this contact. You can still change the date on each one.") }}</p>
+  {% set _basis = form.get("payment_terms_basis", "") %}
+  <div class="flex flex-wrap items-end gap-3">
+    <div>
+      <label for="payment_terms_days" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Days") }}</label>
+      <input type="number" id="payment_terms_days" name="payment_terms_days" min="0" max="365" step="1"
+             value="{{ form.get('payment_terms_days', '') }}" class="saebooks-input num w-24"
+             {% if errors.get('payment_terms_days') %}style="border-color:var(--neg);"{% endif %}>
+    </div>
+    <div>
+      <label for="payment_terms_basis" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Counted from") }}</label>
+      <select id="payment_terms_basis" name="payment_terms_basis" class="saebooks-input"
+              {% if errors.get('payment_terms_basis') %}style="border-color:var(--neg);"{% endif %}>
+        <option value="" {% if not _basis %}selected{% endif %}>{{ _("No set terms — type the due date each time") }}</option>
+        <option value="DAYS" {% if _basis == "DAYS" %}selected{% endif %}>{{ _("after the invoice date") }}</option>
+        <option value="EOM" {% if _basis == "EOM" %}selected{% endif %}>{{ _("after the end of the invoice month") }}</option>
+      </select>
+    </div>
+  </div>
+  <p class="text-xs ink-3">{{ _("Example: 30 days after the end of the month — an invoice dated 14 May is due 30 June.") }}</p>
+  {% if errors.get("payment_terms_days") %}<p class="text-xs" style="color:var(--neg);">{{ errors["payment_terms_days"] }}</p>{% endif %}
+  {% if errors.get("payment_terms_basis") %}<p class="text-xs" style="color:var(--neg);">{{ errors["payment_terms_basis"] }}</p>{% endif %}
+</fieldset>
+
+<fieldset class="space-y-4 mt-7">
   <legend class="nav-section-label mb-3">{{ _("Accounting") }}</legend>
 
   <div>

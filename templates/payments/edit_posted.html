@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Correct payment details") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+<div class="mb-5 flex items-center gap-3">
+  <a href="/payments/{{ payment.id }}" class="text-xs ink-3 hover:underline font-mono uppercase tracking-wider">← {{ _("payment") }}</a>
+  <span class="ink-4">/</span>
+  <h1 class="font-display text-xl ink-1">{{ _("Correct payment details") }}</h1>
+</div>
+
+<div class="card p-4 mb-5 max-w-2xl flex items-start gap-3" style="border-color:var(--sae);">
+  <span class="dot mt-1.5" style="background:var(--sae);"></span>
+  <p class="text-sm ink-2">
+    {{ _("This payment is posted. You can fix the reference, the method, your internal notes and the message to the supplier. To change the amount, date, contact, bank account or what it paid, void it and enter it again.") }}
+  </p>
+</div>
+
+{% if errors.get("__all__") %}
+<div class="card p-3 mb-5 max-w-2xl flex items-center gap-2" style="border-color:var(--neg);">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ errors["__all__"] }}</span>
+</div>
+{% endif %}
+
+<div class="card p-6 max-w-2xl">
+  <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mb-6">
+    <div><dt class="nav-section-label">{{ _("Number") }}</dt><dd class="ink-1">{{ payment.number or "—" }}</dd></div>
+    <div><dt class="nav-section-label">{{ _("Date") }}</dt><dd class="ink-1 num">{{ payment.payment_date }}</dd></div>
+    <div><dt class="nav-section-label">{{ _("Amount") }}</dt><dd class="ink-1 num">{{ payment.currency }} {{ num((payment.amount or 0)|float, 2) }}</dd></div>
+    <div><dt class="nav-section-label">{{ _("Status") }}</dt><dd class="ink-1">{{ _("Posted") }}</dd></div>
+  </dl>
+
+  <form method="post" action="/payments/{{ payment.id }}/edit" class="space-y-4">
+    {{ csrf_input(request)|safe }}
+    <input type="hidden" name="posted_edit" value="1">
+    <input type="hidden" name="version" value="{{ form.get('version') or payment.version }}">
+
+    <div>
+      <label for="reference" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Reference") }}</label>
+      <input type="text" id="reference" name="reference" maxlength="128" value="{{ form.get('reference', '') }}" class="saebooks-input sm:max-w-md">
+      {% if errors.get("reference") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["reference"] }}</p>{% endif %}
+    </div>
+
+    <div>
+      <label for="method" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Method") }}</label>
+      <select id="method" name="method" class="saebooks-input sm:max-w-xs">
+        {% for val, label in method_choices %}
+        <option value="{{ val }}" {% if form.get("method") == val %}selected{% endif %}>{{ _(label) }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% if payment.direction == "OUTGOING" %}
+    <div>
+      <label for="remittance_note" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Message to the supplier") }}</label>
+      <textarea id="remittance_note" name="remittance_note" rows="2" maxlength="2000" class="saebooks-input"
+                placeholder="{{ _('Optional. Printed on the remittance advice.') }}">{{ form.get("remittance_note", "") }}</textarea>
+      {% if errors.get("remittance_note") %}<p class="text-xs mt-1" style="color:var(--neg);">{{ errors["remittance_note"] }}</p>{% endif %}
+    </div>
+    {% endif %}
+
+    <div>
+      <label for="notes" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Internal notes") }}</label>
+      <textarea id="notes" name="notes" rows="3" class="saebooks-input"
+                placeholder="{{ _('Only you see these — never printed for the supplier or customer.') }}">{{ form.get("notes", "") }}</textarea>
+    </div>
+
+    <div class="pt-3 flex items-center gap-3">
+      <button type="submit" class="btn-primary">{{ _("Save corrections") }}</button>
+      <a href="/payments/{{ payment.id }}" class="btn-secondary">{{ _("Cancel") }}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

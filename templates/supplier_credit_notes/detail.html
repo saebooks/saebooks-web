@@ -35,7 +35,7 @@
     </div>
     <p class="text-sm ink-3 mt-1">{{ _("Supplier:") }}
       {% if capp and capp.contact %}<a href="/contacts/{{ scn.contact_id }}" class="sae hover:underline">{{ capp.contact.name }}</a>
-      {% else %}<a href="/contacts/{{ scn.contact_id }}" class="sae hover:underline">{{ scn.contact_id }}</a>{% endif %}
+      {% else %}<a href="/contacts/{{ scn.contact_id }}" class="sae hover:underline">{{ supplier_name or _("view supplier") }}</a>{% endif %}
     </p>
     {% if scn.supplier_reference %}
     <p class="text-sm ink-3 mt-0.5">{{ _("Supplier's reference: %(ref)s") % {"ref": scn.supplier_reference} }}</p>
@@ -94,7 +94,7 @@
 <div class="mb-8">
   <div class="card px-4 py-3 text-sm ink-2">
     <span class="ink-3">{{ _("Linked bill:") }} </span>
-    <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline font-medium">{{ scn.original_bill_id }}</a>
+    <a href="/bills/{{ scn.original_bill_id }}" class="sae hover:underline font-medium">{% if original_bill %}{{ original_bill.supplier_reference or original_bill.number }}{% if original_bill.supplier_reference and original_bill.number %} ({{ original_bill.number }}){% endif %}{% else %}{{ _("View bill") }}{% endif %}</a>
   </div>
 </div>
 {% endif %}

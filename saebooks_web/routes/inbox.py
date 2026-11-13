@@ -560,7 +560,7 @@ async def _render_review(
         key: _field_source(doc, key)
         for key in (
             "vendor_name", "contact_id", "date", "invoice_number",
-            "total", "line_items", "payment_account_id",
+            "total", "line_items", "payment_account_id", "due_date",
         )
     }
 
@@ -681,7 +681,7 @@ def _override_from_form(form: dict[str, str]) -> dict[str, Any]:
     """
     override: dict[str, Any] = {}
     for key in ("vendor_name", "contact_id", "date", "invoice_number",
-                "total", "payment_account_id"):
+                "total", "payment_account_id", "due_date"):
         val = (form.get(key) or "").strip()
         if val:
             override[key] = val
@@ -789,6 +789,12 @@ async def inbox_review_submit(
             errors["payment_account_id"] = _("Payment account is required.")
         if not (form.get("date") or "").strip():
             errors["date"] = _("Date is required.")
+        due_date = (form.get("due_date") or "").strip()
+        if (
+            record_kind == "BILL" and due_date and (form.get("date") or "").strip()
+            and due_date < form["date"].strip()
+        ):
+            errors["due_date"] = _("The due date is before the invoice date.")
         lines = _parse_lines(form)
         if not lines:
             errors["lines"] = _("At least one line is required.")
@@ -824,6 +830,12 @@ async def inbox_review_submit(
         }
         if record_kind == "EXPENSE":
             payload["payment_account_id"] = form["payment_account_id"].strip()
+        if record_kind == "BILL" and due_date:
+            # The supplier's printed due date wins; left blank, the engine
+            # uses the supplier's payment terms (gap P0-15). Previously the
+            # due date was never sent, so inbox bills were due on their
+            # issue date and showed overdue the next day.
+            payload["due_date"] = due_date
         reference = (form.get("invoice_number") or "").strip()
         if reference:
             payload["reference"] = reference
@@ -882,9 +894,21 @@ async def inbox_review_submit(
             record = body.get("record", {})
             kind = (record.get("kind") or "EXPENSE").upper()
             record_id = record.get("id", "")
-            request.session["flash"] = _(
-                "Published as DRAFT %(kind)s — source document attached."
-            ) % {"kind": kind.replace("_", " ").lower()}
+            if pub_resp.headers.get("X-Attachment-Linked", "true").lower() == "false":
+                # Gap P1-3: the record exists but the supplier's file did not
+                # reach it — say so instead of claiming it is attached.
+                request.session["flash"] = _(
+                    "Published as DRAFT %(kind)s, but the supplier's document "
+                    "could not be attached (%(reason)s). Download it from the "
+                    "inbox and upload it on the record."
+                ) % {
+                    "kind": kind.replace("_", " ").lower(),
+                    "reason": pub_resp.headers.get("X-Attachment-Error") or _("unknown error"),
+                }
+            else:
+                request.session["flash"] = _(
+                    "Published as DRAFT %(kind)s — source document attached."
+                ) % {"kind": kind.replace("_", " ").lower()}
             detail_url = {
                 "EXPENSE": f"/expenses/{record_id}",
                 "BILL": f"/bills/{record_id}",

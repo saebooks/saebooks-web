@@ -73,6 +73,9 @@
               {%- set _x = actions.append(("post", _("Post"), "/bills/" ~ bill.id ~ "/post", "post", false)) %}
               {%- set _x = actions.append(("archive", _("Archive"), "/bills/" ~ bill.id ~ "/archive", "post", true)) %}
             {%- elif status_lower == 'posted' %}
+              {%- if (bill.total|float) - (bill.amount_paid|default(0)|float) > 0 %}
+              {%- set _x = actions.append(("pay", _("Pay"), "/payments/new?direction=OUTGOING&bill_id=" ~ (bill.id|urlencode) ~ "&contact_id=" ~ ((bill.contact_id or '')|urlencode), "link", false)) %}
+              {%- endif %}
               {%- set _x = actions.append(("void", _("Void"), "/bills/" ~ bill.id ~ "/void", "post", true)) %}
             {%- endif %}
             {%- if is_feature_enabled("hard_delete") %}
