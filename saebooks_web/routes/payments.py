@@ -809,10 +809,11 @@ async def payment_new_form(
     last_bank = str(request.session.get("last_bank_account_id") or "")
     if last_bank and any(str(a.get("id")) == last_bank for a in bank_accounts):
         form["bank_account_id"] = last_bank
-    if target_id:
+    first_doc = (pre_bills or pre_invoices or [None])[0]
+    if first_doc:
         # Batch 10: pay a foreign invoice or bill in its own currency.
         doc_ccy = await _document_currency(
-            request, "bills" if bill_id else "invoices", target_id
+            request, "bills" if pre_bills else "invoices", first_doc.strip()
         )
         if doc_ccy:
             form["currency"] = doc_ccy

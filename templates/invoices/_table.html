@@ -94,6 +94,7 @@
               {%- if _outstanding > 0 %}
                 {%- set _pay_href = "/payments/new?contact_id=" ~ (inv.contact_id|urlencode) ~ "&direction=INCOMING&amount=" ~ ('%.2f'|format(_outstanding)) ~ "&invoice_id=" ~ (inv.id|urlencode) ~ "&reference=" ~ (("Invoice " ~ (inv.number or inv.id))|urlencode) %}
                 {%- set _x = actions.append(("record_payment", _("Record payment"), _pay_href, "link", false)) %}
+                {%- set _x = actions.append(("send_reminder", _("Send reminder"), "/invoices/" ~ inv.id ~ "/send-reminder", "post", true)) %}
               {%- endif %}
               {%- set _x = actions.append(("void",     _("Void"),     "/invoices/" ~ inv.id ~ "/void",     "post", true)) %}
             {%- endif %}

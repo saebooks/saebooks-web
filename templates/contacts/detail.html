@@ -50,17 +50,6 @@
     </div>
 
     <div class="flex items-center gap-2 flex-wrap justify-end">
-      {% if contact.contact_type in ("CUSTOMER", "BOTH") %}
-      {% if statement_currencies and statement_currencies|length > 1 %}
-        {% for _ccy in statement_currencies %}
-      <a href="/contacts/{{ contact.id }}/statement/pdf?currency={{ _ccy }}" target="_blank" rel="noopener"
-         class="btn-secondary text-sm">{{ _("Statement PDF") }} ({{ _ccy }})</a>
-        {% endfor %}
-      {% else %}
-      <a href="/contacts/{{ contact.id }}/statement/pdf{% if statement_currencies %}?currency={{ statement_currencies[0] }}{% endif %}" target="_blank" rel="noopener"
-         class="btn-secondary text-sm">{{ _("Statement PDF") }}{% if statement_currencies %} ({{ statement_currencies[0] }}){% endif %}</a>
-      {% endif %}
-      {% endif %}
       <a href="/contacts/{{ contact.id }}/edit" class="btn-secondary text-sm">{{ _("Edit") }}</a>
       {% if not contact.archived_at %}
       <form method="post" action="/contacts/{{ contact.id }}/archive"
@@ -81,6 +70,58 @@
   </div>
   <div class="drafting mt-4"></div>
 </header>
+
+{# ── b11: bounced email + statements by email + reminders ── #}
+{% if contact.email_bounced_at %}
+<div class="card p-3 mb-5 flex items-start gap-2" style="border-color:var(--neg);" role="alert">
+  <span class="dot mt-1.5" style="background:var(--neg);"></span>
+  <div class="text-sm">
+    <p class="font-semibold" style="color:var(--neg);">{{ _("Email to %(e)s bounced on %(d)s.") % {"e": contact.email, "d": contact.email_bounced_at[:10]} }}</p>
+    <p class="ink-3">{{ contact.email_bounce_reason or "" }} {{ _("Invoices, reminders and statements to this address are not arriving. Fix the address and this warning clears.") }}</p>
+  </div>
+</div>
+{% endif %}
+
+{% if contact.contact_type in ("CUSTOMER", "BOTH") %}
+{% set _today = today_iso if today_iso is defined else "" %}
+<section class="card p-4 mb-5">
+  <p class="nav-section-label mb-3">{{ _("Statement and reminders") }}</p>
+  <form method="post" action="/contacts/{{ contact.id }}/statement/email" class="flex flex-wrap items-end gap-3">
+    {{ csrf_input(request)|safe }}
+    <div>
+      <label for="st_from" class="block text-xs ink-3 mb-1">{{ _("From") }}</label>
+      <input type="date" id="st_from" name="from" value="{{ statement_from }}" class="saebooks-input text-sm">
+    </div>
+    <div>
+      <label for="st_to" class="block text-xs ink-3 mb-1">{{ _("To") }}</label>
+      <input type="date" id="st_to" name="to" value="{{ statement_to }}" class="saebooks-input text-sm">
+    </div>
+    <button type="submit" class="btn-primary text-sm" {% if not contact.email %}disabled title="{{ _('Add an email address first') }}"{% endif %}
+            onclick="return confirm('{{ _('Email this statement to the customer now?') }}')">{{ _("Email statement") }}</button>
+    {% if statement_currencies and statement_currencies|length > 1 %}
+    <div>
+      <label for="st_ccy" class="text-xs ink-3 block">{{ _("Currency") }}</label>
+      <select id="st_ccy" name="currency" class="saebooks-input text-sm">
+        {% for _ccy in statement_currencies %}<option value="{{ _ccy }}">{{ _ccy }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <button type="submit" formmethod="get" formtarget="_blank" formaction="/contacts/{{ contact.id }}/statement/pdf" class="btn-secondary text-sm">{{ _("View PDF") }}</button>
+  </form>
+  <form method="post" action="/contacts/{{ contact.id }}/reminders" class="mt-3 flex items-center gap-3">
+    {{ csrf_input(request)|safe }}
+    {% if contact.reminders_opt_out %}
+      <span class="badge-draft">{{ _("Automatic reminders off") }}</span>
+      <input type="hidden" name="opt_out" value="0">
+      <button type="submit" class="text-sm sae hover:underline">{{ _("Turn them back on") }}</button>
+    {% else %}
+      <span class="badge-pos">{{ _("Automatic reminders on") }}</span>
+      <input type="hidden" name="opt_out" value="1">
+      <button type="submit" class="text-sm sae hover:underline">{{ _("Do not send this customer reminders") }}</button>
+    {% endif %}
+  </form>
+</section>
+{% endif %}
 
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
   <div class="card p-5">

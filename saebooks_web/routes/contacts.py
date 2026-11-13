@@ -1182,7 +1182,10 @@ async def contact_detail(
          "attachments": attachments,
          "vault_enabled": vault_enabled,
          "entity_kind": "contact",
-         "entity_id": contact_id},
+         "entity_id": contact_id,
+         # b11: statement period picker defaults — the last three months.
+         "statement_from": (date.today().replace(day=1) - timedelta(days=62)).replace(day=1).isoformat(),
+         "statement_to": date.today().isoformat()},
     )
 
 

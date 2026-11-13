@@ -224,6 +224,59 @@
       {{ _("Auto-post generated invoices") }}
     </label>
   </div>
+
+  {# b11: email each invoice when it is made (needs auto-post) #}
+  <div class="flex items-center gap-2">
+    <input
+      type="checkbox"
+      id="auto_send"
+      name="auto_send"
+      value="1"
+      {% if form.get('auto_send') %}checked{% endif %}
+      class="h-4 w-4 rounded border-gray-300 text-[#194291]
+             focus:ring-2 focus:ring-[#194291]"
+    >
+    <label for="auto_send" class="text-sm ink-2">
+      {{ _("Email each invoice to the customer when it is made") }}
+    </label>
+  </div>
+  <p class="text-xs ink-3 -mt-2">{{ _("Needs auto-post turned on: only finished invoices are emailed. Goes out from the address in Getting paid settings.") }}</p>
+  {% if errors.get("auto_send") %}
+  <p class="text-xs" style="color:var(--neg);">{{ errors["auto_send"] }}</p>
+  {% endif %}
+
+  <div>
+    <label for="send_to" class="block text-sm font-medium ink-2 mb-1">
+      {{ _("Send to") }} <span class="ink-3 font-normal">{{ _("(optional, separate with commas)") }}</span>
+    </label>
+    <input
+      type="text"
+      id="send_to"
+      name="send_to"
+      value="{{ form.get('send_to', '') }}"
+      placeholder="{{ _('Leave blank to use the customer email') }}"
+      class="saebooks-input w-full text-sm"
+      {% if errors.get('send_to') %}style="border-color:var(--neg);"{% endif %}
+    >
+    {% if errors.get("send_to") %}
+    <p class="mt-1 text-xs" style="color:var(--neg);">{{ errors["send_to"] }}</p>
+    {% endif %}
+  </div>
+
+  <div class="flex items-center gap-2">
+    <input
+      type="checkbox"
+      id="skip_missed"
+      name="skip_missed"
+      value="1"
+      {% if form.get('skip_missed') %}checked{% endif %}
+      class="h-4 w-4 rounded border-gray-300 text-[#194291]
+             focus:ring-2 focus:ring-[#194291]"
+    >
+    <label for="skip_missed" class="text-sm ink-2">
+      {{ _("If runs were missed (paused or offline), make only the latest invoice") }}
+    </label>
+  </div>
 </fieldset>
 
 {# ── Line items ── #}

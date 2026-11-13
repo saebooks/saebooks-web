@@ -75,6 +75,11 @@
       </a>
       {% set _outstanding = invoice.total|float - invoice.amount_paid|float %}
       {% if _outstanding > 0 %}
+      <form method="post" action="/invoices/{{ invoice.id }}/send-reminder" class="inline"
+            onsubmit="return confirm('{{ _('Email the customer a payment reminder now?') }}');">
+        {{ csrf_input(request)|safe }}
+        <button type="submit" class="btn-secondary text-sm">{{ _("Send reminder") }}</button>
+      </form>
       <a href="/payments/new?contact_id={{ invoice.contact_id|urlencode }}&amp;direction=INCOMING&amp;amount={{ '%.2f'|format(_outstanding) }}&amp;invoice_id={{ invoice.id|urlencode }}&amp;reference={{ ('Invoice ' ~ (invoice.number or invoice.id))|urlencode }}"
          class="btn-secondary text-sm">
         {{ _("Record payment") }}
@@ -241,14 +246,78 @@
 </section>
 {% endif %}
 
-{# ── Stripe payment link ── #}
+{# ── b11: customer email bounced ── #}
+{% if customer and customer.email_bounced_at %}
+<section class="mb-7">
+  <div class="card p-3 flex items-start gap-2" style="border-color:var(--neg);" role="alert">
+    <span class="dot mt-1.5" style="background:var(--neg);"></span>
+    <div class="text-sm">
+      <p style="color:var(--neg);" class="font-semibold">{{ _("Email to %(e)s bounced, so the customer may not have this invoice.") % {"e": customer.email} }}</p>
+      {% if customer.email_bounce_reason %}<p class="ink-3 mt-1">{{ customer.email_bounce_reason }}</p>{% endif %}
+      <a href="/contacts/{{ customer.id }}/edit" class="sae hover:underline">{{ _("Fix the email address") }}</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ── Online payment (b11: stable Pay now link + Paid online) ── #}
 {% if invoice.status == 'POSTED' %}
 <section class="mb-7">
-  <p class="nav-section-label mb-2">{{ _("Payment link") }}</p>
-  {% set invoice_id = invoice.id %}
-  {% set stripe_payment_link = invoice.stripe_payment_link %}
-  {% set stripe_error = None %}
-  {% include "invoices/_stripe_payment_link.html" with context %}
+  <p class="nav-section-label mb-2">{{ _("Pay online") }}</p>
+  {% if online.get("paid_online") %}
+    {% for p in online.paid_online %}
+    <div class="card p-3 mb-2 flex items-center gap-2">
+      <span class="badge-pos">{{ _("Paid online") }}</span>
+      <span class="text-sm ink-2">{{ _("%(a)s by card on %(d)s") % {"a": num(p.amount|float, 2), "d": p.date} }}</span>
+      <a href="/payments/{{ p.payment_id }}" class="text-sm sae hover:underline ml-auto">{{ _("View payment") }}</a>
+    </div>
+    {% endfor %}
+  {% endif %}
+  {% if online and not online.get("available") %}
+    <p class="text-sm ink-3">{{ online.get("reason") }}</p>
+  {% else %}
+    {% set invoice_id = invoice.id %}
+    {% set stripe_payment_link = online.get("link") or invoice.stripe_payment_link %}
+    {% set stripe_error = None %}
+    {% include "invoices/_stripe_payment_link.html" with context %}
+    <p class="text-xs ink-3 mt-1">{{ _("The link goes in the invoice email, reminders and the PDF. It always asks for what is still owing, and the payment is recorded here when the customer pays.") }}</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{# ── Reminders sent ── #}
+{% if reminders %}
+<section class="mb-7">
+  <p class="nav-section-label mb-2">{{ _("Reminders") }}</p>
+  <div class="card overflow-hidden">
+    <table class="sae-table w-full text-sm">
+      <thead><tr>
+        <th class="text-left">{{ _("When") }}</th>
+        <th class="text-left">{{ _("Type") }}</th>
+        <th class="text-left">{{ _("Result") }}</th>
+      </tr></thead>
+      <tbody>
+        {% for r in reminders %}
+        <tr>
+          <td class="num font-mono text-xs ink-2">{{ (r.created_at or "")[:16].replace("T", " ") }}</td>
+          <td class="ink-2">
+            {% if r.kind == 'manual' %}{{ _("Sent by hand") }}
+            {% elif r.stage_days is not none and r.stage_days < 0 %}{{ _("%(n)s days before due") % {"n": -r.stage_days} }}
+            {% elif r.stage_days == 0 %}{{ _("On the due date") }}
+            {% else %}{{ _("%(n)s days overdue") % {"n": r.stage_days} }}{% endif %}
+          </td>
+          <td>
+            {% if r.outcome == 'sent' %}<span class="badge-paid">{{ _("Sent") }}</span>
+            {% elif r.outcome == 'drafted' %}<span class="badge-pending">{{ _("Draft") }}</span>
+            {% elif r.outcome == 'failed' %}<span class="badge-overdue">{{ _("Failed") }}</span>
+            {% else %}<span class="badge-draft">{{ _("Not sent") }}</span>{% endif %}
+            {% if r.detail and r.outcome != 'sent' %}<span class="text-xs ink-3 ml-2">{{ r.detail | truncate(90) }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endif %}
 
@@ -274,13 +343,15 @@
       </thead>
       <tbody>
         {% for ev in email_log %}
-        {% set badge_class = {'sent':'badge-paid','queued':'badge-pending','blocked':'badge-draft','failed':'badge-overdue'}.get(ev.resend_status, 'badge-draft') %}
+        {% set _state = ev.delivery_state or ev.resend_status %}
+        {% set badge_class = {'sent':'badge-paid','delivered':'badge-paid','opened':'badge-paid','queued':'badge-pending','drafted':'badge-pending','blocked':'badge-draft','failed':'badge-overdue','bounced':'badge-overdue','complained':'badge-overdue'}.get(_state, 'badge-draft') %}
         <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/email-log/{{ ev.id }}'">
           <td class="num font-mono text-xs ink-2">{{ ev.sent_at[:19].replace('T', ' ') }}</td>
           <td class="font-mono text-xs ink-1">{{ ev.to_addrs | join(', ') }}</td>
           <td class="ink-1 truncate" style="max-width:280px;">{{ ev.subject }}</td>
           <td>
-            <span class="{{ badge_class }}">{{ ev.resend_status | capitalize }}</span>
+            <span class="{{ badge_class }}">{% include "email_log/_delivery_label.html" %}</span>
+            {% if ev.bounce_reason %}<span class="text-xs ml-2" style="color:var(--neg);" title="{{ ev.bounce_reason }}">{{ ev.bounce_reason | truncate(60) }}</span>{% endif %}
             {% if ev.kill_switch_reason %}
               <span class="text-xs ink-3 ml-2" title="{{ ev.kill_switch_reason }}">
                 {{ ev.kill_switch_reason | truncate(60) }}

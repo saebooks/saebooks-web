@@ -1,0 +1,13 @@
+{#- b11 (P2-22): one plain word for what happened to an email. Expects `ev`
+    (an email-log row). Uses delivery_state from the engine, falling back to
+    the raw send status for older engines. -#}
+{%- set _st = ev.delivery_state or ev.resend_status -%}
+{%- if _st == 'bounced' -%}{{ _("Bounced") }}
+{%- elif _st == 'complained' -%}{{ _("Marked as spam") }}
+{%- elif _st == 'failed' -%}{{ _("Failed") }}
+{%- elif _st == 'blocked' -%}{{ _("Not sent") }}
+{%- elif _st == 'drafted' -%}{{ _("Draft in Outlook") }}
+{%- elif _st == 'opened' -%}{{ _("Opened") }}
+{%- elif _st == 'delivered' -%}{{ _("Delivered") }}
+{%- elif _st == 'queued' -%}{{ _("Queued") }}
+{%- else -%}{{ _("Sent") }}{%- endif -%}

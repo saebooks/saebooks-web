@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Recurring bills") }} — {{ current_brand().name }}{% endblock %}
+
+{% block content %}
+{% if flash %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--warm);">
+  <span class="dot" style="background:var(--warm);"></span>
+  <span class="text-sm ink-2">{{ flash }}</span>
+</div>
+{% endif %}
+{% if error %}
+<div class="card p-3 mb-6 flex items-center gap-2" style="border-color:var(--neg);" role="alert">
+  <span class="dot" style="background:var(--neg);"></span>
+  <span class="text-sm" style="color:var(--neg);">{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold ink-1">{{ _("Recurring bills") }}</h1>
+    <p class="text-sm ink-3 mt-1">{{ _("Rent, subscriptions and other supplier costs that repeat. Each one is made on its date, every morning, without you keying it.") }}</p>
+  </div>
+  <a href="/recurring-bills/new" class="btn-primary text-sm">{{ _("New recurring bill") }}</a>
+</div>
+
+<div class="mb-4 flex flex-wrap gap-2 text-sm">
+  <a href="/recurring-bills" class="{% if not status and not archived %}btn-primary{% else %}btn-secondary{% endif %} text-xs">{{ _("All") }}</a>
+  <a href="/recurring-bills?status=ACTIVE" class="{% if status == 'ACTIVE' %}btn-primary{% else %}btn-secondary{% endif %} text-xs">{{ _("Active") }}</a>
+  <a href="/recurring-bills?status=PAUSED" class="{% if status == 'PAUSED' %}btn-primary{% else %}btn-secondary{% endif %} text-xs">{{ _("Paused") }}</a>
+  <a href="/recurring-bills?archived=1" class="{% if archived %}btn-primary{% else %}btn-secondary{% endif %} text-xs">{{ _("Archived") }}</a>
+</div>
+
+{% if items %}
+<div class="card overflow-x-auto">
+  <table class="min-w-full text-sm">
+    <thead class="bg-[color:var(--paper-2)]">
+      <tr>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Name") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Supplier") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("How often") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Next bill") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Made") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rb in items %}
+      <tr class="hairline-t">
+        <td class="px-4 py-3 font-medium"><a href="/recurring-bills/{{ rb.id }}" class="sae hover:underline">{{ rb.name }}</a></td>
+        <td class="px-4 py-3 ink-2">{{ names.get(rb.contact_id) or "—" }}</td>
+        <td class="px-4 py-3 ink-2">{{ rb.frequency | title }}</td>
+        <td class="px-4 py-3 ink-2">{{ rb.next_run }}{% if rb.status == 'ACTIVE' and rb.next_run < today_iso %} <span class="badge-warm">{{ _("waiting") }}</span>{% endif %}</td>
+        <td class="px-4 py-3 text-right num-display ink-2">{{ rb.bills_generated }}</td>
+        <td class="px-4 py-3">
+          {% if rb.last_error %}<span class="badge-neg" title="{{ rb.last_error }}">{{ _("Failed") }}</span>
+          {% elif rb.status == 'ACTIVE' %}<span class="badge-pos">{{ _("Active") }}</span>
+          {% elif rb.status == 'PAUSED' %}<span class="badge-warm">{{ _("Paused") }}</span>
+          {% else %}<span class="badge-draft">{{ _("Ended") }}</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card p-8 text-center">
+  <p class="text-sm ink-3">{{ _("No recurring bills yet.") }}</p>
+  <a href="/recurring-bills/new" class="text-sm sae hover:underline mt-2 inline-block">{{ _("Set one up for your rent or a subscription →") }}</a>
+</div>
+{% endif %}
+{% endblock %}

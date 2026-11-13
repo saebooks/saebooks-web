@@ -59,9 +59,11 @@
             {% else %}
               <span class="badge-draft">{{ _("No") }}</span>
             {% endif %}
+            {% if ri.auto_send %}<span class="badge-sae ml-1" title="{{ _('Emailed automatically') }}">{{ _("Emailed") }}</span>{% endif %}
           </td>
           <td class="px-4 py-3">
-            {% if ri.status == 'ACTIVE' %}<span class="badge-pos">{{ ri.status | replace("_", " ") | title }}</span>
+            {% if ri.last_error %}<span class="badge-neg" title="{{ ri.last_error }}">{{ _("Failed") }}</span>
+            {% elif ri.status == 'ACTIVE' %}<span class="badge-pos">{{ ri.status | replace("_", " ") | title }}</span>
             {% elif ri.status == 'PAUSED' %}<span class="badge-warm">{{ ri.status | replace("_", " ") | title }}</span>
             {% elif ri.status == 'ENDED' %}<span class="badge-draft">{{ ri.status | replace("_", " ") | title }}</span>
             {% else %}<span class="badge-draft">{{ ri.status | replace("_", " ") | title }}</span>{% endif %}

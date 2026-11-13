@@ -27,6 +27,19 @@ def _require_auth(request: Request) -> bool:
     return bool(request.session.get("user_id") or request.session.get("user_email"))
 
 
+# b11: delivery filter chips (value -> label). "problem" = everything that
+# did not reach the customer: bounced, marked as spam, failed or not sent.
+_DELIVERY_FILTERS = {
+    "problem": "Did not arrive",
+    "bounced": "Bounced",
+    "delivered": "Delivered",
+    "opened": "Opened",
+    "sent": "Sent, no news yet",
+    "drafted": "Draft in Outlook",
+    "blocked": "Not sent",
+    "failed": "Failed",
+}
+
 _STATUS_BADGES = {
     "sent":    ("badge-paid",    "Sent"),
     "queued":  ("badge-pending", "Queued"),
@@ -42,6 +55,7 @@ async def email_log_list(
     offset: int = 0,
     doc_type: str | None = None,
     status: str | None = None,
+    delivery: str | None = None,
 ) -> HTMLResponse | RedirectResponse:
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -51,6 +65,10 @@ async def email_log_list(
         params["doc_type"] = doc_type
     if status:
         params["status"] = status
+    # b11 (P2-22): filter on what happened to the message (bounced,
+    # delivered, ...), not only on whether we handed it over.
+    if delivery and delivery in _DELIVERY_FILTERS:
+        params["delivery"] = delivery
 
     async with api_client(request) as client:
         resp = await client.get("/api/v1/email-log", params=params)
@@ -79,6 +97,8 @@ async def email_log_list(
             "next_offset":   next_offset,
             "filter_doc_type": doc_type or "",
             "filter_status":   status or "",
+            "filter_delivery": delivery if delivery in _DELIVERY_FILTERS else "",
+            "delivery_filters": _DELIVERY_FILTERS,
             "status_badges": _STATUS_BADGES,
         },
     )

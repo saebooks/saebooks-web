@@ -22,20 +22,22 @@
 
 {# ─── Filter chips ─── #}
 <div class="card p-3 mb-4 flex flex-wrap items-center gap-2">
-  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Status:") }}</span>
-  {% for s in ['', 'sent', 'queued', 'blocked', 'failed'] %}
-    {% set is_active = (filter_status == s) %}
-    <a href="/email-log?{% if filter_doc_type %}doc_type={{ filter_doc_type }}&{% endif %}{% if s %}status={{ s }}{% endif %}"
-       class="text-xs font-mono px-2 py-1 rounded
-              {% if is_active %}sae bg-paper-2 ring-1 ring-line{% else %}ink-2 hover:bg-paper-2{% endif %}">
-      {{ s or _('all') }}
+  <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("What happened:") }}</span>
+  {% set _dk = [''] + (delivery_filters | list) %}
+  {% for d in _dk %}
+    {% set is_active = (filter_delivery == d and not filter_status) %}
+    <a href="/email-log?{% if filter_doc_type %}doc_type={{ filter_doc_type }}&{% endif %}{% if d %}delivery={{ d }}{% endif %}"
+       class="text-xs px-2 py-1 rounded
+              {% if is_active %}sae bg-paper-2 ring-1 ring-line{% else %}ink-2 hover:bg-paper-2{% endif %}"
+       {% if d in ('problem', 'bounced') %}style="color:var(--neg);"{% endif %}>
+      {{ _(delivery_filters[d]) if d else _('All') }}
     </a>
   {% endfor %}
   <span class="mx-2 ink-4">·</span>
   <span class="text-[10px] font-mono uppercase tracking-wider ink-3">{{ _("Doc:") }}</span>
-  {% for d in ['', 'quote', 'invoice', 'bill', 'credit_note', 'remittance', 'letterhead'] %}
+  {% for d in ['', 'quote', 'invoice', 'bill', 'credit_note', 'statement', 'remittance', 'letterhead'] %}
     {% set is_active = (filter_doc_type == d) %}
-    <a href="/email-log?{% if filter_status %}status={{ filter_status }}&{% endif %}{% if d %}doc_type={{ d }}{% endif %}"
+    <a href="/email-log?{% if filter_status %}status={{ filter_status }}&{% endif %}{% if filter_delivery %}delivery={{ filter_delivery }}&{% endif %}{% if d %}doc_type={{ d }}{% endif %}"
        class="text-xs font-mono px-2 py-1 rounded
               {% if is_active %}sae bg-paper-2 ring-1 ring-line{% else %}ink-2 hover:bg-paper-2{% endif %}">
       {{ d or _('all') }}
@@ -59,7 +61,9 @@
     <tbody>
       {% if items %}
         {% for it in items %}
-        {% set badge = status_badges.get(it.resend_status, ('badge-draft', it.resend_status|capitalize)) %}
+        {% set _st = it.delivery_state or it.resend_status %}
+        {% set badge = ({'sent':'badge-paid','delivered':'badge-paid','opened':'badge-paid','queued':'badge-pending','drafted':'badge-pending','blocked':'badge-draft','failed':'badge-overdue','bounced':'badge-overdue','complained':'badge-overdue'}.get(_st, 'badge-draft'), '') %}
+        {% set ev = it %}
         <tr class="hover:bg-paper-2 cursor-pointer" onclick="window.location='/email-log/{{ it.id }}'">
           <td class="num ink-2 font-mono text-xs">{{ it.sent_at[:19].replace('T', ' ') }}</td>
           <td class="ink-1">
@@ -74,10 +78,11 @@
           <td class="ink-1 font-mono text-xs">{{ it.to_addrs | join(', ') }}</td>
           <td class="ink-1 truncate" style="max-width:260px;">{{ it.subject }}</td>
           <td>
-            <span class="{{ badge[0] }}">{{ badge[1] }}</span>
+            <span class="{{ badge[0] }}">{% include "email_log/_delivery_label.html" %}</span>
           </td>
           <td class="ink-3 text-xs">
-            {% if it.kill_switch_reason %}
+            {% if it.bounce_reason %}<span style="color:var(--neg);">{{ it.bounce_reason | truncate(80) }}</span>
+            {% elif it.kill_switch_reason %}
               <span title="{{ it.kill_switch_reason }}">{{ it.kill_switch_reason | truncate(60) }}</span>
             {% elif it.resend_error %}
               <span style="color:var(--neg);" title="{{ it.resend_error }}">{{ it.resend_error | truncate(60) }}</span>
@@ -102,11 +107,11 @@
   </div>
   <div class="flex gap-2">
     {% if prev_offset is not none %}
-    <a href="/email-log?offset={{ prev_offset }}&limit={{ limit }}{% if filter_doc_type %}&doc_type={{ filter_doc_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
+    <a href="/email-log?offset={{ prev_offset }}&limit={{ limit }}{% if filter_doc_type %}&doc_type={{ filter_doc_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_delivery %}&delivery={{ filter_delivery }}{% endif %}"
        class="btn-secondary text-sm py-1.5">← {{ _("Previous") }}</a>
     {% endif %}
     {% if next_offset is not none %}
-    <a href="/email-log?offset={{ next_offset }}&limit={{ limit }}{% if filter_doc_type %}&doc_type={{ filter_doc_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
+    <a href="/email-log?offset={{ next_offset }}&limit={{ limit }}{% if filter_doc_type %}&doc_type={{ filter_doc_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if filter_delivery %}&delivery={{ filter_delivery }}{% endif %}"
        class="btn-secondary text-sm py-1.5">{{ _("Next") }} →</a>
     {% endif %}
   </div>

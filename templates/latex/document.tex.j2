@@ -22,6 +22,8 @@
       address      dict  keys: address_line1, city, state, postcode, country
       bank         dict  keys: name, bsb, account_number, account_name —
                          drives the How-to-Pay panel on Tax Invoices
+    pay_online_url str   optional (b11) — stable "Pay now" link; adds a
+                         "Pay online" line to the How-to-Pay panel
     bank_details   dict  same keys as company.bank (resolved from the account
                          flagged show_on_invoice, falling back to the
                          company's bank_* columns) — drives the Remit-to
@@ -209,7 +211,18 @@
     \textbf{Reference:} & {{ number | latex_escape }} \\[2mm]
     \textbf{Amount Payable:} & {\large\bfseries \$ {{ "%.2f"|format(balance_due) | latex_escape }}} \\[1mm]
     {% if due_date %}\textbf{Due Date:} & {{ due_date | latex_escape }}{% endif %}
+    {% if pay_online_url %}\\[1mm]\textbf{Pay online:} & \href{{ "{" }}{{ pay_online_url | latex_escape }}{{ "}{" }}Pay by card{{ "}" }}{% endif %}
   \end{tabular}
+  \vspace{1mm}
+}}
+{% elif kind == 'Tax Invoice' and pay_online_url %}
+%% b11: no bank details on file, but online card payment is on.
+\vspace{3mm}
+\noindent\fcolorbox{saegreen}{lightgrey}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
+  \vspace{1mm}
+  {\large\bfseries\color{saegreen}How to Pay}\\[2mm]
+  \textbf{Pay online by card:} \href{{ "{" }}{{ pay_online_url | latex_escape }}{{ "}{" }}{{ pay_online_url | latex_escape }}{{ "}" }}\\[1mm]
+  \textbf{Reference:} {{ number | latex_escape }}
   \vspace{1mm}
 }}
 {% endif %}
