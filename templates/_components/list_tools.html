@@ -1,0 +1,77 @@
+{#
+  Shared list-screen controls (batch 8, "finding things").
+
+    {% import "_components/list_tools.html" as lt %}
+
+  * lt.contact_picker(...)  type-ahead customer / supplier filter. Needs
+                            <script src="/static/js/contact_picker.js" defer>
+                            on the page.
+  * lt.search_box(q, hint)  free text: number, reference, name, or an amount.
+  * lt.amount_range(lo, hi) smallest / largest total.
+  * lt.page_size(limit)     rows per page (replaces the hidden limit input).
+  * lt.export_link(path, filters)  "Download spreadsheet" with the current
+                            filters and sort, every matching row.
+
+  Labels follow the filter-bar style used across the lists.
+#}
+
+{% macro _label(for_id, text) -%}
+  <label for="{{ for_id }}" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ text }}</label>
+{%- endmacro %}
+
+{% macro contact_picker(name, label, role, value, value_name, input_id=None, autosubmit=True) -%}
+  {%- set _id = input_id or (name ~ "_picker") -%}
+  <div class="relative" data-contact-picker data-role="{{ role }}"{% if autosubmit %} data-autosubmit{% endif %}>
+    {{ _label(_id, label) }}
+    <input type="hidden" name="{{ name }}" value="{{ value or '' }}" data-cp-value>
+    <input type="search" id="{{ _id }}" value="{{ value_name or '' }}"
+           placeholder="{{ _('Type a name') }}" autocomplete="off" spellcheck="false"
+           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="{{ _id }}-list"
+           class="saebooks-input text-sm py-1.5 w-64" data-cp-text>
+    <ul id="{{ _id }}-list" role="listbox" hidden data-cp-list
+        class="absolute left-0 mt-1 w-72 max-h-72 overflow-y-auto rounded-lg z-30"
+        style="background: var(--surface); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(10,20,40,.18);"></ul>
+  </div>
+{%- endmacro %}
+
+{% macro search_box(q, hint=None, input_id="q") -%}
+  <div>
+    {{ _label(input_id, _("Search")) }}
+    <input type="search" id="{{ input_id }}" name="q" value="{{ q or '' }}"
+           placeholder="{{ hint or _('Number, reference, name or amount') }}"
+           class="saebooks-input text-sm py-1.5 w-64" autocomplete="off">
+  </div>
+{%- endmacro %}
+
+{% macro amount_range(amount_min, amount_max) -%}
+  <div>
+    {{ _label("amount_min", _("Amount from")) }}
+    <input type="text" inputmode="decimal" id="amount_min" name="amount_min" value="{{ amount_min or '' }}"
+           placeholder="0.00" class="saebooks-input num text-sm py-1.5 w-28">
+  </div>
+  <div>
+    {{ _label("amount_max", _("Amount to")) }}
+    <input type="text" inputmode="decimal" id="amount_max" name="amount_max" value="{{ amount_max or '' }}"
+           placeholder="0.00" class="saebooks-input num text-sm py-1.5 w-28">
+  </div>
+{%- endmacro %}
+
+{% macro page_size(limit, sizes=(25, 50, 100, 200, 500)) -%}
+  <div>
+    {{ _label("limit", _("Rows per page")) }}
+    <select id="limit" name="limit" class="saebooks-input text-sm py-1.5"
+            onchange="this.form.requestSubmit()">
+      {% for n in sizes %}
+      <option value="{{ n }}" {% if n == limit %}selected{% endif %}>{{ n }}</option>
+      {% endfor %}
+    </select>
+  </div>
+{%- endmacro %}
+
+{% macro export_link(base_path, filters) -%}
+  <a href="{{ base_path }}?export=csv{% for k, v in (filters or {}).items() if v %}&amp;{{ k }}={{ v | string | urlencode }}{% endfor %}"
+     class="btn-secondary text-sm"
+     title="{{ _('Every row that matches these filters, in this order, as a spreadsheet file') }}">
+    <i data-lucide="download" class="w-4 h-4" aria-hidden="true"></i><span>{{ _("Download spreadsheet") }}</span>
+  </a>
+{%- endmacro %}

@@ -4,7 +4,15 @@
 #}
 {% import "_components/kebab_menu.html" as km %}
 {% import "_partials/empty_state.html" as empty %}
+{% import "_sort_macros.html" as srt %}
+{% import "_components/list_tools.html" as lt %}
+{% set filters = {'status': filter_status, 'contact_id': filter_contact_id,
+                  'date_from': filter_date_from, 'date_to': filter_date_to,
+                  'q': filter_q, 'amount_min': filter_amount_min,
+                  'amount_max': filter_amount_max, 'limit': limit} %}
 <div id="credit-notes-table">
+
+<div class="flex justify-end mb-2">{{ lt.export_link('/credit-notes', dict(filters, sort=sort, direction=direction)) }}</div>
 
 {% if error %}
 <div class="card p-3 mb-4 flex items-center gap-2" style="border-color:var(--neg);">
@@ -22,12 +30,12 @@
                  onclick="window.__listTable && window.__listTable.toggleSelectAll(this)"
                  class="h-4 w-4 rounded hairline text-[#194291] focus:ring-[#194291]">
         </th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("CN #") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Date") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Contact") }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('number', _('Credit note number'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('issue_date', _('Date'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('contact', _('Customer'), sort, direction, filters) }}</th>
         <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Credit left") }}</th>
-        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Amount") }}</th>
-        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ _("Status") }}</th>
+        <th scope="col" class="px-4 py-3 text-right font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('total', _('Amount'), sort, direction, filters) }}</th>
+        <th scope="col" class="px-4 py-3 text-left font-medium ink-3 uppercase tracking-wide text-xs">{{ srt.sort_link('status', _('Status'), sort, direction, filters) }}</th>
         <th scope="col" class="w-8"></th>
       </tr>
     </thead>
@@ -109,12 +117,7 @@
 </div>
 
 {% import "_pagination_macros.html" as pg %}
-{% set pg_filters = {
-  'status': filter_status,
-  'contact_id': filter_contact_id,
-  'date_from': filter_date_from,
-  'date_to': filter_date_to
-} %}
+{% set pg_filters = dict(filters, sort=sort, direction=direction, limit='') %}
 {{ pg.page_numbers('/credit-notes', total, limit, offset, pg_filters, target='#credit-notes-table') }}
 
 </div>{# end #credit-notes-table #}

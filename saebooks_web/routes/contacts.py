@@ -23,9 +23,10 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from saebooks_web import list_helpers as lh
 from saebooks_web.api_client import api_client
 from saebooks_web.archive_helpers import archive_entity as _archive_entity
 
@@ -99,7 +100,48 @@ def _apply_einvoice_recipient_fields(
 # ---------------------------------------------------------------------------
 
 
-_CONTACT_TYPE_VALUES = {"CUSTOMER", "SUPPLIER", "BOTH", "BENEFICIARY"}
+_CONTACT_TYPE_VALUES = {
+    "CUSTOMER", "SUPPLIER", "CONTRACTOR", "SUB_CONTRACTOR", "BOTH", "BENEFICIARY",
+}
+_CONTACT_SORT_KEYS = {"name", "type", "email", "phone", "abn", "city", "created_at"}
+_LOOKUP_ROLES = {"customer", "supplier"}
+
+
+@router.get("/contacts/_lookup", response_model=None)
+async def contacts_lookup(
+    request: Request,
+    q: str = "",
+    role: str = "",
+    limit: int = 20,
+) -> Response:
+    """JSON for the type-ahead contact pickers on the list filters.
+
+    ``role=customer|supplier`` narrows to the contact types that can sit on
+    that side (supplier includes contractors and "both"). Returns
+    ``{"items": [{"id", "name", "type"}]}``, name order. Declared before
+    ``/contacts/{contact_id}`` so the literal path wins.
+    """
+    if not _require_auth(request):
+        return JSONResponse({"items": []}, status_code=401)
+    params: dict[str, object] = {
+        "limit": max(1, min(int(limit or 20), 50)),
+        "offset": 0,
+        "sort": "name",
+        "direction": "asc",
+    }
+    if q.strip():
+        params["q"] = q.strip()[:200]
+    if role.strip().lower() in _LOOKUP_ROLES:
+        params["role"] = role.strip().lower()
+    items: list[dict[str, object]] = []
+    async with api_client(request) as client:
+        resp = await client.get("/api/v1/contacts", params=params)
+        if resp.is_success:
+            items = [
+                {"id": c.get("id"), "name": c.get("name"), "type": c.get("contact_type")}
+                for c in resp.json().get("items", [])
+            ]
+    return JSONResponse({"items": items})
 
 
 @router.get("/contacts", response_class=HTMLResponse, response_model=None)
@@ -108,9 +150,13 @@ async def contacts_list(
     show: str | None = None,
     contact_type: str | None = None,
     owing: str | None = None,
+    q: str | None = None,
+    sort: str = "name",
+    direction: str = "asc",
+    export: str | None = None,
     limit: int = 50,
     offset: int = 0,
-) -> HTMLResponse | RedirectResponse:
+) -> HTMLResponse | RedirectResponse | Response:
     """Render the contacts list page.
 
     Each row carries the engine's balances (``include_balances=true``): owed
@@ -121,8 +167,10 @@ async def contacts_list(
     ``?show=one-off`` lists ONLY the one-offs; ``?show=all`` lists
     everything. Anything else (or unset) renders the main pool.
 
-    ``?contact_type=CUSTOMER|SUPPLIER|BOTH|BENEFICIARY`` filters by the
-    underlying ContactType enum.
+    ``?contact_type=CUSTOMER|SUPPLIER|CONTRACTOR|SUB_CONTRACTOR|BOTH|BENEFICIARY``
+    filters by the underlying ContactType enum. ``?q=`` searches name,
+    email, ABN and other names; ``sort``/``direction`` sort on the server;
+    ``?export=csv`` downloads every matching contact as a spreadsheet.
     """
     if not _require_auth(request):
         return RedirectResponse(url="/login", status_code=303)
@@ -134,11 +182,17 @@ async def contacts_list(
     ct = (contact_type or "").upper().strip()
     if ct not in _CONTACT_TYPE_VALUES:
         ct = ""
+    sort = sort if sort in _CONTACT_SORT_KEYS else "name"
+    direction = "desc" if direction == "desc" else "asc"
+    q_clean = (q or "").strip()
 
-    limit = max(1, min(int(limit or 50), 500))
+    limit = lh.clamp_page_size(limit)
     offset = max(0, int(offset or 0))
 
-    params: dict[str, object] = {"limit": limit, "offset": offset, "include_balances": "true"}
+    params: dict[str, object] = {
+        "limit": limit, "offset": offset, "sort": sort, "direction": direction,
+        "include_balances": "true",
+    }
     owing_only = (owing or "") in ("1", "true", "on", "yes")
     if owing_only:
         params["owing"] = "true"
@@ -147,8 +201,21 @@ async def contacts_list(
         # (alias on Query(default=None, alias="type")). Sending the field's
         # internal name "contact_type" is silently ignored.
         params["type"] = ct
+    if q_clean:
+        params["q"] = q_clean[:200]
 
     async with api_client(request) as client:
+        if lh.wants_csv(export):
+            resp = await client.get(
+                "/api/v1/contacts", params={**params, "format": "csv"}
+            )
+            if resp.status_code == 401:
+                request.session.clear()
+                return RedirectResponse(url="/login", status_code=303)
+            if resp.is_success:
+                return lh.csv_passthrough(resp, "contacts.csv")
+            request.session["flash"] = lh.export_error_message(resp)
+            return RedirectResponse(url="/contacts", status_code=303)
         resp = await client.get("/api/v1/contacts", params=params)
         if resp.status_code == 401:
             request.session.clear()
@@ -186,6 +253,9 @@ async def contacts_list(
             "show": show or "",
             "filter_contact_type": ct,
             "filter_owing": owing_only,
+            "filter_q": q_clean,
+            "sort": sort,
+            "direction": direction,
             "limit": limit,
             "offset": offset,
             "candidate_count": candidate_count,

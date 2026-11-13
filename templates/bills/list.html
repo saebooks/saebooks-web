@@ -33,18 +33,20 @@
 </header>
 
 <form hx-get="/bills" hx-target="#bills-table" hx-swap="outerHTML" hx-push-url="true"
-      class="card p-4 mb-5 flex flex-wrap gap-3 items-end">
+      class="card p-4 mb-5 flex flex-wrap gap-3 items-end" role="search">
+  {% import "_components/list_tools.html" as lt %}
+  {{ lt.search_box(filter_q, _("Number, supplier invoice number, name or amount")) }}
   <div>
     <label for="status" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Status") }}</label>
     <select id="status" name="status" class="saebooks-input text-sm py-1.5"
             onchange="this.form.requestSubmit()">
       <option value=""         {% if not filter_status %}selected{% endif %}>{{ _("All") }}</option>
-      <option value="unpaid"   {% if filter_status == "unpaid" %}selected{% endif %}>{{ _("Unpaid (all owing)") }}</option>
+      <option value="unpaid"   {% if filter_status == "unpaid" %}selected{% endif %}>{{ _("All unpaid") }}</option>
       <option value="draft"    {% if filter_status == "draft" %}selected{% endif %}>{{ _("Draft") }}</option>
-      <option value="open"     {% if filter_status == "open" %}selected{% endif %}>{{ _("Open") }}</option>
+      <option value="open"     {% if filter_status == "open" %}selected{% endif %}>{{ _("Unpaid, not yet due") }}</option>
       <option value="due-soon" {% if filter_status == "due-soon" %}selected{% endif %}>{{ _("Due soon") }}</option>
       <option value="overdue"  {% if filter_status == "overdue" %}selected{% endif %}>{{ _("Overdue") }}</option>
-      <option value="partial"  {% if filter_status == "partial" %}selected{% endif %}>{{ _("Partial") }}</option>
+      <option value="partial"  {% if filter_status == "partial" %}selected{% endif %}>{{ _("Part paid") }}</option>
       <option value="paid"     {% if filter_status == "paid" %}selected{% endif %}>{{ _("Paid") }}</option>
       <option value="voided"   {% if filter_status == "voided" %}selected{% endif %}>{{ _("Voided") }}</option>
     </select>
@@ -57,13 +59,12 @@
     <label for="date_to" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Date to") }}</label>
     <input type="date" id="date_to" name="date_to" value="{{ filter_date_to }}" class="saebooks-input num text-sm py-1.5">
   </div>
-  <div>
-    <label for="contact_id" class="text-[10px] font-mono uppercase tracking-wider ink-3 block mb-1">{{ _("Supplier") }}</label>
-    <input type="text" id="contact_id" name="contact_id" value="{{ filter_contact_id }}" placeholder="optional"
-           class="saebooks-input text-sm py-1.5 w-64">
-  </div>
-  <input type="hidden" name="limit" value="{{ limit }}">
+  {{ lt.contact_picker("contact_id", _("Supplier"), "supplier", filter_contact_id, filter_contact_name) }}
+  {{ lt.amount_range(filter_amount_min, filter_amount_max) }}
+  {{ lt.page_size(limit) }}
   <input type="hidden" name="offset" value="0">
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="direction" value="{{ direction }}">
   <button type="submit" class="btn-primary text-sm">{{ _("Filter") }}</button>
 </form>
 
@@ -84,5 +85,6 @@
 ) }}
 
 <script src="/static/js/list_table.js" defer></script>
+<script src="/static/js/contact_picker.js" defer></script>
 
 {% endblock %}

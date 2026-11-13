@@ -1338,6 +1338,13 @@
       cmdkFiltered = CMDK_ITEMS.filter(it =>
         it.t.toLowerCase().includes(q) || it.s.toLowerCase().includes(q) || it.g.toLowerCase().includes(q)
       );
+      // Always offer a full search of the books (numbers, references, names,
+      // amounts) as the first choice, so Enter finds records, not just pages.
+      const raw = cmdkInput.value.trim();
+      const safe = raw.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      cmdkFiltered = [{ g: {{ _('Search')|tojson }}, t: {{ _('Search the books for')|tojson }} + ' "' + safe + '"',
+                        s: {{ _('Numbers, references, names and amounts')|tojson }}, i: 'search',
+                        href: '/search?q=' + encodeURIComponent(raw) }, ...cmdkFiltered];
     }
     cmdkSel = 0; renderCmdK();
   }
