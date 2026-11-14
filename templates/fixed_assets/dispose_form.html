@@ -3,16 +3,17 @@
   Only rendered when asset.status == 'ACTIVE'.
 
   Expected context:
-    asset : the full asset dict
+    asset          : the full asset dict
+    gst_registered : True / False from the company record, None if unknown.
+                     The GST choice is shown only when registered; otherwise
+                     nothing is sent and the engine applies its default (the
+                     company's GST registration), the same as the preview.
 #}
 <div class="mb-8">
   <h2 class="text-base font-semibold ink-1 mb-3">{{ _("Dispose Asset") }}</h2>
   <div class="card px-6 py-5 max-w-2xl" style="border-color:var(--neg);">
-    <p class="text-sm ink-3 mb-2">
-      {{ _("Disposing an asset brings its depreciation up to the disposal date, takes it off the balance sheet, records the money received and works out the gain or loss. This cannot be undone.") }}
-    </p>
-    <p class="text-xs ink-3 mb-4">
-      {{ _("If you charged GST on the sale, raise an invoice for the sale and enter 0 here: the invoice records the money and the GST, and the asset is written off here.") }}
+    <p class="text-sm ink-3 mb-4">
+      {{ _("Disposing an asset brings its depreciation up to the disposal date, takes it off the balance sheet, records the money received and the GST on the sale, and works out the gain or loss. This cannot be undone.") }}
     </p>
     <form method="POST" action="/fixed-assets/{{ asset.id }}/dispose" novalidate data-submit-once>
     {{ csrf_input(request)|safe }}
@@ -47,12 +48,25 @@
           >
         </div>
 
+        {% if gst_registered %}
+        <div>
+          <label for="gst_applies" class="block text-sm font-medium ink-2 mb-1">
+            {{ _("GST on the sale") }}
+          </label>
+          <select id="gst_applies" name="gst_applies"
+                  class="saebooks-input w-full max-w-lg px-3 py-2 text-sm">
+            <option value="true" selected>{{ _("The price includes GST (one eleventh is GST and goes on the BAS)") }}</option>
+            <option value="false">{{ _("No GST on this sale (GST-free)") }}</option>
+          </select>
+        </div>
+        {% endif %}
+
         {# b15 (P2-4): book value, GST and gain or loss before anything is
-           recorded. Refreshes as the date and price are typed. #}
+           recorded. Refreshes as the date, price and GST choice change. #}
         <div id="disposal-preview" aria-live="polite"
              hx-get="/fixed-assets/{{ asset.id }}/disposal-preview"
-             hx-trigger="change from:#disposal_date, keyup changed delay:500ms from:#proceeds"
-             hx-include="#disposal_date, #proceeds"
+             hx-trigger="change from:#disposal_date, keyup changed delay:500ms from:#proceeds{% if gst_registered %}, change from:#gst_applies{% endif %}"
+             hx-include="#disposal_date, #proceeds{% if gst_registered %}, #gst_applies{% endif %}"
              hx-swap="innerHTML"></div>
 
         <div>

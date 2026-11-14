@@ -70,6 +70,26 @@ async def _fetch_dep_models(request: Request) -> list[dict]:
     return []
 
 
+async def _fetch_gst_registered(request: Request) -> bool | None:
+    """The active company's GST registration, or None when it cannot be read.
+
+    None hides the "GST on the sale" choice on the dispose form; the engine
+    then applies its own default (the company's registration), so a failed
+    read never changes what posts.
+    """
+    company_id = getattr(request.state, "active_company_id", None)
+    if not company_id:
+        return None
+    try:
+        async with api_client(request) as client:
+            resp = await client.get(f"/api/v1/companies/{company_id}")
+        if resp.is_success:
+            return bool(resp.json().get("tax_registered"))
+    except Exception:  # degrade: the form still works without the choice
+        return None
+    return None
+
+
 async def _fetch_purchase_dropdowns(request: Request) -> dict[str, list[dict]]:
     """Accounts, GST codes and posted bills for "How was it paid for?" (P1-73)."""
     out: dict[str, list[dict]] = {"pay_accounts": [], "tax_codes": [], "bills": []}
@@ -546,6 +566,12 @@ async def fixed_asset_dispose(
     proceeds_account_id = form.get("proceeds_account_id", "").strip()
     if proceeds_account_id:
         payload["proceeds_account_id"] = proceeds_account_id
+    # GST on the sale: only on the form for a GST-registered business. Absent
+    # = the engine's default (the company's GST registration), the same
+    # default the disposal preview uses, so what posts is what was previewed.
+    gst_applies = form.get("gst_applies", "").strip().lower()
+    if gst_applies in ("true", "false"):
+        payload["gst_applies"] = gst_applies == "true"
 
     async with api_client(request) as client:
         resp = await client.post(
@@ -560,8 +586,8 @@ async def fixed_asset_dispose(
 
     if resp.status_code == 200:
         request.session["flash"] = (
-            "Asset disposed. The sale, the cost, the depreciation to date and the "
-            "gain or loss are now in the accounts."
+            "Asset disposed. The sale, any GST on it, the cost, the depreciation "
+            "to date and the gain or loss are now in the accounts."
         )
         return RedirectResponse(url=f"/fixed-assets/{asset_id}", status_code=303)
 
@@ -1016,11 +1042,14 @@ async def fixed_asset_detail(
     # on ACTIVE assets, but cheap enough to always fetch).
     accounts: list[dict] = []
     purchase_lists: dict[str, list[dict]] = {"pay_accounts": [], "tax_codes": [], "bills": []}
+    gst_registered: bool | None = None
     if asset.get("status") == "active":
         accounts = await _fetch_accounts(request)
         # Balance sheet accounts for "money received into" on disposal, and
         # the link-purchase form when the asset is not tied to a purchase.
         purchase_lists = await _fetch_purchase_dropdowns(request)
+        # Whether to offer the "GST on the sale" choice on the dispose form.
+        gst_registered = await _fetch_gst_registered(request)
 
     return _TEMPLATES.TemplateResponse(
         request,
@@ -1032,6 +1061,7 @@ async def fixed_asset_detail(
             "through_default": through_default,
             "accounts": accounts,
             "today": _today.isoformat(),
+            "gst_registered": gst_registered,
             **purchase_lists,
         },
     )

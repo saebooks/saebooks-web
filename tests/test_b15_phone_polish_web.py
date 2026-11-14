@@ -461,10 +461,12 @@ async def test_disposal_preview_shows_gst_and_gain() -> None:
     html = resp.text
     assert "Gain on sale" in html and "1,250.00" in html
     assert "GST on the sale" in html
-    # Review fix: the Dispose button posts nothing to the ledger, so the
-    # panel must not promise it "will record" these figures, and says so.
+    # 2026-11-14: the Dispose button now posts exactly these figures (the
+    # engine uses one GST rule for the preview and the journal), so the old
+    # "does not post" caveat is replaced by what it does post.
     assert "What this disposal will record" not in html
-    assert "does not post the remaining depreciation" in html
+    assert "does not post the remaining depreciation" not in html
+    assert "Disposing posts these figures" in html
     assert parse_qs(urlparse(str(route.calls.last.request.url)).query)["sale_price"] == ["5500"]
 
 
