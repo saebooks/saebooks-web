@@ -68,7 +68,7 @@
 {% for p in items %}
   {% set r = p.get("return") %}
   {% set f = (r.figures if r else {}) or {} %}
-  <section class="card p-4">
+  <section class="card p-4" id="bas-{{ p.from_date }}">
     <div class="flex flex-wrap items-center gap-3 mb-2">
       <h2 class="font-semibold ink-1 flex-1">{{ p.label }}</h2>
       {{ status_chip(p.status) }}

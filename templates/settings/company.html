@@ -192,6 +192,17 @@
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("Sets the BAS period and due date on the dashboard.") }}</p>
           </div>
         </div>
+
+        {# Engine 0228: companies.bas_settle_requires_lodged (default off). #}
+        <div class="mt-4 flex items-start gap-2">
+          <input type="checkbox" id="bas_settle_requires_lodged" name="bas_settle_requires_lodged" value="true"
+            {% if form.get('bas_settle_requires_lodged') %}checked{% endif %}
+            class="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-[#194291] focus:ring-[#194291]">
+          <div>
+            <label for="bas_settle_requires_lodged" class="text-sm text-gray-700 dark:text-gray-300">{{ _("Only allow a BAS to be settled after it is marked lodged") }}</label>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ _("When this is on, settling a BAS period is refused until you record it as lodged, so the settlement always clears what the ATO was told.") }}</p>
+          </div>
+        </div>
       </div>
     </fieldset>
 

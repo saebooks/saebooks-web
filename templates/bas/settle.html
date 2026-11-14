@@ -63,6 +63,9 @@
   <p class="text-sm ink-2">{{ p }}</p>
 </div>
 {% endfor %}
+{% if plan.get("needs_lodging") %}
+<p class="text-xs ink-3 mb-2"><a class="sae hover:underline" href="/bas#bas-{{ from_date }}">{{ _("Mark this BAS lodged") }}</a></p>
+{% endif %}
 {% if plan.get("problems") %}
 <p class="text-xs ink-3 mb-4"><a class="sae hover:underline" href="/settings">{{ _("Open settings") }}</a></p>
 {% endif %}
